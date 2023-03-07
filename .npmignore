@@ -1,0 +1,12 @@
+.github/
+ci/
+coverage/
+test/
+**/*.test.js
+**/*.test.ts
+.babelrc
+.editorconfig
+CODE_OF_CONDUCT.md
+CONTRIBUTE.md
+build.js
+*/**/*.test.js

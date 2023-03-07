@@ -1,7 +1,10 @@
 .DS_Store
+dist/
+coverage/
 node_modules/
 config.yaml
 lib.js
 weaviate-data/
 .vscode/
 .idea/
+*.tgz
