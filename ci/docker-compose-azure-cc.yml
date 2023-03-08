@@ -11,7 +11,7 @@ services:
       - --scheme
       - http
       - --write-timeout=600s
-    image: semitechnologies/weaviate:1.18.0-alpha.1-41f7cb9
+    image: semitechnologies/weaviate:1.18.0
     ports:
       - 8081:8081
     restart: on-failure:0
