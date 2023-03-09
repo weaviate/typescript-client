@@ -2,11 +2,13 @@
 ci/
 coverage/
 test/
-**/*.test.js
 **/*.test.ts
 .babelrc
 .editorconfig
 CODE_OF_CONDUCT.md
 CONTRIBUTE.md
 build.js
-*/**/*.test.js
+.vscode/
+.idea/
+tsconfig-test.json
+jest.config.json
