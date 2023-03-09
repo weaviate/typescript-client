@@ -21,7 +21,7 @@ describe("c11y endpoints", () => {
       .extensionCreator()
       .withConcept("clientalmostdonehappyness")
       .withDefinition(
-        "the happyness you feel when the Weaviate Javascript client " +
+        "the happyness you feel when the Weaviate TypeScript client " +
         "is almost complete and ready to be released"
       )
       .withWeight(1)
@@ -30,7 +30,7 @@ describe("c11y endpoints", () => {
         expect(res).toEqual({
           concept: "clientalmostdonehappyness",
           definition:
-            "the happyness you feel when the Weaviate Javascript client " +
+            "the happyness you feel when the Weaviate TypeScript client " +
             "is almost complete and ready to be released",
           weight: 1,
         });

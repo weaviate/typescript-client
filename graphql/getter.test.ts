@@ -100,7 +100,7 @@ describe("where filters", () => {
   });
 
   // to prevent a regression on
-  // https://github.com/semi-technologies/weaviate-javascript-client/issues/6
+  // https://github.com/weaviate/weaviate-javascript-client/issues/6
   test("a query with a where filter containing a geo query", () => {
     const mockClient: any = {
       query: jest.fn(),

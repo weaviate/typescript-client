@@ -1,4 +1,4 @@
-### Thanks for looking into contributing to Weaviate JavaScript client!
+### Thanks for looking into contributing to Weaviate TypeScript client!
 Contributing works pretty easy. You can do a pull request or you can commit if you are part of a Weaviate team.
 
 ### Code of Conduct
@@ -29,7 +29,7 @@ If you create a pull request without smart commits, the pull request will be [sq
 
 ### Contributor License Agreement
 
-Contributions to Weaviate JavaScript client must be accompanied by a Contributor License Agreement. You (or your employer) retain the copyright to your contribution; this simply gives us permission to use and redistribute your contributions as part of Weaviate JavaScript client. Go to [this page](https://www.semi.technology/playbooks/misc/contributor-license-agreement.html) to read the current agreement.
+Contributions to Weaviate TypeScript client must be accompanied by a Contributor License Agreement. You (or your employer) retain the copyright to your contribution; this simply gives us permission to use and redistribute your contributions as part of Weaviate TypeScript client. Go to [this page](https://www.semi.technology/playbooks/misc/contributor-license-agreement.html) to read the current agreement.
 
 The process works as follows:
 
