@@ -1,4 +1,4 @@
-import {IDbVersionProvider} from "../utils/dbVersion";
+import {IDbVersionProvider} from "../src/utils/dbVersion";
 
 export class TestDbVersionProvider implements IDbVersionProvider {
   private version: string

@@ -1,6 +1,6 @@
-import {IWeaviateClient} from "../index";
+import {IWeaviateClient} from "../../index";
 
-import weaviate from '../index'
+import weaviate from '../../index'
 
 describe("schema", () => {
   const client = weaviate.client({

@@ -1,15 +1,15 @@
 import {isValidStringProperty} from "../validation/string";
-import Connection from "../connection";
+import Connection from "../../connection";
 import {CommandBase} from "../validation/commandBase";
 
-export default class ShardsGetter extends CommandBase {
+export default class ClassGetter extends CommandBase {
   private className?: string;
 
   constructor(client: Connection) {
     super(client)
   }
 
-  withClassName = (className: string) => {
+  withClassName = (className: any) => {
     this.className = className;
     return this;
   };
@@ -28,15 +28,10 @@ export default class ShardsGetter extends CommandBase {
     this.validate();
     if (this.errors.length > 0) {
       return Promise.reject(
-        new Error(`invalid usage: ${this.errors.join(", ")}`)
+        new Error("invalid usage: " + this.errors.join(", "))
       );
     }
-
-    return getShards(this.client, this.className)
+    const path = `/schema/${this.className}`;
+    return this.client.get(path);
   };
-}
-
-export function getShards(client: Connection, className: any) {
-  const path = `/schema/${className}/shards`;
-  return client.get(path)
 }

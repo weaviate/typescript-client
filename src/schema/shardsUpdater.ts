@@ -1,7 +1,7 @@
 import { isValidStringProperty } from "../validation/string";
 import { getShards } from "./shardsGetter";
 import { updateShard } from "./shardUpdater";
-import Connection from "../connection";
+import Connection from "../../connection";
 import {CommandBase} from "../validation/commandBase";
 
 export default class ShardsUpdater extends CommandBase {

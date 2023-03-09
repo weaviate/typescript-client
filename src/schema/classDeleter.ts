@@ -1,15 +1,15 @@
-import {isValidStringProperty} from "../validation/string";
-import Connection from "../connection";
+import { isValidStringProperty } from "../validation/string";
+import Connection from "../../connection";
 import {CommandBase} from "../validation/commandBase";
 
-export default class ClassGetter extends CommandBase {
+export default class ClassDeleter extends CommandBase {
   private className?: string;
 
   constructor(client: Connection) {
     super(client)
   }
 
-  withClassName = (className: any) => {
+  withClassName = (className: string) => {
     this.className = className;
     return this;
   };
@@ -32,6 +32,6 @@ export default class ClassGetter extends CommandBase {
       );
     }
     const path = `/schema/${this.className}`;
-    return this.client.get(path);
+    return this.client.delete(path, undefined, false);
   };
 }
