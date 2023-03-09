@@ -1,6 +1,6 @@
 {
   "name": "weaviate-ts-client",
-  "version": "0.1.0",
+  "version": "0.1.5",
   "description": "TypeScript client for Weaviate",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -8,13 +8,13 @@
     "node": ">=16.0.0"
   },
   "files": [
-    "/dist/index.js",
-    "/dist/index.js.map",
-    "/dist/**/*.d.ts"
+    "dist/index.js",
+    "dist/index.js.map",
+    "dist/**/*.d.ts"
   ],
   "scripts": {
     "test": " tsc -noEmit -p tsconfig-test.json && jest --useStderr --runInBand --detectOpenHandles --forceExit",
-    "build": "tsc -noEmit && ./build.js",
+    "build": "tsc --emitDeclarationOnly && ./build.js",
     "prepack": "npm run build"
   },
   "repository": {

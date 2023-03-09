@@ -12,3 +12,4 @@ build.js
 .idea/
 tsconfig-test.json
 jest.config.json
+.npmrc

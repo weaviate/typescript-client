@@ -8,3 +8,4 @@ weaviate-data/
 .vscode/
 .idea/
 *.tgz
+.npmrc
