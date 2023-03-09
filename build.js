@@ -4,7 +4,7 @@ const esbuild = require('esbuild')
 // https://esbuild.github.io/api/
 esbuild.build({
   bundle: true,
-  entryPoints: ['index.ts'],
+  entryPoints: ['./src/index.ts'],
   external: [
     '@babel/runtime',
     'isomorphic-fetch',

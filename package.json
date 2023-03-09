@@ -3,21 +3,22 @@
   "version": "0.1.5",
   "description": "TypeScript client for Weaviate",
   "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "types": "types/index.d.ts",
   "engines": {
     "node": ">=16.0.0"
   },
   "files": [
-    "dist/index.js",
-    "dist/index.js.map",
-    "dist/**/*.d.ts"
+    "/dist/index.js",
+    "/dist/index.js.map",
+    "/types/**/*.d.ts"
   ],
   "scripts": {
-    "test": " tsc -noEmit -p tsconfig-test.json && jest --useStderr --runInBand --detectOpenHandles --forceExit",
-    "build": "tsc -noEmit && ./build.js",
+    "test": "tsc -noEmit -p tsconfig-test.json && jest --useStderr --runInBand --detectOpenHandles --forceExit",
+    "build": "npm run lint && tsc && ./build.js",
     "prepack": "npm run build",
     "lint": "eslint --ext .ts,.js .",
-    "lint:fix": "npm run lint --fix"
+    "lint:fix": "npm run lint -- --fix",
+    "format": "prettier --write {src|test}/**/*.{ts,js}"
   },
   "repository": {
     "type": "git",
