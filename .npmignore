@@ -1,15 +1,12 @@
-.github/
-ci/
-coverage/
-test/
-**/*.test.ts
-.babelrc
-.editorconfig
-CODE_OF_CONDUCT.md
-CONTRIBUTE.md
-build.js
-.vscode/
-.idea/
-tsconfig-test.json
-jest.config.json
-.npmrc
+# This file is written to be a whitelist instead of a blacklist. Start by
+# ignoring everything, then add back the files we want to be included in the
+# final NPM package.
+*
+
+# And these are the files that are allowed.
+!/CHANGELOG.md
+!/LICENSE
+!/README.md
+!/package.json
+!/dist/**/*
+!/types/**/*
