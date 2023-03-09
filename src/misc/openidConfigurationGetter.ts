@@ -1,4 +1,4 @@
-import {IHttpClient} from "../connection/httpClient";
+import { IHttpClient } from '../connection/httpClient';
 
 export default class OpenidConfigurationGetterGetter {
   private client: IHttpClient;
@@ -8,8 +8,8 @@ export default class OpenidConfigurationGetterGetter {
 
   do = () => {
     return this.client
-      .getRaw("/.well-known/openid-configuration")
-      .then((res: { status: number; json: () => any; }) => {
+      .getRaw('/.well-known/openid-configuration')
+      .then((res: { status: number; json: () => any }) => {
         if (res.status < 400) {
           return res.json();
         }

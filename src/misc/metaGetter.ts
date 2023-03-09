@@ -1,10 +1,9 @@
-import Connection from "../connection";
-import {CommandBase} from "../validation/commandBase";
+import Connection from '../connection';
+import { CommandBase } from '../validation/commandBase';
 
 export default class MetaGetter extends CommandBase {
-
   constructor(client: Connection) {
-    super(client)
+    super(client);
   }
 
   validate() {
@@ -12,6 +11,6 @@ export default class MetaGetter extends CommandBase {
   }
 
   do = () => {
-    return this.client.get("/meta", true);
+    return this.client.get('/meta', true);
   };
 }

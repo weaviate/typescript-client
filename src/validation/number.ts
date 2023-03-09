@@ -7,12 +7,12 @@ export function isValidPositiveIntProperty(input: any) {
 }
 
 export function isValidNumber(input: any) {
-  return typeof input == "number";
+  return typeof input == 'number';
 }
 
 export function isValidNumberArray(input: any) {
   if (Array.isArray(input)) {
-    for (let i in input) {
+    for (const i in input) {
       if (!isValidNumber(input[i])) {
         return false;
       }

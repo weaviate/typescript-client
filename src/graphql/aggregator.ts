@@ -1,10 +1,10 @@
-import Where from "./where";
-import NearText from "./nearText";
-import NearVector from "./nearVector";
-import NearObject from "./nearObject";
-import {isValidPositiveIntProperty} from "../validation/number";
-import Connection from "../connection";
-import {CommandBase} from "../validation/commandBase";
+import Where from './where';
+import NearText from './nearText';
+import NearVector from './nearVector';
+import NearObject from './nearObject';
+import { isValidPositiveIntProperty } from '../validation/number';
+import Connection from '../connection';
+import { CommandBase } from '../validation/commandBase';
 
 export default class Aggregator extends CommandBase {
   private className?: string;
@@ -19,8 +19,8 @@ export default class Aggregator extends CommandBase {
   private whereString?: string;
 
   constructor(client: Connection) {
-    super(client)
-    this.includesNearMediaFilter = false
+    super(client);
+    this.includesNearMediaFilter = false;
   }
 
   withFields = (fields: string) => {
@@ -44,14 +44,16 @@ export default class Aggregator extends CommandBase {
 
   withNearText = (nearTextObj: any) => {
     if (this.includesNearMediaFilter) {
-      throw new Error("cannot use multiple near<Media> filters in a single query")
+      throw new Error(
+        'cannot use multiple near<Media> filters in a single query'
+      );
     }
 
     try {
       this.nearTextString = new NearText(nearTextObj).toString();
       this.includesNearMediaFilter = true;
     } catch (e: any) {
-      this.addError(e.toString())
+      this.addError(e.toString());
     }
 
     return this;
@@ -59,14 +61,16 @@ export default class Aggregator extends CommandBase {
 
   withNearObject = (nearObjectObj: any) => {
     if (this.includesNearMediaFilter) {
-      throw new Error("cannot use multiple near<Media> filters in a single query")
+      throw new Error(
+        'cannot use multiple near<Media> filters in a single query'
+      );
     }
 
     try {
       this.nearObjectString = new NearObject(nearObjectObj).toString();
       this.includesNearMediaFilter = true;
     } catch (e: any) {
-      this.addError(e.toString())
+      this.addError(e.toString());
     }
 
     return this;
@@ -74,14 +78,16 @@ export default class Aggregator extends CommandBase {
 
   withNearVector = (nearVectorObj: any) => {
     if (this.includesNearMediaFilter) {
-      throw new Error("cannot use multiple near<Media> filters in a single query")
+      throw new Error(
+        'cannot use multiple near<Media> filters in a single query'
+      );
     }
 
     try {
       this.nearVectorString = new NearVector(nearVectorObj).toString();
       this.includesNearMediaFilter = true;
     } catch (e: any) {
-      this.addError(e.toString())
+      this.addError(e.toString());
     }
 
     return this;
@@ -89,7 +95,7 @@ export default class Aggregator extends CommandBase {
 
   withObjectLimit = (objectLimit: number) => {
     if (!isValidPositiveIntProperty(objectLimit)) {
-      throw new Error("objectLimit must be a non-negative integer")
+      throw new Error('objectLimit must be a non-negative integer');
     }
 
     this.objectLimit = objectLimit;
@@ -113,13 +119,17 @@ export default class Aggregator extends CommandBase {
     }
 
     if (!Array.isArray(this.groupBy)) {
-      throw new Error("groupBy must be an array");
+      throw new Error('groupBy must be an array');
     }
   };
 
-  validateIsSet = (prop: string | undefined | null, name: string, setter: string) => {
+  validateIsSet = (
+    prop: string | undefined | null,
+    name: string,
+    setter: string
+  ) => {
     if (prop == undefined || prop == null || prop.length == 0) {
-      this.addError(`${name} must be set - set with ${setter}`)
+      this.addError(`${name} must be set - set with ${setter}`);
     }
   };
 
@@ -127,19 +137,19 @@ export default class Aggregator extends CommandBase {
     this.validateGroup();
     this.validateIsSet(
       this.className,
-      "className",
-      ".withClassName(className)"
+      'className',
+      '.withClassName(className)'
     );
-    this.validateIsSet(this.fields, "fields", ".withFields(fields)");
+    this.validateIsSet(this.fields, 'fields', '.withFields(fields)');
   };
 
   do = () => {
-    let params = "";
+    let params = '';
 
     this.validate();
     if (this.errors.length > 0) {
       return Promise.reject(
-        new Error("invalid usage: " + this.errors.join(", "))
+        new Error('invalid usage: ' + this.errors.join(', '))
       );
     }
 
@@ -181,7 +191,7 @@ export default class Aggregator extends CommandBase {
         args = [...args, `objectLimit:${this.objectLimit}`];
       }
 
-      params = `(${args.join(",")})`;
+      params = `(${args.join(',')})`;
     }
 
     return this.client.query(

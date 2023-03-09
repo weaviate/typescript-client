@@ -1,13 +1,13 @@
-import { buildObjectsPath } from "./path"
-import Connection from "../connection";
-import {CommandBase} from "../validation/commandBase";
+import { buildObjectsPath } from './path';
+import Connection from '../connection';
+import { CommandBase } from '../validation/commandBase';
 
 export default class ObjectsBatcher extends CommandBase {
-  private consistencyLevel?: string
+  private consistencyLevel?: string;
   public objects: any[];
 
   constructor(client: Connection) {
-    super(client)
+    super(client);
     this.objects = [];
   }
 
@@ -29,7 +29,7 @@ export default class ObjectsBatcher extends CommandBase {
 
   withObject(object: any) {
     return this.withObjects(object);
-  };
+  }
 
   withConsistencyLevel = (cl: any) => {
     this.consistencyLevel = cl;
@@ -42,7 +42,9 @@ export default class ObjectsBatcher extends CommandBase {
 
   validateObjectCount = () => {
     if (this.objects.length == 0) {
-      this.addError("need at least one object to send a request, add one with .withObject(obj)")
+      this.addError(
+        'need at least one object to send a request, add one with .withObject(obj)'
+      );
     }
   };
 
@@ -54,12 +56,12 @@ export default class ObjectsBatcher extends CommandBase {
     this.validate();
     if (this.errors.length > 0) {
       return Promise.reject(
-        new Error("invalid usage: " + this.errors.join(", "))
+        new Error('invalid usage: ' + this.errors.join(', '))
       );
     }
-    let params = new URLSearchParams()
+    const params = new URLSearchParams();
     if (this.consistencyLevel) {
-      params.set("consistency_level", this.consistencyLevel)
+      params.set('consistency_level', this.consistencyLevel);
     }
     const path = buildObjectsPath(params);
     return this.client.post(path, this.payload());

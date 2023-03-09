@@ -1,59 +1,60 @@
-import weaviate from "../index";
+import weaviate from '../index';
 
-const targetDessertId = "9f399d3e-45a4-44f4-b0fd-fa291abfb211";
-const targetSavoryId = "b7a64fbd-7c22-44ac-afbb-8d1432b8061b";
-const unclassifiedOneId = "89024ad4-3434-4daa-bfde-a5c6fc4b7f33";
-const unclassifiedTwoId = "afed0b20-bc9a-44c0-84af-09bb6214b3b7";
+const targetDessertId = '9f399d3e-45a4-44f4-b0fd-fa291abfb211';
+const targetSavoryId = 'b7a64fbd-7c22-44ac-afbb-8d1432b8061b';
+const unclassifiedOneId = '89024ad4-3434-4daa-bfde-a5c6fc4b7f33';
+const unclassifiedTwoId = 'afed0b20-bc9a-44c0-84af-09bb6214b3b7';
 
-describe("a classification journey", () => {
+describe('a classification journey', () => {
   // this journey test is more minimal compared to the kNN one, as a lot of
   // things that are already tested there, don't need to be tested again.
 
   describe("knn - using the client's wait method", () => {
     const client = weaviate.client({
-      scheme: "http",
-      host: "localhost:8080",
+      scheme: 'http',
+      host: 'localhost:8080',
     });
 
-    it("setups the schema and data", () => setup(client));
+    it('setups the schema and data', () => setup(client));
 
-    let id; // will be assigned by weaviate, see then block in scheduler
+    let id: any; // will be assigned by weaviate, see then block in scheduler
 
     it(
-      "triggers a classification with waiting",
+      'triggers a classification with waiting',
+      // eslint-disable-next-line require-await
       async () => {
         return client.classifications
           .scheduler()
-          .withType("text2vec-contextionary-contextual")
-          .withClassName("ContextualClassificationJourneySource")
-          .withClassifyProperties(["toTarget"])
-          .withBasedOnProperties(["description"])
+          .withType('text2vec-contextionary-contextual')
+          .withClassName('ContextualClassificationJourneySource')
+          .withClassifyProperties(['toTarget'])
+          .withBasedOnProperties(['description'])
           .withWaitForCompletion()
           .withWaitTimeout(60 * 1000)
           .do()
           .then((res: any) => {
-            expect(res.status).toEqual("completed");
-            expect(res.type).toEqual("text2vec-contextionary-contextual");
+            expect(res.status).toEqual('completed');
+            expect(res.type).toEqual('text2vec-contextionary-contextual');
             id = res.id;
           })
           .catch((e: any) => {
-            throw new Error("it should not have errord: " + e)
+            throw new Error('it should not have errord: ' + e);
           });
       },
       60 * 1000 // jest timeout
     );
 
-    it("tears down and cleans up", () => cleanup(client));
+    it('tears down and cleans up', () => cleanup(client));
   });
 });
 
 const setup = async (client: any) => {
   let targetClass = {
-    class: "ContextualClassificationJourneyTarget",
+    class: 'ContextualClassificationJourneyTarget',
     properties: [
       {
-        name: "name",
-        dataType: ["string"],
+        name: 'name',
+        dataType: ['string'],
       },
     ],
   };
@@ -61,15 +62,15 @@ const setup = async (client: any) => {
   await client.schema.classCreator().withClass(targetClass).do();
 
   targetClass = {
-    class: "ContextualClassificationJourneySource",
+    class: 'ContextualClassificationJourneySource',
     properties: [
       {
-        name: "description",
-        dataType: ["text"],
+        name: 'description',
+        dataType: ['text'],
       },
       {
-        name: "toTarget",
-        dataType: ["ContextualClassificationJourneyTarget"],
+        name: 'toTarget',
+        dataType: ['ContextualClassificationJourneyTarget'],
       },
     ],
   };
@@ -80,14 +81,14 @@ const setup = async (client: any) => {
   await Promise.all([
     client.data
       .creator()
-      .withClassName("ContextualClassificationJourneyTarget")
-      .withProperties({ name: "Dessert" })
+      .withClassName('ContextualClassificationJourneyTarget')
+      .withProperties({ name: 'Dessert' })
       .withId(targetDessertId)
       .do(),
     client.data
       .creator()
-      .withClassName("ContextualClassificationJourneyTarget")
-      .withProperties({ name: "Savory" })
+      .withClassName('ContextualClassificationJourneyTarget')
+      .withProperties({ name: 'Savory' })
       .withId(targetSavoryId)
       .do(),
   ]);
@@ -97,17 +98,17 @@ const setup = async (client: any) => {
     client.data
       .creator()
       .withId(unclassifiedOneId)
-      .withClassName("ContextualClassificationJourneySource")
+      .withClassName('ContextualClassificationJourneySource')
       .withProperties({
-        description: "This sweet cake contains sugar.",
+        description: 'This sweet cake contains sugar.',
       })
       .do(),
     client.data
       .creator()
       .withId(unclassifiedTwoId)
-      .withClassName("ContextualClassificationJourneySource")
+      .withClassName('ContextualClassificationJourneySource')
       .withProperties({
-        description: "Potatoes and fried fish",
+        description: 'Potatoes and fried fish',
       })
       .do(),
   ]);
@@ -117,11 +118,11 @@ const cleanup = (client: any) => {
   return Promise.all([
     client.schema
       .classDeleter()
-      .withClassName("ContextualClassificationJourneySource")
+      .withClassName('ContextualClassificationJourneySource')
       .do(),
     client.schema
       .classDeleter()
-      .withClassName("ContextualClassificationJourneyTarget")
+      .withClassName('ContextualClassificationJourneyTarget')
       .do(),
   ]);
 };

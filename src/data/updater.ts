@@ -1,17 +1,17 @@
-import { isValidStringProperty } from "../validation/string";
-import {ObjectsPath} from "./path";
-import Connection from "../connection";
-import {CommandBase} from "../validation/commandBase";
+import { isValidStringProperty } from '../validation/string';
+import { ObjectsPath } from './path';
+import Connection from '../connection';
+import { CommandBase } from '../validation/commandBase';
 
 export default class Updater extends CommandBase {
   private className?: string;
-  private consistencyLevel?: string
+  private consistencyLevel?: string;
   private id?: string;
   private objectsPath: ObjectsPath;
   private properties?: any[];
 
   constructor(client: Connection, objectsPath: ObjectsPath) {
-    super(client)
+    super(client);
     this.objectsPath = objectsPath;
   }
 
@@ -32,13 +32,13 @@ export default class Updater extends CommandBase {
 
   validateClassName = () => {
     if (!isValidStringProperty(this.className)) {
-      this.addError("className must be set - use withClassName(className)")
+      this.addError('className must be set - use withClassName(className)');
     }
   };
 
   validateId = () => {
     if (this.id == undefined || this.id == null || this.id.length == 0) {
-      this.addError("id must be set - initialize with updater(id)")
+      this.addError('id must be set - initialize with updater(id)');
     }
   };
 
@@ -63,11 +63,12 @@ export default class Updater extends CommandBase {
 
     if (this.errors.length > 0) {
       return Promise.reject(
-        new Error("invalid usage: " + this.errors.join(", "))
+        new Error('invalid usage: ' + this.errors.join(', '))
       );
     }
 
-    return this.objectsPath.buildUpdate(this.id!, this.className!, this.consistencyLevel!)
+    return this.objectsPath
+      .buildUpdate(this.id!, this.className!, this.consistencyLevel!)
       .then((path: string) => this.client.put(path, this.payload()));
   };
 }

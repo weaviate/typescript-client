@@ -1,12 +1,12 @@
 export const DeleteOutput = {
-  VERBOSE: "verbose",
-  MINIMAL: "minimal",
+  VERBOSE: 'verbose',
+  MINIMAL: 'minimal',
 };
 
 export const DeleteResultStatus = {
-  SUCCESS: "SUCCESS",
-  FAILED: "FAILED",
-  DRYRUN: "DRYRUN",
+  SUCCESS: 'SUCCESS',
+  FAILED: 'FAILED',
+  DRYRUN: 'DRYRUN',
 };
 
 const batchConsts = {

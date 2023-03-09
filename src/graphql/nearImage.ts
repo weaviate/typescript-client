@@ -16,10 +16,10 @@ export default class GraphQLNearImage {
     let args: any[] = [];
 
     if (this.image) {
-      let img = this.image
+      let img = this.image;
       if (img.startsWith('data:')) {
         const base64part = ';base64,';
-        img = img.substring(img.indexOf(base64part) + base64part.length)
+        img = img.substring(img.indexOf(base64part) + base64part.length);
       }
       args = [...args, `image:${JSON.stringify(img)}`];
     }
@@ -33,27 +33,27 @@ export default class GraphQLNearImage {
     }
 
     if (!wrap) {
-      return `${args.join(",")}`;
+      return `${args.join(',')}`;
     }
-    return `{${args.join(",")}}`;
+    return `{${args.join(',')}}`;
   }
 
   validate() {
     if (!this.image && !this.imageBlob) {
-      throw new Error("nearImage filter: image or imageBlob must be present");
+      throw new Error('nearImage filter: image or imageBlob must be present');
     }
   }
 
   parse() {
-    for (let key in this.source) {
+    for (const key in this.source) {
       switch (key) {
-        case "image":
+        case 'image':
           this.parseImage(this.source[key]);
           break;
-        case "certainty":
+        case 'certainty':
           this.parseCertainty(this.source[key]);
           break;
-        case "distance":
+        case 'distance':
           this.parseDistance(this.source[key]);
           break;
         default:
@@ -63,24 +63,24 @@ export default class GraphQLNearImage {
   }
 
   parseImage(image: string) {
-    if (typeof image !== "string") {
-      throw new Error("nearImage filter: image must be a string");
+    if (typeof image !== 'string') {
+      throw new Error('nearImage filter: image must be a string');
     }
 
     this.image = image;
   }
 
   parseCertainty(cert: number) {
-    if (typeof cert !== "number") {
-      throw new Error("nearImage filter: certainty must be a number");
+    if (typeof cert !== 'number') {
+      throw new Error('nearImage filter: certainty must be a number');
     }
 
     this.certainty = cert;
   }
 
   parseDistance(dist: number) {
-    if (typeof dist !== "number") {
-      throw new Error("nearImage filter: distance must be a number");
+    if (typeof dist !== 'number') {
+      throw new Error('nearImage filter: distance must be a number');
     }
 
     this.distance = dist;

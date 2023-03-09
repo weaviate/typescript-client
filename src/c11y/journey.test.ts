@@ -1,37 +1,37 @@
-import weaviate from '../index'
+import weaviate from '../index';
 
-describe("c11y endpoints", () => {
+describe('c11y endpoints', () => {
   const client = weaviate.client({
-    scheme: "http",
-    host: "localhost:8080",
+    scheme: 'http',
+    host: 'localhost:8080',
   });
 
-  it("displays info about a concept", () => {
+  it('displays info about a concept', () => {
     return client.c11y
       .conceptsGetter()
-      .withConcept("car")
+      .withConcept('car')
       .do()
       .then((res: any) => {
-        expect(res.individualWords[0].word).toEqual("car");
+        expect(res.individualWords[0].word).toEqual('car');
       });
   });
 
-  it("extends the c11y with a custom concept", () => {
+  it('extends the c11y with a custom concept', () => {
     return client.c11y
       .extensionCreator()
-      .withConcept("clientalmostdonehappyness")
+      .withConcept('clientalmostdonehappyness')
       .withDefinition(
-        "the happyness you feel when the Weaviate TypeScript client " +
-        "is almost complete and ready to be released"
+        'the happyness you feel when the Weaviate TypeScript client ' +
+          'is almost complete and ready to be released'
       )
       .withWeight(1)
       .do()
       .then((res: any) => {
         expect(res).toEqual({
-          concept: "clientalmostdonehappyness",
+          concept: 'clientalmostdonehappyness',
           definition:
-            "the happyness you feel when the Weaviate TypeScript client " +
-            "is almost complete and ready to be released",
+            'the happyness you feel when the Weaviate TypeScript client ' +
+            'is almost complete and ready to be released',
           weight: 1,
         });
       });

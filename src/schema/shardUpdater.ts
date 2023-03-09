@@ -1,6 +1,6 @@
-import {isValidStringProperty} from "../validation/string";
-import Connection from "../connection";
-import {CommandBase} from "../validation/commandBase";
+import { isValidStringProperty } from '../validation/string';
+import Connection from '../connection';
+import { CommandBase } from '../validation/commandBase';
 
 export default class ShardUpdater extends CommandBase {
   private className?: string;
@@ -8,7 +8,7 @@ export default class ShardUpdater extends CommandBase {
   private status?: string;
 
   constructor(client: Connection) {
-    super(client)
+    super(client);
   }
 
   withClassName = (className: string) => {
@@ -18,7 +18,9 @@ export default class ShardUpdater extends CommandBase {
 
   validateClassName = () => {
     if (!isValidStringProperty(this.className)) {
-      this.addError("className must be set - set with .withClassName(className)")
+      this.addError(
+        'className must be set - set with .withClassName(className)'
+      );
     }
   };
 
@@ -29,18 +31,20 @@ export default class ShardUpdater extends CommandBase {
 
   validateShardName = () => {
     if (!isValidStringProperty(this.shardName)) {
-      this.addError("shardName must be set - set with .withShardName(shardName)")
+      this.addError(
+        'shardName must be set - set with .withShardName(shardName)'
+      );
     }
   };
 
   withStatus = (status: string) => {
-    this.status = status
+    this.status = status;
     return this;
-  }
+  };
 
   validateStatus = () => {
     if (!isValidStringProperty(this.status)) {
-      this.addError("status must be set - set with .withStatus(status)")
+      this.addError('status must be set - set with .withStatus(status)');
     }
   };
 
@@ -54,15 +58,25 @@ export default class ShardUpdater extends CommandBase {
     this.validate();
     if (this.errors.length > 0) {
       return Promise.reject(
-        new Error(`invalid usage: ${this.errors.join(", ")}`)
+        new Error(`invalid usage: ${this.errors.join(', ')}`)
       );
     }
 
-    return updateShard(this.client, this.className, this.shardName, this.status)
+    return updateShard(
+      this.client,
+      this.className,
+      this.shardName,
+      this.status
+    );
   };
 }
 
-export function updateShard(client: Connection, className: any, shardName: any, status: any) {
+export function updateShard(
+  client: Connection,
+  className: any,
+  shardName: any,
+  status: any
+) {
   const path = `/schema/${className}/shards/${shardName}`;
-  return client.put(path, {status: status}, true)
+  return client.put(path, { status: status }, true);
 }

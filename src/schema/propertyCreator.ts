@@ -1,13 +1,13 @@
-import { isValidStringProperty } from "../validation/string";
-import Connection from "../connection";
-import {CommandBase} from "../validation/commandBase";
+import { isValidStringProperty } from '../validation/string';
+import Connection from '../connection';
+import { CommandBase } from '../validation/commandBase';
 
 export default class PropertyCreator extends CommandBase {
   private className?: string;
   private property: any;
 
   constructor(client: Connection) {
-    super(client)
+    super(client);
   }
 
   withClassName = (className: string) => {
@@ -22,13 +22,15 @@ export default class PropertyCreator extends CommandBase {
 
   validateClassName = () => {
     if (!isValidStringProperty(this.className)) {
-      this.addError("className must be set - set with .withClassName(className)")
+      this.addError(
+        'className must be set - set with .withClassName(className)'
+      );
     }
   };
 
   validateProperty = () => {
     if (this.property == undefined || this.property == null) {
-      this.addError("property must be set - set with .withProperty(property)")
+      this.addError('property must be set - set with .withProperty(property)');
     }
   };
 
@@ -41,7 +43,7 @@ export default class PropertyCreator extends CommandBase {
     this.validate();
     if (this.errors.length > 0) {
       return Promise.reject(
-        new Error("invalid usage: " + this.errors.join(", "))
+        new Error('invalid usage: ' + this.errors.join(', '))
       );
     }
     const path = `/schema/${this.className}/properties`;

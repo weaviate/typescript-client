@@ -1,24 +1,24 @@
-import NearText from "./nearText";
-import NearVector from "./nearVector";
-import NearObject from "./nearObject";
-import NearImage from "./nearImage";
-import Ask from "./ask";
-import Connection from "../connection";
-import {CommandBase} from "../validation/commandBase";
+import NearText from './nearText';
+import NearVector from './nearVector';
+import NearObject from './nearObject';
+import NearImage from './nearImage';
+import Ask from './ask';
+import Connection from '../connection';
+import { CommandBase } from '../validation/commandBase';
 
 export default class Explorer extends CommandBase {
   private askString?: string;
   private fields?: string;
   private group?: string[];
-  private limit?: number
+  private limit?: number;
   private nearImageString?: string;
   private nearObjectString?: string;
   private nearTextString?: string;
   private nearVectorString?: string;
-  private params: {};
+  private params: Record<string, any>;
 
   constructor(client: Connection) {
-    super(client)
+    super(client);
     this.params = {};
   }
 
@@ -36,7 +36,7 @@ export default class Explorer extends CommandBase {
     try {
       this.nearTextString = new NearText(nearTextObj).toString();
     } catch (e: any) {
-      this.addError(e.toString())
+      this.addError(e.toString());
     }
     return this;
   };
@@ -45,7 +45,7 @@ export default class Explorer extends CommandBase {
     try {
       this.nearObjectString = new NearObject(nearObjectObj).toString();
     } catch (e: any) {
-      this.addError(e.toString())
+      this.addError(e.toString());
     }
     return this;
   };
@@ -54,7 +54,7 @@ export default class Explorer extends CommandBase {
     try {
       this.askString = new Ask(askObj).toString();
     } catch (e: any) {
-      this.addError(e.toString())
+      this.addError(e.toString());
     }
     return this;
   };
@@ -63,7 +63,7 @@ export default class Explorer extends CommandBase {
     try {
       this.nearImageString = new NearImage(nearImageObj).toString();
     } catch (e: any) {
-      this.addError(e.toString())
+      this.addError(e.toString());
     }
     return this;
   };
@@ -72,7 +72,7 @@ export default class Explorer extends CommandBase {
     try {
       this.nearVectorString = new NearVector(nearVectorObj).toString();
     } catch (e: any) {
-      this.addError(e.toString())
+      this.addError(e.toString());
     }
     return this;
   };
@@ -84,27 +84,31 @@ export default class Explorer extends CommandBase {
     }
 
     if (!Array.isArray(this.group)) {
-      throw new Error("groupBy must be an array");
+      throw new Error('groupBy must be an array');
     }
   };
 
-  validateIsSet = (prop: string | undefined | null, name: string, setter: string) => {
+  validateIsSet = (
+    prop: string | undefined | null,
+    name: string,
+    setter: string
+  ) => {
     if (prop == undefined || prop == null || prop.length == 0) {
-      this.addError(`${name} must be set - set with ${setter}`)
+      this.addError(`${name} must be set - set with ${setter}`);
     }
   };
 
   validate = () => {
-    this.validateIsSet(this.fields, "fields", ".withFields(fields)");
+    this.validateIsSet(this.fields, 'fields', '.withFields(fields)');
   };
 
   do = (): Promise<any> => {
-    let params = "";
+    let params = '';
 
     this.validate();
     if (this.errors.length > 0) {
       return Promise.reject(
-        new Error("invalid usage: " + this.errors.join(", "))
+        new Error('invalid usage: ' + this.errors.join(', '))
       );
     }
 
@@ -134,7 +138,7 @@ export default class Explorer extends CommandBase {
       args = [...args, `limit:${this.limit}`];
     }
 
-    params = `(${args.join(",")})`;
+    params = `(${args.join(',')})`;
 
     return this.client.query(`{Explore${params}{${this.fields}}}`);
   };

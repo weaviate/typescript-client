@@ -1,22 +1,29 @@
-import {AuthAccessTokenCredentials, AuthClientCredentials, AuthUserPasswordCredentials} from './auth';
-import Connection from "./index";
+import {
+  AuthAccessTokenCredentials,
+  AuthClientCredentials,
+  AuthUserPasswordCredentials,
+} from './auth';
+import Connection from './index';
 
-import weaviate from '../index'
+import weaviate from '../index';
 
-describe("connection", () => {
-  it("makes an Azure logged-in request with client credentials", async () => {
-    if (process.env.AZURE_CLIENT_SECRET == undefined || process.env.AZURE_CLIENT_SECRET == "") {
-      console.warn("Skipping because `AZURE_CLIENT_SECRET` is not set");
+describe('connection', () => {
+  it('makes an Azure logged-in request with client credentials', () => {
+    if (
+      process.env.AZURE_CLIENT_SECRET == undefined ||
+      process.env.AZURE_CLIENT_SECRET == ''
+    ) {
+      console.warn('Skipping because `AZURE_CLIENT_SECRET` is not set');
       return;
     }
 
     const client = weaviate.client({
-      scheme: "http",
-      host: "localhost:8081",
+      scheme: 'http',
+      host: 'localhost:8081',
       authClientSecret: new AuthClientCredentials({
-        clientSecret: process.env.AZURE_CLIENT_SECRET
-      })
-    })
+        clientSecret: process.env.AZURE_CLIENT_SECRET,
+      }),
+    });
 
     return client.misc
       .metaGetter()
@@ -25,49 +32,26 @@ describe("connection", () => {
         expect(res.version).toBeDefined();
       })
       .catch((e: any) => {
-        throw new Error("it should not have errord: " + e)
+        throw new Error('it should not have errord: ' + e);
       });
-  })
+  });
 
-  it("makes an Okta logged-in request with client credentials", async () => {
-    if (process.env.OKTA_CLIENT_SECRET == undefined || process.env.OKTA_CLIENT_SECRET == "") {
-      console.warn("Skipping because `OKTA_CLIENT_SECRET` is not set");
+  it('makes an Okta logged-in request with client credentials', () => {
+    if (
+      process.env.OKTA_CLIENT_SECRET == undefined ||
+      process.env.OKTA_CLIENT_SECRET == ''
+    ) {
+      console.warn('Skipping because `OKTA_CLIENT_SECRET` is not set');
       return;
     }
 
     const client = weaviate.client({
-      scheme: "http",
-      host: "localhost:8082",
+      scheme: 'http',
+      host: 'localhost:8082',
       authClientSecret: new AuthClientCredentials({
         clientSecret: process.env.OKTA_CLIENT_SECRET,
-        scopes: ["some_scope"]
-      })
-    })
-
-    return client.misc
-      .metaGetter()
-      .do()
-      .then((res: any) => {
-        expect(res.version).toBeDefined();
-      })
-      .catch((e: any) => {
-        throw new Error("it should not have errord: " + e)
-      });
-  })
-
-  it("makes an Okta logged-in request with username/password", async () => {
-    if (process.env.OKTA_DUMMY_CI_PW == undefined || process.env.OKTA_DUMMY_CI_PW == "") {
-      console.warn("Skipping because `OKTA_DUMMY_CI_PW` is not set");
-      return;
-    }
-
-    const client = weaviate.client({
-      scheme: "http",
-      host: "localhost:8083",
-      authClientSecret: new AuthUserPasswordCredentials({
-        username: "test@test.de",
-        password: process.env.OKTA_DUMMY_CI_PW
-      })
+        scopes: ['some_scope'],
+      }),
     });
 
     return client.misc
@@ -77,23 +61,26 @@ describe("connection", () => {
         expect(res.version).toBeDefined();
       })
       .catch((e: any) => {
-        throw new Error("it should not have errord: " + e)
+        throw new Error('it should not have errord: ' + e);
       });
-  })
+  });
 
-  it("makes a WCS logged-in request with username/password", async () => {
-    if (process.env.WCS_DUMMY_CI_PW == undefined || process.env.WCS_DUMMY_CI_PW == "") {
-      console.warn("Skipping because `WCS_DUMMY_CI_PW` is not set");
+  it('makes an Okta logged-in request with username/password', () => {
+    if (
+      process.env.OKTA_DUMMY_CI_PW == undefined ||
+      process.env.OKTA_DUMMY_CI_PW == ''
+    ) {
+      console.warn('Skipping because `OKTA_DUMMY_CI_PW` is not set');
       return;
     }
 
     const client = weaviate.client({
-      scheme: "http",
-      host: "localhost:8085",
+      scheme: 'http',
+      host: 'localhost:8083',
       authClientSecret: new AuthUserPasswordCredentials({
-        username: "ms_2d0e007e7136de11d5f29fce7a53dae219a51458@existiert.net",
-        password: process.env.WCS_DUMMY_CI_PW
-      })
+        username: 'test@test.de',
+        password: process.env.OKTA_DUMMY_CI_PW,
+      }),
     });
 
     return client.misc
@@ -103,23 +90,27 @@ describe("connection", () => {
         expect(res.version).toBeDefined();
       })
       .catch((e: any) => {
-        throw new Error("it should not have errord: " + e)
+        throw new Error('it should not have errord: ' + e);
       });
-  })
+  });
 
-  it("makes a scopeless WCS logged-in request with username/password", async () => {
-    if (process.env.WCS_DUMMY_CI_PW == undefined || process.env.WCS_DUMMY_CI_PW == "") {
-      console.warn("Skipping because `WCS_DUMMY_CI_PW` is not set");
+  it('makes a WCS logged-in request with username/password', () => {
+    if (
+      process.env.WCS_DUMMY_CI_PW == undefined ||
+      process.env.WCS_DUMMY_CI_PW == ''
+    ) {
+      console.warn('Skipping because `WCS_DUMMY_CI_PW` is not set');
       return;
     }
+
     const client = weaviate.client({
-      scheme: "http",
-      host: "localhost:8086",
+      scheme: 'http',
+      host: 'localhost:8085',
       authClientSecret: new AuthUserPasswordCredentials({
-        username: "ms_2d0e007e7136de11d5f29fce7a53dae219a51458@existiert.net",
-        password: process.env.WCS_DUMMY_CI_PW
-      })
-    })
+        username: 'ms_2d0e007e7136de11d5f29fce7a53dae219a51458@existiert.net',
+        password: process.env.WCS_DUMMY_CI_PW,
+      }),
+    });
 
     return client.misc
       .metaGetter()
@@ -128,35 +119,66 @@ describe("connection", () => {
         expect(res.version).toBeDefined();
       })
       .catch((e: any) => {
-        throw new Error("it should not have errord: " + e)
+        throw new Error('it should not have errord: ' + e);
       });
-  })
+  });
 
-  it("makes a logged-in request with access token", async () => {
-    if (process.env.WCS_DUMMY_CI_PW == undefined || process.env.WCS_DUMMY_CI_PW == "") {
-      console.warn("Skipping because `WCS_DUMMY_CI_PW` is not set");
+  it('makes a scopeless WCS logged-in request with username/password', () => {
+    if (
+      process.env.WCS_DUMMY_CI_PW == undefined ||
+      process.env.WCS_DUMMY_CI_PW == ''
+    ) {
+      console.warn('Skipping because `WCS_DUMMY_CI_PW` is not set');
+      return;
+    }
+    const client = weaviate.client({
+      scheme: 'http',
+      host: 'localhost:8086',
+      authClientSecret: new AuthUserPasswordCredentials({
+        username: 'ms_2d0e007e7136de11d5f29fce7a53dae219a51458@existiert.net',
+        password: process.env.WCS_DUMMY_CI_PW,
+      }),
+    });
+
+    return client.misc
+      .metaGetter()
+      .do()
+      .then((res: any) => {
+        expect(res.version).toBeDefined();
+      })
+      .catch((e: any) => {
+        throw new Error('it should not have errord: ' + e);
+      });
+  });
+
+  it('makes a logged-in request with access token', async () => {
+    if (
+      process.env.WCS_DUMMY_CI_PW == undefined ||
+      process.env.WCS_DUMMY_CI_PW == ''
+    ) {
+      console.warn('Skipping because `WCS_DUMMY_CI_PW` is not set');
       return;
     }
 
     const dummy = new Connection({
-      scheme: "http",
-      host: "localhost:8085",
+      scheme: 'http',
+      host: 'localhost:8085',
       authClientSecret: new AuthUserPasswordCredentials({
-        username: "ms_2d0e007e7136de11d5f29fce7a53dae219a51458@existiert.net",
-        password: process.env.WCS_DUMMY_CI_PW
-      })
+        username: 'ms_2d0e007e7136de11d5f29fce7a53dae219a51458@existiert.net',
+        password: process.env.WCS_DUMMY_CI_PW,
+      }),
     });
     // obtain access token with user/pass so we can
     // use it to test AuthAccessTokenCredentials
     await dummy.login();
 
     const client = weaviate.client({
-      scheme: "http",
-      host: "localhost:8085",
+      scheme: 'http',
+      host: 'localhost:8085',
       authClientSecret: new AuthAccessTokenCredentials({
         accessToken: dummy.auth.accessToken,
-        expiresIn: 900
-      })
+        expiresIn: 900,
+      }),
     });
 
     return client.misc
@@ -166,54 +188,58 @@ describe("connection", () => {
         expect(res.version).toBeDefined();
       })
       .catch((e: any) => {
-        throw new Error("it should not have errord: " + e)
+        throw new Error('it should not have errord: ' + e);
       });
-  })
+  });
 
-  it("uses refresh token to fetch new access token", async () => {
-    if (process.env.WCS_DUMMY_CI_PW == undefined || process.env.WCS_DUMMY_CI_PW == "") {
-      console.warn("Skipping because `WCS_DUMMY_CI_PW` is not set");
+  it('uses refresh token to fetch new access token', async () => {
+    if (
+      process.env.WCS_DUMMY_CI_PW == undefined ||
+      process.env.WCS_DUMMY_CI_PW == ''
+    ) {
+      console.warn('Skipping because `WCS_DUMMY_CI_PW` is not set');
       return;
     }
 
     const dummy = new Connection({
-      scheme: "http",
-      host: "localhost:8085",
+      scheme: 'http',
+      host: 'localhost:8085',
       authClientSecret: new AuthUserPasswordCredentials({
-        username: "ms_2d0e007e7136de11d5f29fce7a53dae219a51458@existiert.net",
-        password: process.env.WCS_DUMMY_CI_PW
-      })
+        username: 'ms_2d0e007e7136de11d5f29fce7a53dae219a51458@existiert.net',
+        password: process.env.WCS_DUMMY_CI_PW,
+      }),
     });
     // obtain access token with user/pass so we can
     // use it to test AuthAccessTokenCredentials
     await dummy.login();
 
     const conn = new Connection({
-      scheme: "http",
-      host: "localhost:8085",
+      scheme: 'http',
+      host: 'localhost:8085',
       authClientSecret: new AuthAccessTokenCredentials({
         accessToken: dummy.auth.accessToken,
         expiresIn: 1,
-        refreshToken: dummy.auth.refreshToken
-      })
+        refreshToken: dummy.auth.refreshToken,
+      }),
     });
     // force the use of refreshToken
-    conn.auth.expiresAt = 0
+    conn.auth.expiresAt = 0;
 
-    return conn.login()
-      .then(resp => {
+    return conn
+      .login()
+      .then((resp) => {
         expect(resp).toBeDefined();
-        expect(resp != "").toBeTruthy();
+        expect(resp != '').toBeTruthy();
       })
       .catch((e: any) => {
-        throw new Error("it should not have errord: " + e)
+        throw new Error('it should not have errord: ' + e);
       });
-  })
+  });
 
-  it("fails to access auth-enabled server without client auth", async () => {
+  it('fails to access auth-enabled server without client auth', () => {
     const client = weaviate.client({
-      scheme: "http",
-      host: "localhost:8085"
+      scheme: 'http',
+      host: 'localhost:8085',
     });
 
     return client.misc
@@ -223,21 +249,21 @@ describe("connection", () => {
         fail(`should not have succeeded. received: ${res}`);
       })
       .catch((e: any) => {
-        expect(e).toContain("401");
-        expect(e).toContain("anonymous access not enabled");
+        expect(e).toContain('401');
+        expect(e).toContain('anonymous access not enabled');
       });
-  })
+  });
 
-  it("warns when client auth is configured, but server auth is not", async () => {
+  it('warns when client auth is configured, but server auth is not', async () => {
     const logSpy = jest.spyOn(console, 'warn');
 
     const client = weaviate.client({
-      scheme: "http",
-      host: "localhost:8080",
+      scheme: 'http',
+      host: 'localhost:8080',
       authClientSecret: new AuthUserPasswordCredentials({
-        username: "some-user",
-        password: "passwd"
-      })
+        username: 'some-user',
+        password: 'passwd',
+      }),
     });
 
     await client.misc
@@ -247,37 +273,40 @@ describe("connection", () => {
         expect(res.version).toBeDefined();
       })
       .catch((e: any) => {
-        throw new Error("it should not have errord: " + e)
+        throw new Error('it should not have errord: ' + e);
       });
 
     expect(logSpy).toHaveBeenCalledWith(
-      "client is configured for authentication, but server is not");
-  })
+      'client is configured for authentication, but server is not'
+    );
+  });
 
-  it("warns when client access token expires, no refresh token provided", async () => {
+  it('warns when client access token expires, no refresh token provided', async () => {
     const logSpy = jest.spyOn(console, 'warn');
 
     const conn = new Connection({
-      scheme: "http",
-      host: "localhost:8085",
+      scheme: 'http',
+      host: 'localhost:8085',
       authClientSecret: new AuthAccessTokenCredentials({
-        accessToken: "abcd1234",
-        expiresIn: 1
-      })
+        accessToken: 'abcd1234',
+        expiresIn: 1,
+      }),
     });
     // force the use of refreshToken
-    conn.auth.expiresAt = 0
+    conn.auth.expiresAt = 0;
 
-    await conn.login()
-      .then(resp => {
+    await conn
+      .login()
+      .then((resp) => {
         expect(resp).toBeDefined();
-        expect(resp).toEqual("abcd1234");
+        expect(resp).toEqual('abcd1234');
       })
       .catch((e: any) => {
-        throw new Error("it should not have errord: " + e)
+        throw new Error('it should not have errord: ' + e);
       });
 
     expect(logSpy).toHaveBeenCalledWith(
-      "AuthAccessTokenCredentials not provided with refreshToken, cannot refresh");
-  })
-})
+      'AuthAccessTokenCredentials not provided with refreshToken, cannot refresh'
+    );
+  });
+});

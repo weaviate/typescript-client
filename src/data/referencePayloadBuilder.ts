@@ -1,13 +1,13 @@
-import { isValidStringProperty } from "../validation/string";
-import Connection from "../connection";
-import {CommandBase} from "../validation/commandBase";
+import { isValidStringProperty } from '../validation/string';
+import Connection from '../connection';
+import { CommandBase } from '../validation/commandBase';
 
 export default class ReferencePayloadBuilder extends CommandBase {
   private className?: string;
   private id?: string;
 
   constructor(client: Connection) {
-    super(client)
+    super(client);
   }
 
   withId = (id: string) => {
@@ -20,23 +20,27 @@ export default class ReferencePayloadBuilder extends CommandBase {
     return this;
   }
 
-  validateIsSet = (prop: string | undefined | null, name: string, setter: string) => {
+  validateIsSet = (
+    prop: string | undefined | null,
+    name: string,
+    setter: string
+  ) => {
     if (prop == undefined || prop == null || prop.length == 0) {
-      this.addError(`${name} must be set - set with ${setter}`)
+      this.addError(`${name} must be set - set with ${setter}`);
     }
   };
 
   validate = () => {
-    this.validateIsSet(this.id, "id", ".withId(id)");
+    this.validateIsSet(this.id, 'id', '.withId(id)');
   };
 
   payload = () => {
     this.validate();
     if (this.errors.length > 0) {
-      throw new Error(this.errors.join(", "));
+      throw new Error(this.errors.join(', '));
     }
 
-    var beacon = `weaviate://localhost`;
+    let beacon = `weaviate://localhost`;
     if (isValidStringProperty(this.className)) {
       beacon = `${beacon}/${this.className}`;
     }
@@ -46,6 +50,6 @@ export default class ReferencePayloadBuilder extends CommandBase {
   };
 
   do(): Promise<any> {
-    return Promise.reject('Should never be called');
+    return Promise.reject(new Error('Should never be called'));
   }
 }

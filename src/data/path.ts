@@ -1,7 +1,7 @@
-import { isValidStringProperty } from "../validation/string";
-import {DbVersionSupport} from "../utils/dbVersion";
+import { isValidStringProperty } from '../validation/string';
+import { DbVersionSupport } from '../utils/dbVersion';
 
-const objectsPathPrefix = "/objects";
+const objectsPathPrefix = '/objects';
 
 export class ObjectsPath {
   private dbVersionSupport: DbVersionSupport;
@@ -11,42 +11,91 @@ export class ObjectsPath {
   }
 
   buildCreate(consistencyLevel: string | undefined): Promise<string> {
-    return this.build({consistencyLevel}, [this.addQueryParams]);
+    return this.build({ consistencyLevel }, [this.addQueryParams]);
   }
-  buildDelete(id: string, className: string, consistencyLevel: string | undefined): Promise<string> {
-    return this.build({id, className, consistencyLevel},
-      [this.addClassNameDeprecatedNotSupportedCheck, this.addId, this.addQueryParams]);
+  buildDelete(
+    id: string,
+    className: string,
+    consistencyLevel: string | undefined
+  ): Promise<string> {
+    return this.build({ id, className, consistencyLevel }, [
+      this.addClassNameDeprecatedNotSupportedCheck,
+      this.addId,
+      this.addQueryParams,
+    ]);
   }
   buildCheck(id: string, className: string): Promise<string> {
-    return this.build({id, className}, [this.addClassNameDeprecatedNotSupportedCheck, this.addId]);
+    return this.build({ id, className }, [
+      this.addClassNameDeprecatedNotSupportedCheck,
+      this.addId,
+    ]);
   }
-  buildGetOne(id: string, className: string, additionals: any, consistencyLevel: string | undefined, nodeName: any): Promise<string> {
-    return this.build({id, className, additionals, consistencyLevel, nodeName},
-      [this.addClassNameDeprecatedNotSupportedCheck, this.addId, this.addQueryParams]);
+  buildGetOne(
+    id: string,
+    className: string,
+    additionals: any,
+    consistencyLevel: string | undefined,
+    nodeName: any
+  ): Promise<string> {
+    return this.build(
+      { id, className, additionals, consistencyLevel, nodeName },
+      [
+        this.addClassNameDeprecatedNotSupportedCheck,
+        this.addId,
+        this.addQueryParams,
+      ]
+    );
   }
-  buildGet(className: string | undefined, limit: any, additionals: any, after: string): Promise<string> {
-    return this.build({className, limit, additionals, after}, [this.addQueryParamsForGet]);
+  buildGet(
+    className: string | undefined,
+    limit: any,
+    additionals: any,
+    after: string
+  ): Promise<string> {
+    return this.build({ className, limit, additionals, after }, [
+      this.addQueryParamsForGet,
+    ]);
   }
-  buildUpdate(id: string, className: string, consistencyLevel: string | undefined): Promise<string> {
-    return this.build({id, className, consistencyLevel},
-      [this.addClassNameDeprecatedCheck, this.addId, this.addQueryParams]);
+  buildUpdate(
+    id: string,
+    className: string,
+    consistencyLevel: string | undefined
+  ): Promise<string> {
+    return this.build({ id, className, consistencyLevel }, [
+      this.addClassNameDeprecatedCheck,
+      this.addId,
+      this.addQueryParams,
+    ]);
   }
-  buildMerge(id: string, className: string, consistencyLevel: string | undefined): Promise<string> {
-    return this.build({id, className, consistencyLevel},
-      [this.addClassNameDeprecatedCheck, this.addId, this.addQueryParams]);
+  buildMerge(
+    id: string,
+    className: string,
+    consistencyLevel: string | undefined
+  ): Promise<string> {
+    return this.build({ id, className, consistencyLevel }, [
+      this.addClassNameDeprecatedCheck,
+      this.addId,
+      this.addQueryParams,
+    ]);
   }
 
   build(params: any, modifiers: any): Promise<string> {
-    return this.dbVersionSupport.supportsClassNameNamespacedEndpointsPromise().then((support: any) => {
-      let path = objectsPathPrefix;
-      modifiers.forEach((modifier: any) => {
-        path = modifier(params, path, support);
+    return this.dbVersionSupport
+      .supportsClassNameNamespacedEndpointsPromise()
+      .then((support: any) => {
+        let path = objectsPathPrefix;
+        modifiers.forEach((modifier: any) => {
+          path = modifier(params, path, support);
+        });
+        return path;
       });
-      return path;
-    });
   }
 
-  addClassNameDeprecatedNotSupportedCheck(params: any, path: string, support: any) {
+  addClassNameDeprecatedNotSupportedCheck(
+    params: any,
+    path: string,
+    support: any
+  ) {
     if (support.supports) {
       if (isValidStringProperty(params.className)) {
         return `${path}/${params.className}`;
@@ -77,7 +126,7 @@ export class ObjectsPath {
   addQueryParams(params: any, path: string) {
     const queryParams = [];
     if (Array.isArray(params.additionals) && params.additionals.length > 0) {
-      queryParams.push(`include=${params.additionals.join(",")}`);
+      queryParams.push(`include=${params.additionals.join(',')}`);
     }
     if (isValidStringProperty(params.nodeName)) {
       queryParams.push(`node_name=${params.nodeName}`);
@@ -86,16 +135,16 @@ export class ObjectsPath {
       queryParams.push(`consistency_level=${params.consistencyLevel}`);
     }
     if (queryParams.length > 0) {
-      return `${path}?${queryParams.join("&")}`;
+      return `${path}?${queryParams.join('&')}`;
     }
     return path;
   }
   addQueryParamsForGet(params: any, path: string, support: any) {
     const queryParams = [];
     if (Array.isArray(params.additionals) && params.additionals.length > 0) {
-      queryParams.push(`include=${params.additionals.join(",")}`);
+      queryParams.push(`include=${params.additionals.join(',')}`);
     }
-    if (typeof params.limit == "number" && params.limit > 0) {
+    if (typeof params.limit == 'number' && params.limit > 0) {
       queryParams.push(`limit=${params.limit}`);
     }
     if (isValidStringProperty(params.className)) {
@@ -106,15 +155,14 @@ export class ObjectsPath {
       }
     }
     if (isValidStringProperty(params.after)) {
-      queryParams.push(`after=${params.after}`)
+      queryParams.push(`after=${params.after}`);
     }
     if (queryParams.length > 0) {
-      return `${path}?${queryParams.join("&")}`;
+      return `${path}?${queryParams.join('&')}`;
     }
     return path;
   }
 }
-
 
 export class ReferencesPath {
   private dbVersionSupport: DbVersionSupport;
@@ -123,29 +171,36 @@ export class ReferencesPath {
     this.dbVersionSupport = dbVersionSupport;
   }
 
-  build(id: string, className: string, property: string, consistencyLevel: string): Promise<string> {
-    return this.dbVersionSupport.supportsClassNameNamespacedEndpointsPromise().then((support: any)=> {
-      var path = objectsPathPrefix;
-      if (support.supports) {
-        if (isValidStringProperty(className)) {
-          path = `${path}/${className}`;
+  build(
+    id: string,
+    className: string,
+    property: string,
+    consistencyLevel: string
+  ): Promise<string> {
+    return this.dbVersionSupport
+      .supportsClassNameNamespacedEndpointsPromise()
+      .then((support: any) => {
+        let path = objectsPathPrefix;
+        if (support.supports) {
+          if (isValidStringProperty(className)) {
+            path = `${path}/${className}`;
+          } else {
+            support.warns.deprecatedNonClassNameNamespacedEndpointsForReferences();
+          }
         } else {
-          support.warns.deprecatedNonClassNameNamespacedEndpointsForReferences();
+          support.warns.notSupportedClassNamespacedEndpointsForReferences();
         }
-      } else {
-        support.warns.notSupportedClassNamespacedEndpointsForReferences();
-      }
-      if (isValidStringProperty(id)) {
-        path = `${path}/${id}`;
-      }
-      path = `${path}/references`;
-      if (isValidStringProperty(property)) {
-        path = `${path}/${property}`;
-      }
-      if (isValidStringProperty(consistencyLevel)) {
-        path = `${path}?consistency_level=${consistencyLevel}`;
-      }
-      return path;
-    });
+        if (isValidStringProperty(id)) {
+          path = `${path}/${id}`;
+        }
+        path = `${path}/references`;
+        if (isValidStringProperty(property)) {
+          path = `${path}/${property}`;
+        }
+        if (isValidStringProperty(consistencyLevel)) {
+          path = `${path}?consistency_level=${consistencyLevel}`;
+        }
+        return path;
+      });
   }
 }

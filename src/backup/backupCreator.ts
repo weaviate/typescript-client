@@ -1,13 +1,17 @@
-import {CreateStatus} from "./consts";
-import {validateBackend, validateBackupId, validateExcludeClassNames, validateIncludeClassNames} from "./validation";
-import BackupCreateStatusGetter from "./backupCreateStatusGetter";
-import Connection from "../connection";
-import {CommandBase} from "../validation/commandBase";
+import { CreateStatus } from './consts';
+import {
+  validateBackend,
+  validateBackupId,
+  validateExcludeClassNames,
+  validateIncludeClassNames,
+} from './validation';
+import BackupCreateStatusGetter from './backupCreateStatusGetter';
+import Connection from '../connection';
+import { CommandBase } from '../validation/commandBase';
 
 const WAIT_INTERVAL = 1000;
 
 export default class BackupCreator extends CommandBase {
-
   private backend?: string;
   private backupId?: string;
   private excludeClassNames?: string[];
@@ -16,7 +20,7 @@ export default class BackupCreator extends CommandBase {
   private waitForCompletion!: boolean;
 
   constructor(client: Connection, statusGetter: BackupCreateStatusGetter) {
-    super(client)
+    super(client);
     this.statusGetter = statusGetter;
   }
 
@@ -59,14 +63,14 @@ export default class BackupCreator extends CommandBase {
       ...validateExcludeClassNames(this.excludeClassNames),
       ...validateBackend(this.backend),
       ...validateBackupId(this.backupId),
-    ])
+    ]);
   }
 
   do() {
     this.validate();
     if (this.errors.length > 0) {
       return Promise.reject(
-        new Error("invalid usage: " + this.errors.join(", "))
+        new Error('invalid usage: ' + this.errors.join(', '))
       );
     }
 
@@ -96,10 +100,12 @@ export default class BackupCreator extends CommandBase {
             .withBackupId(this.backupId!);
 
           const loop = () => {
-            this.statusGetter.do()
+            this.statusGetter
+              .do()
               .then((createStatusResponse: any) => {
-                if (createStatusResponse.status == CreateStatus.SUCCESS
-                    || createStatusResponse.status == CreateStatus.FAILED
+                if (
+                  createStatusResponse.status == CreateStatus.SUCCESS ||
+                  createStatusResponse.status == CreateStatus.FAILED
                 ) {
                   resolve(this._merge(createStatusResponse, createResponse));
                 } else {
@@ -111,7 +117,7 @@ export default class BackupCreator extends CommandBase {
 
           loop();
         })
-        .catch(reject)
+        .catch(reject);
     });
   }
 
@@ -125,19 +131,19 @@ export default class BackupCreator extends CommandBase {
       merged.id = createStatusResponse.id;
     }
     if ('path' in createStatusResponse) {
-      merged.path = createStatusResponse.path
+      merged.path = createStatusResponse.path;
     }
     if ('backend' in createStatusResponse) {
-      merged.backend = createStatusResponse.backend
+      merged.backend = createStatusResponse.backend;
     }
     if ('status' in createStatusResponse) {
-      merged.status = createStatusResponse.status
+      merged.status = createStatusResponse.status;
     }
     if ('error' in createStatusResponse) {
-      merged.error = createStatusResponse.error
+      merged.error = createStatusResponse.error;
     }
     if ('classes' in createResponse) {
-      merged.classes = createResponse.classes
+      merged.classes = createResponse.classes;
     }
     return merged;
   }

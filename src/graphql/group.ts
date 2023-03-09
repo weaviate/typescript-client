@@ -1,6 +1,6 @@
 export default class GraphQLGroup {
   private source: any;
-  
+
   constructor(source: any) {
     this.source = source;
   }
@@ -17,6 +17,6 @@ export default class GraphQLGroup {
       parts = [...parts, `force:${this.source.force}`];
     }
 
-    return `{${parts.join(",")}}`;
+    return `{${parts.join(',')}}`;
   }
 }

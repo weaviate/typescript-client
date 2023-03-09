@@ -1,16 +1,14 @@
-import {IWeaviateClient} from "../../index";
+import weaviate, { IWeaviateClient } from '../index';
 
-import weaviate from '../../index'
-
-describe("schema", () => {
+describe('schema', () => {
   const client = weaviate.client({
-    scheme: "http",
-    host: "localhost:8080",
+    scheme: 'http',
+    host: 'localhost:8080',
   });
 
   const classObj = newClassObject('MyThingClass');
 
-  it("creates a thing class (implicitly)", () => {
+  it('creates a thing class (implicitly)', () => {
     return client.schema
       .classCreator()
       .withClass(classObj)
@@ -20,7 +18,7 @@ describe("schema", () => {
       });
   });
 
-  it("gets an existing class", () => {
+  it('gets an existing class', () => {
     return client.schema
       .classGetter()
       .withClassName(classObj.class)
@@ -30,31 +28,33 @@ describe("schema", () => {
       });
   });
 
-  it("fails to create class with property having not supported tokenization", () => {
-    const doomedClass = newClassObject("DoomedClass");
-    doomedClass.properties[0].tokenization = "not-supported";
+  it('fails to create class with property having not supported tokenization', () => {
+    const doomedClass = newClassObject('DoomedClass');
+    doomedClass.properties[0].tokenization = 'not-supported';
 
     return client.schema
       .classCreator()
       .withClass(doomedClass)
       .do()
       .catch((err: any) => {
-        expect(err).toEqual("usage error (422): {\"code\":606,\"message\":\"properties.0.tokenization in body should be one of [word field]\"}")
+        expect(err).toEqual(
+          'usage error (422): {"code":606,"message":"properties.0.tokenization in body should be one of [word field]"}'
+        );
       });
   });
 
-  it("extends the thing class with a new property", () => {
-    const className = "MyThingClass";
+  it('extends the thing class with a new property', () => {
+    const className = 'MyThingClass';
     const prop = {
-      dataType: ["string"],
-      name: "anotherProp",
-      tokenization: "field",
+      dataType: ['string'],
+      name: 'anotherProp',
+      tokenization: 'field',
       moduleConfig: {
         'text2vec-contextionary': {
           skip: false,
-          vectorizePropertyName: false
-        }
-      }
+          vectorizePropertyName: false,
+        },
+      },
     };
 
     return client.schema
@@ -67,18 +67,18 @@ describe("schema", () => {
       });
   });
 
-  it("fails to extend the thing class with property having not supported tokenization (1)", () => {
-    const className = "MyThingClass";
+  it('fails to extend the thing class with property having not supported tokenization (1)', () => {
+    const className = 'MyThingClass';
     const prop = {
-      dataType: ["text"],
-      name: "yetAnotherProp",
-      tokenization: "field",
+      dataType: ['text'],
+      name: 'yetAnotherProp',
+      tokenization: 'field',
       moduleConfig: {
         'text2vec-contextionary': {
           skip: false,
-          vectorizePropertyName: false
-        }
-      }
+          vectorizePropertyName: false,
+        },
+      },
     };
 
     return client.schema
@@ -87,22 +87,24 @@ describe("schema", () => {
       .withProperty(prop)
       .do()
       .catch((err: any) => {
-        expect(err).toEqual("usage error (422): {\"error\":[{\"message\":\"Tokenization 'field' is not allowed for data type 'text'\"}]}")
+        expect(err).toEqual(
+          'usage error (422): {"error":[{"message":"Tokenization \'field\' is not allowed for data type \'text\'"}]}'
+        );
       });
   });
 
-  it("fails to extend the thing class with property having not supported tokenization (2)", () => {
-    const className = "MyThingClass";
+  it('fails to extend the thing class with property having not supported tokenization (2)', () => {
+    const className = 'MyThingClass';
     const prop = {
-      dataType: ["int[]"],
-      name: "yetAnotherProp",
-      tokenization: "word",
+      dataType: ['int[]'],
+      name: 'yetAnotherProp',
+      tokenization: 'word',
       moduleConfig: {
         'text2vec-contextionary': {
           skip: false,
-          vectorizePropertyName: false
-        }
-      }
+          vectorizePropertyName: false,
+        },
+      },
     };
 
     return client.schema
@@ -111,11 +113,13 @@ describe("schema", () => {
       .withProperty(prop)
       .do()
       .catch((err: any) => {
-        expect(err).toEqual("usage error (422): {\"error\":[{\"message\":\"Tokenization 'word' is not allowed for data type 'int[]'\"}]}")
+        expect(err).toEqual(
+          'usage error (422): {"error":[{"message":"Tokenization \'word\' is not allowed for data type \'int[]\'"}]}'
+        );
       });
   });
 
-  it("retrieves the schema and it matches the expectations", () => {
+  it('retrieves the schema and it matches the expectations', () => {
     return client.schema
       .getter()
       .do()
@@ -123,36 +127,36 @@ describe("schema", () => {
         expect(res).toEqual({
           classes: [
             {
-              class: "MyThingClass",
+              class: 'MyThingClass',
               properties: [
                 {
-                  dataType: ["string"],
-                  name: "stringProp",
-                  tokenization: "word",
+                  dataType: ['string'],
+                  name: 'stringProp',
+                  tokenization: 'word',
                   moduleConfig: {
                     'text2vec-contextionary': {
                       skip: false,
-                      vectorizePropertyName: false
-                    }
-                  }
+                      vectorizePropertyName: false,
+                    },
+                  },
                 },
                 {
-                  dataType: ["string"],
-                  name: "anotherProp",
-                  tokenization: "field",
+                  dataType: ['string'],
+                  name: 'anotherProp',
+                  tokenization: 'field',
                   moduleConfig: {
                     'text2vec-contextionary': {
                       skip: false,
-                      vectorizePropertyName: false
-                    }
-                  }
+                      vectorizePropertyName: false,
+                    },
+                  },
                 },
               ],
-              vectorIndexType: "hnsw",
-              vectorizer: "text2vec-contextionary",
+              vectorIndexType: 'hnsw',
+              vectorizer: 'text2vec-contextionary',
               vectorIndexConfig: {
                 cleanupIntervalSeconds: 300,
-                distance: "cosine",
+                distance: 'cosine',
                 dynamicEfFactor: 8,
                 dynamicEfMax: 500,
                 dynamicEfMin: 100,
@@ -163,41 +167,41 @@ describe("schema", () => {
                   centroids: 256,
                   enabled: false,
                   encoder: {
-                    distribution: "log-normal",
-                    type: "kmeans"
+                    distribution: 'log-normal',
+                    type: 'kmeans',
                   },
                   segments: 0,
                 },
                 skip: false,
                 efConstruction: 128,
                 vectorCacheMaxObjects: 500000,
-                flatSearchCutoff: 40000
+                flatSearchCutoff: 40000,
               },
               invertedIndexConfig: {
                 cleanupIntervalSeconds: 60,
                 bm25: {
                   b: 0.75,
-                  k1: 1.2
+                  k1: 1.2,
                 },
                 stopwords: {
-                  preset: "en",
+                  preset: 'en',
                   additions: null,
-                  removals: null
-                }
+                  removals: null,
+                },
               },
               moduleConfig: {
                 'text2vec-contextionary': {
-                  vectorizeClassName: true
-                }
+                  vectorizeClassName: true,
+                },
               },
               shardingConfig: {
                 actualCount: 1,
                 actualVirtualCount: 128,
                 desiredCount: 1,
                 desiredVirtualCount: 128,
-                function: "murmur3",
-                key: "_id",
-                strategy: "hash",
+                function: 'murmur3',
+                key: '_id',
+                strategy: 'hash',
                 virtualPerPhysical: 128,
               },
               replicationConfig: {
@@ -209,20 +213,20 @@ describe("schema", () => {
       });
   });
 
-  it("gets the shards of an existing class", () => {
+  it('gets the shards of an existing class', () => {
     return client.schema
       .shardsGetter()
       .withClassName(classObj.class)
       .do()
       .then((res: any) => {
         res.forEach((shard: any) => {
-          expect(shard.status).toEqual("READY");
+          expect(shard.status).toEqual('READY');
         });
       });
-  })
+  });
 
-  it("updates a shard of an existing class to readonly", async () => {
-    var shards = await getShards(client, classObj.class);
+  it('updates a shard of an existing class to readonly', async () => {
+    const shards = await getShards(client, classObj.class);
     expect(Array.isArray(shards)).toBe(true);
     expect(shards.length).toEqual(1);
 
@@ -230,15 +234,15 @@ describe("schema", () => {
       .shardUpdater()
       .withClassName(classObj.class)
       .withShardName(shards[0].name)
-      .withStatus("READONLY")
+      .withStatus('READONLY')
       .do()
       .then((res: any) => {
-        expect(res.status).toEqual("READONLY");
+        expect(res.status).toEqual('READONLY');
       });
-  })
+  });
 
-  it("updates a shard of an existing class to ready", async () => {
-    var shards = await getShards(client, classObj.class);
+  it('updates a shard of an existing class to ready', async () => {
+    const shards = await getShards(client, classObj.class);
     expect(Array.isArray(shards)).toBe(true);
     expect(shards.length).toEqual(1);
 
@@ -246,14 +250,14 @@ describe("schema", () => {
       .shardUpdater()
       .withClassName(classObj.class)
       .withShardName(shards[0].name)
-      .withStatus("READY")
+      .withStatus('READY')
       .do()
       .then((res: any) => {
-        expect(res.status).toEqual("READY");
+        expect(res.status).toEqual('READY');
       });
-  })
+  });
 
-  it("deletes an existing class", () => {
+  it('deletes an existing class', () => {
     return client.schema
       .classDeleter()
       .withClassName(classObj.class)
@@ -263,8 +267,8 @@ describe("schema", () => {
       });
   });
 
-  it("updates all shards in a class", async () => {
-    var shardCount = 3;
+  it('updates all shards in a class', async () => {
+    const shardCount = 3;
     const newClass: any = newClassObject('NewClass');
     newClass.shardingConfig.desiredCount = shardCount;
 
@@ -276,40 +280,40 @@ describe("schema", () => {
         expect(res).toHaveProperty('shardingConfig.actualCount', 3);
       });
 
-    var shards = await getShards(client, newClass.class);
+    const shards = await getShards(client, newClass.class);
     expect(Array.isArray(shards)).toBe(true);
     expect(shards.length).toEqual(shardCount);
 
     await client.schema
       .shardsUpdater()
       .withClassName(newClass.class)
-      .withStatus("READONLY")
+      .withStatus('READONLY')
       .do()
       .then((res: any) => {
-        expect(res.length).toEqual(shardCount)
+        expect(res.length).toEqual(shardCount);
         res.forEach((obj: any) => {
-          expect(obj.status).toEqual("READONLY")
+          expect(obj.status).toEqual('READONLY');
         });
       });
 
     await client.schema
       .shardsUpdater()
       .withClassName(newClass.class)
-      .withStatus("READY")
+      .withStatus('READY')
       .do()
       .then((res: any) => {
-        expect(res.length).toEqual(shardCount)
+        expect(res.length).toEqual(shardCount);
         res.forEach((obj: any) => {
-          expect(obj.status).toEqual("READY")
+          expect(obj.status).toEqual('READY');
         });
       });
 
     return deleteClass(client, newClass.class);
-  })
+  });
 
-  it("has updated values of bm25 config", async () => {
+  it('has updated values of bm25 config', async () => {
     const newClass: any = newClassObject('NewClass');
-    var bm25Config = {k1: 1.13, b: 0.222};
+    const bm25Config = { k1: 1.13, b: 0.222 };
 
     newClass.invertedIndexConfig.bm25 = bm25Config;
 
@@ -324,12 +328,12 @@ describe("schema", () => {
     return deleteClass(client, newClass.class);
   });
 
-  it("has updated values of stopwords config", async () => {
+  it('has updated values of stopwords config', async () => {
     const newClass: any = newClassObject('SpaceClass');
     const stopwordConfig: any = {
-      preset: "en",
-      additions: ["star", "nebula"],
-      removals: ["a", "the"]
+      preset: 'en',
+      additions: ['star', 'nebula'],
+      removals: ['a', 'the'],
     };
 
     newClass.invertedIndexConfig.stopwords = stopwordConfig;
@@ -339,28 +343,31 @@ describe("schema", () => {
       .withClass(newClass)
       .do()
       .then((res: any) => {
-        expect(res).toHaveProperty('invertedIndexConfig.stopwords', stopwordConfig);
+        expect(res).toHaveProperty(
+          'invertedIndexConfig.stopwords',
+          stopwordConfig
+        );
       });
 
     return deleteClass(client, newClass.class);
   });
 
-  it("creates a class with bm25 and stopwords config", async () => {
+  it('creates a class with bm25 and stopwords config', async () => {
     const newClass: any = {
       class: 'EmptyClass',
-      properties: [{dataType: ["string"], name: 'stringProp'}]
-    }
+      properties: [{ dataType: ['string'], name: 'stringProp' }],
+    };
 
-    const bm25Config: any = {k1: 1.13, b: 0.222};
+    const bm25Config: any = { k1: 1.13, b: 0.222 };
     const stopwordConfig: any = {
-      preset: "en",
-      additions: ["star", "nebula"],
-      removals: ["a", "the"]
+      preset: 'en',
+      additions: ['star', 'nebula'],
+      removals: ['a', 'the'],
     };
 
     newClass.invertedIndexConfig = {
       bm25: bm25Config,
-      stopwords: stopwordConfig
+      stopwords: stopwordConfig,
     };
 
     await client.schema
@@ -369,15 +376,18 @@ describe("schema", () => {
       .do()
       .then((res: any) => {
         expect(res).toHaveProperty('invertedIndexConfig.bm25', bm25Config);
-        expect(res).toHaveProperty('invertedIndexConfig.stopwords', stopwordConfig);
+        expect(res).toHaveProperty(
+          'invertedIndexConfig.stopwords',
+          stopwordConfig
+        );
       });
 
     return deleteClass(client, newClass.class);
   });
 
-  it("creates a class with explicit replication config", async () => {
+  it('creates a class with explicit replication config', async () => {
     const replicationFactor = 2;
-    const newClass: any = newClassObject("SomeClass");
+    const newClass: any = newClassObject('SomeClass');
     newClass.replicationConfig.factor = replicationFactor;
 
     await client.schema
@@ -385,15 +395,18 @@ describe("schema", () => {
       .withClass(newClass)
       .do()
       .then((res: any) => {
-        expect(res).toHaveProperty('replicationConfig.factor', replicationFactor);
+        expect(res).toHaveProperty(
+          'replicationConfig.factor',
+          replicationFactor
+        );
       });
 
     return deleteClass(client, newClass.class);
   });
 
-  it("creates a class with implicit replication config", async () => {
-    const newClass: any = newClassObject("SomeClass");
-    delete newClass.replicationConfig
+  it('creates a class with implicit replication config', async () => {
+    const newClass: any = newClassObject('SomeClass');
+    delete newClass.replicationConfig;
 
     await client.schema
       .classCreator()
@@ -412,22 +425,22 @@ function newClassObject(className: string) {
     class: className,
     properties: [
       {
-        dataType: ["string"],
+        dataType: ['string'],
         name: 'stringProp',
-        tokenization: "word",
+        tokenization: 'word',
         moduleConfig: {
           'text2vec-contextionary': {
             skip: false,
-            vectorizePropertyName: false
-          }
-        }
-      }
+            vectorizePropertyName: false,
+          },
+        },
+      },
     ],
     vectorIndexType: 'hnsw',
     vectorizer: 'text2vec-contextionary',
     vectorIndexConfig: {
       cleanupIntervalSeconds: 300,
-      distance: "cosine",
+      distance: 'cosine',
       dynamicEfFactor: 8,
       dynamicEfMax: 500,
       dynamicEfMin: 100,
@@ -438,42 +451,41 @@ function newClassObject(className: string) {
         centroids: 256,
         enabled: false,
         encoder: {
-          distribution: "log-normal",
-          type: "kmeans"
+          distribution: 'log-normal',
+          type: 'kmeans',
         },
         segments: 0,
       },
       skip: false,
       efConstruction: 128,
       vectorCacheMaxObjects: 500000,
-      flatSearchCutoff: 40000
+      flatSearchCutoff: 40000,
     },
     invertedIndexConfig: {
       cleanupIntervalSeconds: 60,
       bm25: {
         b: 0.75,
-        k1: 1.2
+        k1: 1.2,
       },
       stopwords: {
-        preset: "en",
+        preset: 'en',
         additions: null,
-        removals: null
-      }
+        removals: null,
+      },
     },
     moduleConfig: {
-      'text2vec-contextionary':
-        {
-          vectorizeClassName: true
-        }
+      'text2vec-contextionary': {
+        vectorizeClassName: true,
+      },
     },
     shardingConfig: {
       actualCount: 1,
       actualVirtualCount: 128,
       desiredCount: 1,
       desiredVirtualCount: 128,
-      function: "murmur3",
-      key: "_id",
-      strategy: "hash",
+      function: 'murmur3',
+      key: '_id',
+      strategy: 'hash',
       virtualPerPhysical: 128,
     },
     replicationConfig: {
@@ -482,7 +494,7 @@ function newClassObject(className: string) {
   };
 }
 
-async function getShards(client: IWeaviateClient, className: string) {
+function getShards(client: IWeaviateClient, className: string) {
   return client.schema
     .shardsGetter()
     .withClassName(className)

@@ -1,8 +1,8 @@
-import { isValidStringProperty } from "../validation/string";
-import { getShards } from "./shardsGetter";
-import { updateShard } from "./shardUpdater";
-import Connection from "../connection";
-import {CommandBase} from "../validation/commandBase";
+import { isValidStringProperty } from '../validation/string';
+import { getShards } from './shardsGetter';
+import { updateShard } from './shardUpdater';
+import Connection from '../connection';
+import { CommandBase } from '../validation/commandBase';
 
 export default class ShardsUpdater extends CommandBase {
   private className?: string;
@@ -10,7 +10,7 @@ export default class ShardsUpdater extends CommandBase {
   private status?: string;
 
   constructor(client: Connection) {
-    super(client)
+    super(client);
     this.shards = [];
   }
 
@@ -21,18 +21,20 @@ export default class ShardsUpdater extends CommandBase {
 
   validateClassName = () => {
     if (!isValidStringProperty(this.className)) {
-      this.addError("className must be set - set with .withClassName(className)")
+      this.addError(
+        'className must be set - set with .withClassName(className)'
+      );
     }
   };
 
   withStatus = (status: string) => {
-    this.status = status
+    this.status = status;
     return this;
-  }
+  };
 
   validateStatus = () => {
     if (!isValidStringProperty(this.status)) {
-      this.addError("status must be set - set with .withStatus(status)")
+      this.addError('status must be set - set with .withStatus(status)');
     }
   };
 
@@ -42,38 +44,46 @@ export default class ShardsUpdater extends CommandBase {
   };
 
   updateShards = async () => {
-    let payload: any = [];
-    for (let i = 0; i < this.shards.length; i++) {
-      await updateShard(this.client, this.className, this.shards[i].name, this.status)
-        .then((res: any) => {
-          payload.push({name: this.shards[i].name, status: res.status})
-        })
-        .catch((err: any) => this.addError(err.toString()));
-    }
+    const payload: any = await Promise.all(
+      Array.from({ length: this.shards.length }, (_, i) =>
+        updateShard(
+          this.client,
+          this.className,
+          this.shards[i].name,
+          this.status
+        )
+          .then((res: any) => {
+            return { name: this.shards[i].name, status: res.status };
+          })
+          .catch((err: any) => this.addError(err.toString()))
+      )
+    );
 
     if (this.errors.length > 0) {
       return Promise.reject(
-        new Error(`failed to update shards: ${this.errors.join(", ")}`)
+        new Error(`failed to update shards: ${this.errors.join(', ')}`)
       );
     }
 
     return Promise.resolve(payload);
-  }
+  };
 
   do = () => {
     this.validate();
     if (this.errors.length > 0) {
       return Promise.reject(
-        new Error(`invalid usage: ${this.errors.join(", ")}`)
+        new Error(`invalid usage: ${this.errors.join(', ')}`)
       );
     }
 
     return getShards(this.client, this.className)
-      .then((shards: any) => this.shards = shards)
+      .then((shards: any) => (this.shards = shards))
       .then(() => {
-        return this.updateShards()
+        return this.updateShards();
       })
-      .then((payload: any) => {return payload})
+      .then((payload: any) => {
+        return payload;
+      })
       .catch((err: any) => {
         return Promise.reject(err);
       });

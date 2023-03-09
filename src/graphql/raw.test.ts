@@ -1,6 +1,6 @@
-import Raw from "./raw";
+import Raw from './raw';
 
-test("a simple raw query", () => {
+test('a simple raw query', () => {
   const mockClient: any = {
     query: jest.fn(),
   };
@@ -12,12 +12,16 @@ test("a simple raw query", () => {
   expect(mockClient.query).toHaveBeenCalledWith(expectedQuery);
 });
 
-test("reject empty raw query", () => {
+test('reject empty raw query', () => {
   const mockClient: any = {
     query: jest.fn(),
   };
 
   new Raw(mockClient).do().catch((err: any) => {
-    expect(err).toMatchObject(new Error("invalid usage: query must be set - set with .raw().withQuery(query)"));
+    expect(err).toMatchObject(
+      new Error(
+        'invalid usage: query must be set - set with .raw().withQuery(query)'
+      )
+    );
   });
 });

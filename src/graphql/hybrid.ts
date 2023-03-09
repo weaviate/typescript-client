@@ -1,5 +1,5 @@
-import { isValidNumber, isValidNumberArray } from "../validation/number";
-import { isValidStringProperty } from "../validation/string";
+import { isValidNumber, isValidNumberArray } from '../validation/number';
+import { isValidStringProperty } from '../validation/string';
 
 export default class GraphQLHybrid {
   private alpha?: number;
@@ -25,19 +25,19 @@ export default class GraphQLHybrid {
       args = [...args, `vector:${JSON.stringify(this.vector)}`];
     }
 
-    return `{${args.join(",")}}`;
+    return `{${args.join(',')}}`;
   }
 
   parse() {
-    for (let key in this.source) {
+    for (const key in this.source) {
       switch (key) {
-        case "query":
+        case 'query':
           this.parseQuery(this.source[key]);
           break;
-        case "alpha":
+        case 'alpha':
           this.parseAlpha(this.source[key]);
           break;
-        case "vector":
+        case 'vector':
           this.parseVector(this.source[key]);
           break;
         default:
@@ -48,7 +48,7 @@ export default class GraphQLHybrid {
 
   parseQuery(query: string) {
     if (!isValidStringProperty(query)) {
-      throw new Error("hybrid filter: query must be a string");
+      throw new Error('hybrid filter: query must be a string');
     }
 
     this.query = query;
@@ -56,7 +56,7 @@ export default class GraphQLHybrid {
 
   parseAlpha(alpha: number) {
     if (!isValidNumber(alpha)) {
-      throw new Error("hybrid filter: alpha must be a number");
+      throw new Error('hybrid filter: alpha must be a number');
     }
 
     this.alpha = alpha;
@@ -64,7 +64,7 @@ export default class GraphQLHybrid {
 
   parseVector(vector: number[]) {
     if (!isValidNumberArray(vector) || vector.length == 0) {
-      throw new Error("hybrid filter: vector must be an array of numbers");
+      throw new Error('hybrid filter: vector must be an array of numbers');
     }
 
     this.vector = vector;
@@ -72,7 +72,7 @@ export default class GraphQLHybrid {
 
   validate() {
     if (!this.query) {
-      throw new Error("hybrid filter: query cannot be empty");
+      throw new Error('hybrid filter: query cannot be empty');
     }
   }
 }

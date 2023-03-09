@@ -1,10 +1,10 @@
-import Scheduler from "./scheduler";
-import Getter from "./getter";
-import Connection from "../connection";
+import Scheduler from './scheduler';
+import Getter from './getter';
+import Connection from '../connection';
 
 export interface IWeaviateClientClassifications {
-  scheduler: () => Scheduler
-  getter: () => Getter
+  scheduler: () => Scheduler;
+  getter: () => Getter;
 }
 
 const data = (client: Connection): IWeaviateClientClassifications => {

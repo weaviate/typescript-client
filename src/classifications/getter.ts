@@ -1,11 +1,11 @@
-import Connection from "../connection";
-import {CommandBase} from "../validation/commandBase";
+import Connection from '../connection';
+import { CommandBase } from '../validation/commandBase';
 
 export default class Getter extends CommandBase {
   private id?: string;
 
   constructor(client: Connection) {
-    super(client)
+    super(client);
   }
 
   withId = (id: string) => {
@@ -13,14 +13,18 @@ export default class Getter extends CommandBase {
     return this;
   };
 
-  validateIsSet = (prop: string | undefined | null, name: string, setter: string) => {
+  validateIsSet = (
+    prop: string | undefined | null,
+    name: string,
+    setter: string
+  ) => {
     if (prop == undefined || prop == null || prop.length == 0) {
-      this.addError(`${name} must be set - set with ${setter}`)
+      this.addError(`${name} must be set - set with ${setter}`);
     }
   };
 
   validateId = () => {
-    this.validateIsSet(this.id, "id", ".withId(id)");
+    this.validateIsSet(this.id, 'id', '.withId(id)');
   };
 
   validate = () => {
@@ -31,7 +35,7 @@ export default class Getter extends CommandBase {
     this.validate();
     if (this.errors.length > 0) {
       return Promise.reject(
-        new Error("invalid usage: " + this.errors.join(", "))
+        new Error('invalid usage: ' + this.errors.join(', '))
       );
     }
 

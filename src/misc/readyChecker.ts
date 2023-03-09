@@ -1,12 +1,12 @@
-import {DbVersionProvider} from "../utils/dbVersion";
-import Connection from "../connection";
-import {CommandBase} from "../validation/commandBase";
+import { DbVersionProvider } from '../utils/dbVersion';
+import Connection from '../connection';
+import { CommandBase } from '../validation/commandBase';
 
 export default class ReadyChecker extends CommandBase {
   private dbVersionProvider: DbVersionProvider;
 
   constructor(client: Connection, dbVersionProvider: DbVersionProvider) {
-    super(client)
+    super(client);
     this.dbVersionProvider = dbVersionProvider;
   }
 
@@ -16,7 +16,7 @@ export default class ReadyChecker extends CommandBase {
 
   do = () => {
     return this.client
-      .get("/.well-known/ready", false)
+      .get('/.well-known/ready', false)
       .then(() => {
         setTimeout(() => this.dbVersionProvider.refresh());
         return Promise.resolve(true);

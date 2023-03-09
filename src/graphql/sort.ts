@@ -8,7 +8,7 @@ export default class GraphQLSort {
   constructor(sortObj: any) {
     this.source = sortObj;
     this.sortArgs = [];
-    this.errors = []
+    this.errors = [];
   }
 
   toString() {
@@ -30,46 +30,52 @@ export default class GraphQLSort {
     }
 
     if (this.sortArgs.length > 0) {
-      return `${args.join(",")}`;
+      return `${args.join(',')}`;
     }
-    return `{${args.join(",")}}`;
+    return `{${args.join(',')}}`;
   }
 
   validate() {
     if (this.sortArgs.length == 0) {
-      this.validatePath(this.path)
+      this.validatePath(this.path);
     }
   }
 
   validatePath(path: any) {
     if (!path) {
-      throw new Error("sort filter: path needs to be set");
+      throw new Error('sort filter: path needs to be set');
     }
     if (path.length == 0) {
-      throw new Error("sort filter: path cannot be empty");
+      throw new Error('sort filter: path cannot be empty');
     }
   }
 
   parse() {
-    for (let key in this.source) {
+    for (const key in this.source) {
       switch (key) {
-        case "path":
+        case 'path':
           this.parsePath(this.source[key]);
           break;
-        case "order":
+        case 'order':
           this.parseOrder(this.source[key]);
           break;
         default:
           try {
-            this.sortArgs = [...this.sortArgs, this.parseSortArgs(this.source[key])];
-          } catch(e: any) {
-            this.errors = [...this.errors, `sort argument at ${key}: ${e.message}`];
+            this.sortArgs = [
+              ...this.sortArgs,
+              this.parseSortArgs(this.source[key]),
+            ];
+          } catch (e: any) {
+            this.errors = [
+              ...this.errors,
+              `sort argument at ${key}: ${e.message}`,
+            ];
           }
       }
     }
 
     if (this.errors.length > 0) {
-      throw new Error(`sort filter: ${this.errors.join(", ")}`);
+      throw new Error(`sort filter: ${this.errors.join(', ')}`);
     }
   }
 
@@ -79,19 +85,21 @@ export default class GraphQLSort {
 
   parsePath(path: string[]) {
     if (!Array.isArray(path)) {
-      throw new Error("sort filter: path must be an array");
+      throw new Error('sort filter: path must be an array');
     }
 
     this.path = path;
   }
 
   parseOrder(order: string) {
-    if (typeof order !== "string") {
-      throw new Error("sort filter: order must be a string");
+    if (typeof order !== 'string') {
+      throw new Error('sort filter: order must be a string');
     }
 
-    if (order !== "asc" && order !== "desc") {
-      throw new Error("sort filter: order parameter not valid, possible values are: asc, desc");
+    if (order !== 'asc' && order !== 'desc') {
+      throw new Error(
+        'sort filter: order parameter not valid, possible values are: asc, desc'
+      );
     }
 
     this.order = order;

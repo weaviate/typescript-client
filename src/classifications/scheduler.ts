@@ -1,6 +1,6 @@
-import Getter from "./getter";
-import Connection from "../connection";
-import {CommandBase} from "../validation/commandBase";
+import Getter from './getter';
+import Connection from '../connection';
+import { CommandBase } from '../validation/commandBase';
 
 export default class Scheduler extends CommandBase {
   private basedOnProperties?: string[];
@@ -12,7 +12,7 @@ export default class Scheduler extends CommandBase {
   private waitTimeout: number;
 
   constructor(client: Connection) {
-    super(client)
+    super(client);
     this.waitTimeout = 10 * 60 * 1000; // 10 minutes
     this.waitForCompletion = false;
   }
@@ -52,33 +52,37 @@ export default class Scheduler extends CommandBase {
     return this;
   };
 
-  validateIsSet = (prop: string | undefined | null | any[], name: string, setter: string) => {
+  validateIsSet = (
+    prop: string | undefined | null | any[],
+    name: string,
+    setter: string
+  ) => {
     if (prop == undefined || prop == null || prop.length == 0) {
-      this.addError(`${name} must be set - set with ${setter}`)
+      this.addError(`${name} must be set - set with ${setter}`);
     }
   };
 
   validateClassName = () => {
     this.validateIsSet(
       this.className,
-      "className",
-      ".withClassName(className)"
+      'className',
+      '.withClassName(className)'
     );
   };
 
   validateBasedOnProperties = () => {
     this.validateIsSet(
       this.basedOnProperties,
-      "basedOnProperties",
-      ".withBasedOnProperties(basedOnProperties)"
+      'basedOnProperties',
+      '.withBasedOnProperties(basedOnProperties)'
     );
   };
 
   validateClassifyProperties = () => {
     this.validateIsSet(
       this.classifyProperties,
-      "classifyProperties",
-      ".withClassifyProperties(classifyProperties)"
+      'classifyProperties',
+      '.withClassifyProperties(classifyProperties)'
     );
   };
 
@@ -103,7 +107,7 @@ export default class Scheduler extends CommandBase {
           reject(
             new Error(
               "classification didn't finish within configured timeout, " +
-                "set larger timeout with .withWaitTimeout(timeout)"
+                'set larger timeout with .withWaitTimeout(timeout)'
             )
           ),
         this.waitTimeout
@@ -114,7 +118,7 @@ export default class Scheduler extends CommandBase {
           .withId(id)
           .do()
           .then((res: any) => {
-            res.status == "completed" && resolve(res);
+            if (res.status === 'completed') resolve(res);
           });
       }, 500);
     });
@@ -123,7 +127,7 @@ export default class Scheduler extends CommandBase {
   do = () => {
     if (this.errors.length > 0) {
       return Promise.reject(
-        new Error("invalid usage: " + this.errors.join(", "))
+        new Error('invalid usage: ' + this.errors.join(', '))
       );
     }
     this.validate();

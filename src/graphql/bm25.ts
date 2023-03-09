@@ -1,4 +1,7 @@
-import { isValidStringArray, isValidStringProperty } from "../validation/string";
+import {
+  isValidStringArray,
+  isValidStringProperty,
+} from '../validation/string';
 
 export default class GraphQLBm25 {
   private properties?: string[];
@@ -19,16 +22,16 @@ export default class GraphQLBm25 {
       args = [...args, `properties:${JSON.stringify(this.properties)}`];
     }
 
-    return `{${args.join(",")}}`;
+    return `{${args.join(',')}}`;
   }
 
   parse() {
-    for (let key in this.source) {
+    for (const key in this.source) {
       switch (key) {
-        case "query":
+        case 'query':
           this.parseQuery(this.source[key]);
           break;
-        case "properties":
+        case 'properties':
           this.parseProperties(this.source[key]);
           break;
         default:
@@ -39,7 +42,7 @@ export default class GraphQLBm25 {
 
   parseQuery(query: string) {
     if (!isValidStringProperty(query)) {
-      throw new Error("bm25 filter: query must be a string");
+      throw new Error('bm25 filter: query must be a string');
     }
 
     this.query = query;
@@ -47,7 +50,7 @@ export default class GraphQLBm25 {
 
   parseProperties(properties: string[]) {
     if (!isValidStringArray(properties)) {
-      throw new Error("bm25 filter: properties must be an array of strings");
+      throw new Error('bm25 filter: properties must be an array of strings');
     }
 
     this.properties = properties;
@@ -55,7 +58,7 @@ export default class GraphQLBm25 {
 
   validate() {
     if (!this.query) {
-      throw new Error("bm25 filter: query cannot be empty");
+      throw new Error('bm25 filter: query cannot be empty');
     }
   }
 }

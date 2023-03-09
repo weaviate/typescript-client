@@ -1,7 +1,7 @@
 export const ConsistencyLevel = {
-  ONE: "ONE",
-  QUORUM: "QUORUM",
-  ALL: "ALL",
+  ONE: 'ONE',
+  QUORUM: 'QUORUM',
+  ALL: 'ALL',
 };
 
 const replicationConsts = {

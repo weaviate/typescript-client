@@ -23,27 +23,27 @@ export default class GraphQLNearVector {
     }
 
     if (!wrap) {
-      return `${args.join(",")}`;
+      return `${args.join(',')}`;
     }
-    return `{${args.join(",")}}`;
+    return `{${args.join(',')}}`;
   }
 
   validate() {
     if (!this.vector) {
-      throw new Error("nearVector filter: vector cannot be empty");
+      throw new Error('nearVector filter: vector cannot be empty');
     }
   }
 
   parse() {
-    for (let key in this.source) {
+    for (const key in this.source) {
       switch (key) {
-        case "vector":
+        case 'vector':
           this.parseVector(this.source[key]);
           break;
-        case "certainty":
+        case 'certainty':
           this.parseCertainty(this.source[key]);
           break;
-        case "distance":
+        case 'distance':
           this.parseDistance(this.source[key]);
           break;
         default:
@@ -54,12 +54,12 @@ export default class GraphQLNearVector {
 
   parseVector(vector: any[]) {
     if (!Array.isArray(vector)) {
-      throw new Error("nearVector filter: vector must be an array");
+      throw new Error('nearVector filter: vector must be an array');
     }
 
     vector.forEach((elem: any) => {
-      if (typeof elem !== "number") {
-        throw new Error("nearVector filter: vector elements must be a number");
+      if (typeof elem !== 'number') {
+        throw new Error('nearVector filter: vector elements must be a number');
       }
     });
 
@@ -67,16 +67,16 @@ export default class GraphQLNearVector {
   }
 
   parseCertainty(cert: number) {
-    if (typeof cert !== "number") {
-      throw new Error("nearVector filter: certainty must be a number");
+    if (typeof cert !== 'number') {
+      throw new Error('nearVector filter: certainty must be a number');
     }
 
     this.certainty = cert;
   }
 
   parseDistance(dist: number) {
-    if (typeof dist !== "number") {
-      throw new Error("nearVector filter: distance must be a number");
+    if (typeof dist !== 'number') {
+      throw new Error('nearVector filter: distance must be a number');
     }
 
     this.distance = dist;

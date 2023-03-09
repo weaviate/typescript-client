@@ -1,20 +1,19 @@
-import {IHttpClient} from "./httpClient";
+import { IHttpClient } from './httpClient';
 
 interface IAuthenticatorResult {
-  accessToken: string
-  expiresAt: number
-  refreshToken: string
+  accessToken: string;
+  expiresAt: number;
+  refreshToken: string;
 }
 
 interface IAuthenticator {
-  refresh: () => Promise<IAuthenticatorResult>
+  refresh: () => Promise<IAuthenticatorResult>;
 }
 
 export class Authenticator {
-
-  private readonly http: IHttpClient
-  private readonly creds: any
-  private accessToken: string
+  private readonly http: IHttpClient;
+  private readonly creds: any;
+  private accessToken: string;
   private refreshToken?: string;
   private expiresAt: number;
   private refreshRunning: boolean;
@@ -22,84 +21,96 @@ export class Authenticator {
   constructor(http: IHttpClient, creds: any) {
     this.http = http;
     this.creds = creds;
-    this.accessToken = "";
-    this.refreshToken = "";
-    this.expiresAt = 0
+    this.accessToken = '';
+    this.refreshToken = '';
+    this.expiresAt = 0;
     this.refreshRunning = false;
 
     // If the authentication method is access token,
     // our bearer token is already available for use
     if (this.creds instanceof AuthAccessTokenCredentials) {
       this.accessToken = this.creds.accessToken;
-      this.expiresAt = this.creds.expiresAt
+      this.expiresAt = this.creds.expiresAt;
       this.refreshToken = this.creds.refreshToken;
     }
   }
 
   refresh = async (localConfig: any) => {
-    let config = await this.getOpenidConfig(localConfig);
+    const config = await this.getOpenidConfig(localConfig);
 
     let authenticator: IAuthenticator;
     switch (this.creds.constructor) {
       case AuthUserPasswordCredentials:
-        authenticator = new UserPasswordAuthenticator(this.http, this.creds, config);
+        authenticator = new UserPasswordAuthenticator(
+          this.http,
+          this.creds,
+          config
+        );
         break;
       case AuthAccessTokenCredentials:
-        authenticator = new AccessTokenAuthenticator(this.http, this.creds, config);
+        authenticator = new AccessTokenAuthenticator(
+          this.http,
+          this.creds,
+          config
+        );
         break;
       case AuthClientCredentials:
-        authenticator = new ClientCredentialsAuthenticator(this.http, this.creds, config);
+        authenticator = new ClientCredentialsAuthenticator(
+          this.http,
+          this.creds,
+          config
+        );
         break;
       default:
-        throw new Error("unsupported credential type");
+        throw new Error('unsupported credential type');
     }
 
-    return authenticator.refresh()
-      .then(resp => {
-        this.accessToken = resp.accessToken;
-        this.expiresAt = resp.expiresAt;
-        this.refreshToken = resp.refreshToken;
-        if (!this.refreshRunning && this.refreshTokenProvided()) {
-          this.runBackgroundTokenRefresh(authenticator);
-          this.refreshRunning = true;
-        }
-      });
+    return authenticator.refresh().then((resp) => {
+      this.accessToken = resp.accessToken;
+      this.expiresAt = resp.expiresAt;
+      this.refreshToken = resp.refreshToken;
+      if (!this.refreshRunning && this.refreshTokenProvided()) {
+        this.runBackgroundTokenRefresh(authenticator);
+        this.refreshRunning = true;
+      }
+    });
   };
 
-  getOpenidConfig = async (localConfig: any) => {
-    return this.http.externalGet(localConfig.href)
+  getOpenidConfig = (localConfig: any) => {
+    return this.http
+      .externalGet(localConfig.href)
       .then((openidProviderConfig: any) => {
-        let scopes = localConfig.scopes || [];
+        const scopes = localConfig.scopes || [];
         return {
           clientId: localConfig.clientId,
           provider: openidProviderConfig,
-          scopes: scopes
+          scopes: scopes,
         };
       });
   };
 
-  runBackgroundTokenRefresh = (authenticator: { refresh: () => any; }) => {
+  runBackgroundTokenRefresh = (authenticator: { refresh: () => any }) => {
     setInterval(async () => {
       // check every 30s if the token will expire in <= 1m,
       // if so, refresh
       if (this.expiresAt - Date.now() <= 60_000) {
-        var resp = await authenticator.refresh();
+        const resp = await authenticator.refresh();
         this.accessToken = resp.accessToken;
         this.expiresAt = resp.expiresAt;
         this.refreshToken = resp.refreshToken;
       }
-    }, 30_000)
+    }, 30_000);
   };
 
   refreshTokenProvided = () => {
-    return this.refreshToken && this.refreshToken != ""
-  }
+    return this.refreshToken && this.refreshToken != '';
+  };
 }
 
 export interface IAuthUserPasswordCredentials {
-  username: string
-  password?: string
-  scopes?: any[]
+  username: string;
+  password?: string;
+  scopes?: any[];
 }
 
 export class AuthUserPasswordCredentials {
@@ -114,12 +125,12 @@ export class AuthUserPasswordCredentials {
 }
 
 interface IRequestAccessTokenResponse {
-  access_token: string
-  expires_in: number
-  refresh_token: string
+  access_token: string;
+  expires_in: number;
+  refresh_token: string;
 }
 
-class UserPasswordAuthenticator implements IAuthenticator  {
+class UserPasswordAuthenticator implements IAuthenticator {
   private creds: any;
   private http: any;
   private openidConfig: any;
@@ -139,7 +150,7 @@ class UserPasswordAuthenticator implements IAuthenticator  {
         return {
           accessToken: tokenResp.access_token,
           expiresAt: calcExpirationEpoch(tokenResp.expires_in),
-          refreshToken: tokenResp.refresh_token
+          refreshToken: tokenResp.refresh_token,
         };
       })
       .catch((err: any) => {
@@ -150,40 +161,46 @@ class UserPasswordAuthenticator implements IAuthenticator  {
   };
 
   validateOpenidConfig = () => {
-    if (this.openidConfig.provider.grant_types_supported !== undefined &&
-      !this.openidConfig.provider.grant_types_supported.includes("password")) {
-      throw new Error("grant_type password not supported");
+    if (
+      this.openidConfig.provider.grant_types_supported !== undefined &&
+      !this.openidConfig.provider.grant_types_supported.includes('password')
+    ) {
+      throw new Error('grant_type password not supported');
     }
-    if (this.openidConfig.provider.token_endpoint.includes(
-      "https://login.microsoftonline.com")) {
-      throw new Error("microsoft/azure recommends to avoid authentication using " +
-        "username and password, so this method is not supported by this client");
+    if (
+      this.openidConfig.provider.token_endpoint.includes(
+        'https://login.microsoftonline.com'
+      )
+    ) {
+      throw new Error(
+        'microsoft/azure recommends to avoid authentication using ' +
+          'username and password, so this method is not supported by this client'
+      );
     }
-    this.openidConfig.scopes.push("offline_access");
+    this.openidConfig.scopes.push('offline_access');
   };
 
   requestAccessToken = () => {
     const url = this.openidConfig.provider.token_endpoint;
     const params = new URLSearchParams({
-      grant_type: "password",
+      grant_type: 'password',
       client_id: this.openidConfig.clientId,
       username: this.creds.username,
       password: this.creds.password,
-      scope: this.openidConfig.scopes.join(" ")
+      scope: this.openidConfig.scopes.join(' '),
     });
-    let contentType = "application/x-www-form-urlencoded;charset=UTF-8";
+    const contentType = 'application/x-www-form-urlencoded;charset=UTF-8';
     return this.http.externalPost(url, params, contentType);
   };
 }
 
 export interface IAuthAccessTokenCredentials {
-  accessToken: string
-  expiresIn: number
-  refreshToken?: string
+  accessToken: string;
+  expiresIn: number;
+  refreshToken?: string;
 }
 
 export class AuthAccessTokenCredentials {
-
   public readonly accessToken: string;
   public readonly expiresAt: number;
   public readonly refreshToken?: string;
@@ -197,10 +214,10 @@ export class AuthAccessTokenCredentials {
 
   validate = (creds: IAuthAccessTokenCredentials) => {
     if (creds.expiresIn === undefined) {
-      throw new Error("AuthAccessTokenCredentials: expiresIn is required");
+      throw new Error('AuthAccessTokenCredentials: expiresIn is required');
     }
     if (!Number.isInteger(creds.expiresIn) || creds.expiresIn <= 0) {
-      throw new Error("AuthAccessTokenCredentials: expiresIn must be int > 0");
+      throw new Error('AuthAccessTokenCredentials: expiresIn must be int > 0');
     }
   };
 }
@@ -216,11 +233,16 @@ class AccessTokenAuthenticator implements IAuthenticator {
   }
 
   refresh = () => {
-    if (this.creds.refreshToken === undefined || this.creds.refreshToken == "") {
-      console.warn("AuthAccessTokenCredentials not provided with refreshToken, cannot refresh");
+    if (
+      this.creds.refreshToken === undefined ||
+      this.creds.refreshToken == ''
+    ) {
+      console.warn(
+        'AuthAccessTokenCredentials not provided with refreshToken, cannot refresh'
+      );
       return Promise.resolve({
         accessToken: this.creds.accessToken,
-        expiresAt: this.creds.expiresAt
+        expiresAt: this.creds.expiresAt,
       });
     }
     this.validateOpenidConfig();
@@ -229,7 +251,7 @@ class AccessTokenAuthenticator implements IAuthenticator {
         return {
           accessToken: tokenResp.access_token,
           expiresAt: calcExpirationEpoch(tokenResp.expires_in),
-          refreshToken: tokenResp.refresh_token
+          refreshToken: tokenResp.refresh_token,
         };
       })
       .catch((err: any) => {
@@ -240,27 +262,31 @@ class AccessTokenAuthenticator implements IAuthenticator {
   };
 
   validateOpenidConfig = () => {
-    if (this.openidConfig.provider.grant_types_supported === undefined ||
-      !this.openidConfig.provider.grant_types_supported.includes("refresh_token")) {
-      throw new Error("grant_type refresh_token not supported");
+    if (
+      this.openidConfig.provider.grant_types_supported === undefined ||
+      !this.openidConfig.provider.grant_types_supported.includes(
+        'refresh_token'
+      )
+    ) {
+      throw new Error('grant_type refresh_token not supported');
     }
   };
 
   requestAccessToken = () => {
-    var url = this.openidConfig.provider.token_endpoint;
-    var params = new URLSearchParams({
-      grant_type: "refresh_token",
+    const url = this.openidConfig.provider.token_endpoint;
+    const params = new URLSearchParams({
+      grant_type: 'refresh_token',
       client_id: this.openidConfig.clientId,
       refresh_token: this.creds.refreshToken,
     });
-    let contentType = "application/x-www-form-urlencoded;charset=UTF-8";
+    const contentType = 'application/x-www-form-urlencoded;charset=UTF-8';
     return this.http.externalPost(url, params, contentType);
   };
 }
 
 export interface IAuthClientCredentials {
-  clientSecret: string
-  scopes?: any[]
+  clientSecret: string;
+  scopes?: any[];
 }
 
 export class AuthClientCredentials {
@@ -274,7 +300,6 @@ export class AuthClientCredentials {
 }
 
 class ClientCredentialsAuthenticator implements IAuthenticator {
-
   private creds: any;
   private http: any;
   private openidConfig: any;
@@ -295,7 +320,7 @@ class ClientCredentialsAuthenticator implements IAuthenticator {
         return {
           accessToken: tokenResp.access_token,
           expiresAt: calcExpirationEpoch(tokenResp.expires_in),
-          refreshToken: tokenResp.refresh_token
+          refreshToken: tokenResp.refresh_token,
         };
       })
       .catch((err: any) => {
@@ -309,26 +334,29 @@ class ClientCredentialsAuthenticator implements IAuthenticator {
     if (this.openidConfig.scopes.length > 0) {
       return;
     }
-    if (this.openidConfig.provider.token_endpoint
-      .includes("https://login.microsoftonline.com")) {
-      this.openidConfig.scopes.push(this.openidConfig.clientId + "/.default");
+    if (
+      this.openidConfig.provider.token_endpoint.includes(
+        'https://login.microsoftonline.com'
+      )
+    ) {
+      this.openidConfig.scopes.push(this.openidConfig.clientId + '/.default');
     }
   };
 
   requestAccessToken = () => {
     const url = this.openidConfig.provider.token_endpoint;
     const params = new URLSearchParams({
-      grant_type: "client_credentials",
+      grant_type: 'client_credentials',
       client_id: this.openidConfig.clientId,
       client_secret: this.creds.clientSecret,
-      scope: this.openidConfig.scopes.join(" ")
+      scope: this.openidConfig.scopes.join(' '),
     });
 
-    let contentType = "application/x-www-form-urlencoded;charset=UTF-8";
+    const contentType = 'application/x-www-form-urlencoded;charset=UTF-8';
     return this.http.externalPost(url, params, contentType);
   };
 }
 
 function calcExpirationEpoch(expiresIn: number): number {
-  return Date.now() + ((expiresIn - 2) * 1000) // -2 for some lag
+  return Date.now() + (expiresIn - 2) * 1000; // -2 for some lag
 }

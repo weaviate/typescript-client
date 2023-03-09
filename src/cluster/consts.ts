@@ -1,7 +1,7 @@
 export const NodeStatus = {
-  HEALTHY: "HEALTHY",
-  UNHEALTHY: "UNHEALTHY",
-  UNAVAILABLE: "UNAVAILABLE",
+  HEALTHY: 'HEALTHY',
+  UNHEALTHY: 'UNHEALTHY',
+  UNAVAILABLE: 'UNAVAILABLE',
 };
 
 const clusterConsts = {

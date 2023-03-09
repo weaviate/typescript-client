@@ -1,17 +1,22 @@
-import weaviate from '../index'
+import weaviate from '../index';
 
-const {createTestFoodSchemaAndData, cleanupTestFood, PIZZA_CLASS_NAME, SOUP_CLASS_NAME} = require("../utils/testData");
+const {
+  createTestFoodSchemaAndData,
+  cleanupTestFood,
+  PIZZA_CLASS_NAME,
+  SOUP_CLASS_NAME,
+} = require('../utils/testData');
 
-const EXPECTED_WEAVIATE_VERSION = "1.18.0"
-const EXPECTED_WEAVIATE_GIT_HASH = "8606543"
+const EXPECTED_WEAVIATE_VERSION = '1.18.0';
+const EXPECTED_WEAVIATE_GIT_HASH = '8606543';
 
-describe("cluster nodes endpoint", () => {
+describe('cluster nodes endpoint', () => {
   const client = weaviate.client({
-    scheme: "http",
-    host: "localhost:8080",
+    scheme: 'http',
+    host: 'localhost:8080',
   });
 
-  it("get nodes status of empty db", () => {
+  it('get nodes status of empty db', () => {
     return client.cluster
       .nodesStatusGetter()
       .do()
@@ -27,13 +32,13 @@ describe("cluster nodes endpoint", () => {
         expect(node.shards).toHaveLength(0);
       })
       .catch((e: any) => {
-        throw new Error("should not fail on getting nodes: " + e)
-      })
+        throw new Error('should not fail on getting nodes: ' + e);
+      });
   });
 
-  it("sets up db", () => createTestFoodSchemaAndData(client));
+  it('sets up db', () => createTestFoodSchemaAndData(client));
 
-  it("get nodes status of food db", () => {
+  it('get nodes status of food db', () => {
     return client.cluster
       .nodesStatusGetter()
       .do()
@@ -60,14 +65,14 @@ describe("cluster nodes endpoint", () => {
               break;
             case SOUP_CLASS_NAME:
               expect(shard.objectCount).toEqual(2);
-              break
+              break;
           }
         }
       })
       .catch((e: any) => {
-        throw new Error("should not fail on getting nodes: " + e)
-      })
+        throw new Error('should not fail on getting nodes: ' + e);
+      });
   });
 
-  it("cleans up db", () => cleanupTestFood(client));
+  it('cleans up db', () => cleanupTestFood(client));
 });

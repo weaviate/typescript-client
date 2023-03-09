@@ -1,16 +1,16 @@
-import Connection from "../connection";
-import {ObjectsPath} from "./path";
-import {CommandBase} from "../validation/commandBase";
+import Connection from '../connection';
+import { ObjectsPath } from './path';
+import { CommandBase } from '../validation/commandBase';
 
 export default class Getter extends CommandBase {
   private additionals: any[];
-  private after?: string
+  private after?: string;
   private className?: string;
   private limit?: number;
   private objectsPath: ObjectsPath;
 
   constructor(client: Connection, objectsPath: ObjectsPath) {
-    super(client)
+    super(client);
     this.objectsPath = objectsPath;
     this.additionals = [];
   }
@@ -35,9 +35,10 @@ export default class Getter extends CommandBase {
     return this;
   };
 
-  withAdditional = (additionalFlag: any) => this.extendAdditionals(additionalFlag);
+  withAdditional = (additionalFlag: any) =>
+    this.extendAdditionals(additionalFlag);
 
-  withVector = () => this.extendAdditionals("vector");
+  withVector = () => this.extendAdditionals('vector');
 
   validate() {
     // nothing to validate
@@ -46,14 +47,14 @@ export default class Getter extends CommandBase {
   do = () => {
     if (this.errors.length > 0) {
       return Promise.reject(
-        new Error("invalid usage: " + this.errors.join(", "))
+        new Error('invalid usage: ' + this.errors.join(', '))
       );
     }
 
-    return this.objectsPath.buildGet(this.className, this.limit, this.additionals!, this.after!)
+    return this.objectsPath
+      .buildGet(this.className, this.limit, this.additionals!, this.after!)
       .then((path: string) => {
-        return this.client.get(path)
-      })
-
+        return this.client.get(path);
+      });
   };
 }

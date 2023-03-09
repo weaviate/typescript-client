@@ -1,8 +1,8 @@
-import NodesStatusGetter from "./nodesStatusGetter";
-import Connection from "../connection";
+import NodesStatusGetter from './nodesStatusGetter';
+import Connection from '../connection';
 
 export interface IWeaviateClientCluster {
-  nodesStatusGetter: () => NodesStatusGetter
+  nodesStatusGetter: () => NodesStatusGetter;
 }
 
 const cluster = (client: Connection): IWeaviateClientCluster => {

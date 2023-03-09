@@ -1,10 +1,10 @@
-import ExtensionCreator from "./extensionCreator";
-import ConceptsGetter from "./conceptsGetter";
-import Connection from "../connection";
+import ExtensionCreator from './extensionCreator';
+import ConceptsGetter from './conceptsGetter';
+import Connection from '../connection';
 
 export interface IWeaviateClientC11y {
-  conceptsGetter: () => ConceptsGetter
-  extensionCreator: () => ExtensionCreator
+  conceptsGetter: () => ConceptsGetter;
+  extensionCreator: () => ExtensionCreator;
 }
 
 const c11y = (client: Connection): IWeaviateClientC11y => {

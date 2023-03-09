@@ -1,13 +1,17 @@
-import {RestoreStatus} from "./consts";
-import {validateBackend, validateBackupId, validateExcludeClassNames, validateIncludeClassNames} from "./validation";
-import Connection from "../connection";
-import BackupRestoreStatusGetter from "./backupRestoreStatusGetter";
-import {CommandBase} from "../validation/commandBase";
+import { RestoreStatus } from './consts';
+import {
+  validateBackend,
+  validateBackupId,
+  validateExcludeClassNames,
+  validateIncludeClassNames,
+} from './validation';
+import Connection from '../connection';
+import BackupRestoreStatusGetter from './backupRestoreStatusGetter';
+import { CommandBase } from '../validation/commandBase';
 
 const WAIT_INTERVAL = 1000;
 
 export default class BackupRestorer extends CommandBase {
-
   private backend?: string;
   private backupId?: string;
   private excludeClassNames?: string[];
@@ -16,7 +20,7 @@ export default class BackupRestorer extends CommandBase {
   private waitForCompletion?: boolean;
 
   constructor(client: Connection, statusGetter: BackupRestoreStatusGetter) {
-    super(client)
+    super(client);
     this.statusGetter = statusGetter;
   }
 
@@ -59,14 +63,14 @@ export default class BackupRestorer extends CommandBase {
       ...validateExcludeClassNames(this.excludeClassNames || []),
       ...validateBackend(this.backend),
       ...validateBackupId(this.backupId),
-    ])
+    ]);
   }
 
   do() {
     this.validate();
     if (this.errors.length > 0) {
       return Promise.reject(
-        new Error("invalid usage: " + this.errors.join(", "))
+        new Error('invalid usage: ' + this.errors.join(', '))
       );
     }
 
@@ -89,16 +93,18 @@ export default class BackupRestorer extends CommandBase {
   _restoreAndWaitForCompletion(payload: any) {
     return new Promise((resolve, reject) => {
       this._restore(payload)
-        .then((restoreResponse: any)=> {
+        .then((restoreResponse: any) => {
           this.statusGetter
             .withBackend(this.backend!)
             .withBackupId(this.backupId!);
 
           const loop = () => {
-            this.statusGetter.do()
+            this.statusGetter
+              .do()
               .then((restoreStatusResponse: any) => {
-                if (restoreStatusResponse.status == RestoreStatus.SUCCESS
-                    || restoreStatusResponse.status == RestoreStatus.FAILED
+                if (
+                  restoreStatusResponse.status == RestoreStatus.SUCCESS ||
+                  restoreStatusResponse.status == RestoreStatus.FAILED
                 ) {
                   resolve(this._merge(restoreStatusResponse, restoreResponse));
                 } else {
@@ -110,7 +116,7 @@ export default class BackupRestorer extends CommandBase {
 
           loop();
         })
-        .catch(reject)
+        .catch(reject);
     });
   }
 
@@ -124,19 +130,19 @@ export default class BackupRestorer extends CommandBase {
       merged.id = restoreStatusResponse.id;
     }
     if ('path' in restoreStatusResponse) {
-      merged.path = restoreStatusResponse.path
+      merged.path = restoreStatusResponse.path;
     }
     if ('backend' in restoreStatusResponse) {
-      merged.backend = restoreStatusResponse.backend
+      merged.backend = restoreStatusResponse.backend;
     }
     if ('status' in restoreStatusResponse) {
-      merged.status = restoreStatusResponse.status
+      merged.status = restoreStatusResponse.status;
     }
     if ('error' in restoreStatusResponse) {
-      merged.error = restoreStatusResponse.error
+      merged.error = restoreStatusResponse.error;
     }
     if ('classes' in restoreResponse) {
-      merged.classes = restoreResponse.classes
+      merged.classes = restoreResponse.classes;
     }
     return merged;
   }

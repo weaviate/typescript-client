@@ -1,18 +1,18 @@
-import { isValidStringProperty } from "../validation/string";
-import Connection from "../connection";
-import {ObjectsPath} from "./path";
-import {CommandBase} from "../validation/commandBase";
+import { isValidStringProperty } from '../validation/string';
+import Connection from '../connection';
+import { ObjectsPath } from './path';
+import { CommandBase } from '../validation/commandBase';
 
 export default class Creator extends CommandBase {
   private className?: string;
-  private consistencyLevel?: string
+  private consistencyLevel?: string;
   private id?: string;
   private objectsPath: ObjectsPath;
   private properties?: any;
   private vector: any;
 
   constructor(client: Connection, objectsPath: ObjectsPath) {
-    super(client)
+    super(client);
     this.objectsPath = objectsPath;
   }
 
@@ -43,7 +43,9 @@ export default class Creator extends CommandBase {
 
   validateClassName = () => {
     if (!isValidStringProperty(this.className)) {
-      this.addError("className must be set - set with .withClassName(className)")
+      this.addError(
+        'className must be set - set with .withClassName(className)'
+      );
     }
   };
 
@@ -62,11 +64,12 @@ export default class Creator extends CommandBase {
     this.validate();
     if (this.errors.length > 0) {
       return Promise.reject(
-        new Error("invalid usage: " + this.errors.join(", "))
+        new Error('invalid usage: ' + this.errors.join(', '))
       );
     }
 
-    return this.objectsPath.buildCreate(this.consistencyLevel)
-      .then((path: string) => this.client.post(path, this.payload()))
+    return this.objectsPath
+      .buildCreate(this.consistencyLevel)
+      .then((path: string) => this.client.post(path, this.payload()));
   };
 }

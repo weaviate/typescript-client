@@ -1,6 +1,6 @@
-import { isValidStringProperty } from "../validation/string";
-import Connection from "../connection";
-import {CommandBase} from "../validation/commandBase";
+import { isValidStringProperty } from '../validation/string';
+import Connection from '../connection';
+import { CommandBase } from '../validation/commandBase';
 
 export default class Validator extends CommandBase {
   private className?: string;
@@ -8,7 +8,7 @@ export default class Validator extends CommandBase {
   private properties?: any;
 
   constructor(client: Connection) {
-    super(client)
+    super(client);
   }
 
   withClassName = (className: string) => {
@@ -28,7 +28,9 @@ export default class Validator extends CommandBase {
 
   validateClassName = () => {
     if (!isValidStringProperty(this.className)) {
-      this.addError("className must be set - set with .withClassName(className)",)
+      this.addError(
+        'className must be set - set with .withClassName(className)'
+      );
     }
   };
 
@@ -46,7 +48,7 @@ export default class Validator extends CommandBase {
     this.validate();
     if (this.errors.length > 0) {
       return Promise.reject(
-        new Error("invalid usage: " + this.errors.join(", "))
+        new Error('invalid usage: ' + this.errors.join(', '))
       );
     }
     const path = `/objects/validate`;

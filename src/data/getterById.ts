@@ -1,7 +1,7 @@
-import Connection from "../connection";
-import {CommandBase} from "../validation/commandBase";
+import Connection from '../connection';
+import { CommandBase } from '../validation/commandBase';
 
-export default class GetterById extends CommandBase{
+export default class GetterById extends CommandBase {
   private additionals: any[];
   private className?: string;
   private consistencyLevel?: string;
@@ -10,7 +10,7 @@ export default class GetterById extends CommandBase{
   private objectsPath: any;
 
   constructor(client: Connection, objectsPath: any) {
-    super(client)
+    super(client);
     this.objectsPath = objectsPath;
     this.additionals = [];
   }
@@ -30,9 +30,10 @@ export default class GetterById extends CommandBase{
     return this;
   };
 
-  withAdditional = (additionalFlag: any) => this.extendAdditionals(additionalFlag);
+  withAdditional = (additionalFlag: any) =>
+    this.extendAdditionals(additionalFlag);
 
-  withVector = () => this.extendAdditionals("vector");
+  withVector = () => this.extendAdditionals('vector');
 
   withConsistencyLevel = (cl: any) => {
     this.consistencyLevel = cl;
@@ -46,7 +47,7 @@ export default class GetterById extends CommandBase{
 
   validateId = () => {
     if (this.id == undefined || this.id == null || this.id.length == 0) {
-      this.addError("id must be set - initialize with getterById(id)")
+      this.addError('id must be set - initialize with getterById(id)');
     }
   };
 
@@ -55,21 +56,25 @@ export default class GetterById extends CommandBase{
   };
 
   buildPath = (): Promise<string> => {
-    return this.objectsPath.buildGetOne(this.id!, this.className!,
-      this.additionals, this.consistencyLevel, this.nodeName)
-  }
+    return this.objectsPath.buildGetOne(
+      this.id!,
+      this.className!,
+      this.additionals,
+      this.consistencyLevel,
+      this.nodeName
+    );
+  };
 
   do = () => {
     this.validate();
     if (this.errors.length > 0) {
       return Promise.reject(
-        new Error("invalid usage: " + this.errors.join(", "))
+        new Error('invalid usage: ' + this.errors.join(', '))
       );
     }
 
-    return this.buildPath()
-      .then(path => {
-        return this.client.get(path)
-      });
+    return this.buildPath().then((path) => {
+      return this.client.get(path);
+    });
   };
 }

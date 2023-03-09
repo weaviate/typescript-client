@@ -1,14 +1,13 @@
-import { validateBackupId, validateBackend } from "./validation";
-import Connection from "../connection";
-import {CommandBase} from "../validation/commandBase";
+import { validateBackupId, validateBackend } from './validation';
+import Connection from '../connection';
+import { CommandBase } from '../validation/commandBase';
 
 export default class BackupRestoreStatusGetter extends CommandBase {
-
-  private backend?: string
+  private backend?: string;
   private backupId?: string;
 
   constructor(client: Connection) {
-    super(client)
+    super(client);
   }
 
   withBackend(backend: string) {
@@ -25,14 +24,14 @@ export default class BackupRestoreStatusGetter extends CommandBase {
     this.addErrors([
       ...validateBackend(this.backend),
       ...validateBackupId(this.backupId),
-    ])
+    ]);
   }
 
   do() {
     this.validate();
     if (this.errors.length > 0) {
       return Promise.reject(
-        new Error("invalid usage: " + this.errors.join(", "))
+        new Error('invalid usage: ' + this.errors.join(', '))
       );
     }
 

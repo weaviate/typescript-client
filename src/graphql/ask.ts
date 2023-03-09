@@ -42,36 +42,36 @@ export default class GraphQLAsk {
     }
 
     if (!wrap) {
-      return `${args.join(",")}`;
+      return `${args.join(',')}`;
     }
-    return `{${args.join(",")}}`;
+    return `{${args.join(',')}}`;
   }
 
   validate() {
     if (!this.question) {
-      throw new Error("ask filter: question needs to be set");
+      throw new Error('ask filter: question needs to be set');
     }
   }
 
   parse() {
-    for (let key in this.source) {
+    for (const key in this.source) {
       switch (key) {
-        case "question":
+        case 'question':
           this.parseQuestion(this.source[key]);
           break;
-        case "properties":
+        case 'properties':
           this.parseProperties(this.source[key]);
           break;
-        case "certainty":
+        case 'certainty':
           this.parseCertainty(this.source[key]);
           break;
-        case "distance":
+        case 'distance':
           this.parseDistance(this.source[key]);
           break;
-        case "autocorrect":
+        case 'autocorrect':
           this.parseAutocorrect(this.source[key]);
           break;
-        case "rerank":
+        case 'rerank':
           this.parseRerank(this.source[key]);
           break;
         default:
@@ -81,8 +81,8 @@ export default class GraphQLAsk {
   }
 
   parseQuestion(question: string) {
-    if (typeof question !== "string") {
-      throw new Error("ask filter: question must be a string");
+    if (typeof question !== 'string') {
+      throw new Error('ask filter: question must be a string');
     }
 
     this.question = question;
@@ -90,39 +90,39 @@ export default class GraphQLAsk {
 
   parseProperties(properties: any[]) {
     if (!Array.isArray(properties)) {
-      throw new Error("ask filter: properties must be an array");
+      throw new Error('ask filter: properties must be an array');
     }
 
     this.properties = properties;
   }
 
   parseCertainty(cert: number) {
-    if (typeof cert !== "number") {
-      throw new Error("ask filter: certainty must be a number");
+    if (typeof cert !== 'number') {
+      throw new Error('ask filter: certainty must be a number');
     }
 
     this.certainty = cert;
   }
 
   parseDistance(dist: number) {
-    if (typeof dist !== "number") {
-      throw new Error("ask filter: distance must be a number");
+    if (typeof dist !== 'number') {
+      throw new Error('ask filter: distance must be a number');
     }
 
     this.distance = dist;
   }
 
   parseAutocorrect(autocorrect: boolean) {
-    if (typeof autocorrect !== "boolean") {
-      throw new Error("ask filter: autocorrect must be a boolean");
+    if (typeof autocorrect !== 'boolean') {
+      throw new Error('ask filter: autocorrect must be a boolean');
     }
 
     this.autocorrect = autocorrect;
   }
 
   parseRerank(rerank: boolean) {
-    if (typeof rerank !== "boolean") {
-      throw new Error("ask filter: rerank must be a boolean");
+    if (typeof rerank !== 'boolean') {
+      throw new Error('ask filter: rerank must be a boolean');
     }
 
     this.rerank = rerank;

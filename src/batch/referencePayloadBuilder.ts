@@ -1,6 +1,6 @@
-import {isValidStringProperty} from "../validation/string";
-import Connection from "../connection";
-import {CommandBase} from "../validation/commandBase";
+import { isValidStringProperty } from '../validation/string';
+import Connection from '../connection';
+import { CommandBase } from '../validation/commandBase';
 
 export default class ReferencesBatcher extends CommandBase {
   private fromClassName?: string;
@@ -10,7 +10,7 @@ export default class ReferencesBatcher extends CommandBase {
   private toId?: string;
 
   constructor(client: Connection) {
-    super(client)
+    super(client);
   }
 
   withFromId = (id: string) => {
@@ -38,34 +38,38 @@ export default class ReferencesBatcher extends CommandBase {
     return this;
   }
 
-  validateIsSet = (prop: string | undefined | null, name: string, setter: string) => {
+  validateIsSet = (
+    prop: string | undefined | null,
+    name: string,
+    setter: string
+  ) => {
     if (prop == undefined || prop == null || prop.length == 0) {
-      this.addError(`${name} must be set - set with ${setter}`)
+      this.addError(`${name} must be set - set with ${setter}`);
     }
   };
 
   validate = () => {
-    this.validateIsSet(this.fromId, "fromId", ".withFromId(id)");
-    this.validateIsSet(this.toId, "toId", ".withToId(id)");
+    this.validateIsSet(this.fromId, 'fromId', '.withFromId(id)');
+    this.validateIsSet(this.toId, 'toId', '.withToId(id)');
     this.validateIsSet(
       this.fromClassName,
-      "fromClassName",
-      ".withFromClassName(className)"
+      'fromClassName',
+      '.withFromClassName(className)'
     );
     this.validateIsSet(
       this.fromRefProp,
-      "fromRefProp",
-      ".withFromRefProp(refProp)"
+      'fromRefProp',
+      '.withFromRefProp(refProp)'
     );
   };
 
   payload = () => {
     this.validate();
     if (this.errors.length > 0) {
-      throw new Error(this.errors.join(", "));
+      throw new Error(this.errors.join(', '));
     }
 
-    var beaconTo = `weaviate://localhost`;
+    let beaconTo = `weaviate://localhost`;
     if (isValidStringProperty(this.toClassName)) {
       beaconTo = `${beaconTo}/${this.toClassName}`;
     }
@@ -79,6 +83,6 @@ export default class ReferencesBatcher extends CommandBase {
   };
 
   do(): Promise<any> {
-    return Promise.reject('Should never be called');
+    return Promise.reject(new Error('Should never be called'));
   }
 }

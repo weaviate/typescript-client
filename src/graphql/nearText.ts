@@ -32,9 +32,12 @@ export default class GraphQLNearText {
     }
 
     if (this.moveTo) {
-      let moveToArgs: any[] = []
+      let moveToArgs: any[] = [];
       if (this.moveToConcepts) {
-        moveToArgs = [...moveToArgs, `concepts:${JSON.stringify(this.moveToConcepts)}`];
+        moveToArgs = [
+          ...moveToArgs,
+          `concepts:${JSON.stringify(this.moveToConcepts)}`,
+        ];
       }
       if (this.moveToObjects) {
         moveToArgs = [...moveToArgs, `objects:${this.moveToObjects}`];
@@ -42,16 +45,22 @@ export default class GraphQLNearText {
       if (this.moveToForce) {
         moveToArgs = [...moveToArgs, `force:${this.moveToForce}`];
       }
-      args = [...args, `moveTo:{${moveToArgs.join(",")}}`];
+      args = [...args, `moveTo:{${moveToArgs.join(',')}}`];
     }
 
     if (this.moveAwayFrom) {
       let moveAwayFromArgs: any[] = [];
       if (this.moveAwayFromConcepts) {
-        moveAwayFromArgs = [...moveAwayFromArgs, `concepts:${JSON.stringify(this.moveAwayFromConcepts)}`];
+        moveAwayFromArgs = [
+          ...moveAwayFromArgs,
+          `concepts:${JSON.stringify(this.moveAwayFromConcepts)}`,
+        ];
       }
       if (this.moveAwayFromObjects) {
-        moveAwayFromArgs = [...moveAwayFromArgs, `objects:${this.moveAwayFromObjects}`];
+        moveAwayFromArgs = [
+          ...moveAwayFromArgs,
+          `objects:${this.moveAwayFromObjects}`,
+        ];
       }
       if (this.moveAwayFromForce) {
         moveAwayFromArgs = [
@@ -59,7 +68,7 @@ export default class GraphQLNearText {
           `force:${this.moveAwayFromForce}`,
         ];
       }
-      args = [...args, `moveAwayFrom:{${moveAwayFromArgs.join(",")}}`];
+      args = [...args, `moveAwayFrom:{${moveAwayFromArgs.join(',')}}`];
     }
 
     if (this.autocorrect !== undefined) {
@@ -67,14 +76,14 @@ export default class GraphQLNearText {
     }
 
     if (!wrap) {
-      return `${args.join(",")}`;
+      return `${args.join(',')}`;
     }
-    return `{${args.join(",")}}`;
+    return `{${args.join(',')}}`;
   }
 
   validate() {
     if (!this.concepts) {
-      throw new Error("nearText filter: concepts cannot be empty");
+      throw new Error('nearText filter: concepts cannot be empty');
     }
 
     if (this.moveTo) {
@@ -86,7 +95,10 @@ export default class GraphQLNearText {
     }
 
     if (this.moveAwayFrom) {
-      if (!this.moveAwayFromForce || (!this.moveAwayFromConcepts && !this.moveAwayFromObjects)) {
+      if (
+        !this.moveAwayFromForce ||
+        (!this.moveAwayFromConcepts && !this.moveAwayFromObjects)
+      ) {
         throw new Error(
           "nearText filter: moveAwayFrom must have fields 'concepts' or 'objects' and 'force'"
         );
@@ -95,24 +107,24 @@ export default class GraphQLNearText {
   }
 
   parse() {
-    for (let key in this.source) {
+    for (const key in this.source) {
       switch (key) {
-        case "concepts":
+        case 'concepts':
           this.parseConcepts(this.source[key]);
           break;
-        case "certainty":
+        case 'certainty':
           this.parseCertainty(this.source[key]);
           break;
-        case "distance":
+        case 'distance':
           this.parseDistance(this.source[key]);
           break;
-        case "moveTo":
+        case 'moveTo':
           this.parseMoveTo(this.source[key]);
           break;
-        case "moveAwayFrom":
+        case 'moveAwayFrom':
           this.parseMoveAwayFrom(this.source[key]);
           break;
-        case "autocorrect":
+        case 'autocorrect':
           this.parseAutocorrect(this.source[key]);
           break;
         default:
@@ -123,120 +135,129 @@ export default class GraphQLNearText {
 
   parseConcepts(concepts: string[]) {
     if (!Array.isArray(concepts)) {
-      throw new Error("nearText filter: concepts must be an array");
+      throw new Error('nearText filter: concepts must be an array');
     }
 
     this.concepts = concepts;
   }
 
   parseCertainty(cert: number) {
-    if (typeof cert !== "number") {
-      throw new Error("nearText filter: certainty must be a number");
+    if (typeof cert !== 'number') {
+      throw new Error('nearText filter: certainty must be a number');
     }
 
     this.certainty = cert;
   }
 
   parseDistance(dist: number) {
-    if (typeof dist !== "number") {
-      throw new Error("nearText filter: distance must be a number");
+    if (typeof dist !== 'number') {
+      throw new Error('nearText filter: distance must be a number');
     }
 
     this.distance = dist;
   }
 
   parseMoveTo(target: any) {
-    if (typeof target !== "object") {
-      throw new Error("nearText filter: moveTo must be object");
+    if (typeof target !== 'object') {
+      throw new Error('nearText filter: moveTo must be object');
     }
 
     if (!target.concepts && !target.objects) {
-      throw new Error("nearText filter: moveTo.concepts or moveTo.objects must be present");
+      throw new Error(
+        'nearText filter: moveTo.concepts or moveTo.objects must be present'
+      );
     }
 
     if (target.concepts && !Array.isArray(target.concepts)) {
-      throw new Error("nearText filter: moveTo.concepts must be an array");
+      throw new Error('nearText filter: moveTo.concepts must be an array');
     }
 
     if (target.objects && !Array.isArray(target.objects)) {
-      throw new Error("nearText filter: moveTo.objects must be an array");
+      throw new Error('nearText filter: moveTo.objects must be an array');
     }
 
-    if (target.force && typeof target.force != "number") {
-      throw new Error("nearText filter: moveTo.force must be a number");
+    if (target.force && typeof target.force != 'number') {
+      throw new Error('nearText filter: moveTo.force must be a number');
     }
 
     this.moveTo = true;
     this.moveToConcepts = target.concepts;
     this.moveToForce = target.force;
     if (target.objects) {
-      this.moveToObjects = this.parseMoveObjects("moveTo", target.objects);
+      this.moveToObjects = this.parseMoveObjects('moveTo', target.objects);
     }
   }
 
   parseMoveAwayFrom(target: any) {
-    if (typeof target !== "object") {
-      throw new Error("nearText filter: moveAwayFrom must be object");
+    if (typeof target !== 'object') {
+      throw new Error('nearText filter: moveAwayFrom must be object');
     }
 
     if (!target.concepts && !target.objects) {
-      throw new Error("nearText filter: moveAwayFrom.concepts or moveAwayFrom.objects must be present");
+      throw new Error(
+        'nearText filter: moveAwayFrom.concepts or moveAwayFrom.objects must be present'
+      );
     }
 
     if (target.concepts && !Array.isArray(target.concepts)) {
       throw new Error(
-        "nearText filter: moveAwayFrom.concepts must be an array"
+        'nearText filter: moveAwayFrom.concepts must be an array'
       );
     }
 
     if (target.objects && !Array.isArray(target.objects)) {
-      throw new Error("nearText filter: moveAwayFrom.objects must be an array");
+      throw new Error('nearText filter: moveAwayFrom.objects must be an array');
     }
 
-    if (target.force && typeof target.force != "number") {
-      throw new Error("nearText filter: moveAwayFrom.force must be a number");
+    if (target.force && typeof target.force != 'number') {
+      throw new Error('nearText filter: moveAwayFrom.force must be a number');
     }
 
     this.moveAwayFrom = true;
     this.moveAwayFromConcepts = target.concepts;
     this.moveAwayFromForce = target.force;
     if (target.objects) {
-      this.moveAwayFromObjects = this.parseMoveObjects("moveAwayFrom", target.objects);
+      this.moveAwayFromObjects = this.parseMoveObjects(
+        'moveAwayFrom',
+        target.objects
+      );
     }
   }
 
   parseAutocorrect(autocorrect: boolean) {
-    if (typeof autocorrect !== "boolean") {
-      throw new Error("nearText filter: autocorrect must be a boolean");
+    if (typeof autocorrect !== 'boolean') {
+      throw new Error('nearText filter: autocorrect must be a boolean');
     }
 
     this.autocorrect = autocorrect;
   }
 
   parseMoveObjects(move: string, objects: any[]) {
-    let moveObjects = [];
-    let errors = [];
+    const moveObjects = [];
+    const errors = [];
     for (const i in objects) {
       if (!objects[i].id && !objects[i].beacon) {
-        errors.push(`${move}.objects[${i}].id or ${move}.objects[${i}].beacon must be present`)
-      } else if (objects[i].id && typeof objects[i].id !== "string") {
-        errors.push(`${move}.objects[${i}].id must be string`)
-      } else if (objects[i].beacon && typeof objects[i].beacon !== "string") {
-        errors.push(`${move}.objects[${i}].beacon must be string`)
+        errors.push(
+          `${move}.objects[${i}].id or ${move}.objects[${i}].beacon must be present`
+        );
+      } else if (objects[i].id && typeof objects[i].id !== 'string') {
+        errors.push(`${move}.objects[${i}].id must be string`);
+      } else if (objects[i].beacon && typeof objects[i].beacon !== 'string') {
+        errors.push(`${move}.objects[${i}].beacon must be string`);
       } else {
-        var objs = []
+        const objs = [];
         if (objects[i].id) {
           objs.push(`id:"${objects[i].id}"`);
         }
         if (objects[i].beacon) {
           objs.push(`beacon:"${objects[i].beacon}"`);
         }
-        moveObjects.push(`{${objs.join(",")}}`)
+        moveObjects.push(`{${objs.join(',')}}`);
       }
     }
     if (errors.length > 0) {
-      throw new Error(`nearText filter: ${errors.join(", ")}`);
+      throw new Error(`nearText filter: ${errors.join(', ')}`);
     }
-    return `[${moveObjects.join(",")}]`
+    return `[${moveObjects.join(',')}]`;
   }
 }

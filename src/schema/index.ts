@@ -1,22 +1,22 @@
-import ClassCreator from "./classCreator";
-import ClassDeleter from "./classDeleter";
-import ClassGetter from "./classGetter";
-import PropertyCreator from "./propertyCreator";
-import Getter from "./getter";
-import ShardsGetter from "./shardsGetter";
-import ShardUpdater from "./shardUpdater";
-import ShardsUpdater from "./shardsUpdater";
-import Connection from "../connection";
+import ClassCreator from './classCreator';
+import ClassDeleter from './classDeleter';
+import ClassGetter from './classGetter';
+import PropertyCreator from './propertyCreator';
+import Getter from './getter';
+import ShardsGetter from './shardsGetter';
+import ShardUpdater from './shardUpdater';
+import ShardsUpdater from './shardsUpdater';
+import Connection from '../connection';
 
 export interface IWeaviateClientSchema {
-  classCreator: () => ClassCreator
-  classDeleter: () => ClassDeleter
-  classGetter: () => ClassGetter
-  getter: () => Getter
-  propertyCreator: () => PropertyCreator
-  shardsGetter: () => ShardsGetter
-  shardUpdater: () => ShardUpdater
-  shardsUpdater: () => ShardsUpdater
+  classCreator: () => ClassCreator;
+  classDeleter: () => ClassDeleter;
+  classGetter: () => ClassGetter;
+  getter: () => Getter;
+  propertyCreator: () => PropertyCreator;
+  shardsGetter: () => ShardsGetter;
+  shardUpdater: () => ShardUpdater;
+  shardsUpdater: () => ShardsUpdater;
 }
 
 const schema = (client: Connection): IWeaviateClientSchema => {
@@ -28,7 +28,7 @@ const schema = (client: Connection): IWeaviateClientSchema => {
     propertyCreator: () => new PropertyCreator(client),
     shardsGetter: () => new ShardsGetter(client),
     shardUpdater: () => new ShardUpdater(client),
-    shardsUpdater: () =>  new ShardsUpdater(client)
+    shardsUpdater: () => new ShardsUpdater(client),
   };
 };
 

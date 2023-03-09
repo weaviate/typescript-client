@@ -32,30 +32,30 @@ export default class GraphQLNearObject {
     }
 
     if (!wrap) {
-      return `${args.join(",")}`;
+      return `${args.join(',')}`;
     }
-    return `{${args.join(",")}}`;
+    return `{${args.join(',')}}`;
   }
 
   validate() {
     if (!this.id && !this.beacon) {
-      throw new Error("nearObject filter: id or beacon needs to be set");
+      throw new Error('nearObject filter: id or beacon needs to be set');
     }
   }
 
   parse() {
-    for (let key in this.source) {
+    for (const key in this.source) {
       switch (key) {
-        case "id":
+        case 'id':
           this.parseID(this.source[key]);
           break;
-        case "beacon":
+        case 'beacon':
           this.parseBeacon(this.source[key]);
           break;
-        case "certainty":
+        case 'certainty':
           this.parseCertainty(this.source[key]);
           break;
-        case "distance":
+        case 'distance':
           this.parseDistance(this.source[key]);
           break;
         default:
@@ -65,32 +65,32 @@ export default class GraphQLNearObject {
   }
 
   parseID(id: string) {
-    if (typeof id !== "string") {
-      throw new Error("nearObject filter: id must be a string");
+    if (typeof id !== 'string') {
+      throw new Error('nearObject filter: id must be a string');
     }
 
     this.id = id;
   }
 
   parseBeacon(beacon: string) {
-    if (typeof beacon !== "string") {
-      throw new Error("nearObject filter: beacon must be a string");
+    if (typeof beacon !== 'string') {
+      throw new Error('nearObject filter: beacon must be a string');
     }
 
     this.beacon = beacon;
   }
 
   parseCertainty(cert: number) {
-    if (typeof cert !== "number") {
-      throw new Error("nearObject filter: certainty must be a number");
+    if (typeof cert !== 'number') {
+      throw new Error('nearObject filter: certainty must be a number');
     }
 
     this.certainty = cert;
   }
 
   parseDistance(dist: number) {
-    if (typeof dist !== "number") {
-      throw new Error("nearObject filter: distance must be a number");
+    if (typeof dist !== 'number') {
+      throw new Error('nearObject filter: distance must be a number');
     }
 
     this.distance = dist;
