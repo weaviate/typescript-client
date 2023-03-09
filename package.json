@@ -18,7 +18,7 @@
     "prepack": "npm run build",
     "lint": "eslint --ext .ts,.js .",
     "lint:fix": "npm run lint -- --fix",
-    "format": "prettier --write {src|test}/**/*.{ts,js}"
+    "format": "prettier --write ./{src,test}/**/*.{ts,js}"
   },
   "repository": {
     "type": "git",
