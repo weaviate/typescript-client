@@ -1,5 +1,5 @@
 import {isValidStringProperty} from "../validation/string";
-import Connection from "../../connection";
+import Connection from "../connection";
 import {CommandBase} from "../validation/commandBase";
 
 export default class ShardsGetter extends CommandBase {

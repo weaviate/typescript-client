@@ -1,4 +1,4 @@
-import Connection from "../../connection";
+import Connection from "../connection";
 import {CommandBase} from "../validation/commandBase";
 
 export default class ClassCreator extends CommandBase {
