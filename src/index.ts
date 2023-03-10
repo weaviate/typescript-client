@@ -58,7 +58,7 @@ const app = {
     const conn = new Connection(params);
     const dbVersionProvider = initDbVersionProvider(conn);
     const dbVersionSupport = new DbVersionSupport(dbVersionProvider);
-    const test = [1, 2, 3];
+
     return {
       graphql: graphql(conn),
       schema: schema(conn),
