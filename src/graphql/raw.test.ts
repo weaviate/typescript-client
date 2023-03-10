@@ -17,11 +17,9 @@ test('reject empty raw query', () => {
     query: jest.fn(),
   };
 
-  new Raw(mockClient).do().catch((err: any) => {
-    expect(err).toMatchObject(
-      new Error(
-        'invalid usage: query must be set - set with .raw().withQuery(query)'
-      )
+  new Raw(mockClient).do().catch((err: Error) => {
+    expect(err.message).toEqual(
+      'invalid usage: query must be set - set with .raw().withQuery(query)'
     );
   });
 });

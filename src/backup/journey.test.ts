@@ -461,9 +461,9 @@ describe('fail creating backup on not existing backend', () => {
       .then(() => {
         throw new Error('should fail on create backup');
       })
-      .catch((err: any) => {
-        expect(err).toContain('422');
-        expect(err).toContain(BACKEND);
+      .catch((err: Error) => {
+        expect(err.message).toContain('422');
+        expect(err.message).toContain(BACKEND);
       });
   });
 });
@@ -488,9 +488,9 @@ describe('fail checking create status on not existing backend', () => {
       .then(() => {
         throw new Error('should fail on create status');
       })
-      .catch((err: any) => {
-        expect(err).toContain('422');
-        expect(err).toContain(BACKEND);
+      .catch((err: Error) => {
+        expect(err.message).toContain('422');
+        expect(err.message).toContain(BACKEND);
       });
   });
 
@@ -519,9 +519,9 @@ describe('fail restoring backup on not existing backend', () => {
       .then(() => {
         throw new Error('should fail on restore backup');
       })
-      .catch((err: any) => {
-        expect(err).toContain('422');
-        expect(err).toContain(BACKEND);
+      .catch((err: Error) => {
+        expect(err.message).toContain('422');
+        expect(err.message).toContain(BACKEND);
       });
   });
 
@@ -550,9 +550,9 @@ describe('fail creating backup for not existing class', () => {
       .then(() => {
         throw new Error('should fail on create backup');
       })
-      .catch((err: any) => {
-        expect(err).toContain('422');
-        expect(err).toContain(CLASS_NAME);
+      .catch((err: Error) => {
+        expect(err.message).toContain('422');
+        expect(err.message).toContain(CLASS_NAME);
       });
   });
 
@@ -635,9 +635,9 @@ describe('fail creating existing backup', () => {
       .then(() => {
         throw new Error('should fail on create backup');
       })
-      .catch((err: any) => {
-        expect(err).toContain('422');
-        expect(err).toContain(BACKUP_ID);
+      .catch((err: Error) => {
+        expect(err.message).toContain('422');
+        expect(err.message).toContain(BACKUP_ID);
       });
   });
 
@@ -664,9 +664,9 @@ describe('fail checking create status for not existing backup', () => {
       .then(() => {
         throw new Error('should fail on create status');
       })
-      .catch((err: any) => {
-        expect(err).toContain('404');
-        expect(err).toContain(BACKUP_ID);
+      .catch((err: Error) => {
+        expect(err.message).toContain('404');
+        expect(err.message).toContain(BACKUP_ID);
       });
   });
 
@@ -694,9 +694,9 @@ describe('fail restoring not existing backup', () => {
       .then(() => {
         throw new Error('should fail on restore backup');
       })
-      .catch((err: any) => {
-        expect(err).toContain('404');
-        expect(err).toContain(BACKUP_ID);
+      .catch((err: Error) => {
+        expect(err.message).toContain('404');
+        expect(err.message).toContain(BACKUP_ID);
       });
   });
 
@@ -736,9 +736,9 @@ describe('fail checking restore status for not started restore', () => {
       .then(() => {
         throw new Error('should fail on restore status');
       })
-      .catch((err: any) => {
-        expect(err).toContain('404');
-        expect(err).toContain(BACKUP_ID);
+      .catch((err: Error) => {
+        expect(err.message).toContain('404');
+        expect(err.message).toContain(BACKUP_ID);
       });
   });
 
@@ -768,10 +768,10 @@ describe('fail creating backup for both include and exclude classes', () => {
       .then(() => {
         throw new Error('should fail on create');
       })
-      .catch((err: any) => {
-        expect(err).toContain('422');
-        expect(err).toContain('include');
-        expect(err).toContain('exclude');
+      .catch((err: Error) => {
+        expect(err.message).toContain('422');
+        expect(err.message).toContain('include');
+        expect(err.message).toContain('exclude');
       });
   });
 
@@ -823,10 +823,10 @@ describe('fail restoring backup for both include and exclude classes', () => {
       .then(() => {
         throw new Error('should fail on restore');
       })
-      .catch((err: any) => {
-        expect(err).toContain('422');
-        expect(err).toContain('include');
-        expect(err).toContain('exclude');
+      .catch((err: Error) => {
+        expect(err.message).toContain('422');
+        expect(err.message).toContain('include');
+        expect(err.message).toContain('exclude');
       });
   });
 

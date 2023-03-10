@@ -248,9 +248,9 @@ describe('connection', () => {
       .then((res: any) => {
         fail(`should not have succeeded. received: ${res}`);
       })
-      .catch((e: any) => {
-        expect(e).toContain('401');
-        expect(e).toContain('anonymous access not enabled');
+      .catch((e: Error) => {
+        expect(e.message).toContain('401');
+        expect(e.message).toContain('anonymous access not enabled');
       });
   });
 

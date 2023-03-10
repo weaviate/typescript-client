@@ -41,8 +41,8 @@ describe('data', () => {
       .withClassName(thingClassName)
       .withProperties(properties)
       .do()
-      .catch((e: any) => {
-        expect(e).toEqual(
+      .catch((e: Error) => {
+        expect(e.message).toEqual(
           `usage error (422): {"error":[{"message":"invalid object: invalid string property 'stringProp' on class 'DataJourneyTestThing': not a string, but json.Number"}]}`
         );
       });
@@ -125,11 +125,9 @@ describe('data', () => {
       .then(() => {
         throw new Error('it should have errord');
       })
-      .catch((err: any) => {
-        expect(err).toEqual(
-          new Error(
-            'invalid usage: className must be set - set with .withClassName(className)'
-          )
+      .catch((err: Error) => {
+        expect(err.message).toEqual(
+          'invalid usage: className must be set - set with .withClassName(className)'
         );
       });
   });
@@ -290,8 +288,8 @@ describe('data', () => {
       .withClassName('DoesNotExist')
       .withId('00000000-0000-0000-0000-000000000000')
       .do()
-      .catch((err: any) => {
-        expect(err).toEqual('usage error (404): ');
+      .catch((err: Error) => {
+        expect(err.message).toEqual('usage error (404): ');
       });
   });
 

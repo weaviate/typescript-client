@@ -36,8 +36,8 @@ describe('schema', () => {
       .classCreator()
       .withClass(doomedClass)
       .do()
-      .catch((err: any) => {
-        expect(err).toEqual(
+      .catch((err: Error) => {
+        expect(err.message).toEqual(
           'usage error (422): {"code":606,"message":"properties.0.tokenization in body should be one of [word field]"}'
         );
       });
@@ -86,8 +86,8 @@ describe('schema', () => {
       .withClassName(className)
       .withProperty(prop)
       .do()
-      .catch((err: any) => {
-        expect(err).toEqual(
+      .catch((err: Error) => {
+        expect(err.message).toEqual(
           'usage error (422): {"error":[{"message":"Tokenization \'field\' is not allowed for data type \'text\'"}]}'
         );
       });
@@ -112,8 +112,8 @@ describe('schema', () => {
       .withClassName(className)
       .withProperty(prop)
       .do()
-      .catch((err: any) => {
-        expect(err).toEqual(
+      .catch((err: Error) => {
+        expect(err.message).toEqual(
           'usage error (422): {"error":[{"message":"Tokenization \'word\' is not allowed for data type \'int[]\'"}]}'
         );
       });

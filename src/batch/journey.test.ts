@@ -521,9 +521,9 @@ describe('batch deleting', () => {
       .withClassName('')
       .withWhere('shouldBeObject')
       .do()
-      .catch((err: any) =>
-        expect(err.toString()).toBe(
-          'Error: invalid usage: string className must be set - set with .withClassName(className), object where must be set - set with .withWhere(whereFilter)'
+      .catch((err: Error) =>
+        expect(err.message).toBe(
+          'invalid usage: string className must be set - set with .withClassName(className), object where must be set - set with .withWhere(whereFilter)'
         )
       ));
 
