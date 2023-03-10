@@ -2,12 +2,12 @@
   "name": "weaviate-js-example",
   "version": "1.0.0",
   "description": "",
-  "main": "javascript",
+  "main": "index.js",
   "dependencies": {
     "weaviate-ts-client": "latest"
   },
   "scripts": {
-    "start": "node javascript"
+    "start": "node index.js"
   },
   "author": "",
   "license": "ISC"
