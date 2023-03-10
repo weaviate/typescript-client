@@ -1,6 +1,7 @@
 .github/
 ci/
 coverage/
+examples/
 test/
 **/*.test.ts
 .babelrc

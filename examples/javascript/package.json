@@ -1,0 +1,14 @@
+{
+  "name": "weaviate-js-example",
+  "version": "1.0.0",
+  "description": "",
+  "main": "javascript",
+  "dependencies": {
+    "weaviate-ts-client": "latest"
+  },
+  "scripts": {
+    "start": "node javascript"
+  },
+  "author": "",
+  "license": "ISC"
+}
