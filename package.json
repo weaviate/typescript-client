@@ -19,7 +19,8 @@
     "lint": "eslint --ext .ts,.js .",
     "lint:fix": "npm run lint -- --fix",
     "format": "prettier --write ./{src,test,examples}/**/*.{ts,js}",
-    "format:check": "prettier --check ./{src,test,examples}/**/*.{ts,js}"
+    "format:check": "prettier --check ./{src,test,examples}/**/*.{ts,js}",
+    "prepare": "husky install"
   },
   "repository": {
     "type": "git",
@@ -55,10 +56,16 @@
     "eslint": "^8.35.0",
     "eslint-config-prettier": "^8.7.0",
     "eslint-plugin-prettier": "^4.2.1",
+    "husky": "^8.0.3",
     "jest": "^29.4.3",
+    "lint-staged": "^13.2.0",
     "prettier": "^2.8.4",
     "ts-jest": "^29.0.5",
     "ts-node": "^10.9.1",
     "typescript": "^4.9.5"
+  },
+  "lint-staged": {
+    "*.{ts,js,json,md}": "prettier --config .prettierrc --write",
+    "*.{ts,js}": "npm run lint -- --cache --max-warnings 0"
   }
 }
