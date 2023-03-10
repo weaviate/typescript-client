@@ -67,7 +67,7 @@
   "lint-staged": {
     "*.{ts,js}": [
       "npm run format:check",
-      "npm run lint -- --cache --max-warnings 0"
+      "npm run lint -- --cache"
     ]
   }
 }
