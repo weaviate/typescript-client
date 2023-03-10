@@ -10,7 +10,7 @@ esbuild.build({
     'isomorphic-fetch',
     'graphql-request'
   ],
-  format: 'esm',
+  format: 'cjs',
   logLevel: "info",
   metafile: true,
   minify: true,
