@@ -10,3 +10,4 @@ weaviate-data/
 .idea/
 *.tgz
 .npmrc
+.eslintcache
