@@ -17,6 +17,7 @@ jobs:
         node-version: '18.x'
     - name: "Run checks"
       run: |
+        npm install
         npm run lint
         npm run prettier:check
 
