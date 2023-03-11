@@ -1,4 +1,5 @@
-import weaviate from "weaviate-ts-client"
+import pkg from 'weaviate-ts-client';
+const { weaviate } = pkg;
 
 const client = weaviate.client({
   scheme: "http",

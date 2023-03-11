@@ -1,6 +1,4 @@
-import {IWeaviateClient} from "../index";
-
-import weaviate from "../index"
+import {weaviate, IWeaviateClient} from "../index"
 
 const thingClassName = "DataJourneyTestThing";
 const refSourceClassName = "DataJourneyTestRefSource";

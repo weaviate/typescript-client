@@ -1,22 +1,23 @@
-import Connection from "./connection/index"
-import graphql, {IWeaviateClientGraphQL} from "./graphql/index";
-import schema, {IWeaviateClientSchema} from "./schema/index";
-import data, {IWeaviateClientData} from "./data/index";
-import classifications, {IWeaviateClientClassifications} from "./classifications/index";
-import batch, {IWeaviateClientBatch} from "./batch/index";
-import misc, {IWeaviateClientMisc} from "./misc/index";
-import c11y, {IWeaviateClientC11y} from "./c11y/index";
-import {DbVersionProvider, DbVersionSupport} from "./utils/dbVersion";
-import backup, {IWeaviateClientBackup} from "./backup/index";
-import backupConsts from "./backup/consts";
-import batchConsts from "./batch/consts";
-import filtersConsts from "./filters/consts";
-import cluster, {IWeaviateClientCluster} from "./cluster/index";
-import clusterConsts from "./cluster/consts";
-import replicationConsts from "./data/replication/consts";
 import {AuthAccessTokenCredentials, AuthClientCredentials, AuthUserPasswordCredentials} from "./connection/auth";
+import Connection from "./connection/index"
+import {DbVersionProvider, DbVersionSupport} from "./utils/dbVersion";
 import MetaGetter from "./misc/metaGetter";
-import {Operator} from "./filters/consts";
+// Domain constructors
+import newGraphql, {IWeaviateClientGraphQL} from "./graphql/index";
+import newSchema, {IWeaviateClientSchema} from "./schema/index";
+import newData, {IWeaviateClientData} from "./data/index";
+import newClassifications, {IWeaviateClientClassifications} from "./classifications/index";
+import newBatch, {IWeaviateClientBatch} from "./batch/index";
+import newMisc, {IWeaviateClientMisc} from "./misc/index";
+import newC11y, {IWeaviateClientC11y} from "./c11y/index";
+import newBackup, {IWeaviateClientBackup} from "./backup/index";
+import newCluster, {IWeaviateClientCluster} from "./cluster/index";
+// Constants
+import {backup} from "./backup/consts";
+import {batch} from "./batch/consts";
+import {cluster} from "./cluster/consts";
+import {filters} from "./filters/consts";
+import {replication} from "./data/replication/consts";
 
 export interface IConnectionParams {
   authClientSecret?: AuthClientCredentials | AuthAccessTokenCredentials | AuthUserPasswordCredentials;
@@ -26,51 +27,54 @@ export interface IConnectionParams {
 }
 
 export interface IWeaviateClient {
-  graphql: IWeaviateClientGraphQL,
-  schema: IWeaviateClientSchema,
-  data: IWeaviateClientData,
-  classifications: IWeaviateClientClassifications,
-  batch: IWeaviateClientBatch,
-  misc: IWeaviateClientMisc,
-  c11y: IWeaviateClientC11y,
   backup: IWeaviateClientBackup,
+  batch: IWeaviateClientBatch,
+  classifications: IWeaviateClientClassifications,
   cluster: IWeaviateClientCluster
+  c11y: IWeaviateClientC11y,
+  data: IWeaviateClientData,
+  graphql: IWeaviateClientGraphQL,
+  misc: IWeaviateClientMisc,
+  schema: IWeaviateClientSchema,
 }
-const app = {
-  client: function (params: IConnectionParams): IWeaviateClient {
+
+export const weaviate = {
+  client: function client(params: IConnectionParams): IWeaviateClient {
     // check if the URL is set
     if (!params.host) throw new Error("Missing `host` parameter");
-
+  
     // check if the scheme is set
     if (!params.scheme) throw new Error("Missing `scheme` parameter");
-
+  
     // check if headers are set
     if (!params.headers) params.headers = {};
-
+  
     const conn = new Connection(params);
     const dbVersionProvider = initDbVersionProvider(conn);
     const dbVersionSupport = new DbVersionSupport(dbVersionProvider);
-
+  
     return {
-      graphql: graphql(conn),
-      schema: schema(conn),
-      data: data(conn, dbVersionSupport),
-      classifications: classifications(conn),
-      batch: batch(conn, dbVersionSupport),
-      misc: misc(conn, dbVersionProvider),
-      c11y: c11y(conn),
-      backup: backup(conn),
-      cluster: cluster(conn),
+      backup: newBackup(conn),
+      batch: newBatch(conn, dbVersionSupport),
+      classifications: newClassifications(conn),
+      cluster: newCluster(conn),
+      c11y: newC11y(conn),
+      data: newData(conn, dbVersionSupport),
+      graphql: newGraphql(conn),
+      misc: newMisc(conn, dbVersionProvider),
+      schema: newSchema(conn),
     };
   },
 
+  AuthUserPasswordCredentials, 
+  AuthAccessTokenCredentials, 
   // constants
-  backup: backupConsts,
-  batch: batchConsts,
-  filters: filtersConsts,
-  cluster: clusterConsts,
-  replication: replicationConsts,
-};
+  backup,
+  batch,
+  cluster,
+  filters,
+  replication
+}
 
 function initDbVersionProvider(conn: Connection) {
   const metaGetter = new MetaGetter(conn);
@@ -85,7 +89,3 @@ function initDbVersionProvider(conn: Connection) {
 
   return dbVersionProvider;
 }
-
-module.exports = app
-export default app
-export { AuthUserPasswordCredentials, AuthAccessTokenCredentials, Operator };

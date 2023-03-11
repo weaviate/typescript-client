@@ -12,8 +12,6 @@ export const Operator = {
   WITHIN_GEO_RANGE: "WithinGeoRange",
 }
 
-const filtersConsts = {
+export const filters = {
   Operator,
 };
-
-export default filtersConsts;

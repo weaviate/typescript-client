@@ -4,8 +4,6 @@ export const ConsistencyLevel = {
   ALL: "ALL",
 };
 
-const replicationConsts = {
+export const replication = {
   ConsistencyLevel,
 };
-
-export default replicationConsts;

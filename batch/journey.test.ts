@@ -1,6 +1,6 @@
 import {IWeaviateClient} from "../index";
 
-import weaviate from '../index'
+import {weaviate} from '../index'
 
 const thingClassName = "BatchJourneyTestThing";
 const otherThingClassName = "BatchJourneyTestOtherThing";

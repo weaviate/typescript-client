@@ -1,4 +1,4 @@
-import weaviate from "../index";
+import {weaviate} from "../index";
 
 const targetDessertId = "9f399d3e-45a4-44f4-b0fd-fa291abfb211";
 const targetSavoryId = "b7a64fbd-7c22-44ac-afbb-8d1432b8061b";

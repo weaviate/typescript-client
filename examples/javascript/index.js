@@ -1,4 +1,4 @@
-const weaviate = require("weaviate-ts-client")
+const {weaviate} = require("weaviate-ts-client")
 
 const client = weaviate.client({
   scheme: "http",

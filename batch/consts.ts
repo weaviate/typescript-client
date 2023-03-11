@@ -9,9 +9,7 @@ export const DeleteResultStatus = {
   DRYRUN: "DRYRUN",
 };
 
-const batchConsts = {
+export const batch = {
   DeleteOutput,
   DeleteResultStatus,
 };
-
-export default batchConsts;

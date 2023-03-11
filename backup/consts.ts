@@ -21,10 +21,8 @@ export const RestoreStatus = {
   FAILED: "FAILED",
 };
 
-const backupConsts = {
+export const backup = {
   Backend,
   CreateStatus,
   RestoreStatus,
 };
-
-export default backupConsts;

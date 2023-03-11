@@ -1,6 +1,6 @@
 import {IWeaviateClient} from "../index";
 
-import weaviate from '../index'
+import {weaviate} from '../index'
 
 const {createTestFoodSchemaAndData, cleanupTestFood, PIZZA_CLASS_NAME, SOUP_CLASS_NAME} = require("../utils/testData");
 

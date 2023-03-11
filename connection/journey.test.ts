@@ -1,7 +1,7 @@
 import {AuthAccessTokenCredentials, AuthClientCredentials, AuthUserPasswordCredentials} from './auth';
 import Connection from "./index";
 
-import weaviate from '../index'
+import {weaviate} from '../index'
 
 describe("connection", () => {
   it("makes an Azure logged-in request with client credentials", async () => {

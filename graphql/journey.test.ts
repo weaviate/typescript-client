@@ -1,5 +1,4 @@
-import weaviate, {IWeaviateClient} from "../index";
-import Connection from "../connection";
+import {weaviate, IWeaviateClient} from "../index";
 
 describe("the graphql journey", () => {
   let client: IWeaviateClient
