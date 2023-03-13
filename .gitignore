@@ -1,5 +1,6 @@
 .DS_Store
 dist/
+types/
 coverage/
 node_modules/
 config.yaml
@@ -9,3 +10,4 @@ weaviate-data/
 .idea/
 *.tgz
 .npmrc
+.eslintcache
