@@ -22,6 +22,7 @@ import {
   AuthUserPasswordCredentials,
 } from './connection/auth';
 import MetaGetter from './misc/metaGetter';
+import { EmbeddedDB, EmbeddedOptions } from './embedded';
 
 export interface IConnectionParams {
   authClientSecret?:
@@ -31,6 +32,7 @@ export interface IConnectionParams {
   host: string;
   scheme: string;
   headers?: HeadersInit;
+  embedded?: EmbeddedOptions;
 }
 
 export interface IWeaviateClient {
@@ -43,7 +45,9 @@ export interface IWeaviateClient {
   c11y: IWeaviateClientC11y;
   backup: IWeaviateClientBackup;
   cluster: IWeaviateClientCluster;
+  embedded?: EmbeddedDB;
 }
+
 const app = {
   client: function (params: IConnectionParams): IWeaviateClient {
     // check if the URL is set
@@ -59,7 +63,7 @@ const app = {
     const dbVersionProvider = initDbVersionProvider(conn);
     const dbVersionSupport = new DbVersionSupport(dbVersionProvider);
 
-    return {
+    const ifc: IWeaviateClient = {
       graphql: graphql(conn),
       schema: schema(conn),
       data: data(conn, dbVersionSupport),
@@ -70,6 +74,12 @@ const app = {
       backup: backup(conn),
       cluster: cluster(conn),
     };
+
+    if (params.embedded) {
+      ifc.embedded = new EmbeddedDB(params.embedded);
+    }
+
+    return ifc;
   },
 
   // constants
@@ -82,6 +92,7 @@ const app = {
   AuthUserPasswordCredentials,
   AuthAccessTokenCredentials,
   AuthClientCredentials,
+  EmbeddedOptions,
 };
 
 function initDbVersionProvider(conn: Connection) {
