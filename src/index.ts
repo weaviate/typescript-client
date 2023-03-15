@@ -78,6 +78,10 @@ const app = {
   filters: filtersConsts,
   cluster: clusterConsts,
   replication: replicationConsts,
+
+  AuthUserPasswordCredentials,
+  AuthAccessTokenCredentials,
+  AuthClientCredentials,
 };
 
 function initDbVersionProvider(conn: Connection) {
@@ -97,4 +101,3 @@ function initDbVersionProvider(conn: Connection) {
 
 module.exports = app;
 export default app;
-export { AuthUserPasswordCredentials, AuthAccessTokenCredentials, Operator };
