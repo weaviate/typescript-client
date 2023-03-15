@@ -32,15 +32,15 @@ export class EmbeddedOptions {
     this.clusterHostname = 'embedded';
     this.host = (cfg && cfg.host) || '127.0.0.1';
     this.port = (cfg && cfg.port) || 6666;
-    this.version = this.setVersion(cfg);
-    this.binaryPath = this.setBinaryPath(cfg);
-    this.persistenceDataPath = this.setPersistenceDataPath();
-    this.env = this.setEnv(cfg);
+    this.version = this.parseVersion(cfg);
+    this.binaryPath = this.getBinaryPath(cfg);
+    this.persistenceDataPath = this.getPersistenceDataPath();
+    this.env = this.parseEnv(cfg);
   }
 
-  setEnv(cfg?: EmbeddedOptionsConfig): NodeJS.ProcessEnv {
+  parseEnv(cfg?: EmbeddedOptionsConfig): NodeJS.ProcessEnv {
     if (!this.persistenceDataPath) {
-      this.persistenceDataPath = this.setPersistenceDataPath();
+      this.persistenceDataPath = this.getPersistenceDataPath();
     }
 
     const env: NodeJS.ProcessEnv = {
@@ -63,7 +63,7 @@ export class EmbeddedOptions {
     return env;
   }
 
-  setVersion(cfg?: EmbeddedOptionsConfig): string {
+  parseVersion(cfg?: EmbeddedOptionsConfig): string {
     if (!cfg || !cfg.version) {
       return defaultVersion;
     }
@@ -76,18 +76,18 @@ export class EmbeddedOptions {
     }
   }
 
-  setBinaryPath(cfg?: EmbeddedOptionsConfig): string {
+  getBinaryPath(cfg?: EmbeddedOptionsConfig): string {
     let binaryPath = process.env.XDG_CACHE_HOME;
     if (!binaryPath) {
       binaryPath = defaultBinaryPath;
     }
     if (!this.version) {
-      this.version = this.setVersion(cfg);
+      this.version = this.parseVersion(cfg);
     }
     return `${binaryPath}-${this.version}`;
   }
 
-  setPersistenceDataPath(): string {
+  getPersistenceDataPath(): string {
     let persistenceDataPath = process.env.XDG_DATA_HOME;
     if (!persistenceDataPath) {
       persistenceDataPath = defaultPersistenceDataPath;

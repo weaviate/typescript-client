@@ -11,3 +11,4 @@ weaviate-data/
 *.tgz
 .npmrc
 .eslintcache
+tools/docker-compose-embedded.yml
