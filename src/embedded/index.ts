@@ -110,7 +110,7 @@ export class EmbeddedDB {
   async start() {
     if (await isListening(this.options)) {
       console.log(
-        `Embedded db already listening @ ${this.options.clusterHostname}:${this.options.port}`
+        `Embedded db already listening @ ${this.options.host}:${this.options.port}`
       );
     }
 
@@ -207,7 +207,7 @@ function downloadBinary(opt: EmbeddedOptions): Promise<string> {
           new Error(
             `failed to download binary: not found. ` +
               `are you sure Weaviate version ${opt.version} exists? ` +
-              `note that embedded db is only support for versions >= 1.18.0`
+              `note that embedded db is only supported for versions >= 1.18.0`
           )
         );
       } else {
