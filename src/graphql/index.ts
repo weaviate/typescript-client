@@ -4,14 +4,14 @@ import Explorer from './explorer';
 import Raw from './raw';
 import Connection from '../connection';
 
-export interface IWeaviateClientGraphQL {
+export interface GraphQL {
   get: () => Getter;
   aggregate: () => Aggregator;
   explore: () => Explorer;
   raw: () => Raw;
 }
 
-const graphql = (client: Connection): IWeaviateClientGraphQL => {
+const graphql = (client: Connection): GraphQL => {
   return {
     get: () => new Getter(client),
     aggregate: () => new Aggregator(client),

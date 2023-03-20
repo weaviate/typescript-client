@@ -1,24 +1,24 @@
-import { IHttpClient } from './httpClient';
+import { HttpClient } from './httpClient';
 
-interface IAuthenticatorResult {
+interface AuthenticatorResult {
   accessToken: string;
   expiresAt: number;
   refreshToken: string;
 }
 
-interface IAuthenticator {
-  refresh: () => Promise<IAuthenticatorResult>;
+interface OIDCAuthFlow {
+  refresh: () => Promise<AuthenticatorResult>;
 }
 
 export class Authenticator {
-  private readonly http: IHttpClient;
+  private readonly http: HttpClient;
   private readonly creds: any;
   private accessToken: string;
   private refreshToken?: string;
   private expiresAt: number;
   private refreshRunning: boolean;
 
-  constructor(http: IHttpClient, creds: any) {
+  constructor(http: HttpClient, creds: any) {
     this.http = http;
     this.creds = creds;
     this.accessToken = '';
@@ -38,7 +38,7 @@ export class Authenticator {
   refresh = async (localConfig: any) => {
     const config = await this.getOpenidConfig(localConfig);
 
-    let authenticator: IAuthenticator;
+    let authenticator: OIDCAuthFlow;
     switch (this.creds.constructor) {
       case AuthUserPasswordCredentials:
         authenticator = new UserPasswordAuthenticator(
@@ -107,7 +107,7 @@ export class Authenticator {
   };
 }
 
-export interface IAuthUserPasswordCredentials {
+export interface UserPasswordCredentialsInput {
   username: string;
   password?: string;
   scopes?: any[];
@@ -117,20 +117,20 @@ export class AuthUserPasswordCredentials {
   private username: string;
   private password?: string;
   private scopes?: any[];
-  constructor(creds: IAuthUserPasswordCredentials) {
+  constructor(creds: UserPasswordCredentialsInput) {
     this.username = creds.username;
     this.password = creds.password;
     this.scopes = creds.scopes;
   }
 }
 
-interface IRequestAccessTokenResponse {
+interface RequestAccessTokenResponse {
   access_token: string;
   expires_in: number;
   refresh_token: string;
 }
 
-class UserPasswordAuthenticator implements IAuthenticator {
+class UserPasswordAuthenticator implements OIDCAuthFlow {
   private creds: any;
   private http: any;
   private openidConfig: any;
@@ -146,7 +146,7 @@ class UserPasswordAuthenticator implements IAuthenticator {
   refresh = () => {
     this.validateOpenidConfig();
     return this.requestAccessToken()
-      .then((tokenResp: IRequestAccessTokenResponse) => {
+      .then((tokenResp: RequestAccessTokenResponse) => {
         return {
           accessToken: tokenResp.access_token,
           expiresAt: calcExpirationEpoch(tokenResp.expires_in),
@@ -194,7 +194,7 @@ class UserPasswordAuthenticator implements IAuthenticator {
   };
 }
 
-export interface IAuthAccessTokenCredentials {
+export interface AccessTokenCredentialsInput {
   accessToken: string;
   expiresIn: number;
   refreshToken?: string;
@@ -205,14 +205,14 @@ export class AuthAccessTokenCredentials {
   public readonly expiresAt: number;
   public readonly refreshToken?: string;
 
-  constructor(creds: IAuthAccessTokenCredentials) {
+  constructor(creds: AccessTokenCredentialsInput) {
     this.validate(creds);
     this.accessToken = creds.accessToken;
     this.expiresAt = calcExpirationEpoch(creds.expiresIn);
     this.refreshToken = creds.refreshToken;
   }
 
-  validate = (creds: IAuthAccessTokenCredentials) => {
+  validate = (creds: AccessTokenCredentialsInput) => {
     if (creds.expiresIn === undefined) {
       throw new Error('AuthAccessTokenCredentials: expiresIn is required');
     }
@@ -222,7 +222,7 @@ export class AuthAccessTokenCredentials {
   };
 }
 
-class AccessTokenAuthenticator implements IAuthenticator {
+class AccessTokenAuthenticator implements OIDCAuthFlow {
   private creds: any;
   private http: any;
   private openidConfig: any;
@@ -247,7 +247,7 @@ class AccessTokenAuthenticator implements IAuthenticator {
     }
     this.validateOpenidConfig();
     return this.requestAccessToken()
-      .then((tokenResp: IRequestAccessTokenResponse) => {
+      .then((tokenResp: RequestAccessTokenResponse) => {
         return {
           accessToken: tokenResp.access_token,
           expiresAt: calcExpirationEpoch(tokenResp.expires_in),
@@ -284,7 +284,7 @@ class AccessTokenAuthenticator implements IAuthenticator {
   };
 }
 
-export interface IAuthClientCredentials {
+export interface ClientCredentialsInput {
   clientSecret: string;
   scopes?: any[];
 }
@@ -293,13 +293,13 @@ export class AuthClientCredentials {
   private clientSecret: any;
   private scopes?: any[];
 
-  constructor(creds: IAuthClientCredentials) {
+  constructor(creds: ClientCredentialsInput) {
     this.clientSecret = creds.clientSecret;
     this.scopes = creds.scopes;
   }
 }
 
-class ClientCredentialsAuthenticator implements IAuthenticator {
+class ClientCredentialsAuthenticator implements OIDCAuthFlow {
   private creds: any;
   private http: any;
   private openidConfig: any;
@@ -316,7 +316,7 @@ class ClientCredentialsAuthenticator implements IAuthenticator {
   refresh = () => {
     this.validateOpenidConfig();
     return this.requestAccessToken()
-      .then((tokenResp: IRequestAccessTokenResponse) => {
+      .then((tokenResp: RequestAccessTokenResponse) => {
         return {
           accessToken: tokenResp.access_token,
           expiresAt: calcExpirationEpoch(tokenResp.expires_in),

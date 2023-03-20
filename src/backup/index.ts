@@ -4,17 +4,14 @@ import BackupRestorer from './backupRestorer';
 import BackupRestoreStatusGetter from './backupRestoreStatusGetter';
 import Connection from '../connection';
 
-// import BackupGetter from "./backupGetter";
-
-export interface IWeaviateClientBackup {
+export interface Backup {
   creator: () => BackupCreator;
   createStatusGetter: () => BackupCreateStatusGetter;
   restorer: () => BackupRestorer;
   restoreStatusGetter: () => BackupRestoreStatusGetter;
-  // getter: () => BackupGetter
 }
 
-const backup = (client: Connection): IWeaviateClientBackup => {
+const backup = (client: Connection): Backup => {
   return {
     creator: () =>
       new BackupCreator(client, new BackupCreateStatusGetter(client)),
@@ -22,7 +19,6 @@ const backup = (client: Connection): IWeaviateClientBackup => {
     restorer: () =>
       new BackupRestorer(client, new BackupRestoreStatusGetter(client)),
     restoreStatusGetter: () => new BackupRestoreStatusGetter(client),
-    // getter: () => new BackupGetter(client),
   };
 };
 

@@ -6,7 +6,7 @@ import { BeaconPath } from '../utils/beaconPath';
 import { DbVersionSupport } from '../utils/dbVersion';
 import Connection from '../connection';
 
-export interface IWeaviateClientBatch {
+export interface Batch {
   objectsBatcher: () => ObjectsBatcher;
   objectsBatchDeleter: () => ObjectsBatchDeleter;
   referencesBatcher: () => ReferencesBatcher;
@@ -16,7 +16,7 @@ export interface IWeaviateClientBatch {
 const batch = (
   client: Connection,
   dbVersionSupport: DbVersionSupport
-): IWeaviateClientBatch => {
+): Batch => {
   const beaconPath = new BeaconPath(dbVersionSupport);
 
   return {
