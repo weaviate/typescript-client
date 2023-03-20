@@ -1,4 +1,4 @@
-import weaviate, { IWeaviateClient } from '../index';
+import weaviate, { WeaviateClient } from '../index';
 
 const thingClassName = 'DataJourneyTestThing';
 const refSourceClassName = 'DataJourneyTestRefSource';
@@ -1132,7 +1132,7 @@ describe('data', () => {
   });
 });
 
-const setup = async (client: IWeaviateClient) => {
+const setup = async (client: WeaviateClient) => {
   const thing = {
     class: thingClassName,
     properties: [

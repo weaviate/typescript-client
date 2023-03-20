@@ -1,4 +1,4 @@
-import weaviate, { IWeaviateClient } from '../index';
+import weaviate, { WeaviateClient } from '../index';
 
 const thingClassName = 'BatchJourneyTestThing';
 const otherThingClassName = 'BatchJourneyTestOtherThing';
@@ -530,7 +530,7 @@ describe('batch deleting', () => {
   it('tears down and cleans up', () => cleanup(client));
 });
 
-const setup = async (client: IWeaviateClient) => {
+const setup = async (client: WeaviateClient) => {
   // first import the classes
   await Promise.all([
     client.schema
@@ -572,11 +572,11 @@ const setup = async (client: IWeaviateClient) => {
     .do();
 };
 
-const setupData = (client: IWeaviateClient) => {
+const setupData = (client: WeaviateClient) => {
   return client.batch.objectsBatcher().withObjects(someObjects).do();
 };
 
-const cleanup = (client: IWeaviateClient) =>
+const cleanup = (client: WeaviateClient) =>
   Promise.all([
     client.schema.classDeleter().withClassName(thingClassName).do(),
     client.schema.classDeleter().withClassName(otherThingClassName).do(),

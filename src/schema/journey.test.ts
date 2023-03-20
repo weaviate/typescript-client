@@ -1,4 +1,4 @@
-import weaviate, { IWeaviateClient } from '../index';
+import weaviate, { WeaviateClient } from '../index';
 
 describe('schema', () => {
   const client = weaviate.client({
@@ -494,7 +494,7 @@ function newClassObject(className: string) {
   };
 }
 
-function getShards(client: IWeaviateClient, className: string) {
+function getShards(client: WeaviateClient, className: string) {
   return client.schema
     .shardsGetter()
     .withClassName(className)
@@ -504,7 +504,7 @@ function getShards(client: IWeaviateClient, className: string) {
     });
 }
 
-function deleteClass(client: IWeaviateClient, className: string) {
+function deleteClass(client: WeaviateClient, className: string) {
   return client.schema
     .classDeleter()
     .withClassName(className)

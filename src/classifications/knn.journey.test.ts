@@ -1,4 +1,4 @@
-import weaviate, { IWeaviateClient } from '../index';
+import weaviate, { WeaviateClient } from '../index';
 import Connection from '../connection';
 
 const targetDessertId = 'cd54852a-209d-423b-bf1c-884468215237';
@@ -205,7 +205,7 @@ describe('a classification journey', () => {
   });
 });
 
-const setup = async (client: IWeaviateClient) => {
+const setup = async (client: WeaviateClient) => {
   let targetClass = {
     class: 'ClassificationJourneyTarget',
     properties: [
@@ -286,7 +286,7 @@ const setup = async (client: IWeaviateClient) => {
     .do();
 };
 
-const cleanup = (client: IWeaviateClient) => {
+const cleanup = (client: WeaviateClient) => {
   return Promise.all([
     client.schema
       .classDeleter()

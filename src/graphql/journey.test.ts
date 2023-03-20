@@ -1,8 +1,8 @@
-import weaviate, { IWeaviateClient } from '../index';
+import weaviate, { WeaviateClient } from '../index';
 import Connection from '../connection';
 
 describe('the graphql journey', () => {
-  let client: IWeaviateClient;
+  let client: WeaviateClient;
 
   beforeEach(() => {
     client = weaviate.client({
@@ -1274,7 +1274,7 @@ describe('the graphql journey', () => {
   });
 });
 
-const setup = async (client: IWeaviateClient) => {
+const setup = async (client: WeaviateClient) => {
   const thing = {
     class: 'Article',
     invertedIndexConfig: { indexTimestamps: true },

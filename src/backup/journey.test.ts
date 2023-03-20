@@ -1,4 +1,4 @@
-import weaviate, { IWeaviateClient } from '../index';
+import weaviate, { WeaviateClient } from '../index';
 
 const {
   createTestFoodSchemaAndData,
@@ -886,16 +886,16 @@ describe('fail restoring backup for both include and exclude classes', () => {
 //   it("cleans up", () => cleanupTestFood(client));
 // });
 
-function assertThatAllPizzasExist(client: IWeaviateClient) {
+function assertThatAllPizzasExist(client: WeaviateClient) {
   return assertThatAllFoodObjectsExist(client, 'Pizza', 4);
 }
 
-function assertThatAllSoupsExist(client: IWeaviateClient) {
+function assertThatAllSoupsExist(client: WeaviateClient) {
   return assertThatAllFoodObjectsExist(client, 'Soup', 2);
 }
 
 function assertThatAllFoodObjectsExist(
-  client: IWeaviateClient,
+  client: WeaviateClient,
   className: string,
   number: number
 ) {

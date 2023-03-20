@@ -14,9 +14,9 @@ import { ObjectsPath, ReferencesPath } from './path';
 import { BeaconPath } from '../utils/beaconPath';
 import { DbVersionSupport } from '../utils/dbVersion';
 import Connection from '../connection';
-import { IWeaviateClient } from '../index';
+import { WeaviateClient } from '../index';
 
-export interface IWeaviateClientData {
+export interface Data {
   creator: () => Creator;
   validator: () => Validator;
   updater: () => Updater;
@@ -31,10 +31,7 @@ export interface IWeaviateClientData {
   referencePayloadBuilder: () => ReferencePayloadBuilder;
 }
 
-const data = (
-  client: Connection,
-  dbVersionSupport: DbVersionSupport
-): IWeaviateClientData => {
+const data = (client: Connection, dbVersionSupport: DbVersionSupport): Data => {
   const objectsPath = new ObjectsPath(dbVersionSupport);
   const referencesPath = new ReferencesPath(dbVersionSupport);
   const beaconPath = new BeaconPath(dbVersionSupport);

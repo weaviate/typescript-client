@@ -1,19 +1,17 @@
 import Connection from './connection/index';
-import graphql, { IWeaviateClientGraphQL } from './graphql/index';
-import schema, { IWeaviateClientSchema } from './schema/index';
-import data, { IWeaviateClientData } from './data/index';
-import classifications, {
-  IWeaviateClientClassifications,
-} from './classifications/index';
-import batch, { IWeaviateClientBatch } from './batch/index';
-import misc, { IWeaviateClientMisc } from './misc/index';
-import c11y, { IWeaviateClientC11y } from './c11y/index';
+import graphql, { GraphQL } from './graphql/index';
+import schema, { Schema } from './schema/index';
+import data, { Data } from './data/index';
+import classifications, { Classifications } from './classifications/index';
+import batch, { Batch } from './batch/index';
+import misc, { Misc } from './misc/index';
+import c11y, { C11y } from './c11y/index';
 import { DbVersionProvider, DbVersionSupport } from './utils/dbVersion';
-import backup, { IWeaviateClientBackup } from './backup/index';
+import backup, { Backup } from './backup/index';
 import backupConsts from './backup/consts';
 import batchConsts from './batch/consts';
-import filtersConsts, { Operator } from './filters/consts';
-import cluster, { IWeaviateClientCluster } from './cluster/index';
+import filtersConsts from './filters/consts';
+import cluster, { Cluster } from './cluster/index';
 import clusterConsts from './cluster/consts';
 import replicationConsts from './data/replication/consts';
 import {
@@ -24,7 +22,7 @@ import {
 import MetaGetter from './misc/metaGetter';
 import { EmbeddedDB, EmbeddedOptions } from './embedded';
 
-export interface IConnectionParams {
+export interface ConnectionParams {
   authClientSecret?:
     | AuthClientCredentials
     | AuthAccessTokenCredentials
@@ -35,21 +33,21 @@ export interface IConnectionParams {
   embedded?: EmbeddedOptions;
 }
 
-export interface IWeaviateClient {
-  graphql: IWeaviateClientGraphQL;
-  schema: IWeaviateClientSchema;
-  data: IWeaviateClientData;
-  classifications: IWeaviateClientClassifications;
-  batch: IWeaviateClientBatch;
-  misc: IWeaviateClientMisc;
-  c11y: IWeaviateClientC11y;
-  backup: IWeaviateClientBackup;
-  cluster: IWeaviateClientCluster;
+export interface WeaviateClient {
+  graphql: GraphQL;
+  schema: Schema;
+  data: Data;
+  classifications: Classifications;
+  batch: Batch;
+  misc: Misc;
+  c11y: C11y;
+  backup: Backup;
+  cluster: Cluster;
   embedded?: EmbeddedDB;
 }
 
 const app = {
-  client: function (params: IConnectionParams): IWeaviateClient {
+  client: function (params: ConnectionParams): WeaviateClient {
     // check if the URL is set
     if (!params.host) throw new Error('Missing `host` parameter');
 
@@ -63,7 +61,7 @@ const app = {
     const dbVersionProvider = initDbVersionProvider(conn);
     const dbVersionSupport = new DbVersionSupport(dbVersionProvider);
 
-    const ifc: IWeaviateClient = {
+    const ifc: WeaviateClient = {
       graphql: graphql(conn),
       schema: schema(conn),
       data: data(conn, dbVersionSupport),

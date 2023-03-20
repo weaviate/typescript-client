@@ -1,7 +1,7 @@
 import fetch from 'isomorphic-fetch';
-import { IConnectionParams } from '../index';
+import { ConnectionParams } from '../index';
 
-export interface IHttpClient {
+export interface HttpClient {
   patch: (path: string, payload: any, bearerToken?: string) => any;
   head: (path: string, payload: any, bearerToken?: string) => any;
   post: (
@@ -32,7 +32,7 @@ export interface IHttpClient {
   externalGet: (externalUrl: string) => Promise<any>;
 }
 
-export const httpClient = (config: IConnectionParams): IHttpClient => {
+export const httpClient = (config: ConnectionParams): HttpClient => {
   const baseUri = `${config.scheme}://${config.host}/v1`;
   const url = makeUrl(baseUri);
 

@@ -5,7 +5,7 @@ import OpenidConfigurationGetter from './openidConfigurationGetter';
 import Connection from '../connection';
 import { DbVersionProvider } from '../utils/dbVersion';
 
-export interface IWeaviateClientMisc {
+export interface Misc {
   liveChecker: () => LiveChecker;
   readyChecker: () => ReadyChecker;
   metaGetter: () => MetaGetter;
@@ -15,7 +15,7 @@ export interface IWeaviateClientMisc {
 const misc = (
   client: Connection,
   dbVersionProvider: DbVersionProvider
-): IWeaviateClientMisc => {
+): Misc => {
   return {
     liveChecker: () => new LiveChecker(client, dbVersionProvider),
     readyChecker: () => new ReadyChecker(client, dbVersionProvider),

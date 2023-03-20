@@ -1,17 +1,17 @@
 import { Authenticator } from './auth';
 import OpenidConfigurationGetter from '../misc/openidConfigurationGetter';
 
-import httpClient, { IHttpClient } from './httpClient';
-import gqlClient, { IGraphQLClient } from './gqlClient';
-import { IConnectionParams } from '../index';
+import httpClient, { HttpClient } from './httpClient';
+import gqlClient, { GraphQLClient } from './gqlClient';
+import { ConnectionParams } from '../index';
 
 export default class Connection {
   public readonly auth: any;
   private readonly authEnabled: boolean;
-  private gql: IGraphQLClient;
-  public readonly http: IHttpClient;
+  private gql: GraphQLClient;
+  public readonly http: HttpClient;
 
-  constructor(params: IConnectionParams) {
+  constructor(params: ConnectionParams) {
     this.http = httpClient(params);
     this.gql = gqlClient(params);
 

@@ -1,4 +1,4 @@
-import { IWeaviateClient } from '../index';
+import { WeaviateClient } from '../index';
 
 export const PIZZA_CLASS_NAME = 'Pizza';
 export const SOUP_CLASS_NAME = 'Soup';
@@ -102,14 +102,14 @@ const soupObjects = [
   },
 ];
 
-export function createTestFoodSchema(client: IWeaviateClient) {
+export function createTestFoodSchema(client: WeaviateClient) {
   return Promise.all([
     client.schema.classCreator().withClass(pizzaClass).do(),
     client.schema.classCreator().withClass(soupClass).do(),
   ]);
 }
 
-export function createTestFoodData(client: IWeaviateClient) {
+export function createTestFoodData(client: WeaviateClient) {
   return client.batch
     .objectsBatcher()
     .withObjects(pizzaObjects)
@@ -117,11 +117,11 @@ export function createTestFoodData(client: IWeaviateClient) {
     .do();
 }
 
-export function createTestFoodSchemaAndData(client: IWeaviateClient) {
+export function createTestFoodSchemaAndData(client: WeaviateClient) {
   return createTestFoodSchema(client).then(() => createTestFoodData(client));
 }
 
-export function cleanupTestFood(client: IWeaviateClient) {
+export function cleanupTestFood(client: WeaviateClient) {
   return Promise.all([
     client.schema.classDeleter().withClassName(PIZZA_CLASS_NAME).do(),
     client.schema.classDeleter().withClassName(SOUP_CLASS_NAME).do(),
