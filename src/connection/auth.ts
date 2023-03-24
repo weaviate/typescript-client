@@ -6,11 +6,11 @@ interface AuthenticatorResult {
   refreshToken: string;
 }
 
-interface OIDCAuthFlow {
+export interface OidcAuthFlow {
   refresh: () => Promise<AuthenticatorResult>;
 }
 
-export class Authenticator {
+export class OidcAuthenticator {
   private readonly http: HttpClient;
   private readonly creds: any;
   private accessToken: string;
@@ -38,7 +38,7 @@ export class Authenticator {
   refresh = async (localConfig: any) => {
     const config = await this.getOpenidConfig(localConfig);
 
-    let authenticator: OIDCAuthFlow;
+    let authenticator: OidcAuthFlow;
     switch (this.creds.constructor) {
       case AuthUserPasswordCredentials:
         authenticator = new UserPasswordAuthenticator(
@@ -105,6 +105,18 @@ export class Authenticator {
   refreshTokenProvided = () => {
     return this.refreshToken && this.refreshToken != '';
   };
+
+  getAccessToken = () => {
+    return this.accessToken;
+  };
+
+  getExpiresAt = () => {
+    return this.expiresAt;
+  };
+
+  resetExpiresAt() {
+    this.expiresAt = 0;
+  }
 }
 
 export interface UserPasswordCredentialsInput {
@@ -130,7 +142,7 @@ interface RequestAccessTokenResponse {
   refresh_token: string;
 }
 
-class UserPasswordAuthenticator implements OIDCAuthFlow {
+class UserPasswordAuthenticator implements OidcAuthFlow {
   private creds: any;
   private http: any;
   private openidConfig: any;
@@ -222,7 +234,7 @@ export class AuthAccessTokenCredentials {
   };
 }
 
-class AccessTokenAuthenticator implements OIDCAuthFlow {
+class AccessTokenAuthenticator implements OidcAuthFlow {
   private creds: any;
   private http: any;
   private openidConfig: any;
@@ -299,7 +311,7 @@ export class AuthClientCredentials {
   }
 }
 
-class ClientCredentialsAuthenticator implements OIDCAuthFlow {
+class ClientCredentialsAuthenticator implements OidcAuthFlow {
   private creds: any;
   private http: any;
   private openidConfig: any;
@@ -355,6 +367,14 @@ class ClientCredentialsAuthenticator implements OIDCAuthFlow {
     const contentType = 'application/x-www-form-urlencoded;charset=UTF-8';
     return this.http.externalPost(url, params, contentType);
   };
+}
+
+export class ApiKey {
+  public readonly apiKey: string;
+
+  constructor(apiKey: string) {
+    this.apiKey = apiKey;
+  }
 }
 
 function calcExpirationEpoch(expiresIn: number): number {
