@@ -89,6 +89,7 @@ const app = {
   cluster: clusterConsts,
   replication: replicationConsts,
 
+  ApiKey,
   AuthUserPasswordCredentials,
   AuthAccessTokenCredentials,
   AuthClientCredentials,
