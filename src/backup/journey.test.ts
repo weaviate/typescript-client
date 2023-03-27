@@ -1,4 +1,5 @@
 import weaviate, { WeaviateClient } from '../index';
+import { BackupCreateResponse } from '../types';
 
 const {
   createTestFoodSchemaAndData,
@@ -30,7 +31,7 @@ describe('create and restore backup with waiting', () => {
       .withBackupId(BACKUP_ID)
       .withWaitForCompletion(true)
       .do()
-      .then((createResponse: any) => {
+      .then((createResponse: BackupCreateResponse) => {
         expect(createResponse.id).toBe(BACKUP_ID);
         expect(createResponse.classes).toHaveLength(1);
         expect(createResponse.classes).toContain(PIZZA_CLASS_NAME);

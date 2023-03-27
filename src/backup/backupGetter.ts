@@ -1,6 +1,7 @@
 import { validateBackend } from './validation';
 import Connection from '../connection';
 import { CommandBase } from '../validation/commandBase';
+import { BackupCreateResponse } from '../types';
 
 export default class BackupGetter extends CommandBase {
   private backend?: string;
@@ -14,20 +15,20 @@ export default class BackupGetter extends CommandBase {
     return this;
   }
 
-  validate() {
+  validate = (): void => {
     this.addErrors(validateBackend(this.backend));
-  }
+  };
 
-  do() {
+  do = (): Promise<BackupCreateResponse[] | Error> => {
     this.validate();
     if (this.errors.length > 0) {
       return Promise.reject(new Error('invalid usage: ' + this.errors.join(', ')));
     }
 
     return this.client.get(this._path());
-  }
+  };
 
-  _path() {
+  private _path = (): string => {
     return `/backups/${this.backend}`;
-  }
+  };
 }
