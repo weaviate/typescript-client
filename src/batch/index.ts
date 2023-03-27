@@ -13,10 +13,7 @@ export interface Batch {
   referencePayloadBuilder: () => ReferencePayloadBuilder;
 }
 
-const batch = (
-  client: Connection,
-  dbVersionSupport: DbVersionSupport
-): Batch => {
+const batch = (client: Connection, dbVersionSupport: DbVersionSupport): Batch => {
   const beaconPath = new BeaconPath(dbVersionSupport);
 
   return {

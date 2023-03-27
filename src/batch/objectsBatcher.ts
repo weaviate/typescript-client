@@ -42,9 +42,7 @@ export default class ObjectsBatcher extends CommandBase {
 
   validateObjectCount = () => {
     if (this.objects.length == 0) {
-      this.addError(
-        'need at least one object to send a request, add one with .withObject(obj)'
-      );
+      this.addError('need at least one object to send a request, add one with .withObject(obj)');
     }
   };
 
@@ -55,9 +53,7 @@ export default class ObjectsBatcher extends CommandBase {
   do = () => {
     this.validate();
     if (this.errors.length > 0) {
-      return Promise.reject(
-        new Error('invalid usage: ' + this.errors.join(', '))
-      );
+      return Promise.reject(new Error('invalid usage: ' + this.errors.join(', ')));
     }
     const params = new URLSearchParams();
     if (this.consistencyLevel) {

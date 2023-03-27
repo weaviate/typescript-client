@@ -36,8 +36,7 @@ export default class Getter extends CommandBase {
     return this;
   };
 
-  withAdditional = (additionalFlag: any) =>
-    this.extendAdditional(additionalFlag);
+  withAdditional = (additionalFlag: any) => this.extendAdditional(additionalFlag);
 
   withVector = () => this.extendAdditional('vector');
 
@@ -47,9 +46,7 @@ export default class Getter extends CommandBase {
 
   do = (): Promise<WeaviateObjectList> => {
     if (this.errors.length > 0) {
-      return Promise.reject(
-        new Error('invalid usage: ' + this.errors.join(', '))
-      );
+      return Promise.reject(new Error('invalid usage: ' + this.errors.join(', ')));
     }
 
     return this.objectsPath

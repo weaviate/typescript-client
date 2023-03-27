@@ -343,10 +343,7 @@ describe('schema', () => {
       .withClass(newClass)
       .do()
       .then((res: any) => {
-        expect(res).toHaveProperty(
-          'invertedIndexConfig.stopwords',
-          stopwordConfig
-        );
+        expect(res).toHaveProperty('invertedIndexConfig.stopwords', stopwordConfig);
       });
 
     return deleteClass(client, newClass.class);
@@ -376,10 +373,7 @@ describe('schema', () => {
       .do()
       .then((res: any) => {
         expect(res).toHaveProperty('invertedIndexConfig.bm25', bm25Config);
-        expect(res).toHaveProperty(
-          'invertedIndexConfig.stopwords',
-          stopwordConfig
-        );
+        expect(res).toHaveProperty('invertedIndexConfig.stopwords', stopwordConfig);
       });
 
     return deleteClass(client, newClass.class);
@@ -395,10 +389,7 @@ describe('schema', () => {
       .withClass(newClass)
       .do()
       .then((res: any) => {
-        expect(res).toHaveProperty(
-          'replicationConfig.factor',
-          replicationFactor
-        );
+        expect(res).toHaveProperty('replicationConfig.factor', replicationFactor);
       });
 
     return deleteClass(client, newClass.class);

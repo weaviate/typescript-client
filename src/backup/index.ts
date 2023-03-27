@@ -13,11 +13,9 @@ export interface Backup {
 
 const backup = (client: Connection): Backup => {
   return {
-    creator: () =>
-      new BackupCreator(client, new BackupCreateStatusGetter(client)),
+    creator: () => new BackupCreator(client, new BackupCreateStatusGetter(client)),
     createStatusGetter: () => new BackupCreateStatusGetter(client),
-    restorer: () =>
-      new BackupRestorer(client, new BackupRestoreStatusGetter(client)),
+    restorer: () => new BackupRestorer(client, new BackupRestoreStatusGetter(client)),
     restoreStatusGetter: () => new BackupRestoreStatusGetter(client),
   };
 };

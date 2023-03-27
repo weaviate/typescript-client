@@ -61,15 +61,9 @@ export default class GraphQLSort {
           break;
         default:
           try {
-            this.sortArgs = [
-              ...this.sortArgs,
-              this.parseSortArgs(this.source[key]),
-            ];
+            this.sortArgs = [...this.sortArgs, this.parseSortArgs(this.source[key])];
           } catch (e: any) {
-            this.errors = [
-              ...this.errors,
-              `sort argument at ${key}: ${e.message}`,
-            ];
+            this.errors = [...this.errors, `sort argument at ${key}: ${e.message}`];
           }
       }
     }
@@ -97,9 +91,7 @@ export default class GraphQLSort {
     }
 
     if (order !== 'asc' && order !== 'desc') {
-      throw new Error(
-        'sort filter: order parameter not valid, possible values are: asc, desc'
-      );
+      throw new Error('sort filter: order parameter not valid, possible values are: asc, desc');
     }
 
     this.order = order;

@@ -52,22 +52,14 @@ export default class Scheduler extends CommandBase {
     return this;
   };
 
-  validateIsSet = (
-    prop: string | undefined | null | any[],
-    name: string,
-    setter: string
-  ) => {
+  validateIsSet = (prop: string | undefined | null | any[], name: string, setter: string) => {
     if (prop == undefined || prop == null || prop.length == 0) {
       this.addError(`${name} must be set - set with ${setter}`);
     }
   };
 
   validateClassName = () => {
-    this.validateIsSet(
-      this.className,
-      'className',
-      '.withClassName(className)'
-    );
+    this.validateIsSet(this.className, 'className', '.withClassName(className)');
   };
 
   validateBasedOnProperties = () => {
@@ -126,9 +118,7 @@ export default class Scheduler extends CommandBase {
 
   do = () => {
     if (this.errors.length > 0) {
-      return Promise.reject(
-        new Error('invalid usage: ' + this.errors.join(', '))
-      );
+      return Promise.reject(new Error('invalid usage: ' + this.errors.join(', ')));
     }
     this.validate();
 

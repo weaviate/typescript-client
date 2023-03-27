@@ -8,12 +8,8 @@ describe('embedded', () => {
   it('creates EmbeddedOptions with defaults', () => {
     const opt = new EmbeddedOptions();
 
-    expect(opt.binaryPath).toEqual(
-      join(homedir(), '.cache/weaviate-embedded-1.18.0')
-    );
-    expect(opt.persistenceDataPath).toEqual(
-      join(homedir(), '.local/share/weaviate')
-    );
+    expect(opt.binaryPath).toEqual(join(homedir(), '.cache/weaviate-embedded-1.18.0'));
+    expect(opt.persistenceDataPath).toEqual(join(homedir(), '.local/share/weaviate'));
     expect(opt.host).toEqual('127.0.0.1');
     expect(opt.port).toEqual(6666);
     expect(opt.clusterHostname).toEqual('embedded');
@@ -33,10 +29,7 @@ describe('embedded', () => {
     });
 
     // eslint-disable-next-line prettier/prettier
-    expect(opt.env).toHaveProperty(
-      'DEFAULT_VECTORIZER_MODULE',
-      'text2vec-contextionary'
-    );
+    expect(opt.env).toHaveProperty('DEFAULT_VECTORIZER_MODULE', 'text2vec-contextionary');
     expect(opt.env).toHaveProperty('ENABLE_MODULES', 'text2vec-contextionary');
     expect(opt.env).toHaveProperty('CONTEXTIONARY_URL', 'contextionary:9999');
     expect(opt.env).toHaveProperty('QUERY_DEFAULTS_LIMIT', 100);
@@ -49,9 +42,7 @@ describe('embedded', () => {
       const opt = new EmbeddedOptions({
         version: '123',
       });
-    }).toThrow(
-      "invalid version: 123. version must resemble '{major}.{minor}.{patch}'"
-    );
+    }).toThrow("invalid version: 123. version must resemble '{major}.{minor}.{patch}'");
   });
 
   if (process.platform == 'linux') {
@@ -76,8 +67,6 @@ describe('embedded', () => {
       db.stop();
     });
   } else {
-    console.warn(
-      `Skipping because EmbeddedDB does not support ${process.platform}`
-    );
+    console.warn(`Skipping because EmbeddedDB does not support ${process.platform}`);
   }
 });

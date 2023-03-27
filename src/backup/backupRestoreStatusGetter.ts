@@ -21,18 +21,13 @@ export default class BackupRestoreStatusGetter extends CommandBase {
   }
 
   validate() {
-    this.addErrors([
-      ...validateBackend(this.backend),
-      ...validateBackupId(this.backupId),
-    ]);
+    this.addErrors([...validateBackend(this.backend), ...validateBackupId(this.backupId)]);
   }
 
   do() {
     this.validate();
     if (this.errors.length > 0) {
-      return Promise.reject(
-        new Error('invalid usage: ' + this.errors.join(', '))
-      );
+      return Promise.reject(new Error('invalid usage: ' + this.errors.join(', ')));
     }
 
     return this.client.get(this._path());

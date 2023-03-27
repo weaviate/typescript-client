@@ -13,11 +13,7 @@ export class ObjectsPath {
   buildCreate(consistencyLevel: string | undefined): Promise<string> {
     return this.build({ consistencyLevel }, [this.addQueryParams]);
   }
-  buildDelete(
-    id: string,
-    className: string,
-    consistencyLevel: string | undefined
-  ): Promise<string> {
+  buildDelete(id: string, className: string, consistencyLevel: string | undefined): Promise<string> {
     return this.build({ id, className, consistencyLevel }, [
       this.addClassNameDeprecatedNotSupportedCheck,
       this.addId,
@@ -25,10 +21,7 @@ export class ObjectsPath {
     ]);
   }
   buildCheck(id: string, className: string): Promise<string> {
-    return this.build({ id, className }, [
-      this.addClassNameDeprecatedNotSupportedCheck,
-      this.addId,
-    ]);
+    return this.build({ id, className }, [this.addClassNameDeprecatedNotSupportedCheck, this.addId]);
   }
   buildGetOne(
     id: string,
@@ -37,14 +30,11 @@ export class ObjectsPath {
     consistencyLevel: string | undefined,
     nodeName?: string
   ): Promise<string> {
-    return this.build(
-      { id, className, additional: additional, consistencyLevel, nodeName },
-      [
-        this.addClassNameDeprecatedNotSupportedCheck,
-        this.addId,
-        this.addQueryParams,
-      ]
-    );
+    return this.build({ id, className, additional: additional, consistencyLevel, nodeName }, [
+      this.addClassNameDeprecatedNotSupportedCheck,
+      this.addId,
+      this.addQueryParams,
+    ]);
   }
   buildGet(
     className: string | undefined,
@@ -52,26 +42,16 @@ export class ObjectsPath {
     additional?: string[],
     after?: string
   ): Promise<string> {
-    return this.build({ className, limit, additional, after }, [
-      this.addQueryParamsForGet,
-    ]);
+    return this.build({ className, limit, additional, after }, [this.addQueryParamsForGet]);
   }
-  buildUpdate(
-    id: string,
-    className: string,
-    consistencyLevel: string | undefined
-  ): Promise<string> {
+  buildUpdate(id: string, className: string, consistencyLevel: string | undefined): Promise<string> {
     return this.build({ id, className, consistencyLevel }, [
       this.addClassNameDeprecatedCheck,
       this.addId,
       this.addQueryParams,
     ]);
   }
-  buildMerge(
-    id: string,
-    className: string,
-    consistencyLevel: string | undefined
-  ): Promise<string> {
+  buildMerge(id: string, className: string, consistencyLevel: string | undefined): Promise<string> {
     return this.build({ id, className, consistencyLevel }, [
       this.addClassNameDeprecatedCheck,
       this.addId,
@@ -80,22 +60,16 @@ export class ObjectsPath {
   }
 
   build(params: any, modifiers: any): Promise<string> {
-    return this.dbVersionSupport
-      .supportsClassNameNamespacedEndpointsPromise()
-      .then((support: any) => {
-        let path = objectsPathPrefix;
-        modifiers.forEach((modifier: any) => {
-          path = modifier(params, path, support);
-        });
-        return path;
+    return this.dbVersionSupport.supportsClassNameNamespacedEndpointsPromise().then((support: any) => {
+      let path = objectsPathPrefix;
+      modifiers.forEach((modifier: any) => {
+        path = modifier(params, path, support);
       });
+      return path;
+    });
   }
 
-  addClassNameDeprecatedNotSupportedCheck(
-    params: any,
-    path: string,
-    support: any
-  ) {
+  addClassNameDeprecatedNotSupportedCheck(params: any, path: string, support: any) {
     if (support.supports) {
       if (isValidStringProperty(params.className)) {
         return `${path}/${params.className}`;
@@ -171,36 +145,29 @@ export class ReferencesPath {
     this.dbVersionSupport = dbVersionSupport;
   }
 
-  build(
-    id: string,
-    className: string,
-    property: string,
-    consistencyLevel?: string
-  ): Promise<string> {
-    return this.dbVersionSupport
-      .supportsClassNameNamespacedEndpointsPromise()
-      .then((support: any) => {
-        let path = objectsPathPrefix;
-        if (support.supports) {
-          if (isValidStringProperty(className)) {
-            path = `${path}/${className}`;
-          } else {
-            support.warns.deprecatedNonClassNameNamespacedEndpointsForReferences();
-          }
+  build(id: string, className: string, property: string, consistencyLevel?: string): Promise<string> {
+    return this.dbVersionSupport.supportsClassNameNamespacedEndpointsPromise().then((support: any) => {
+      let path = objectsPathPrefix;
+      if (support.supports) {
+        if (isValidStringProperty(className)) {
+          path = `${path}/${className}`;
         } else {
-          support.warns.notSupportedClassNamespacedEndpointsForReferences();
+          support.warns.deprecatedNonClassNameNamespacedEndpointsForReferences();
         }
-        if (isValidStringProperty(id)) {
-          path = `${path}/${id}`;
-        }
-        path = `${path}/references`;
-        if (isValidStringProperty(property)) {
-          path = `${path}/${property}`;
-        }
-        if (isValidStringProperty(consistencyLevel)) {
-          path = `${path}?consistency_level=${consistencyLevel}`;
-        }
-        return path;
-      });
+      } else {
+        support.warns.notSupportedClassNamespacedEndpointsForReferences();
+      }
+      if (isValidStringProperty(id)) {
+        path = `${path}/${id}`;
+      }
+      path = `${path}/references`;
+      if (isValidStringProperty(property)) {
+        path = `${path}/${property}`;
+      }
+      if (isValidStringProperty(consistencyLevel)) {
+        path = `${path}?consistency_level=${consistencyLevel}`;
+      }
+      return path;
+    });
   }
 }

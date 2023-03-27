@@ -10,10 +10,7 @@ const thingIds = [
   '5f4b0aa2-0704-4529-919f-c1f614e685f4',
 ];
 
-const otherThingIds = [
-  '5b354a0f-fe66-4fe7-ad62-4db72ddab815',
-  '8727fa2b-610a-4a5c-af26-e558943f71c7',
-];
+const otherThingIds = ['5b354a0f-fe66-4fe7-ad62-4db72ddab815', '8727fa2b-610a-4a5c-af26-e558943f71c7'];
 
 const someObjects = [
   {
@@ -123,16 +120,8 @@ describe('batch importing', () => {
 
       it('verifies they are now queryable', () => {
         return Promise.all([
-          client.data
-            .getterById()
-            .withId(thingIds[0])
-            .withClassName(thingClassName)
-            .do(),
-          client.data
-            .getterById()
-            .withId(thingIds[1])
-            .withClassName(thingClassName)
-            .do(),
+          client.data.getterById().withId(thingIds[0]).withClassName(thingClassName).do(),
+          client.data.getterById().withId(thingIds[1]).withClassName(thingClassName).do(),
         ]).catch((e: any) => {
           throw new Error('it should not have errord ' + e);
         });
@@ -172,16 +161,8 @@ describe('batch importing', () => {
 
       it('verifies they are now queryable', () => {
         return Promise.all([
-          client.data
-            .getterById()
-            .withId(thingIds[2])
-            .withClassName(thingClassName)
-            .do(),
-          client.data
-            .getterById()
-            .withId(thingIds[3])
-            .withClassName(thingClassName)
-            .do(),
+          client.data.getterById().withId(thingIds[2]).withClassName(thingClassName).do(),
+          client.data.getterById().withId(thingIds[3]).withClassName(thingClassName).do(),
         ]).catch((e: any) => {
           throw new Error('it should not have errord ' + e);
         });
@@ -222,16 +203,8 @@ describe('batch importing', () => {
 
       it('verifies they are now queryable', () => {
         return Promise.all([
-          client.data
-            .getterById()
-            .withId(toImport[0].id)
-            .withClassName(toImport[0].class)
-            .do(),
-          client.data
-            .getterById()
-            .withId(toImport[1].id)
-            .withClassName(toImport[1].class)
-            .do(),
+          client.data.getterById().withId(toImport[0].id).withClassName(toImport[0].class).do(),
+          client.data.getterById().withId(toImport[1].id).withClassName(toImport[1].class).do(),
         ]).catch((e: any) => {
           throw new Error('it should not have errord ' + e);
         });

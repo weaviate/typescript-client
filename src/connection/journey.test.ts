@@ -1,18 +1,11 @@
-import {
-  AuthAccessTokenCredentials,
-  AuthClientCredentials,
-  AuthUserPasswordCredentials,
-} from './auth';
+import { AuthAccessTokenCredentials, AuthClientCredentials, AuthUserPasswordCredentials } from './auth';
 import Connection from './index';
 
 import weaviate from '../index';
 
 describe('connection', () => {
   it('makes an Azure logged-in request with client credentials', () => {
-    if (
-      process.env.AZURE_CLIENT_SECRET == undefined ||
-      process.env.AZURE_CLIENT_SECRET == ''
-    ) {
+    if (process.env.AZURE_CLIENT_SECRET == undefined || process.env.AZURE_CLIENT_SECRET == '') {
       console.warn('Skipping because `AZURE_CLIENT_SECRET` is not set');
       return;
     }
@@ -37,10 +30,7 @@ describe('connection', () => {
   });
 
   it('makes an Okta logged-in request with client credentials', () => {
-    if (
-      process.env.OKTA_CLIENT_SECRET == undefined ||
-      process.env.OKTA_CLIENT_SECRET == ''
-    ) {
+    if (process.env.OKTA_CLIENT_SECRET == undefined || process.env.OKTA_CLIENT_SECRET == '') {
       console.warn('Skipping because `OKTA_CLIENT_SECRET` is not set');
       return;
     }
@@ -66,10 +56,7 @@ describe('connection', () => {
   });
 
   it('makes an Okta logged-in request with username/password', () => {
-    if (
-      process.env.OKTA_DUMMY_CI_PW == undefined ||
-      process.env.OKTA_DUMMY_CI_PW == ''
-    ) {
+    if (process.env.OKTA_DUMMY_CI_PW == undefined || process.env.OKTA_DUMMY_CI_PW == '') {
       console.warn('Skipping because `OKTA_DUMMY_CI_PW` is not set');
       return;
     }
@@ -95,10 +82,7 @@ describe('connection', () => {
   });
 
   it('makes a WCS logged-in request with username/password', () => {
-    if (
-      process.env.WCS_DUMMY_CI_PW == undefined ||
-      process.env.WCS_DUMMY_CI_PW == ''
-    ) {
+    if (process.env.WCS_DUMMY_CI_PW == undefined || process.env.WCS_DUMMY_CI_PW == '') {
       console.warn('Skipping because `WCS_DUMMY_CI_PW` is not set');
       return;
     }
@@ -124,10 +108,7 @@ describe('connection', () => {
   });
 
   it('makes a scopeless WCS logged-in request with username/password', () => {
-    if (
-      process.env.WCS_DUMMY_CI_PW == undefined ||
-      process.env.WCS_DUMMY_CI_PW == ''
-    ) {
+    if (process.env.WCS_DUMMY_CI_PW == undefined || process.env.WCS_DUMMY_CI_PW == '') {
       console.warn('Skipping because `WCS_DUMMY_CI_PW` is not set');
       return;
     }
@@ -152,10 +133,7 @@ describe('connection', () => {
   });
 
   it('makes a logged-in request with access token', async () => {
-    if (
-      process.env.WCS_DUMMY_CI_PW == undefined ||
-      process.env.WCS_DUMMY_CI_PW == ''
-    ) {
+    if (process.env.WCS_DUMMY_CI_PW == undefined || process.env.WCS_DUMMY_CI_PW == '') {
       console.warn('Skipping because `WCS_DUMMY_CI_PW` is not set');
       return;
     }
@@ -193,10 +171,7 @@ describe('connection', () => {
   });
 
   it('uses refresh token to fetch new access token', async () => {
-    if (
-      process.env.WCS_DUMMY_CI_PW == undefined ||
-      process.env.WCS_DUMMY_CI_PW == ''
-    ) {
+    if (process.env.WCS_DUMMY_CI_PW == undefined || process.env.WCS_DUMMY_CI_PW == '') {
       console.warn('Skipping because `WCS_DUMMY_CI_PW` is not set');
       return;
     }
@@ -276,9 +251,7 @@ describe('connection', () => {
         throw new Error('it should not have errord: ' + e);
       });
 
-    expect(logSpy).toHaveBeenCalledWith(
-      'client is configured for authentication, but server is not'
-    );
+    expect(logSpy).toHaveBeenCalledWith('client is configured for authentication, but server is not');
   });
 
   it('warns when client access token expires, no refresh token provided', async () => {

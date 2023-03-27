@@ -23,10 +23,7 @@ import MetaGetter from './misc/metaGetter';
 import { EmbeddedDB, EmbeddedOptions } from './embedded';
 
 export interface ConnectionParams {
-  authClientSecret?:
-    | AuthClientCredentials
-    | AuthAccessTokenCredentials
-    | AuthUserPasswordCredentials;
+  authClientSecret?: AuthClientCredentials | AuthAccessTokenCredentials | AuthUserPasswordCredentials;
   host: string;
   scheme: string;
   headers?: HeadersInit;

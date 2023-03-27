@@ -38,11 +38,7 @@ export default class ReferencesBatcher extends CommandBase {
     return this;
   }
 
-  validateIsSet = (
-    prop: string | undefined | null,
-    name: string,
-    setter: string
-  ) => {
+  validateIsSet = (prop: string | undefined | null, name: string, setter: string) => {
     if (prop == undefined || prop == null || prop.length == 0) {
       this.addError(`${name} must be set - set with ${setter}`);
     }
@@ -51,16 +47,8 @@ export default class ReferencesBatcher extends CommandBase {
   validate = () => {
     this.validateIsSet(this.fromId, 'fromId', '.withFromId(id)');
     this.validateIsSet(this.toId, 'toId', '.withToId(id)');
-    this.validateIsSet(
-      this.fromClassName,
-      'fromClassName',
-      '.withFromClassName(className)'
-    );
-    this.validateIsSet(
-      this.fromRefProp,
-      'fromRefProp',
-      '.withFromRefProp(refProp)'
-    );
+    this.validateIsSet(this.fromClassName, 'fromClassName', '.withFromClassName(className)');
+    this.validateIsSet(this.fromRefProp, 'fromRefProp', '.withFromRefProp(refProp)');
   };
 
   payload = () => {
@@ -75,9 +63,7 @@ export default class ReferencesBatcher extends CommandBase {
     }
 
     return {
-      from:
-        `weaviate://localhost/${this.fromClassName}` +
-        `/${this.fromId}/${this.fromRefProp}`,
+      from: `weaviate://localhost/${this.fromClassName}/${this.fromId}/${this.fromRefProp}`,
       to: `${beaconTo}/${this.toId}`,
     };
   };

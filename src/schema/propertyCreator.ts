@@ -22,9 +22,7 @@ export default class PropertyCreator extends CommandBase {
 
   validateClassName = () => {
     if (!isValidStringProperty(this.className)) {
-      this.addError(
-        'className must be set - set with .withClassName(className)'
-      );
+      this.addError('className must be set - set with .withClassName(className)');
     }
   };
 
@@ -42,9 +40,7 @@ export default class PropertyCreator extends CommandBase {
   do = () => {
     this.validate();
     if (this.errors.length > 0) {
-      return Promise.reject(
-        new Error('invalid usage: ' + this.errors.join(', '))
-      );
+      return Promise.reject(new Error('invalid usage: ' + this.errors.join(', ')));
     }
     const path = `/schema/${this.className}/properties`;
     return this.client.post(path, this.property);

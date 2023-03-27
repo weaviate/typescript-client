@@ -13,11 +13,7 @@ export default class ReferenceReplacer extends CommandBase {
   private referencesPath: ReferencesPath;
   private refProp!: string;
 
-  constructor(
-    client: Connection,
-    referencesPath: ReferencesPath,
-    beaconPath: BeaconPath
-  ) {
+  constructor(client: Connection, referencesPath: ReferencesPath, beaconPath: BeaconPath) {
     super(client);
     this.beaconPath = beaconPath;
     this.referencesPath = referencesPath;
@@ -48,11 +44,7 @@ export default class ReferenceReplacer extends CommandBase {
     return this;
   };
 
-  validateIsSet = (
-    prop: string | undefined | null,
-    name: string,
-    setter: string
-  ) => {
+  validateIsSet = (prop: string | undefined | null, name: string, setter: string) => {
     if (prop == undefined || prop == null || prop.length == 0) {
       this.addError(`${name} must be set - set with ${setter}`);
     }
@@ -60,11 +52,7 @@ export default class ReferenceReplacer extends CommandBase {
 
   validate = () => {
     this.validateIsSet(this.id, 'id', '.withId(id)');
-    this.validateIsSet(
-      this.refProp,
-      'referenceProperty',
-      '.withReferenceProperty(refProp)'
-    );
+    this.validateIsSet(this.refProp, 'referenceProperty', '.withReferenceProperty(refProp)');
   };
 
   payload = () => this.references;
@@ -72,24 +60,15 @@ export default class ReferenceReplacer extends CommandBase {
   do = () => {
     this.validate();
     if (this.errors.length > 0) {
-      return Promise.reject(
-        new Error('invalid usage: ' + this.errors.join(', '))
-      );
+      return Promise.reject(new Error('invalid usage: ' + this.errors.join(', ')));
     }
 
     const payloadPromise = Array.isArray(this.references)
-      ? Promise.all(
-          this.references.map((ref) => this.rebuildReferencePromise(ref))
-        )
+      ? Promise.all(this.references.map((ref) => this.rebuildReferencePromise(ref)))
       : Promise.resolve([]);
 
     return Promise.all([
-      this.referencesPath.build(
-        this.id,
-        this.className,
-        this.refProp,
-        this.consistencyLevel
-      ),
+      this.referencesPath.build(this.id, this.className, this.refProp, this.consistencyLevel),
       payloadPromise,
     ]).then((results) => {
       const path = results[0];
@@ -99,8 +78,6 @@ export default class ReferenceReplacer extends CommandBase {
   };
 
   rebuildReferencePromise(reference: any) {
-    return this.beaconPath
-      .rebuild(reference.beacon)
-      .then((beacon: any) => ({ beacon }));
+    return this.beaconPath.rebuild(reference.beacon).then((beacon: any) => ({ beacon }));
   }
 }

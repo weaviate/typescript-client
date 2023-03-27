@@ -44,12 +44,9 @@ const data = (client: Connection, dbVersionSupport: DbVersionSupport): Data => {
     getterById: () => new GetterById(client, objectsPath),
     deleter: () => new Deleter(client, objectsPath),
     checker: () => new Checker(client, objectsPath),
-    referenceCreator: () =>
-      new ReferenceCreator(client, referencesPath, beaconPath),
-    referenceReplacer: () =>
-      new ReferenceReplacer(client, referencesPath, beaconPath),
-    referenceDeleter: () =>
-      new ReferenceDeleter(client, referencesPath, beaconPath),
+    referenceCreator: () => new ReferenceCreator(client, referencesPath, beaconPath),
+    referenceReplacer: () => new ReferenceReplacer(client, referencesPath, beaconPath),
+    referenceDeleter: () => new ReferenceDeleter(client, referencesPath, beaconPath),
     referencePayloadBuilder: () => new ReferencePayloadBuilder(client),
   };
 };

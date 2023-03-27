@@ -32,8 +32,7 @@ export default class GetterById extends CommandBase {
     return this;
   };
 
-  withAdditional = (additionalFlag: string) =>
-    this.extendAdditional(additionalFlag);
+  withAdditional = (additionalFlag: string) => this.extendAdditional(additionalFlag);
 
   withVector = () => this.extendAdditional('vector');
 
@@ -70,9 +69,7 @@ export default class GetterById extends CommandBase {
   do = (): Promise<WeaviateObject> => {
     this.validate();
     if (this.errors.length > 0) {
-      return Promise.reject(
-        new Error('invalid usage: ' + this.errors.join(', '))
-      );
+      return Promise.reject(new Error('invalid usage: ' + this.errors.join(', ')));
     }
 
     return this.buildPath().then((path) => {

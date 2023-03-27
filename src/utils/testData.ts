@@ -25,8 +25,7 @@ const foodProperties = [
 
 const pizzaClass = {
   class: PIZZA_CLASS_NAME,
-  description:
-    'A delicious religion like food and arguably the best export of Italy.',
+  description: 'A delicious religion like food and arguably the best export of Italy.',
   invertedIndexConfig: {
     indexTimestamps: true,
   },
@@ -86,8 +85,7 @@ const soupObjects = [
     id: '8c156d37-81aa-4ce9-a811-621e2702b825',
     properties: {
       name: 'ChickenSoup',
-      description:
-        'Used by humans when their inferior genetics are attacked by microscopic organisms.',
+      description: 'Used by humans when their inferior genetics are attacked by microscopic organisms.',
       bestBefore: '2022-05-06T07:08:09+05:00',
     },
   },
@@ -110,11 +108,7 @@ export function createTestFoodSchema(client: WeaviateClient) {
 }
 
 export function createTestFoodData(client: WeaviateClient) {
-  return client.batch
-    .objectsBatcher()
-    .withObjects(pizzaObjects)
-    .withObjects(soupObjects)
-    .do();
+  return client.batch.objectsBatcher().withObjects(pizzaObjects).withObjects(soupObjects).do();
 }
 
 export function createTestFoodSchemaAndData(client: WeaviateClient) {

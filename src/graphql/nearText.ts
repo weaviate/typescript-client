@@ -34,10 +34,7 @@ export default class GraphQLNearText {
     if (this.moveTo) {
       let moveToArgs: any[] = [];
       if (this.moveToConcepts) {
-        moveToArgs = [
-          ...moveToArgs,
-          `concepts:${JSON.stringify(this.moveToConcepts)}`,
-        ];
+        moveToArgs = [...moveToArgs, `concepts:${JSON.stringify(this.moveToConcepts)}`];
       }
       if (this.moveToObjects) {
         moveToArgs = [...moveToArgs, `objects:${this.moveToObjects}`];
@@ -51,22 +48,13 @@ export default class GraphQLNearText {
     if (this.moveAwayFrom) {
       let moveAwayFromArgs: any[] = [];
       if (this.moveAwayFromConcepts) {
-        moveAwayFromArgs = [
-          ...moveAwayFromArgs,
-          `concepts:${JSON.stringify(this.moveAwayFromConcepts)}`,
-        ];
+        moveAwayFromArgs = [...moveAwayFromArgs, `concepts:${JSON.stringify(this.moveAwayFromConcepts)}`];
       }
       if (this.moveAwayFromObjects) {
-        moveAwayFromArgs = [
-          ...moveAwayFromArgs,
-          `objects:${this.moveAwayFromObjects}`,
-        ];
+        moveAwayFromArgs = [...moveAwayFromArgs, `objects:${this.moveAwayFromObjects}`];
       }
       if (this.moveAwayFromForce) {
-        moveAwayFromArgs = [
-          ...moveAwayFromArgs,
-          `force:${this.moveAwayFromForce}`,
-        ];
+        moveAwayFromArgs = [...moveAwayFromArgs, `force:${this.moveAwayFromForce}`];
       }
       args = [...args, `moveAwayFrom:{${moveAwayFromArgs.join(',')}}`];
     }
@@ -88,20 +76,13 @@ export default class GraphQLNearText {
 
     if (this.moveTo) {
       if (!this.moveToForce || (!this.moveToConcepts && !this.moveToObjects)) {
-        throw new Error(
-          "nearText filter: moveTo must have fields 'concepts' or 'objects' and 'force'"
-        );
+        throw new Error("nearText filter: moveTo must have fields 'concepts' or 'objects' and 'force'");
       }
     }
 
     if (this.moveAwayFrom) {
-      if (
-        !this.moveAwayFromForce ||
-        (!this.moveAwayFromConcepts && !this.moveAwayFromObjects)
-      ) {
-        throw new Error(
-          "nearText filter: moveAwayFrom must have fields 'concepts' or 'objects' and 'force'"
-        );
+      if (!this.moveAwayFromForce || (!this.moveAwayFromConcepts && !this.moveAwayFromObjects)) {
+        throw new Error("nearText filter: moveAwayFrom must have fields 'concepts' or 'objects' and 'force'");
       }
     }
   }
@@ -163,9 +144,7 @@ export default class GraphQLNearText {
     }
 
     if (!target.concepts && !target.objects) {
-      throw new Error(
-        'nearText filter: moveTo.concepts or moveTo.objects must be present'
-      );
+      throw new Error('nearText filter: moveTo.concepts or moveTo.objects must be present');
     }
 
     if (target.concepts && !Array.isArray(target.concepts)) {
@@ -194,15 +173,11 @@ export default class GraphQLNearText {
     }
 
     if (!target.concepts && !target.objects) {
-      throw new Error(
-        'nearText filter: moveAwayFrom.concepts or moveAwayFrom.objects must be present'
-      );
+      throw new Error('nearText filter: moveAwayFrom.concepts or moveAwayFrom.objects must be present');
     }
 
     if (target.concepts && !Array.isArray(target.concepts)) {
-      throw new Error(
-        'nearText filter: moveAwayFrom.concepts must be an array'
-      );
+      throw new Error('nearText filter: moveAwayFrom.concepts must be an array');
     }
 
     if (target.objects && !Array.isArray(target.objects)) {
@@ -217,10 +192,7 @@ export default class GraphQLNearText {
     this.moveAwayFromConcepts = target.concepts;
     this.moveAwayFromForce = target.force;
     if (target.objects) {
-      this.moveAwayFromObjects = this.parseMoveObjects(
-        'moveAwayFrom',
-        target.objects
-      );
+      this.moveAwayFromObjects = this.parseMoveObjects('moveAwayFrom', target.objects);
     }
   }
 
@@ -237,9 +209,7 @@ export default class GraphQLNearText {
     const errors = [];
     for (const i in objects) {
       if (!objects[i].id && !objects[i].beacon) {
-        errors.push(
-          `${move}.objects[${i}].id or ${move}.objects[${i}].beacon must be present`
-        );
+        errors.push(`${move}.objects[${i}].id or ${move}.objects[${i}].beacon must be present`);
       } else if (objects[i].id && typeof objects[i].id !== 'string') {
         errors.push(`${move}.objects[${i}].id must be string`);
       } else if (objects[i].beacon && typeof objects[i].beacon !== 'string') {

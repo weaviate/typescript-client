@@ -34,13 +34,9 @@ describe('create and restore backup with waiting', () => {
         expect(createResponse.id).toBe(BACKUP_ID);
         expect(createResponse.classes).toHaveLength(1);
         expect(createResponse.classes).toContain(PIZZA_CLASS_NAME);
-        expect(createResponse.path).toBe(
-          `${DOCKER_COMPOSE_BACKUPS_DIR}/${BACKUP_ID}`
-        );
+        expect(createResponse.path).toBe(`${DOCKER_COMPOSE_BACKUPS_DIR}/${BACKUP_ID}`);
         expect(createResponse.backend).toBe(BACKEND);
-        expect(createResponse.status).toBe(
-          weaviate.backup.CreateStatus.SUCCESS
-        );
+        expect(createResponse.status).toBe(weaviate.backup.CreateStatus.SUCCESS);
         expect(createResponse.error).toBeUndefined();
       })
       .catch((err: any) => {
@@ -58,13 +54,9 @@ describe('create and restore backup with waiting', () => {
       .do()
       .then((createStatusResponse: any) => {
         expect(createStatusResponse.id).toBe(BACKUP_ID);
-        expect(createStatusResponse.path).toBe(
-          `${DOCKER_COMPOSE_BACKUPS_DIR}/${BACKUP_ID}`
-        );
+        expect(createStatusResponse.path).toBe(`${DOCKER_COMPOSE_BACKUPS_DIR}/${BACKUP_ID}`);
         expect(createStatusResponse.backend).toBe(BACKEND);
-        expect(createStatusResponse.status).toBe(
-          weaviate.backup.CreateStatus.SUCCESS
-        );
+        expect(createStatusResponse.status).toBe(weaviate.backup.CreateStatus.SUCCESS);
         expect(createStatusResponse.error).toBeUndefined();
       })
       .catch((err: any) => {
@@ -94,13 +86,9 @@ describe('create and restore backup with waiting', () => {
         expect(restoreResponse.id).toBe(BACKUP_ID);
         expect(restoreResponse.classes).toHaveLength(1);
         expect(restoreResponse.classes).toContain(PIZZA_CLASS_NAME);
-        expect(restoreResponse.path).toBe(
-          `${DOCKER_COMPOSE_BACKUPS_DIR}/${BACKUP_ID}`
-        );
+        expect(restoreResponse.path).toBe(`${DOCKER_COMPOSE_BACKUPS_DIR}/${BACKUP_ID}`);
         expect(restoreResponse.backend).toBe(BACKEND);
-        expect(restoreResponse.status).toBe(
-          weaviate.backup.RestoreStatus.SUCCESS
-        );
+        expect(restoreResponse.status).toBe(weaviate.backup.RestoreStatus.SUCCESS);
         expect(restoreResponse.error).toBeUndefined();
       })
       .catch((err: any) => {
@@ -118,13 +106,9 @@ describe('create and restore backup with waiting', () => {
       .do()
       .then((restoreStatusResponse: any) => {
         expect(restoreStatusResponse.id).toBe(BACKUP_ID);
-        expect(restoreStatusResponse.path).toBe(
-          `${DOCKER_COMPOSE_BACKUPS_DIR}/${BACKUP_ID}`
-        );
+        expect(restoreStatusResponse.path).toBe(`${DOCKER_COMPOSE_BACKUPS_DIR}/${BACKUP_ID}`);
         expect(restoreStatusResponse.backend).toBe(BACKEND);
-        expect(restoreStatusResponse.status).toBe(
-          weaviate.backup.RestoreStatus.SUCCESS
-        );
+        expect(restoreStatusResponse.status).toBe(weaviate.backup.RestoreStatus.SUCCESS);
         expect(restoreStatusResponse.error).toBeUndefined();
       })
       .catch((err: any) => {
@@ -159,13 +143,9 @@ describe('create and restore backup without waiting', () => {
         expect(createResponse.id).toBe(BACKUP_ID);
         expect(createResponse.classes).toHaveLength(1);
         expect(createResponse.classes).toContain(PIZZA_CLASS_NAME);
-        expect(createResponse.path).toBe(
-          `${DOCKER_COMPOSE_BACKUPS_DIR}/${BACKUP_ID}`
-        );
+        expect(createResponse.path).toBe(`${DOCKER_COMPOSE_BACKUPS_DIR}/${BACKUP_ID}`);
         expect(createResponse.backend).toBe(BACKEND);
-        expect(createResponse.status).toBe(
-          weaviate.backup.CreateStatus.STARTED
-        );
+        expect(createResponse.status).toBe(weaviate.backup.CreateStatus.STARTED);
         expect(createResponse.error).toBeUndefined();
       })
       .catch((err: any) => {
@@ -175,17 +155,13 @@ describe('create and restore backup without waiting', () => {
 
   it('waits until created', () => {
     return new Promise((resolve, reject) => {
-      const statusGetter = client.backup
-        .createStatusGetter()
-        .withBackend(BACKEND)
-        .withBackupId(BACKUP_ID);
+      const statusGetter = client.backup.createStatusGetter().withBackend(BACKEND).withBackupId(BACKUP_ID);
       const loop = () => {
         statusGetter
           .do()
           .then((createStatusResponse: any) => {
             if (
-              createStatusResponse.status ==
-                weaviate.backup.CreateStatus.SUCCESS ||
+              createStatusResponse.status == weaviate.backup.CreateStatus.SUCCESS ||
               createStatusResponse.status == weaviate.backup.CreateStatus.FAILED
             ) {
               resolve(createStatusResponse);
@@ -199,13 +175,9 @@ describe('create and restore backup without waiting', () => {
     })
       .then((createStatusResponse: any) => {
         expect(createStatusResponse.id).toBe(BACKUP_ID);
-        expect(createStatusResponse.path).toBe(
-          `${DOCKER_COMPOSE_BACKUPS_DIR}/${BACKUP_ID}`
-        );
+        expect(createStatusResponse.path).toBe(`${DOCKER_COMPOSE_BACKUPS_DIR}/${BACKUP_ID}`);
         expect(createStatusResponse.backend).toBe(BACKEND);
-        expect(createStatusResponse.status).toBe(
-          weaviate.backup.CreateStatus.SUCCESS
-        );
+        expect(createStatusResponse.status).toBe(weaviate.backup.CreateStatus.SUCCESS);
         expect(createStatusResponse.error).toBeUndefined();
       })
       .catch((err: any) => {
@@ -236,13 +208,9 @@ describe('create and restore backup without waiting', () => {
         expect(restoreResponse.id).toBe(BACKUP_ID);
         expect(restoreResponse.classes).toHaveLength(1);
         expect(restoreResponse.classes).toContain(PIZZA_CLASS_NAME);
-        expect(restoreResponse.path).toBe(
-          `${DOCKER_COMPOSE_BACKUPS_DIR}/${BACKUP_ID}`
-        );
+        expect(restoreResponse.path).toBe(`${DOCKER_COMPOSE_BACKUPS_DIR}/${BACKUP_ID}`);
         expect(restoreResponse.backend).toBe(BACKEND);
-        expect(restoreResponse.status).toBe(
-          weaviate.backup.RestoreStatus.STARTED
-        );
+        expect(restoreResponse.status).toBe(weaviate.backup.RestoreStatus.STARTED);
         expect(restoreResponse.error).toBeUndefined();
       })
       .catch((err: any) => {
@@ -252,19 +220,14 @@ describe('create and restore backup without waiting', () => {
 
   it('waits until restored', () => {
     return new Promise((resolve, reject) => {
-      const statusGetter = client.backup
-        .restoreStatusGetter()
-        .withBackend(BACKEND)
-        .withBackupId(BACKUP_ID);
+      const statusGetter = client.backup.restoreStatusGetter().withBackend(BACKEND).withBackupId(BACKUP_ID);
       const loop = () => {
         statusGetter
           .do()
           .then((restoreStatusResponse: any) => {
             if (
-              restoreStatusResponse.status ==
-                weaviate.backup.RestoreStatus.SUCCESS ||
-              restoreStatusResponse.status ==
-                weaviate.backup.RestoreStatus.FAILED
+              restoreStatusResponse.status == weaviate.backup.RestoreStatus.SUCCESS ||
+              restoreStatusResponse.status == weaviate.backup.RestoreStatus.FAILED
             ) {
               resolve(restoreStatusResponse);
             } else {
@@ -277,13 +240,9 @@ describe('create and restore backup without waiting', () => {
     })
       .then((restoreStatusResponse: any) => {
         expect(restoreStatusResponse.id).toBe(BACKUP_ID);
-        expect(restoreStatusResponse.path).toBe(
-          `${DOCKER_COMPOSE_BACKUPS_DIR}/${BACKUP_ID}`
-        );
+        expect(restoreStatusResponse.path).toBe(`${DOCKER_COMPOSE_BACKUPS_DIR}/${BACKUP_ID}`);
         expect(restoreStatusResponse.backend).toBe(BACKEND);
-        expect(restoreStatusResponse.status).toBe(
-          weaviate.backup.RestoreStatus.SUCCESS
-        );
+        expect(restoreStatusResponse.status).toBe(weaviate.backup.RestoreStatus.SUCCESS);
         expect(restoreStatusResponse.error).toBeUndefined();
       })
       .catch((err: any) => {
@@ -308,10 +267,7 @@ describe('create and restore 1 of 2 classes', () => {
   it('sets up', () => createTestFoodSchemaAndData(client));
 
   it('asserts data exist', () =>
-    Promise.all([
-      assertThatAllPizzasExist(client),
-      assertThatAllSoupsExist(client),
-    ]));
+    Promise.all([assertThatAllPizzasExist(client), assertThatAllSoupsExist(client)]));
 
   it('creates backup', () => {
     return client.backup
@@ -325,13 +281,9 @@ describe('create and restore 1 of 2 classes', () => {
         expect(createResponse.classes).toHaveLength(2);
         expect(createResponse.classes).toContain(PIZZA_CLASS_NAME);
         expect(createResponse.classes).toContain(SOUP_CLASS_NAME);
-        expect(createResponse.path).toBe(
-          `${DOCKER_COMPOSE_BACKUPS_DIR}/${BACKUP_ID}`
-        );
+        expect(createResponse.path).toBe(`${DOCKER_COMPOSE_BACKUPS_DIR}/${BACKUP_ID}`);
         expect(createResponse.backend).toBe(BACKEND);
-        expect(createResponse.status).toBe(
-          weaviate.backup.CreateStatus.SUCCESS
-        );
+        expect(createResponse.status).toBe(weaviate.backup.CreateStatus.SUCCESS);
         expect(createResponse.error).toBeUndefined();
       })
       .catch((err: any) => {
@@ -340,10 +292,7 @@ describe('create and restore 1 of 2 classes', () => {
   });
 
   it('asserts data still exist', () =>
-    Promise.all([
-      assertThatAllPizzasExist(client),
-      assertThatAllSoupsExist(client),
-    ]));
+    Promise.all([assertThatAllPizzasExist(client), assertThatAllSoupsExist(client)]));
 
   it('checks create status', () => {
     return client.backup
@@ -353,13 +302,9 @@ describe('create and restore 1 of 2 classes', () => {
       .do()
       .then((createStatusResponse: any) => {
         expect(createStatusResponse.id).toBe(BACKUP_ID);
-        expect(createStatusResponse.path).toBe(
-          `${DOCKER_COMPOSE_BACKUPS_DIR}/${BACKUP_ID}`
-        );
+        expect(createStatusResponse.path).toBe(`${DOCKER_COMPOSE_BACKUPS_DIR}/${BACKUP_ID}`);
         expect(createStatusResponse.backend).toBe(BACKEND);
-        expect(createStatusResponse.status).toBe(
-          weaviate.backup.CreateStatus.SUCCESS
-        );
+        expect(createStatusResponse.status).toBe(weaviate.backup.CreateStatus.SUCCESS);
         expect(createStatusResponse.error).toBeUndefined();
       })
       .catch((err: any) => {
@@ -389,13 +334,9 @@ describe('create and restore 1 of 2 classes', () => {
         expect(restoreResponse.id).toBe(BACKUP_ID);
         expect(restoreResponse.classes).toHaveLength(1);
         expect(restoreResponse.classes).toContain(PIZZA_CLASS_NAME);
-        expect(restoreResponse.path).toBe(
-          `${DOCKER_COMPOSE_BACKUPS_DIR}/${BACKUP_ID}`
-        );
+        expect(restoreResponse.path).toBe(`${DOCKER_COMPOSE_BACKUPS_DIR}/${BACKUP_ID}`);
         expect(restoreResponse.backend).toBe(BACKEND);
-        expect(restoreResponse.status).toBe(
-          weaviate.backup.RestoreStatus.SUCCESS
-        );
+        expect(restoreResponse.status).toBe(weaviate.backup.RestoreStatus.SUCCESS);
         expect(restoreResponse.error).toBeUndefined();
       })
       .catch((err: any) => {
@@ -404,10 +345,7 @@ describe('create and restore 1 of 2 classes', () => {
   });
 
   it('asserts data again exist', () =>
-    Promise.all([
-      assertThatAllPizzasExist(client),
-      assertThatAllSoupsExist(client),
-    ]));
+    Promise.all([assertThatAllPizzasExist(client), assertThatAllSoupsExist(client)]));
 
   it('checks restore status', () => {
     return client.backup
@@ -417,13 +355,9 @@ describe('create and restore 1 of 2 classes', () => {
       .do()
       .then((restoreStatusResponse: any) => {
         expect(restoreStatusResponse.id).toBe(BACKUP_ID);
-        expect(restoreStatusResponse.path).toBe(
-          `${DOCKER_COMPOSE_BACKUPS_DIR}/${BACKUP_ID}`
-        );
+        expect(restoreStatusResponse.path).toBe(`${DOCKER_COMPOSE_BACKUPS_DIR}/${BACKUP_ID}`);
         expect(restoreStatusResponse.backend).toBe(BACKEND);
-        expect(restoreStatusResponse.status).toBe(
-          weaviate.backup.RestoreStatus.SUCCESS
-        );
+        expect(restoreStatusResponse.status).toBe(weaviate.backup.RestoreStatus.SUCCESS);
         expect(restoreStatusResponse.error).toBeUndefined();
       })
       .catch((err: any) => {
@@ -830,10 +764,7 @@ describe('fail restoring backup for both include and exclude classes', () => {
       });
   });
 
-  it('cleans up', () =>
-    cleanupTestFood(client).catch(() =>
-      Promise.resolve('ignore not exising Pizza')
-    ));
+  it('cleans up', () => cleanupTestFood(client).catch(() => Promise.resolve('ignore not exising Pizza')));
 });
 
 // describe("get all exising backups", () => {
@@ -894,11 +825,7 @@ function assertThatAllSoupsExist(client: WeaviateClient) {
   return assertThatAllFoodObjectsExist(client, 'Soup', 2);
 }
 
-function assertThatAllFoodObjectsExist(
-  client: WeaviateClient,
-  className: string,
-  number: number
-) {
+function assertThatAllFoodObjectsExist(client: WeaviateClient, className: string, number: number) {
   return client.graphql
     .get()
     .withClassName(className)

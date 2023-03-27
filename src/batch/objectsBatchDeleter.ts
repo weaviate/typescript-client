@@ -52,17 +52,13 @@ export default class ObjectsBatchDeleter extends CommandBase {
 
   validateClassName() {
     if (!isValidStringProperty(this.className)) {
-      this.addError(
-        'string className must be set - set with .withClassName(className)'
-      );
+      this.addError('string className must be set - set with .withClassName(className)');
     }
   }
 
   validateWhereFilter() {
     if (typeof this.whereFilter != 'object') {
-      this.addError(
-        'object where must be set - set with .withWhere(whereFilter)'
-      );
+      this.addError('object where must be set - set with .withWhere(whereFilter)');
     }
   }
 
@@ -74,9 +70,7 @@ export default class ObjectsBatchDeleter extends CommandBase {
   do() {
     this.validate();
     if (this.errors.length > 0) {
-      return Promise.reject(
-        new Error('invalid usage: ' + this.errors.join(', '))
-      );
+      return Promise.reject(new Error('invalid usage: ' + this.errors.join(', ')));
     }
     const params = new URLSearchParams();
     if (this.consistencyLevel) {

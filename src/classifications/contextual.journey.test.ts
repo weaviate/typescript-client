@@ -116,14 +116,8 @@ const setup = async (client: any) => {
 
 const cleanup = (client: any) => {
   return Promise.all([
-    client.schema
-      .classDeleter()
-      .withClassName('ContextualClassificationJourneySource')
-      .do(),
-    client.schema
-      .classDeleter()
-      .withClassName('ContextualClassificationJourneyTarget')
-      .do(),
+    client.schema.classDeleter().withClassName('ContextualClassificationJourneySource').do(),
+    client.schema.classDeleter().withClassName('ContextualClassificationJourneyTarget').do(),
   ]);
 };
 

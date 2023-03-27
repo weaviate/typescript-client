@@ -149,9 +149,7 @@ describe('db version support', () => {
   it('should not support', () => {
     const notSupportedVersions = ['0.11', '1.13.9', '1.13', '1.0'];
     notSupportedVersions.forEach(async (version) => {
-      const dbVersionProvider = new DbVersionProvider(() =>
-        Promise.resolve(version)
-      );
+      const dbVersionProvider = new DbVersionProvider(() => Promise.resolve(version));
       const dbVersionSupport = new DbVersionSupport(dbVersionProvider);
 
       await dbVersionSupport
@@ -169,9 +167,7 @@ describe('db version support', () => {
   it('should support', () => {
     const supportedVersions = ['1.14.0', '1.14.9', '1.100', '2.0', '10.11.12'];
     supportedVersions.forEach(async (version) => {
-      const dbVersionProvider = new DbVersionProvider(() =>
-        Promise.resolve(version)
-      );
+      const dbVersionProvider = new DbVersionProvider(() => Promise.resolve(version));
       const dbVersionSupport = new DbVersionSupport(dbVersionProvider);
 
       await dbVersionSupport

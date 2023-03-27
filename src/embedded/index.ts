@@ -70,9 +70,7 @@ export class EmbeddedOptions {
     if (cfg.version.match(/[1-9]\.[1-9]{2}\..*/g)) {
       return cfg.version;
     } else {
-      throw new Error(
-        `invalid version: ${cfg.version}. version must resemble '{major}.{minor}.{patch}'`
-      );
+      throw new Error(`invalid version: ${cfg.version}. version must resemble '{major}.{minor}.{patch}'`);
     }
   }
 
@@ -109,9 +107,7 @@ export class EmbeddedDB {
 
   async start() {
     if (await isListening(this.options)) {
-      console.log(
-        `Embedded db already listening @ ${this.options.host}:${this.options.port}`
-      );
+      console.log(`Embedded db already listening @ ${this.options.host}:${this.options.port}`);
     }
 
     await ensureWeaviateBinaryExists(this.options);
@@ -122,14 +118,7 @@ export class EmbeddedDB {
 
     const childProc = spawn(
       this.options.binaryPath,
-      [
-        '--host',
-        this.options.host,
-        '--port',
-        `${this.options.port}`,
-        '--scheme',
-        'http',
-      ],
+      ['--host', this.options.host, '--port', `${this.options.port}`, '--scheme', 'http'],
       { env: this.options.env }
     );
 
@@ -153,10 +142,7 @@ export class EmbeddedDB {
       process.kill(this.pid, 'SIGTERM');
       console.log(`Embedded db @ PID ${this.pid} successfully stopped`);
     } catch (err) {
-      console.log(
-        `Tried to stop embedded db @ PID ${this.pid}.`,
-        `PID not found, so nothing will be done`
-      );
+      console.log(`Tried to stop embedded db @ PID ${this.pid}.`, `PID not found, so nothing will be done`);
     }
   }
 }
@@ -176,13 +162,8 @@ function checkSupportedPlatform() {
 
 async function ensureWeaviateBinaryExists(opt: EmbeddedOptions) {
   if (!fs.existsSync(`${opt.binaryPath}`)) {
-    console.log(
-      `Binary ${opt.binaryPath} does not exist.`,
-      `Downloading binary for version ${opt.version}`
-    );
-    await downloadBinary(opt).then((tarballPath) =>
-      untarBinary(opt, tarballPath)
-    );
+    console.log(`Binary ${opt.binaryPath} does not exist.`, `Downloading binary for version ${opt.version}`);
+    await downloadBinary(opt).then((tarballPath) => untarBinary(opt, tarballPath));
   }
 }
 
@@ -211,11 +192,7 @@ function downloadBinary(opt: EmbeddedOptions): Promise<string> {
           )
         );
       } else {
-        reject(
-          new Error(
-            `failed to download binary: unexpected status code: ${resp.statusCode}`
-          )
-        );
+        reject(new Error(`failed to download binary: unexpected status code: ${resp.statusCode}`));
       }
     }).on('error', function (err) {
       fs.unlinkSync(tarballPath);
@@ -234,10 +211,7 @@ function untarBinary(opt: EmbeddedOptions, tarballPath: string): Promise<null> {
       })
         .on('finish', () => {
           tarball.close();
-          fs.renameSync(
-            join(dirname(opt.binaryPath), 'weaviate'),
-            opt.binaryPath
-          );
+          fs.renameSync(join(dirname(opt.binaryPath), 'weaviate'), opt.binaryPath);
           resolve(null);
         })
         .on('error', function (err) {
@@ -266,9 +240,7 @@ function waitTillListening(opt: EmbeddedOptions): Promise<null> {
     const timeout = setTimeout(() => {
       clearTimeout(timeout);
       clearInterval(interval);
-      reject(
-        new Error(`failed to connect to embedded db @ ${opt.host}:${opt.port}`)
-      );
+      reject(new Error(`failed to connect to embedded db @ ${opt.host}:${opt.port}`));
     }, 30000);
 
     const interval = setInterval(() => {

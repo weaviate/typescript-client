@@ -68,9 +68,7 @@ describe('misc endpoints', () => {
       .then((res: any) => {
         expect(res.version).toBeDefined();
         expect(res.modules['text2vec-contextionary'].wordCount).toBeDefined();
-        expect(res.modules['text2vec-contextionary'].wordCount).toBeGreaterThan(
-          100
-        );
+        expect(res.modules['text2vec-contextionary'].wordCount).toBeGreaterThan(100);
       })
       .catch((e: any) => {
         throw new Error('it should not have errord: ' + e);

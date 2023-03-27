@@ -25,11 +25,7 @@ export default class ExtensionCreator extends CommandBase {
     return this;
   };
 
-  validateIsSet = (
-    prop: string | undefined | null,
-    name: string,
-    setter: string
-  ) => {
+  validateIsSet = (prop: string | undefined | null, name: string, setter: string) => {
     if (prop == undefined || prop == null || prop.length == 0) {
       this.addError(`${name} must be set - set with ${setter}`);
     }
@@ -37,16 +33,8 @@ export default class ExtensionCreator extends CommandBase {
 
   validate = () => {
     this.validateIsSet(this.concept, 'concept', 'withConcept(concept)');
-    this.validateIsSet(
-      this.definition,
-      'definition',
-      'withDefinition(definition)'
-    );
-    this.validateIsSet(
-      this.weight?.toString() || '',
-      'weight',
-      'withWeight(weight)'
-    );
+    this.validateIsSet(this.definition, 'definition', 'withDefinition(definition)');
+    this.validateIsSet(this.weight?.toString() || '', 'weight', 'withWeight(weight)');
   };
 
   payload = () => ({
@@ -58,9 +46,7 @@ export default class ExtensionCreator extends CommandBase {
   do = () => {
     this.validate();
     if (this.errors.length > 0) {
-      return Promise.reject(
-        new Error('invalid usage: ' + this.errors.join(', '))
-      );
+      return Promise.reject(new Error('invalid usage: ' + this.errors.join(', ')));
     }
 
     const path = `/modules/text2vec-contextionary/extensions`;

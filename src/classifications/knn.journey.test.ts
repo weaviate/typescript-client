@@ -288,14 +288,8 @@ const setup = async (client: WeaviateClient) => {
 
 const cleanup = (client: WeaviateClient) => {
   return Promise.all([
-    client.schema
-      .classDeleter()
-      .withClassName('ClassificationJourneySource')
-      .do(),
-    client.schema
-      .classDeleter()
-      .withClassName('ClassificationJourneyTarget')
-      .do(),
+    client.schema.classDeleter().withClassName('ClassificationJourneySource').do(),
+    client.schema.classDeleter().withClassName('ClassificationJourneyTarget').do(),
   ]);
 };
 

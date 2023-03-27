@@ -1,9 +1,5 @@
 import { testServer } from '../../test/server';
-import {
-  AuthClientCredentials,
-  AuthUserPasswordCredentials,
-  AuthAccessTokenCredentials,
-} from './auth';
+import { AuthClientCredentials, AuthUserPasswordCredentials, AuthAccessTokenCredentials } from './auth';
 import Connection from './index';
 
 describe('mock server auth tests', () => {

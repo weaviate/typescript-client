@@ -62,9 +62,7 @@ export default class Updater extends CommandBase {
     this.validate();
 
     if (this.errors.length > 0) {
-      return Promise.reject(
-        new Error('invalid usage: ' + this.errors.join(', '))
-      );
+      return Promise.reject(new Error('invalid usage: ' + this.errors.join(', ')));
     }
 
     return this.objectsPath

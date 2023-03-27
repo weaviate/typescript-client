@@ -1,7 +1,4 @@
-import {
-  isValidStringArray,
-  isValidStringProperty,
-} from '../validation/string';
+import { isValidStringArray, isValidStringProperty } from '../validation/string';
 
 export default class GraphQLBm25 {
   private properties?: string[];

@@ -20,11 +20,7 @@ test('a simple query with a limit', () => {
 
   const expectedQuery = `{Get{Person(limit:7){name}}}`;
 
-  new Getter(mockClient)
-    .withClassName('Person')
-    .withFields('name')
-    .withLimit(7)
-    .do();
+  new Getter(mockClient).withClassName('Person').withFields('name').withLimit(7).do();
 
   expect(mockClient.query).toHaveBeenCalledWith(expectedQuery);
 });
@@ -36,12 +32,7 @@ test('a simple query with a limit and offset', () => {
 
   const expectedQuery = `{Get{Person(limit:7,offset:2){name}}}`;
 
-  new Getter(mockClient)
-    .withClassName('Person')
-    .withFields('name')
-    .withOffset(2)
-    .withLimit(7)
-    .do();
+  new Getter(mockClient).withClassName('Person').withFields('name').withOffset(2).withLimit(7).do();
 
   expect(mockClient.query).toHaveBeenCalledWith(expectedQuery);
 });
@@ -85,10 +76,7 @@ describe('where filters', () => {
       query: jest.fn(),
     };
 
-    const expectedQuery =
-      `{Get{Person` +
-      `(where:{operator:Equal,valueString:"John Doe",path:["name"]})` +
-      `{name}}}`;
+    const expectedQuery = `{Get{Person(where:{operator:Equal,valueString:"John Doe",path:["name"]}){name}}}`;
 
     new Getter(mockClient)
       .withClassName('Person')
@@ -158,11 +146,7 @@ describe('where filters', () => {
       `]})` +
       `{name}}}`;
 
-    new Getter(mockClient)
-      .withClassName('Person')
-      .withFields('name')
-      .withWhere(nestedWhere)
-      .do();
+    new Getter(mockClient).withClassName('Person').withFields('name').withWhere(nestedWhere).do();
 
     expect(mockClient.query).toHaveBeenCalledWith(expectedQuery);
   });
@@ -344,10 +328,7 @@ describe('nearText searchers', () => {
       query: jest.fn(),
     };
 
-    const expectedQuery =
-      `{Get{Person` +
-      `(nearText:{concepts:["foo","bar"],autocorrect:false})` +
-      `{name}}}`;
+    const expectedQuery = `{Get{Person(nearText:{concepts:["foo","bar"],autocorrect:false}){name}}}`;
 
     new Getter(mockClient)
       .withClassName('Person')
@@ -598,8 +579,7 @@ describe('nearText searchers', () => {
         msg: 'nearText filter: moveTo.objects[0].beacon must be string',
       },
       {
-        title:
-          'moveTo with objects[0].id not of string type and objects[1].beacon not of string type',
+        title: 'moveTo with objects[0].id not of string type and objects[1].beacon not of string type',
         nearText: {
           concepts: ['foo'],
           moveTo: { force: 0.8, objects: [{ id: 0.8 }, { beacon: 0.8 }] },
@@ -639,8 +619,7 @@ describe('nearText searchers', () => {
         msg: 'nearText filter: moveAwayFrom.objects[0].beacon must be string',
       },
       {
-        title:
-          'moveAwayFrom with objects[0].id not of string type and objects[1].beacon not of string type',
+        title: 'moveAwayFrom with objects[0].id not of string type and objects[1].beacon not of string type',
         nearText: {
           concepts: ['foo'],
           moveAwayFrom: { force: 0.8, objects: [{ id: 0.8 }, { beacon: 0.8 }] },
@@ -690,10 +669,7 @@ describe('nearVector searchers', () => {
       query: jest.fn(),
     };
 
-    const expectedQuery =
-      `{Get{Person` +
-      `(nearVector:{vector:[0.1234,0.9876],certainty:0.7})` +
-      `{name}}}`;
+    const expectedQuery = `{Get{Person(nearVector:{vector:[0.1234,0.9876],certainty:0.7}){name}}}`;
 
     new Getter(mockClient)
       .withClassName('Person')
@@ -712,10 +688,7 @@ describe('nearVector searchers', () => {
       query: jest.fn(),
     };
 
-    const expectedQuery =
-      `{Get{Person` +
-      `(nearVector:{vector:[0.1234,0.9876],distance:0.7})` +
-      `{name}}}`;
+    const expectedQuery = `{Get{Person(nearVector:{vector:[0.1234,0.9876],distance:0.7}){name}}}`;
 
     new Getter(mockClient)
       .withClassName('Person')
@@ -820,10 +793,7 @@ describe('nearObject searchers', () => {
       query: jest.fn(),
     };
 
-    const expectedQuery =
-      `{Get{Person` +
-      `(nearObject:{id:"some-uuid",beacon:"weaviate/some-uuid",certainty:0.7})` +
-      `{name}}}`;
+    const expectedQuery = `{Get{Person(nearObject:{id:"some-uuid",beacon:"weaviate/some-uuid",certainty:0.7}){name}}}`;
 
     new Getter(mockClient)
       .withClassName('Person')
@@ -843,10 +813,7 @@ describe('nearObject searchers', () => {
       query: jest.fn(),
     };
 
-    const expectedQuery =
-      `{Get{Person` +
-      `(nearObject:{id:"some-uuid",beacon:"weaviate/some-uuid",distance:0.7})` +
-      `{name}}}`;
+    const expectedQuery = `{Get{Person(nearObject:{id:"some-uuid",beacon:"weaviate/some-uuid",distance:0.7}){name}}}`;
 
     new Getter(mockClient)
       .withClassName('Person')
@@ -935,10 +902,7 @@ describe('ask searchers', () => {
       query: jest.fn(),
     };
 
-    const expectedQuery =
-      `{Get{Person` +
-      `(ask:{question:"What is Weaviate?",properties:["prop1","prop2"]})` +
-      `{name}}}`;
+    const expectedQuery = `{Get{Person(ask:{question:"What is Weaviate?",properties:["prop1","prop2"]}){name}}}`;
 
     new Getter(mockClient)
       .withClassName('Person')
@@ -1053,10 +1017,7 @@ describe('ask searchers', () => {
       query: jest.fn(),
     };
 
-    const expectedQuery =
-      `{Get{Person` +
-      `(ask:{question:"What is Weaviate?",autocorrect:true})` +
-      `{name}}}`;
+    const expectedQuery = `{Get{Person(ask:{question:"What is Weaviate?",autocorrect:true}){name}}}`;
 
     new Getter(mockClient)
       .withClassName('Person')
@@ -1072,10 +1033,7 @@ describe('ask searchers', () => {
       query: jest.fn(),
     };
 
-    const expectedQuery =
-      `{Get{Person` +
-      `(ask:{question:"What is Weaviate?",autocorrect:false})` +
-      `{name}}}`;
+    const expectedQuery = `{Get{Person(ask:{question:"What is Weaviate?",autocorrect:false}){name}}}`;
 
     new Getter(mockClient)
       .withClassName('Person')
@@ -1091,10 +1049,7 @@ describe('ask searchers', () => {
       query: jest.fn(),
     };
 
-    const expectedQuery =
-      `{Get{Person` +
-      `(ask:{question:"What is Weaviate?",rerank:true})` +
-      `{name}}}`;
+    const expectedQuery = `{Get{Person(ask:{question:"What is Weaviate?",rerank:true}){name}}}`;
 
     new Getter(mockClient)
       .withClassName('Person')
@@ -1110,10 +1065,7 @@ describe('ask searchers', () => {
       query: jest.fn(),
     };
 
-    const expectedQuery =
-      `{Get{Person` +
-      `(ask:{question:"What is Weaviate?",rerank:false})` +
-      `{name}}}`;
+    const expectedQuery = `{Get{Person(ask:{question:"What is Weaviate?",rerank:false}){name}}}`;
 
     new Getter(mockClient)
       .withClassName('Person')
@@ -1203,10 +1155,7 @@ describe('nearImage searchers', () => {
       query: jest.fn(),
     };
 
-    const expectedQuery =
-      `{Get{Person` +
-      `(nearImage:{image:"iVBORw0KGgoAAAANS",certainty:0.8})` +
-      `{name}}}`;
+    const expectedQuery = `{Get{Person(nearImage:{image:"iVBORw0KGgoAAAANS",certainty:0.8}){name}}}`;
 
     new Getter(mockClient)
       .withClassName('Person')
@@ -1225,10 +1174,7 @@ describe('nearImage searchers', () => {
       query: jest.fn(),
     };
 
-    const expectedQuery =
-      `{Get{Person` +
-      `(nearImage:{image:"iVBORw0KGgoAAAANS",distance:0.8})` +
-      `{name}}}`;
+    const expectedQuery = `{Get{Person(nearImage:{image:"iVBORw0KGgoAAAANS",distance:0.8}){name}}}`;
 
     new Getter(mockClient)
       .withClassName('Person')
@@ -1316,11 +1262,7 @@ describe('sort filters', () => {
 
     const sort = { path: ['property'], order: 'asc' };
 
-    new Getter(mockClient)
-      .withClassName('Person')
-      .withFields('name')
-      .withSort(sort)
-      .do();
+    new Getter(mockClient).withClassName('Person').withFields('name').withSort(sort).do();
 
     expect(mockClient.query).toHaveBeenCalledWith(expectedQuery);
   });
@@ -1335,11 +1277,7 @@ describe('sort filters', () => {
 
     const sort = [{ path: ['property'], order: 'asc' }];
 
-    new Getter(mockClient)
-      .withClassName('Person')
-      .withFields('name')
-      .withSort(sort)
-      .do();
+    new Getter(mockClient).withClassName('Person').withFields('name').withSort(sort).do();
 
     expect(mockClient.query).toHaveBeenCalledWith(expectedQuery);
   });
@@ -1360,11 +1298,7 @@ describe('sort filters', () => {
       { path: ['property3'], order: 'desc' },
     ];
 
-    new Getter(mockClient)
-      .withClassName('Person')
-      .withFields('name')
-      .withSort(sort)
-      .do();
+    new Getter(mockClient).withClassName('Person').withFields('name').withSort(sort).do();
 
     expect(mockClient.query).toHaveBeenCalledWith(expectedQuery);
   });
@@ -1443,11 +1377,7 @@ describe('invalid sort filters', () => {
     },
     {
       name: 'with wrong path in second argument',
-      sort: [
-        { path: ['prop'] },
-        { path: ['prop'], order: 'asce' },
-        { path: [] },
-      ],
+      sort: [{ path: ['prop'] }, { path: ['prop'], order: 'asce' }, { path: [] }],
       msg: 'Error: invalid usage: Error: sort filter: sort argument at 1: sort filter: order parameter not valid, possible values are: asc, desc, sort argument at 2: sort filter: path cannot be empty',
     },
   ];
@@ -1477,20 +1407,13 @@ describe('bm25 valid searchers', () => {
     const subQuery = `(bm25:{query:"accountant"})`;
     const expectedQuery = `{Get{Person` + subQuery + `{name}}}`;
 
-    new Getter(mockClient)
-      .withClassName('Person')
-      .withFields('name')
-      .withBm25({ query: 'accountant' })
-      .do();
+    new Getter(mockClient).withClassName('Person').withFields('name').withBm25({ query: 'accountant' }).do();
 
     expect(mockClient.query).toHaveBeenCalledWith(expectedQuery);
   });
 
   test('query and properties', () => {
-    const expectedQuery =
-      `{Get{Person` +
-      `(bm25:{query:"accountant",properties:["profession","position"]})` +
-      `{name}}}`;
+    const expectedQuery = `{Get{Person(bm25:{query:"accountant",properties:["profession","position"]}){name}}}`;
 
     new Getter(mockClient)
       .withClassName('Person')
@@ -1615,10 +1538,7 @@ describe('hybrid valid searchers', () => {
   });
 
   test('query and vector, no alpha', () => {
-    const expectedQuery =
-      `{Get{Person` +
-      `(hybrid:{query:"accountant",vector:[1,2,3]})` +
-      `{name}}}`;
+    const expectedQuery = `{Get{Person(hybrid:{query:"accountant",vector:[1,2,3]}){name}}}`;
 
     new Getter(mockClient)
       .withClassName('Person')
@@ -1630,10 +1550,7 @@ describe('hybrid valid searchers', () => {
   });
 
   test('query and alpha and vector', () => {
-    const expectedQuery =
-      `{Get{Person` +
-      `(hybrid:{query:"accountant",alpha:0.75,vector:[1,2,3]})` +
-      `{name}}}`;
+    const expectedQuery = `{Get{Person(hybrid:{query:"accountant",alpha:0.75,vector:[1,2,3]}){name}}}`;
 
     new Getter(mockClient)
       .withClassName('Person')

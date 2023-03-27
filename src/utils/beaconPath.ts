@@ -14,13 +14,11 @@ export class BeaconPath {
     // weaviate://localhost/class/id/   => match[2] = class, match[4] = id
     // weaviate://localhost/id          => match[2] = id, match[4] = undefined
     // weaviate://localhost/id/         => match[2] = id, match[4] = undefined
-    this.beaconRegExp =
-      /^weaviate:\/\/localhost(\/([^\\/]+))?(\/([^\\/]+))?[\\/]?$/gi;
+    this.beaconRegExp = /^weaviate:\/\/localhost(\/([^\\/]+))?(\/([^\\/]+))?[\\/]?$/gi;
   }
 
   async rebuild(beacon: string) {
-    const support =
-      await this.dbVersionSupport.supportsClassNameNamespacedEndpointsPromise();
+    const support = await this.dbVersionSupport.supportsClassNameNamespacedEndpointsPromise();
     const match = new RegExp(this.beaconRegExp).exec(beacon);
     if (!match) {
       return beacon;

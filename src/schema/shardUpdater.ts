@@ -18,9 +18,7 @@ export default class ShardUpdater extends CommandBase {
 
   validateClassName = () => {
     if (!isValidStringProperty(this.className)) {
-      this.addError(
-        'className must be set - set with .withClassName(className)'
-      );
+      this.addError('className must be set - set with .withClassName(className)');
     }
   };
 
@@ -31,9 +29,7 @@ export default class ShardUpdater extends CommandBase {
 
   validateShardName = () => {
     if (!isValidStringProperty(this.shardName)) {
-      this.addError(
-        'shardName must be set - set with .withShardName(shardName)'
-      );
+      this.addError('shardName must be set - set with .withShardName(shardName)');
     }
   };
 
@@ -57,26 +53,14 @@ export default class ShardUpdater extends CommandBase {
   do = () => {
     this.validate();
     if (this.errors.length > 0) {
-      return Promise.reject(
-        new Error(`invalid usage: ${this.errors.join(', ')}`)
-      );
+      return Promise.reject(new Error(`invalid usage: ${this.errors.join(', ')}`));
     }
 
-    return updateShard(
-      this.client,
-      this.className,
-      this.shardName,
-      this.status
-    );
+    return updateShard(this.client, this.className, this.shardName, this.status);
   };
 }
 
-export function updateShard(
-  client: Connection,
-  className: any,
-  shardName: any,
-  status: any
-) {
+export function updateShard(client: Connection, className: any, shardName: any, status: any) {
   const path = `/schema/${className}/shards/${shardName}`;
   return client.put(path, { status: status }, true);
 }

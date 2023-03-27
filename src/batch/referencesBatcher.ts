@@ -43,9 +43,7 @@ export default class ReferencesBatcher extends CommandBase {
 
   validateReferenceCount = () => {
     if (this.references.length == 0) {
-      this.addError(
-        'need at least one reference to send a request, add one with .withReference(obj)'
-      );
+      this.addError('need at least one reference to send a request, add one with .withReference(obj)');
     }
   };
 
@@ -56,18 +54,14 @@ export default class ReferencesBatcher extends CommandBase {
   do = () => {
     this.validate();
     if (this.errors.length > 0) {
-      return Promise.reject(
-        new Error('invalid usage: ' + this.errors.join(', '))
-      );
+      return Promise.reject(new Error('invalid usage: ' + this.errors.join(', ')));
     }
     const params = new URLSearchParams();
     if (this.consistencyLevel) {
       params.set('consistency_level', this.consistencyLevel);
     }
     const path = buildRefsPath(params);
-    const payloadPromise = Promise.all(
-      this.references.map((ref) => this.rebuildReferencePromise(ref))
-    );
+    const payloadPromise = Promise.all(this.references.map((ref) => this.rebuildReferencePromise(ref)));
 
     return payloadPromise.then((payload) => this.client.post(path, payload));
   };

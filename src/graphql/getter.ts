@@ -70,9 +70,7 @@ export default class Getter extends CommandBase {
 
   withNearText = (nearTextObj: any) => {
     if (this.includesNearMediaFilter) {
-      throw new Error(
-        'cannot use multiple near<Media> filters in a single query'
-      );
+      throw new Error('cannot use multiple near<Media> filters in a single query');
     }
 
     try {
@@ -107,9 +105,7 @@ export default class Getter extends CommandBase {
 
   withNearObject = (nearObjectObj: any) => {
     if (this.includesNearMediaFilter) {
-      throw new Error(
-        'cannot use multiple near<Media> filters in a single query'
-      );
+      throw new Error('cannot use multiple near<Media> filters in a single query');
     }
 
     try {
@@ -133,9 +129,7 @@ export default class Getter extends CommandBase {
 
   withNearImage = (nearImageObj: any) => {
     if (this.includesNearMediaFilter) {
-      throw new Error(
-        'cannot use multiple near<Media> filters in a single query'
-      );
+      throw new Error('cannot use multiple near<Media> filters in a single query');
     }
 
     try {
@@ -150,9 +144,7 @@ export default class Getter extends CommandBase {
 
   withNearVector = (nearVectorObj: any) => {
     if (this.includesNearMediaFilter) {
-      throw new Error(
-        'cannot use multiple near<Media> filters in a single query'
-      );
+      throw new Error('cannot use multiple near<Media> filters in a single query');
     }
 
     try {
@@ -184,22 +176,14 @@ export default class Getter extends CommandBase {
     return this;
   };
 
-  validateIsSet = (
-    prop: string | undefined | null,
-    name: string,
-    setter: string
-  ) => {
+  validateIsSet = (prop: string | undefined | null, name: string, setter: string) => {
     if (prop == undefined || prop == null || prop.length == 0) {
       this.addError(`${name} must be set - set with ${setter}`);
     }
   };
 
   validate = () => {
-    this.validateIsSet(
-      this.className,
-      'className',
-      '.withClassName(className)'
-    );
+    this.validateIsSet(this.className, 'className', '.withClassName(className)');
     this.validateIsSet(this.fields, 'fields', '.withFields(fields)');
   };
 
@@ -208,9 +192,7 @@ export default class Getter extends CommandBase {
 
     this.validate();
     if (this.errors.length > 0) {
-      return Promise.reject(
-        new Error('invalid usage: ' + this.errors.join(', '))
-      );
+      return Promise.reject(new Error('invalid usage: ' + this.errors.join(', ')));
     }
 
     let args: any[] = [];
@@ -271,8 +253,6 @@ export default class Getter extends CommandBase {
       params = `(${args.join(',')})`;
     }
 
-    return this.client.query(
-      `{Get{${this.className}${params}{${this.fields}}}}`
-    );
+    return this.client.query(`{Get{${this.className}${params}{${this.fields}}}}`);
   };
 }

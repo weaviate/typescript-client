@@ -23,36 +23,28 @@ export default class Connection {
 
   post = (path: string, payload: any, expectReturnContent = true) => {
     if (this.authEnabled) {
-      return this.login().then((token) =>
-        this.http.post(path, payload, expectReturnContent, token)
-      );
+      return this.login().then((token) => this.http.post(path, payload, expectReturnContent, token));
     }
     return this.http.post(path, payload, expectReturnContent);
   };
 
   put = (path: string, payload: any, expectReturnContent = true) => {
     if (this.authEnabled) {
-      return this.login().then((token) =>
-        this.http.put(path, payload, expectReturnContent, token)
-      );
+      return this.login().then((token) => this.http.put(path, payload, expectReturnContent, token));
     }
     return this.http.put(path, payload, expectReturnContent);
   };
 
   patch = (path: string, payload: any) => {
     if (this.authEnabled) {
-      return this.login().then((token) =>
-        this.http.patch(path, payload, token)
-      );
+      return this.login().then((token) => this.http.patch(path, payload, token));
     }
     return this.http.patch(path, payload);
   };
 
   delete = (path: string, payload: any, expectReturnContent = false) => {
     if (this.authEnabled) {
-      return this.login().then((token) =>
-        this.http.delete(path, payload, expectReturnContent, token)
-      );
+      return this.login().then((token) => this.http.delete(path, payload, expectReturnContent, token));
     }
     return this.http.delete(path, payload, expectReturnContent);
   };
@@ -66,9 +58,7 @@ export default class Connection {
 
   get = (path: string, expectReturnContent = true) => {
     if (this.authEnabled) {
-      return this.login().then((token) =>
-        this.http.get(path, expectReturnContent, token)
-      );
+      return this.login().then((token) => this.http.get(path, expectReturnContent, token));
     }
     return this.http.get(path, expectReturnContent);
   };
@@ -87,9 +77,7 @@ export default class Connection {
     const localConfig = await new OpenidConfigurationGetter(this.http).do();
 
     if (localConfig === undefined) {
-      console.warn(
-        'client is configured for authentication, but server is not'
-      );
+      console.warn('client is configured for authentication, but server is not');
       return '';
     }
 

@@ -69,9 +69,7 @@ export default class BackupRestorer extends CommandBase {
   do() {
     this.validate();
     if (this.errors.length > 0) {
-      return Promise.reject(
-        new Error('invalid usage: ' + this.errors.join(', '))
-      );
+      return Promise.reject(new Error('invalid usage: ' + this.errors.join(', ')));
     }
 
     const payload = {
@@ -94,9 +92,7 @@ export default class BackupRestorer extends CommandBase {
     return new Promise((resolve, reject) => {
       this._restore(payload)
         .then((restoreResponse: any) => {
-          this.statusGetter
-            .withBackend(this.backend!)
-            .withBackupId(this.backupId!);
+          this.statusGetter.withBackend(this.backend!).withBackupId(this.backupId!);
 
           const loop = () => {
             this.statusGetter
