@@ -15,6 +15,7 @@ import cluster, { Cluster } from './cluster/index';
 import clusterConsts from './cluster/consts';
 import replicationConsts from './data/replication/consts';
 import {
+  ApiKey,
   AuthAccessTokenCredentials,
   AuthClientCredentials,
   AuthUserPasswordCredentials,
@@ -27,6 +28,7 @@ export interface ConnectionParams {
     | AuthClientCredentials
     | AuthAccessTokenCredentials
     | AuthUserPasswordCredentials;
+  apiKey?: ApiKey;
   host: string;
   scheme: string;
   headers?: HeadersInit;
@@ -87,6 +89,7 @@ const app = {
   cluster: clusterConsts,
   replication: replicationConsts,
 
+  ApiKey,
   AuthUserPasswordCredentials,
   AuthAccessTokenCredentials,
   AuthClientCredentials,
