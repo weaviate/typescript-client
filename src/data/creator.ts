@@ -2,6 +2,7 @@ import { isValidStringProperty } from '../validation/string';
 import Connection from '../connection';
 import { ObjectsPath } from './path';
 import { CommandBase } from '../validation/commandBase';
+import { DataObject } from '../types';
 
 export default class Creator extends CommandBase {
   private className?: string;
@@ -60,7 +61,7 @@ export default class Creator extends CommandBase {
     this.validateClassName();
   };
 
-  do = () => {
+  do = (): Promise<DataObject> => {
     this.validate();
     if (this.errors.length > 0) {
       return Promise.reject(
