@@ -1,18 +1,20 @@
 import Connection from '../connection';
+import { WeaviateObject } from '../types';
 import { CommandBase } from '../validation/commandBase';
+import { ObjectsPath } from './path';
 
 export default class GetterById extends CommandBase {
-  private additionals: any[];
-  private className?: string;
+  private additional: string[];
+  private className!: string;
+  private id!: string;
   private consistencyLevel?: string;
-  private id?: string;
-  private nodeName: any;
-  private objectsPath: any;
+  private nodeName?: string;
+  private objectsPath: ObjectsPath;
 
-  constructor(client: Connection, objectsPath: any) {
+  constructor(client: Connection, objectsPath: ObjectsPath) {
     super(client);
     this.objectsPath = objectsPath;
-    this.additionals = [];
+    this.additional = [];
   }
 
   withId = (id: string) => {
@@ -25,22 +27,22 @@ export default class GetterById extends CommandBase {
     return this;
   };
 
-  extendAdditionals = (prop: any) => {
-    this.additionals = [...this.additionals, prop];
+  extendAdditional = (prop: string) => {
+    this.additional = [...this.additional, prop];
     return this;
   };
 
-  withAdditional = (additionalFlag: any) =>
-    this.extendAdditionals(additionalFlag);
+  withAdditional = (additionalFlag: string) =>
+    this.extendAdditional(additionalFlag);
 
-  withVector = () => this.extendAdditionals('vector');
+  withVector = () => this.extendAdditional('vector');
 
-  withConsistencyLevel = (cl: any) => {
+  withConsistencyLevel = (cl: string) => {
     this.consistencyLevel = cl;
     return this;
   };
 
-  withNodeName = (nodeName: any) => {
+  withNodeName = (nodeName: string) => {
     this.nodeName = nodeName;
     return this;
   };
@@ -57,15 +59,15 @@ export default class GetterById extends CommandBase {
 
   buildPath = (): Promise<string> => {
     return this.objectsPath.buildGetOne(
-      this.id!,
-      this.className!,
-      this.additionals,
+      this.id,
+      this.className,
+      this.additional,
       this.consistencyLevel,
       this.nodeName
     );
   };
 
-  do = () => {
+  do = (): Promise<WeaviateObject> => {
     this.validate();
     if (this.errors.length > 0) {
       return Promise.reject(

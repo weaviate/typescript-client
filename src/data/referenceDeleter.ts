@@ -2,15 +2,16 @@ import { BeaconPath } from '../utils/beaconPath';
 import { ReferencesPath } from './path';
 import Connection from '../connection';
 import { CommandBase } from '../validation/commandBase';
+import { Reference } from '../types';
 
 export default class ReferenceDeleter extends CommandBase {
   private beaconPath: BeaconPath;
-  private className?: string;
+  private className!: string;
   private consistencyLevel?: string;
-  private id?: string;
-  private reference: any;
+  private id!: string;
+  private reference!: Reference;
   private referencesPath: ReferencesPath;
-  private refProp?: any;
+  private refProp!: string;
 
   constructor(
     client: Connection,
@@ -32,12 +33,12 @@ export default class ReferenceDeleter extends CommandBase {
     return this;
   }
 
-  withReference = (ref: any) => {
+  withReference = (ref: Reference) => {
     this.reference = ref;
     return this;
   };
 
-  withReferenceProperty = (refProp: any) => {
+  withReferenceProperty = (refProp: string) => {
     this.refProp = refProp;
     return this;
   };
@@ -59,7 +60,6 @@ export default class ReferenceDeleter extends CommandBase {
 
   validate = () => {
     this.validateIsSet(this.id, 'id', '.withId(id)');
-    this.validateIsSet(this.reference, 'reference', '.withReference(ref)');
     this.validateIsSet(
       this.refProp,
       'referenceProperty',
@@ -77,12 +77,16 @@ export default class ReferenceDeleter extends CommandBase {
       );
     }
 
+    if (!this.reference.beacon) {
+      throw new Error('reference beacon must be set');
+    }
+
     return Promise.all([
       this.referencesPath.build(
-        this.id!,
-        this.className!,
-        this.refProp!,
-        this.consistencyLevel!
+        this.id,
+        this.className,
+        this.refProp,
+        this.consistencyLevel
       ),
       this.beaconPath.rebuild(this.reference.beacon),
     ]).then((results) => {

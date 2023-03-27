@@ -1,13 +1,14 @@
 import Connection from '../connection';
 import { CommandBase } from '../validation/commandBase';
+import { ObjectsPath } from './path';
 
 export default class Deleter extends CommandBase {
-  private className?: string;
+  private className!: string;
   private consistencyLevel?: string;
-  private id?: string;
-  private objectsPath: any;
+  private id!: string;
+  private objectsPath: ObjectsPath;
 
-  constructor(client: Connection, objectsPath: any) {
+  constructor(client: Connection, objectsPath: ObjectsPath) {
     super(client);
     this.objectsPath = objectsPath;
   }
@@ -54,7 +55,7 @@ export default class Deleter extends CommandBase {
     this.validate();
 
     return this.objectsPath
-      .buildDelete(this.id!, this.className!, this.consistencyLevel!)
+      .buildDelete(this.id, this.className, this.consistencyLevel)
       .then((path: string) => {
         return this.client.delete(path, undefined, false);
       });

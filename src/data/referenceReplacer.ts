@@ -2,15 +2,16 @@ import Connection from '../connection';
 import { BeaconPath } from '../utils/beaconPath';
 import { ReferencesPath } from './path';
 import { CommandBase } from '../validation/commandBase';
+import { Reference } from '../types';
 
 export default class ReferenceReplacer extends CommandBase {
   private beaconPath: BeaconPath;
-  private className?: string;
+  private className!: string;
   private consistencyLevel?: string;
-  private id?: string;
-  private references?: any[];
+  private id!: string;
+  private references!: Reference[];
   private referencesPath: ReferencesPath;
-  private refProp?: string;
+  private refProp!: string;
 
   constructor(
     client: Connection,
@@ -84,10 +85,10 @@ export default class ReferenceReplacer extends CommandBase {
 
     return Promise.all([
       this.referencesPath.build(
-        this.id!,
-        this.className!,
-        this.refProp!,
-        this.consistencyLevel!
+        this.id,
+        this.className,
+        this.refProp,
+        this.consistencyLevel
       ),
       payloadPromise,
     ]).then((results) => {

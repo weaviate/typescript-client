@@ -14,7 +14,6 @@ import { ObjectsPath, ReferencesPath } from './path';
 import { BeaconPath } from '../utils/beaconPath';
 import { DbVersionSupport } from '../utils/dbVersion';
 import Connection from '../connection';
-import { WeaviateClient } from '../index';
 
 export interface Data {
   creator: () => Creator;

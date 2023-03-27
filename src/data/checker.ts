@@ -1,12 +1,13 @@
 import Connection from '../connection';
+import { ObjectsPath } from './path';
 import { CommandBase } from '../validation/commandBase';
 
 export default class Checker extends CommandBase {
-  private className?: string;
-  private id?: string;
-  private objectsPath: any;
+  private className!: string;
+  private id!: string;
+  private objectsPath: ObjectsPath;
 
-  constructor(client: Connection, objectsPath: any) {
+  constructor(client: Connection, objectsPath: ObjectsPath) {
     super(client);
     this.objectsPath = objectsPath;
   }
@@ -48,7 +49,7 @@ export default class Checker extends CommandBase {
     this.validate();
 
     return this.objectsPath
-      .buildCheck(this.id!, this.className!)
+      .buildCheck(this.id, this.className)
       .then((path: string) => {
         return this.client.head(path, undefined);
       });

@@ -1,6 +1,7 @@
 import { isValidStringProperty } from '../validation/string';
 import Connection from '../connection';
 import { CommandBase } from '../validation/commandBase';
+import { Reference } from '../types';
 
 export default class ReferencePayloadBuilder extends CommandBase {
   private className?: string;
@@ -34,7 +35,7 @@ export default class ReferencePayloadBuilder extends CommandBase {
     this.validateIsSet(this.id, 'id', '.withId(id)');
   };
 
-  payload = () => {
+  payload = (): Reference => {
     this.validate();
     if (this.errors.length > 0) {
       throw new Error(this.errors.join(', '));

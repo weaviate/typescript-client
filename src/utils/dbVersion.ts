@@ -1,7 +1,7 @@
 export class DbVersionSupport {
-  private dbVersionProvider: IDbVersionProvider;
+  private dbVersionProvider: VersionProvider;
 
-  constructor(dbVersionProvider: IDbVersionProvider) {
+  constructor(dbVersionProvider: VersionProvider) {
     this.dbVersionProvider = dbVersionProvider;
   }
 
@@ -60,11 +60,11 @@ export class DbVersionSupport {
 
 const EMPTY_VERSION = '';
 
-export interface IDbVersionProvider {
+export interface VersionProvider {
   getVersionPromise(): Promise<string>;
 }
 
-export class DbVersionProvider implements IDbVersionProvider {
+export class DbVersionProvider implements VersionProvider {
   private versionPromise?: Promise<string>;
   private readonly emptyVersionPromise: Promise<string>;
   private versionGetter: () => Promise<string>;

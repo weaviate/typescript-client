@@ -4,18 +4,18 @@ import { ObjectsPath } from './path';
 import { CommandBase } from '../validation/commandBase';
 
 export default class Merger extends CommandBase {
-  private className?: string;
+  private className!: string;
   private consistencyLevel?: string;
-  private id?: string;
+  private id!: string;
   private objectsPath: ObjectsPath;
-  private properties?: any[];
+  private properties?: any;
 
   constructor(client: Connection, objectsPath: ObjectsPath) {
     super(client);
     this.objectsPath = objectsPath;
   }
 
-  withProperties = (properties: any[]) => {
+  withProperties = (properties: any) => {
     this.properties = properties;
     return this;
   };
@@ -70,7 +70,7 @@ export default class Merger extends CommandBase {
     }
 
     return this.objectsPath
-      .buildMerge(this.id!, this.className!, this.consistencyLevel!)
+      .buildMerge(this.id, this.className, this.consistencyLevel)
       .then((path: string) => this.client.patch(path, this.payload()));
   };
 }

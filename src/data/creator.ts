@@ -2,7 +2,7 @@ import { isValidStringProperty } from '../validation/string';
 import Connection from '../connection';
 import { ObjectsPath } from './path';
 import { CommandBase } from '../validation/commandBase';
-import { DataObject } from '../types';
+import { Properties, WeaviateObject } from '../types';
 
 export default class Creator extends CommandBase {
   private className?: string;
@@ -10,14 +10,14 @@ export default class Creator extends CommandBase {
   private id?: string;
   private objectsPath: ObjectsPath;
   private properties?: any;
-  private vector: any;
+  private vector?: number[];
 
   constructor(client: Connection, objectsPath: ObjectsPath) {
     super(client);
     this.objectsPath = objectsPath;
   }
 
-  withVector = (vector: any) => {
+  withVector = (vector: number[]) => {
     this.vector = vector;
     return this;
   };
@@ -27,7 +27,7 @@ export default class Creator extends CommandBase {
     return this;
   };
 
-  withProperties = (properties: any) => {
+  withProperties = (properties: Properties) => {
     this.properties = properties;
     return this;
   };
@@ -61,7 +61,7 @@ export default class Creator extends CommandBase {
     this.validateClassName();
   };
 
-  do = (): Promise<DataObject> => {
+  do = (): Promise<WeaviateObject> => {
     this.validate();
     if (this.errors.length > 0) {
       return Promise.reject(

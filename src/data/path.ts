@@ -33,12 +33,12 @@ export class ObjectsPath {
   buildGetOne(
     id: string,
     className: string,
-    additionals: any,
+    additional: string[],
     consistencyLevel: string | undefined,
-    nodeName: any
+    nodeName?: string
   ): Promise<string> {
     return this.build(
-      { id, className, additionals, consistencyLevel, nodeName },
+      { id, className, additional: additional, consistencyLevel, nodeName },
       [
         this.addClassNameDeprecatedNotSupportedCheck,
         this.addId,
@@ -48,11 +48,11 @@ export class ObjectsPath {
   }
   buildGet(
     className: string | undefined,
-    limit: any,
-    additionals: any,
-    after: string
+    limit?: number,
+    additional?: string[],
+    after?: string
   ): Promise<string> {
-    return this.build({ className, limit, additionals, after }, [
+    return this.build({ className, limit, additional, after }, [
       this.addQueryParamsForGet,
     ]);
   }
@@ -125,8 +125,8 @@ export class ObjectsPath {
   }
   addQueryParams(params: any, path: string) {
     const queryParams = [];
-    if (Array.isArray(params.additionals) && params.additionals.length > 0) {
-      queryParams.push(`include=${params.additionals.join(',')}`);
+    if (Array.isArray(params.additional) && params.additional.length > 0) {
+      queryParams.push(`include=${params.additional.join(',')}`);
     }
     if (isValidStringProperty(params.nodeName)) {
       queryParams.push(`node_name=${params.nodeName}`);
@@ -141,8 +141,8 @@ export class ObjectsPath {
   }
   addQueryParamsForGet(params: any, path: string, support: any) {
     const queryParams = [];
-    if (Array.isArray(params.additionals) && params.additionals.length > 0) {
-      queryParams.push(`include=${params.additionals.join(',')}`);
+    if (Array.isArray(params.additional) && params.additional.length > 0) {
+      queryParams.push(`include=${params.additional.join(',')}`);
     }
     if (typeof params.limit == 'number' && params.limit > 0) {
       queryParams.push(`limit=${params.limit}`);
@@ -175,7 +175,7 @@ export class ReferencesPath {
     id: string,
     className: string,
     property: string,
-    consistencyLevel: string
+    consistencyLevel?: string
   ): Promise<string> {
     return this.dbVersionSupport
       .supportsClassNameNamespacedEndpointsPromise()
