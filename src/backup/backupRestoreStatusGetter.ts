@@ -1,6 +1,7 @@
 import { validateBackupId, validateBackend } from './validation';
 import Connection from '../connection';
 import { CommandBase } from '../validation/commandBase';
+import { BackupRestoreStatusResponse } from '../types';
 
 export default class BackupRestoreStatusGetter extends CommandBase {
   private backend?: string;
@@ -20,20 +21,20 @@ export default class BackupRestoreStatusGetter extends CommandBase {
     return this;
   }
 
-  validate() {
+  validate = (): void => {
     this.addErrors([...validateBackend(this.backend), ...validateBackupId(this.backupId)]);
-  }
+  };
 
-  do() {
+  do = (): Promise<BackupRestoreStatusResponse | Error> => {
     this.validate();
     if (this.errors.length > 0) {
       return Promise.reject(new Error('invalid usage: ' + this.errors.join(', ')));
     }
 
     return this.client.get(this._path());
-  }
+  };
 
-  _path() {
+  private _path = (): string => {
     return `/backups/${this.backend}/${this.backupId}/restore`;
-  }
+  };
 }
