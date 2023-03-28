@@ -1,4 +1,5 @@
 import weaviate, { WeaviateClient } from '../index';
+import { BatchReference, BatchReferenceResponse, WeaviateObject } from '../types';
 
 const thingClassName = 'BatchJourneyTestThing';
 const otherThingClassName = 'BatchJourneyTestOtherThing';
@@ -12,7 +13,7 @@ const thingIds = [
 
 const otherThingIds = ['5b354a0f-fe66-4fe7-ad62-4db72ddab815', '8727fa2b-610a-4a5c-af26-e558943f71c7'];
 
-const someObjects = [
+const someObjects: WeaviateObject[] = [
   {
     class: thingClassName,
     id: thingIds[0],
@@ -76,10 +77,10 @@ describe('batch importing', () => {
       .withObject(someObjects[0])
       .withObjects(someObjects[1])
       .withObjects(someObjects[2], someObjects[3])
-      .withObjects([someObjects[4], someObjects[5]]);
+      .withObjects(...[someObjects[4], someObjects[5]]);
 
     expect(batcher.objects).toHaveLength(someObjects.length);
-    batcher.objects.forEach((obj: any, i: number) => {
+    batcher.objects.forEach((obj: WeaviateObject, i: number) => {
       expect(obj.class).toBe(someObjects[i].class);
       expect(obj.id).toBe(someObjects[i].id);
     });
@@ -109,7 +110,7 @@ describe('batch importing', () => {
           .withObject(toImport[1])
           .do()
           .then()
-          .catch((e: any) => {
+          .catch((e: Error) => {
             throw new Error('it should not have errord ' + e);
           });
       });
@@ -122,7 +123,7 @@ describe('batch importing', () => {
         return Promise.all([
           client.data.getterById().withId(thingIds[0]).withClassName(thingClassName).do(),
           client.data.getterById().withId(thingIds[1]).withClassName(thingClassName).do(),
-        ]).catch((e: any) => {
+        ]).catch((e: Error) => {
           throw new Error('it should not have errord ' + e);
         });
       });
@@ -189,7 +190,7 @@ describe('batch importing', () => {
         client.batch
           .objectsBatcher()
           .withConsistencyLevel(weaviate.replication.ConsistencyLevel.ONE)
-          .withObjects([toImport[0], toImport[1]])
+          .withObjects(...[toImport[0], toImport[1]])
           .do()
           .then()
           .catch((e: any) => {
@@ -218,10 +219,10 @@ describe('batch importing', () => {
         .referencesBatcher()
         .withReference(someReferences[0])
         .withReferences(someReferences[1], someReferences[2])
-        .withReferences([someReferences[3]]);
+        .withReferences(...[someReferences[3]]);
 
       expect(batcher.references).toHaveLength(someReferences.length);
-      batcher.references.forEach((ref: any, i: number) => {
+      batcher.references.forEach((ref: BatchReference, i: number) => {
         expect(ref.from).toBe(someReferences[i].from);
         expect(ref.to).toBe(someReferences[i].to);
       });
@@ -240,9 +241,9 @@ describe('batch importing', () => {
         })
         .withConsistencyLevel(weaviate.replication.ConsistencyLevel.ALL)
         .do()
-        .then((res: any) => {
-          res.forEach((elem: any) => {
-            expect(elem.result.errors).toBeUndefined();
+        .then((res: BatchReferenceResponse[]) => {
+          res.forEach((elem: BatchReferenceResponse) => {
+            expect(elem.result!.errors).toBeUndefined();
           });
         })
         .catch((e: any) => {
@@ -271,9 +272,9 @@ describe('batch importing', () => {
         .referencesBatcher()
         .withReferences(reference1, reference2)
         .do()
-        .then((res: any[]) => {
-          res.forEach((elem: any) => {
-            expect(elem.result.errors).toBeUndefined();
+        .then((res: BatchReferenceResponse[]) => {
+          res.forEach((elem: BatchReferenceResponse) => {
+            expect(elem.result!.errors).toBeUndefined();
           });
         })
         .catch((e: any) => {
@@ -546,7 +547,10 @@ const setup = async (client: WeaviateClient) => {
 };
 
 const setupData = (client: WeaviateClient) => {
-  return client.batch.objectsBatcher().withObjects(someObjects).do();
+  return client.batch
+    .objectsBatcher()
+    .withObjects(...someObjects)
+    .do();
 };
 
 const cleanup = (client: WeaviateClient) =>

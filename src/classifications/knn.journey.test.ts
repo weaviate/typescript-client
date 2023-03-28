@@ -1,5 +1,6 @@
 import weaviate, { WeaviateClient } from '../index';
 import Connection from '../connection';
+import { Classification } from '../types';
 
 const targetDessertId = 'cd54852a-209d-423b-bf1c-884468215237';
 const targetSavoryId = 'e5da0127-327e-4184-85b8-7b9d1af4a850';
@@ -26,7 +27,7 @@ describe('a classification journey', () => {
         .withClassifyProperties(['toTarget'])
         .withBasedOnProperties(['description'])
         .do()
-        .then((res: any) => {
+        .then((res: Classification) => {
           expect(res.id).toBeDefined();
           id = res.id;
         })
@@ -40,7 +41,7 @@ describe('a classification journey', () => {
         .getter()
         .withId(id)
         .do()
-        .then((res: any) => {
+        .then((res: Classification) => {
           expect(res.status).toEqual('completed');
         });
     });
@@ -55,7 +56,7 @@ describe('a classification journey', () => {
             .getter()
             .withId(id)
             .do()
-            .then((res: any) => {
+            .then((res: Classification) => {
               clearInterval(backgroundWork);
               clearTimeout(timeout);
               if (res.status === 'completed') resolve(undefined);
@@ -122,11 +123,11 @@ describe('a classification journey', () => {
         .withWaitForCompletion()
         .withWaitTimeout(60 * 1000)
         .do()
-        .then((res: any) => {
+        .then((res: Classification) => {
           expect(res.status).toEqual('completed');
           id = res.id;
         })
-        .catch((e: any) => {
+        .catch((e: Error) => {
           throw new Error('it should not have errord: ' + e);
         });
     });
@@ -184,10 +185,10 @@ describe('a classification journey', () => {
         .withWaitForCompletion()
         .withWaitTimeout(1) // that's going to be difficult ;-)
         .do()
-        .then((res: any) => {
+        .then((res: Classification) => {
           fail('it should have errord');
         })
-        .catch((e: any) => {
+        .catch((e: Error) => {
           expect(e).toEqual(
             new Error(
               "classification didn't finish within configured timeout, " +

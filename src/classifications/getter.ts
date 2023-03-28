@@ -1,5 +1,6 @@
 import Connection from '../connection';
 import { CommandBase } from '../validation/commandBase';
+import { Classification } from '../types';
 
 export default class Getter extends CommandBase {
   private id?: string;
@@ -13,21 +14,21 @@ export default class Getter extends CommandBase {
     return this;
   };
 
-  validateIsSet = (prop: string | undefined | null, name: string, setter: string) => {
+  validateIsSet = (prop: string | undefined | null, name: string, setter: string): void => {
     if (prop == undefined || prop == null || prop.length == 0) {
       this.addError(`${name} must be set - set with ${setter}`);
     }
   };
 
-  validateId = () => {
+  validateId = (): void => {
     this.validateIsSet(this.id, 'id', '.withId(id)');
   };
 
-  validate = () => {
+  validate = (): void => {
     this.validateId();
   };
 
-  do = () => {
+  do = (): Promise<Classification> => {
     this.validate();
     if (this.errors.length > 0) {
       return Promise.reject(new Error('invalid usage: ' + this.errors.join(', ')));

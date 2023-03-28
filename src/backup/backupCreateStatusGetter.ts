@@ -25,7 +25,7 @@ export default class BackupCreateStatusGetter extends CommandBase {
     this.addErrors([...validateBackend(this.backend), ...validateBackupId(this.backupId)]);
   };
 
-  do = (): Promise<BackupCreateStatusResponse | Error> => {
+  do = (): Promise<BackupCreateStatusResponse> => {
     this.validate();
     if (this.errors.length > 0) {
       return Promise.reject(new Error('invalid usage: ' + this.errors.join(', ')));

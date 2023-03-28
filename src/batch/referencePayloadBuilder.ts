@@ -1,6 +1,7 @@
 import { isValidStringProperty } from '../validation/string';
 import Connection from '../connection';
 import { CommandBase } from '../validation/commandBase';
+import { BatchReference } from '../types';
 
 export default class ReferencesBatcher extends CommandBase {
   private fromClassName?: string;
@@ -38,20 +39,20 @@ export default class ReferencesBatcher extends CommandBase {
     return this;
   }
 
-  validateIsSet = (prop: string | undefined | null, name: string, setter: string) => {
+  validateIsSet = (prop: string | undefined | null, name: string, setter: string): void => {
     if (prop == undefined || prop == null || prop.length == 0) {
       this.addError(`${name} must be set - set with ${setter}`);
     }
   };
 
-  validate = () => {
+  validate = (): void => {
     this.validateIsSet(this.fromId, 'fromId', '.withFromId(id)');
     this.validateIsSet(this.toId, 'toId', '.withToId(id)');
     this.validateIsSet(this.fromClassName, 'fromClassName', '.withFromClassName(className)');
     this.validateIsSet(this.fromRefProp, 'fromRefProp', '.withFromRefProp(refProp)');
   };
 
-  payload = () => {
+  payload = (): BatchReference => {
     this.validate();
     if (this.errors.length > 0) {
       throw new Error(this.errors.join(', '));
@@ -68,7 +69,7 @@ export default class ReferencesBatcher extends CommandBase {
     };
   };
 
-  do(): Promise<any> {
+  do = (): Promise<any> => {
     return Promise.reject(new Error('Should never be called'));
-  }
+  };
 }
