@@ -13,6 +13,7 @@ export default class Connection {
   public readonly http: HttpClient;
 
   constructor(params: ConnectionParams) {
+    params = this.sanitizeParams(params);
     this.http = httpClient(params);
     this.gql = gqlClient(params);
     this.authEnabled = this.parseAuthParams(params);
@@ -33,6 +34,14 @@ export default class Connection {
       return true;
     }
     return false;
+  }
+
+  private sanitizeParams(params: ConnectionParams) {
+    while (params.host.endsWith('/')) {
+      params.host = params.host.slice(0, -1);
+    }
+
+    return params;
   }
 
   post = (path: string, payload: any, expectReturnContent = true) => {
