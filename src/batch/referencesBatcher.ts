@@ -68,6 +68,7 @@ export default class ReferencesBatcher extends CommandBase {
   };
 
   rebuildReferencePromise = (reference: BatchReference): Promise<BatchReference> => {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     return this.beaconPath.rebuild(reference.to!).then((beaconTo: any) => ({
       from: reference.from,
       to: beaconTo,

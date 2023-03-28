@@ -1,14 +1,15 @@
 import Connection from '../connection';
 import { CommandBase } from '../validation/commandBase';
+import { Class } from '../types';
 
 export default class ClassCreator extends CommandBase {
-  private class: any;
+  private class!: Class;
 
   constructor(client: Connection) {
     super(client);
   }
 
-  withClass = (classObj: any) => {
+  withClass = (classObj: object) => {
     this.class = classObj;
     return this;
   };
@@ -23,7 +24,7 @@ export default class ClassCreator extends CommandBase {
     this.validateClass();
   }
 
-  do = () => {
+  do = (): Promise<Class> => {
     this.validateClass();
     if (this.errors.length > 0) {
       return Promise.reject(new Error('invalid usage: ' + this.errors.join(', ')));

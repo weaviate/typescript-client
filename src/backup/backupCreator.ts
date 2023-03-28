@@ -13,8 +13,8 @@ import { BackupCreateRequest, BackupCreateResponse, BackupCreateStatusResponse }
 const WAIT_INTERVAL = 1000;
 
 export default class BackupCreator extends CommandBase {
-  private backend?: string;
-  private backupId?: string;
+  private backend!: string;
+  private backupId!: string;
   private excludeClassNames?: string[];
   private includeClassNames?: string[];
   private statusGetter: BackupCreateStatusGetter;
@@ -94,7 +94,7 @@ export default class BackupCreator extends CommandBase {
     return new Promise<BackupCreateResponse>((resolve, reject) => {
       this._create(payload)
         .then((createResponse: any) => {
-          this.statusGetter.withBackend(this.backend!).withBackupId(this.backupId!);
+          this.statusGetter.withBackend(this.backend).withBackupId(this.backupId);
 
           const loop = () => {
             this.statusGetter

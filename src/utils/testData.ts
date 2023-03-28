@@ -1,10 +1,10 @@
 import { WeaviateClient } from '../index';
-import { WeaviateObject } from '../types';
+import { WeaviateObject, Property } from '../types';
 
 export const PIZZA_CLASS_NAME = 'Pizza';
 export const SOUP_CLASS_NAME = 'Soup';
 
-const foodProperties = [
+const foodProperties: Property[] = [
   {
     name: 'name',
     dataType: ['string'],

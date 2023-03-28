@@ -1,6 +1,7 @@
 import { isValidStringProperty } from '../validation/string';
 import Connection from '../connection';
 import { CommandBase } from '../validation/commandBase';
+import { Class } from '../types';
 
 export default class ClassGetter extends CommandBase {
   private className?: string;
@@ -9,7 +10,7 @@ export default class ClassGetter extends CommandBase {
     super(client);
   }
 
-  withClassName = (className: any) => {
+  withClassName = (className: string) => {
     this.className = className;
     return this;
   };
@@ -24,7 +25,7 @@ export default class ClassGetter extends CommandBase {
     this.validateClassName();
   };
 
-  do = () => {
+  do = (): Promise<Class> => {
     this.validate();
     if (this.errors.length > 0) {
       return Promise.reject(new Error('invalid usage: ' + this.errors.join(', ')));

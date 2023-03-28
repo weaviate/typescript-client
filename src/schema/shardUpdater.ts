@@ -3,9 +3,9 @@ import Connection from '../connection';
 import { CommandBase } from '../validation/commandBase';
 
 export default class ShardUpdater extends CommandBase {
-  private className?: string;
-  private shardName?: string;
-  private status?: string;
+  private className!: string;
+  private shardName!: string;
+  private status!: string;
 
   constructor(client: Connection) {
     super(client);
@@ -60,7 +60,7 @@ export default class ShardUpdater extends CommandBase {
   };
 }
 
-export function updateShard(client: Connection, className: any, shardName: any, status: any) {
+export function updateShard(client: Connection, className: string, shardName: string, status: string) {
   const path = `/schema/${className}/shards/${shardName}`;
   return client.put(path, { status: status }, true);
 }

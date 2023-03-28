@@ -2,7 +2,7 @@ import { isValidStringProperty } from '../validation/string';
 import { buildObjectsPath } from './path';
 import Connection from '../connection';
 import { CommandBase } from '../validation/commandBase';
-import { BatchDelete, BatchDeleteResponse } from '../types';
+import { BatchDelete, BatchDeleteResponse, WhereFilter } from '../types';
 
 export default class ObjectsBatchDeleter extends CommandBase {
   private className?: string;
@@ -20,7 +20,7 @@ export default class ObjectsBatchDeleter extends CommandBase {
     return this;
   }
 
-  withWhere(whereFilter: any) {
+  withWhere(whereFilter: WhereFilter) {
     this.whereFilter = whereFilter;
     return this;
   }

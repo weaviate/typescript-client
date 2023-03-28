@@ -6,6 +6,7 @@ export type WeaviateObjectsGet = definitions['ObjectsGetResponse'];
 export type Reference = definitions['SingleRef'];
 export type WeaviateError = definitions['ErrorResponse'];
 export type Properties = definitions['PropertySchema'];
+export type Property = definitions['Property'];
 export type DataObject = definitions['Object'];
 // Backup
 export type BackupCreateRequest = definitions['BackupCreateRequest'];
@@ -30,3 +31,8 @@ export type C11yExtension = definitions['C11yExtension'];
 export type Classification = definitions['Classification'];
 // GraphQL
 export type WhereFilter = definitions['WhereFilter'];
+// Schema
+export type Schema = definitions['Schema'];
+export type Class = definitions['Class'];
+export type ShardStatus = definitions['ShardStatus'];
+export type ShardStatusList = definitions['ShardStatusList'];

@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import weaviate, { WeaviateClient } from '../index';
-import { BatchReference, BatchReferenceResponse, WeaviateObject } from '../types';
+import { BatchReference, BatchReferenceResponse, WeaviateObject, BatchDeleteResponse } from '../types';
 
 const thingClassName = 'BatchJourneyTestThing';
 const otherThingClassName = 'BatchJourneyTestOtherThing';
@@ -351,7 +352,7 @@ describe('batch deleting', () => {
       .objectsBatchDeleter()
       .withClassName(thingClassName)
       .withWhere({
-        operator: weaviate.filters.Operator.EQUAL,
+        operator: 'Equal',
         valueString: 'bar1',
         path: ['stringProp'],
       })
@@ -364,8 +365,8 @@ describe('batch deleting', () => {
         expect(result.match).toEqual({
           class: thingClassName,
           where: {
-            operands: null, // FIXME should not be received
-            operator: weaviate.filters.Operator.EQUAL,
+            operands: null,
+            operator: 'Equal',
             valueString: 'bar1',
             path: ['stringProp'],
           },
@@ -389,20 +390,20 @@ describe('batch deleting', () => {
       .objectsBatchDeleter()
       .withClassName(otherThingClassName)
       .withWhere({
-        operator: weaviate.filters.Operator.LIKE,
+        operator: 'Like',
         valueString: 'foo3',
         path: ['stringProp'],
       })
       .withDryRun(true)
       .withOutput(weaviate.batch.DeleteOutput.MINIMAL)
       .do()
-      .then((result: any) => {
+      .then((result: BatchDeleteResponse) => {
         expect(result.dryRun).toBe(true);
         expect(result.output).toBe(weaviate.batch.DeleteOutput.MINIMAL);
         expect(result.match).toEqual({
           class: otherThingClassName,
           where: {
-            operands: null, // FIXME should not be received
+            operands: null,
             operator: weaviate.filters.Operator.LIKE,
             valueString: 'foo3',
             path: ['stringProp'],
@@ -422,7 +423,7 @@ describe('batch deleting', () => {
       .objectsBatchDeleter()
       .withClassName(otherThingClassName)
       .withWhere({
-        operator: weaviate.filters.Operator.EQUAL,
+        operator: 'Equal',
         valueString: 'doesNotExist',
         path: ['stringProp'],
       })
@@ -433,8 +434,8 @@ describe('batch deleting', () => {
         expect(result.match).toEqual({
           class: otherThingClassName,
           where: {
-            operands: null, // FIXME should not be received
-            operator: weaviate.filters.Operator.EQUAL,
+            operands: null,
+            operator: 'Equal',
             valueString: 'doesNotExist',
             path: ['stringProp'],
           },
@@ -454,7 +455,7 @@ describe('batch deleting', () => {
       .objectsBatchDeleter()
       .withClassName(otherThingClassName)
       .withWhere({
-        operator: weaviate.filters.Operator.LESS_THAN,
+        operator: 'LessThan',
         valueString: inAMinute,
         path: ['_creationTimeUnix'],
       })
@@ -467,8 +468,8 @@ describe('batch deleting', () => {
         expect(result.match).toEqual({
           class: otherThingClassName,
           where: {
-            operands: null, // FIXME should not be received
-            operator: weaviate.filters.Operator.LESS_THAN,
+            operands: null,
+            operator: 'LessThan',
             valueString: inAMinute,
             path: ['_creationTimeUnix'],
           },
@@ -488,18 +489,6 @@ describe('batch deleting', () => {
         });
       });
   });
-
-  it('batch deletes fails due to validation', () =>
-    client.batch
-      .objectsBatchDeleter()
-      .withClassName('')
-      .withWhere('shouldBeObject')
-      .do()
-      .catch((err: Error) =>
-        expect(err.message).toBe(
-          'invalid usage: string className must be set - set with .withClassName(className), object where must be set - set with .withWhere(whereFilter)'
-        )
-      ));
 
   it('tears down and cleans up', () => cleanup(client));
 });

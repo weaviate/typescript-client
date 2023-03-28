@@ -13,8 +13,8 @@ import { BackupRestoreRequest, BackupRestoreResponse, BackupRestoreStatusRespons
 const WAIT_INTERVAL = 1000;
 
 export default class BackupRestorer extends CommandBase {
-  private backend?: string;
-  private backupId?: string;
+  private backend!: string;
+  private backupId!: string;
   private excludeClassNames?: string[];
   private includeClassNames?: string[];
   private statusGetter: BackupRestoreStatusGetter;
@@ -93,7 +93,7 @@ export default class BackupRestorer extends CommandBase {
     return new Promise<BackupRestoreResponse>((resolve, reject) => {
       this._restore(payload)
         .then((restoreResponse: any) => {
-          this.statusGetter.withBackend(this.backend!).withBackupId(this.backupId!);
+          this.statusGetter.withBackend(this.backend).withBackupId(this.backupId);
 
           const loop = () => {
             this.statusGetter

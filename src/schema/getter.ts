@@ -1,5 +1,6 @@
 import Connection from '../connection';
 import { CommandBase } from '../validation/commandBase';
+import { Schema } from '../types';
 
 export default class Getter extends CommandBase {
   constructor(client: Connection) {
@@ -10,7 +11,7 @@ export default class Getter extends CommandBase {
     // nothing to validate
   }
 
-  do = () => {
+  do = (): Promise<Schema> => {
     if (this.errors.length > 0) {
       return Promise.reject(new Error('invalid usage: ' + this.errors.join(', ')));
     }

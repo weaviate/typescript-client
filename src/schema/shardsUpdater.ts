@@ -3,11 +3,12 @@ import { getShards } from './shardsGetter';
 import { updateShard } from './shardUpdater';
 import Connection from '../connection';
 import { CommandBase } from '../validation/commandBase';
+import { ShardStatus, ShardStatusList } from '../types';
 
 export default class ShardsUpdater extends CommandBase {
-  private className?: string;
-  private shards: any[];
-  private status?: string;
+  private className!: string;
+  private shards: ShardStatusList;
+  private status!: string;
 
   constructor(client: Connection) {
     super(client);
@@ -44,7 +45,7 @@ export default class ShardsUpdater extends CommandBase {
   updateShards = async () => {
     const payload: any = await Promise.all(
       Array.from({ length: this.shards.length }, (_, i) =>
-        updateShard(this.client, this.className, this.shards[i].name, this.status)
+        updateShard(this.client, this.className, this.shards[i].name || '', this.status)
           .then((res: any) => {
             return { name: this.shards[i].name, status: res.status };
           })
@@ -59,18 +60,18 @@ export default class ShardsUpdater extends CommandBase {
     return Promise.resolve(payload);
   };
 
-  do = () => {
+  do = (): Promise<ShardStatusList> => {
     this.validate();
     if (this.errors.length > 0) {
       return Promise.reject(new Error(`invalid usage: ${this.errors.join(', ')}`));
     }
 
     return getShards(this.client, this.className)
-      .then((shards: any) => (this.shards = shards))
+      .then((shards: ShardStatusList) => (this.shards = shards))
       .then(() => {
         return this.updateShards();
       })
-      .then((payload: any) => {
+      .then((payload: ShardStatusList) => {
         return payload;
       })
       .catch((err: any) => {

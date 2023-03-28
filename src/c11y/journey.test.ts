@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import weaviate from '../index';
 import { C11yWordsResponse, C11yExtension } from '../types';
 

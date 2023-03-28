@@ -34,7 +34,6 @@ console.log(
 console.log(weaviate.backup.Backend.GCS);
 console.log(weaviate.batch.DeleteOutput.MINIMAL);
 console.log(weaviate.cluster.NodeStatus.HEALTHY);
-console.log(weaviate.filters.Operator.AND);
 console.log(weaviate.replication.ConsistencyLevel.QUORUM);
 
 client.misc

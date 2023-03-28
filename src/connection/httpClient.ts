@@ -76,7 +76,7 @@ export const httpClient = (config: ConnectionParams): HttpClient => {
         body: payload ? JSON.stringify(payload) : undefined,
       };
       addAuthHeaderIfNeeded(request, bearerToken);
-      return fetch(url(path), request).then(handleHeadResponse(false /* , true*/)); // FIXME 1 extra param
+      return fetch(url(path), request).then(handleHeadResponse(false));
     },
     get: (path: string, expectReturnContent = true, bearerToken = '') => {
       const request = {
