@@ -13,3 +13,6 @@ export type BackupCreateStatusResponse = definitions['BackupCreateStatusResponse
 export type BackupRestoreRequest = definitions['BackupRestoreRequest'];
 export type BackupRestoreResponse = definitions['BackupRestoreResponse'];
 export type BackupRestoreStatusResponse = definitions['BackupRestoreStatusResponse'];
+// C11y
+export type C11yWordsResponse = definitions['C11yWordsResponse'];
+export type C11yExtension = definitions['C11yExtension'];
