@@ -1,5 +1,13 @@
 import Getter from './getter';
 import { Operator } from '../filters/consts';
+import { WhereFilter } from '../types';
+import { Variables } from 'graphql-request';
+import { NearVectorArgs } from './nearVector';
+import { NearObjectArgs } from './nearObject';
+import { AskArgs } from './ask';
+import { NearImageArgs } from './nearImage';
+import { Bm25Args } from './bm25';
+import { HybridArgs } from './hybrid';
 
 test('a simple query without params', () => {
   const mockClient: any = {
@@ -77,16 +85,13 @@ describe('where filters', () => {
     };
 
     const expectedQuery = `{Get{Person(where:{operator:Equal,valueString:"John Doe",path:["name"]}){name}}}`;
+    const where: WhereFilter = {
+      operator: 'Equal',
+      valueString: 'John Doe',
+      path: ['name'],
+    };
 
-    new Getter(mockClient)
-      .withClassName('Person')
-      .withFields('name')
-      .withWhere({
-        operator: Operator.EQUAL,
-        valueString: 'John Doe',
-        path: ['name'],
-      })
-      .do();
+    new Getter(mockClient).withClassName('Person').withFields('name').withWhere(where).do();
 
     expect(mockClient.query).toHaveBeenCalledWith(expectedQuery);
   });
@@ -104,24 +109,21 @@ describe('where filters', () => {
       `{geoCoordinates:{latitude:51.51,longitude:-0.09},distance:{max:2000}}` +
       `,path:["name"]})` +
       `{name}}}`;
-
-    new Getter(mockClient)
-      .withClassName('Person')
-      .withFields('name')
-      .withWhere({
-        operator: Operator.WITHIN_GEO_RANGE,
-        valueGeoRange: {
-          geoCoordinates: {
-            latitude: 51.51,
-            longitude: -0.09,
-          },
-          distance: {
-            max: 2000,
-          },
+    const where: WhereFilter = {
+      operator: 'WithinGeoRange',
+      valueGeoRange: {
+        geoCoordinates: {
+          latitude: 51.51,
+          longitude: -0.09,
         },
-        path: ['name'],
-      })
-      .do();
+        distance: {
+          max: 2000,
+        },
+      },
+      path: ['name'],
+    };
+
+    new Getter(mockClient).withClassName('Person').withFields('name').withWhere(where).do();
 
     expect(mockClient.query).toHaveBeenCalledWith(expectedQuery);
   });
@@ -131,13 +133,6 @@ describe('where filters', () => {
       query: jest.fn(),
     };
 
-    const nestedWhere = {
-      operator: Operator.AND,
-      operands: [
-        { valueString: 'foo', operator: Operator.EQUAL, path: ['foo'] },
-        { valueString: 'bar', operator: Operator.NOT_EQUAL, path: ['bar'] },
-      ],
-    };
     const expectedQuery =
       `{Get{Person` +
       `(where:{operator:And,operands:[` +
@@ -145,65 +140,17 @@ describe('where filters', () => {
       `{operator:NotEqual,valueString:"bar",path:["bar"]}` +
       `]})` +
       `{name}}}`;
+    const nestedWhere: WhereFilter = {
+      operator: 'And',
+      operands: [
+        { valueString: 'foo', operator: 'Equal', path: ['foo'] },
+        { valueString: 'bar', operator: 'NotEqual', path: ['bar'] },
+      ],
+    };
 
     new Getter(mockClient).withClassName('Person').withFields('name').withWhere(nestedWhere).do();
 
     expect(mockClient.query).toHaveBeenCalledWith(expectedQuery);
-  });
-
-  describe('queries with invalid nested where filters', () => {
-    const mockClient: any = {
-      query: jest.fn(),
-    };
-
-    const tests = [
-      {
-        title: 'an empty where',
-        where: {},
-        msg: 'where filter: operator cannot be empty',
-      },
-      {
-        title: 'missing value',
-        where: { operator: Operator.EQUAL },
-        msg: 'where filter: value<Type> cannot be empty',
-      },
-      {
-        title: 'missing path',
-        where: { operator: Operator.EQUAL, valueString: 'foo' },
-        msg: 'where filter: path cannot be empty',
-      },
-      {
-        title: 'path is not an array',
-        where: { operator: Operator.EQUAL, valueString: 'foo', path: 'mypath' },
-        msg: 'where filter: path must be an array',
-      },
-      {
-        title: 'unknown value type',
-        where: { operator: Operator.EQUAL, valueWrong: 'foo' },
-        msg: "where filter: unrecognized value prop 'valueWrong'",
-      },
-      {
-        title: 'operands is not an array',
-        where: { operator: Operator.AND, operands: {} },
-        msg: 'where filter: operands must be an array',
-      },
-    ];
-
-    tests.forEach((t) => {
-      test(t.title, () => {
-        new Getter(mockClient)
-          .withClassName('Person')
-          .withFields('name')
-          .withWhere(t.where)
-          .do()
-          .then(() => {
-            fail('it should have errord');
-          })
-          .catch((e: any) => {
-            expect(e.toString()).toContain(t.msg);
-          });
-      });
-    });
   });
 });
 
@@ -701,56 +648,6 @@ describe('nearVector searchers', () => {
 
     expect(mockClient.query).toHaveBeenCalledWith(expectedQuery);
   });
-
-  describe('queries with invalid nearVector searchers', () => {
-    const mockClient: any = {
-      query: jest.fn(),
-    };
-
-    const tests = [
-      {
-        title: 'an empty nearVector',
-        nearVector: {},
-        msg: 'nearVector filter: vector cannot be empty',
-      },
-      {
-        title: 'vector of wrong type',
-        nearVector: { vector: {} },
-        msg: 'nearVector filter: vector must be an array',
-      },
-      {
-        title: 'vector as array of wrong type',
-        nearVector: { vector: ['foo'] },
-        msg: 'nearVector filter: vector elements must be a number',
-      },
-      {
-        title: 'certainty of wrong type',
-        nearVector: { vector: [0.123, 0.987], certainty: 'foo' },
-        msg: 'nearVector filter: certainty must be a number',
-      },
-      {
-        title: 'distance of wrong type',
-        nearVector: { vector: [0.123, 0.987], distance: 'foo' },
-        msg: 'nearVector filter: distance must be a number',
-      },
-    ];
-
-    tests.forEach((t) => {
-      test(t.title, () => {
-        new Getter(mockClient)
-          .withClassName('Person')
-          .withFields('name')
-          .withNearVector(t.nearVector)
-          .do()
-          .then(() => {
-            throw new Error('it should have errord');
-          })
-          .catch((e: any) => {
-            expect(e.toString()).toContain(t.msg);
-          });
-      });
-    });
-  });
 });
 
 describe('nearObject searchers', () => {
@@ -833,31 +730,17 @@ describe('nearObject searchers', () => {
       query: jest.fn(),
     };
 
-    const tests = [
+    interface testCase {
+      title: string;
+      nearObject: NearObjectArgs;
+      msg: string;
+    }
+
+    const tests: testCase[] = [
       {
         title: 'an empty nearObject',
         nearObject: {},
         msg: 'nearObject filter: id or beacon needs to be set',
-      },
-      {
-        title: 'id of wrong type',
-        nearObject: { id: {} },
-        msg: 'nearObject filter: id must be a string',
-      },
-      {
-        title: 'beacon of wrong type',
-        nearObject: { beacon: {} },
-        msg: 'nearObject filter: beacon must be a string',
-      },
-      {
-        title: 'certainty of wrong type',
-        nearObject: { id: 'foo', certainty: 'foo' },
-        msg: 'nearObject filter: certainty must be a number',
-      },
-      {
-        title: 'distance of wrong type',
-        nearObject: { id: 'foo', distance: 'foo' },
-        msg: 'nearObject filter: distance must be a number',
       },
     ];
 
@@ -1081,36 +964,17 @@ describe('ask searchers', () => {
       query: jest.fn(),
     };
 
-    const tests = [
+    interface testCase {
+      title: string;
+      ask: AskArgs;
+      msg: string;
+    }
+
+    const tests: testCase[] = [
       {
         title: 'an empty ask',
         ask: {},
         msg: 'ask filter: question needs to be set',
-      },
-      {
-        title: 'question of wrong type',
-        ask: { question: {} },
-        msg: 'ask filter: question must be a string',
-      },
-      {
-        title: 'properties of wrong type',
-        ask: { properties: {} },
-        msg: 'ask filter: properties must be an array',
-      },
-      {
-        title: 'certainty of wrong type',
-        ask: { question: 'foo', certainty: 'foo' },
-        msg: 'ask filter: certainty must be a number',
-      },
-      {
-        title: 'distance of wrong type',
-        ask: { question: 'foo', distance: 'foo' },
-        msg: 'ask filter: distance must be a number',
-      },
-      {
-        title: 'autocorrect of wrong type',
-        ask: { question: 'foo', autocorrect: 'foo' },
-        msg: 'ask filter: autocorrect must be a boolean',
       },
     ];
 
@@ -1210,26 +1074,17 @@ describe('nearImage searchers', () => {
       query: jest.fn(),
     };
 
-    const tests = [
+    interface testCase {
+      title: string;
+      nearImage: NearImageArgs;
+      msg: string;
+    }
+
+    const tests: testCase[] = [
       {
         title: 'an empty nearImage',
         nearImage: {},
-        msg: 'nearImage filter: image or imageBlob must be present',
-      },
-      {
-        title: 'image of wrong type',
-        nearImage: { image: {} },
-        msg: 'nearImage filter: image must be a string',
-      },
-      {
-        title: 'certainty of wrong type',
-        nearImage: { image: 'foo', certainty: 'foo' },
-        msg: 'nearImage filter: certainty must be a number',
-      },
-      {
-        title: 'distance of wrong type',
-        nearImage: { image: 'foo', distance: 'foo' },
-        msg: 'nearImage filter: distance must be a number',
+        msg: 'nearImage filter: image field must be present',
       },
     ];
 
@@ -1438,61 +1293,6 @@ describe('bm25 valid searchers', () => {
   });
 });
 
-describe('bm25 invalid searchers', () => {
-  const mockClient: any = {
-    query: jest.fn(),
-  };
-
-  const tests = [
-    {
-      title: 'an empty bm25',
-      bm25: {},
-      msg: 'bm25 filter: query cannot be empty',
-    },
-    {
-      title: 'an empty query',
-      bm25: { query: '' },
-      msg: 'bm25 filter: query must be a string',
-    },
-    {
-      title: 'query of wrong type',
-      bm25: { query: {} },
-      msg: 'bm25 filter: query must be a string',
-    },
-    {
-      title: 'an empty property',
-      bm25: { query: 'query', properties: [''] },
-      msg: 'bm25 filter: properties must be an array of strings',
-    },
-    {
-      title: 'property of wrong type',
-      bm25: { query: 'query', properties: [123] },
-      msg: 'bm25 filter: properties must be an array of strings',
-    },
-    {
-      title: 'properties of wrong type',
-      bm25: { query: 'query', properties: {} },
-      msg: 'bm25 filter: properties must be an array of strings',
-    },
-  ];
-
-  tests.forEach((t) => {
-    test(t.title, () => {
-      new Getter(mockClient)
-        .withClassName('Person')
-        .withFields('name')
-        .withBm25(t.bm25)
-        .do()
-        .then(() => {
-          throw new Error('it should have errord');
-        })
-        .catch((e: any) => {
-          expect(e.toString()).toContain(t.msg);
-        });
-    });
-  });
-});
-
 describe('hybrid valid searchers', () => {
   const mockClient: any = {
     query: jest.fn(),
@@ -1559,65 +1359,5 @@ describe('hybrid valid searchers', () => {
       .do();
 
     expect(mockClient.query).toHaveBeenCalledWith(expectedQuery);
-  });
-});
-
-describe('hybrid invalid searchers', () => {
-  const mockClient: any = {
-    query: jest.fn(),
-  };
-
-  const tests = [
-    {
-      title: 'an empty hybrid',
-      hybrid: {},
-      msg: 'hybrid filter: query cannot be empty',
-    },
-    {
-      title: 'an empty query',
-      hybrid: { query: '' },
-      msg: 'hybrid filter: query must be a string',
-    },
-    {
-      title: 'query of wrong type',
-      hybrid: { query: {} },
-      msg: 'hybrid filter: query must be a string',
-    },
-    {
-      title: 'alpha on wrong type',
-      hybrid: { query: 'query', alpha: 'alpha' },
-      msg: 'hybrid filter: alpha must be a number',
-    },
-    {
-      title: 'an empty vector',
-      hybrid: { query: 'query', vector: [] },
-      msg: 'hybrid filter: vector must be an array of numbers',
-    },
-    {
-      title: 'vector element of wrong type',
-      hybrid: { query: 'query', vector: ['vector'] },
-      msg: 'hybrid filter: vector must be an array of numbers',
-    },
-    {
-      title: 'vector of wrong type',
-      hybrid: { query: 'query', vector: {} },
-      msg: 'hybrid filter: vector must be an array of numbers',
-    },
-  ];
-
-  tests.forEach((t) => {
-    test(t.title, () => {
-      new Getter(mockClient)
-        .withClassName('Person')
-        .withFields('name')
-        .withHybrid(t.hybrid)
-        .do()
-        .then(() => {
-          throw new Error('it should have errord');
-        })
-        .catch((e: any) => {
-          expect(e.toString()).toContain(t.msg);
-        });
-    });
   });
 });

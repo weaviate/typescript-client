@@ -8,7 +8,7 @@ export default class RawGraphQL extends CommandBase {
     super(client);
   }
 
-  withQuery = (query: any) => {
+  withQuery = (query: string) => {
     this.query = query;
     return this;
   };

@@ -1,7 +1,7 @@
 import { definitions } from './schema';
 
 export type WeaviateObject = definitions['Object'];
-export type WeaviateObjectList = definitions['ObjectsListResponse'];
+export type WeaviateObjectsList = definitions['ObjectsListResponse'];
 export type WeaviateObjectsGet = definitions['ObjectsGetResponse'];
 export type Reference = definitions['SingleRef'];
 export type WeaviateError = definitions['ErrorResponse'];
@@ -28,3 +28,5 @@ export type C11yWordsResponse = definitions['C11yWordsResponse'];
 export type C11yExtension = definitions['C11yExtension'];
 // Classifications
 export type Classification = definitions['Classification'];
+// GraphQL
+export type WhereFilter = definitions['WhereFilter'];

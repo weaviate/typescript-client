@@ -1,20 +1,25 @@
-export default class GraphQLGroup {
-  private source: any;
+export interface GroupArgs {
+  type: string;
+  force: number;
+}
 
-  constructor(source: any) {
-    this.source = source;
+export default class GraphQLGroup {
+  private args: GroupArgs;
+
+  constructor(args: GroupArgs) {
+    this.args = args;
   }
 
   toString() {
     let parts: any[] = [];
 
-    if (this.source.type) {
+    if (this.args.type) {
       // value is a graphQL enum, so doesn't need to be quoted
-      parts = [...parts, `type:${this.source.type}`];
+      parts = [...parts, `type:${this.args.type}`];
     }
 
-    if (this.source.force) {
-      parts = [...parts, `force:${this.source.force}`];
+    if (this.args.force) {
+      parts = [...parts, `force:${this.args.force}`];
     }
 
     return `{${parts.join(',')}}`;

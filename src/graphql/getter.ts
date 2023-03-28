@@ -1,31 +1,32 @@
 import Where from './where';
 import NearText from './nearText';
-import NearVector from './nearVector';
-import Bm25 from './bm25';
-import Hybrid from './hybrid';
-import NearObject from './nearObject';
-import NearImage from './nearImage';
-import Ask from './ask';
-import Group from './group';
+import NearVector, { NearVectorArgs } from './nearVector';
+import Bm25, { Bm25Args } from './bm25';
+import Hybrid, { HybridArgs } from './hybrid';
+import NearObject, { NearObjectArgs } from './nearObject';
+import NearImage, { NearImageArgs } from './nearImage';
+import Ask, { AskArgs } from './ask';
+import Group, { GroupArgs } from './group';
 import Sort from './sort';
 import Connection from '../connection';
 import { CommandBase } from '../validation/commandBase';
+import { WhereFilter } from '../types';
 
 export default class Getter extends CommandBase {
   private after?: string;
   private askString?: string;
   private bm25String?: string;
   private className?: string;
-  private fields: any;
+  private fields?: string;
   private groupString?: string;
   private hybridString?: string;
   private includesNearMediaFilter: boolean;
-  private limit: any;
+  private limit?: number;
   private nearImageString?: string;
   private nearObjectString?: string;
   private nearTextString?: string;
   private nearVectorString?: string;
-  private offset: any;
+  private offset?: number;
   private sortString?: string;
   private whereString?: string;
 
@@ -34,7 +35,7 @@ export default class Getter extends CommandBase {
     this.includesNearMediaFilter = false;
   }
 
-  withFields = (fields: any) => {
+  withFields = (fields: string) => {
     this.fields = fields;
     return this;
   };
@@ -49,9 +50,9 @@ export default class Getter extends CommandBase {
     return this;
   };
 
-  withGroup = (groupObj: any) => {
+  withGroup = (args: GroupArgs) => {
     try {
-      this.groupString = new Group(groupObj).toString();
+      this.groupString = new Group(args).toString();
     } catch (e: any) {
       this.addError(e.toString());
     }
@@ -59,7 +60,7 @@ export default class Getter extends CommandBase {
     return this;
   };
 
-  withWhere = (whereObj: any) => {
+  withWhere = (whereObj: WhereFilter) => {
     try {
       this.whereString = new Where(whereObj).toString();
     } catch (e: any) {
@@ -68,13 +69,13 @@ export default class Getter extends CommandBase {
     return this;
   };
 
-  withNearText = (nearTextObj: any) => {
+  withNearText = (args: object) => {
     if (this.includesNearMediaFilter) {
       throw new Error('cannot use multiple near<Media> filters in a single query');
     }
 
     try {
-      this.nearTextString = new NearText(nearTextObj).toString();
+      this.nearTextString = new NearText(args).toString();
       this.includesNearMediaFilter = true;
     } catch (e: any) {
       this.addError(e.toString());
@@ -83,9 +84,9 @@ export default class Getter extends CommandBase {
     return this;
   };
 
-  withBm25 = (bm25Obj: any) => {
+  withBm25 = (args: Bm25Args) => {
     try {
-      this.bm25String = new Bm25(bm25Obj).toString();
+      this.bm25String = new Bm25(args).toString();
     } catch (e: any) {
       this.addError(e.toString());
     }
@@ -93,9 +94,9 @@ export default class Getter extends CommandBase {
     return this;
   };
 
-  withHybrid = (hybridObj: any) => {
+  withHybrid = (args: HybridArgs) => {
     try {
-      this.hybridString = new Hybrid(hybridObj).toString();
+      this.hybridString = new Hybrid(args).toString();
     } catch (e: any) {
       this.addError(e.toString());
     }
@@ -103,13 +104,13 @@ export default class Getter extends CommandBase {
     return this;
   };
 
-  withNearObject = (nearObjectObj: any) => {
+  withNearObject = (args: NearObjectArgs) => {
     if (this.includesNearMediaFilter) {
       throw new Error('cannot use multiple near<Media> filters in a single query');
     }
 
     try {
-      this.nearObjectString = new NearObject(nearObjectObj).toString();
+      this.nearObjectString = new NearObject(args).toString();
       this.includesNearMediaFilter = true;
     } catch (e: any) {
       this.addError(e.toString());
@@ -118,7 +119,7 @@ export default class Getter extends CommandBase {
     return this;
   };
 
-  withAsk = (askObj: any) => {
+  withAsk = (askObj: AskArgs) => {
     try {
       this.askString = new Ask(askObj).toString();
     } catch (e: any) {
@@ -127,13 +128,13 @@ export default class Getter extends CommandBase {
     return this;
   };
 
-  withNearImage = (nearImageObj: any) => {
+  withNearImage = (args: NearImageArgs) => {
     if (this.includesNearMediaFilter) {
       throw new Error('cannot use multiple near<Media> filters in a single query');
     }
 
     try {
-      this.nearImageString = new NearImage(nearImageObj).toString();
+      this.nearImageString = new NearImage(args).toString();
       this.includesNearMediaFilter = true;
     } catch (e: any) {
       this.addError(e.toString());
@@ -142,13 +143,13 @@ export default class Getter extends CommandBase {
     return this;
   };
 
-  withNearVector = (nearVectorObj: any) => {
+  withNearVector = (args: NearVectorArgs) => {
     if (this.includesNearMediaFilter) {
       throw new Error('cannot use multiple near<Media> filters in a single query');
     }
 
     try {
-      this.nearVectorString = new NearVector(nearVectorObj).toString();
+      this.nearVectorString = new NearVector(args).toString();
       this.includesNearMediaFilter = true;
     } catch (e: any) {
       this.addError(e.toString());
@@ -157,17 +158,17 @@ export default class Getter extends CommandBase {
     return this;
   };
 
-  withLimit = (limit: any) => {
+  withLimit = (limit: number) => {
     this.limit = limit;
     return this;
   };
 
-  withOffset = (offset: any) => {
+  withOffset = (offset: number) => {
     this.offset = offset;
     return this;
   };
 
-  withSort = (sortObj: any) => {
+  withSort = (sortObj: object) => {
     try {
       this.sortString = new Sort(sortObj).toString();
     } catch (e: any) {
@@ -195,8 +196,7 @@ export default class Getter extends CommandBase {
       return Promise.reject(new Error('invalid usage: ' + this.errors.join(', ')));
     }
 
-    let args: any[] = [];
-
+    let args: string[] = [];
     if (this.whereString) {
       args = [...args, `where:${this.whereString}`];
     }

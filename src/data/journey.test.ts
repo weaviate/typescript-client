@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import weaviate, { WeaviateClient } from '../index';
-import { WeaviateObject, WeaviateObjectList, WeaviateError, Properties } from '../types';
+import { WeaviateObject, WeaviateObjectsList, WeaviateError, Properties } from '../types';
 
 const thingClassName = 'DataJourneyTestThing';
 const refSourceClassName = 'DataJourneyTestRefSource';
@@ -131,7 +131,7 @@ describe('data', () => {
     return client.data
       .getter()
       .do()
-      .then((res: WeaviateObjectList) => {
+      .then((res: WeaviateObjectsList) => {
         expect(res.objects).toHaveLength(3);
         expect(res.objects).toEqual(
           expect.arrayContaining([
@@ -155,7 +155,7 @@ describe('data', () => {
       .getter()
       .withClassName(thingClassName)
       .do()
-      .then((res: WeaviateObjectList) => {
+      .then((res: WeaviateObjectsList) => {
         expect(res.objects).toHaveLength(2);
         expect(res.objects).toEqual(
           expect.arrayContaining([
@@ -181,7 +181,7 @@ describe('data', () => {
       .withLimit(100)
       .withAfter('00000000-0000-0000-0000-000000000000')
       .do()
-      .then((res: WeaviateObjectList) => {
+      .then((res: WeaviateObjectsList) => {
         expect(res.objects).toHaveLength(1);
         expect(res.objects).toEqual(
           expect.arrayContaining([
@@ -204,7 +204,7 @@ describe('data', () => {
       .withVector()
       .withLimit(2)
       .do()
-      .then((res: WeaviateObjectList) => {
+      .then((res: WeaviateObjectsList) => {
         if (!res.objects) {
           throw new Error(`response should have objects: ${JSON.stringify(res)}`);
         }
@@ -231,7 +231,7 @@ describe('data', () => {
       .withAdditional('featureProjection')
       .withVector()
       .do()
-      .then((res: WeaviateObjectList) => {
+      .then((res: WeaviateObjectsList) => {
         if (!res.objects) {
           throw new Error(`response should have objects: ${JSON.stringify(res)}`);
         }
@@ -591,7 +591,7 @@ describe('data', () => {
       client.data
         .getter()
         .do()
-        .then((res: WeaviateObjectList) => {
+        .then((res: WeaviateObjectsList) => {
           expect(res.objects).toHaveLength(2);
         })
         .catch((e: WeaviateError) => {

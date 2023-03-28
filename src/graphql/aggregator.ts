@@ -1,10 +1,11 @@
 import Where from './where';
 import NearText from './nearText';
-import NearVector from './nearVector';
-import NearObject from './nearObject';
+import NearVector, { NearVectorArgs } from './nearVector';
+import NearObject, { NearObjectArgs } from './nearObject';
 import { isValidPositiveIntProperty } from '../validation/number';
 import Connection from '../connection';
 import { CommandBase } from '../validation/commandBase';
+import { WhereFilter } from '../types';
 
 export default class Aggregator extends CommandBase {
   private className?: string;
@@ -33,16 +34,16 @@ export default class Aggregator extends CommandBase {
     return this;
   };
 
-  withWhere = (whereObj: any) => {
+  withWhere = (where: WhereFilter) => {
     try {
-      this.whereString = new Where(whereObj).toString();
+      this.whereString = new Where(where).toString();
     } catch (e: any) {
       this.addError(e as string);
     }
     return this;
   };
 
-  withNearText = (nearTextObj: any) => {
+  withNearText = (nearTextObj: object) => {
     if (this.includesNearMediaFilter) {
       throw new Error('cannot use multiple near<Media> filters in a single query');
     }
@@ -57,13 +58,13 @@ export default class Aggregator extends CommandBase {
     return this;
   };
 
-  withNearObject = (nearObjectObj: any) => {
+  withNearObject = (args: NearObjectArgs) => {
     if (this.includesNearMediaFilter) {
       throw new Error('cannot use multiple near<Media> filters in a single query');
     }
 
     try {
-      this.nearObjectString = new NearObject(nearObjectObj).toString();
+      this.nearObjectString = new NearObject(args).toString();
       this.includesNearMediaFilter = true;
     } catch (e: any) {
       this.addError(e.toString());
@@ -72,13 +73,13 @@ export default class Aggregator extends CommandBase {
     return this;
   };
 
-  withNearVector = (nearVectorObj: any) => {
+  withNearVector = (args: NearVectorArgs) => {
     if (this.includesNearMediaFilter) {
       throw new Error('cannot use multiple near<Media> filters in a single query');
     }
 
     try {
-      this.nearVectorString = new NearVector(nearVectorObj).toString();
+      this.nearVectorString = new NearVector(args).toString();
       this.includesNearMediaFilter = true;
     } catch (e: any) {
       this.addError(e.toString());
@@ -145,7 +146,7 @@ export default class Aggregator extends CommandBase {
       this.limit ||
       this.groupBy
     ) {
-      let args: any[] = [];
+      let args: string[] = [];
 
       if (this.whereString) {
         args = [...args, `where:${this.whereString}`];

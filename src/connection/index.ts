@@ -4,6 +4,7 @@ import OpenidConfigurationGetter from '../misc/openidConfigurationGetter';
 import httpClient, { HttpClient } from './httpClient';
 import gqlClient, { GraphQLClient } from './gqlClient';
 import { ConnectionParams } from '../index';
+import { Variables } from 'graphql-request';
 
 export default class Connection {
   public readonly auth: any;
@@ -63,14 +64,14 @@ export default class Connection {
     return this.http.get(path, expectReturnContent);
   };
 
-  query = (query: any) => {
+  query = (query: any, variables?: Variables) => {
     if (this.authEnabled) {
       return this.login().then((token) => {
         const headers = { Authorization: `Bearer ${token}` };
-        return this.gql.query(query, headers);
+        return this.gql.query(query, variables, headers);
       });
     }
-    return this.gql.query(query);
+    return this.gql.query(query, variables);
   };
 
   login = async () => {

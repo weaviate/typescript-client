@@ -58,7 +58,7 @@ describe('the graphql journey', () => {
       .withFields('title url wordCount')
       .withNearText({ concepts: ['news'], certainty: 0.1 })
       .withWhere({
-        operator: weaviate.filters.Operator.GREATER_THAN_EQUAL,
+        operator: 'GreaterThanEqual',
         path: ['wordCount'],
         valueInt: 50,
       })
@@ -79,7 +79,7 @@ describe('the graphql journey', () => {
       .withFields('title url wordCount')
       .withNearText({ concepts: ['news'], distance: 0.9 })
       .withWhere({
-        operator: weaviate.filters.Operator.GREATER_THAN_EQUAL,
+        operator: 'GreaterThanEqual',
         path: ['wordCount'],
         valueInt: 50,
       })
@@ -483,7 +483,7 @@ describe('the graphql journey', () => {
       .withWhere({
         path: ['title'],
         valueString: 'apple',
-        operator: weaviate.filters.Operator.EQUAL,
+        operator: 'Equal',
       })
       .withLimit(10)
       .withFields('meta { count }')
@@ -756,7 +756,7 @@ describe('the graphql journey', () => {
       .withClassName('Article')
       .withNearVector({ vector: searchVec, certainty: 0.7 })
       .withWhere({
-        operator: weaviate.filters.Operator.EQUAL,
+        operator: 'Equal',
         path: ['_id'],
         valueString: 'abefd256-8574-442b-9293-9205193737e0',
       })
@@ -818,7 +818,7 @@ describe('the graphql journey', () => {
       .withClassName('Article')
       .withNearVector({ vector: searchVec, distance: 0.3 })
       .withWhere({
-        operator: weaviate.filters.Operator.EQUAL,
+        operator: 'Equal',
         path: ['_id'],
         valueString: 'abefd256-8574-442b-9293-9205193737e0',
       })
@@ -842,7 +842,7 @@ describe('the graphql journey', () => {
         certainty: 0.7,
       })
       .withWhere({
-        operator: weaviate.filters.Operator.EQUAL,
+        operator: 'Equal',
         path: ['_id'],
         valueString: 'abefd256-8574-442b-9293-9205193737e0',
       })
@@ -866,7 +866,7 @@ describe('the graphql journey', () => {
         distance: 0.3,
       })
       .withWhere({
-        operator: weaviate.filters.Operator.EQUAL,
+        operator: 'Equal',
         path: ['_id'],
         valueString: 'abefd256-8574-442b-9293-9205193737e0',
       })
@@ -887,7 +887,7 @@ describe('the graphql journey', () => {
       .withClassName('Article')
       .withNearText({ concepts: ['Article'], certainty: 0.7 })
       .withWhere({
-        operator: weaviate.filters.Operator.EQUAL,
+        operator: 'Equal',
         path: ['_id'],
         valueString: 'abefd256-8574-442b-9293-9205193737e0',
       })
@@ -908,7 +908,7 @@ describe('the graphql journey', () => {
       .withClassName('Article')
       .withNearText({ concepts: ['Article'], distance: 0.3 })
       .withWhere({
-        operator: weaviate.filters.Operator.EQUAL,
+        operator: 'Equal',
         path: ['_id'],
         valueString: 'abefd256-8574-442b-9293-9205193737e0',
       })
@@ -1129,7 +1129,7 @@ describe('the graphql journey', () => {
       .withFields('_additional { id creationTimeUnix }')
       .withWhere({
         path: ['_creationTimeUnix'],
-        operator: weaviate.filters.Operator.EQUAL,
+        operator: 'Equal',
         valueString: expected.data.Get.Article[0]._additional.creationTimeUnix,
       })
       .do()
@@ -1158,7 +1158,7 @@ describe('the graphql journey', () => {
       .withFields('_additional { id lastUpdateTimeUnix }')
       .withWhere({
         path: ['_lastUpdateTimeUnix'],
-        operator: weaviate.filters.Operator.EQUAL,
+        operator: 'Equal',
         valueString: expected.data.Get.Article[0]._additional.lastUpdateTimeUnix,
       })
       .do()

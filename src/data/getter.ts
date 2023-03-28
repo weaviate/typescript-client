@@ -1,7 +1,7 @@
 import Connection from '../connection';
 import { ObjectsPath } from './path';
 import { CommandBase } from '../validation/commandBase';
-import { WeaviateObjectList } from '../types';
+import { WeaviateObjectsList } from '../types';
 
 export default class Getter extends CommandBase {
   private additional: string[];
@@ -44,7 +44,7 @@ export default class Getter extends CommandBase {
     // nothing to validate
   }
 
-  do = (): Promise<WeaviateObjectList> => {
+  do = (): Promise<WeaviateObjectsList> => {
     if (this.errors.length > 0) {
       return Promise.reject(new Error('invalid usage: ' + this.errors.join(', ')));
     }
