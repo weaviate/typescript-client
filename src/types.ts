@@ -16,3 +16,5 @@ export type BackupRestoreStatusResponse = definitions['BackupRestoreStatusRespon
 // C11y
 export type C11yWordsResponse = definitions['C11yWordsResponse'];
 export type C11yExtension = definitions['C11yExtension'];
+// Classifications
+export type Classification = definitions['Classification'];
