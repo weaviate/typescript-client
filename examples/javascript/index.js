@@ -31,6 +31,8 @@ console.log(
   )
 );
 
+console.log(JSON.stringify(new weaviate.ApiKey('abcd1234')));
+
 console.log(weaviate.backup.Backend.GCS);
 console.log(weaviate.batch.DeleteOutput.MINIMAL);
 console.log(weaviate.cluster.NodeStatus.HEALTHY);

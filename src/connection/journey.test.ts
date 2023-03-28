@@ -1,4 +1,9 @@
-import { AuthAccessTokenCredentials, AuthClientCredentials, AuthUserPasswordCredentials } from './auth';
+import {
+  ApiKey,
+  AuthAccessTokenCredentials,
+  AuthClientCredentials,
+  AuthUserPasswordCredentials,
+} from './auth';
 import Connection from './index';
 
 import weaviate from '../index';
@@ -132,6 +137,24 @@ describe('connection', () => {
       });
   });
 
+  it('makes a logged-in request with API key', () => {
+    const client = weaviate.client({
+      scheme: 'http',
+      host: 'localhost:8085',
+      apiKey: new ApiKey('my-secret-key'),
+    });
+
+    return client.misc
+      .metaGetter()
+      .do()
+      .then((res: any) => {
+        expect(res.version).toBeDefined();
+      })
+      .catch((e: any) => {
+        throw new Error('it should not have errord: ' + e);
+      });
+  });
+
   it('makes a logged-in request with access token', async () => {
     if (process.env.WCS_DUMMY_CI_PW == undefined || process.env.WCS_DUMMY_CI_PW == '') {
       console.warn('Skipping because `WCS_DUMMY_CI_PW` is not set');
@@ -150,11 +173,12 @@ describe('connection', () => {
     // use it to test AuthAccessTokenCredentials
     await dummy.login();
 
+    const accessToken = (dummy as any).oidcAuth?.accessToken || '';
     const client = weaviate.client({
       scheme: 'http',
       host: 'localhost:8085',
       authClientSecret: new AuthAccessTokenCredentials({
-        accessToken: dummy.auth.accessToken,
+        accessToken: accessToken,
         expiresIn: 900,
       }),
     });
@@ -188,17 +212,18 @@ describe('connection', () => {
     // use it to test AuthAccessTokenCredentials
     await dummy.login();
 
+    const accessToken = (dummy as any).oidcAuth?.accessToken || '';
     const conn = new Connection({
       scheme: 'http',
       host: 'localhost:8085',
       authClientSecret: new AuthAccessTokenCredentials({
-        accessToken: dummy.auth.accessToken,
+        accessToken: accessToken,
         expiresIn: 1,
-        refreshToken: dummy.auth.refreshToken,
+        refreshToken: (dummy as any).oidcAuth?.refreshToken,
       }),
     });
     // force the use of refreshToken
-    conn.auth.expiresAt = 0;
+    (conn as any).oidcAuth?.resetExpiresAt();
 
     return conn
       .login()
@@ -266,7 +291,7 @@ describe('connection', () => {
       }),
     });
     // force the use of refreshToken
-    conn.auth.expiresAt = 0;
+    (conn as any).oidcAuth?.resetExpiresAt();
 
     await conn
       .login()
@@ -281,5 +306,20 @@ describe('connection', () => {
     expect(logSpy).toHaveBeenCalledWith(
       'AuthAccessTokenCredentials not provided with refreshToken, cannot refresh'
     );
+  });
+
+  it('fails to create client with both OIDC creds and API key set', () => {
+    expect(() => {
+      // eslint-disable-next-line no-new
+      new Connection({
+        scheme: 'http',
+        host: 'localhost:8085',
+        authClientSecret: new AuthAccessTokenCredentials({
+          accessToken: 'abcd1234',
+          expiresIn: 1,
+        }),
+        apiKey: new ApiKey('some-key'),
+      });
+    }).toThrow('must provide one of authClientSecret (OIDC) or apiKey, cannot provide both');
   });
 });

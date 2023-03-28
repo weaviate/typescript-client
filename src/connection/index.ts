@@ -1,4 +1,4 @@
-import { Authenticator } from './auth';
+import { ApiKey, OidcAuthenticator } from './auth';
 import OpenidConfigurationGetter from '../misc/openidConfigurationGetter';
 
 import httpClient, { HttpClient } from './httpClient';
@@ -7,19 +7,31 @@ import { ConnectionParams } from '../index';
 import { Variables } from 'graphql-request';
 
 export default class Connection {
-  public readonly auth: any;
-  private readonly authEnabled: boolean;
+  private apiKey?: string;
+  private oidcAuth?: OidcAuthenticator;
+  private authEnabled: boolean;
   private gql: GraphQLClient;
   public readonly http: HttpClient;
 
   constructor(params: ConnectionParams) {
     this.http = httpClient(params);
     this.gql = gqlClient(params);
+    this.authEnabled = this.parseAuthParams(params);
+  }
 
-    this.authEnabled = params.authClientSecret !== undefined;
-    if (this.authEnabled) {
-      this.auth = new Authenticator(this.http, params.authClientSecret);
+  private parseAuthParams(params: ConnectionParams): boolean {
+    if (params.authClientSecret && params.apiKey) {
+      throw new Error('must provide one of authClientSecret (OIDC) or apiKey, cannot provide both');
     }
+    if (params.authClientSecret) {
+      this.oidcAuth = new OidcAuthenticator(this.http, params.authClientSecret);
+      return true;
+    }
+    if (params.apiKey) {
+      this.apiKey = params.apiKey?.apiKey;
+      return true;
+    }
+    return false;
   }
 
   post = (path: string, payload: any, expectReturnContent = true) => {
@@ -75,6 +87,14 @@ export default class Connection {
   };
 
   login = async () => {
+    if (this.apiKey) {
+      return this.apiKey;
+    }
+
+    if (!this.oidcAuth) {
+      return '';
+    }
+
     const localConfig = await new OpenidConfigurationGetter(this.http).do();
 
     if (localConfig === undefined) {
@@ -82,9 +102,9 @@ export default class Connection {
       return '';
     }
 
-    if (Date.now() >= this.auth.expiresAt) {
-      await this.auth.refresh(localConfig);
+    if (Date.now() >= this.oidcAuth.getExpiresAt()) {
+      await this.oidcAuth.refresh(localConfig);
     }
-    return this.auth.accessToken;
+    return this.oidcAuth.getAccessToken();
   };
 }
