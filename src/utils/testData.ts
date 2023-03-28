@@ -1,4 +1,5 @@
 import { WeaviateClient } from '../index';
+import { WeaviateObject } from '../types';
 
 export const PIZZA_CLASS_NAME = 'Pizza';
 export const SOUP_CLASS_NAME = 'Soup';
@@ -38,7 +39,7 @@ const soupClass = {
   properties: foodProperties,
 };
 
-const pizzaObjects = [
+const pizzaObjects: WeaviateObject[] = [
   {
     class: PIZZA_CLASS_NAME,
     id: '10523cdd-15a2-42f4-81fa-267fe92f7cd6',
@@ -79,7 +80,7 @@ const pizzaObjects = [
   },
 ];
 
-const soupObjects = [
+const soupObjects: WeaviateObject[] = [
   {
     class: SOUP_CLASS_NAME,
     id: '8c156d37-81aa-4ce9-a811-621e2702b825',
@@ -108,7 +109,11 @@ export function createTestFoodSchema(client: WeaviateClient) {
 }
 
 export function createTestFoodData(client: WeaviateClient) {
-  return client.batch.objectsBatcher().withObjects(pizzaObjects).withObjects(soupObjects).do();
+  return client.batch
+    .objectsBatcher()
+    .withObjects(...pizzaObjects)
+    .withObjects(...soupObjects)
+    .do();
 }
 
 export function createTestFoodSchemaAndData(client: WeaviateClient) {

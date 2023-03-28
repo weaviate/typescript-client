@@ -2,6 +2,7 @@ import { isValidStringProperty } from '../validation/string';
 import { buildObjectsPath } from './path';
 import Connection from '../connection';
 import { CommandBase } from '../validation/commandBase';
+import { BatchDelete, BatchDeleteResponse } from '../types';
 
 export default class ObjectsBatchDeleter extends CommandBase {
   private className?: string;
@@ -39,7 +40,7 @@ export default class ObjectsBatchDeleter extends CommandBase {
     return this;
   };
 
-  payload() {
+  payload = (): BatchDelete => {
     return {
       match: {
         class: this.className,
@@ -48,26 +49,26 @@ export default class ObjectsBatchDeleter extends CommandBase {
       output: this.output,
       dryRun: this.dryRun,
     };
-  }
+  };
 
-  validateClassName() {
+  validateClassName = (): void => {
     if (!isValidStringProperty(this.className)) {
       this.addError('string className must be set - set with .withClassName(className)');
     }
-  }
+  };
 
-  validateWhereFilter() {
+  validateWhereFilter = (): void => {
     if (typeof this.whereFilter != 'object') {
       this.addError('object where must be set - set with .withWhere(whereFilter)');
     }
-  }
+  };
 
-  validate() {
+  validate = (): void => {
     this.validateClassName();
     this.validateWhereFilter();
-  }
+  };
 
-  do() {
+  do = (): Promise<BatchDeleteResponse> => {
     this.validate();
     if (this.errors.length > 0) {
       return Promise.reject(new Error('invalid usage: ' + this.errors.join(', ')));
@@ -78,5 +79,5 @@ export default class ObjectsBatchDeleter extends CommandBase {
     }
     const path = buildObjectsPath(params);
     return this.client.delete(path, this.payload(), true);
-  }
+  };
 }

@@ -2,6 +2,7 @@ import { definitions } from './schema';
 
 export type WeaviateObject = definitions['Object'];
 export type WeaviateObjectList = definitions['ObjectsListResponse'];
+export type WeaviateObjectsGet = definitions['ObjectsGetResponse'];
 export type Reference = definitions['SingleRef'];
 export type WeaviateError = definitions['ErrorResponse'];
 export type Properties = definitions['PropertySchema'];
@@ -13,6 +14,15 @@ export type BackupCreateStatusResponse = definitions['BackupCreateStatusResponse
 export type BackupRestoreRequest = definitions['BackupRestoreRequest'];
 export type BackupRestoreResponse = definitions['BackupRestoreResponse'];
 export type BackupRestoreStatusResponse = definitions['BackupRestoreStatusResponse'];
+// Batch
+export type BatchDelete = definitions['BatchDelete'];
+export type BatchDeleteResponse = definitions['BatchDeleteResponse'];
+export type BatchRequest = {
+  fields?: ('ALL' | 'class' | 'schema' | 'id' | 'creationTimeUnix')[];
+  objects?: WeaviateObject[];
+};
+export type BatchReference = definitions['BatchReference'];
+export type BatchReferenceResponse = definitions['BatchReferenceResponse'];
 // C11y
 export type C11yWordsResponse = definitions['C11yWordsResponse'];
 export type C11yExtension = definitions['C11yExtension'];
