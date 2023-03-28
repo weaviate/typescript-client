@@ -1,4 +1,4 @@
-import { WhereFilter } from '../types';
+import { WhereFilter } from '../openapi/types';
 
 export default class GraphQLWhere {
   private operands?: string;

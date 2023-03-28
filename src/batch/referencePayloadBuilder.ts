@@ -1,7 +1,7 @@
 import { isValidStringProperty } from '../validation/string';
 import Connection from '../connection';
 import { CommandBase } from '../validation/commandBase';
-import { BatchReference } from '../types';
+import { BatchReference } from '../openapi/types';
 
 export default class ReferencesBatcher extends CommandBase {
   private fromClassName?: string;

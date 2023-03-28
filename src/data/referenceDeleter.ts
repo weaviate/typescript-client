@@ -2,7 +2,7 @@ import { BeaconPath } from '../utils/beaconPath';
 import { ReferencesPath } from './path';
 import Connection from '../connection';
 import { CommandBase } from '../validation/commandBase';
-import { Reference } from '../types';
+import { Reference } from '../openapi/types';
 
 export default class ReferenceDeleter extends CommandBase {
   private beaconPath: BeaconPath;

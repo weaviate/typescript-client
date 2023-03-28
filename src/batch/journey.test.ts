@@ -1,6 +1,11 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import weaviate, { WeaviateClient } from '../index';
-import { BatchReference, BatchReferenceResponse, WeaviateObject, BatchDeleteResponse } from '../types';
+import {
+  BatchReference,
+  BatchReferenceResponse,
+  WeaviateObject,
+  BatchDeleteResponse,
+} from '../openapi/types';
 
 const thingClassName = 'BatchJourneyTestThing';
 const otherThingClassName = 'BatchJourneyTestOtherThing';

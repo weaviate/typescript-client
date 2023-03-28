@@ -1,6 +1,6 @@
 import Connection from '../connection';
 import { CommandBase } from '../validation/commandBase';
-import { Class } from '../types';
+import { Class } from '../openapi/types';
 
 export default class ClassCreator extends CommandBase {
   private class!: Class;

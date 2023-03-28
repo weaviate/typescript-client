@@ -1,7 +1,7 @@
 import Connection from '../connection';
 import { ObjectsPath } from './path';
 import { CommandBase } from '../validation/commandBase';
-import { WeaviateObjectsList } from '../types';
+import { WeaviateObjectsList } from '../openapi/types';
 
 export default class Getter extends CommandBase {
   private additional: string[];

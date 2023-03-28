@@ -3,7 +3,7 @@ import { getShards } from './shardsGetter';
 import { updateShard } from './shardUpdater';
 import Connection from '../connection';
 import { CommandBase } from '../validation/commandBase';
-import { ShardStatus, ShardStatusList } from '../types';
+import { ShardStatus, ShardStatusList } from '../openapi/types';
 
 export default class ShardsUpdater extends CommandBase {
   private className!: string;

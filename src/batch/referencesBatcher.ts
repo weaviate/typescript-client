@@ -2,7 +2,7 @@ import { buildRefsPath } from './path';
 import { BeaconPath } from '../utils/beaconPath';
 import Connection from '../connection';
 import { CommandBase } from '../validation/commandBase';
-import { BatchReference, BatchReferenceResponse } from '../types';
+import { BatchReference, BatchReferenceResponse } from '../openapi/types';
 
 export default class ReferencesBatcher extends CommandBase {
   private beaconPath: BeaconPath;

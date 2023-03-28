@@ -2,7 +2,7 @@ import Connection from '../connection';
 import { BeaconPath } from '../utils/beaconPath';
 import { ReferencesPath } from './path';
 import { CommandBase } from '../validation/commandBase';
-import { Reference } from '../types';
+import { Reference } from '../openapi/types';
 
 export default class ReferenceReplacer extends CommandBase {
   private beaconPath: BeaconPath;

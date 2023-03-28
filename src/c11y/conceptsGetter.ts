@@ -1,6 +1,6 @@
 import Connection from '../connection';
 import { CommandBase } from '../validation/commandBase';
-import { C11yWordsResponse } from '../types';
+import { C11yWordsResponse } from '../openapi/types';
 
 export default class ConceptsGetter extends CommandBase {
   private concept?: string;

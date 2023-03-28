@@ -5,7 +5,7 @@ import NearObject, { NearObjectArgs } from './nearObject';
 import { isValidPositiveIntProperty } from '../validation/number';
 import Connection from '../connection';
 import { CommandBase } from '../validation/commandBase';
-import { WhereFilter } from '../types';
+import { WhereFilter } from '../openapi/types';
 
 export default class Aggregator extends CommandBase {
   private className?: string;

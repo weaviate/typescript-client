@@ -1,7 +1,7 @@
 import { isValidStringProperty } from '../validation/string';
 import Connection from '../connection';
 import { CommandBase } from '../validation/commandBase';
-import { Class } from '../types';
+import { Class } from '../openapi/types';
 
 export default class ClassGetter extends CommandBase {
   private className?: string;

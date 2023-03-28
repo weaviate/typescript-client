@@ -10,7 +10,7 @@ import Group, { GroupArgs } from './group';
 import Sort from './sort';
 import Connection from '../connection';
 import { CommandBase } from '../validation/commandBase';
-import { WhereFilter } from '../types';
+import { WhereFilter } from '../openapi/types';
 
 export default class Getter extends CommandBase {
   private after?: string;

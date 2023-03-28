@@ -2,7 +2,7 @@ import { isValidStringProperty } from '../validation/string';
 import Connection from '../connection';
 import { ObjectsPath } from './path';
 import { CommandBase } from '../validation/commandBase';
-import { Properties, WeaviateObject } from '../types';
+import { Properties, WeaviateObject } from '../openapi/types';
 
 export default class Creator extends CommandBase {
   private className?: string;

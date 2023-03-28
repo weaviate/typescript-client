@@ -1,7 +1,7 @@
 import { validateBackupId, validateBackend } from './validation';
 import Connection from '../connection';
 import { CommandBase } from '../validation/commandBase';
-import { BackupRestoreStatusResponse } from '../types';
+import { BackupRestoreStatusResponse } from '../openapi/types';
 
 export default class BackupRestoreStatusGetter extends CommandBase {
   private backend?: string;

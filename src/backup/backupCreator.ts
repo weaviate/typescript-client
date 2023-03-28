@@ -8,7 +8,7 @@ import {
 import BackupCreateStatusGetter from './backupCreateStatusGetter';
 import Connection from '../connection';
 import { CommandBase } from '../validation/commandBase';
-import { BackupCreateRequest, BackupCreateResponse, BackupCreateStatusResponse } from '../types';
+import { BackupCreateRequest, BackupCreateResponse, BackupCreateStatusResponse } from '../openapi/types';
 
 const WAIT_INTERVAL = 1000;
 

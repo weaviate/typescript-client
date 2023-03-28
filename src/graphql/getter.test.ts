@@ -1,6 +1,6 @@
 import Getter from './getter';
 import { Operator } from '../filters/consts';
-import { WhereFilter } from '../types';
+import { WhereFilter } from '../openapi/types';
 import { Variables } from 'graphql-request';
 import { NearVectorArgs } from './nearVector';
 import { NearObjectArgs } from './nearObject';

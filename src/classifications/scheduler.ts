@@ -1,7 +1,7 @@
 import Getter from './getter';
 import Connection from '../connection';
 import { CommandBase } from '../validation/commandBase';
-import { Classification } from '../types';
+import { Classification } from '../openapi/types';
 
 export default class Scheduler extends CommandBase {
   private basedOnProperties?: string[];

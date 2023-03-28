@@ -1,5 +1,5 @@
 import Connection from '../connection';
-import { WeaviateObject } from '../types';
+import { WeaviateObject } from '../openapi/types';
 import { CommandBase } from '../validation/commandBase';
 import { ObjectsPath } from './path';
 

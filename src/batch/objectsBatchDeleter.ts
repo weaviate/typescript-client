@@ -2,7 +2,7 @@ import { isValidStringProperty } from '../validation/string';
 import { buildObjectsPath } from './path';
 import Connection from '../connection';
 import { CommandBase } from '../validation/commandBase';
-import { BatchDelete, BatchDeleteResponse, WhereFilter } from '../types';
+import { BatchDelete, BatchDeleteResponse, WhereFilter } from '../openapi/types';
 
 export default class ObjectsBatchDeleter extends CommandBase {
   private className?: string;

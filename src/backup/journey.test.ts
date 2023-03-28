@@ -4,7 +4,7 @@ import {
   BackupCreateStatusResponse,
   BackupRestoreResponse,
   BackupRestoreStatusResponse,
-} from '../types';
+} from '../openapi/types';
 
 const {
   createTestFoodSchemaAndData,

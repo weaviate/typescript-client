@@ -1,6 +1,6 @@
 import Connection from '../connection';
 import { CommandBase } from '../validation/commandBase';
-import { Schema } from '../types';
+import { Schema } from '../openapi/types';
 
 export default class Getter extends CommandBase {
   constructor(client: Connection) {
