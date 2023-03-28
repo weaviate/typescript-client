@@ -19,7 +19,7 @@ export default class BackupGetter extends CommandBase {
     this.addErrors(validateBackend(this.backend));
   };
 
-  do = (): Promise<BackupCreateResponse[] | Error> => {
+  do = (): Promise<BackupCreateResponse[]> => {
     this.validate();
     if (this.errors.length > 0) {
       return Promise.reject(new Error('invalid usage: ' + this.errors.join(', ')));

@@ -6,7 +6,7 @@ export type Reference = definitions['SingleRef'];
 export type WeaviateError = definitions['ErrorResponse'];
 export type Properties = definitions['PropertySchema'];
 export type DataObject = definitions['Object'];
-
+// Backup
 export type BackupCreateRequest = definitions['BackupCreateRequest'];
 export type BackupCreateResponse = definitions['BackupCreateResponse'];
 export type BackupCreateStatusResponse = definitions['BackupCreateStatusResponse'];
