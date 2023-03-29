@@ -75,9 +75,6 @@ const app = {
     return ifc;
   },
 
-  // constants
-  filters: filtersConsts,
-
   ApiKey,
   AuthUserPasswordCredentials,
   AuthAccessTokenCredentials,

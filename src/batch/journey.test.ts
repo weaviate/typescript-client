@@ -5,6 +5,7 @@ import {
   BatchReferenceResponse,
   WeaviateObject,
   BatchDeleteResponse,
+  WhereFilter,
 } from '../openapi/types';
 
 const thingClassName = 'BatchJourneyTestThing';
@@ -409,7 +410,7 @@ describe('batch deleting', () => {
           class: otherThingClassName,
           where: {
             operands: null,
-            operator: weaviate.filters.Operator.LIKE,
+            operator: 'Like',
             valueString: 'foo3',
             path: ['stringProp'],
           },
