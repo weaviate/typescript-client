@@ -1,4 +1,3 @@
-import { CreateStatus } from './consts';
 import {
   validateBackend,
   validateBackupId,
@@ -9,11 +8,12 @@ import BackupCreateStatusGetter from './backupCreateStatusGetter';
 import Connection from '../connection';
 import { CommandBase } from '../validation/commandBase';
 import { BackupCreateRequest, BackupCreateResponse, BackupCreateStatusResponse } from '../openapi/types';
+import { Backend } from '.';
 
 const WAIT_INTERVAL = 1000;
 
 export default class BackupCreator extends CommandBase {
-  private backend!: string;
+  private backend!: Backend;
   private backupId!: string;
   private excludeClassNames?: string[];
   private includeClassNames?: string[];
@@ -43,7 +43,7 @@ export default class BackupCreator extends CommandBase {
     return this;
   }
 
-  withBackend(backend: string) {
+  withBackend(backend: Backend) {
     this.backend = backend;
     return this;
   }
@@ -100,10 +100,7 @@ export default class BackupCreator extends CommandBase {
             this.statusGetter
               .do()
               .then((createStatusResponse: any) => {
-                if (
-                  createStatusResponse.status == CreateStatus.SUCCESS ||
-                  createStatusResponse.status == CreateStatus.FAILED
-                ) {
+                if (createStatusResponse.status == 'SUCCESS' || createStatusResponse.status == 'FAILED') {
                   resolve(this._merge(createStatusResponse, createResponse));
                 } else {
                   setTimeout(loop, WAIT_INTERVAL);

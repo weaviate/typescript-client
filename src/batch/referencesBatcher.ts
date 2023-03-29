@@ -3,10 +3,11 @@ import { BeaconPath } from '../utils/beaconPath';
 import Connection from '../connection';
 import { CommandBase } from '../validation/commandBase';
 import { BatchReference, BatchReferenceResponse } from '../openapi/types';
+import { ConsistencyLevel } from '../data/replication';
 
 export default class ReferencesBatcher extends CommandBase {
   private beaconPath: BeaconPath;
-  private consistencyLevel?: string;
+  private consistencyLevel?: ConsistencyLevel;
   public references: BatchReference[];
 
   constructor(client: Connection, beaconPath: BeaconPath) {
@@ -35,7 +36,7 @@ export default class ReferencesBatcher extends CommandBase {
     return this.withReferences(reference);
   }
 
-  withConsistencyLevel = (cl: any) => {
+  withConsistencyLevel = (cl: ConsistencyLevel) => {
     this.consistencyLevel = cl;
     return this;
   };

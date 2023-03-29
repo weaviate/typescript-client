@@ -26,7 +26,7 @@ describe('cluster nodes endpoint', () => {
         expect(node.name).toMatch(/.+/);
         expect(node.version).toEqual(EXPECTED_WEAVIATE_VERSION);
         expect(node.gitHash).toEqual(EXPECTED_WEAVIATE_GIT_HASH);
-        expect(node.status).toEqual(weaviate.cluster.NodeStatus.HEALTHY);
+        expect(node.status).toEqual('HEALTHY');
         expect(node.stats.objectCount).toEqual(0);
         expect(node.stats.shardCount).toEqual(0);
         expect(node.shards).toHaveLength(0);
@@ -48,7 +48,7 @@ describe('cluster nodes endpoint', () => {
         expect(node.name).toMatch(/.+/);
         expect(node.version).toEqual(EXPECTED_WEAVIATE_VERSION);
         expect(node.gitHash).toEqual(EXPECTED_WEAVIATE_GIT_HASH);
-        expect(node.status).toEqual(weaviate.cluster.NodeStatus.HEALTHY);
+        expect(node.status).toEqual('HEALTHY');
         expect(node.stats.objectCount).toEqual(6);
         expect(node.stats.shardCount).toEqual(2);
         expect(node.shards).toHaveLength(2);

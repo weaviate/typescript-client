@@ -1,11 +1,12 @@
 import { isValidStringProperty } from '../validation/string';
 import Connection from '../connection';
 import { CommandBase } from '../validation/commandBase';
+import { Properties } from '../openapi/types';
 
 export default class Validator extends CommandBase {
   private className?: string;
   private id?: string;
-  private properties?: any;
+  private properties?: Properties;
 
   constructor(client: Connection) {
     super(client);
@@ -16,7 +17,7 @@ export default class Validator extends CommandBase {
     return this;
   };
 
-  withProperties = (properties: any) => {
+  withProperties = (properties: Properties) => {
     this.properties = properties;
     return this;
   };

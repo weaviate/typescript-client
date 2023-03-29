@@ -1,6 +1,8 @@
 import NodesStatusGetter from './nodesStatusGetter';
 import Connection from '../connection';
 
+export type NodeStatus = 'HEALTHY' | 'UNHEALTHY' | 'UNAVAILABLE';
+
 export interface Cluster {
   nodesStatusGetter: () => NodesStatusGetter;
 }

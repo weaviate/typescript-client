@@ -2,16 +2,17 @@ import Connection from '../connection';
 import { validateBackupId, validateBackend } from './validation';
 import { CommandBase } from '../validation/commandBase';
 import { BackupCreateStatusResponse } from '../openapi/types';
+import { Backend } from '.';
 
 export default class BackupCreateStatusGetter extends CommandBase {
-  private backend?: string;
+  private backend?: Backend;
   private backupId?: string;
 
   constructor(client: Connection) {
     super(client);
   }
 
-  withBackend(backend: string) {
+  withBackend(backend: Backend) {
     this.backend = backend;
     return this;
   }

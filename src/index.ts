@@ -8,12 +8,8 @@ import misc, { Misc } from './misc/index';
 import c11y, { C11y } from './c11y/index';
 import { DbVersionProvider, DbVersionSupport } from './utils/dbVersion';
 import backup, { Backup } from './backup/index';
-import backupConsts from './backup/consts';
-import batchConsts from './batch/consts';
 import filtersConsts from './filters/consts';
 import cluster, { Cluster } from './cluster/index';
-import clusterConsts from './cluster/consts';
-import replicationConsts from './data/replication/consts';
 import {
   ApiKey,
   AuthAccessTokenCredentials,
@@ -80,11 +76,7 @@ const app = {
   },
 
   // constants
-  backup: backupConsts,
-  batch: batchConsts,
   filters: filtersConsts,
-  cluster: clusterConsts,
-  replication: replicationConsts,
 
   ApiKey,
   AuthUserPasswordCredentials,

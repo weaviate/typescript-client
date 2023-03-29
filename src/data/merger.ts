@@ -2,20 +2,22 @@ import Connection from '../connection';
 import { isValidStringProperty } from '../validation/string';
 import { ObjectsPath } from './path';
 import { CommandBase } from '../validation/commandBase';
+import { Properties } from '../openapi/types';
+import { ConsistencyLevel } from './replication';
 
 export default class Merger extends CommandBase {
   private className!: string;
-  private consistencyLevel?: string;
+  private consistencyLevel?: ConsistencyLevel;
   private id!: string;
   private objectsPath: ObjectsPath;
-  private properties?: any;
+  private properties?: Properties;
 
   constructor(client: Connection, objectsPath: ObjectsPath) {
     super(client);
     this.objectsPath = objectsPath;
   }
 
-  withProperties = (properties: any) => {
+  withProperties = (properties: Properties) => {
     this.properties = properties;
     return this;
   };
@@ -30,7 +32,7 @@ export default class Merger extends CommandBase {
     return this;
   };
 
-  withConsistencyLevel = (cl: string) => {
+  withConsistencyLevel = (cl: ConsistencyLevel) => {
     this.consistencyLevel = cl;
     return this;
   };

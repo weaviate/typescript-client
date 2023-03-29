@@ -6,6 +6,9 @@ import { BeaconPath } from '../utils/beaconPath';
 import { DbVersionSupport } from '../utils/dbVersion';
 import Connection from '../connection';
 
+export type DeleteOutput = 'verbose' | 'minimal';
+export type DeleteResultStatus = 'SUCCESS' | 'FAILED' | 'DRYRUN';
+
 export interface Batch {
   objectsBatcher: () => ObjectsBatcher;
   objectsBatchDeleter: () => ObjectsBatchDeleter;

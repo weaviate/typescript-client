@@ -3,12 +3,14 @@ import { buildObjectsPath } from './path';
 import Connection from '../connection';
 import { CommandBase } from '../validation/commandBase';
 import { BatchDelete, BatchDeleteResponse, WhereFilter } from '../openapi/types';
+import { ConsistencyLevel } from '../data/replication';
+import { DeleteOutput } from '.';
 
 export default class ObjectsBatchDeleter extends CommandBase {
   private className?: string;
-  private consistencyLevel?: string;
+  private consistencyLevel?: ConsistencyLevel;
   private dryRun?: boolean;
-  private output?: any;
+  private output?: DeleteOutput;
   private whereFilter?: any;
 
   constructor(client: Connection) {
@@ -25,7 +27,7 @@ export default class ObjectsBatchDeleter extends CommandBase {
     return this;
   }
 
-  withOutput(output: any) {
+  withOutput(output: DeleteOutput) {
     this.output = output;
     return this;
   }
@@ -35,7 +37,7 @@ export default class ObjectsBatchDeleter extends CommandBase {
     return this;
   }
 
-  withConsistencyLevel = (cl: string) => {
+  withConsistencyLevel = (cl: ConsistencyLevel) => {
     this.consistencyLevel = cl;
     return this;
   };

@@ -1,10 +1,11 @@
 import Connection from '../connection';
 import { CommandBase } from '../validation/commandBase';
 import { ObjectsPath } from './path';
+import { ConsistencyLevel } from './replication';
 
 export default class Deleter extends CommandBase {
   private className!: string;
-  private consistencyLevel?: string;
+  private consistencyLevel?: ConsistencyLevel;
   private id!: string;
   private objectsPath: ObjectsPath;
 
@@ -23,7 +24,7 @@ export default class Deleter extends CommandBase {
     return this;
   };
 
-  withConsistencyLevel = (cl: string) => {
+  withConsistencyLevel = (cl: ConsistencyLevel) => {
     this.consistencyLevel = cl;
     return this;
   };

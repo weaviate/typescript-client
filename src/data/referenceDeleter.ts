@@ -3,11 +3,12 @@ import { ReferencesPath } from './path';
 import Connection from '../connection';
 import { CommandBase } from '../validation/commandBase';
 import { Reference } from '../openapi/types';
+import { ConsistencyLevel } from './replication';
 
 export default class ReferenceDeleter extends CommandBase {
   private beaconPath: BeaconPath;
   private className!: string;
-  private consistencyLevel?: string;
+  private consistencyLevel?: ConsistencyLevel;
   private id!: string;
   private reference!: Reference;
   private referencesPath: ReferencesPath;
@@ -39,7 +40,7 @@ export default class ReferenceDeleter extends CommandBase {
     return this;
   };
 
-  withConsistencyLevel = (cl: string) => {
+  withConsistencyLevel = (cl: ConsistencyLevel) => {
     this.consistencyLevel = cl;
     return this;
   };

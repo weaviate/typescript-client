@@ -2,12 +2,13 @@ import Connection from '../connection';
 import { WeaviateObject } from '../openapi/types';
 import { CommandBase } from '../validation/commandBase';
 import { ObjectsPath } from './path';
+import { ConsistencyLevel } from './replication';
 
 export default class GetterById extends CommandBase {
   private additional: string[];
   private className!: string;
   private id!: string;
-  private consistencyLevel?: string;
+  private consistencyLevel?: ConsistencyLevel;
   private nodeName?: string;
   private objectsPath: ObjectsPath;
 
@@ -36,7 +37,7 @@ export default class GetterById extends CommandBase {
 
   withVector = () => this.extendAdditional('vector');
 
-  withConsistencyLevel = (cl: string) => {
+  withConsistencyLevel = (cl: ConsistencyLevel) => {
     this.consistencyLevel = cl;
     return this;
   };

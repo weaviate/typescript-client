@@ -1,4 +1,3 @@
-import { RestoreStatus } from './consts';
 import {
   validateBackend,
   validateBackupId,
@@ -9,11 +8,12 @@ import Connection from '../connection';
 import BackupRestoreStatusGetter from './backupRestoreStatusGetter';
 import { CommandBase } from '../validation/commandBase';
 import { BackupRestoreRequest, BackupRestoreResponse, BackupRestoreStatusResponse } from '../openapi/types';
+import { Backend } from '.';
 
 const WAIT_INTERVAL = 1000;
 
 export default class BackupRestorer extends CommandBase {
-  private backend!: string;
+  private backend!: Backend;
   private backupId!: string;
   private excludeClassNames?: string[];
   private includeClassNames?: string[];
@@ -43,7 +43,7 @@ export default class BackupRestorer extends CommandBase {
     return this;
   }
 
-  withBackend(backend: string) {
+  withBackend(backend: Backend) {
     this.backend = backend;
     return this;
   }
@@ -99,10 +99,7 @@ export default class BackupRestorer extends CommandBase {
             this.statusGetter
               .do()
               .then((restoreStatusResponse: any) => {
-                if (
-                  restoreStatusResponse.status == RestoreStatus.SUCCESS ||
-                  restoreStatusResponse.status == RestoreStatus.FAILED
-                ) {
+                if (restoreStatusResponse.status == 'SUCCESS' || restoreStatusResponse.status == 'FAILED') {
                   resolve(this._merge(restoreStatusResponse, restoreResponse));
                 } else {
                   setTimeout(loop, WAIT_INTERVAL);

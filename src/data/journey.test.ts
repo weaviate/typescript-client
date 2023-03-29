@@ -335,7 +335,7 @@ describe('data', () => {
       .do()
       .then((res: WeaviateObject) => {
         // alter the schema
-        const properties = res.properties;
+        const properties: Properties = res.properties!;
         properties!.stringProp = 'thing-updated';
         return client.data.updater().withId(id).withClassName(thingClassName).withProperties(properties).do();
       })
@@ -357,7 +357,7 @@ describe('data', () => {
       .withClassName(thingClassName)
       .do()
       .then((res: WeaviateObject) => {
-        const properties = res.properties;
+        const properties: Properties = res.properties!;
         properties!.stringProp = 'thing-updated-with-class-name';
         return client.data.updater().withId(id).withClassName(thingClassName).withProperties(properties).do();
       })
@@ -379,7 +379,7 @@ describe('data', () => {
       .do()
       .then((res: WeaviateObject) => {
         // alter the schema
-        const properties = res.properties;
+        const properties: Properties = res.properties!;
         properties!.intProp = 7;
         return client.data.merger().withId(id).withClassName(thingClassName).withProperties(properties).do();
       })
@@ -680,7 +680,7 @@ describe('data', () => {
       .withClassName(thingClassName)
       .withId(id)
       .withVector()
-      .withConsistencyLevel(weaviate.replication.ConsistencyLevel.QUORUM)
+      .withConsistencyLevel('QUORUM')
       .buildPath()
       .then((path: string) => {
         expect(path).toContain('?include=vector');
@@ -704,7 +704,7 @@ describe('data', () => {
       .withProperties(properties)
       .withVector(vector)
       .withId(id)
-      .withConsistencyLevel(weaviate.replication.ConsistencyLevel.ALL)
+      .withConsistencyLevel('ALL')
       .do()
       .then((res) => {
         expect(res.properties).toEqual(properties);
@@ -769,7 +769,7 @@ describe('data', () => {
       .deleter()
       .withClassName(classCustomVectorClassName)
       .withId(id)
-      .withConsistencyLevel(weaviate.replication.ConsistencyLevel.QUORUM)
+      .withConsistencyLevel('QUORUM')
       .do()
       .then()
       .catch((e: WeaviateError) => fail('it should not have errord: ' + e));
@@ -818,7 +818,7 @@ describe('data', () => {
       .withClassName(classCustomVectorClassName)
       .withId(id)
       .withProperties(newProperties)
-      .withConsistencyLevel(weaviate.replication.ConsistencyLevel.QUORUM)
+      .withConsistencyLevel('QUORUM')
       .do()
       .then()
       .catch((e) => fail('it should not have errord: ' + e));
@@ -882,7 +882,7 @@ describe('data', () => {
       .withClassName(classCustomVectorClassName)
       .withId(id)
       .withProperties(newProperties)
-      .withConsistencyLevel(weaviate.replication.ConsistencyLevel.QUORUM)
+      .withConsistencyLevel('QUORUM')
       .do()
       .then()
       .catch((e) => fail('it should not have errord: ' + e));
@@ -935,7 +935,7 @@ describe('data', () => {
       .referenceCreator()
       .withId(id2)
       .withReferenceProperty('refProp')
-      .withConsistencyLevel(weaviate.replication.ConsistencyLevel.ONE)
+      .withConsistencyLevel('ONE')
       .withReference(client.data.referencePayloadBuilder().withId(id1).payload())
       .do()
       .catch((e) => fail('it should not have errord: ' + e));
@@ -995,7 +995,7 @@ describe('data', () => {
       .referenceReplacer()
       .withId(id2)
       .withReferenceProperty('refProp')
-      .withConsistencyLevel(weaviate.replication.ConsistencyLevel.ONE)
+      .withConsistencyLevel('ONE')
       .withReferences(client.data.referencePayloadBuilder().withId(id1).payload())
       .do()
       .catch((e) => fail('it should not have errord: ' + e));
@@ -1033,7 +1033,7 @@ describe('data', () => {
       .referenceCreator()
       .withId(id2)
       .withReferenceProperty('refProp')
-      .withConsistencyLevel(weaviate.replication.ConsistencyLevel.ONE)
+      .withConsistencyLevel('ONE')
       .withReference(client.data.referencePayloadBuilder().withId(id1).payload())
       .do()
       .catch((e) => fail('it should not have errord: ' + e));
@@ -1064,7 +1064,7 @@ describe('data', () => {
       .referenceDeleter()
       .withId(id2)
       .withReferenceProperty('refProp')
-      .withConsistencyLevel(weaviate.replication.ConsistencyLevel.ONE)
+      .withConsistencyLevel('ONE')
       .withReference(client.data.referencePayloadBuilder().withId(id1).payload())
       .do()
       .catch((e) => fail('it should not have errord: ' + e));

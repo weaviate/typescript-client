@@ -2,9 +2,10 @@ import { buildObjectsPath } from './path';
 import Connection from '../connection';
 import { CommandBase } from '../validation/commandBase';
 import { BatchRequest, WeaviateObject, WeaviateObjectsGet } from '../openapi/types';
+import { ConsistencyLevel } from '../data/replication';
 
 export default class ObjectsBatcher extends CommandBase {
-  private consistencyLevel?: string;
+  private consistencyLevel?: ConsistencyLevel;
   public objects: WeaviateObject[];
 
   constructor(client: Connection) {
@@ -32,7 +33,7 @@ export default class ObjectsBatcher extends CommandBase {
     return this.withObjects(object);
   }
 
-  withConsistencyLevel = (cl: any) => {
+  withConsistencyLevel = (cl: ConsistencyLevel) => {
     this.consistencyLevel = cl;
     return this;
   };

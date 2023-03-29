@@ -195,7 +195,7 @@ describe('batch importing', () => {
       it('imports them with consistency level', () => {
         client.batch
           .objectsBatcher()
-          .withConsistencyLevel(weaviate.replication.ConsistencyLevel.ONE)
+          .withConsistencyLevel('ONE')
           .withObjects(...[toImport[0], toImport[1]])
           .do()
           .then()
@@ -245,7 +245,7 @@ describe('batch importing', () => {
           from: `weaviate://localhost/${thingClassName}/${thingIds[1]}/refProp`,
           to: `weaviate://localhost/${otherThingClassName}/${otherThingIds[1]}`,
         })
-        .withConsistencyLevel(weaviate.replication.ConsistencyLevel.ALL)
+        .withConsistencyLevel('ALL')
         .do()
         .then((res: BatchReferenceResponse[]) => {
           res.forEach((elem: BatchReferenceResponse) => {
@@ -362,11 +362,11 @@ describe('batch deleting', () => {
         path: ['stringProp'],
       })
       .withDryRun(true)
-      .withOutput(weaviate.batch.DeleteOutput.VERBOSE)
+      .withOutput('verbose')
       .do()
       .then((result: any) => {
         expect(result.dryRun).toBe(true);
-        expect(result.output).toBe(weaviate.batch.DeleteOutput.VERBOSE);
+        expect(result.output).toBe('verbose');
         expect(result.match).toEqual({
           class: thingClassName,
           where: {
@@ -384,7 +384,7 @@ describe('batch deleting', () => {
           objects: [
             {
               id: thingIds[1],
-              status: weaviate.batch.DeleteResultStatus.DRYRUN,
+              status: 'DRYRUN',
             },
           ],
         });
@@ -400,11 +400,11 @@ describe('batch deleting', () => {
         path: ['stringProp'],
       })
       .withDryRun(true)
-      .withOutput(weaviate.batch.DeleteOutput.MINIMAL)
+      .withOutput('minimal')
       .do()
       .then((result: BatchDeleteResponse) => {
         expect(result.dryRun).toBe(true);
-        expect(result.output).toBe(weaviate.batch.DeleteOutput.MINIMAL);
+        expect(result.output).toBe('minimal');
         expect(result.match).toEqual({
           class: otherThingClassName,
           where: {
@@ -435,7 +435,7 @@ describe('batch deleting', () => {
       .do()
       .then((result: any) => {
         expect(result.dryRun).toBe(false);
-        expect(result.output).toBe(weaviate.batch.DeleteOutput.MINIMAL);
+        expect(result.output).toBe('minimal');
         expect(result.match).toEqual({
           class: otherThingClassName,
           where: {
@@ -464,12 +464,12 @@ describe('batch deleting', () => {
         valueString: inAMinute,
         path: ['_creationTimeUnix'],
       })
-      .withOutput(weaviate.batch.DeleteOutput.VERBOSE)
-      .withConsistencyLevel(weaviate.replication.ConsistencyLevel.QUORUM)
+      .withOutput('verbose')
+      .withConsistencyLevel('QUORUM')
       .do()
       .then((result: any) => {
         expect(result.dryRun).toBe(false);
-        expect(result.output).toBe(weaviate.batch.DeleteOutput.VERBOSE);
+        expect(result.output).toBe('verbose');
         expect(result.match).toEqual({
           class: otherThingClassName,
           where: {
@@ -486,11 +486,11 @@ describe('batch deleting', () => {
         expect(result.results.objects).toHaveLength(2);
         expect(result.results.objects).toContainEqual({
           id: otherThingIds[0],
-          status: weaviate.batch.DeleteResultStatus.SUCCESS,
+          status: 'SUCCESS',
         });
         expect(result.results.objects).toContainEqual({
           id: otherThingIds[1],
-          status: weaviate.batch.DeleteResultStatus.SUCCESS,
+          status: 'SUCCESS',
         });
       });
   });

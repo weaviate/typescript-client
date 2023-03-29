@@ -1,5 +1,6 @@
 import { isValidStringProperty } from '../validation/string';
 import { DbVersionSupport } from '../utils/dbVersion';
+import { ConsistencyLevel } from './replication';
 
 const objectsPathPrefix = '/objects';
 
@@ -27,7 +28,7 @@ export class ObjectsPath {
     id: string,
     className: string,
     additional: string[],
-    consistencyLevel: string | undefined,
+    consistencyLevel?: ConsistencyLevel,
     nodeName?: string
   ): Promise<string> {
     return this.build({ id, className, additional: additional, consistencyLevel, nodeName }, [
@@ -145,7 +146,12 @@ export class ReferencesPath {
     this.dbVersionSupport = dbVersionSupport;
   }
 
-  build(id: string, className: string, property: string, consistencyLevel?: string): Promise<string> {
+  build(
+    id: string,
+    className: string,
+    property: string,
+    consistencyLevel?: ConsistencyLevel
+  ): Promise<string> {
     return this.dbVersionSupport.supportsClassNameNamespacedEndpointsPromise().then((support: any) => {
       let path = objectsPathPrefix;
       if (support.supports) {

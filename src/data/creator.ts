@@ -3,13 +3,14 @@ import Connection from '../connection';
 import { ObjectsPath } from './path';
 import { CommandBase } from '../validation/commandBase';
 import { Properties, WeaviateObject } from '../openapi/types';
+import { ConsistencyLevel } from './replication';
 
 export default class Creator extends CommandBase {
   private className?: string;
-  private consistencyLevel?: string;
+  private consistencyLevel?: ConsistencyLevel;
   private id?: string;
   private objectsPath: ObjectsPath;
-  private properties?: any;
+  private properties?: Properties;
   private vector?: number[];
 
   constructor(client: Connection, objectsPath: ObjectsPath) {
@@ -37,7 +38,7 @@ export default class Creator extends CommandBase {
     return this;
   };
 
-  withConsistencyLevel = (cl: string) => {
+  withConsistencyLevel = (cl: ConsistencyLevel) => {
     this.consistencyLevel = cl;
     return this;
   };
