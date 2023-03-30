@@ -1,4 +1,6 @@
-import weaviate from '../index';
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+import weaviate from '..';
+import { C11yWordsResponse, C11yExtension } from '../openapi/types';
 
 describe('c11y endpoints', () => {
   const client = weaviate.client({
@@ -11,8 +13,8 @@ describe('c11y endpoints', () => {
       .conceptsGetter()
       .withConcept('car')
       .do()
-      .then((res: any) => {
-        expect(res.individualWords[0].word).toEqual('car');
+      .then((res: C11yWordsResponse) => {
+        expect(res.individualWords![0].word!).toEqual('car');
       });
   });
 
@@ -26,7 +28,7 @@ describe('c11y endpoints', () => {
       )
       .withWeight(1)
       .do()
-      .then((res: any) => {
+      .then((res: C11yExtension) => {
         expect(res).toEqual({
           concept: 'clientalmostdonehappyness',
           definition:

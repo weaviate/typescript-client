@@ -1,10 +1,11 @@
 import Connection from '../connection';
 import { ObjectsPath } from './path';
 import { CommandBase } from '../validation/commandBase';
+import { WeaviateObjectsList } from '../openapi/types';
 
 export default class Getter extends CommandBase {
-  private additionals: any[];
-  private after?: string;
+  private additional: string[];
+  private after!: string;
   private className?: string;
   private limit?: number;
   private objectsPath: ObjectsPath;
@@ -12,7 +13,7 @@ export default class Getter extends CommandBase {
   constructor(client: Connection, objectsPath: ObjectsPath) {
     super(client);
     this.objectsPath = objectsPath;
-    this.additionals = [];
+    this.additional = [];
   }
 
   withClassName = (className: string) => {
@@ -30,29 +31,26 @@ export default class Getter extends CommandBase {
     return this;
   };
 
-  extendAdditionals = (prop: any) => {
-    this.additionals = [...this.additionals, prop];
+  extendAdditional = (prop: string) => {
+    this.additional = [...this.additional, prop];
     return this;
   };
 
-  withAdditional = (additionalFlag: any) =>
-    this.extendAdditionals(additionalFlag);
+  withAdditional = (additionalFlag: any) => this.extendAdditional(additionalFlag);
 
-  withVector = () => this.extendAdditionals('vector');
+  withVector = () => this.extendAdditional('vector');
 
   validate() {
     // nothing to validate
   }
 
-  do = () => {
+  do = (): Promise<WeaviateObjectsList> => {
     if (this.errors.length > 0) {
-      return Promise.reject(
-        new Error('invalid usage: ' + this.errors.join(', '))
-      );
+      return Promise.reject(new Error('invalid usage: ' + this.errors.join(', ')));
     }
 
     return this.objectsPath
-      .buildGet(this.className, this.limit, this.additionals!, this.after!)
+      .buildGet(this.className, this.limit, this.additional, this.after)
       .then((path: string) => {
         return this.client.get(path);
       });

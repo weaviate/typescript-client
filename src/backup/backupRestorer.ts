@@ -1,4 +1,3 @@
-import { RestoreStatus } from './consts';
 import {
   validateBackend,
   validateBackupId,
@@ -8,12 +7,14 @@ import {
 import Connection from '../connection';
 import BackupRestoreStatusGetter from './backupRestoreStatusGetter';
 import { CommandBase } from '../validation/commandBase';
+import { BackupRestoreRequest, BackupRestoreResponse, BackupRestoreStatusResponse } from '../openapi/types';
+import { Backend } from '.';
 
 const WAIT_INTERVAL = 1000;
 
 export default class BackupRestorer extends CommandBase {
-  private backend?: string;
-  private backupId?: string;
+  private backend!: Backend;
+  private backupId!: string;
   private excludeClassNames?: string[];
   private includeClassNames?: string[];
   private statusGetter: BackupRestoreStatusGetter;
@@ -42,7 +43,7 @@ export default class BackupRestorer extends CommandBase {
     return this;
   }
 
-  withBackend(backend: string) {
+  withBackend(backend: Backend) {
     this.backend = backend;
     return this;
   }
@@ -57,55 +58,48 @@ export default class BackupRestorer extends CommandBase {
     return this;
   }
 
-  validate() {
+  validate = (): void => {
     this.addErrors([
       ...validateIncludeClassNames(this.includeClassNames || []),
       ...validateExcludeClassNames(this.excludeClassNames || []),
       ...validateBackend(this.backend),
       ...validateBackupId(this.backupId),
     ]);
-  }
+  };
 
-  do() {
+  do = (): Promise<BackupRestoreResponse> => {
     this.validate();
     if (this.errors.length > 0) {
-      return Promise.reject(
-        new Error('invalid usage: ' + this.errors.join(', '))
-      );
+      return Promise.reject(new Error('invalid usage: ' + this.errors.join(', ')));
     }
 
     const payload = {
       config: {},
       include: this.includeClassNames,
       exclude: this.excludeClassNames,
-    };
+    } as BackupRestoreRequest;
 
     if (this.waitForCompletion) {
       return this._restoreAndWaitForCompletion(payload);
     }
     return this._restore(payload);
-  }
+  };
 
-  _restore(payload: any) {
+  _restore = (payload: BackupRestoreRequest): Promise<BackupRestoreResponse> => {
     return this.client.post(this._path(), payload);
-  }
+  };
 
-  _restoreAndWaitForCompletion(payload: any) {
-    return new Promise((resolve, reject) => {
+  _restoreAndWaitForCompletion = (payload: BackupRestoreRequest): Promise<BackupRestoreResponse> => {
+    return new Promise<BackupRestoreResponse>((resolve, reject) => {
       this._restore(payload)
         .then((restoreResponse: any) => {
-          this.statusGetter
-            .withBackend(this.backend!)
-            .withBackupId(this.backupId!);
+          this.statusGetter.withBackend(this.backend).withBackupId(this.backupId);
 
           const loop = () => {
             this.statusGetter
               .do()
               .then((restoreStatusResponse: any) => {
-                if (
-                  restoreStatusResponse.status == RestoreStatus.SUCCESS ||
-                  restoreStatusResponse.status == RestoreStatus.FAILED
-                ) {
+                if (restoreStatusResponse.status == 'SUCCESS' || restoreStatusResponse.status == 'FAILED') {
                   resolve(this._merge(restoreStatusResponse, restoreResponse));
                 } else {
                   setTimeout(loop, WAIT_INTERVAL);
@@ -118,14 +112,17 @@ export default class BackupRestorer extends CommandBase {
         })
         .catch(reject);
     });
-  }
+  };
 
-  _path() {
+  private _path = (): string => {
     return `/backups/${this.backend}/${this.backupId}/restore`;
-  }
+  };
 
-  _merge(restoreStatusResponse: any, restoreResponse: any) {
-    const merged: any = {};
+  _merge = (
+    restoreStatusResponse: BackupRestoreStatusResponse,
+    restoreResponse: BackupRestoreResponse
+  ): BackupRestoreResponse => {
+    const merged: BackupRestoreResponse = {};
     if ('id' in restoreStatusResponse) {
       merged.id = restoreStatusResponse.id;
     }
@@ -145,5 +142,5 @@ export default class BackupRestorer extends CommandBase {
       merged.classes = restoreResponse.classes;
     }
     return merged;
-  }
+  };
 }

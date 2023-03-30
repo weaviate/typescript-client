@@ -1,4 +1,9 @@
-import weaviate from 'weaviate-ts-client';
+import weaviate, {
+  AuthClientCredentials,
+  AuthUserPasswordCredentials,
+  ApiKey,
+  AuthAccessTokenCredentials,
+} from 'weaviate-ts-client';
 
 const client = weaviate.client({
   scheme: 'http',
@@ -7,7 +12,7 @@ const client = weaviate.client({
 
 console.log(
   JSON.stringify(
-    new weaviate.AuthAccessTokenCredentials({
+    new AuthAccessTokenCredentials({
       accessToken: 'token123',
       expiresIn: 123,
     })
@@ -16,7 +21,7 @@ console.log(
 
 console.log(
   JSON.stringify(
-    new weaviate.AuthUserPasswordCredentials({
+    new AuthUserPasswordCredentials({
       username: 'user123',
       password: 'password',
     })
@@ -25,19 +30,13 @@ console.log(
 
 console.log(
   JSON.stringify(
-    new weaviate.AuthClientCredentials({
+    new AuthClientCredentials({
       clientSecret: 'secret123',
     })
   )
 );
 
-console.log(JSON.stringify(new weaviate.ApiKey('abcd1234')));
-
-console.log(weaviate.backup.Backend.GCS);
-console.log(weaviate.batch.DeleteOutput.MINIMAL);
-console.log(weaviate.cluster.NodeStatus.HEALTHY);
-console.log(weaviate.filters.Operator.AND);
-console.log(weaviate.replication.ConsistencyLevel.QUORUM);
+console.log(JSON.stringify(new ApiKey('abcd1234')));
 
 client.misc
   .metaGetter()

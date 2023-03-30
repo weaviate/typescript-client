@@ -1,3 +1,5 @@
+import { WhereFilter } from '../openapi/types';
+
 export default class GraphQLWhere {
   private operands?: string;
   private operator?: string;
@@ -6,7 +8,7 @@ export default class GraphQLWhere {
   private valueContent: any;
   private valueType?: string;
 
-  constructor(whereObj: any) {
+  constructor(whereObj: WhereFilter) {
     this.source = whereObj;
   }
 

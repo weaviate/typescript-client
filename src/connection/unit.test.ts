@@ -5,7 +5,7 @@ import {
   AuthAccessTokenCredentials,
   ApiKey,
 } from './auth';
-import Connection from './index';
+import Connection from '.';
 
 describe('mock server auth tests', () => {
   const server = testServer();
@@ -24,9 +24,7 @@ describe('mock server auth tests', () => {
         .login()
         .then((token) => {
           expect(token).toEqual('access_token_000');
-          expect((conn as any).oidcAuth?.refreshToken).toEqual(
-            'refresh_token_000'
-          );
+          expect((conn as any).oidcAuth?.refreshToken).toEqual('refresh_token_000');
           expect((conn as any).oidcAuth?.expiresAt).toBeGreaterThan(Date.now());
         })
         .catch((e) => {
@@ -58,9 +56,7 @@ describe('mock server auth tests', () => {
         .login()
         .then((token) => {
           expect(token).toEqual('access_token_000');
-          expect((conn as any).oidcAuth?.refreshToken).toEqual(
-            'refresh_token_000'
-          );
+          expect((conn as any).oidcAuth?.refreshToken).toEqual('refresh_token_000');
           expect((conn as any).oidcAuth?.expiresAt).toBeGreaterThan(Date.now());
         })
         .catch((e) => {
@@ -96,9 +92,7 @@ describe('mock server auth tests', () => {
         .login()
         .then((token) => {
           expect(token).toEqual('access_token_000');
-          expect((conn as any).oidcAuth?.refreshToken).toEqual(
-            'refresh_token_000'
-          );
+          expect((conn as any).oidcAuth?.refreshToken).toEqual('refresh_token_000');
           expect((conn as any).oidcAuth?.expiresAt).toBeGreaterThan(Date.now());
         })
         .catch((e) => {

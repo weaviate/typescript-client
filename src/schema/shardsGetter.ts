@@ -1,6 +1,7 @@
 import { isValidStringProperty } from '../validation/string';
 import Connection from '../connection';
 import { CommandBase } from '../validation/commandBase';
+import { ShardStatusList } from '../openapi/types';
 
 export default class ShardsGetter extends CommandBase {
   private className?: string;
@@ -16,9 +17,7 @@ export default class ShardsGetter extends CommandBase {
 
   validateClassName = () => {
     if (!isValidStringProperty(this.className)) {
-      this.addError(
-        'className must be set - set with .withClassName(className)'
-      );
+      this.addError('className must be set - set with .withClassName(className)');
     }
   };
 
@@ -26,12 +25,10 @@ export default class ShardsGetter extends CommandBase {
     this.validateClassName();
   };
 
-  do = () => {
+  do = (): Promise<ShardStatusList> => {
     this.validate();
     if (this.errors.length > 0) {
-      return Promise.reject(
-        new Error(`invalid usage: ${this.errors.join(', ')}`)
-      );
+      return Promise.reject(new Error(`invalid usage: ${this.errors.join(', ')}`));
     }
 
     return getShards(this.client, this.className);

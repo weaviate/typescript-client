@@ -1,10 +1,11 @@
 import Where from './where';
-import NearText from './nearText';
-import NearVector from './nearVector';
-import NearObject from './nearObject';
+import NearText, { NearTextArgs } from './nearText';
+import NearVector, { NearVectorArgs } from './nearVector';
+import NearObject, { NearObjectArgs } from './nearObject';
 import { isValidPositiveIntProperty } from '../validation/number';
 import Connection from '../connection';
 import { CommandBase } from '../validation/commandBase';
+import { WhereFilter } from '../openapi/types';
 
 export default class Aggregator extends CommandBase {
   private className?: string;
@@ -33,24 +34,22 @@ export default class Aggregator extends CommandBase {
     return this;
   };
 
-  withWhere = (whereObj: any) => {
+  withWhere = (where: WhereFilter) => {
     try {
-      this.whereString = new Where(whereObj).toString();
+      this.whereString = new Where(where).toString();
     } catch (e: any) {
       this.addError(e as string);
     }
     return this;
   };
 
-  withNearText = (nearTextObj: any) => {
+  withNearText = (args: NearTextArgs) => {
     if (this.includesNearMediaFilter) {
-      throw new Error(
-        'cannot use multiple near<Media> filters in a single query'
-      );
+      throw new Error('cannot use multiple near<Media> filters in a single query');
     }
 
     try {
-      this.nearTextString = new NearText(nearTextObj).toString();
+      this.nearTextString = new NearText(args).toString();
       this.includesNearMediaFilter = true;
     } catch (e: any) {
       this.addError(e.toString());
@@ -59,15 +58,13 @@ export default class Aggregator extends CommandBase {
     return this;
   };
 
-  withNearObject = (nearObjectObj: any) => {
+  withNearObject = (args: NearObjectArgs) => {
     if (this.includesNearMediaFilter) {
-      throw new Error(
-        'cannot use multiple near<Media> filters in a single query'
-      );
+      throw new Error('cannot use multiple near<Media> filters in a single query');
     }
 
     try {
-      this.nearObjectString = new NearObject(nearObjectObj).toString();
+      this.nearObjectString = new NearObject(args).toString();
       this.includesNearMediaFilter = true;
     } catch (e: any) {
       this.addError(e.toString());
@@ -76,15 +73,13 @@ export default class Aggregator extends CommandBase {
     return this;
   };
 
-  withNearVector = (nearVectorObj: any) => {
+  withNearVector = (args: NearVectorArgs) => {
     if (this.includesNearMediaFilter) {
-      throw new Error(
-        'cannot use multiple near<Media> filters in a single query'
-      );
+      throw new Error('cannot use multiple near<Media> filters in a single query');
     }
 
     try {
-      this.nearVectorString = new NearVector(nearVectorObj).toString();
+      this.nearVectorString = new NearVector(args).toString();
       this.includesNearMediaFilter = true;
     } catch (e: any) {
       this.addError(e.toString());
@@ -123,11 +118,7 @@ export default class Aggregator extends CommandBase {
     }
   };
 
-  validateIsSet = (
-    prop: string | undefined | null,
-    name: string,
-    setter: string
-  ) => {
+  validateIsSet = (prop: string | undefined | null, name: string, setter: string) => {
     if (prop == undefined || prop == null || prop.length == 0) {
       this.addError(`${name} must be set - set with ${setter}`);
     }
@@ -135,11 +126,7 @@ export default class Aggregator extends CommandBase {
 
   validate = () => {
     this.validateGroup();
-    this.validateIsSet(
-      this.className,
-      'className',
-      '.withClassName(className)'
-    );
+    this.validateIsSet(this.className, 'className', '.withClassName(className)');
     this.validateIsSet(this.fields, 'fields', '.withFields(fields)');
   };
 
@@ -148,9 +135,7 @@ export default class Aggregator extends CommandBase {
 
     this.validate();
     if (this.errors.length > 0) {
-      return Promise.reject(
-        new Error('invalid usage: ' + this.errors.join(', '))
-      );
+      return Promise.reject(new Error('invalid usage: ' + this.errors.join(', ')));
     }
 
     if (
@@ -161,7 +146,7 @@ export default class Aggregator extends CommandBase {
       this.limit ||
       this.groupBy
     ) {
-      let args: any[] = [];
+      let args: string[] = [];
 
       if (this.whereString) {
         args = [...args, `where:${this.whereString}`];
@@ -194,8 +179,6 @@ export default class Aggregator extends CommandBase {
       params = `(${args.join(',')})`;
     }
 
-    return this.client.query(
-      `{Aggregate{${this.className}${params}{${this.fields}}}}`
-    );
+    return this.client.query(`{Aggregate{${this.className}${params}{${this.fields}}}}`);
   };
 }

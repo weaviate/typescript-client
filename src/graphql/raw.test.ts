@@ -18,8 +18,6 @@ test('reject empty raw query', () => {
   };
 
   new Raw(mockClient).do().catch((err: Error) => {
-    expect(err.message).toEqual(
-      'invalid usage: query must be set - set with .raw().withQuery(query)'
-    );
+    expect(err.message).toEqual('invalid usage: query must be set - set with .raw().withQuery(query)');
   });
 });

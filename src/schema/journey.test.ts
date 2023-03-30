@@ -1,4 +1,6 @@
-import weaviate, { WeaviateClient } from '../index';
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+import weaviate, { WeaviateClient } from '..';
+import { WeaviateClass, Property, WeaviateSchema, ShardStatus, ShardStatusList } from '../openapi/types';
 
 describe('schema', () => {
   const client = weaviate.client({
@@ -13,7 +15,7 @@ describe('schema', () => {
       .classCreator()
       .withClass(classObj)
       .do()
-      .then((res: any) => {
+      .then((res: WeaviateClass) => {
         expect(res).toEqual(classObj);
       });
   });
@@ -23,29 +25,14 @@ describe('schema', () => {
       .classGetter()
       .withClassName(classObj.class)
       .do()
-      .then((res: any) => {
+      .then((res: WeaviateClass) => {
         expect(res).toEqual(classObj);
-      });
-  });
-
-  it('fails to create class with property having not supported tokenization', () => {
-    const doomedClass = newClassObject('DoomedClass');
-    doomedClass.properties[0].tokenization = 'not-supported';
-
-    return client.schema
-      .classCreator()
-      .withClass(doomedClass)
-      .do()
-      .catch((err: Error) => {
-        expect(err.message).toEqual(
-          'usage error (422): {"code":606,"message":"properties.0.tokenization in body should be one of [word field]"}'
-        );
       });
   });
 
   it('extends the thing class with a new property', () => {
     const className = 'MyThingClass';
-    const prop = {
+    const prop: Property = {
       dataType: ['string'],
       name: 'anotherProp',
       tokenization: 'field',
@@ -69,7 +56,7 @@ describe('schema', () => {
 
   it('fails to extend the thing class with property having not supported tokenization (1)', () => {
     const className = 'MyThingClass';
-    const prop = {
+    const prop: Property = {
       dataType: ['text'],
       name: 'yetAnotherProp',
       tokenization: 'field',
@@ -95,7 +82,7 @@ describe('schema', () => {
 
   it('fails to extend the thing class with property having not supported tokenization (2)', () => {
     const className = 'MyThingClass';
-    const prop = {
+    const prop: Property = {
       dataType: ['int[]'],
       name: 'yetAnotherProp',
       tokenization: 'word',
@@ -123,7 +110,7 @@ describe('schema', () => {
     return client.schema
       .getter()
       .do()
-      .then((res: any) => {
+      .then((res: WeaviateSchema) => {
         expect(res).toEqual({
           classes: [
             {
@@ -216,43 +203,43 @@ describe('schema', () => {
   it('gets the shards of an existing class', () => {
     return client.schema
       .shardsGetter()
-      .withClassName(classObj.class)
+      .withClassName(classObj.class!)
       .do()
-      .then((res: any) => {
-        res.forEach((shard: any) => {
+      .then((res: ShardStatusList) => {
+        res.forEach((shard: ShardStatus) => {
           expect(shard.status).toEqual('READY');
         });
       });
   });
 
   it('updates a shard of an existing class to readonly', async () => {
-    const shards = await getShards(client, classObj.class);
+    const shards = await getShards(client, classObj.class!);
     expect(Array.isArray(shards)).toBe(true);
     expect(shards.length).toEqual(1);
 
     return client.schema
       .shardUpdater()
-      .withClassName(classObj.class)
-      .withShardName(shards[0].name)
+      .withClassName(classObj.class!)
+      .withShardName(shards[0].name!)
       .withStatus('READONLY')
       .do()
-      .then((res: any) => {
+      .then((res: ShardStatus) => {
         expect(res.status).toEqual('READONLY');
       });
   });
 
   it('updates a shard of an existing class to ready', async () => {
-    const shards = await getShards(client, classObj.class);
+    const shards = await getShards(client, classObj.class!);
     expect(Array.isArray(shards)).toBe(true);
     expect(shards.length).toEqual(1);
 
     return client.schema
       .shardUpdater()
-      .withClassName(classObj.class)
-      .withShardName(shards[0].name)
+      .withClassName(classObj.class!)
+      .withShardName(shards[0].name!)
       .withStatus('READY')
       .do()
-      .then((res: any) => {
+      .then((res: ShardStatus) => {
         expect(res.status).toEqual('READY');
       });
   });
@@ -260,9 +247,9 @@ describe('schema', () => {
   it('deletes an existing class', () => {
     return client.schema
       .classDeleter()
-      .withClassName(classObj.class)
+      .withClassName(classObj.class!)
       .do()
-      .then((res: any) => {
+      .then((res: void) => {
         expect(res).toEqual(undefined);
       });
   });
@@ -276,7 +263,7 @@ describe('schema', () => {
       .classCreator()
       .withClass(newClass)
       .do()
-      .then((res: any) => {
+      .then((res: WeaviateClass) => {
         expect(res).toHaveProperty('shardingConfig.actualCount', 3);
       });
 
@@ -289,9 +276,9 @@ describe('schema', () => {
       .withClassName(newClass.class)
       .withStatus('READONLY')
       .do()
-      .then((res: any) => {
+      .then((res: ShardStatusList) => {
         expect(res.length).toEqual(shardCount);
-        res.forEach((obj: any) => {
+        res.forEach((obj: ShardStatus) => {
           expect(obj.status).toEqual('READONLY');
         });
       });
@@ -321,7 +308,7 @@ describe('schema', () => {
       .classCreator()
       .withClass(newClass)
       .do()
-      .then((res: any) => {
+      .then((res: WeaviateClass) => {
         expect(res).toHaveProperty('invertedIndexConfig.bm25', bm25Config);
       });
 
@@ -342,11 +329,8 @@ describe('schema', () => {
       .classCreator()
       .withClass(newClass)
       .do()
-      .then((res: any) => {
-        expect(res).toHaveProperty(
-          'invertedIndexConfig.stopwords',
-          stopwordConfig
-        );
+      .then((res: WeaviateClass) => {
+        expect(res).toHaveProperty('invertedIndexConfig.stopwords', stopwordConfig);
       });
 
     return deleteClass(client, newClass.class);
@@ -374,12 +358,9 @@ describe('schema', () => {
       .classCreator()
       .withClass(newClass)
       .do()
-      .then((res: any) => {
+      .then((res: WeaviateClass) => {
         expect(res).toHaveProperty('invertedIndexConfig.bm25', bm25Config);
-        expect(res).toHaveProperty(
-          'invertedIndexConfig.stopwords',
-          stopwordConfig
-        );
+        expect(res).toHaveProperty('invertedIndexConfig.stopwords', stopwordConfig);
       });
 
     return deleteClass(client, newClass.class);
@@ -394,11 +375,8 @@ describe('schema', () => {
       .classCreator()
       .withClass(newClass)
       .do()
-      .then((res: any) => {
-        expect(res).toHaveProperty(
-          'replicationConfig.factor',
-          replicationFactor
-        );
+      .then((res: WeaviateClass) => {
+        expect(res).toHaveProperty('replicationConfig.factor', replicationFactor);
       });
 
     return deleteClass(client, newClass.class);
@@ -412,7 +390,7 @@ describe('schema', () => {
       .classCreator()
       .withClass(newClass)
       .do()
-      .then((res: any) => {
+      .then((res: WeaviateClass) => {
         expect(res).toHaveProperty('replicationConfig.factor', 1);
       });
 
@@ -494,12 +472,12 @@ function newClassObject(className: string) {
   };
 }
 
-function getShards(client: WeaviateClient, className: string) {
+function getShards(client: WeaviateClient, className: string): Promise<ShardStatusList> {
   return client.schema
     .shardsGetter()
     .withClassName(className)
     .do()
-    .then((res: any) => {
+    .then((res: ShardStatusList) => {
       return res;
     });
 }
@@ -509,7 +487,7 @@ function deleteClass(client: WeaviateClient, className: string) {
     .classDeleter()
     .withClassName(className)
     .do()
-    .then((res: any) => {
+    .then((res: void) => {
       expect(res).toEqual(undefined);
     });
 }

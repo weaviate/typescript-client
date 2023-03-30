@@ -19,9 +19,7 @@ export default class OpenidConfigurationGetterGetter {
           return Promise.resolve(undefined);
         }
 
-        return Promise.reject(
-          new Error(`unexpected status code: ${res.status}`)
-        );
+        return Promise.reject(new Error(`unexpected status code: ${res.status}`));
       });
   };
 }

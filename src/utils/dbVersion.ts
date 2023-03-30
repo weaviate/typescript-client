@@ -1,47 +1,45 @@
 export class DbVersionSupport {
-  private dbVersionProvider: IDbVersionProvider;
+  private dbVersionProvider: VersionProvider;
 
-  constructor(dbVersionProvider: IDbVersionProvider) {
+  constructor(dbVersionProvider: VersionProvider) {
     this.dbVersionProvider = dbVersionProvider;
   }
 
   supportsClassNameNamespacedEndpointsPromise() {
-    return this.dbVersionProvider
-      .getVersionPromise()
-      .then((version?: string) => ({
-        version,
-        supports: this.supportsClassNameNamespacedEndpoints(version),
-        warns: {
-          deprecatedNonClassNameNamespacedEndpointsForObjects: () =>
-            console.warn(
-              `Usage of objects paths without className is deprecated in Weaviate ${version}. Please provide className parameter`
-            ),
-          deprecatedNonClassNameNamespacedEndpointsForReferences: () =>
-            console.warn(
-              `Usage of references paths without className is deprecated in Weaviate ${version}. Please provide className parameter`
-            ),
-          deprecatedNonClassNameNamespacedEndpointsForBeacons: () =>
-            console.warn(
-              `Usage of beacons paths without className is deprecated in Weaviate ${version}. Please provide className parameter`
-            ),
-          notSupportedClassNamespacedEndpointsForObjects: () =>
-            console.warn(
-              `Usage of objects paths with className is not supported in Weaviate ${version}. className parameter is ignored`
-            ),
-          notSupportedClassNamespacedEndpointsForReferences: () =>
-            console.warn(
-              `Usage of references paths with className is not supported in Weaviate ${version}. className parameter is ignored`
-            ),
-          notSupportedClassNamespacedEndpointsForBeacons: () =>
-            console.warn(
-              `Usage of beacons paths with className is not supported in Weaviate ${version}. className parameter is ignored`
-            ),
-          notSupportedClassParameterInEndpointsForObjects: () =>
-            console.warn(
-              `Usage of objects paths with class query parameter is not supported in Weaviate ${version}. class query parameter is ignored`
-            ),
-        },
-      }));
+    return this.dbVersionProvider.getVersionPromise().then((version?: string) => ({
+      version,
+      supports: this.supportsClassNameNamespacedEndpoints(version),
+      warns: {
+        deprecatedNonClassNameNamespacedEndpointsForObjects: () =>
+          console.warn(
+            `Usage of objects paths without className is deprecated in Weaviate ${version}. Please provide className parameter`
+          ),
+        deprecatedNonClassNameNamespacedEndpointsForReferences: () =>
+          console.warn(
+            `Usage of references paths without className is deprecated in Weaviate ${version}. Please provide className parameter`
+          ),
+        deprecatedNonClassNameNamespacedEndpointsForBeacons: () =>
+          console.warn(
+            `Usage of beacons paths without className is deprecated in Weaviate ${version}. Please provide className parameter`
+          ),
+        notSupportedClassNamespacedEndpointsForObjects: () =>
+          console.warn(
+            `Usage of objects paths with className is not supported in Weaviate ${version}. className parameter is ignored`
+          ),
+        notSupportedClassNamespacedEndpointsForReferences: () =>
+          console.warn(
+            `Usage of references paths with className is not supported in Weaviate ${version}. className parameter is ignored`
+          ),
+        notSupportedClassNamespacedEndpointsForBeacons: () =>
+          console.warn(
+            `Usage of beacons paths with className is not supported in Weaviate ${version}. className parameter is ignored`
+          ),
+        notSupportedClassParameterInEndpointsForObjects: () =>
+          console.warn(
+            `Usage of objects paths with class query parameter is not supported in Weaviate ${version}. class query parameter is ignored`
+          ),
+      },
+    }));
   }
 
   // >= 1.14
@@ -60,11 +58,11 @@ export class DbVersionSupport {
 
 const EMPTY_VERSION = '';
 
-export interface IDbVersionProvider {
+export interface VersionProvider {
   getVersionPromise(): Promise<string>;
 }
 
-export class DbVersionProvider implements IDbVersionProvider {
+export class DbVersionProvider implements VersionProvider {
   private versionPromise?: Promise<string>;
   private readonly emptyVersionPromise: Promise<string>;
   private versionGetter: () => Promise<string>;

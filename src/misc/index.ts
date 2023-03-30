@@ -12,10 +12,7 @@ export interface Misc {
   openidConfigurationGetter: () => OpenidConfigurationGetter;
 }
 
-const misc = (
-  client: Connection,
-  dbVersionProvider: DbVersionProvider
-): Misc => {
+const misc = (client: Connection, dbVersionProvider: DbVersionProvider): Misc => {
   return {
     liveChecker: () => new LiveChecker(client, dbVersionProvider),
     readyChecker: () => new ReadyChecker(client, dbVersionProvider),

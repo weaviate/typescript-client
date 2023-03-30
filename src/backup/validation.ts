@@ -5,17 +5,13 @@ export function validateIncludeClassNames(classNames?: string[]) {
     const errors: any[] = [];
     classNames.forEach((className) => {
       if (!isValidStringProperty(className)) {
-        errors.push(
-          'string className invalid - set with .withIncludeClassNames(...classNames)'
-        );
+        errors.push('string className invalid - set with .withIncludeClassNames(...classNames)');
       }
     });
     return errors;
   }
   if (classNames !== null && classNames !== undefined) {
-    return [
-      'strings classNames invalid - set with .withIncludeClassNames(...classNames)',
-    ];
+    return ['strings classNames invalid - set with .withIncludeClassNames(...classNames)'];
   }
   return [];
 }
@@ -25,17 +21,13 @@ export function validateExcludeClassNames(classNames?: string[]) {
     const errors: any[] = [];
     classNames.forEach((className) => {
       if (!isValidStringProperty(className)) {
-        errors.push(
-          'string className invalid - set with .withExcludeClassNames(...classNames)'
-        );
+        errors.push('string className invalid - set with .withExcludeClassNames(...classNames)');
       }
     });
     return errors;
   }
   if (classNames !== null && classNames !== undefined) {
-    return [
-      'strings classNames invalid - set with .withExcludeClassNames(...classNames)',
-    ];
+    return ['strings classNames invalid - set with .withExcludeClassNames(...classNames)'];
   }
   return [];
 }

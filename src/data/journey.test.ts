@@ -1,4 +1,6 @@
-import weaviate, { WeaviateClient } from '../index';
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+import weaviate, { WeaviateClient } from '..';
+import { WeaviateObject, WeaviateObjectsList, WeaviateError, Properties } from '../openapi/types';
 
 const thingClassName = 'DataJourneyTestThing';
 const refSourceClassName = 'DataJourneyTestRefSource';
@@ -24,10 +26,10 @@ describe('data', () => {
       .withClassName(thingClassName)
       .withProperties(properties)
       .do()
-      .then((res: any) => {
+      .then((res: boolean) => {
         expect(res).toEqual(true);
       })
-      .catch((e: any) => {
+      .catch((e: WeaviateError) => {
         throw new Error('it should not have errord: ' + e);
       });
   });
@@ -48,7 +50,7 @@ describe('data', () => {
       });
   });
 
-  let implicitThingId: any;
+  let implicitThingId: string | undefined;
 
   it('creates a new thing object without an explicit id', () => {
     const properties = { stringProp: 'without-id' };
@@ -58,11 +60,11 @@ describe('data', () => {
       .withClassName(thingClassName)
       .withProperties(properties)
       .do()
-      .then((res: any) => {
+      .then((res: WeaviateObject) => {
         expect(res.properties).toEqual(properties);
         implicitThingId = res.id;
       })
-      .catch((e: any) => {
+      .catch((e: WeaviateError) => {
         throw new Error('it should not have errord: ' + e);
       });
   });
@@ -82,11 +84,11 @@ describe('data', () => {
       .withProperties(properties)
       .withId(id)
       .do()
-      .then((res: any) => {
+      .then((res: WeaviateObject) => {
         expect(res.properties).toEqual(properties);
         expect(res.id).toEqual(id);
       })
-      .catch((e: any) => {
+      .catch((e: WeaviateError) => {
         throw new Error('it should not have errord: ' + e);
       });
   });
@@ -102,20 +104,13 @@ describe('data', () => {
       .withProperties(properties)
       .withId(id)
       .do()
-      .then((res: any) => {
+      .then((res: WeaviateObject) => {
         expect(res.properties).toEqual(properties);
         expect(res.id).toEqual(id);
       })
-      .catch((e: any) => {
+      .catch((e: WeaviateError) => {
         throw new Error('it should not have errord: ' + e);
       });
-  });
-
-  it('waits for es index updates', () => {
-    return new Promise((resolve, reject) => {
-      // TODO: remove in 1.0.0
-      setTimeout(resolve, 1000);
-    });
   });
 
   it('errors without a className', () => {
@@ -136,7 +131,7 @@ describe('data', () => {
     return client.data
       .getter()
       .do()
-      .then((res: any) => {
+      .then((res: WeaviateObjectsList) => {
         expect(res.objects).toHaveLength(3);
         expect(res.objects).toEqual(
           expect.arrayContaining([
@@ -150,7 +145,7 @@ describe('data', () => {
           ])
         );
       })
-      .catch((e: any) => {
+      .catch((e: WeaviateError) => {
         throw new Error('it should not have errord: ' + e);
       });
   });
@@ -160,7 +155,7 @@ describe('data', () => {
       .getter()
       .withClassName(thingClassName)
       .do()
-      .then((res: any) => {
+      .then((res: WeaviateObjectsList) => {
         expect(res.objects).toHaveLength(2);
         expect(res.objects).toEqual(
           expect.arrayContaining([
@@ -174,7 +169,7 @@ describe('data', () => {
           ])
         );
       })
-      .catch((e: any) => {
+      .catch((e: WeaviateError) => {
         throw new Error('it should not have errord: ' + e);
       });
   });
@@ -186,7 +181,7 @@ describe('data', () => {
       .withLimit(100)
       .withAfter('00000000-0000-0000-0000-000000000000')
       .do()
-      .then((res) => {
+      .then((res: WeaviateObjectsList) => {
         expect(res.objects).toHaveLength(1);
         expect(res.objects).toEqual(
           expect.arrayContaining([
@@ -209,16 +204,19 @@ describe('data', () => {
       .withVector()
       .withLimit(2)
       .do()
-      .then((res: any) => {
+      .then((res: WeaviateObjectsList) => {
+        if (!res.objects) {
+          throw new Error(`response should have objects: ${JSON.stringify(res)}`);
+        }
         expect(res.objects).toHaveLength(2);
-        expect(res.objects[0].vector.length).toBeGreaterThan(10);
-        expect(res.objects[0].additional.interpretation).toBeDefined();
-        expect(res.objects[0].additional.featureProjection).toBeDefined();
-        expect(res.objects[0].additional.nearestNeighbors).toBeDefined();
+        expect(res.objects[0].vector?.length).toBeGreaterThan(10);
+        expect(res.objects[0].additional?.interpretation).toBeDefined();
+        expect(res.objects[0].additional?.featureProjection).toBeDefined();
+        expect(res.objects[0].additional?.nearestNeighbors).toBeDefined();
         // not testing for classification as that's only set if the object was
         // actually classified, this one wasn't
       })
-      .catch((e: any) => {
+      .catch((e: WeaviateError) => {
         throw new Error('it should not have errord: ' + e);
       });
   });
@@ -233,14 +231,17 @@ describe('data', () => {
       .withAdditional('featureProjection')
       .withVector()
       .do()
-      .then((res: any) => {
+      .then((res: WeaviateObjectsList) => {
+        if (!res.objects) {
+          throw new Error(`response should have objects: ${JSON.stringify(res)}`);
+        }
         expect(res.objects).toHaveLength(2);
-        expect(res.objects[0].vector.length).toBeGreaterThan(10);
-        expect(res.objects[0].additional.interpretation).toBeDefined();
-        expect(res.objects[0].additional.featureProjection).toBeDefined();
-        expect(res.objects[0].additional.nearestNeighbors).toBeDefined();
+        expect(res.objects[0].vector?.length).toBeGreaterThan(10);
+        expect(res.objects[0].additional?.interpretation).toBeDefined();
+        expect(res.objects[0].additional?.featureProjection).toBeDefined();
+        expect(res.objects[0].additional?.nearestNeighbors).toBeDefined();
       })
-      .catch((e: any) => {
+      .catch((e: WeaviateError) => {
         throw new Error('it should not have errord: ' + e);
       });
   });
@@ -250,7 +251,7 @@ describe('data', () => {
       .getterById()
       .withId('00000000-0000-0000-0000-000000000000')
       .do()
-      .then((res: any) => {
+      .then((res: WeaviateObject) => {
         expect(res).toEqual(
           expect.objectContaining({
             id: '00000000-0000-0000-0000-000000000000',
@@ -258,7 +259,7 @@ describe('data', () => {
           })
         );
       })
-      .catch((e: any) => {
+      .catch((e: WeaviateError) => {
         throw new Error('it should not have errord: ' + e);
       });
   });
@@ -269,7 +270,7 @@ describe('data', () => {
       .withClassName(thingClassName)
       .withId('00000000-0000-0000-0000-000000000000')
       .do()
-      .then((res: any) => {
+      .then((res: WeaviateObject) => {
         expect(res).toEqual(
           expect.objectContaining({
             id: '00000000-0000-0000-0000-000000000000',
@@ -277,7 +278,7 @@ describe('data', () => {
           })
         );
       })
-      .catch((e: any) => {
+      .catch((e: WeaviateError) => {
         throw new Error('it should not have errord: ' + e);
       });
   });
@@ -302,14 +303,14 @@ describe('data', () => {
       .withAdditional('nearestNeighbors')
       .withVector()
       .do()
-      .then((res: any) => {
-        expect(res.vector.length).toBeGreaterThan(10);
-        expect(res.additional.interpretation).toBeDefined();
-        expect(res.additional.nearestNeighbors).toBeDefined();
+      .then((res: WeaviateObject) => {
+        expect(res.vector?.length).toBeGreaterThan(10);
+        expect(res.additional?.interpretation).toBeDefined();
+        expect(res.additional?.nearestNeighbors).toBeDefined();
         // not testing for classification as that's only set if the object was
         // actually classified, this one wasn't
       })
-      .catch((e: any) => {
+      .catch((e: WeaviateError) => {
         throw new Error('it should not have errord: ' + e);
       });
   });
@@ -321,12 +322,8 @@ describe('data', () => {
       .then(() => {
         throw new Error('it should have errord');
       })
-      .catch((e: any) => {
-        expect(e).toEqual(
-          new Error(
-            'invalid usage: id must be set - initialize with getterById(id)'
-          )
-        );
+      .catch((e: WeaviateError) => {
+        expect(e).toEqual(new Error('invalid usage: id must be set - initialize with getterById(id)'));
       });
   });
 
@@ -336,23 +333,18 @@ describe('data', () => {
       .getterById()
       .withId(id)
       .do()
-      .then((res: any) => {
+      .then((res: WeaviateObject) => {
         // alter the schema
-        const properties = res.properties;
-        properties.stringProp = 'thing-updated';
-        return client.data
-          .updater()
-          .withId(id)
-          .withClassName(thingClassName)
-          .withProperties(properties)
-          .do();
+        const properties: Properties = res.properties!;
+        properties!.stringProp = 'thing-updated';
+        return client.data.updater().withId(id).withClassName(thingClassName).withProperties(properties).do();
       })
-      .then((res: any) => {
+      .then((res: WeaviateObject) => {
         expect(res.properties).toEqual({
           stringProp: 'thing-updated',
         });
       })
-      .catch((e: any) => {
+      .catch((e: WeaviateError) => {
         throw new Error('it should not have errord: ' + e);
       });
   });
@@ -364,22 +356,17 @@ describe('data', () => {
       .withId(id)
       .withClassName(thingClassName)
       .do()
-      .then((res: any) => {
-        const properties = res.properties;
-        properties.stringProp = 'thing-updated-with-class-name';
-        return client.data
-          .updater()
-          .withId(id)
-          .withClassName(thingClassName)
-          .withProperties(properties)
-          .do();
+      .then((res: WeaviateObject) => {
+        const properties: Properties = res.properties!;
+        properties!.stringProp = 'thing-updated-with-class-name';
+        return client.data.updater().withId(id).withClassName(thingClassName).withProperties(properties).do();
       })
-      .then((res: any) => {
+      .then((res: WeaviateObject) => {
         expect(res.properties).toEqual({
           stringProp: 'thing-updated-with-class-name',
         });
       })
-      .catch((e: any) => {
+      .catch((e: WeaviateError) => {
         throw new Error('it should not have errord: ' + e);
       });
   });
@@ -390,18 +377,13 @@ describe('data', () => {
       .getterById()
       .withId(id)
       .do()
-      .then((res: any) => {
+      .then((res: WeaviateObject) => {
         // alter the schema
-        const properties = res.properties;
-        properties.intProp = 7;
-        return client.data
-          .merger()
-          .withId(id)
-          .withClassName(thingClassName)
-          .withProperties(properties)
-          .do();
+        const properties: Properties = res.properties!;
+        properties!.intProp = 7;
+        return client.data.merger().withId(id).withClassName(thingClassName).withProperties(properties).do();
       })
-      .catch((e: any) => {
+      .catch((e: WeaviateError) => {
         throw new Error('it should not have errord: ' + e);
       });
   });
@@ -414,45 +396,39 @@ describe('data', () => {
       .referenceCreator()
       .withId(sourceId)
       .withReferenceProperty('refProp')
-      .withReference(
-        client.data.referencePayloadBuilder().withId(targetId).payload()
-      )
+      .withReference(client.data.referencePayloadBuilder().withId(targetId).payload())
       .do()
-      .catch((e: any) => {
+      .catch((e: WeaviateError) => {
         throw new Error('it should not have errord: ' + e);
       });
   });
 
   it('replaces all references of a thing by id only', () => {
     const sourceId = '599a0c64-5ed5-4d30-978b-6c9c45516db1';
-    const targetId: any = implicitThingId;
+    const targetId: string | undefined = implicitThingId;
 
     return client.data
       .referenceReplacer()
       .withId(sourceId)
       .withReferenceProperty('refProp')
-      .withReferences([
-        client.data.referencePayloadBuilder().withId(targetId).payload(),
-      ])
+      .withReferences([client.data.referencePayloadBuilder().withId(targetId!).payload()])
       .do()
-      .catch((e: any) => {
+      .catch((e: WeaviateError) => {
         throw new Error('it should not have errord: ' + e);
       });
   });
 
   it('deletes a single reference of a thing by id only', () => {
     const sourceId = '599a0c64-5ed5-4d30-978b-6c9c45516db1';
-    const targetId: any = implicitThingId;
+    const targetId: string | undefined = implicitThingId;
 
     return client.data
       .referenceDeleter()
       .withId(sourceId)
       .withReferenceProperty('refProp')
-      .withReference(
-        client.data.referencePayloadBuilder().withId(targetId).payload()
-      )
+      .withReference(client.data.referencePayloadBuilder().withId(targetId!).payload())
       .do()
-      .catch((e: any) => {
+      .catch((e: WeaviateError) => {
         throw new Error('it should not have errord: ' + e);
       });
   });
@@ -467,21 +443,17 @@ describe('data', () => {
       .withClassName(refSourceClassName)
       .withReferenceProperty('refProp')
       .withReference(
-        client.data
-          .referencePayloadBuilder()
-          .withId(targetId)
-          .withClassName(thingClassName)
-          .payload()
+        client.data.referencePayloadBuilder().withId(targetId).withClassName(thingClassName).payload()
       )
       .do()
-      .catch((e: any) => {
+      .catch((e: WeaviateError) => {
         throw new Error('it should not have errord: ' + e);
       });
   });
 
   it('replaces all references of a thing by id and class name', () => {
     const sourceId = '599a0c64-5ed5-4d30-978b-6c9c45516db1';
-    const targetId: any = implicitThingId;
+    const targetId: string | undefined = implicitThingId;
 
     return client.data
       .referenceReplacer()
@@ -489,21 +461,17 @@ describe('data', () => {
       .withClassName(refSourceClassName)
       .withReferenceProperty('refProp')
       .withReferences([
-        client.data
-          .referencePayloadBuilder()
-          .withId(targetId)
-          .withClassName(thingClassName)
-          .payload(),
+        client.data.referencePayloadBuilder().withId(targetId!).withClassName(thingClassName).payload(),
       ])
       .do()
-      .catch((e: any) => {
+      .catch((e: WeaviateError) => {
         throw new Error('it should not have errord: ' + e);
       });
   });
 
   it('deletes a single reference of a thing by id and class name', () => {
     const sourceId = '599a0c64-5ed5-4d30-978b-6c9c45516db1';
-    const targetId: any = implicitThingId;
+    const targetId: string | undefined = implicitThingId;
 
     return client.data
       .referenceDeleter()
@@ -511,14 +479,10 @@ describe('data', () => {
       .withClassName(refSourceClassName)
       .withReferenceProperty('refProp')
       .withReference(
-        client.data
-          .referencePayloadBuilder()
-          .withId(targetId)
-          .withClassName(thingClassName)
-          .payload()
+        client.data.referencePayloadBuilder().withId(targetId!).withClassName(thingClassName).payload()
       )
       .do()
-      .catch((e: any) => {
+      .catch((e: WeaviateError) => {
         throw new Error('it should not have errord: ' + e);
       });
   });
@@ -533,7 +497,7 @@ describe('data', () => {
           fail('it should exist in DB');
         }
       })
-      .catch((e: any) => {
+      .catch((e: WeaviateError) => {
         throw new Error('it should not have errord: ' + e);
       });
   });
@@ -549,7 +513,7 @@ describe('data', () => {
           fail('it should exist in DB');
         }
       })
-      .catch((e: any) => {
+      .catch((e: WeaviateError) => {
         throw new Error('it should not have errord: ' + e);
       });
   });
@@ -559,7 +523,7 @@ describe('data', () => {
       .deleter()
       .withId('00000000-0000-0000-0000-000000000000')
       .do()
-      .catch((e: any) => {
+      .catch((e: WeaviateError) => {
         throw new Error('it should not have errord: ' + e);
       });
   });
@@ -574,7 +538,7 @@ describe('data', () => {
           fail('it should not exist in DB');
         }
       })
-      .catch((e: any) => {
+      .catch((e: WeaviateError) => {
         throw new Error('it should not have errord: ' + e);
       });
   });
@@ -589,11 +553,11 @@ describe('data', () => {
       .withProperties(properties)
       .withId(id)
       .do()
-      .then((res: any) => {
+      .then((res: WeaviateObject) => {
         expect(res.properties).toEqual(properties);
         expect(res.id).toEqual(id);
       })
-      .catch((e: any) => {
+      .catch((e: WeaviateError) => {
         throw new Error('it should not have errord: ' + e);
       });
 
@@ -602,7 +566,7 @@ describe('data', () => {
       .withId(id)
       .withClassName(thingClassName)
       .do()
-      .catch((e: any) => {
+      .catch((e: WeaviateError) => {
         throw new Error('it should not have errord: ' + e);
       });
   });
@@ -617,7 +581,7 @@ describe('data', () => {
           fail('it should not exist in DB');
         }
       })
-      .catch((e: any) => {
+      .catch((e: WeaviateError) => {
         throw new Error('it should not have errord: ' + e);
       });
   });
@@ -627,10 +591,10 @@ describe('data', () => {
       client.data
         .getter()
         .do()
-        .then((res: any) => {
+        .then((res: WeaviateObjectsList) => {
           expect(res.objects).toHaveLength(2);
         })
-        .catch((e: any) => {
+        .catch((e: WeaviateError) => {
           throw new Error('it should not have errord: ' + e);
         }),
     ]);
@@ -640,8 +604,7 @@ describe('data', () => {
     const properties = { foo: 'bar' };
     const id = 'aaaac06c-463f-466c-9092-5930dbac3887';
     const vector = [
-      -0.26736435, -0.112380296, 0.29648793, 0.39212644, 0.0033650293,
-      -0.07112332, 0.07513781, 0.22459874,
+      -0.26736435, -0.112380296, 0.29648793, 0.39212644, 0.0033650293, -0.07112332, 0.07513781, 0.22459874,
     ];
 
     return client.data
@@ -651,12 +614,12 @@ describe('data', () => {
       .withVector(vector)
       .withId(id)
       .do()
-      .then((res: any) => {
+      .then((res: WeaviateObject) => {
         expect(res.properties).toEqual(properties);
         expect(res.vector).toEqual(vector);
         expect(res.id).toEqual(id);
       })
-      .catch((e: any) => {
+      .catch((e: WeaviateError) => {
         throw new Error('it should not have errord: ' + e);
       });
   });
@@ -664,8 +627,7 @@ describe('data', () => {
   it('verifies that class with custom vector has been created', () => {
     const id = 'aaaac06c-463f-466c-9092-5930dbac3887';
     const vector = [
-      -0.26736435, -0.112380296, 0.29648793, 0.39212644, 0.0033650293,
-      -0.07112332, 0.07513781, 0.22459874,
+      -0.26736435, -0.112380296, 0.29648793, 0.39212644, 0.0033650293, -0.07112332, 0.07513781, 0.22459874,
     ];
 
     return client.data
@@ -673,10 +635,10 @@ describe('data', () => {
       .withId(id)
       .withVector()
       .do()
-      .then((res: any) => {
+      .then((res: WeaviateObject) => {
         expect(res.vector).toEqual(vector);
       })
-      .catch((e: any) => {
+      .catch((e: WeaviateError) => {
         throw new Error('it should not have errord: ' + e);
       });
   });
@@ -686,7 +648,7 @@ describe('data', () => {
       .deleter()
       .withId('aaaac06c-463f-466c-9092-5930dbac3887')
       .do()
-      .catch((e: any) => {
+      .catch((e: WeaviateError) => {
         throw new Error('it should not have errord: ' + e);
       });
   });
@@ -705,7 +667,7 @@ describe('data', () => {
         expect(path).toContain('?include=vector');
         expect(path).toContain('&node_name=node1');
       })
-      .catch((e: any) => {
+      .catch((e: WeaviateError) => {
         throw new Error('it should not have errord: ' + e);
       });
   });
@@ -718,13 +680,13 @@ describe('data', () => {
       .withClassName(thingClassName)
       .withId(id)
       .withVector()
-      .withConsistencyLevel(weaviate.replication.ConsistencyLevel.QUORUM)
+      .withConsistencyLevel('QUORUM')
       .buildPath()
       .then((path: string) => {
         expect(path).toContain('?include=vector');
         expect(path).toContain('consistency_level=QUORUM');
       })
-      .catch((e: any) => {
+      .catch((e: WeaviateError) => {
         throw new Error('it should not have errord: ' + e);
       });
   });
@@ -733,8 +695,7 @@ describe('data', () => {
     const id = '144d1944-3ab4-4aa1-8095-92429d6cbaba';
     const properties = { foo: 'bar' };
     const vector = [
-      -0.26736435, -0.112380296, 0.29648793, 0.39212644, 0.0033650293,
-      -0.07112332, 0.07513781, 0.22459874,
+      -0.26736435, -0.112380296, 0.29648793, 0.39212644, 0.0033650293, -0.07112332, 0.07513781, 0.22459874,
     ];
 
     await client.data
@@ -743,7 +704,7 @@ describe('data', () => {
       .withProperties(properties)
       .withVector(vector)
       .withId(id)
-      .withConsistencyLevel(weaviate.replication.ConsistencyLevel.ALL)
+      .withConsistencyLevel('ALL')
       .do()
       .then((res) => {
         expect(res.properties).toEqual(properties);
@@ -772,8 +733,7 @@ describe('data', () => {
     const id = '7a78b029-e7b4-499f-9bd8-70ea11b12345';
     const properties = { foo: 'bar' };
     const vector = [
-      -0.26736435, -0.112380296, 0.29648793, 0.39212644, 0.0033650293,
-      -0.07112332, 0.07513781, 0.22459874,
+      -0.26736435, -0.112380296, 0.29648793, 0.39212644, 0.0033650293, -0.07112332, 0.07513781, 0.22459874,
     ];
 
     await client.data
@@ -788,7 +748,7 @@ describe('data', () => {
         expect(res.vector).toEqual(vector);
         expect(res.id).toEqual(id);
       })
-      .catch((e: any) => fail('it should not have errord: ' + e));
+      .catch((e: WeaviateError) => fail('it should not have errord: ' + e));
 
     await client.data
       .getterById()
@@ -803,24 +763,23 @@ describe('data', () => {
           })
         );
       })
-      .catch((e: any) => fail('it should not have errord: ' + e));
+      .catch((e: WeaviateError) => fail('it should not have errord: ' + e));
 
     return client.data
       .deleter()
       .withClassName(classCustomVectorClassName)
       .withId(id)
-      .withConsistencyLevel(weaviate.replication.ConsistencyLevel.QUORUM)
+      .withConsistencyLevel('QUORUM')
       .do()
       .then()
-      .catch((e: any) => fail('it should not have errord: ' + e));
+      .catch((e: WeaviateError) => fail('it should not have errord: ' + e));
   });
 
   it('patches object with consistency_level set', async () => {
     const id = '7a78b029-e7b4-499f-9bd8-70ea11b12345';
-    const properties: any = { foo: 'bar' };
+    const properties: Properties = { foo: 'bar' };
     const vector = [
-      -0.26736435, -0.112380296, 0.29648793, 0.39212644, 0.0033650293,
-      -0.07112332, 0.07513781, 0.22459874,
+      -0.26736435, -0.112380296, 0.29648793, 0.39212644, 0.0033650293, -0.07112332, 0.07513781, 0.22459874,
     ];
 
     await client.data
@@ -835,7 +794,7 @@ describe('data', () => {
         expect(res.vector).toEqual(vector);
         expect(res.id).toEqual(id);
       })
-      .catch((e: any) => fail('it should not have errord: ' + e));
+      .catch((e: WeaviateError) => fail('it should not have errord: ' + e));
 
     await client.data
       .getterById()
@@ -850,16 +809,16 @@ describe('data', () => {
           })
         );
       })
-      .catch((e: any) => fail('it should not have errord: ' + e));
+      .catch((e: WeaviateError) => fail('it should not have errord: ' + e));
 
-    const newProperties: any = { foo: 'baz' };
+    const newProperties: Properties = { foo: 'baz' };
 
     await client.data
       .merger()
       .withClassName(classCustomVectorClassName)
       .withId(id)
       .withProperties(newProperties)
-      .withConsistencyLevel(weaviate.replication.ConsistencyLevel.QUORUM)
+      .withConsistencyLevel('QUORUM')
       .do()
       .then()
       .catch((e) => fail('it should not have errord: ' + e));
@@ -882,10 +841,9 @@ describe('data', () => {
 
   it('updates object with consistency_level set', async () => {
     const id = '55eaf761-11fd-48a9-bf21-60e2048db188';
-    const properties: any = { foo: 'bar' };
+    const properties: Properties = { foo: 'bar' };
     const vector = [
-      -0.26736435, -0.112380296, 0.29648793, 0.39212644, 0.0033650293,
-      -0.07112332, 0.07513781, 0.22459874,
+      -0.26736435, -0.112380296, 0.29648793, 0.39212644, 0.0033650293, -0.07112332, 0.07513781, 0.22459874,
     ];
 
     await client.data
@@ -900,7 +858,7 @@ describe('data', () => {
         expect(res.vector).toEqual(vector);
         expect(res.id).toEqual(id);
       })
-      .catch((e: any) => fail('it should not have errord: ' + e));
+      .catch((e: WeaviateError) => fail('it should not have errord: ' + e));
 
     await client.data
       .getterById()
@@ -915,16 +873,16 @@ describe('data', () => {
           })
         );
       })
-      .catch((e: any) => fail('it should not have errord: ' + e));
+      .catch((e: WeaviateError) => fail('it should not have errord: ' + e));
 
-    const newProperties: any = { foo: 'baz' };
+    const newProperties: Properties = { foo: 'baz' };
 
     await client.data
       .updater()
       .withClassName(classCustomVectorClassName)
       .withId(id)
       .withProperties(newProperties)
-      .withConsistencyLevel(weaviate.replication.ConsistencyLevel.QUORUM)
+      .withConsistencyLevel('QUORUM')
       .do()
       .then()
       .catch((e) => fail('it should not have errord: ' + e));
@@ -942,7 +900,7 @@ describe('data', () => {
           })
         );
       })
-      .catch((e: any) => fail('it should not have errord: ' + e));
+      .catch((e: WeaviateError) => fail('it should not have errord: ' + e));
   });
 
   it('creates reference with consistency_level set', async () => {
@@ -977,10 +935,8 @@ describe('data', () => {
       .referenceCreator()
       .withId(id2)
       .withReferenceProperty('refProp')
-      .withConsistencyLevel(weaviate.replication.ConsistencyLevel.ONE)
-      .withReference(
-        client.data.referencePayloadBuilder().withId(id1).payload()
-      )
+      .withConsistencyLevel('ONE')
+      .withReference(client.data.referencePayloadBuilder().withId(id1).payload())
       .do()
       .catch((e) => fail('it should not have errord: ' + e));
 
@@ -1039,10 +995,8 @@ describe('data', () => {
       .referenceReplacer()
       .withId(id2)
       .withReferenceProperty('refProp')
-      .withConsistencyLevel(weaviate.replication.ConsistencyLevel.ONE)
-      .withReferences(
-        client.data.referencePayloadBuilder().withId(id1).payload()
-      )
+      .withConsistencyLevel('ONE')
+      .withReferences(client.data.referencePayloadBuilder().withId(id1).payload())
       .do()
       .catch((e) => fail('it should not have errord: ' + e));
   });
@@ -1079,10 +1033,8 @@ describe('data', () => {
       .referenceCreator()
       .withId(id2)
       .withReferenceProperty('refProp')
-      .withConsistencyLevel(weaviate.replication.ConsistencyLevel.ONE)
-      .withReference(
-        client.data.referencePayloadBuilder().withId(id1).payload()
-      )
+      .withConsistencyLevel('ONE')
+      .withReference(client.data.referencePayloadBuilder().withId(id1).payload())
       .do()
       .catch((e) => fail('it should not have errord: ' + e));
 
@@ -1112,10 +1064,8 @@ describe('data', () => {
       .referenceDeleter()
       .withId(id2)
       .withReferenceProperty('refProp')
-      .withConsistencyLevel(weaviate.replication.ConsistencyLevel.ONE)
-      .withReference(
-        client.data.referencePayloadBuilder().withId(id1).payload()
-      )
+      .withConsistencyLevel('ONE')
+      .withReference(client.data.referencePayloadBuilder().withId(id1).payload())
       .do()
       .catch((e) => fail('it should not have errord: ' + e));
   });
@@ -1124,10 +1074,7 @@ describe('data', () => {
     return Promise.all([
       client.schema.classDeleter().withClassName(thingClassName).do(),
       client.schema.classDeleter().withClassName(refSourceClassName).do(),
-      client.schema
-        .classDeleter()
-        .withClassName(classCustomVectorClassName)
-        .do(),
+      client.schema.classDeleter().withClassName(classCustomVectorClassName).do(),
     ]);
   });
 });
@@ -1160,9 +1107,7 @@ const setup = async (client: WeaviateClient) => {
     ],
   };
 
-  await Promise.all([
-    client.schema.classCreator().withClass(classCustomVector).do(),
-  ]);
+  await Promise.all([client.schema.classCreator().withClass(classCustomVector).do()]);
 
   const refSource = {
     class: refSourceClassName,

@@ -1,4 +1,12 @@
-import weaviate, { WeaviateClient } from '../index';
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+import weaviate, { WeaviateClient } from '..';
+import {
+  BatchReference,
+  BatchReferenceResponse,
+  WeaviateObject,
+  BatchDeleteResponse,
+  WhereFilter,
+} from '../openapi/types';
 
 const thingClassName = 'BatchJourneyTestThing';
 const otherThingClassName = 'BatchJourneyTestOtherThing';
@@ -10,12 +18,9 @@ const thingIds = [
   '5f4b0aa2-0704-4529-919f-c1f614e685f4',
 ];
 
-const otherThingIds = [
-  '5b354a0f-fe66-4fe7-ad62-4db72ddab815',
-  '8727fa2b-610a-4a5c-af26-e558943f71c7',
-];
+const otherThingIds = ['5b354a0f-fe66-4fe7-ad62-4db72ddab815', '8727fa2b-610a-4a5c-af26-e558943f71c7'];
 
-const someObjects = [
+const someObjects: WeaviateObject[] = [
   {
     class: thingClassName,
     id: thingIds[0],
@@ -79,10 +84,10 @@ describe('batch importing', () => {
       .withObject(someObjects[0])
       .withObjects(someObjects[1])
       .withObjects(someObjects[2], someObjects[3])
-      .withObjects([someObjects[4], someObjects[5]]);
+      .withObjects(...[someObjects[4], someObjects[5]]);
 
     expect(batcher.objects).toHaveLength(someObjects.length);
-    batcher.objects.forEach((obj: any, i: number) => {
+    batcher.objects.forEach((obj: WeaviateObject, i: number) => {
       expect(obj.class).toBe(someObjects[i].class);
       expect(obj.id).toBe(someObjects[i].id);
     });
@@ -112,7 +117,7 @@ describe('batch importing', () => {
           .withObject(toImport[1])
           .do()
           .then()
-          .catch((e: any) => {
+          .catch((e: Error) => {
             throw new Error('it should not have errord ' + e);
           });
       });
@@ -123,17 +128,9 @@ describe('batch importing', () => {
 
       it('verifies they are now queryable', () => {
         return Promise.all([
-          client.data
-            .getterById()
-            .withId(thingIds[0])
-            .withClassName(thingClassName)
-            .do(),
-          client.data
-            .getterById()
-            .withId(thingIds[1])
-            .withClassName(thingClassName)
-            .do(),
-        ]).catch((e: any) => {
+          client.data.getterById().withId(thingIds[0]).withClassName(thingClassName).do(),
+          client.data.getterById().withId(thingIds[1]).withClassName(thingClassName).do(),
+        ]).catch((e: Error) => {
           throw new Error('it should not have errord ' + e);
         });
       });
@@ -172,16 +169,8 @@ describe('batch importing', () => {
 
       it('verifies they are now queryable', () => {
         return Promise.all([
-          client.data
-            .getterById()
-            .withId(thingIds[2])
-            .withClassName(thingClassName)
-            .do(),
-          client.data
-            .getterById()
-            .withId(thingIds[3])
-            .withClassName(thingClassName)
-            .do(),
+          client.data.getterById().withId(thingIds[2]).withClassName(thingClassName).do(),
+          client.data.getterById().withId(thingIds[3]).withClassName(thingClassName).do(),
         ]).catch((e: any) => {
           throw new Error('it should not have errord ' + e);
         });
@@ -207,8 +196,8 @@ describe('batch importing', () => {
       it('imports them with consistency level', () => {
         client.batch
           .objectsBatcher()
-          .withConsistencyLevel(weaviate.replication.ConsistencyLevel.ONE)
-          .withObjects([toImport[0], toImport[1]])
+          .withConsistencyLevel('ONE')
+          .withObjects(...[toImport[0], toImport[1]])
           .do()
           .then()
           .catch((e: any) => {
@@ -222,16 +211,8 @@ describe('batch importing', () => {
 
       it('verifies they are now queryable', () => {
         return Promise.all([
-          client.data
-            .getterById()
-            .withId(toImport[0].id)
-            .withClassName(toImport[0].class)
-            .do(),
-          client.data
-            .getterById()
-            .withId(toImport[1].id)
-            .withClassName(toImport[1].class)
-            .do(),
+          client.data.getterById().withId(toImport[0].id).withClassName(toImport[0].class).do(),
+          client.data.getterById().withId(toImport[1].id).withClassName(toImport[1].class).do(),
         ]).catch((e: any) => {
           throw new Error('it should not have errord ' + e);
         });
@@ -245,10 +226,10 @@ describe('batch importing', () => {
         .referencesBatcher()
         .withReference(someReferences[0])
         .withReferences(someReferences[1], someReferences[2])
-        .withReferences([someReferences[3]]);
+        .withReferences(...[someReferences[3]]);
 
       expect(batcher.references).toHaveLength(someReferences.length);
-      batcher.references.forEach((ref: any, i: number) => {
+      batcher.references.forEach((ref: BatchReference, i: number) => {
         expect(ref.from).toBe(someReferences[i].from);
         expect(ref.to).toBe(someReferences[i].to);
       });
@@ -265,11 +246,11 @@ describe('batch importing', () => {
           from: `weaviate://localhost/${thingClassName}/${thingIds[1]}/refProp`,
           to: `weaviate://localhost/${otherThingClassName}/${otherThingIds[1]}`,
         })
-        .withConsistencyLevel(weaviate.replication.ConsistencyLevel.ALL)
+        .withConsistencyLevel('ALL')
         .do()
-        .then((res: any) => {
-          res.forEach((elem: any) => {
-            expect(elem.result.errors).toBeUndefined();
+        .then((res: BatchReferenceResponse[]) => {
+          res.forEach((elem: BatchReferenceResponse) => {
+            expect(elem.result!.errors).toBeUndefined();
           });
         })
         .catch((e: any) => {
@@ -298,9 +279,9 @@ describe('batch importing', () => {
         .referencesBatcher()
         .withReferences(reference1, reference2)
         .do()
-        .then((res: any[]) => {
-          res.forEach((elem: any) => {
-            expect(elem.result.errors).toBeUndefined();
+        .then((res: BatchReferenceResponse[]) => {
+          res.forEach((elem: BatchReferenceResponse) => {
+            expect(elem.result!.errors).toBeUndefined();
           });
         })
         .catch((e: any) => {
@@ -377,21 +358,21 @@ describe('batch deleting', () => {
       .objectsBatchDeleter()
       .withClassName(thingClassName)
       .withWhere({
-        operator: weaviate.filters.Operator.EQUAL,
+        operator: 'Equal',
         valueString: 'bar1',
         path: ['stringProp'],
       })
       .withDryRun(true)
-      .withOutput(weaviate.batch.DeleteOutput.VERBOSE)
+      .withOutput('verbose')
       .do()
       .then((result: any) => {
         expect(result.dryRun).toBe(true);
-        expect(result.output).toBe(weaviate.batch.DeleteOutput.VERBOSE);
+        expect(result.output).toBe('verbose');
         expect(result.match).toEqual({
           class: thingClassName,
           where: {
-            operands: null, // FIXME should not be received
-            operator: weaviate.filters.Operator.EQUAL,
+            operands: null,
+            operator: 'Equal',
             valueString: 'bar1',
             path: ['stringProp'],
           },
@@ -404,7 +385,7 @@ describe('batch deleting', () => {
           objects: [
             {
               id: thingIds[1],
-              status: weaviate.batch.DeleteResultStatus.DRYRUN,
+              status: 'DRYRUN',
             },
           ],
         });
@@ -415,21 +396,21 @@ describe('batch deleting', () => {
       .objectsBatchDeleter()
       .withClassName(otherThingClassName)
       .withWhere({
-        operator: weaviate.filters.Operator.LIKE,
+        operator: 'Like',
         valueString: 'foo3',
         path: ['stringProp'],
       })
       .withDryRun(true)
-      .withOutput(weaviate.batch.DeleteOutput.MINIMAL)
+      .withOutput('minimal')
       .do()
-      .then((result: any) => {
+      .then((result: BatchDeleteResponse) => {
         expect(result.dryRun).toBe(true);
-        expect(result.output).toBe(weaviate.batch.DeleteOutput.MINIMAL);
+        expect(result.output).toBe('minimal');
         expect(result.match).toEqual({
           class: otherThingClassName,
           where: {
-            operands: null, // FIXME should not be received
-            operator: weaviate.filters.Operator.LIKE,
+            operands: null,
+            operator: 'Like',
             valueString: 'foo3',
             path: ['stringProp'],
           },
@@ -448,19 +429,19 @@ describe('batch deleting', () => {
       .objectsBatchDeleter()
       .withClassName(otherThingClassName)
       .withWhere({
-        operator: weaviate.filters.Operator.EQUAL,
+        operator: 'Equal',
         valueString: 'doesNotExist',
         path: ['stringProp'],
       })
       .do()
       .then((result: any) => {
         expect(result.dryRun).toBe(false);
-        expect(result.output).toBe(weaviate.batch.DeleteOutput.MINIMAL);
+        expect(result.output).toBe('minimal');
         expect(result.match).toEqual({
           class: otherThingClassName,
           where: {
-            operands: null, // FIXME should not be received
-            operator: weaviate.filters.Operator.EQUAL,
+            operands: null,
+            operator: 'Equal',
             valueString: 'doesNotExist',
             path: ['stringProp'],
           },
@@ -480,21 +461,21 @@ describe('batch deleting', () => {
       .objectsBatchDeleter()
       .withClassName(otherThingClassName)
       .withWhere({
-        operator: weaviate.filters.Operator.LESS_THAN,
+        operator: 'LessThan',
         valueString: inAMinute,
         path: ['_creationTimeUnix'],
       })
-      .withOutput(weaviate.batch.DeleteOutput.VERBOSE)
-      .withConsistencyLevel(weaviate.replication.ConsistencyLevel.QUORUM)
+      .withOutput('verbose')
+      .withConsistencyLevel('QUORUM')
       .do()
       .then((result: any) => {
         expect(result.dryRun).toBe(false);
-        expect(result.output).toBe(weaviate.batch.DeleteOutput.VERBOSE);
+        expect(result.output).toBe('verbose');
         expect(result.match).toEqual({
           class: otherThingClassName,
           where: {
-            operands: null, // FIXME should not be received
-            operator: weaviate.filters.Operator.LESS_THAN,
+            operands: null,
+            operator: 'LessThan',
             valueString: inAMinute,
             path: ['_creationTimeUnix'],
           },
@@ -506,26 +487,14 @@ describe('batch deleting', () => {
         expect(result.results.objects).toHaveLength(2);
         expect(result.results.objects).toContainEqual({
           id: otherThingIds[0],
-          status: weaviate.batch.DeleteResultStatus.SUCCESS,
+          status: 'SUCCESS',
         });
         expect(result.results.objects).toContainEqual({
           id: otherThingIds[1],
-          status: weaviate.batch.DeleteResultStatus.SUCCESS,
+          status: 'SUCCESS',
         });
       });
   });
-
-  it('batch deletes fails due to validation', () =>
-    client.batch
-      .objectsBatchDeleter()
-      .withClassName('')
-      .withWhere('shouldBeObject')
-      .do()
-      .catch((err: Error) =>
-        expect(err.message).toBe(
-          'invalid usage: string className must be set - set with .withClassName(className), object where must be set - set with .withWhere(whereFilter)'
-        )
-      ));
 
   it('tears down and cleans up', () => cleanup(client));
 });
@@ -573,7 +542,10 @@ const setup = async (client: WeaviateClient) => {
 };
 
 const setupData = (client: WeaviateClient) => {
-  return client.batch.objectsBatcher().withObjects(someObjects).do();
+  return client.batch
+    .objectsBatcher()
+    .withObjects(...someObjects)
+    .do();
 };
 
 const cleanup = (client: WeaviateClient) =>

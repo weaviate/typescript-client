@@ -1,6 +1,7 @@
 import Getter from './getter';
 import Connection from '../connection';
 import { CommandBase } from '../validation/commandBase';
+import { Classification } from '../openapi/types';
 
 export default class Scheduler extends CommandBase {
   private basedOnProperties?: string[];
@@ -52,25 +53,17 @@ export default class Scheduler extends CommandBase {
     return this;
   };
 
-  validateIsSet = (
-    prop: string | undefined | null | any[],
-    name: string,
-    setter: string
-  ) => {
+  validateIsSet = (prop: string | undefined | null | any[], name: string, setter: string): void => {
     if (prop == undefined || prop == null || prop.length == 0) {
       this.addError(`${name} must be set - set with ${setter}`);
     }
   };
 
-  validateClassName = () => {
-    this.validateIsSet(
-      this.className,
-      'className',
-      '.withClassName(className)'
-    );
+  validateClassName = (): void => {
+    this.validateIsSet(this.className, 'className', '.withClassName(className)');
   };
 
-  validateBasedOnProperties = () => {
+  validateBasedOnProperties = (): void => {
     this.validateIsSet(
       this.basedOnProperties,
       'basedOnProperties',
@@ -78,7 +71,7 @@ export default class Scheduler extends CommandBase {
     );
   };
 
-  validateClassifyProperties = () => {
+  validateClassifyProperties = (): void => {
     this.validateIsSet(
       this.classifyProperties,
       'classifyProperties',
@@ -86,13 +79,13 @@ export default class Scheduler extends CommandBase {
     );
   };
 
-  validate = () => {
+  validate = (): void => {
     this.validateClassName();
     this.validateClassifyProperties();
     this.validateBasedOnProperties();
   };
 
-  payload = () => ({
+  payload = (): Classification => ({
     type: this.type,
     settings: this.settings,
     class: this.className,
@@ -100,7 +93,7 @@ export default class Scheduler extends CommandBase {
     basedOnProperties: this.basedOnProperties,
   });
 
-  pollForCompletion = (id: any) => {
+  pollForCompletion = (id: any): Promise<Classification> => {
     return new Promise((resolve, reject) => {
       setTimeout(
         () =>
@@ -117,18 +110,16 @@ export default class Scheduler extends CommandBase {
         new Getter(this.client)
           .withId(id)
           .do()
-          .then((res: any) => {
+          .then((res: Classification) => {
             if (res.status === 'completed') resolve(res);
           });
       }, 500);
     });
   };
 
-  do = () => {
+  do = (): Promise<Classification> => {
     if (this.errors.length > 0) {
-      return Promise.reject(
-        new Error('invalid usage: ' + this.errors.join(', '))
-      );
+      return Promise.reject(new Error('invalid usage: ' + this.errors.join(', ')));
     }
     this.validate();
 

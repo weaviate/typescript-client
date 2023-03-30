@@ -3,7 +3,8 @@ import OpenidConfigurationGetter from '../misc/openidConfigurationGetter';
 
 import httpClient, { HttpClient } from './httpClient';
 import gqlClient, { GraphQLClient } from './gqlClient';
-import { ConnectionParams } from '../index';
+import { ConnectionParams } from '..';
+import { Variables } from 'graphql-request';
 
 export default class Connection {
   private apiKey?: string;
@@ -21,9 +22,7 @@ export default class Connection {
 
   private parseAuthParams(params: ConnectionParams): boolean {
     if (params.authClientSecret && params.apiKey) {
-      throw new Error(
-        'must provide one of authClientSecret (OIDC) or apiKey, cannot provide both'
-      );
+      throw new Error('must provide one of authClientSecret (OIDC) or apiKey, cannot provide both');
     }
     if (params.authClientSecret) {
       this.oidcAuth = new OidcAuthenticator(this.http, params.authClientSecret);
@@ -46,36 +45,28 @@ export default class Connection {
 
   post = (path: string, payload: any, expectReturnContent = true) => {
     if (this.authEnabled) {
-      return this.login().then((token) =>
-        this.http.post(path, payload, expectReturnContent, token)
-      );
+      return this.login().then((token) => this.http.post(path, payload, expectReturnContent, token));
     }
     return this.http.post(path, payload, expectReturnContent);
   };
 
   put = (path: string, payload: any, expectReturnContent = true) => {
     if (this.authEnabled) {
-      return this.login().then((token) =>
-        this.http.put(path, payload, expectReturnContent, token)
-      );
+      return this.login().then((token) => this.http.put(path, payload, expectReturnContent, token));
     }
     return this.http.put(path, payload, expectReturnContent);
   };
 
   patch = (path: string, payload: any) => {
     if (this.authEnabled) {
-      return this.login().then((token) =>
-        this.http.patch(path, payload, token)
-      );
+      return this.login().then((token) => this.http.patch(path, payload, token));
     }
     return this.http.patch(path, payload);
   };
 
   delete = (path: string, payload: any, expectReturnContent = false) => {
     if (this.authEnabled) {
-      return this.login().then((token) =>
-        this.http.delete(path, payload, expectReturnContent, token)
-      );
+      return this.login().then((token) => this.http.delete(path, payload, expectReturnContent, token));
     }
     return this.http.delete(path, payload, expectReturnContent);
   };
@@ -89,21 +80,19 @@ export default class Connection {
 
   get = (path: string, expectReturnContent = true) => {
     if (this.authEnabled) {
-      return this.login().then((token) =>
-        this.http.get(path, expectReturnContent, token)
-      );
+      return this.login().then((token) => this.http.get(path, expectReturnContent, token));
     }
     return this.http.get(path, expectReturnContent);
   };
 
-  query = (query: any) => {
+  query = (query: any, variables?: Variables) => {
     if (this.authEnabled) {
       return this.login().then((token) => {
         const headers = { Authorization: `Bearer ${token}` };
-        return this.gql.query(query, headers);
+        return this.gql.query(query, variables, headers);
       });
     }
-    return this.gql.query(query);
+    return this.gql.query(query, variables);
   };
 
   login = async () => {
@@ -118,9 +107,7 @@ export default class Connection {
     const localConfig = await new OpenidConfigurationGetter(this.http).do();
 
     if (localConfig === undefined) {
-      console.warn(
-        'client is configured for authentication, but server is not'
-      );
+      console.warn('client is configured for authentication, but server is not');
       return '';
     }
 
@@ -130,3 +117,5 @@ export default class Connection {
     return this.oidcAuth.getAccessToken();
   };
 }
+
+export * from './auth';

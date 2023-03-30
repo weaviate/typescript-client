@@ -4,6 +4,9 @@ import BackupRestorer from './backupRestorer';
 import BackupRestoreStatusGetter from './backupRestoreStatusGetter';
 import Connection from '../connection';
 
+export type Backend = 'filesystem' | 's3' | 'gcs' | 'azure';
+export type BackupStatus = 'STARTED' | 'TRANSFERRING' | 'TRANSFERRED' | 'SUCCESS' | 'FAILED';
+
 export interface Backup {
   creator: () => BackupCreator;
   createStatusGetter: () => BackupCreateStatusGetter;
@@ -13,11 +16,9 @@ export interface Backup {
 
 const backup = (client: Connection): Backup => {
   return {
-    creator: () =>
-      new BackupCreator(client, new BackupCreateStatusGetter(client)),
+    creator: () => new BackupCreator(client, new BackupCreateStatusGetter(client)),
     createStatusGetter: () => new BackupCreateStatusGetter(client),
-    restorer: () =>
-      new BackupRestorer(client, new BackupRestoreStatusGetter(client)),
+    restorer: () => new BackupRestorer(client, new BackupRestoreStatusGetter(client)),
     restoreStatusGetter: () => new BackupRestoreStatusGetter(client),
   };
 };

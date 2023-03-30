@@ -2,21 +2,23 @@ import { isValidStringProperty } from '../validation/string';
 import Connection from '../connection';
 import { ObjectsPath } from './path';
 import { CommandBase } from '../validation/commandBase';
+import { Properties, WeaviateObject } from '../openapi/types';
+import { ConsistencyLevel } from './replication';
 
 export default class Creator extends CommandBase {
   private className?: string;
-  private consistencyLevel?: string;
+  private consistencyLevel?: ConsistencyLevel;
   private id?: string;
   private objectsPath: ObjectsPath;
-  private properties?: any;
-  private vector: any;
+  private properties?: Properties;
+  private vector?: number[];
 
   constructor(client: Connection, objectsPath: ObjectsPath) {
     super(client);
     this.objectsPath = objectsPath;
   }
 
-  withVector = (vector: any) => {
+  withVector = (vector: number[]) => {
     this.vector = vector;
     return this;
   };
@@ -26,7 +28,7 @@ export default class Creator extends CommandBase {
     return this;
   };
 
-  withProperties = (properties: any) => {
+  withProperties = (properties: Properties) => {
     this.properties = properties;
     return this;
   };
@@ -36,16 +38,14 @@ export default class Creator extends CommandBase {
     return this;
   };
 
-  withConsistencyLevel = (cl: string) => {
+  withConsistencyLevel = (cl: ConsistencyLevel) => {
     this.consistencyLevel = cl;
     return this;
   };
 
   validateClassName = () => {
     if (!isValidStringProperty(this.className)) {
-      this.addError(
-        'className must be set - set with .withClassName(className)'
-      );
+      this.addError('className must be set - set with .withClassName(className)');
     }
   };
 
@@ -60,12 +60,10 @@ export default class Creator extends CommandBase {
     this.validateClassName();
   };
 
-  do = () => {
+  do = (): Promise<WeaviateObject> => {
     this.validate();
     if (this.errors.length > 0) {
-      return Promise.reject(
-        new Error('invalid usage: ' + this.errors.join(', '))
-      );
+      return Promise.reject(new Error('invalid usage: ' + this.errors.join(', ')));
     }
 
     return this.objectsPath

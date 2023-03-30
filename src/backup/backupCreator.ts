@@ -1,4 +1,3 @@
-import { CreateStatus } from './consts';
 import {
   validateBackend,
   validateBackupId,
@@ -8,12 +7,14 @@ import {
 import BackupCreateStatusGetter from './backupCreateStatusGetter';
 import Connection from '../connection';
 import { CommandBase } from '../validation/commandBase';
+import { BackupCreateRequest, BackupCreateResponse, BackupCreateStatusResponse } from '../openapi/types';
+import { Backend } from '.';
 
 const WAIT_INTERVAL = 1000;
 
 export default class BackupCreator extends CommandBase {
-  private backend?: string;
-  private backupId?: string;
+  private backend!: Backend;
+  private backupId!: string;
   private excludeClassNames?: string[];
   private includeClassNames?: string[];
   private statusGetter: BackupCreateStatusGetter;
@@ -42,7 +43,7 @@ export default class BackupCreator extends CommandBase {
     return this;
   }
 
-  withBackend(backend: string) {
+  withBackend(backend: Backend) {
     this.backend = backend;
     return this;
   }
@@ -57,21 +58,19 @@ export default class BackupCreator extends CommandBase {
     return this;
   }
 
-  validate() {
+  validate = (): void => {
     this.addErrors([
       ...validateIncludeClassNames(this.includeClassNames),
       ...validateExcludeClassNames(this.excludeClassNames),
       ...validateBackend(this.backend),
       ...validateBackupId(this.backupId),
     ]);
-  }
+  };
 
-  do() {
+  do = (): Promise<BackupCreateResponse> => {
     this.validate();
     if (this.errors.length > 0) {
-      return Promise.reject(
-        new Error('invalid usage: ' + this.errors.join(', '))
-      );
+      return Promise.reject(new Error('invalid usage: ' + this.errors.join(', ')));
     }
 
     const payload = {
@@ -79,34 +78,29 @@ export default class BackupCreator extends CommandBase {
       config: {},
       include: this.includeClassNames,
       exclude: this.excludeClassNames,
-    };
+    } as BackupCreateRequest;
 
     if (this.waitForCompletion) {
       return this._createAndWaitForCompletion(payload);
     }
     return this._create(payload);
-  }
+  };
 
-  _create(payload: any) {
-    return this.client.post(this._path(), payload);
-  }
+  _create = (payload: BackupCreateRequest): Promise<BackupCreateResponse> => {
+    return this.client.post(this._path(), payload) as Promise<BackupCreateResponse>;
+  };
 
-  _createAndWaitForCompletion(payload: any) {
-    return new Promise((resolve, reject) => {
+  _createAndWaitForCompletion = (payload: BackupCreateRequest): Promise<BackupCreateResponse> => {
+    return new Promise<BackupCreateResponse>((resolve, reject) => {
       this._create(payload)
         .then((createResponse: any) => {
-          this.statusGetter
-            .withBackend(this.backend!)
-            .withBackupId(this.backupId!);
+          this.statusGetter.withBackend(this.backend).withBackupId(this.backupId);
 
           const loop = () => {
             this.statusGetter
               .do()
               .then((createStatusResponse: any) => {
-                if (
-                  createStatusResponse.status == CreateStatus.SUCCESS ||
-                  createStatusResponse.status == CreateStatus.FAILED
-                ) {
+                if (createStatusResponse.status == 'SUCCESS' || createStatusResponse.status == 'FAILED') {
                   resolve(this._merge(createStatusResponse, createResponse));
                 } else {
                   setTimeout(loop, WAIT_INTERVAL);
@@ -119,14 +113,17 @@ export default class BackupCreator extends CommandBase {
         })
         .catch(reject);
     });
-  }
+  };
 
-  _path() {
+  private _path = (): string => {
     return `/backups/${this.backend}`;
-  }
+  };
 
-  _merge(createStatusResponse: any, createResponse: any) {
-    const merged: any = {};
+  _merge = (
+    createStatusResponse: BackupCreateStatusResponse,
+    createResponse: BackupCreateResponse
+  ): BackupCreateResponse => {
+    const merged: BackupCreateResponse = {};
     if ('id' in createStatusResponse) {
       merged.id = createStatusResponse.id;
     }
@@ -146,5 +143,5 @@ export default class BackupCreator extends CommandBase {
       merged.classes = createResponse.classes;
     }
     return merged;
-  }
+  };
 }

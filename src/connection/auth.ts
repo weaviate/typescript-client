@@ -41,25 +41,13 @@ export class OidcAuthenticator {
     let authenticator: OidcAuthFlow;
     switch (this.creds.constructor) {
       case AuthUserPasswordCredentials:
-        authenticator = new UserPasswordAuthenticator(
-          this.http,
-          this.creds,
-          config
-        );
+        authenticator = new UserPasswordAuthenticator(this.http, this.creds, config);
         break;
       case AuthAccessTokenCredentials:
-        authenticator = new AccessTokenAuthenticator(
-          this.http,
-          this.creds,
-          config
-        );
+        authenticator = new AccessTokenAuthenticator(this.http, this.creds, config);
         break;
       case AuthClientCredentials:
-        authenticator = new ClientCredentialsAuthenticator(
-          this.http,
-          this.creds,
-          config
-        );
+        authenticator = new ClientCredentialsAuthenticator(this.http, this.creds, config);
         break;
       default:
         throw new Error('unsupported credential type');
@@ -77,16 +65,14 @@ export class OidcAuthenticator {
   };
 
   getOpenidConfig = (localConfig: any) => {
-    return this.http
-      .externalGet(localConfig.href)
-      .then((openidProviderConfig: any) => {
-        const scopes = localConfig.scopes || [];
-        return {
-          clientId: localConfig.clientId,
-          provider: openidProviderConfig,
-          scopes: scopes,
-        };
-      });
+    return this.http.externalGet(localConfig.href).then((openidProviderConfig: any) => {
+      const scopes = localConfig.scopes || [];
+      return {
+        clientId: localConfig.clientId,
+        provider: openidProviderConfig,
+        scopes: scopes,
+      };
+    });
   };
 
   runBackgroundTokenRefresh = (authenticator: { refresh: () => any }) => {
@@ -166,9 +152,7 @@ class UserPasswordAuthenticator implements OidcAuthFlow {
         };
       })
       .catch((err: any) => {
-        return Promise.reject(
-          new Error(`failed to refresh access token: ${err}`)
-        );
+        return Promise.reject(new Error(`failed to refresh access token: ${err}`));
       });
   };
 
@@ -179,11 +163,7 @@ class UserPasswordAuthenticator implements OidcAuthFlow {
     ) {
       throw new Error('grant_type password not supported');
     }
-    if (
-      this.openidConfig.provider.token_endpoint.includes(
-        'https://login.microsoftonline.com'
-      )
-    ) {
+    if (this.openidConfig.provider.token_endpoint.includes('https://login.microsoftonline.com')) {
       throw new Error(
         'microsoft/azure recommends to avoid authentication using ' +
           'username and password, so this method is not supported by this client'
@@ -245,13 +225,8 @@ class AccessTokenAuthenticator implements OidcAuthFlow {
   }
 
   refresh = () => {
-    if (
-      this.creds.refreshToken === undefined ||
-      this.creds.refreshToken == ''
-    ) {
-      console.warn(
-        'AuthAccessTokenCredentials not provided with refreshToken, cannot refresh'
-      );
+    if (this.creds.refreshToken === undefined || this.creds.refreshToken == '') {
+      console.warn('AuthAccessTokenCredentials not provided with refreshToken, cannot refresh');
       return Promise.resolve({
         accessToken: this.creds.accessToken,
         expiresAt: this.creds.expiresAt,
@@ -267,18 +242,14 @@ class AccessTokenAuthenticator implements OidcAuthFlow {
         };
       })
       .catch((err: any) => {
-        return Promise.reject(
-          new Error(`failed to refresh access token: ${err}`)
-        );
+        return Promise.reject(new Error(`failed to refresh access token: ${err}`));
       });
   };
 
   validateOpenidConfig = () => {
     if (
       this.openidConfig.provider.grant_types_supported === undefined ||
-      !this.openidConfig.provider.grant_types_supported.includes(
-        'refresh_token'
-      )
+      !this.openidConfig.provider.grant_types_supported.includes('refresh_token')
     ) {
       throw new Error('grant_type refresh_token not supported');
     }
@@ -336,9 +307,7 @@ class ClientCredentialsAuthenticator implements OidcAuthFlow {
         };
       })
       .catch((err: any) => {
-        return Promise.reject(
-          new Error(`failed to refresh access token: ${err}`)
-        );
+        return Promise.reject(new Error(`failed to refresh access token: ${err}`));
       });
   };
 
@@ -346,11 +315,7 @@ class ClientCredentialsAuthenticator implements OidcAuthFlow {
     if (this.openidConfig.scopes.length > 0) {
       return;
     }
-    if (
-      this.openidConfig.provider.token_endpoint.includes(
-        'https://login.microsoftonline.com'
-      )
-    ) {
+    if (this.openidConfig.provider.token_endpoint.includes('https://login.microsoftonline.com')) {
       this.openidConfig.scopes.push(this.openidConfig.clientId + '/.default');
     }
   };

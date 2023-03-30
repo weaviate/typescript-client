@@ -1,6 +1,7 @@
 import { isValidStringProperty } from '../validation/string';
 import Connection from '../connection';
 import { CommandBase } from '../validation/commandBase';
+import { Reference } from '../openapi/types';
 
 export default class ReferencePayloadBuilder extends CommandBase {
   private className?: string;
@@ -20,11 +21,7 @@ export default class ReferencePayloadBuilder extends CommandBase {
     return this;
   }
 
-  validateIsSet = (
-    prop: string | undefined | null,
-    name: string,
-    setter: string
-  ) => {
+  validateIsSet = (prop: string | undefined | null, name: string, setter: string) => {
     if (prop == undefined || prop == null || prop.length == 0) {
       this.addError(`${name} must be set - set with ${setter}`);
     }
@@ -34,7 +31,7 @@ export default class ReferencePayloadBuilder extends CommandBase {
     this.validateIsSet(this.id, 'id', '.withId(id)');
   };
 
-  payload = () => {
+  payload = (): Reference => {
     this.validate();
     if (this.errors.length > 0) {
       throw new Error(this.errors.join(', '));

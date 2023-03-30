@@ -1,8 +1,8 @@
-import NearText from './nearText';
-import NearVector from './nearVector';
-import NearObject from './nearObject';
-import NearImage from './nearImage';
-import Ask from './ask';
+import NearText, { NearTextArgs } from './nearText';
+import NearVector, { NearVectorArgs } from './nearVector';
+import NearObject, { NearObjectArgs } from './nearObject';
+import NearImage, { NearImageArgs } from './nearImage';
+import Ask, { AskArgs } from './ask';
 import Connection from '../connection';
 import { CommandBase } from '../validation/commandBase';
 
@@ -32,45 +32,45 @@ export default class Explorer extends CommandBase {
     return this;
   };
 
-  withNearText = (nearTextObj: any) => {
+  withNearText = (args: NearTextArgs) => {
     try {
-      this.nearTextString = new NearText(nearTextObj).toString();
+      this.nearTextString = new NearText(args).toString();
     } catch (e: any) {
       this.addError(e.toString());
     }
     return this;
   };
 
-  withNearObject = (nearObjectObj: any) => {
+  withNearObject = (args: NearObjectArgs) => {
     try {
-      this.nearObjectString = new NearObject(nearObjectObj).toString();
+      this.nearObjectString = new NearObject(args).toString();
     } catch (e: any) {
       this.addError(e.toString());
     }
     return this;
   };
 
-  withAsk = (askObj: any) => {
+  withAsk = (args: AskArgs) => {
     try {
-      this.askString = new Ask(askObj).toString();
+      this.askString = new Ask(args).toString();
     } catch (e: any) {
       this.addError(e.toString());
     }
     return this;
   };
 
-  withNearImage = (nearImageObj: any) => {
+  withNearImage = (args: NearImageArgs) => {
     try {
-      this.nearImageString = new NearImage(nearImageObj).toString();
+      this.nearImageString = new NearImage(args).toString();
     } catch (e: any) {
       this.addError(e.toString());
     }
     return this;
   };
 
-  withNearVector = (nearVectorObj: any) => {
+  withNearVector = (args: NearVectorArgs) => {
     try {
-      this.nearVectorString = new NearVector(nearVectorObj).toString();
+      this.nearVectorString = new NearVector(args).toString();
     } catch (e: any) {
       this.addError(e.toString());
     }
@@ -88,11 +88,7 @@ export default class Explorer extends CommandBase {
     }
   };
 
-  validateIsSet = (
-    prop: string | undefined | null,
-    name: string,
-    setter: string
-  ) => {
+  validateIsSet = (prop: string | undefined | null, name: string, setter: string) => {
     if (prop == undefined || prop == null || prop.length == 0) {
       this.addError(`${name} must be set - set with ${setter}`);
     }
@@ -107,12 +103,10 @@ export default class Explorer extends CommandBase {
 
     this.validate();
     if (this.errors.length > 0) {
-      return Promise.reject(
-        new Error('invalid usage: ' + this.errors.join(', '))
-      );
+      return Promise.reject(new Error('invalid usage: ' + this.errors.join(', ')));
     }
 
-    let args: any[] = [];
+    let args: string[] = [];
 
     if (this.nearTextString) {
       args = [...args, `nearText:${this.nearTextString}`];

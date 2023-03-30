@@ -1,34 +1,15 @@
 import fetch from 'isomorphic-fetch';
-import { ConnectionParams } from '../index';
+import { ConnectionParams } from '..';
 
 export interface HttpClient {
   patch: (path: string, payload: any, bearerToken?: string) => any;
   head: (path: string, payload: any, bearerToken?: string) => any;
-  post: (
-    path: string,
-    payload: any,
-    expectReturnContent?: boolean,
-    bearerToken?: string
-  ) => any;
-  get: (
-    path: string,
-    expectReturnContent?: boolean,
-    bearerToken?: string
-  ) => any;
+  post: (path: string, payload: any, expectReturnContent?: boolean, bearerToken?: string) => any;
+  get: (path: string, expectReturnContent?: boolean, bearerToken?: string) => any;
   externalPost: (externalUrl: string, body: any, contentType: any) => any;
   getRaw: (path: string, bearerToken?: string) => any;
-  delete: (
-    path: string,
-    payload: any,
-    expectReturnContent?: boolean,
-    bearerToken?: string
-  ) => any;
-  put: (
-    path: string,
-    payload: any,
-    expectReturnContent?: boolean,
-    bearerToken?: string
-  ) => any;
+  delete: (path: string, payload: any, expectReturnContent?: boolean, bearerToken?: string) => any;
+  put: (path: string, payload: any, expectReturnContent?: boolean, bearerToken?: string) => any;
   externalGet: (externalUrl: string) => Promise<any>;
 }
 
@@ -37,12 +18,7 @@ export const httpClient = (config: ConnectionParams): HttpClient => {
   const url = makeUrl(baseUri);
 
   return {
-    post: (
-      path: string,
-      payload: any,
-      expectReturnContent = true,
-      bearerToken = ''
-    ) => {
+    post: (path: string, payload: any, expectReturnContent = true, bearerToken = '') => {
       const request = {
         method: 'POST',
         headers: {
@@ -52,16 +28,9 @@ export const httpClient = (config: ConnectionParams): HttpClient => {
         body: JSON.stringify(payload),
       };
       addAuthHeaderIfNeeded(request, bearerToken);
-      return fetch(url(path), request).then(
-        makeCheckStatus(expectReturnContent)
-      );
+      return fetch(url(path), request).then(makeCheckStatus(expectReturnContent));
     },
-    put: (
-      path: string,
-      payload: any,
-      expectReturnContent = true,
-      bearerToken = ''
-    ) => {
+    put: (path: string, payload: any, expectReturnContent = true, bearerToken = '') => {
       const request = {
         method: 'PUT',
         headers: {
@@ -71,9 +40,7 @@ export const httpClient = (config: ConnectionParams): HttpClient => {
         body: JSON.stringify(payload),
       };
       addAuthHeaderIfNeeded(request, bearerToken);
-      return fetch(url(path), request).then(
-        makeCheckStatus(expectReturnContent)
-      );
+      return fetch(url(path), request).then(makeCheckStatus(expectReturnContent));
     },
     patch: (path: string, payload: any, bearerToken = '') => {
       const request = {
@@ -87,12 +54,7 @@ export const httpClient = (config: ConnectionParams): HttpClient => {
       addAuthHeaderIfNeeded(request, bearerToken);
       return fetch(url(path), request).then(makeCheckStatus(false));
     },
-    delete: (
-      path: string,
-      payload: any,
-      expectReturnContent = false,
-      bearerToken = ''
-    ) => {
+    delete: (path: string, payload: any, expectReturnContent = false, bearerToken = '') => {
       const request = {
         method: 'DELETE',
         headers: {
@@ -102,9 +64,7 @@ export const httpClient = (config: ConnectionParams): HttpClient => {
         body: payload ? JSON.stringify(payload) : undefined,
       };
       addAuthHeaderIfNeeded(request, bearerToken);
-      return fetch(url(path), request).then(
-        makeCheckStatus(expectReturnContent)
-      );
+      return fetch(url(path), request).then(makeCheckStatus(expectReturnContent));
     },
     head: (path: string, payload: any, bearerToken = '') => {
       const request = {
@@ -116,9 +76,7 @@ export const httpClient = (config: ConnectionParams): HttpClient => {
         body: payload ? JSON.stringify(payload) : undefined,
       };
       addAuthHeaderIfNeeded(request, bearerToken);
-      return fetch(url(path), request).then(
-        handleHeadResponse(false /* , true*/)
-      ); // FIXME 1 extra param
+      return fetch(url(path), request).then(handleHeadResponse(false));
     },
     get: (path: string, expectReturnContent = true, bearerToken = '') => {
       const request = {
@@ -128,9 +86,7 @@ export const httpClient = (config: ConnectionParams): HttpClient => {
         },
       };
       addAuthHeaderIfNeeded(request, bearerToken);
-      return fetch(url(path), request).then(
-        makeCheckStatus(expectReturnContent)
-      );
+      return fetch(url(path), request).then(makeCheckStatus(expectReturnContent));
     },
     getRaw: (path: string, bearerToken = '') => {
       // getRaw does not handle the status leaving this to the caller

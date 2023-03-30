@@ -1,11 +1,12 @@
 import { isValidStringProperty } from '../validation/string';
 import Connection from '../connection';
 import { CommandBase } from '../validation/commandBase';
+import { Properties } from '../openapi/types';
 
 export default class Validator extends CommandBase {
   private className?: string;
   private id?: string;
-  private properties?: any;
+  private properties?: Properties;
 
   constructor(client: Connection) {
     super(client);
@@ -16,7 +17,7 @@ export default class Validator extends CommandBase {
     return this;
   };
 
-  withProperties = (properties: any) => {
+  withProperties = (properties: Properties) => {
     this.properties = properties;
     return this;
   };
@@ -28,9 +29,7 @@ export default class Validator extends CommandBase {
 
   validateClassName = () => {
     if (!isValidStringProperty(this.className)) {
-      this.addError(
-        'className must be set - set with .withClassName(className)'
-      );
+      this.addError('className must be set - set with .withClassName(className)');
     }
   };
 
@@ -47,9 +46,7 @@ export default class Validator extends CommandBase {
   do = () => {
     this.validate();
     if (this.errors.length > 0) {
-      return Promise.reject(
-        new Error('invalid usage: ' + this.errors.join(', '))
-      );
+      return Promise.reject(new Error('invalid usage: ' + this.errors.join(', ')));
     }
     const path = `/objects/validate`;
     return this.client.post(path, this.payload(), false).then(() => true);

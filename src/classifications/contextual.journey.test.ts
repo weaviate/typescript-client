@@ -1,4 +1,5 @@
-import weaviate from '../index';
+import weaviate from '..';
+import { Classification } from '../openapi/types';
 
 const targetDessertId = '9f399d3e-45a4-44f4-b0fd-fa291abfb211';
 const targetSavoryId = 'b7a64fbd-7c22-44ac-afbb-8d1432b8061b';
@@ -32,12 +33,12 @@ describe('a classification journey', () => {
           .withWaitForCompletion()
           .withWaitTimeout(60 * 1000)
           .do()
-          .then((res: any) => {
+          .then((res: Classification) => {
             expect(res.status).toEqual('completed');
             expect(res.type).toEqual('text2vec-contextionary-contextual');
             id = res.id;
           })
-          .catch((e: any) => {
+          .catch((e: Error) => {
             throw new Error('it should not have errord: ' + e);
           });
       },
@@ -116,14 +117,8 @@ const setup = async (client: any) => {
 
 const cleanup = (client: any) => {
   return Promise.all([
-    client.schema
-      .classDeleter()
-      .withClassName('ContextualClassificationJourneySource')
-      .do(),
-    client.schema
-      .classDeleter()
-      .withClassName('ContextualClassificationJourneyTarget')
-      .do(),
+    client.schema.classDeleter().withClassName('ContextualClassificationJourneySource').do(),
+    client.schema.classDeleter().withClassName('ContextualClassificationJourneyTarget').do(),
   ]);
 };
 
