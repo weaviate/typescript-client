@@ -1,11 +1,11 @@
 import Aggregator from './aggregator';
-import Getter from './getter';
+import GraphQLGetter from './getter';
 import Explorer from './explorer';
 import Raw from './raw';
 import Connection from '../connection';
 
 export interface GraphQL {
-  get: () => Getter;
+  get: () => GraphQLGetter;
   aggregate: () => Aggregator;
   explore: () => Explorer;
   raw: () => Raw;
@@ -13,7 +13,7 @@ export interface GraphQL {
 
 const graphql = (client: Connection): GraphQL => {
   return {
-    get: () => new Getter(client),
+    get: () => new GraphQLGetter(client),
     aggregate: () => new Aggregator(client),
     explore: () => new Explorer(client),
     raw: () => new Raw(client),
@@ -21,3 +21,7 @@ const graphql = (client: Connection): GraphQL => {
 };
 
 export default graphql;
+export { default as Aggregator } from './aggregator';
+export { default as GraphQLGetter } from './getter';
+export { default as Explorer } from './explorer';
+export { default as Raw } from './raw';

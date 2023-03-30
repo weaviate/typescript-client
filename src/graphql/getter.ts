@@ -12,7 +12,7 @@ import Connection from '../connection';
 import { CommandBase } from '../validation/commandBase';
 import { WhereFilter } from '../openapi/types';
 
-export default class Getter extends CommandBase {
+export default class GraphQLGetter extends CommandBase {
   private after?: string;
   private askString?: string;
   private bm25String?: string;

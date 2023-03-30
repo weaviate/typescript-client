@@ -1,9 +1,9 @@
-import Getter from './getter';
+import ClassificationsGetter from './getter';
 import Connection from '../connection';
 import { CommandBase } from '../validation/commandBase';
 import { Classification } from '../openapi/types';
 
-export default class Scheduler extends CommandBase {
+export default class ClassificationsScheduler extends CommandBase {
   private basedOnProperties?: string[];
   private classifyProperties?: string[];
   private className?: string;
@@ -107,7 +107,7 @@ export default class Scheduler extends CommandBase {
       );
 
       setInterval(() => {
-        new Getter(this.client)
+        new ClassificationsGetter(this.client)
           .withId(id)
           .do()
           .then((res: Classification) => {

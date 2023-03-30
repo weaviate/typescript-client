@@ -2,7 +2,7 @@ import ClassCreator from './classCreator';
 import ClassDeleter from './classDeleter';
 import ClassGetter from './classGetter';
 import PropertyCreator from './propertyCreator';
-import Getter from './getter';
+import SchemaGetter from './getter';
 import ShardsGetter from './shardsGetter';
 import ShardUpdater from './shardUpdater';
 import ShardsUpdater from './shardsUpdater';
@@ -12,7 +12,7 @@ export interface Schema {
   classCreator: () => ClassCreator;
   classDeleter: () => ClassDeleter;
   classGetter: () => ClassGetter;
-  getter: () => Getter;
+  getter: () => SchemaGetter;
   propertyCreator: () => PropertyCreator;
   shardsGetter: () => ShardsGetter;
   shardUpdater: () => ShardUpdater;
@@ -24,7 +24,7 @@ const schema = (client: Connection): Schema => {
     classCreator: () => new ClassCreator(client),
     classDeleter: () => new ClassDeleter(client),
     classGetter: () => new ClassGetter(client),
-    getter: () => new Getter(client),
+    getter: () => new SchemaGetter(client),
     propertyCreator: () => new PropertyCreator(client),
     shardsGetter: () => new ShardsGetter(client),
     shardUpdater: () => new ShardUpdater(client),
@@ -33,3 +33,10 @@ const schema = (client: Connection): Schema => {
 };
 
 export default schema;
+export { default as ClassCreator } from './classCreator';
+export { default as ClassDeleter } from './classDeleter';
+export { default as ClassGetter } from './classGetter';
+export { default as PropertyCreator } from './propertyCreator';
+export { default as SchemaGetter } from './getter';
+export { default as ShardUpdater } from './shardUpdater';
+export { default as ShardsUpdater } from './shardsUpdater';

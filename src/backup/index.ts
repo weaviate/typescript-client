@@ -24,3 +24,7 @@ const backup = (client: Connection): Backup => {
 };
 
 export default backup;
+export { default as BackupCreator } from './backupCreator';
+export { default as BackupCreateStatusGetter } from './backupCreateStatusGetter';
+export { default as BackupRestorer } from './backupRestorer';
+export { default as BackupRestoreStatusGetter } from './backupRestoreStatusGetter';

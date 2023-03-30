@@ -28,3 +28,6 @@ const batch = (client: Connection, dbVersionSupport: DbVersionSupport): Batch =>
 };
 
 export default batch;
+export { default as ObjectsBatcher } from './objectsBatcher';
+export { default as ObjectsBatchDeleter } from './objectsBatchDeleter';
+export { default as ReferencesBatcher } from './referencesBatcher';
