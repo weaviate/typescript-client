@@ -2,7 +2,7 @@ import Connection from '../connection';
 import { CommandBase } from '../validation/commandBase';
 import { WeaviateSchema } from '../openapi/types';
 
-export default class Getter extends CommandBase {
+export default class SchemaGetter extends CommandBase {
   constructor(client: Connection) {
     super(client);
   }

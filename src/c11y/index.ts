@@ -15,3 +15,5 @@ const c11y = (client: Connection): C11y => {
 };
 
 export default c11y;
+export { default as ExtensionCreator } from './extensionCreator';
+export { default as ConceptsGetter } from './conceptsGetter';

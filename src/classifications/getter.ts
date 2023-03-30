@@ -2,7 +2,7 @@ import Connection from '../connection';
 import { CommandBase } from '../validation/commandBase';
 import { Classification } from '../openapi/types';
 
-export default class Getter extends CommandBase {
+export default class ClassificationsGetter extends CommandBase {
   private id?: string;
 
   constructor(client: Connection) {

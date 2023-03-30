@@ -22,3 +22,7 @@ const misc = (client: Connection, dbVersionProvider: DbVersionProvider): Misc =>
 };
 
 export default misc;
+export { default as LiveChecker } from './liveChecker';
+export { default as ReadyChecker } from './readyChecker';
+export { default as MetaGetter } from './metaGetter';
+export { default as OpenidConfigurationGetter } from './openidConfigurationGetter';

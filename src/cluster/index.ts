@@ -14,3 +14,4 @@ const cluster = (client: Connection): Cluster => {
 };
 
 export default cluster;
+export { default as NodesStatusGetter } from './nodesStatusGetter';

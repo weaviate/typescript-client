@@ -1,4 +1,4 @@
-import { ApiKey, OidcAuthenticator } from './auth';
+import { OidcAuthenticator } from './auth';
 import OpenidConfigurationGetter from '../misc/openidConfigurationGetter';
 
 import httpClient, { HttpClient } from './httpClient';

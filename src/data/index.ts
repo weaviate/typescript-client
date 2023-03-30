@@ -52,3 +52,15 @@ const data = (client: Connection, dbVersionSupport: DbVersionSupport): Data => {
 };
 
 export default data;
+export { default as Creator } from './creator';
+export { default as Validator } from './validator';
+export { default as Updater } from './updater';
+export { default as Merger } from './merger';
+export { default as Getter } from './getter';
+export { default as GetterById } from './getterById';
+export { default as Deleter } from './deleter';
+export { default as Checker } from './checker';
+export { default as ReferenceCreator } from './referenceCreator';
+export { default as ReferenceReplacer } from './referenceReplacer';
+export { default as ReferenceDeleter } from './referenceDeleter';
+export { default as ReferencePayloadBuilder } from './referencePayloadBuilder';
