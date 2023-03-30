@@ -494,17 +494,6 @@ describe('nearText searchers', () => {
 
     tests.forEach((t) => {
       test(t.title, () => {
-        // new Getter(mockClient)
-        //   .withClassName('Person')
-        //   .withFields('name')
-        //   .withNearText(t.nearText)
-        //   .do()
-        //   .then(() => {
-        //     throw new Error('it should have errord');
-        //   })
-        //   .catch((e: any) => {
-        //     expect(e.toString()).toContain(t.msg);
-        //   });
         expect(() => {
           new Getter(mockClient).withClassName('Person').withFields('name').withNearText(t.nearText);
         }).toThrow(t.msg);
@@ -1078,46 +1067,6 @@ describe('sort filters', () => {
     expect(mockClient.query).toHaveBeenCalledWith(expectedQuery);
   });
 });
-
-// describe('invalid sort filters', () => {
-//   const mockClient: any = {
-//     query: jest.fn(),
-//   };
-
-//   interface testCase {
-//     name: string;
-//     sort: SortArgs[];
-//     msg: string;
-//   }
-
-//   const tests: testCase[] = [
-//     {
-//       name: 'empty path',
-//       sort: [{ path: [] }],
-//       msg: 'Error: invalid usage: Error: sort filter: path cannot be empty',
-//     },
-//     {
-//       name: 'with proper path but wrong order',
-//       sort: [{ path: ['prop'], order: 'asce' }],
-//       msg: 'Error: invalid usage: Error: sort filter: order parameter not valid, possible values are: asc, desc',
-//     },
-//   ];
-//   tests.forEach((t) => {
-//     test(t.name, () => {
-//       new Getter(mockClient)
-//         .withClassName('Person')
-//         .withFields('name')
-//         .withSort(t.sort)
-//         .do()
-//         .then(() => {
-//           throw new Error('it should have errord');
-//         })
-//         .catch((e: any) => {
-//           expect(e.toString()).toEqual(t.msg);
-//         });
-//     });
-//   });
-// });
 
 describe('bm25 valid searchers', () => {
   const mockClient: any = {
