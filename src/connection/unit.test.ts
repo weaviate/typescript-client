@@ -5,7 +5,7 @@ import {
   AuthAccessTokenCredentials,
   ApiKey,
 } from './auth';
-import Connection from './index';
+import Connection from '.';
 
 describe('mock server auth tests', () => {
   const server = testServer();

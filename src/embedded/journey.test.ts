@@ -1,6 +1,6 @@
 import { homedir } from 'os';
 import { join } from 'path';
-import { EmbeddedDB, EmbeddedOptions } from './index';
+import { EmbeddedDB, EmbeddedOptions } from '.';
 
 describe('embedded', () => {
   jest.setTimeout(60 * 1000);

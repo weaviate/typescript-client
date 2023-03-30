@@ -1,5 +1,5 @@
 import { GraphQLClient as Client, Variables } from 'graphql-request';
-import { ConnectionParams } from '../index';
+import { ConnectionParams } from '..';
 
 export type TQuery = any;
 export interface GraphQLClient {

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import weaviate, { WeaviateClient } from '../index';
-import { Class, Property, Schema, ShardStatus, ShardStatusList } from '../openapi/types';
+import weaviate, { WeaviateClient } from '..';
+import { WeaviateClass, Property, WeaviateSchema, ShardStatus, ShardStatusList } from '../openapi/types';
 
 describe('schema', () => {
   const client = weaviate.client({
@@ -15,7 +15,7 @@ describe('schema', () => {
       .classCreator()
       .withClass(classObj)
       .do()
-      .then((res: Class) => {
+      .then((res: WeaviateClass) => {
         expect(res).toEqual(classObj);
       });
   });
@@ -25,7 +25,7 @@ describe('schema', () => {
       .classGetter()
       .withClassName(classObj.class)
       .do()
-      .then((res: Class) => {
+      .then((res: WeaviateClass) => {
         expect(res).toEqual(classObj);
       });
   });
@@ -110,7 +110,7 @@ describe('schema', () => {
     return client.schema
       .getter()
       .do()
-      .then((res: Schema) => {
+      .then((res: WeaviateSchema) => {
         expect(res).toEqual({
           classes: [
             {
@@ -263,7 +263,7 @@ describe('schema', () => {
       .classCreator()
       .withClass(newClass)
       .do()
-      .then((res: Class) => {
+      .then((res: WeaviateClass) => {
         expect(res).toHaveProperty('shardingConfig.actualCount', 3);
       });
 
@@ -308,7 +308,7 @@ describe('schema', () => {
       .classCreator()
       .withClass(newClass)
       .do()
-      .then((res: Class) => {
+      .then((res: WeaviateClass) => {
         expect(res).toHaveProperty('invertedIndexConfig.bm25', bm25Config);
       });
 
@@ -329,7 +329,7 @@ describe('schema', () => {
       .classCreator()
       .withClass(newClass)
       .do()
-      .then((res: Class) => {
+      .then((res: WeaviateClass) => {
         expect(res).toHaveProperty('invertedIndexConfig.stopwords', stopwordConfig);
       });
 
@@ -358,7 +358,7 @@ describe('schema', () => {
       .classCreator()
       .withClass(newClass)
       .do()
-      .then((res: Class) => {
+      .then((res: WeaviateClass) => {
         expect(res).toHaveProperty('invertedIndexConfig.bm25', bm25Config);
         expect(res).toHaveProperty('invertedIndexConfig.stopwords', stopwordConfig);
       });
@@ -375,7 +375,7 @@ describe('schema', () => {
       .classCreator()
       .withClass(newClass)
       .do()
-      .then((res: Class) => {
+      .then((res: WeaviateClass) => {
         expect(res).toHaveProperty('replicationConfig.factor', replicationFactor);
       });
 
@@ -390,7 +390,7 @@ describe('schema', () => {
       .classCreator()
       .withClass(newClass)
       .do()
-      .then((res: Class) => {
+      .then((res: WeaviateClass) => {
         expect(res).toHaveProperty('replicationConfig.factor', 1);
       });
 

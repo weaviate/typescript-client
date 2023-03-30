@@ -1,6 +1,6 @@
 import Connection from '../connection';
 import { CommandBase } from '../validation/commandBase';
-import { Schema } from '../openapi/types';
+import { WeaviateSchema } from '../openapi/types';
 
 export default class Getter extends CommandBase {
   constructor(client: Connection) {
@@ -11,7 +11,7 @@ export default class Getter extends CommandBase {
     // nothing to validate
   }
 
-  do = (): Promise<Schema> => {
+  do = (): Promise<WeaviateSchema> => {
     if (this.errors.length > 0) {
       return Promise.reject(new Error('invalid usage: ' + this.errors.join(', ')));
     }

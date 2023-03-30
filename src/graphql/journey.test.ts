@@ -1,4 +1,4 @@
-import weaviate, { WeaviateClient } from '../index';
+import weaviate, { WeaviateClient } from '..';
 
 describe('the graphql journey', () => {
   let client: WeaviateClient;

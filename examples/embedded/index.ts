@@ -1,4 +1,4 @@
-import weaviate from 'weaviate-ts-client';
+import weaviate, { EmbeddedOptions } from 'weaviate-ts-client';
 
 if (process.platform !== 'linux') {
   throw new Error('EmbeddedDB only supports Linux at the moment. Try me in a Docker container!');
@@ -7,7 +7,7 @@ if (process.platform !== 'linux') {
 const client = weaviate.client({
   scheme: 'http',
   host: 'localhost:9898',
-  embedded: new weaviate.EmbeddedOptions({
+  embedded: new EmbeddedOptions({
     port: 9898,
   }),
 });

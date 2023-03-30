@@ -3,7 +3,7 @@ import OpenidConfigurationGetter from '../misc/openidConfigurationGetter';
 
 import httpClient, { HttpClient } from './httpClient';
 import gqlClient, { GraphQLClient } from './gqlClient';
-import { ConnectionParams } from '../index';
+import { ConnectionParams } from '..';
 import { Variables } from 'graphql-request';
 
 export default class Connection {
@@ -117,3 +117,5 @@ export default class Connection {
     return this.oidcAuth.getAccessToken();
   };
 }
+
+export * from './auth';

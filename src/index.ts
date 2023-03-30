@@ -1,15 +1,14 @@
-import Connection from './connection/index';
-import graphql, { GraphQL } from './graphql/index';
-import schema, { Schema } from './schema/index';
-import data, { Data } from './data/index';
-import classifications, { Classifications } from './classifications/index';
-import batch, { Batch } from './batch/index';
-import misc, { Misc } from './misc/index';
-import c11y, { C11y } from './c11y/index';
+import Connection from './connection';
+import graphql, { GraphQL } from './graphql';
+import schema, { Schema } from './schema';
+import data, { Data } from './data';
+import classifications, { Classifications } from './classifications';
+import batch, { Batch } from './batch';
+import misc, { Misc } from './misc';
+import c11y, { C11y } from './c11y';
 import { DbVersionProvider, DbVersionSupport } from './utils/dbVersion';
-import backup, { Backup } from './backup/index';
-import filtersConsts from './filters/consts';
-import cluster, { Cluster } from './cluster/index';
+import backup, { Backup } from './backup';
+import cluster, { Cluster } from './cluster';
 import {
   ApiKey,
   AuthAccessTokenCredentials,
@@ -99,3 +98,15 @@ function initDbVersionProvider(conn: Connection) {
 
 module.exports = app;
 export default app;
+export * from './openapi/types';
+export * from './graphql';
+export * from './schema';
+export * from './data';
+export * from './classifications';
+export * from './batch';
+export * from './misc';
+export * from './c11y';
+export * from './backup';
+export * from './cluster';
+export * from './connection';
+export * from './embedded';

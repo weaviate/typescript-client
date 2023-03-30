@@ -32,7 +32,7 @@ export type Classification = definitions['Classification'];
 // GraphQL
 export type WhereFilter = definitions['WhereFilter'];
 // Schema
-export type Schema = definitions['Schema'];
-export type Class = definitions['Class'];
+export type WeaviateSchema = definitions['Schema'];
+export type WeaviateClass = definitions['Class'];
 export type ShardStatus = definitions['ShardStatus'];
 export type ShardStatusList = definitions['ShardStatusList'];

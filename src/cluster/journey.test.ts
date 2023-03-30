@@ -1,4 +1,4 @@
-import weaviate from '../index';
+import weaviate from '..';
 
 const {
   createTestFoodSchemaAndData,
