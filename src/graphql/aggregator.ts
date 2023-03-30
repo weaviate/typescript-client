@@ -1,5 +1,5 @@
 import Where from './where';
-import NearText from './nearText';
+import NearText, { NearTextArgs } from './nearText';
 import NearVector, { NearVectorArgs } from './nearVector';
 import NearObject, { NearObjectArgs } from './nearObject';
 import { isValidPositiveIntProperty } from '../validation/number';
@@ -43,13 +43,13 @@ export default class Aggregator extends CommandBase {
     return this;
   };
 
-  withNearText = (nearTextObj: object) => {
+  withNearText = (args: NearTextArgs) => {
     if (this.includesNearMediaFilter) {
       throw new Error('cannot use multiple near<Media> filters in a single query');
     }
 
     try {
-      this.nearTextString = new NearText(nearTextObj).toString();
+      this.nearTextString = new NearText(args).toString();
       this.includesNearMediaFilter = true;
     } catch (e: any) {
       this.addError(e.toString());

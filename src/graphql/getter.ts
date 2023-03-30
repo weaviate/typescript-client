@@ -1,5 +1,5 @@
 import Where from './where';
-import NearText from './nearText';
+import NearText, { NearTextArgs } from './nearText';
 import NearVector, { NearVectorArgs } from './nearVector';
 import Bm25, { Bm25Args } from './bm25';
 import Hybrid, { HybridArgs } from './hybrid';
@@ -7,7 +7,7 @@ import NearObject, { NearObjectArgs } from './nearObject';
 import NearImage, { NearImageArgs } from './nearImage';
 import Ask, { AskArgs } from './ask';
 import Group, { GroupArgs } from './group';
-import Sort from './sort';
+import Sort, { SortArgs } from './sort';
 import Connection from '../connection';
 import { CommandBase } from '../validation/commandBase';
 import { WhereFilter } from '../openapi/types';
@@ -69,17 +69,13 @@ export default class Getter extends CommandBase {
     return this;
   };
 
-  withNearText = (args: object) => {
+  withNearText = (args: NearTextArgs) => {
     if (this.includesNearMediaFilter) {
       throw new Error('cannot use multiple near<Media> filters in a single query');
     }
 
-    try {
-      this.nearTextString = new NearText(args).toString();
-      this.includesNearMediaFilter = true;
-    } catch (e: any) {
-      this.addError(e.toString());
-    }
+    this.nearTextString = new NearText(args).toString();
+    this.includesNearMediaFilter = true;
 
     return this;
   };
@@ -168,12 +164,8 @@ export default class Getter extends CommandBase {
     return this;
   };
 
-  withSort = (sortObj: object) => {
-    try {
-      this.sortString = new Sort(sortObj).toString();
-    } catch (e: any) {
-      this.addError(e.toString());
-    }
+  withSort = (args: SortArgs[]) => {
+    this.sortString = new Sort(args).toString();
     return this;
   };
 

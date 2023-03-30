@@ -1,5 +1,4 @@
 import weaviate, { WeaviateClient } from '../index';
-import Connection from '../connection';
 
 describe('the graphql journey', () => {
   let client: WeaviateClient;
@@ -1037,9 +1036,7 @@ describe('the graphql journey', () => {
       .get()
       .withClassName('Article')
       .withFields('wordCount')
-      .withSort({
-        path: ['wordCount'],
-      })
+      .withSort([{ path: ['wordCount'] }])
       .do()
       .then(function (result) {
         expect(result.data.Get.Article.length).toBe(3);
@@ -1069,7 +1066,7 @@ describe('the graphql journey', () => {
       .get()
       .withClassName('Article')
       .withFields('title')
-      .withSort({ path: ['title'], order: 'desc' })
+      .withSort([{ path: ['title'], order: 'desc' }])
       .do()
       .then(function (result) {
         expect(result.data.Get.Article.length).toBe(3);

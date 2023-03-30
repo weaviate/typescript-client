@@ -10,10 +10,7 @@ import weaviate from '../index';
 
 describe('connection', () => {
   it('makes a logged-in request when client host param has trailing slashes', () => {
-    if (
-      process.env.WCS_DUMMY_CI_PW == undefined ||
-      process.env.WCS_DUMMY_CI_PW == ''
-    ) {
+    if (process.env.WCS_DUMMY_CI_PW == undefined || process.env.WCS_DUMMY_CI_PW == '') {
       console.warn('Skipping because `WCS_DUMMY_CI_PW` is not set');
       return;
     }

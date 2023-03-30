@@ -1,4 +1,4 @@
-import NearText from './nearText';
+import NearText, { NearTextArgs } from './nearText';
 import NearVector, { NearVectorArgs } from './nearVector';
 import NearObject, { NearObjectArgs } from './nearObject';
 import NearImage, { NearImageArgs } from './nearImage';
@@ -32,9 +32,9 @@ export default class Explorer extends CommandBase {
     return this;
   };
 
-  withNearText = (nearTextObj: object) => {
+  withNearText = (args: NearTextArgs) => {
     try {
-      this.nearTextString = new NearText(nearTextObj).toString();
+      this.nearTextString = new NearText(args).toString();
     } catch (e: any) {
       this.addError(e.toString());
     }
