@@ -37,12 +37,7 @@ export class ObjectsPath {
       this.addQueryParams,
     ]);
   }
-  buildGet(
-    className: string | undefined,
-    limit?: number,
-    additional?: string[],
-    after?: string
-  ): Promise<string> {
+  buildGet(className?: string, limit?: number, additional?: string[], after?: string): Promise<string> {
     return this.build({ className, limit, additional, after }, [this.addQueryParamsForGet]);
   }
   buildUpdate(id: string, className: string, consistencyLevel: string | undefined): Promise<string> {

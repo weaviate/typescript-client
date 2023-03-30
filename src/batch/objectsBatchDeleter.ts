@@ -11,7 +11,7 @@ export default class ObjectsBatchDeleter extends CommandBase {
   private consistencyLevel?: ConsistencyLevel;
   private dryRun?: boolean;
   private output?: DeleteOutput;
-  private whereFilter?: any;
+  private whereFilter?: WhereFilter;
 
   constructor(client: Connection) {
     super(client);
