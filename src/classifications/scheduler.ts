@@ -95,23 +95,27 @@ export default class ClassificationsScheduler extends CommandBase {
 
   pollForCompletion = (id: any): Promise<Classification> => {
     return new Promise((resolve, reject) => {
-      setTimeout(
-        () =>
-          reject(
-            new Error(
-              "classification didn't finish within configured timeout, " +
-                'set larger timeout with .withWaitTimeout(timeout)'
-            )
-          ),
-        this.waitTimeout
-      );
+      const timeout = setTimeout(() => {
+        clearInterval(interval);
+        clearTimeout(timeout);
+        reject(
+          new Error(
+            "classification didn't finish within configured timeout, " +
+              'set larger timeout with .withWaitTimeout(timeout)'
+          )
+        );
+      }, this.waitTimeout);
 
-      setInterval(() => {
+      const interval = setInterval(() => {
         new ClassificationsGetter(this.client)
           .withId(id)
           .do()
           .then((res: Classification) => {
-            if (res.status === 'completed') resolve(res);
+            if (res.status === 'completed') {
+              clearInterval(interval);
+              clearTimeout(timeout);
+              resolve(res);
+            }
           });
       }, 500);
     });

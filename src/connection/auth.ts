@@ -79,7 +79,6 @@ export class OidcAuthenticator {
 
   startTokenRefresh = (authenticator: { refresh: () => any }) => {
     if (this.creds.silentRefresh && !this.refreshRunning && this.refreshTokenProvided()) {
-      console.log(`background refresh started!`);
       this.refreshInterval = setInterval(async () => {
         // check every 30s if the token will expire in <= 1m,
         // if so, refresh

@@ -17,6 +17,7 @@ describe('mock server auth tests', () => {
         authClientSecret: new AuthClientCredentials({
           clientSecret: 'supersecret',
           scopes: ['some_scope'],
+          silentRefresh: false,
         }),
       });
 
@@ -58,6 +59,7 @@ describe('mock server auth tests', () => {
           expect(token).toEqual('access_token_000');
           expect((conn as any).oidcAuth?.refreshToken).toEqual('refresh_token_000');
           expect((conn as any).oidcAuth?.expiresAt).toBeGreaterThan(Date.now());
+          conn.oidcAuth?.stopTokenRefresh();
         })
         .catch((e) => {
           throw new Error('it should not have failed: ' + e);
@@ -94,6 +96,7 @@ describe('mock server auth tests', () => {
           expect(token).toEqual('access_token_000');
           expect((conn as any).oidcAuth?.refreshToken).toEqual('refresh_token_000');
           expect((conn as any).oidcAuth?.expiresAt).toBeGreaterThan(Date.now());
+          conn.oidcAuth?.stopTokenRefresh();
         })
         .catch((e) => {
           throw new Error('it should not have failed: ' + e);
