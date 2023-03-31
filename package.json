@@ -13,7 +13,7 @@
     "/types/**/*.d.ts"
   ],
   "scripts": {
-    "test": "tsc -noEmit -p tsconfig-test.json && jest --useStderr --runInBand --detectOpenHandles --forceExit",
+    "test": "tsc -noEmit -p tsconfig-test.json && jest --useStderr --runInBand --detectOpenHandles",
     "build": "npm run lint && tsc --emitDeclarationOnly && ./build.js",
     "prepack": "npm run build",
     "lint": "eslint --ext .ts,.js .",

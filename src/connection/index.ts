@@ -8,10 +8,10 @@ import { Variables } from 'graphql-request';
 
 export default class Connection {
   private apiKey?: string;
-  private oidcAuth?: OidcAuthenticator;
   private authEnabled: boolean;
   private gql: GraphQLClient;
   public readonly http: HttpClient;
+  public oidcAuth?: OidcAuthenticator;
 
   constructor(params: ConnectionParams) {
     params = this.sanitizeParams(params);
