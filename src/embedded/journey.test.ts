@@ -12,6 +12,7 @@ describe('embedded', () => {
     expect(opt.persistenceDataPath).toEqual(join(homedir(), '.local/share/weaviate'));
     expect(opt.host).toEqual('127.0.0.1');
     expect(opt.port).toEqual(6666);
+    expect(opt.env).toHaveProperty('CLUSTER_HOSTNAME', 'Embedded_at_6666');
   });
 
   it('creates EmbeddedOptions with custom options', () => {
@@ -35,6 +36,13 @@ describe('embedded', () => {
     expect(opt.env).toHaveProperty('CLUSTER_HOSTNAME', 'Embedded_at_7777');
     expect(opt.host).toEqual('somehost.com');
     expect(opt.port).toEqual(7777);
+  });
+
+  it('overrides default env vars with inherited exported ones', () => {
+    process.env.CLUSTER_HOSTNAME = 'custom-hostname';
+    const opt = new EmbeddedOptions();
+    // eslint-disable-next-line prettier/prettier
+    expect(opt.env).toHaveProperty('CLUSTER_HOSTNAME', 'custom-hostname');
   });
 
   it('failed to create EmbeddedOptions with invalid version', () => {
