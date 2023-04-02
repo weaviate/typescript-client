@@ -16,6 +16,7 @@ describe('embedded', () => {
 
   it('creates EmbeddedOptions with custom options', () => {
     const opt = new EmbeddedOptions({
+      host: 'somehost.com',
       port: 7777,
       version: '1.18.1-alpha.0',
       env: {
@@ -31,7 +32,8 @@ describe('embedded', () => {
     expect(opt.env).toHaveProperty('ENABLE_MODULES', 'text2vec-contextionary');
     expect(opt.env).toHaveProperty('CONTEXTIONARY_URL', 'contextionary:9999');
     expect(opt.env).toHaveProperty('QUERY_DEFAULTS_LIMIT', 100);
-    expect(opt.host).toEqual('127.0.0.1');
+    expect(opt.env).toHaveProperty('CLUSTER_HOSTNAME', 'Embedded_at_7777');
+    expect(opt.host).toEqual('somehost.com');
     expect(opt.port).toEqual(7777);
   });
 
