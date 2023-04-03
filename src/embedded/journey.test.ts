@@ -8,7 +8,7 @@ describe('embedded', () => {
   it('creates EmbeddedOptions with defaults', () => {
     const opt = new EmbeddedOptions();
 
-    expect(opt.binaryPath).toEqual(join(homedir(), '.cache/weaviate-embedded-1.18.0'));
+    expect(opt.binaryPath).toEqual(join(homedir(), '.cache/weaviate-embedded-1.18.1'));
     expect(opt.persistenceDataPath).toEqual(join(homedir(), '.local/share/weaviate'));
     expect(opt.host).toEqual('127.0.0.1');
     expect(opt.port).toEqual(6666);
@@ -42,7 +42,7 @@ describe('embedded', () => {
       const opt = new EmbeddedOptions({
         version: '123',
       });
-    }).toThrow("invalid version: 123. version must resemble '{major}.{minor}.{patch}'");
+    }).toThrow("invalid version: 123. version must resemble '{major}.{minor}.{patch}, or 'latest'");
   });
 
   if (process.platform == 'linux') {
@@ -56,11 +56,21 @@ describe('embedded', () => {
       const db = new EmbeddedDB(
         new EmbeddedOptions({
           port: 7878,
-          version: '1.18.0',
+          version: '1.18.1',
           env: {
             QUERY_DEFAULTS_LIMIT: 50,
             DEFAULT_VECTORIZER_MODULE: 'text2vec-openai',
           },
+        })
+      );
+      await db.start();
+      db.stop();
+    });
+
+    it('starts/stops EmbeddedDB with latest version', async () => {
+      const db = new EmbeddedDB(
+        new EmbeddedOptions({
+          version: 'latest',
         })
       );
       await db.start();
