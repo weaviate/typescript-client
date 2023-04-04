@@ -76,6 +76,29 @@ describe('embedded', () => {
       await db.start();
       db.stop();
     });
+
+    it('starts/stops EmbeddedDB with binaryUrl', async () => {
+      let binaryUrl = '';
+      const url = 'https://api.github.com/repos/weaviate/weaviate/releases/latest';
+      await fetch(url, {
+        method: 'GET',
+        headers: { 'content-type': 'application/json' },
+      })
+        .then((res: Response) => {
+          if (res.status != 200) {
+            fail(new Error(`unexpected status code: ${res.status}`));
+          }
+          return res.json();
+        })
+        .then((body: any) => {
+          binaryUrl = body.assets[0].browser_download_url as string;
+        })
+        .catch((e: any) => fail(new Error(`unexpected failure: ${JSON.stringify(e)}`)));
+
+      const db = new EmbeddedDB(new EmbeddedOptions({ binaryUrl: binaryUrl }));
+      await db.start();
+      db.stop();
+    });
   } else {
     console.warn(`Skipping because EmbeddedDB does not support ${process.platform}`);
   }

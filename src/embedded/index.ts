@@ -7,6 +7,7 @@ import { dirname } from 'path/posix';
 import { homedir } from 'os';
 import { join } from 'path';
 import { extract } from 'tar';
+import { createHash } from 'crypto';
 
 const defaultBinaryPath = join(homedir(), '.cache/weaviate-embedded');
 const defaultPersistenceDataPath = join(homedir(), '.local/share/weaviate');
@@ -17,6 +18,7 @@ interface EmbeddedOptionsConfig {
   port?: number;
   env?: object;
   version?: string;
+  binaryUrl?: string;
 }
 
 export class EmbeddedOptions {
@@ -25,13 +27,18 @@ export class EmbeddedOptions {
   host: string;
   port: number;
   clusterHostname: string;
-  version: string;
+  version?: string;
+  binaryUrl?: string;
   env: NodeJS.ProcessEnv;
 
   constructor(cfg?: EmbeddedOptionsConfig) {
+    if (this.version && this.binaryUrl) {
+      throw new Error('cannot provide both version and binaryUrl');
+    }
     this.clusterHostname = 'embedded';
-    this.host = (cfg && cfg.host) || '127.0.0.1';
-    this.port = (cfg && cfg.port) || 6666;
+    this.host = cfg && cfg.host ? cfg.host : '127.0.0.1';
+    this.port = cfg && cfg.port ? cfg.port : 6666;
+    this.binaryUrl = cfg?.binaryUrl;
     this.version = this.parseVersion(cfg);
     this.binaryPath = this.getBinaryPath(cfg);
     this.persistenceDataPath = this.getPersistenceDataPath();
@@ -63,7 +70,11 @@ export class EmbeddedOptions {
     return env;
   }
 
-  parseVersion(cfg?: EmbeddedOptionsConfig): string {
+  parseVersion(cfg?: EmbeddedOptionsConfig): string | undefined {
+    // Use binaryUrl instead
+    if (cfg && cfg.binaryUrl) {
+      return;
+    }
     if (!cfg || !cfg.version) {
       return defaultVersion;
     }
@@ -85,6 +96,10 @@ export class EmbeddedOptions {
     }
     if (!this.version) {
       this.version = this.parseVersion(cfg);
+    }
+    if (this.binaryUrl) {
+      const hash = createHash('md5').update(this.binaryUrl).digest('base64url');
+      return `${binaryPath}-${hash}`;
     }
     return `${binaryPath}-${this.version}`;
   }
@@ -192,7 +207,7 @@ export class EmbeddedDB {
     if (!fs.existsSync(`${this.options.binaryPath}`)) {
       console.log(
         `Binary ${this.options.binaryPath} does not exist.`,
-        `Downloading binary for version ${this.options.version}`
+        `Downloading binary for version ${this.options.version || this.options.binaryPath}`
       );
       await this.downloadBinary().then((tarballPath) => this.untarBinary(tarballPath));
     }
@@ -210,7 +225,13 @@ export class EmbeddedDB {
     return new Promise((resolve, reject) => {
       const url = this.buildBinaryUrl();
       get(url, (resp) => {
-        if (resp.statusCode == 302 && resp.headers.location) {
+        if (resp.statusCode == 200) {
+          resp.pipe(file);
+          file.on('finish', () => {
+            file.close();
+            resolve(tarballPath);
+          });
+        } else if (resp.statusCode == 302 && resp.headers.location) {
           get(resp.headers.location, (resp) => {
             resp.pipe(file);
             file.on('finish', () => {
@@ -237,6 +258,9 @@ export class EmbeddedDB {
   }
 
   private buildBinaryUrl(): string {
+    if (this.options.binaryUrl) {
+      return this.options.binaryUrl;
+    }
     let arch: string;
     switch (process.arch) {
       case 'arm64':
@@ -248,7 +272,6 @@ export class EmbeddedDB {
       default:
         throw new Error(`Embedded DB unsupported architecture: ${process.arch}`);
     }
-
     return (
       `https://github.com/weaviate/weaviate/releases/download/v${this.options.version}` +
       `/weaviate-v${this.options.version}-linux-${arch}.tar.gz`
@@ -270,6 +293,14 @@ export class EmbeddedDB {
             resolve(null);
           })
           .on('error', (err) => {
+            if (this.options.binaryUrl) {
+              reject(
+                new Error(
+                  `failed to untar binary: ${JSON.stringify(err)}, ` +
+                    `are you sure binaryUrl points to a tar file?`
+                )
+              );
+            }
             reject(new Error(`failed to untar binary: ${JSON.stringify(err)}`));
           })
       );
