@@ -367,7 +367,7 @@ describe('schema', () => {
   });
 
   it('creates a class with explicit replication config', async () => {
-    const replicationFactor = 2;
+    const replicationFactor = 1;
     const newClass: any = newClassObject('SomeClass');
     newClass.replicationConfig.factor = replicationFactor;
 

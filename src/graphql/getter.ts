@@ -11,6 +11,7 @@ import Sort, { SortArgs } from './sort';
 import Connection from '../connection';
 import { CommandBase } from '../validation/commandBase';
 import { WhereFilter } from '../openapi/types';
+import { GenerateArgs, GraphQLGenerate } from './generate';
 
 export default class GraphQLGetter extends CommandBase {
   private after?: string;
@@ -29,6 +30,7 @@ export default class GraphQLGetter extends CommandBase {
   private offset?: number;
   private sortString?: string;
   private whereString?: string;
+  private generateString?: string;
 
   constructor(client: Connection) {
     super(client);
@@ -169,6 +171,11 @@ export default class GraphQLGetter extends CommandBase {
     return this;
   };
 
+  withGenerate = (args: GenerateArgs) => {
+    this.generateString = new GraphQLGenerate(args).toString();
+    return this;
+  };
+
   validateIsSet = (prop: string | undefined | null, name: string, setter: string) => {
     if (prop == undefined || prop == null || prop.length == 0) {
       this.addError(`${name} must be set - set with ${setter}`);
@@ -239,6 +246,14 @@ export default class GraphQLGetter extends CommandBase {
 
     if (this.after) {
       args = [...args, `after:"${this.after}"`];
+    }
+
+    if (this.generateString) {
+      if (this.fields?.includes('_additional')) {
+        this.fields.replace('_additional{', `_additional{${this.generateString}`);
+      } else {
+        this.fields = this.fields?.concat(` _additional{${this.generateString}}`);
+      }
     }
 
     if (args.length > 0) {
