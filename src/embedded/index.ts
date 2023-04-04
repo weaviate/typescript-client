@@ -26,7 +26,6 @@ export class EmbeddedOptions {
   persistenceDataPath: string;
   host: string;
   port: number;
-  clusterHostname: string;
   version?: string;
   binaryUrl?: string;
   env: NodeJS.ProcessEnv;
@@ -35,7 +34,6 @@ export class EmbeddedOptions {
     if (this.version && this.binaryUrl) {
       throw new Error('cannot provide both version and binaryUrl');
     }
-    this.clusterHostname = 'embedded';
     this.host = cfg && cfg.host ? cfg.host : '127.0.0.1';
     this.port = cfg && cfg.port ? cfg.port : 6666;
     this.binaryUrl = cfg?.binaryUrl;
@@ -51,15 +49,16 @@ export class EmbeddedOptions {
     }
 
     const env: NodeJS.ProcessEnv = {
-      ...process.env,
       AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: 'true',
       QUERY_DEFAULTS_LIMIT: '20',
       PERSISTENCE_DATA_PATH: this.persistenceDataPath,
-      CLUSTER_HOSTNAME: this.clusterHostname,
+      CLUSTER_HOSTNAME: `Embedded_at_${this.port}`,
       DEFAULT_VECTORIZER_MODULE: 'none',
       ENABLE_MODULES:
         'text2vec-openai,text2vec-cohere,text2vec-huggingface,' +
         'ref2vec-centroid,generative-openai,qna-openai',
+      // Any above defaults can be overridden with export env vars
+      ...process.env,
     };
 
     if (cfg && cfg.env) {
