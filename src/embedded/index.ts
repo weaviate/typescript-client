@@ -265,6 +265,7 @@ export class EmbeddedDB {
         })
           .on('finish', () => {
             tarball.close();
+            fs.unlinkSync(tarballPath);
             fs.renameSync(join(dirname(this.options.binaryPath), 'weaviate'), this.options.binaryPath);
             resolve(null);
           })
