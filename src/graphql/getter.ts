@@ -249,7 +249,11 @@ export default class GraphQLGetter extends CommandBase {
     }
 
     if (this.generateString) {
-      args = [...args, this.generateString];
+      if (this.fields?.includes('_additional')) {
+        this.fields.replace('_additional{', `_additional{${this.generateString}`);
+      } else {
+        this.fields = this.fields?.concat(` _additional{${this.generateString}}`);
+      }
     }
 
     if (args.length > 0) {

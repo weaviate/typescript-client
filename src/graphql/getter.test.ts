@@ -1184,8 +1184,8 @@ describe('generative search', () => {
 
   test('singlePrompt', () => {
     const expectedQuery =
-      '{Get{Mammal(generate(singleResult:{prompt:"When did dogs become mans best friend?"})' +
-      '{error singleResult}){name taxonomy}}}';
+      '{Get{Mammal{name taxonomy _additional{generate(singleResult:' +
+      '{prompt:"When did dogs become mans best friend?"}){error singleResult}}}}}';
     new Getter(mockClient)
       .withClassName('Mammal')
       .withGenerate({
@@ -1199,8 +1199,8 @@ describe('generative search', () => {
 
   test('singlePrompt with newlines', () => {
     const expectedQuery =
-      `{Get{Mammal(generate(singleResult:{prompt:"Which mammals can survive in Antarctica?"})` +
-      `{error singleResult}){name taxonomy}}}`;
+      '{Get{Mammal{name taxonomy _additional{generate(singleResult:' +
+      '{prompt:"Which mammals can survive in Antarctica?"}){error singleResult}}}}}';
 
     new Getter(mockClient)
       .withClassName('Mammal')
@@ -1217,8 +1217,8 @@ in Antarctica?`,
 
   test('groupedTask', () => {
     const expectedQuery =
-      '{Get{Mammal(generate(groupedResult:{task:"Explain why platypi can lay eggs"})' +
-      '{error groupedResult}){name taxonomy}}}';
+      '{Get{Mammal{name taxonomy _additional{generate(groupedResult:' +
+      '{task:"Explain why platypi can lay eggs"}){error groupedResult}}}}}';
 
     new Getter(mockClient)
       .withClassName('Mammal')
@@ -1233,8 +1233,8 @@ in Antarctica?`,
 
   test('groupedTask with newlines', () => {
     const expectedQuery =
-      '{Get{Mammal(generate(groupedResult:{task:"Tell me about how polar bears keep warm"})' +
-      '{error groupedResult}){name taxonomy}}}';
+      '{Get{Mammal{name taxonomy _additional{generate(groupedResult:' +
+      '{task:"Tell me about how polar bears keep warm"}){error groupedResult}}}}}';
 
     new Getter(mockClient)
       .withClassName('Mammal')
@@ -1256,9 +1256,10 @@ warm`,
 
   test('single prompt and grouped task', () => {
     const expectedQuery =
-      '{Get{Mammal(generate(singleResult:{prompt:"How tall is a baby giraffe?"}' +
-      'groupedResult:{task:"Explain how the heights of mammals relate to their prefferred food sources"})' +
-      '{error singleResult groupedResult}){name taxonomy}}}';
+      '{Get{Mammal{name taxonomy _additional{generate(singleResult:' +
+      '{prompt:"How tall is a baby giraffe?"}groupedResult:{task:' +
+      '"Explain how the heights of mammals relate to their prefferred food sources"})' +
+      '{error singleResult groupedResult}}}}}';
 
     new Getter(mockClient)
       .withClassName('Mammal')
