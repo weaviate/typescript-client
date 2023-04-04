@@ -41,7 +41,6 @@ describe('embedded', () => {
   it('overrides default env vars with inherited exported ones', () => {
     process.env.CLUSTER_HOSTNAME = 'custom-hostname';
     const opt = new EmbeddedOptions();
-    // eslint-disable-next-line prettier/prettier
     expect(opt.env).toHaveProperty('CLUSTER_HOSTNAME', 'custom-hostname');
   });
 
