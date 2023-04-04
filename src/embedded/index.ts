@@ -7,16 +7,18 @@ import { dirname } from 'path/posix';
 import { homedir } from 'os';
 import { join } from 'path';
 import { extract } from 'tar';
+import { createHash } from 'crypto';
 
 const defaultBinaryPath = join(homedir(), '.cache/weaviate-embedded');
 const defaultPersistenceDataPath = join(homedir(), '.local/share/weaviate');
-const defaultVersion = '1.18.0';
+const defaultVersion = '1.18.1';
 
 interface EmbeddedOptionsConfig {
   host?: string;
   port?: number;
   env?: object;
   version?: string;
+  binaryUrl?: string;
 }
 
 export class EmbeddedOptions {
@@ -24,12 +26,17 @@ export class EmbeddedOptions {
   persistenceDataPath: string;
   host: string;
   port: number;
-  version: string;
+  version?: string;
+  binaryUrl?: string;
   env: NodeJS.ProcessEnv;
 
   constructor(cfg?: EmbeddedOptionsConfig) {
-    this.host = (cfg && cfg.host) || '127.0.0.1';
-    this.port = (cfg && cfg.port) || 6666;
+    if (this.version && this.binaryUrl) {
+      throw new Error('cannot provide both version and binaryUrl');
+    }
+    this.host = cfg && cfg.host ? cfg.host : '127.0.0.1';
+    this.port = cfg && cfg.port ? cfg.port : 6666;
+    this.binaryUrl = cfg?.binaryUrl;
     this.version = this.parseVersion(cfg);
     this.binaryPath = this.getBinaryPath(cfg);
     this.persistenceDataPath = this.getPersistenceDataPath();
@@ -62,15 +69,23 @@ export class EmbeddedOptions {
     return env;
   }
 
-  parseVersion(cfg?: EmbeddedOptionsConfig): string {
+  parseVersion(cfg?: EmbeddedOptionsConfig): string | undefined {
+    // Use binaryUrl instead
+    if (cfg && cfg.binaryUrl) {
+      return;
+    }
     if (!cfg || !cfg.version) {
       return defaultVersion;
     }
+    if (cfg.version == 'latest') {
+      return 'latest';
+    }
     if (cfg.version.match(/[1-9]\.[1-9]{2}\..*/g)) {
       return cfg.version;
-    } else {
-      throw new Error(`invalid version: ${cfg.version}. version must resemble '{major}.{minor}.{patch}'`);
     }
+    throw new Error(
+      `invalid version: ${cfg.version}. version must resemble '{major}.{minor}.{patch}, or 'latest'`
+    );
   }
 
   getBinaryPath(cfg?: EmbeddedOptionsConfig): string {
@@ -80,6 +95,10 @@ export class EmbeddedOptions {
     }
     if (!this.version) {
       this.version = this.parseVersion(cfg);
+    }
+    if (this.binaryUrl) {
+      const hash = createHash('md5').update(this.binaryUrl).digest('base64url');
+      return `${binaryPath}-${hash}`;
     }
     return `${binaryPath}-${this.version}`;
   }
@@ -100,16 +119,18 @@ export class EmbeddedDB {
   constructor(opt: EmbeddedOptions) {
     this.options = opt;
     this.pid = 0;
-    ensurePathsExist(this.options);
+    this.ensurePathsExist();
     checkSupportedPlatform();
   }
 
   async start() {
-    if (await isListening(this.options)) {
+    if (await this.isListening()) {
       console.log(`Embedded db already listening @ ${this.options.host}:${this.options.port}`);
     }
 
-    await ensureWeaviateBinaryExists(this.options);
+    await this.resolveWeaviateVersion().then(async () => {
+      await this.ensureWeaviateBinaryExists();
+    });
 
     if (!this.options.env.CLUSTER_GOSSIP_BIND_PORT) {
       this.options.env.CLUSTER_GOSSIP_BIND_PORT = await getRandomPort();
@@ -133,7 +154,7 @@ export class EmbeddedDB {
       `Started ${this.options.binaryPath} @ ${this.options.host}:${this.options.port} -- process ID ${this.pid}`
     );
 
-    await waitTillListening(this.options);
+    await this.waitTillListening();
   }
 
   stop() {
@@ -144,12 +165,183 @@ export class EmbeddedDB {
       console.log(`Tried to stop embedded db @ PID ${this.pid}.`, `PID not found, so nothing will be done`);
     }
   }
-}
 
-function ensurePathsExist(opt: EmbeddedOptions) {
-  const binPathDir = dirname(opt.binaryPath);
-  fs.mkdirSync(binPathDir, { recursive: true });
-  fs.mkdirSync(opt.persistenceDataPath, { recursive: true });
+  private resolveWeaviateVersion(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (this.options.version == 'latest') {
+        get(
+          'https://api.github.com/repos/weaviate/weaviate/releases/latest',
+          { headers: { 'User-Agent': 'Weaviate-Embedded-DB' } },
+          (resp) => {
+            let body = '';
+            resp.on('data', (chunk: string) => {
+              body += chunk;
+            });
+            resp.on('end', () => {
+              if (resp.statusCode === 200) {
+                try {
+                  const json = JSON.parse(body);
+                  this.options.version = (json.tag_name as string).slice(1); // trim the `v` prefix
+                  resolve();
+                } catch (err) {
+                  reject(new Error(`failed to parse latest binary version response: ${JSON.stringify(err)}`));
+                }
+              } else {
+                reject(
+                  new Error(`fetch latest binary version, unexpected status code ${resp.statusCode}: ${body}`)
+                );
+              }
+            });
+          }
+        ).on('error', (err) => {
+          reject(new Error(`failed to find latest binary version: ${JSON.stringify(err)}`));
+        });
+      } else {
+        resolve();
+      }
+    });
+  }
+
+  private async ensureWeaviateBinaryExists() {
+    if (!fs.existsSync(`${this.options.binaryPath}`)) {
+      console.log(
+        `Binary ${this.options.binaryPath} does not exist.`,
+        `Downloading binary for version ${this.options.version || this.options.binaryPath}`
+      );
+      await this.downloadBinary().then((tarballPath) => this.untarBinary(tarballPath));
+    }
+  }
+
+  private ensurePathsExist() {
+    const binPathDir = dirname(this.options.binaryPath);
+    fs.mkdirSync(binPathDir, { recursive: true });
+    fs.mkdirSync(this.options.persistenceDataPath, { recursive: true });
+  }
+
+  private downloadBinary(): Promise<string> {
+    const tarballPath = `${this.options.binaryPath}.tgz`;
+    const file = fs.createWriteStream(tarballPath);
+    return new Promise((resolve, reject) => {
+      const url = this.buildBinaryUrl();
+      get(url, (resp) => {
+        if (resp.statusCode == 200) {
+          resp.pipe(file);
+          file.on('finish', () => {
+            file.close();
+            resolve(tarballPath);
+          });
+        } else if (resp.statusCode == 302 && resp.headers.location) {
+          get(resp.headers.location, (resp) => {
+            resp.pipe(file);
+            file.on('finish', () => {
+              file.close();
+              resolve(tarballPath);
+            });
+          });
+        } else if (resp.statusCode == 404) {
+          reject(
+            new Error(
+              `failed to download binary: not found. ` +
+                `are you sure Weaviate version ${this.options.version} exists? ` +
+                `note that embedded db is only supported for versions >= 1.18.0`
+            )
+          );
+        } else {
+          reject(new Error(`failed to download binary: unexpected status code: ${resp.statusCode}`));
+        }
+      }).on('error', (err) => {
+        fs.unlinkSync(tarballPath);
+        reject(new Error(`failed to download binary: ${JSON.stringify(err)}`));
+      });
+    });
+  }
+
+  private buildBinaryUrl(): string {
+    if (this.options.binaryUrl) {
+      return this.options.binaryUrl;
+    }
+    let arch: string;
+    switch (process.arch) {
+      case 'arm64':
+        arch = 'arm64';
+        break;
+      case 'x64':
+        arch = 'amd64';
+        break;
+      default:
+        throw new Error(`Embedded DB unsupported architecture: ${process.arch}`);
+    }
+    return (
+      `https://github.com/weaviate/weaviate/releases/download/v${this.options.version}` +
+      `/weaviate-v${this.options.version}-linux-${arch}.tar.gz`
+    );
+  }
+
+  private untarBinary(tarballPath: string): Promise<null> {
+    const tarball = fs.createReadStream(tarballPath);
+    return new Promise((resolve, reject) => {
+      tarball.pipe(
+        extract({
+          cwd: dirname(tarballPath),
+          strict: true,
+        })
+          .on('finish', () => {
+            tarball.close();
+            fs.unlinkSync(tarballPath);
+            fs.renameSync(join(dirname(this.options.binaryPath), 'weaviate'), this.options.binaryPath);
+            resolve(null);
+          })
+          .on('error', (err) => {
+            if (this.options.binaryUrl) {
+              reject(
+                new Error(
+                  `failed to untar binary: ${JSON.stringify(err)}, ` +
+                    `are you sure binaryUrl points to a tar file?`
+                )
+              );
+            }
+            reject(new Error(`failed to untar binary: ${JSON.stringify(err)}`));
+          })
+      );
+    });
+  }
+
+  private waitTillListening(): Promise<null> {
+    return new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        clearTimeout(timeout);
+        clearInterval(interval);
+        reject(new Error(`failed to connect to embedded db @ ${this.options.host}:${this.options.port}`));
+      }, 30000);
+
+      const interval = setInterval(() => {
+        this.isListening().then((listening) => {
+          if (listening) {
+            clearTimeout(timeout);
+            clearInterval(interval);
+            resolve(null);
+          }
+        });
+      }, 500);
+    });
+  }
+
+  private isListening(): Promise<boolean> {
+    const sock = net.connect(this.options.port, this.options.host);
+    return new Promise((resolve) => {
+      sock
+        .on('connect', () => {
+          console.log('connected to embedded db!');
+          sock.destroy();
+          resolve(true);
+        })
+        .on('error', (err) => {
+          console.log('Trying to connect to embedded db...', JSON.stringify(err));
+          sock.destroy();
+          resolve(false);
+        });
+    });
+  }
 }
 
 function checkSupportedPlatform() {
@@ -157,67 +349,6 @@ function checkSupportedPlatform() {
   if (platform == 'darwin' || platform == 'win32') {
     throw new Error(`${platform} is not supported with EmbeddedDB`);
   }
-}
-
-async function ensureWeaviateBinaryExists(opt: EmbeddedOptions) {
-  if (!fs.existsSync(`${opt.binaryPath}`)) {
-    console.log(`Binary ${opt.binaryPath} does not exist.`, `Downloading binary for version ${opt.version}`);
-    await downloadBinary(opt).then((tarballPath) => untarBinary(opt, tarballPath));
-  }
-}
-
-function downloadBinary(opt: EmbeddedOptions): Promise<string> {
-  const tarballPath = `${opt.binaryPath}.tgz`;
-  const file = fs.createWriteStream(tarballPath);
-  return new Promise((resolve, reject) => {
-    const url =
-      'https://github.com/weaviate/weaviate/releases' +
-      `/download/v${opt.version}/weaviate-v${opt.version}-linux-amd64.tar.gz`;
-    get(url, (resp) => {
-      if (resp.statusCode == 302 && resp.headers.location) {
-        get(resp.headers.location, (resp) => {
-          resp.pipe(file);
-          file.on('finish', () => {
-            file.close();
-            resolve(tarballPath);
-          });
-        });
-      } else if (resp.statusCode == 404) {
-        reject(
-          new Error(
-            `failed to download binary: not found. ` +
-              `are you sure Weaviate version ${opt.version} exists? ` +
-              `note that embedded db is only supported for versions >= 1.18.0`
-          )
-        );
-      } else {
-        reject(new Error(`failed to download binary: unexpected status code: ${resp.statusCode}`));
-      }
-    }).on('error', function (err) {
-      fs.unlinkSync(tarballPath);
-      reject(new Error(`failed to download binary: ${JSON.stringify(err)}`));
-    });
-  });
-}
-
-function untarBinary(opt: EmbeddedOptions, tarballPath: string): Promise<null> {
-  const tarball = fs.createReadStream(tarballPath);
-  return new Promise((resolve, reject) => {
-    tarball.pipe(
-      extract({
-        cwd: dirname(tarballPath),
-        strict: true,
-      })
-        .on('finish', () => {
-          tarball.close();
-          fs.renameSync(join(dirname(opt.binaryPath), 'weaviate'), opt.binaryPath);
-          resolve(null);
-        })
-        .on('error', function (err) {
-          reject(new Error(`failed to untar binary: ${JSON.stringify(err)}`));
-        })
-    );
-  });
 }
 
 function getRandomPort(): Promise<string> {
@@ -231,42 +362,5 @@ function getRandomPort(): Promise<string> {
         reject(new Error('failed to find open port'));
       }
     });
-  });
-}
-
-function waitTillListening(opt: EmbeddedOptions): Promise<null> {
-  return new Promise((resolve, reject) => {
-    const timeout = setTimeout(() => {
-      clearTimeout(timeout);
-      clearInterval(interval);
-      reject(new Error(`failed to connect to embedded db @ ${opt.host}:${opt.port}`));
-    }, 30000);
-
-    const interval = setInterval(() => {
-      isListening(opt).then((listening) => {
-        if (listening) {
-          clearTimeout(timeout);
-          clearInterval(interval);
-          resolve(null);
-        }
-      });
-    }, 500);
-  });
-}
-
-function isListening(opt: EmbeddedOptions): Promise<boolean> {
-  const sock = net.connect(opt.port, opt.host);
-  return new Promise((resolve) => {
-    sock
-      .on('connect', () => {
-        console.log('connected to embedded db!');
-        sock.destroy();
-        resolve(true);
-      })
-      .on('error', (err) => {
-        console.log('Trying to connect to embedded db...', JSON.stringify(err));
-        sock.destroy();
-        resolve(false);
-      });
   });
 }
