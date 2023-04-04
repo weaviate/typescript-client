@@ -1176,3 +1176,100 @@ describe('hybrid valid searchers', () => {
     expect(mockClient.query).toHaveBeenCalledWith(expectedQuery);
   });
 });
+
+describe('generative search', () => {
+  const mockClient: any = {
+    query: jest.fn(),
+  };
+
+  test('singlePrompt', () => {
+    const expectedQuery =
+      '{Get{Mammal{name taxonomy _additional{generate(singleResult:' +
+      '{prompt:"When did dogs become mans best friend?"}){error singleResult}}}}}';
+    new Getter(mockClient)
+      .withClassName('Mammal')
+      .withGenerate({
+        singlePrompt: 'When did dogs become mans best friend?',
+      })
+      .withFields('name taxonomy')
+      .do();
+
+    expect(mockClient.query).toHaveBeenCalledWith(expectedQuery);
+  });
+
+  test('singlePrompt with newlines', () => {
+    const expectedQuery =
+      '{Get{Mammal{name taxonomy _additional{generate(singleResult:' +
+      '{prompt:"Which mammals can survive in Antarctica?"}){error singleResult}}}}}';
+
+    new Getter(mockClient)
+      .withClassName('Mammal')
+      .withGenerate({
+        singlePrompt: `Which mammals 
+can survive 
+in Antarctica?`,
+      })
+      .withFields('name taxonomy')
+      .do();
+
+    expect(mockClient.query).toHaveBeenCalledWith(expectedQuery);
+  });
+
+  test('groupedTask', () => {
+    const expectedQuery =
+      '{Get{Mammal{name taxonomy _additional{generate(groupedResult:' +
+      '{task:"Explain why platypi can lay eggs"}){error groupedResult}}}}}';
+
+    new Getter(mockClient)
+      .withClassName('Mammal')
+      .withGenerate({
+        groupedTask: 'Explain why platypi can lay eggs',
+      })
+      .withFields('name taxonomy')
+      .do();
+
+    expect(mockClient.query).toHaveBeenCalledWith(expectedQuery);
+  });
+
+  test('groupedTask with newlines', () => {
+    const expectedQuery =
+      '{Get{Mammal{name taxonomy _additional{generate(groupedResult:' +
+      '{task:"Tell me about how polar bears keep warm"}){error groupedResult}}}}}';
+
+    new Getter(mockClient)
+      .withClassName('Mammal')
+      .withFields('name taxonomy')
+      .withGenerate({
+        groupedTask: `Tell 
+me 
+about 
+how 
+polar 
+bears 
+keep 
+warm`,
+      })
+      .do();
+
+    expect(mockClient.query).toHaveBeenCalledWith(expectedQuery);
+  });
+
+  test('single prompt and grouped task', () => {
+    const expectedQuery =
+      '{Get{Mammal{name taxonomy _additional{generate(singleResult:' +
+      '{prompt:"How tall is a baby giraffe?"}groupedResult:{task:' +
+      '"Explain how the heights of mammals relate to their prefferred food sources"})' +
+      '{error singleResult groupedResult}}}}}';
+
+    new Getter(mockClient)
+      .withClassName('Mammal')
+      .withFields('name taxonomy')
+      .withGenerate({
+        singlePrompt: 'How tall is a baby giraffe?',
+        groupedTask: 'Explain how the heights of mammals relate to their prefferred food sources',
+      })
+      .do();
+
+    expect(mockClient.query).toHaveBeenCalledWith(expectedQuery);
+  });
+});
