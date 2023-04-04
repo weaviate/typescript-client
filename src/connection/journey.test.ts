@@ -21,6 +21,7 @@ describe('connection', () => {
       authClientSecret: new AuthUserPasswordCredentials({
         username: 'ms_2d0e007e7136de11d5f29fce7a53dae219a51458@existiert.net',
         password: process.env.WCS_DUMMY_CI_PW,
+        silentRefresh: false,
       }),
     });
 
@@ -46,6 +47,7 @@ describe('connection', () => {
       host: 'localhost:8081',
       authClientSecret: new AuthClientCredentials({
         clientSecret: process.env.AZURE_CLIENT_SECRET,
+        silentRefresh: false,
       }),
     });
 
@@ -72,6 +74,7 @@ describe('connection', () => {
       authClientSecret: new AuthClientCredentials({
         clientSecret: process.env.OKTA_CLIENT_SECRET,
         scopes: ['some_scope'],
+        silentRefresh: false,
       }),
     });
 
@@ -98,6 +101,7 @@ describe('connection', () => {
       authClientSecret: new AuthUserPasswordCredentials({
         username: 'test@test.de',
         password: process.env.OKTA_DUMMY_CI_PW,
+        silentRefresh: false,
       }),
     });
 
@@ -124,6 +128,7 @@ describe('connection', () => {
       authClientSecret: new AuthUserPasswordCredentials({
         username: 'ms_2d0e007e7136de11d5f29fce7a53dae219a51458@existiert.net',
         password: process.env.WCS_DUMMY_CI_PW,
+        silentRefresh: false,
       }),
     });
 
@@ -168,6 +173,7 @@ describe('connection', () => {
       authClientSecret: new AuthUserPasswordCredentials({
         username: 'ms_2d0e007e7136de11d5f29fce7a53dae219a51458@existiert.net',
         password: process.env.WCS_DUMMY_CI_PW,
+        silentRefresh: false,
       }),
     });
     // obtain access token with user/pass so we can
@@ -189,6 +195,7 @@ describe('connection', () => {
       .do()
       .then((res: any) => {
         expect(res.version).toBeDefined();
+        client.oidcAuth?.stopTokenRefresh();
       })
       .catch((e: any) => {
         throw new Error('it should not have errord: ' + e);
@@ -207,6 +214,7 @@ describe('connection', () => {
       authClientSecret: new AuthUserPasswordCredentials({
         username: 'ms_2d0e007e7136de11d5f29fce7a53dae219a51458@existiert.net',
         password: process.env.WCS_DUMMY_CI_PW,
+        silentRefresh: false,
       }),
     });
     // obtain access token with user/pass so we can
@@ -231,6 +239,7 @@ describe('connection', () => {
       .then((resp) => {
         expect(resp).toBeDefined();
         expect(resp != '').toBeTruthy();
+        conn.oidcAuth?.stopTokenRefresh();
       })
       .catch((e: any) => {
         throw new Error('it should not have errord: ' + e);

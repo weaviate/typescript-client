@@ -6,17 +6,22 @@ interface AuthenticatorResult {
   refreshToken: string;
 }
 
+interface OidcCredentials {
+  silentRefresh: boolean;
+}
+
 export interface OidcAuthFlow {
   refresh: () => Promise<AuthenticatorResult>;
 }
 
 export class OidcAuthenticator {
   private readonly http: HttpClient;
-  private readonly creds: any;
+  private readonly creds: OidcCredentials;
   private accessToken: string;
   private refreshToken?: string;
   private expiresAt: number;
   private refreshRunning: boolean;
+  private refreshInterval!: NodeJS.Timeout;
 
   constructor(http: HttpClient, creds: any) {
     this.http = http;
@@ -57,10 +62,7 @@ export class OidcAuthenticator {
       this.accessToken = resp.accessToken;
       this.expiresAt = resp.expiresAt;
       this.refreshToken = resp.refreshToken;
-      if (!this.refreshRunning && this.refreshTokenProvided()) {
-        this.runBackgroundTokenRefresh(authenticator);
-        this.refreshRunning = true;
-      }
+      this.startTokenRefresh(authenticator);
     });
   };
 
@@ -75,17 +77,25 @@ export class OidcAuthenticator {
     });
   };
 
-  runBackgroundTokenRefresh = (authenticator: { refresh: () => any }) => {
-    setInterval(async () => {
-      // check every 30s if the token will expire in <= 1m,
-      // if so, refresh
-      if (this.expiresAt - Date.now() <= 60_000) {
-        const resp = await authenticator.refresh();
-        this.accessToken = resp.accessToken;
-        this.expiresAt = resp.expiresAt;
-        this.refreshToken = resp.refreshToken;
-      }
-    }, 30_000);
+  startTokenRefresh = (authenticator: { refresh: () => any }) => {
+    if (this.creds.silentRefresh && !this.refreshRunning && this.refreshTokenProvided()) {
+      this.refreshInterval = setInterval(async () => {
+        // check every 30s if the token will expire in <= 1m,
+        // if so, refresh
+        if (this.expiresAt - Date.now() <= 60_000) {
+          const resp = await authenticator.refresh();
+          this.accessToken = resp.accessToken;
+          this.expiresAt = resp.expiresAt;
+          this.refreshToken = resp.refreshToken;
+        }
+      }, 30_000);
+      this.refreshRunning = true;
+    }
+  };
+
+  stopTokenRefresh = () => {
+    clearInterval(this.refreshInterval);
+    this.refreshRunning = false;
   };
 
   refreshTokenProvided = () => {
@@ -109,16 +119,19 @@ export interface UserPasswordCredentialsInput {
   username: string;
   password?: string;
   scopes?: any[];
+  silentRefresh?: boolean;
 }
 
-export class AuthUserPasswordCredentials {
+export class AuthUserPasswordCredentials implements OidcCredentials {
   private username: string;
   private password?: string;
   private scopes?: any[];
+  public readonly silentRefresh: boolean;
   constructor(creds: UserPasswordCredentialsInput) {
     this.username = creds.username;
     this.password = creds.password;
     this.scopes = creds.scopes;
+    this.silentRefresh = parseSilentRefresh(creds.silentRefresh);
   }
 }
 
@@ -190,18 +203,21 @@ export interface AccessTokenCredentialsInput {
   accessToken: string;
   expiresIn: number;
   refreshToken?: string;
+  silentRefresh?: boolean;
 }
 
-export class AuthAccessTokenCredentials {
+export class AuthAccessTokenCredentials implements OidcCredentials {
   public readonly accessToken: string;
   public readonly expiresAt: number;
   public readonly refreshToken?: string;
+  public readonly silentRefresh: boolean;
 
   constructor(creds: AccessTokenCredentialsInput) {
     this.validate(creds);
     this.accessToken = creds.accessToken;
     this.expiresAt = calcExpirationEpoch(creds.expiresIn);
     this.refreshToken = creds.refreshToken;
+    this.silentRefresh = parseSilentRefresh(creds.silentRefresh);
   }
 
   validate = (creds: AccessTokenCredentialsInput) => {
@@ -270,15 +286,18 @@ class AccessTokenAuthenticator implements OidcAuthFlow {
 export interface ClientCredentialsInput {
   clientSecret: string;
   scopes?: any[];
+  silentRefresh?: boolean;
 }
 
-export class AuthClientCredentials {
+export class AuthClientCredentials implements OidcCredentials {
   private clientSecret: any;
   private scopes?: any[];
+  public readonly silentRefresh: boolean;
 
   constructor(creds: ClientCredentialsInput) {
     this.clientSecret = creds.clientSecret;
     this.scopes = creds.scopes;
+    this.silentRefresh = parseSilentRefresh(creds.silentRefresh);
   }
 }
 
@@ -344,4 +363,13 @@ export class ApiKey {
 
 function calcExpirationEpoch(expiresIn: number): number {
   return Date.now() + (expiresIn - 2) * 1000; // -2 for some lag
+}
+
+function parseSilentRefresh(silentRefresh: boolean | undefined): boolean {
+  // Silent token refresh by default
+  if (silentRefresh === undefined) {
+    return true;
+  } else {
+    return silentRefresh;
+  }
 }

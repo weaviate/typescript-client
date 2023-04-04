@@ -14,6 +14,7 @@ import {
   AuthAccessTokenCredentials,
   AuthClientCredentials,
   AuthUserPasswordCredentials,
+  OidcAuthenticator,
 } from './connection/auth';
 import MetaGetter from './misc/metaGetter';
 import { EmbeddedDB, EmbeddedOptions } from './embedded';
@@ -38,6 +39,7 @@ export interface WeaviateClient {
   backup: Backup;
   cluster: Cluster;
   embedded?: EmbeddedDB;
+  oidcAuth?: OidcAuthenticator;
 }
 
 const app = {
@@ -67,9 +69,8 @@ const app = {
       cluster: cluster(conn),
     };
 
-    if (params.embedded) {
-      ifc.embedded = new EmbeddedDB(params.embedded);
-    }
+    if (params.embedded) ifc.embedded = new EmbeddedDB(params.embedded);
+    if (conn.oidcAuth) ifc.oidcAuth = conn.oidcAuth;
 
     return ifc;
   },
