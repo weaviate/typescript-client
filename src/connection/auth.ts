@@ -131,12 +131,7 @@ export class AuthUserPasswordCredentials implements OidcCredentials {
     this.username = creds.username;
     this.password = creds.password;
     this.scopes = creds.scopes;
-    // Silent token refresh by default
-    if (creds.silentRefresh === undefined) {
-      this.silentRefresh = true;
-    } else {
-      this.silentRefresh = creds.silentRefresh;
-    }
+    this.silentRefresh = parseSilentRefresh(creds.silentRefresh);
   }
 }
 
@@ -222,12 +217,7 @@ export class AuthAccessTokenCredentials implements OidcCredentials {
     this.accessToken = creds.accessToken;
     this.expiresAt = calcExpirationEpoch(creds.expiresIn);
     this.refreshToken = creds.refreshToken;
-    // Silent token refresh by default
-    if (creds.silentRefresh === undefined) {
-      this.silentRefresh = true;
-    } else {
-      this.silentRefresh = creds.silentRefresh;
-    }
+    this.silentRefresh = parseSilentRefresh(creds.silentRefresh);
   }
 
   validate = (creds: AccessTokenCredentialsInput) => {
@@ -307,12 +297,7 @@ export class AuthClientCredentials implements OidcCredentials {
   constructor(creds: ClientCredentialsInput) {
     this.clientSecret = creds.clientSecret;
     this.scopes = creds.scopes;
-    // Silent token refresh by default
-    if (creds.silentRefresh === undefined) {
-      this.silentRefresh = true;
-    } else {
-      this.silentRefresh = creds.silentRefresh;
-    }
+    this.silentRefresh = parseSilentRefresh(creds.silentRefresh);
   }
 }
 
@@ -378,4 +363,13 @@ export class ApiKey {
 
 function calcExpirationEpoch(expiresIn: number): number {
   return Date.now() + (expiresIn - 2) * 1000; // -2 for some lag
+}
+
+function parseSilentRefresh(silentRefresh: boolean | undefined): boolean {
+  // Silent token refresh by default
+  if (silentRefresh === undefined) {
+    return true;
+  } else {
+    return silentRefresh;
+  }
 }
