@@ -17,4 +17,4 @@ Official TypeScript client for easy interaction with a Weaviate instance.
 
 ## Build Status
 
-[![Build Status](https://github.com/weaviate/typescript-client/actions/workflows/.github/workflows/tests.yaml/badge.svg?branch=main)](https://github.com/weaviate/typescript-client/actions/workflows/.github/workflows/tests.yaml)
+[![Build Status](https://github.com/weaviate/typescript-client/actions/workflows/.github/workflows/main.yaml/badge.svg?branch=main)](https://github.com/weaviate/typescript-client/actions/workflows/.github/workflows/main.yaml)
