@@ -64,3 +64,5 @@ export { default as ReferenceCreator } from './referenceCreator';
 export { default as ReferenceReplacer } from './referenceReplacer';
 export { default as ReferenceDeleter } from './referenceDeleter';
 export { default as ReferencePayloadBuilder } from './referencePayloadBuilder';
+
+export type { ConsistencyLevel } from './replication';
