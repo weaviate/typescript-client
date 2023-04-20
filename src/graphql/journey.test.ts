@@ -1167,112 +1167,110 @@ describe('the graphql journey', () => {
       });
   });
 
-  describe('generative search', () => {
-    if (process.env.OPENAI_APIKEY == undefined || process.env.OPENAI_APIKEY == '') {
-      console.warn('Skipping because `WCS_DUMMY_CI_PW` is not set');
-      return;
-    }
-
-    const client = weaviate.client({
-      host: 'localhost:8086',
-      scheme: 'http',
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      headers: { 'X-OpenAI-Api-Key': process.env.OPENAI_APIKEY! },
-    });
-
-    it('sets up the test environment', async () => {
-      await client.schema
-        .classDeleter()
-        .withClassName('Wine')
-        .do()
-        .then(async () => {
-          await client.schema
-            .classCreator()
-            .withClass({
-              class: 'Wine',
-              properties: [
-                { name: 'name', dataType: ['string'] },
-                { name: 'review', dataType: ['string'] },
-              ],
-            })
-            .do()
-            .catch((e: any) => {
-              throw new Error(`unexpected error with class creation: ${JSON.stringify(e)}`);
-            });
-        })
-        .catch((e: any) => {
-          throw new Error(`unexpected error with class deletion: ${JSON.stringify(e)}`);
-        });
-
-      await client.data
-        .creator()
-        .withClassName('Wine')
-        .withProperties({ name: 'Super expensive wine', review: 'Tastes like a fresh ocean breeze' })
-        .do()
-        .catch((e: any) => {
-          throw new Error(`unexpected error with object creation: ${JSON.stringify(e)}`);
-        });
-      await client.data
-        .creator()
-        .withClassName('Wine')
-        .withProperties({ name: 'cheap wine', review: 'Tastes like forest' })
-        .do()
-        .catch((e: any) => {
-          throw new Error(`unexpected error with object creation: ${JSON.stringify(e)}`);
-        });
-    });
-
-    test('singlePrompt', async () => {
-      await client.graphql
-        .get()
-        .withClassName('Wine')
-        .withFields('name review')
-        .withGenerate({
-          singlePrompt: `Describe the following as a Facebook Ad: 
-  Tastes like a fresh ocean breeze: {review}`,
-        })
-        .do()
-        .then((res: any) => {
-          expect(res.data.Get.Wine[0]._additional.generate.singleResult).toBeDefined();
-          expect(res.data.Get.Wine[0]._additional.generate.error).toBeNull();
-        });
-    });
-
-    test('groupedTask', async () => {
-      await client.graphql
-        .get()
-        .withClassName('Wine')
-        .withFields('name review')
-        .withGenerate({
-          groupedTask: 'Describe the following as a LinkedIn Ad: {review}',
-        })
-        .do()
-        .then((res: any) => {
-          expect(res.data.Get.Wine[0]._additional.generate.groupedResult).toBeDefined();
-          expect(res.data.Get.Wine[0]._additional.generate.error).toBeNull();
-        });
-    });
-
-    test('singlePrompt and groupedTask', async () => {
-      await client.graphql
-        .get()
-        .withClassName('Wine')
-        .withFields('name review')
-        .withGenerate({
-          singlePrompt: 'Describe the following as a Twitter Ad: {review}',
-          groupedTask: 'Describe the following as a Mastodon Ad: {review}',
-        })
-        .do()
-        .then((res: any) => {
-          expect(res.data.Get.Wine[0]._additional.generate.singleResult).toBeDefined();
-          expect(res.data.Get.Wine[0]._additional.generate.groupedResult).toBeDefined();
-          expect(res.data.Get.Wine[0]._additional.generate.error).toBeNull();
-        });
-    });
-  });
-
   it('tears down and cleans up', () => {
     return Promise.all([client.schema.classDeleter().withClassName('Article').do()]);
+  });
+});
+
+describe('query with generative search', () => {
+  jest.setTimeout(30000);
+
+  if (process.env.OPENAI_APIKEY == undefined || process.env.OPENAI_APIKEY == '') {
+    console.warn('Skipping because `WCS_DUMMY_CI_PW` is not set');
+    return;
+  }
+
+  const client = weaviate.client({
+    host: 'localhost:8086',
+    scheme: 'http',
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    headers: { 'X-OpenAI-Api-Key': process.env.OPENAI_APIKEY! },
+  });
+
+  it('sets up the test environment', async () => {
+    await client.schema
+      .classCreator()
+      .withClass({
+        class: 'Wine',
+        properties: [
+          { name: 'name', dataType: ['string'] },
+          { name: 'review', dataType: ['string'] },
+        ],
+      })
+      .do()
+      .catch((e: any) => {
+        throw new Error(`unexpected error with class creation: ${JSON.stringify(e)}`);
+      });
+
+    await client.data
+      .creator()
+      .withClassName('Wine')
+      .withProperties({ name: 'Super expensive wine', review: 'Tastes like a fresh ocean breeze' })
+      .do()
+      .catch((e: any) => {
+        throw new Error(`unexpected error with object creation: ${JSON.stringify(e)}`);
+      });
+
+    return client.data
+      .creator()
+      .withClassName('Wine')
+      .withProperties({ name: 'cheap wine', review: 'Tastes like forest' })
+      .do()
+      .catch((e: any) => {
+        throw new Error(`unexpected error with object creation: ${JSON.stringify(e)}`);
+      });
+  });
+
+  test('singlePrompt', async () => {
+    await client.graphql
+      .get()
+      .withClassName('Wine')
+      .withFields('name review')
+      .withGenerate({
+        singlePrompt: `Describe the following as a Facebook Ad: 
+Tastes like a fresh ocean breeze: {review}`,
+      })
+      .do()
+      .then((res: any) => {
+        expect(res.data.Get.Wine[0]._additional.generate.singleResult).toBeDefined();
+        expect(res.data.Get.Wine[0]._additional.generate.error).toBeNull();
+      });
+  });
+
+  test('groupedTask', async () => {
+    await client.graphql
+      .get()
+      .withClassName('Wine')
+      .withFields('name review')
+      .withGenerate({
+        groupedTask: 'Describe the following as a LinkedIn Ad: {review}',
+      })
+      .do()
+      .then((res: any) => {
+        expect(res.data.Get.Wine[0]._additional.generate.groupedResult).toBeDefined();
+        expect(res.data.Get.Wine[0]._additional.generate.error).toBeNull();
+      });
+  });
+
+  test('singlePrompt and groupedTask', async () => {
+    await client.graphql
+      .get()
+      .withClassName('Wine')
+      .withFields('name review')
+      .withGenerate({
+        singlePrompt: 'Describe the following as a Twitter Ad: {review}',
+        groupedTask: 'Describe the following as a Mastodon Ad: {review}',
+      })
+      .do()
+      .then((res: any) => {
+        expect(res.data.Get.Wine[0]._additional.generate.singleResult).toBeDefined();
+        expect(res.data.Get.Wine[0]._additional.generate.groupedResult).toBeDefined();
+        expect(res.data.Get.Wine[0]._additional.generate.error).toBeNull();
+      });
+  });
+
+  it('tears down schema', () => {
+    return Promise.all([client.schema.classDeleter().withClassName('Wine').do()]);
   });
 });
 
@@ -1280,6 +1278,73 @@ const setup = async (client: WeaviateClient) => {
   const thing = {
     class: 'Article',
     invertedIndexConfig: { indexTimestamps: true },
+    properties: [
+      {
+        name: 'title',
+        dataType: ['text'],
+      },
+      {
+        name: 'url',
+        dataType: ['string'],
+      },
+      {
+        name: 'wordCount',
+        dataType: ['int'],
+      },
+    ],
+  };
+
+  await Promise.all([client.schema.classCreator().withClass(thing).do()]);
+
+  // Note that the UUIDs are in ascending order. This is on purpose as the
+  // Cursor API test relies on this fact.
+  const toImport = [
+    {
+      id: 'abefd256-8574-442b-9293-9205193737e0',
+      class: 'Article',
+      properties: {
+        wordCount: 60,
+        url: 'http://articles.local/my-article-1',
+        title: 'Article 1',
+      },
+    },
+    {
+      id: 'abefd256-8574-442b-9293-9205193737e1',
+      class: 'Article',
+      properties: {
+        wordCount: 40,
+        url: 'http://articles.local/my-article-2',
+        title: 'Article 2',
+      },
+    },
+    {
+      id: 'abefd256-8574-442b-9293-9205193737e2',
+      class: 'Article',
+      properties: {
+        wordCount: 600,
+        url: 'http://articles.local/my-article-3',
+        title: 'Article about Apple',
+      },
+    },
+  ];
+
+  let batch = client.batch.objectsBatcher();
+
+  toImport.forEach((elem) => {
+    batch = batch.withObject(elem);
+  });
+
+  await batch.do();
+  return new Promise((resolve) => setTimeout(resolve, 1000));
+};
+
+const setupReplicated = async (client: WeaviateClient) => {
+  const thing = {
+    class: 'Article',
+    invertedIndexConfig: { indexTimestamps: true },
+    replicationConfig: {
+      factor: 2,
+    },
     properties: [
       {
         name: 'title',
