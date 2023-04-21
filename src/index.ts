@@ -17,7 +17,6 @@ import {
   OidcAuthenticator,
 } from './connection/auth';
 import MetaGetter from './misc/metaGetter';
-import { EmbeddedDB, EmbeddedOptions } from './embedded';
 
 export interface ConnectionParams {
   authClientSecret?: AuthClientCredentials | AuthAccessTokenCredentials | AuthUserPasswordCredentials;
@@ -25,7 +24,6 @@ export interface ConnectionParams {
   host: string;
   scheme: string;
   headers?: HeadersInit;
-  embedded?: EmbeddedOptions;
 }
 
 export interface WeaviateClient {
@@ -38,7 +36,6 @@ export interface WeaviateClient {
   c11y: C11y;
   backup: Backup;
   cluster: Cluster;
-  embedded?: EmbeddedDB;
   oidcAuth?: OidcAuthenticator;
 }
 
@@ -69,7 +66,6 @@ const app = {
       cluster: cluster(conn),
     };
 
-    if (params.embedded) ifc.embedded = new EmbeddedDB(params.embedded);
     if (conn.oidcAuth) ifc.oidcAuth = conn.oidcAuth;
 
     return ifc;
@@ -79,7 +75,6 @@ const app = {
   AuthUserPasswordCredentials,
   AuthAccessTokenCredentials,
   AuthClientCredentials,
-  EmbeddedOptions,
 };
 
 function initDbVersionProvider(conn: Connection) {
@@ -110,4 +105,3 @@ export * from './c11y';
 export * from './backup';
 export * from './cluster';
 export * from './connection';
-export * from './embedded';

@@ -12,7 +12,7 @@ esbuild
     metafile: true,
     minify: true,
     outfile: 'dist/index.js',
-    platform: 'node',
+    platform: 'neutral',
     sourcemap: true,
     target: 'es2020',
   })
