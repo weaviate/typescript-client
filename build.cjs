@@ -7,7 +7,7 @@ esbuild
     bundle: true,
     entryPoints: ['./src/index.ts'],
     external: ['@babel/runtime', 'isomorphic-fetch', 'graphql-request'],
-    format: 'cjs',
+    format: 'esm',
     logLevel: 'info',
     metafile: true,
     minify: true,

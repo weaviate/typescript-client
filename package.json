@@ -3,23 +3,24 @@
   "version": "1.1.0",
   "description": "TypeScript client for Weaviate",
   "main": "dist/index.js",
-  "types": "types/index.d.ts",
+  "types": "dist/index.d.ts",
+  "type": "module",
   "engines": {
     "node": ">=16.0.0"
   },
   "files": [
     "/dist/index.js",
     "/dist/index.js.map",
-    "/types/**/*.d.ts"
+    "/dist/**/*.d.ts"
   ],
   "scripts": {
     "test": "tsc -noEmit -p tsconfig-test.json && jest --useStderr --runInBand --detectOpenHandles",
-    "build": "npm run lint && tsc --emitDeclarationOnly && ./build.js",
+    "build": "npm run lint && tsc --emitDeclarationOnly && ./build.cjs",
     "prepack": "npm run build",
-    "lint": "eslint --ext .ts,.js .",
+    "lint": "eslint --ext .ts,.js,.cjs .",
     "lint:fix": "npm run lint -- --fix",
-    "format": "prettier --write --no-error-on-unmatched-pattern '**/*.{ts,js}' '!dist/**' '!types/**'",
-    "format:check": "prettier --check --no-error-on-unmatched-pattern '**/*.{ts,js}' '!dist/**' '!types/**'",
+    "format": "prettier --write --no-error-on-unmatched-pattern '**/*.{ts,js,cjs}' '!dist/**' '!types/**'",
+    "format:check": "prettier --check --no-error-on-unmatched-pattern '**/*.{ts,js,cjs}' '!dist/**' '!types/**'",
     "prepare": "husky install"
   },
   "repository": {
