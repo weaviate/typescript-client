@@ -1311,3 +1311,22 @@ warm`,
     expect(mockClient.query).toHaveBeenCalledWith(expectedQuery);
   });
 });
+
+describe('groupBy valid searchers', () => {
+  const mockClient: any = {
+    query: jest.fn(),
+  };
+
+  test('valid groupBy', () => {
+    const groupByQuery = `(groupBy:{path:["property"],groups:2,objectsPerGroup:3})`;
+    const expectedQuery = `{Get{Person` + groupByQuery + `{name}}}`;
+
+    new Getter(mockClient)
+      .withClassName('Person')
+      .withFields('name')
+      .withGroupBy({ path: ['property'], groups: 2, objectsPerGroup: 3 })
+      .do();
+
+    expect(mockClient.query).toHaveBeenCalledWith(expectedQuery);
+  });
+});
