@@ -1365,7 +1365,7 @@ describe('query with group by', () => {
       ofDocumentId: string;
     }
     const hits = 'hits{ofDocument{... on Document{_additional{id}}} _additional{id distance}}';
-    const group = `group{id groupValue count maxDistance minDistance ${hits}}`;
+    const group = `group{id groupedBy{value path} count maxDistance minDistance ${hits}}`;
     const _additional = `_additional{${group}}`;
     const expectedGroupHits1: GroupHit = {
       passageIds: [

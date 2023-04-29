@@ -33,7 +33,7 @@ describe('schema', () => {
   it('extends the thing class with a new property', () => {
     const className = 'MyThingClass';
     const prop: Property = {
-      dataType: ['string'],
+      dataType: ['text'],
       name: 'anotherProp',
       tokenization: 'field',
       moduleConfig: {
@@ -51,32 +51,6 @@ describe('schema', () => {
       .do()
       .then((res: any) => {
         expect(res).toEqual(prop);
-      });
-  });
-
-  it('fails to extend the thing class with property having not supported tokenization (1)', () => {
-    const className = 'MyThingClass';
-    const prop: Property = {
-      dataType: ['text'],
-      name: 'yetAnotherProp',
-      tokenization: 'field',
-      moduleConfig: {
-        'text2vec-contextionary': {
-          skip: false,
-          vectorizePropertyName: false,
-        },
-      },
-    };
-
-    return client.schema
-      .propertyCreator()
-      .withClassName(className)
-      .withProperty(prop)
-      .do()
-      .catch((err: Error) => {
-        expect(err.message).toEqual(
-          'usage error (422): {"error":[{"message":"Tokenization \'field\' is not allowed for data type \'text\'"}]}'
-        );
       });
   });
 
@@ -101,7 +75,7 @@ describe('schema', () => {
       .do()
       .catch((err: Error) => {
         expect(err.message).toEqual(
-          'usage error (422): {"error":[{"message":"Tokenization \'word\' is not allowed for data type \'int[]\'"}]}'
+          'usage error (422): {"error":[{"message":"Tokenization is not allowed for data type \'int[]\'"}]}'
         );
       });
   });
@@ -117,7 +91,7 @@ describe('schema', () => {
               class: 'MyThingClass',
               properties: [
                 {
-                  dataType: ['string'],
+                  dataType: ['text'],
                   name: 'stringProp',
                   tokenization: 'word',
                   moduleConfig: {
@@ -128,7 +102,7 @@ describe('schema', () => {
                   },
                 },
                 {
-                  dataType: ['string'],
+                  dataType: ['text'],
                   name: 'anotherProp',
                   tokenization: 'field',
                   moduleConfig: {
@@ -403,7 +377,7 @@ function newClassObject(className: string) {
     class: className,
     properties: [
       {
-        dataType: ['string'],
+        dataType: ['text'],
         name: 'stringProp',
         tokenization: 'word',
         moduleConfig: {

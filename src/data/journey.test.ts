@@ -45,7 +45,7 @@ describe('data', () => {
       .do()
       .catch((e: Error) => {
         expect(e.message).toEqual(
-          `usage error (422): {"error":[{"message":"invalid object: invalid string property 'stringProp' on class 'DataJourneyTestThing': not a string, but json.Number"}]}`
+          `usage error (422): {"error":[{"message":"invalid object: invalid text property 'stringProp' on class 'DataJourneyTestThing': not a string, but json.Number"}]}`
         );
       });
   });
