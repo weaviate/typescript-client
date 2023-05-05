@@ -36,6 +36,8 @@ describe('schema', () => {
       dataType: ['text'],
       name: 'anotherProp',
       tokenization: 'field',
+      indexFilterable: true,
+      indexSearchable: true,
       moduleConfig: {
         'text2vec-contextionary': {
           skip: false,
@@ -94,6 +96,8 @@ describe('schema', () => {
                   dataType: ['text'],
                   name: 'stringProp',
                   tokenization: 'word',
+                  indexFilterable: true,
+                  indexSearchable: true,
                   moduleConfig: {
                     'text2vec-contextionary': {
                       skip: false,
@@ -105,6 +109,8 @@ describe('schema', () => {
                   dataType: ['text'],
                   name: 'anotherProp',
                   tokenization: 'field',
+                  indexFilterable: true,
+                  indexSearchable: true,
                   moduleConfig: {
                     'text2vec-contextionary': {
                       skip: false,
@@ -380,6 +386,8 @@ function newClassObject(className: string) {
         dataType: ['text'],
         name: 'stringProp',
         tokenization: 'word',
+        indexFilterable: true,
+        indexSearchable: true,
         moduleConfig: {
           'text2vec-contextionary': {
             skip: false,
