@@ -11,16 +11,15 @@
     "allowJs": true,
     "checkJs": false,
     "sourceMap": false,
-    "module": "commonjs",
+    "module": "ES2020",
     "moduleResolution": "node",
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
-    "outDir": "./types",
+    "outDir": "./dist",
     "declaration": true,
     "rootDir": "./src",
-    "types": ["node"]
   },
   "include": ["./src/**/*"],
   "exclude": ["**/*.test.ts"]

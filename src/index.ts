@@ -92,8 +92,6 @@ function initDbVersionProvider(conn: Connection) {
   return dbVersionProvider;
 }
 
-module.exports = app;
-export default app;
 export * from './openapi/types';
 export * from './graphql';
 export * from './schema';
@@ -105,3 +103,4 @@ export * from './c11y';
 export * from './backup';
 export * from './cluster';
 export * from './connection';
+export default app;
