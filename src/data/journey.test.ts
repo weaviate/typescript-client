@@ -1,6 +1,12 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import weaviate, { WeaviateClient } from '..';
-import { WeaviateObject, WeaviateObjectsList, WeaviateError, Properties } from '../openapi/types';
+import {
+  WeaviateObject,
+  WeaviateObjectsList,
+  WeaviateError,
+  Properties,
+  WeaviateClass,
+} from '../openapi/types';
 
 const thingClassName = 'DataJourneyTestThing';
 const refSourceClassName = 'DataJourneyTestRefSource';
@@ -1076,6 +1082,73 @@ describe('data', () => {
       client.schema.classDeleter().withClassName(refSourceClassName).do(),
       client.schema.classDeleter().withClassName(classCustomVectorClassName).do(),
     ]);
+  });
+});
+
+describe('uuid support', () => {
+  const client = weaviate.client({
+    scheme: 'http',
+    host: 'localhost:8080',
+  });
+
+  it('creates class with properties of uuid and uuid[]', async () => {
+    const className = 'ClassUUID';
+    const id = 'abefd256-8574-442b-9293-9205193737ee';
+
+    await client.schema
+      .classCreator()
+      .withClass({
+        class: className,
+        properties: [
+          {
+            dataType: ['uuid'],
+            name: 'uuidProp',
+          },
+          {
+            dataType: ['uuid[]'],
+            name: 'uuidArrayProp',
+          },
+        ],
+      })
+      .do()
+      .then((res: WeaviateClass) => {
+        expect(res).toBeTruthy();
+      });
+
+    await client.data
+      .creator()
+      .withClassName(className)
+      .withId(id)
+      .withProperties({
+        uuidProp: '7aaa79d3-a564-45db-8fa8-c49e20b8a39a',
+        uuidArrayProp: ['f70512a3-26cb-4ae4-9369-204555917f15', '9e516f40-fd54-4083-a476-f4675b2b5f92'],
+      })
+      .do()
+      .then((res: WeaviateObject) => {
+        expect(res).toBeTruthy();
+      });
+
+    await client.data
+      .getterById()
+      .withId(id)
+      .withClassName(className)
+      .do()
+      .then((res: WeaviateObject) => {
+        expect(res).toBeTruthy();
+        expect(res.properties).toHaveProperty('uuidProp', '7aaa79d3-a564-45db-8fa8-c49e20b8a39a');
+        expect(res.properties).toHaveProperty('uuidArrayProp', [
+          'f70512a3-26cb-4ae4-9369-204555917f15',
+          '9e516f40-fd54-4083-a476-f4675b2b5f92',
+        ]);
+      });
+
+    return client.schema
+      .classDeleter()
+      .withClassName(className)
+      .do()
+      .then((res: void) => {
+        expect(res).toEqual(undefined);
+      });
   });
 });
 

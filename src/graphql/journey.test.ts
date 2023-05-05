@@ -1,4 +1,4 @@
-import weaviate, { Reference, WeaviateClient, WeaviateError, WeaviateObject } from '..';
+import weaviate, { Reference, WeaviateClient, WeaviateError, WeaviateObject, WeaviateClass } from '..';
 
 describe('the graphql journey', () => {
   let client: WeaviateClient;
@@ -1164,6 +1164,78 @@ describe('the graphql journey', () => {
         expect(res.data.Get.Article[0]._additional.lastUpdateTimeUnix).toEqual(
           expected.data.Get.Article[0]._additional.lastUpdateTimeUnix
         );
+      });
+  });
+
+  it('search object with uuid and uuid props', async () => {
+    const client = weaviate.client({
+      scheme: 'http',
+      host: 'localhost:8080',
+    });
+
+    const className = 'ClassUUID';
+    const id = 'abefd256-8574-442b-9293-9205193737ee';
+
+    await client.schema
+      .classCreator()
+      .withClass({
+        class: className,
+        properties: [
+          {
+            dataType: ['uuid'],
+            name: 'uuidProp',
+          },
+          {
+            dataType: ['uuid[]'],
+            name: 'uuidArrayProp',
+          },
+        ],
+      })
+      .do()
+      .then((res: WeaviateClass) => {
+        expect(res).toBeTruthy();
+      });
+
+    await client.data
+      .creator()
+      .withClassName(className)
+      .withId(id)
+      .withProperties({
+        uuidProp: '7aaa79d3-a564-45db-8fa8-c49e20b8a39a',
+        uuidArrayProp: ['f70512a3-26cb-4ae4-9369-204555917f15', '9e516f40-fd54-4083-a476-f4675b2b5f92'],
+      })
+      .do()
+      .then((res: WeaviateObject) => {
+        expect(res).toBeTruthy();
+      });
+
+    const expectObjectFound = async (propName: string, value: string) => {
+      await client.graphql
+        .get()
+        .withClassName(className)
+        .withFields('_additional { id }')
+        .withWhere({
+          path: [propName],
+          operator: 'Equal',
+          valueText: value,
+        })
+        .do()
+        .then((res: any) => {
+          expect(res.data.Get[className].length).toBeGreaterThan(0);
+          expect(res.data.Get[className][0]._additional.id).toEqual(id);
+        });
+    };
+
+    await expectObjectFound('uuidProp', '7aaa79d3-a564-45db-8fa8-c49e20b8a39a');
+    await expectObjectFound('uuidArrayProp', 'f70512a3-26cb-4ae4-9369-204555917f15');
+    await expectObjectFound('uuidArrayProp', '9e516f40-fd54-4083-a476-f4675b2b5f92');
+
+    return client.schema
+      .classDeleter()
+      .withClassName(className)
+      .do()
+      .then((res: void) => {
+        expect(res).toEqual(undefined);
       });
   });
 
