@@ -119,6 +119,23 @@ describe('where filters', () => {
       query: jest.fn(),
     };
 
+    const expectedQuery = `{Get{Person(where:{operator:Equal,valueText:"John Doe",path:["name"]}){name}}}`;
+    const where: WhereFilter = {
+      operator: 'Equal',
+      valueText: 'John Doe',
+      path: ['name'],
+    };
+
+    new Getter(mockClient).withClassName('Person').withFields('name').withWhere(where).do();
+
+    expect(mockClient.query).toHaveBeenCalledWith(expectedQuery);
+  });
+
+  test('a query with a deprecated valueString', () => {
+    const mockClient: any = {
+      query: jest.fn(),
+    };
+
     const expectedQuery = `{Get{Person(where:{operator:Equal,valueString:"John Doe",path:["name"]}){name}}}`;
     const where: WhereFilter = {
       operator: 'Equal',
@@ -1243,9 +1260,9 @@ describe('generative search', () => {
     new Getter(mockClient)
       .withClassName('Mammal')
       .withGenerate({
-        singlePrompt: `Which mammals 
-can survive 
-in Antarctica?`,
+        singlePrompt: `Which mammals
+ can survive
+ in Antarctica?`,
       })
       .withFields('name taxonomy')
       .do();
@@ -1278,14 +1295,14 @@ in Antarctica?`,
       .withClassName('Mammal')
       .withFields('name taxonomy')
       .withGenerate({
-        groupedTask: `Tell 
-me 
-about 
-how 
-polar 
-bears 
-keep 
-warm`,
+        groupedTask: `Tell
+ me
+ about
+ how
+ polar
+ bears
+ keep
+ warm`,
       })
       .do();
 

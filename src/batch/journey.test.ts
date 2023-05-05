@@ -359,7 +359,7 @@ describe('batch deleting', () => {
       .withClassName(thingClassName)
       .withWhere({
         operator: 'Equal',
-        valueString: 'bar1',
+        valueText: 'bar1',
         path: ['stringProp'],
       })
       .withDryRun(true)
@@ -373,7 +373,7 @@ describe('batch deleting', () => {
           where: {
             operands: null,
             operator: 'Equal',
-            valueString: 'bar1',
+            valueText: 'bar1',
             path: ['stringProp'],
           },
         });
@@ -397,7 +397,7 @@ describe('batch deleting', () => {
       .withClassName(otherThingClassName)
       .withWhere({
         operator: 'Like',
-        valueString: 'foo3',
+        valueText: 'foo3',
         path: ['stringProp'],
       })
       .withDryRun(true)
@@ -411,7 +411,7 @@ describe('batch deleting', () => {
           where: {
             operands: null,
             operator: 'Like',
-            valueString: 'foo3',
+            valueText: 'foo3',
             path: ['stringProp'],
           },
         });
@@ -430,7 +430,7 @@ describe('batch deleting', () => {
       .withClassName(otherThingClassName)
       .withWhere({
         operator: 'Equal',
-        valueString: 'doesNotExist',
+        valueText: 'doesNotExist',
         path: ['stringProp'],
       })
       .do()
@@ -442,7 +442,7 @@ describe('batch deleting', () => {
           where: {
             operands: null,
             operator: 'Equal',
-            valueString: 'doesNotExist',
+            valueText: 'doesNotExist',
             path: ['stringProp'],
           },
         });
@@ -462,7 +462,7 @@ describe('batch deleting', () => {
       .withClassName(otherThingClassName)
       .withWhere({
         operator: 'LessThan',
-        valueString: inAMinute,
+        valueText: inAMinute,
         path: ['_creationTimeUnix'],
       })
       .withOutput('verbose')
@@ -476,7 +476,7 @@ describe('batch deleting', () => {
           where: {
             operands: null,
             operator: 'LessThan',
-            valueString: inAMinute,
+            valueText: inAMinute,
             path: ['_creationTimeUnix'],
           },
         });

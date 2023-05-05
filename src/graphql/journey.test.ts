@@ -481,7 +481,7 @@ describe('the graphql journey', () => {
       .withClassName('Article')
       .withWhere({
         path: ['title'],
-        valueString: 'apple',
+        valueText: 'apple',
         operator: 'Equal',
       })
       .withLimit(10)
@@ -757,7 +757,7 @@ describe('the graphql journey', () => {
       .withWhere({
         operator: 'Equal',
         path: ['_id'],
-        valueString: 'abefd256-8574-442b-9293-9205193737e0',
+        valueText: 'abefd256-8574-442b-9293-9205193737e0',
       })
       .withFields('meta { count }')
       .do()
@@ -819,7 +819,7 @@ describe('the graphql journey', () => {
       .withWhere({
         operator: 'Equal',
         path: ['_id'],
-        valueString: 'abefd256-8574-442b-9293-9205193737e0',
+        valueText: 'abefd256-8574-442b-9293-9205193737e0',
       })
       .withFields('meta { count }')
       .do()
@@ -843,7 +843,7 @@ describe('the graphql journey', () => {
       .withWhere({
         operator: 'Equal',
         path: ['_id'],
-        valueString: 'abefd256-8574-442b-9293-9205193737e0',
+        valueText: 'abefd256-8574-442b-9293-9205193737e0',
       })
       .withFields('meta { count }')
       .do()
@@ -867,7 +867,7 @@ describe('the graphql journey', () => {
       .withWhere({
         operator: 'Equal',
         path: ['_id'],
-        valueString: 'abefd256-8574-442b-9293-9205193737e0',
+        valueText: 'abefd256-8574-442b-9293-9205193737e0',
       })
       .withFields('meta { count }')
       .do()
@@ -888,7 +888,7 @@ describe('the graphql journey', () => {
       .withWhere({
         operator: 'Equal',
         path: ['_id'],
-        valueString: 'abefd256-8574-442b-9293-9205193737e0',
+        valueText: 'abefd256-8574-442b-9293-9205193737e0',
       })
       .withFields('meta { count }')
       .do()
@@ -909,7 +909,7 @@ describe('the graphql journey', () => {
       .withWhere({
         operator: 'Equal',
         path: ['_id'],
-        valueString: 'abefd256-8574-442b-9293-9205193737e0',
+        valueText: 'abefd256-8574-442b-9293-9205193737e0',
       })
       .withFields('meta { count }')
       .do()
@@ -1127,7 +1127,7 @@ describe('the graphql journey', () => {
       .withWhere({
         path: ['_creationTimeUnix'],
         operator: 'Equal',
-        valueString: expected.data.Get.Article[0]._additional.creationTimeUnix,
+        valueText: expected.data.Get.Article[0]._additional.creationTimeUnix,
       })
       .do()
       .then((res: any) => {
@@ -1156,7 +1156,7 @@ describe('the graphql journey', () => {
       .withWhere({
         path: ['_lastUpdateTimeUnix'],
         operator: 'Equal',
-        valueString: expected.data.Get.Article[0]._additional.lastUpdateTimeUnix,
+        valueText: expected.data.Get.Article[0]._additional.lastUpdateTimeUnix,
       })
       .do()
       .then((res: any) => {
