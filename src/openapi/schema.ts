@@ -202,7 +202,7 @@ export interface definitions {
      * @example foobarium
      */
     concept?: string;
-    /** @description A list of space-delimited words or a sentence describing what the custom concept is about. Avoid using the custom concept itself. An Example definition for the custom concept 'foobarium': would be 'a naturally occourring element which can only be seen by programmers' */
+    /** @description A list of space-delimited words or a sentence describing what the custom concept is about. Avoid using the custom concept itself. An Example definition for the custom concept 'foobarium': would be 'a naturally occurring element which can only be seen by programmers' */
     definition?: string;
     /**
      * Format: float
@@ -451,13 +451,17 @@ export interface definitions {
     moduleConfig?: { [key: string]: unknown };
     /** @description Name of the property as URI relative to the schema URL. */
     name?: string;
-    /** @description Optional. Should this property be indexed in the inverted index. Defaults to true. If you choose false, you will not be able to use this property in where filters. This property has no affect on vectorization decisions done by modules */
+    /** @description Optional. Should this property be indexed in the inverted index. Defaults to true. If you choose false, you will not be able to use this property in where filters, bm25 or hybrid search. This property has no affect on vectorization decisions done by modules (deprecated as of v1.19; use indexFilterable or/and indexSearchable instead) */
     indexInverted?: boolean;
+    /** @description Optional. Should this property be indexed in the inverted index. Defaults to true. If you choose false, you will not be able to use this property in where filters. This property has no affect on vectorization decisions done by modules */
+    indexFilterable?: boolean;
+    /** @description Optional. Should this property be indexed in the inverted index. Defaults to true. Applicable only to properties of data type text and text[]. If you choose false, you will not be able to use this property in bm25 or hybrid search. This property has no affect on vectorization decisions done by modules */
+    indexSearchable?: boolean;
     /**
-     * @description Determines tokenization of the property as separate words or whole field. Optional. Applies to string, string[], text and text[] data types. Allowed values are `word` (default) and `field` for string and string[], `word` (default) for text and text[]. Not supported for remaining data types
+     * @description Determines tokenization of the property as separate words or whole field. Optional. Applies to text and text[] data types. Allowed values are `word` (default; splits on any non-alphanumerical, lowercases), `lowercase` (splits on white spaces, lowercases), `whitespace` (splits on white spaces), `field` (trims). Not supported for remaining data types
      * @enum {string}
      */
-    tokenization?: 'word' | 'field';
+    tokenization?: 'word' | 'lowercase' | 'whitespace' | 'field';
   };
   /** @description The status of all the shards of a Class */
   ShardStatusList: definitions['ShardStatusGetResponse'][];
@@ -651,7 +655,7 @@ export interface definitions {
     winningCount?: number;
     /**
      * Format: int64
-     * @description size of the losing group, can be 0 if the winning group size euqals k
+     * @description size of the losing group, can be 0 if the winning group size equals k
      */
     losingCount?: number;
     /**
@@ -1017,12 +1021,12 @@ export interface definitions {
      */
     valueBoolean?: boolean;
     /**
-     * @description value as string
+     * @description value as text (deprecated as of v1.19; alias for valueText)
      * @example my search term
      */
     valueString?: string;
     /**
-     * @description value as text (on text props)
+     * @description value as text
      * @example my search term
      */
     valueText?: string;

@@ -1,4 +1,4 @@
-import weaviate, { WeaviateClient } from '..';
+import weaviate, { Reference, WeaviateClient, WeaviateError, WeaviateObject } from '..';
 
 describe('the graphql journey', () => {
   let client: WeaviateClient;
@@ -481,7 +481,7 @@ describe('the graphql journey', () => {
       .withClassName('Article')
       .withWhere({
         path: ['title'],
-        valueString: 'apple',
+        valueText: 'apple',
         operator: 'Equal',
       })
       .withLimit(10)
@@ -757,7 +757,7 @@ describe('the graphql journey', () => {
       .withWhere({
         operator: 'Equal',
         path: ['_id'],
-        valueString: 'abefd256-8574-442b-9293-9205193737e0',
+        valueText: 'abefd256-8574-442b-9293-9205193737e0',
       })
       .withFields('meta { count }')
       .do()
@@ -819,7 +819,7 @@ describe('the graphql journey', () => {
       .withWhere({
         operator: 'Equal',
         path: ['_id'],
-        valueString: 'abefd256-8574-442b-9293-9205193737e0',
+        valueText: 'abefd256-8574-442b-9293-9205193737e0',
       })
       .withFields('meta { count }')
       .do()
@@ -843,7 +843,7 @@ describe('the graphql journey', () => {
       .withWhere({
         operator: 'Equal',
         path: ['_id'],
-        valueString: 'abefd256-8574-442b-9293-9205193737e0',
+        valueText: 'abefd256-8574-442b-9293-9205193737e0',
       })
       .withFields('meta { count }')
       .do()
@@ -867,7 +867,7 @@ describe('the graphql journey', () => {
       .withWhere({
         operator: 'Equal',
         path: ['_id'],
-        valueString: 'abefd256-8574-442b-9293-9205193737e0',
+        valueText: 'abefd256-8574-442b-9293-9205193737e0',
       })
       .withFields('meta { count }')
       .do()
@@ -888,7 +888,7 @@ describe('the graphql journey', () => {
       .withWhere({
         operator: 'Equal',
         path: ['_id'],
-        valueString: 'abefd256-8574-442b-9293-9205193737e0',
+        valueText: 'abefd256-8574-442b-9293-9205193737e0',
       })
       .withFields('meta { count }')
       .do()
@@ -909,7 +909,7 @@ describe('the graphql journey', () => {
       .withWhere({
         operator: 'Equal',
         path: ['_id'],
-        valueString: 'abefd256-8574-442b-9293-9205193737e0',
+        valueText: 'abefd256-8574-442b-9293-9205193737e0',
       })
       .withFields('meta { count }')
       .do()
@@ -1127,7 +1127,7 @@ describe('the graphql journey', () => {
       .withWhere({
         path: ['_creationTimeUnix'],
         operator: 'Equal',
-        valueString: expected.data.Get.Article[0]._additional.creationTimeUnix,
+        valueText: expected.data.Get.Article[0]._additional.creationTimeUnix,
       })
       .do()
       .then((res: any) => {
@@ -1156,7 +1156,7 @@ describe('the graphql journey', () => {
       .withWhere({
         path: ['_lastUpdateTimeUnix'],
         operator: 'Equal',
-        valueString: expected.data.Get.Article[0]._additional.lastUpdateTimeUnix,
+        valueText: expected.data.Get.Article[0]._additional.lastUpdateTimeUnix,
       })
       .do()
       .then((res: any) => {
@@ -1344,6 +1344,97 @@ describe('query cluster with consistency level', () => {
   });
 });
 
+describe('query with group by', () => {
+  let client: WeaviateClient;
+
+  beforeEach(() => {
+    client = weaviate.client({
+      scheme: 'http',
+      host: 'localhost:8080',
+    });
+  });
+
+  it('creates Document Passage schema classes', () => {
+    // this is just test setup, not part of what we want to test here
+    return setupGroupBy(client);
+  });
+
+  test('should return 3 groups', async () => {
+    interface GroupHit {
+      passageIds: string[];
+      ofDocumentId: string;
+    }
+    const hits = 'hits{ofDocument{... on Document{_additional{id}}} _additional{id distance}}';
+    const group = `group{id groupedBy{value path} count maxDistance minDistance ${hits}}`;
+    const _additional = `_additional{${group}}`;
+    const expectedGroupHits1: GroupHit = {
+      passageIds: [
+        '00000000-0000-0000-0000-000000000001',
+        '00000000-0000-0000-0000-000000000009',
+        '00000000-0000-0000-0000-000000000007',
+        '00000000-0000-0000-0000-000000000008',
+        '00000000-0000-0000-0000-000000000006',
+        '00000000-0000-0000-0000-000000000010',
+        '00000000-0000-0000-0000-000000000005',
+        '00000000-0000-0000-0000-000000000004',
+        '00000000-0000-0000-0000-000000000003',
+        '00000000-0000-0000-0000-000000000002',
+      ],
+      ofDocumentId: '00000000-0000-0000-0000-00000000000a',
+    };
+    const expectedGroupHits2: GroupHit = {
+      passageIds: [
+        '00000000-0000-0000-0000-000000000011',
+        '00000000-0000-0000-0000-000000000013',
+        '00000000-0000-0000-0000-000000000012',
+        '00000000-0000-0000-0000-000000000014',
+      ],
+      ofDocumentId: '00000000-0000-0000-0000-00000000000b',
+    };
+    const expectedGroupHits: GroupHit[] = [expectedGroupHits1, expectedGroupHits2];
+
+    await client.graphql
+      .get()
+      .withClassName('Passage')
+      .withGroupBy({ path: ['ofDocument'], groups: 3, objectsPerGroup: 10 })
+      .withNearObject({ id: '00000000-0000-0000-0000-000000000001' })
+      .withFields(_additional)
+      .do()
+      .then((res: any) => {
+        expect(res.data.Get.Passage).toHaveLength(3);
+        expect(res.data.Get.Passage[0]._additional.group.hits).toHaveLength(10);
+        expect(res.data.Get.Passage[1]._additional.group.hits).toHaveLength(4);
+        expect(res.data.Get.Passage[2]._additional.group.hits).toHaveLength(6);
+        for (let i = 0; i < 3; i++) {
+          expect(res.data.Get.Passage[i]._additional.group).toBeDefined();
+          expect(res.data.Get.Passage[i]._additional.group.minDistance).toBe(
+            res.data.Get.Passage[i]._additional.group.hits[0]._additional.distance
+          );
+          expect(res.data.Get.Passage[i]._additional.group.maxDistance).toBe(
+            res.data.Get.Passage[i]._additional.group.hits[
+              res.data.Get.Passage[i]._additional.group.hits.length - 1
+            ]._additional.distance
+          );
+        }
+        for (let i = 0; i < 2; i++) {
+          const expectedResults = expectedGroupHits[i];
+          const hits = res.data.Get.Passage[i]._additional.group.hits;
+          for (let j = 0; j < hits.length; j++) {
+            expect(hits[j]._additional.id).toBe(expectedResults.passageIds[j]);
+            expect(hits[j].ofDocument[0]._additional.id).toBe(expectedResults.ofDocumentId);
+          }
+        }
+      });
+  });
+
+  it('tears down Document Passage schema', () => {
+    return Promise.all([
+      client.schema.classDeleter().withClassName('Passage').do(),
+      client.schema.classDeleter().withClassName('Document').do(),
+    ]);
+  });
+});
+
 const setup = async (client: WeaviateClient) => {
   const thing = {
     class: 'Article',
@@ -1472,5 +1563,129 @@ const setupReplicated = async (client: WeaviateClient) => {
   });
 
   await batch.do();
+  return new Promise((resolve) => setTimeout(resolve, 1000));
+};
+
+const setupGroupBy = async (client: WeaviateClient) => {
+  const document = {
+    class: 'Document',
+    invertedIndexConfig: { indexTimestamps: true },
+    properties: [
+      {
+        name: 'title',
+        dataType: ['text'],
+      },
+    ],
+  };
+
+  const passage = {
+    class: 'Passage',
+    invertedIndexConfig: { indexTimestamps: true },
+    properties: [
+      {
+        name: 'content',
+        dataType: ['text'],
+      },
+      {
+        name: 'type',
+        dataType: ['text'],
+      },
+      {
+        name: 'ofDocument',
+        dataType: ['Document'],
+      },
+    ],
+  };
+
+  await Promise.all([client.schema.classCreator().withClass(document).do()]);
+  await Promise.all([client.schema.classCreator().withClass(passage).do()]);
+
+  // document, passage uuids
+  const documentIds: string[] = [
+    '00000000-0000-0000-0000-00000000000a',
+    '00000000-0000-0000-0000-00000000000b',
+    '00000000-0000-0000-0000-00000000000c',
+    '00000000-0000-0000-0000-00000000000d',
+  ];
+
+  const passageIds: string[] = [
+    '00000000-0000-0000-0000-000000000001',
+    '00000000-0000-0000-0000-000000000002',
+    '00000000-0000-0000-0000-000000000003',
+    '00000000-0000-0000-0000-000000000004',
+    '00000000-0000-0000-0000-000000000005',
+    '00000000-0000-0000-0000-000000000006',
+    '00000000-0000-0000-0000-000000000007',
+    '00000000-0000-0000-0000-000000000008',
+    '00000000-0000-0000-0000-000000000009',
+    '00000000-0000-0000-0000-000000000010',
+    '00000000-0000-0000-0000-000000000011',
+    '00000000-0000-0000-0000-000000000012',
+    '00000000-0000-0000-0000-000000000013',
+    '00000000-0000-0000-0000-000000000014',
+    '00000000-0000-0000-0000-000000000015',
+    '00000000-0000-0000-0000-000000000016',
+    '00000000-0000-0000-0000-000000000017',
+    '00000000-0000-0000-0000-000000000018',
+    '00000000-0000-0000-0000-000000000019',
+    '00000000-0000-0000-0000-000000000020',
+  ];
+
+  const documents: WeaviateObject[] = [];
+  for (let i = 0; i < documentIds.length; i++) {
+    documents.push({
+      id: documentIds[i],
+      class: 'Document',
+      properties: {
+        title: `Title of the document ${i}`,
+      },
+    });
+  }
+
+  const passages: WeaviateObject[] = [];
+  for (let i = 0; i < passageIds.length; i++) {
+    passages.push({
+      id: passageIds[i],
+      class: 'Passage',
+      properties: {
+        content: `Passage content ${i}`,
+        type: 'document-passage',
+      },
+    });
+  }
+
+  let batch = client.batch.objectsBatcher();
+  [...documents, ...passages].forEach((elem) => {
+    batch = batch.withObject(elem);
+  });
+  await batch.do();
+
+  const createReferences = (
+    client: WeaviateClient,
+    document: WeaviateObject,
+    passages: WeaviateObject[]
+  ): void => {
+    const ref: Reference = client.data
+      .referencePayloadBuilder()
+      .withId(document.id!)
+      .withClassName(document.class!)
+      .payload();
+    for (const passage of passages) {
+      client.data
+        .referenceCreator()
+        .withId(passage.id!)
+        .withClassName(passage.class!)
+        .withReferenceProperty('ofDocument')
+        .withReference(ref)
+        .do()
+        .catch((e: WeaviateError) => {
+          throw new Error('it should not have errord: ' + e);
+        });
+    }
+  };
+
+  createReferences(client, documents[0], passages.slice(0, 10));
+  createReferences(client, documents[1], passages.slice(10, 14));
+
   return new Promise((resolve) => setTimeout(resolve, 1000));
 };

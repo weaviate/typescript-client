@@ -13,6 +13,7 @@ import { CommandBase } from '../validation/commandBase';
 import { WhereFilter } from '../openapi/types';
 import { GenerateArgs, GraphQLGenerate } from './generate';
 import { ConsistencyLevel } from '../data';
+import GroupBy, { GroupByArgs } from './groupBy';
 
 export default class GraphQLGetter extends CommandBase {
   private after?: string;
@@ -33,6 +34,7 @@ export default class GraphQLGetter extends CommandBase {
   private whereString?: string;
   private generateString?: string;
   private consistencyLevel?: ConsistencyLevel;
+  private groupByString?: string;
 
   constructor(client: Connection) {
     super(client);
@@ -183,6 +185,15 @@ export default class GraphQLGetter extends CommandBase {
     return this;
   };
 
+  withGroupBy = (args: GroupByArgs) => {
+    try {
+      this.groupByString = new GroupBy(args).toString();
+    } catch (e: any) {
+      this.addError(e.toString());
+    }
+    return this;
+  };
+
   validateIsSet = (prop: string | undefined | null, name: string, setter: string) => {
     if (prop == undefined || prop == null || prop.length == 0) {
       this.addError(`${name} must be set - set with ${setter}`);
@@ -265,6 +276,10 @@ export default class GraphQLGetter extends CommandBase {
 
     if (this.consistencyLevel) {
       args = [...args, `consistencyLevel:${this.consistencyLevel}`];
+    }
+
+    if (this.groupByString) {
+      args = [...args, `groupBy:${this.groupByString}`];
     }
 
     if (args.length > 0) {
