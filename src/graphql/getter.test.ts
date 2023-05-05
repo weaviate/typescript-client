@@ -75,6 +75,44 @@ test('a simple query with a group', () => {
   expect(mockClient.query).toHaveBeenCalledWith(expectedQuery);
 });
 
+describe('query with consistency level', () => {
+  test('One', () => {
+    const mockClient: any = {
+      query: jest.fn(),
+    };
+
+    const expectedQuery = `{Get{Person(consistencyLevel:ONE){name}}}`;
+
+    new Getter(mockClient).withClassName('Person').withFields('name').withConsistencyLevel('ONE').do();
+
+    expect(mockClient.query).toHaveBeenCalledWith(expectedQuery);
+  });
+
+  test('Quorum', () => {
+    const mockClient: any = {
+      query: jest.fn(),
+    };
+
+    const expectedQuery = `{Get{Person(consistencyLevel:QUORUM){name}}}`;
+
+    new Getter(mockClient).withClassName('Person').withFields('name').withConsistencyLevel('QUORUM').do();
+
+    expect(mockClient.query).toHaveBeenCalledWith(expectedQuery);
+  });
+
+  test('All', () => {
+    const mockClient: any = {
+      query: jest.fn(),
+    };
+
+    const expectedQuery = `{Get{Person(consistencyLevel:ALL){name}}}`;
+
+    new Getter(mockClient).withClassName('Person').withFields('name').withConsistencyLevel('ALL').do();
+
+    expect(mockClient.query).toHaveBeenCalledWith(expectedQuery);
+  });
+});
+
 describe('where filters', () => {
   test('a query with a valid where filter', () => {
     const mockClient: any = {

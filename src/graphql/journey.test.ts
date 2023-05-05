@@ -1227,7 +1227,7 @@ describe('query with generative search', () => {
       .withClassName('Wine')
       .withFields('name review')
       .withGenerate({
-        singlePrompt: `Describe the following as a Facebook Ad: 
+        singlePrompt: `Describe the following as a Facebook Ad:
 Tastes like a fresh ocean breeze: {review}`,
       })
       .do()
@@ -1271,6 +1271,76 @@ Tastes like a fresh ocean breeze: {review}`,
 
   it('tears down schema', () => {
     return Promise.all([client.schema.classDeleter().withClassName('Wine').do()]);
+  });
+});
+
+describe('query cluster with consistency level', () => {
+  const client = weaviate.client({
+    scheme: 'http',
+    host: 'localhost:8087',
+  });
+
+  it('sets up replicated class', () => {
+    return setupReplicated(client);
+  });
+
+  test('One', () => {
+    return client.graphql
+      .get()
+      .withClassName('Article')
+      .withFields('_additional { id isConsistent }')
+      .withConsistencyLevel('ONE')
+      .do()
+      .then((res: any) => {
+        expect(res.data.Get.Article.length).toBeGreaterThan(0);
+        res.data.Get.Article.forEach((article: any) => {
+          expect(article._additional.isConsistent).toBeTruthy();
+        });
+        return res;
+      })
+      .catch((e: any) => {
+        throw new Error(`unexpected error: ${JSON.stringify(e)}`);
+      });
+  });
+
+  test('Quorum', () => {
+    return client.graphql
+      .get()
+      .withClassName('Article')
+      .withFields('_additional { id isConsistent }')
+      .withConsistencyLevel('QUORUM')
+      .do()
+      .then((res: any) => {
+        expect(res.data.Get.Article.length).toBeGreaterThan(0);
+        res.data.Get.Article.forEach((article: any) => {
+          expect(article._additional.isConsistent).toBeTruthy();
+        });
+      })
+      .catch((e: any) => {
+        throw new Error(`unexpected error: ${JSON.stringify(e)}`);
+      });
+  });
+
+  test('All', () => {
+    return client.graphql
+      .get()
+      .withClassName('Article')
+      .withFields('_additional { id isConsistent }')
+      .withConsistencyLevel('ALL')
+      .do()
+      .then((res: any) => {
+        expect(res.data.Get.Article.length).toBeGreaterThan(0);
+        res.data.Get.Article.forEach((article: any) => {
+          expect(article._additional.isConsistent).toBeTruthy();
+        });
+      })
+      .catch((e: any) => {
+        throw new Error(`unexpected error: ${JSON.stringify(e)}`);
+      });
+  });
+
+  it('tears down cluster schema', () => {
+    return Promise.all([client.schema.classDeleter().withClassName('Article').do()]);
   });
 });
 

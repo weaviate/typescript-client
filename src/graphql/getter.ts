@@ -12,6 +12,7 @@ import Connection from '../connection';
 import { CommandBase } from '../validation/commandBase';
 import { WhereFilter } from '../openapi/types';
 import { GenerateArgs, GraphQLGenerate } from './generate';
+import { ConsistencyLevel } from '../data';
 
 export default class GraphQLGetter extends CommandBase {
   private after?: string;
@@ -31,6 +32,7 @@ export default class GraphQLGetter extends CommandBase {
   private sortString?: string;
   private whereString?: string;
   private generateString?: string;
+  private consistencyLevel?: ConsistencyLevel;
 
   constructor(client: Connection) {
     super(client);
@@ -176,6 +178,11 @@ export default class GraphQLGetter extends CommandBase {
     return this;
   };
 
+  withConsistencyLevel = (level: ConsistencyLevel) => {
+    this.consistencyLevel = level;
+    return this;
+  };
+
   validateIsSet = (prop: string | undefined | null, name: string, setter: string) => {
     if (prop == undefined || prop == null || prop.length == 0) {
       this.addError(`${name} must be set - set with ${setter}`);
@@ -254,6 +261,10 @@ export default class GraphQLGetter extends CommandBase {
       } else {
         this.fields = this.fields?.concat(` _additional{${this.generateString}}`);
       }
+    }
+
+    if (this.consistencyLevel) {
+      args = [...args, `consistencyLevel:${this.consistencyLevel}`];
     }
 
     if (args.length > 0) {
