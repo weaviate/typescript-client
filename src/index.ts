@@ -92,7 +92,6 @@ function initDbVersionProvider(conn: Connection) {
   return dbVersionProvider;
 }
 
-module.exports = app;
 export default app;
 export * from './openapi/types';
 export * from './graphql';
