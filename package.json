@@ -22,7 +22,7 @@
   ],
   "scripts": {
     "test": "tsc -noEmit -p tsconfig-test.json && jest --useStderr --runInBand --detectOpenHandles",
-    "build": "npm run lint && tsup src/index.ts --format cjs,esm --dts --clean --platform neutral",
+    "build": "npm run lint && tsup src/index.ts --format cjs,esm --dts --clean --platform neutral --minify",
     "prepack": "npm run build",
     "lint": "eslint --ext .ts,.js .",
     "lint:fix": "npm run lint -- --fix",
