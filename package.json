@@ -17,8 +17,8 @@
   },
   "files": [
     "/dist/index.js",
-    "/dist/index.js.map",
-    "/types/**/*.d.ts"
+    "/dist/index.mjs",
+    "/dist/index.d.ts"
   ],
   "scripts": {
     "test": "tsc -noEmit -p tsconfig-test.json && jest --useStderr --runInBand --detectOpenHandles",
@@ -26,8 +26,8 @@
     "prepack": "npm run build",
     "lint": "eslint --ext .ts,.js .",
     "lint:fix": "npm run lint -- --fix",
-    "format": "prettier --write --no-error-on-unmatched-pattern '**/*.{ts,js}' '!dist/**' '!types/**'",
-    "format:check": "prettier --check --no-error-on-unmatched-pattern '**/*.{ts,js}' '!dist/**' '!types/**'",
+    "format": "prettier --write --no-error-on-unmatched-pattern '**/*.{ts,js}' '!dist/**'",
+    "format:check": "prettier --check --no-error-on-unmatched-pattern '**/*.{ts,js}' '!dist/**'",
     "prepare": "husky install"
   },
   "repository": {
