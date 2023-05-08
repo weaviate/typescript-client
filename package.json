@@ -2,8 +2,16 @@
   "name": "weaviate-ts-client",
   "version": "1.2.0",
   "description": "TypeScript client for Weaviate",
-  "main": "dist/index.js",
-  "types": "types/index.d.ts",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "require": "./dist/index.js",
+      "import": "./dist/index.mjs",
+      "types": "./dist/index.d.ts"
+    }
+  },
   "engines": {
     "node": ">=16.0.0"
   },
@@ -14,7 +22,7 @@
   ],
   "scripts": {
     "test": "tsc -noEmit -p tsconfig-test.json && jest --useStderr --runInBand --detectOpenHandles",
-    "build": "npm run lint && tsc --emitDeclarationOnly && ./build.js",
+    "build": "npm run lint && tsup src/index.ts --format cjs,esm --dts --clean --platform neutral",
     "prepack": "npm run build",
     "lint": "eslint --ext .ts,.js .",
     "lint:fix": "npm run lint -- --fix",
@@ -61,6 +69,7 @@
     "lint-staged": "^13.2.0",
     "prettier": "^2.8.4",
     "ts-jest": "^29.0.5",
+    "tsup": "^6.7.0",
     "typescript": "^4.9.5"
   },
   "lint-staged": {
