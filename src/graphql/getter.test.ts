@@ -1230,6 +1230,18 @@ describe('hybrid valid searchers', () => {
 
     expect(mockClient.query).toHaveBeenCalledWith(expectedQuery);
   });
+
+  test('queries and properties', () => {
+    const expectedQuery = `{Get{Person(hybrid:{query:"accountant",properties:["name","employer"]}){name}}}`;
+
+    new Getter(mockClient)
+      .withClassName('Person')
+      .withFields('name')
+      .withHybrid({ query: 'accountant', properties: ['name', 'employer'] })
+      .do();
+
+    expect(mockClient.query).toHaveBeenCalledWith(expectedQuery);
+  });
 });
 
 describe('generative search', () => {
