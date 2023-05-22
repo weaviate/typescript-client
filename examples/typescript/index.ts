@@ -3,6 +3,7 @@ import weaviate, {
   AuthUserPasswordCredentials,
   ApiKey,
   AuthAccessTokenCredentials,
+  generateUuid5,
 } from 'weaviate-ts-client';
 
 const client = weaviate.client({
@@ -37,6 +38,7 @@ console.log(
 );
 
 console.log(JSON.stringify(new ApiKey('abcd1234')));
+console.log(generateUuid5({ prop1: 'hello', prop2: 'world' }, 'the-best-namespace'));
 
 client.misc
   .metaGetter()
