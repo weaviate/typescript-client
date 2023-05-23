@@ -38,7 +38,7 @@ console.log(
 );
 
 console.log(JSON.stringify(new ApiKey('abcd1234')));
-console.log(generateUuid5({ prop1: 'hello', prop2: 'world' }, 'the-best-namespace'));
+console.log(generateUuid5('55dfccce-0142-4807-a1ff-60be9b38f5cc', 'the-best-namespace'));
 
 client.misc
   .metaGetter()
