@@ -104,3 +104,4 @@ export * from './c11y';
 export * from './backup';
 export * from './cluster';
 export * from './connection';
+export * from './utils/uuid';
