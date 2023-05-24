@@ -1,5 +1,6 @@
 export interface GenerateArgs {
   groupedTask?: string;
+  groupedProperties?: string[];
   singlePrompt?: string;
 }
 
@@ -11,10 +12,12 @@ export interface GenerateParts {
 
 export class GraphQLGenerate {
   private groupedTask?: string;
+  private groupedProperties?: string[];
   private singlePrompt?: string;
 
   constructor(args: GenerateArgs) {
     this.groupedTask = args.groupedTask;
+    this.groupedProperties = args.groupedProperties;
     this.singlePrompt = args.singlePrompt;
   }
 
@@ -27,8 +30,15 @@ export class GraphQLGenerate {
       str += `singleResult:{prompt:"${this.singlePrompt.replace(/[\n\r]+/g, '')}"}`;
       results.push('singleResult');
     }
-    if (this.groupedTask) {
-      str += `groupedResult:{task:"${this.groupedTask.replace(/[\n\r]+/g, '')}"}`;
+    if (this.groupedTask || (this.groupedProperties !== undefined && this.groupedProperties.length > 0)) {
+      const args: string[] = [];
+      if (this.groupedTask) {
+        args.push(`task:"${this.groupedTask.replace(/[\n\r]+/g, '')}"`);
+      }
+      if (this.groupedProperties !== undefined && this.groupedProperties.length > 0) {
+        args.push(`properties:${JSON.stringify(this.groupedProperties)}`);
+      }
+      str += `groupedResult:{${args.join(',')}}`;
       results.push('groupedResult');
     }
     str += `){${results.join(' ')}}`;
