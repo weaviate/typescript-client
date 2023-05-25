@@ -1339,6 +1339,43 @@ describe('generative search', () => {
 
     expect(mockClient.query).toHaveBeenCalledWith(expectedQuery);
   });
+
+  test('groupedTask with properties', () => {
+    const expectedQuery =
+      '{Get{Mammal{name taxonomy _additional{generate(groupedResult:' +
+      '{task:"Explain why platypi can lay eggs",properties:["title","description"]}){error groupedResult}}}}}';
+
+    new Getter(mockClient)
+      .withClassName('Mammal')
+      .withGenerate({
+        groupedTask: 'Explain why platypi can lay eggs',
+        groupedProperties: ['title', 'description'],
+      })
+      .withFields('name taxonomy')
+      .do();
+
+    expect(mockClient.query).toHaveBeenCalledWith(expectedQuery);
+  });
+
+  test('single prompt and grouped task with properties', () => {
+    const expectedQuery =
+      '{Get{Mammal{name taxonomy _additional{generate(singleResult:' +
+      '{prompt:"How tall is a baby giraffe?"}groupedResult:{task:' +
+      '"Explain how the heights of mammals relate to their prefferred food sources",properties:["property"]})' +
+      '{error singleResult groupedResult}}}}}';
+
+    new Getter(mockClient)
+      .withClassName('Mammal')
+      .withFields('name taxonomy')
+      .withGenerate({
+        singlePrompt: 'How tall is a baby giraffe?',
+        groupedTask: 'Explain how the heights of mammals relate to their prefferred food sources',
+        groupedProperties: ['property'],
+      })
+      .do();
+
+    expect(mockClient.query).toHaveBeenCalledWith(expectedQuery);
+  });
 });
 
 describe('groupBy valid searchers', () => {

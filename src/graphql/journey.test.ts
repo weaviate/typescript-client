@@ -1343,6 +1343,22 @@ Tastes like a fresh ocean breeze: {review}`,
       });
   });
 
+  test('groupedTask with groupedProperties', async () => {
+    await client.graphql
+      .get()
+      .withClassName('Wine')
+      .withFields('name review')
+      .withGenerate({
+        groupedTask: 'Describe the following as a LinkedIn Ad:',
+        groupedProperties: ['name', 'review'],
+      })
+      .do()
+      .then((res: any) => {
+        expect(res.data.Get.Wine[0]._additional.generate.groupedResult).toBeDefined();
+        expect(res.data.Get.Wine[0]._additional.generate.error).toBeNull();
+      });
+  });
+
   test('singlePrompt and groupedTask', async () => {
     await client.graphql
       .get()
