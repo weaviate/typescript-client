@@ -66,3 +66,8 @@ jobs:
       - run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTOMATION_TOKEN }}
+      - name: "Create a GitHub release"
+        uses: softprops/action-gh-release@v1
+        with:
+          generate_release_notes: true
+          draft: true
