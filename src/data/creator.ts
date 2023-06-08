@@ -12,6 +12,7 @@ export default class Creator extends CommandBase {
   private objectsPath: ObjectsPath;
   private properties?: Properties;
   private vector?: number[];
+  private tenant?: string;
 
   constructor(client: Connection, objectsPath: ObjectsPath) {
     super(client);
@@ -43,13 +44,19 @@ export default class Creator extends CommandBase {
     return this;
   };
 
+  withTenant = (tenant: string) => {
+    this.tenant = tenant;
+    return this;
+  };
+
   validateClassName = () => {
     if (!isValidStringProperty(this.className)) {
       this.addError('className must be set - set with .withClassName(className)');
     }
   };
 
-  payload = () => ({
+  payload = (): WeaviateObject => ({
+    tenant: this.tenant,
     vector: this.vector,
     properties: this.properties,
     class: this.className,

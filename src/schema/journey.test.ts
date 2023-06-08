@@ -1,6 +1,13 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import weaviate, { WeaviateClient } from '..';
-import { WeaviateClass, Property, WeaviateSchema, ShardStatus, ShardStatusList } from '../openapi/types';
+import {
+  WeaviateClass,
+  Property,
+  WeaviateSchema,
+  ShardStatus,
+  ShardStatusList,
+  Tenant,
+} from '../openapi/types';
 
 describe('schema', () => {
   const client = weaviate.client({
@@ -146,6 +153,7 @@ describe('schema', () => {
                     type: 'kmeans',
                   },
                   segments: 0,
+                  trainingLimit: 100000,
                 },
                 skip: false,
                 efConstruction: 128,
@@ -169,6 +177,9 @@ describe('schema', () => {
                   vectorizeClassName: true,
                 },
               },
+              multiTenancyConfig: {
+                enabled: false,
+              },
               shardingConfig: {
                 actualCount: 1,
                 actualVirtualCount: 128,
@@ -191,7 +202,7 @@ describe('schema', () => {
   it('gets the shards of an existing class', () => {
     return client.schema
       .shardsGetter()
-      .withClassName(classObj.class!)
+      .withClassName(classObj.class)
       .do()
       .then((res: ShardStatusList) => {
         res.forEach((shard: ShardStatus) => {
@@ -201,13 +212,13 @@ describe('schema', () => {
   });
 
   it('updates a shard of an existing class to readonly', async () => {
-    const shards = await getShards(client, classObj.class!);
+    const shards = await getShards(client, classObj.class);
     expect(Array.isArray(shards)).toBe(true);
     expect(shards.length).toEqual(1);
 
     return client.schema
       .shardUpdater()
-      .withClassName(classObj.class!)
+      .withClassName(classObj.class)
       .withShardName(shards[0].name!)
       .withStatus('READONLY')
       .do()
@@ -217,13 +228,13 @@ describe('schema', () => {
   });
 
   it('updates a shard of an existing class to ready', async () => {
-    const shards = await getShards(client, classObj.class!);
+    const shards = await getShards(client, classObj.class);
     expect(Array.isArray(shards)).toBe(true);
     expect(shards.length).toEqual(1);
 
     return client.schema
       .shardUpdater()
-      .withClassName(classObj.class!)
+      .withClassName(classObj.class)
       .withShardName(shards[0].name!)
       .withStatus('READY')
       .do()
@@ -235,7 +246,7 @@ describe('schema', () => {
   it('deletes an existing class', () => {
     return client.schema
       .classDeleter()
-      .withClassName(classObj.class!)
+      .withClassName(classObj.class)
       .do()
       .then((res: void) => {
         expect(res).toEqual(undefined);
@@ -627,6 +638,117 @@ describe('property setting defaults and migrations', () => {
   );
 });
 
+describe('multi tenancy', () => {
+  const client = weaviate.client({
+    scheme: 'http',
+    host: 'localhost:8080',
+  });
+
+  const classObj: WeaviateClass = {
+    class: 'MultiTenancy',
+    properties: [
+      {
+        dataType: ['text'],
+        name: 'tenant',
+      },
+      {
+        dataType: ['text'],
+        name: 'content',
+      },
+    ],
+    vectorIndexType: 'hnsw',
+    vectorizer: 'text2vec-contextionary',
+    multiTenancyConfig: {
+      enabled: true,
+    },
+  };
+  const tenants: Array<Tenant> = [{ name: 'tenantA' }, { name: 'tenantB' }, { name: 'tenantC' }];
+
+  it('creates a MultiTenancy class', () => {
+    return client.schema
+      .classCreator()
+      .withClass(classObj)
+      .do()
+      .then((res: WeaviateClass) => {
+        expect(res.class).toEqual(classObj.class);
+        expect(res.multiTenancyConfig).toEqual(classObj.multiTenancyConfig);
+      });
+  });
+
+  it('defines tenants for MultiTenancy class', () => {
+    return client.schema
+      .tenantsCreator()
+      .withClassName(classObj.class!)
+      .withTenants(tenants)
+      .do()
+      .then((res: Array<Tenant>) => {
+        expect(res).toEqual(tenants);
+      });
+  });
+
+  it('gets tenants for MultiTenancy class', () => {
+    return client.schema
+      .tenantsGetter()
+      .withClassName(classObj.class!)
+      .do()
+      .then((res: Array<Tenant>) => {
+        expect(res).toHaveLength(3);
+      });
+  });
+
+  it('delete one tenant in MultiTenancy class', () => {
+    return client.schema
+      .tenantsDeleter()
+      .withClassName(classObj.class!)
+      .withTenants([tenants[0].name!])
+      .do()
+      .then((res) => {
+        expect(res).toEqual(undefined);
+      });
+  });
+
+  it('get tenants after delete for MultiTenancy class', () => {
+    return client.schema
+      .tenantsGetter()
+      .withClassName(classObj.class!)
+      .do()
+      .then((res: Array<Tenant>) => {
+        expect(res).toHaveLength(2);
+      });
+  });
+
+  it('deletes MultiTenancy class', () => {
+    return deleteClass(client, classObj.class!);
+  });
+
+  const classObjWithoutMultiTenancyConfig = newClassObject('NoMultiTenancy');
+
+  it('creates a NoMultiTenancy class', () => {
+    return client.schema
+      .classCreator()
+      .withClass(classObjWithoutMultiTenancyConfig)
+      .do()
+      .then((res: WeaviateClass) => {
+        expect(res).toEqual(classObjWithoutMultiTenancyConfig);
+      });
+  });
+
+  it('fails to define tenants for NoMultiTenancy class', () => {
+    return client.schema
+      .tenantsCreator()
+      .withClassName(classObjWithoutMultiTenancyConfig.class!)
+      .withTenants(tenants)
+      .do()
+      .catch((e: Error) => {
+        expect(e.message).toContain('multi-tenancy is not enabled for class \\"NoMultiTenancy\\"');
+      });
+  });
+
+  it('deletes NoMultiTenancy class', () => {
+    return deleteClass(client, classObjWithoutMultiTenancyConfig.class);
+  });
+});
+
 function newClassObject(className: string) {
   return {
     class: className,
@@ -664,6 +786,7 @@ function newClassObject(className: string) {
           type: 'kmeans',
         },
         segments: 0,
+        trainingLimit: 100000,
       },
       skip: false,
       efConstruction: 128,
@@ -686,6 +809,9 @@ function newClassObject(className: string) {
       'text2vec-contextionary': {
         vectorizeClassName: true,
       },
+    },
+    multiTenancyConfig: {
+      enabled: false,
     },
     shardingConfig: {
       actualCount: 1,

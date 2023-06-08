@@ -7,6 +7,7 @@ export default class Deleter extends CommandBase {
   private className!: string;
   private consistencyLevel?: ConsistencyLevel;
   private id!: string;
+  private tenant?: string;
   private objectsPath: ObjectsPath;
 
   constructor(client: Connection, objectsPath: ObjectsPath) {
@@ -26,6 +27,11 @@ export default class Deleter extends CommandBase {
 
   withConsistencyLevel = (cl: ConsistencyLevel) => {
     this.consistencyLevel = cl;
+    return this;
+  };
+
+  withTenant = (tenant: string) => {
+    this.tenant = tenant;
     return this;
   };
 
@@ -50,7 +56,7 @@ export default class Deleter extends CommandBase {
     this.validate();
 
     return this.objectsPath
-      .buildDelete(this.id, this.className, this.consistencyLevel)
+      .buildDelete(this.id, this.className, this.consistencyLevel, this.tenant)
       .then((path: string) => {
         return this.client.delete(path, undefined, false);
       });

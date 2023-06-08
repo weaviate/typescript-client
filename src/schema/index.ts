@@ -7,6 +7,9 @@ import SchemaGetter from './getter';
 import ShardsGetter from './shardsGetter';
 import ShardUpdater from './shardUpdater';
 import ShardsUpdater from './shardsUpdater';
+import TenantsCreator from './tenantsCreator';
+import TenantsGetter from './tenantsGetter';
+import TenantsDeleter from './tenantsDeleter';
 import Connection from '../connection';
 
 export interface Schema {
@@ -19,6 +22,9 @@ export interface Schema {
   shardsGetter: () => ShardsGetter;
   shardUpdater: () => ShardUpdater;
   shardsUpdater: () => ShardsUpdater;
+  tenantsCreator: () => TenantsCreator;
+  tenantsGetter: () => TenantsGetter;
+  tenantsDeleter: () => TenantsDeleter;
 }
 
 const schema = (client: Connection): Schema => {
@@ -32,6 +38,9 @@ const schema = (client: Connection): Schema => {
     shardsGetter: () => new ShardsGetter(client),
     shardUpdater: () => new ShardUpdater(client),
     shardsUpdater: () => new ShardsUpdater(client),
+    tenantsCreator: () => new TenantsCreator(client),
+    tenantsGetter: () => new TenantsGetter(client),
+    tenantsDeleter: () => new TenantsDeleter(client),
   };
 };
 
@@ -43,3 +52,6 @@ export { default as PropertyCreator } from './propertyCreator';
 export { default as SchemaGetter } from './getter';
 export { default as ShardUpdater } from './shardUpdater';
 export { default as ShardsUpdater } from './shardsUpdater';
+export { default as TenantsCreator } from './tenantsCreator';
+export { default as TenantsGetter } from './tenantsGetter';
+export { default as TenantsDeleter } from './tenantsDeleter';

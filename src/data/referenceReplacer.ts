@@ -13,6 +13,7 @@ export default class ReferenceReplacer extends CommandBase {
   private references!: Reference[];
   private referencesPath: ReferencesPath;
   private refProp!: string;
+  private tenant?: string;
 
   constructor(client: Connection, referencesPath: ReferencesPath, beaconPath: BeaconPath) {
     super(client);
@@ -45,6 +46,11 @@ export default class ReferenceReplacer extends CommandBase {
     return this;
   };
 
+  withTenant = (tenant: string) => {
+    this.tenant = tenant;
+    return this;
+  };
+
   validateIsSet = (prop: string | undefined | null, name: string, setter: string) => {
     if (prop == undefined || prop == null || prop.length == 0) {
       this.addError(`${name} must be set - set with ${setter}`);
@@ -69,7 +75,7 @@ export default class ReferenceReplacer extends CommandBase {
       : Promise.resolve([]);
 
     return Promise.all([
-      this.referencesPath.build(this.id, this.className, this.refProp, this.consistencyLevel),
+      this.referencesPath.build(this.id, this.className, this.refProp, this.consistencyLevel, this.tenant),
       payloadPromise,
     ]).then((results) => {
       const path = results[0];

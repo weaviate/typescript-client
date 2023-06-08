@@ -35,6 +35,7 @@ export default class GraphQLGetter extends CommandBase {
   private generateString?: string;
   private consistencyLevel?: ConsistencyLevel;
   private groupByString?: string;
+  private tenant?: string;
 
   constructor(client: Connection) {
     super(client);
@@ -194,6 +195,11 @@ export default class GraphQLGetter extends CommandBase {
     return this;
   };
 
+  withTenant = (tenant: string) => {
+    this.tenant = tenant;
+    return this;
+  };
+
   validateIsSet = (prop: string | undefined | null, name: string, setter: string) => {
     if (prop == undefined || prop == null || prop.length == 0) {
       this.addError(`${name} must be set - set with ${setter}`);
@@ -280,6 +286,10 @@ export default class GraphQLGetter extends CommandBase {
 
     if (this.groupByString) {
       args = [...args, `groupBy:${this.groupByString}`];
+    }
+
+    if (this.tenant) {
+      args = [...args, `tenant:"${this.tenant}"`];
     }
 
     if (args.length > 0) {
