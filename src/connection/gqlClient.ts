@@ -19,6 +19,7 @@ export const gqlClient = (config: ConnectionParams): GraphQLClient => {
           ...defaultHeaders,
           ...headers,
         },
+        fetch,
       })
         .request(query, variables, headers)
         .then((data) => ({ data }));
