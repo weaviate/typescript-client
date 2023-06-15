@@ -31,15 +31,11 @@ describe('schema', () => {
   });
 
   it('checks class existence', () => {
-    return client.schema.exists(classObj.class).then((res: boolean) => {
-      expect(res).toEqual(true);
-    });
+    return client.schema.exists(classObj.class).then((res) => expect(res).toEqual(true));
   });
 
   it('checks class non-existence', () => {
-    return client.schema.exists('NonExistingClass').then((res: boolean) => {
-      expect(res).toEqual(false);
-    });
+    return client.schema.exists('NonExistingClass').then((res) => expect(res).toEqual(false));
   });
 
   it('extends the thing class with a new property', () => {
