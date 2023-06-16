@@ -30,6 +30,14 @@ describe('schema', () => {
       });
   });
 
+  it('checks class existence', () => {
+    return client.schema.exists(classObj.class).then((res) => expect(res).toEqual(true));
+  });
+
+  it('checks class non-existence', () => {
+    return client.schema.exists('NonExistingClass').then((res) => expect(res).toEqual(false));
+  });
+
   it('extends the thing class with a new property', () => {
     const className = 'MyThingClass';
     const prop: Property = {
