@@ -132,14 +132,14 @@ const makeUrl = (basePath: string) => (path: string) => basePath + path;
 const makeCheckStatus = (expectResponseBody: boolean) => (res: Response) => {
   if (res.status >= 400) {
     return res.text().then((errText: string) => {
-      let err;
+      let err: string;
       try {
         // in case of invalid json response (like empty string)
         err = JSON.stringify(JSON.parse(errText));
       } catch (e) {
         err = errText;
       }
-      return Promise.reject(new Error(`usage error (${res.status}): ${err}`));
+      return Promise.reject(new Error(`usage error (${res.status} ${res.statusText}): ${err}`));
     });
   }
 
