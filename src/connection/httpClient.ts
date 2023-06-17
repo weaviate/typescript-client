@@ -139,7 +139,7 @@ const makeCheckStatus = (expectResponseBody: boolean) => (res: Response) => {
       } catch (e) {
         err = errText;
       }
-      return Promise.reject(new Error(`usage error (${res.status} ${res.statusText}), detail: ${err}`));
+      return Promise.reject(new Error(`usage error (${res.status}): ${err}`));
     });
   }
 
