@@ -129,9 +129,9 @@ export const httpClient = (config: ConnectionParams): HttpClient => {
 
 const makeUrl = (basePath: string) => (path: string) => basePath + path;
 
-const makeCheckStatus = (expectResponseBody: any) => (res: any) => {
+const makeCheckStatus = (expectResponseBody: boolean) => (res: Response) => {
   if (res.status >= 400) {
-    return res.text().then((errText: any) => {
+    return res.text().then((errText: string) => {
       let err;
       try {
         // in case of invalid json response (like empty string)
@@ -148,11 +148,11 @@ const makeCheckStatus = (expectResponseBody: any) => (res: any) => {
   }
 };
 
-const handleHeadResponse = (expectResponseBody: any) => (res: any) => {
+const handleHeadResponse = (expectResponseBody: boolean) => (res: Response) => {
   if (res.status == 204 || res.status == 404) {
     return res.status == 204;
   }
-  return makeCheckStatus(expectResponseBody);
+  return makeCheckStatus(expectResponseBody)(res);
 };
 
 function addAuthHeaderIfNeeded(request: any, bearerToken: string) {
