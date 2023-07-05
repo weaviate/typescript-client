@@ -310,6 +310,22 @@ describe('the graphql journey', () => {
       });
   });
 
+  test('graphql get nearText with autocut', () => {
+    return client.graphql
+      .get()
+      .withClassName('Article')
+      .withNearText({ concepts: ['Article'] })
+      .withAutocut(3)
+      .withFields('_additional { id }')
+      .do()
+      .then((res: any) => {
+        expect(res.data.Get.Article.length).toBe(3);
+      })
+      .catch((e: any) => {
+        throw new Error('it should not have errord' + e);
+      });
+  });
+
   test('graphql get hybrid with query (no vector, alpha 0)', () => {
     return client.graphql
       .get()

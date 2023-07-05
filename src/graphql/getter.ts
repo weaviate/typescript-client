@@ -36,6 +36,7 @@ export default class GraphQLGetter extends CommandBase {
   private consistencyLevel?: ConsistencyLevel;
   private groupByString?: string;
   private tenant?: string;
+  private autocut?: number;
 
   constructor(client: Connection) {
     super(client);
@@ -171,6 +172,11 @@ export default class GraphQLGetter extends CommandBase {
     return this;
   };
 
+  withAutocut = (autocut: number) => {
+    this.autocut = autocut;
+    return this;
+  };
+
   withSort = (args: SortArgs[]) => {
     this.sortString = new Sort(args).toString();
     return this;
@@ -262,6 +268,10 @@ export default class GraphQLGetter extends CommandBase {
 
     if (this.offset) {
       args = [...args, `offset:${this.offset}`];
+    }
+
+    if (this.autocut) {
+      args = [...args, `autocut:${this.autocut}`];
     }
 
     if (this.sortString) {
