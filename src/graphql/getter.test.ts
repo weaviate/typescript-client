@@ -1,4 +1,4 @@
-import Getter from './getter';
+import Getter, { FusionType } from './getter';
 import { WhereFilter } from '../openapi/types';
 import { NearObjectArgs } from './nearObject';
 import { AskArgs } from './ask';
@@ -1238,6 +1238,19 @@ describe('hybrid valid searchers', () => {
       .withClassName('Person')
       .withFields('name')
       .withHybrid({ query: 'accountant', properties: ['name', 'employer'] })
+      .do();
+
+    expect(mockClient.query).toHaveBeenCalledWith(expectedQuery);
+  });
+
+  test('query and alpha 0 and fusionType', () => {
+    const subQuery = `(hybrid:{query:"accountant",alpha:0,fusionType:rankedFusion})`;
+    const expectedQuery = `{Get{Person` + subQuery + `{name}}}`;
+
+    new Getter(mockClient)
+      .withClassName('Person')
+      .withFields('name')
+      .withHybrid({ query: 'accountant', alpha: 0, fusionType: FusionType.rankedFusion })
       .do();
 
     expect(mockClient.query).toHaveBeenCalledWith(expectedQuery);

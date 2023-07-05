@@ -9,6 +9,7 @@ import weaviate, {
   Tenant,
   ReferenceCreator,
 } from '..';
+import { FusionType } from './hybrid';
 
 describe('the graphql journey', () => {
   let client: WeaviateClient;
@@ -362,6 +363,41 @@ describe('the graphql journey', () => {
       .get()
       .withClassName('Article')
       .withHybrid({ query: 'Apple', properties: ['title'], alpha: 0 })
+      .withFields('_additional { id }')
+      .do()
+      .then((res: any) => {
+        expect(res.data.Get.Article.length).toBe(1);
+      })
+      .catch((e: any) => {
+        throw new Error('it should not have errord' + e);
+      });
+  });
+
+  test('graphql get hybrid with query, alpha, properties and fushionType: rankedFusion', () => {
+    return client.graphql
+      .get()
+      .withClassName('Article')
+      .withHybrid({ query: 'Apple', properties: ['title'], alpha: 0, fusionType: FusionType.rankedFusion })
+      .withFields('_additional { id }')
+      .do()
+      .then((res: any) => {
+        expect(res.data.Get.Article.length).toBe(1);
+      })
+      .catch((e: any) => {
+        throw new Error('it should not have errord' + e);
+      });
+  });
+
+  test('graphql get hybrid with query, alpha, properties and fushionType: relativeScoreFusion', () => {
+    return client.graphql
+      .get()
+      .withClassName('Article')
+      .withHybrid({
+        query: 'Apple',
+        properties: ['title'],
+        alpha: 0,
+        fusionType: FusionType.relativeScoreFusion,
+      })
       .withFields('_additional { id }')
       .do()
       .then((res: any) => {

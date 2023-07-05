@@ -25,3 +25,4 @@ export { default as Aggregator } from './aggregator';
 export { default as GraphQLGetter } from './getter';
 export { default as Explorer } from './explorer';
 export { default as Raw } from './raw';
+export { FusionType } from './getter';
