@@ -38,3 +38,5 @@ export type ShardStatus = definitions['ShardStatus'];
 export type ShardStatusList = definitions['ShardStatusList'];
 export type Tenant = definitions['Tenant'];
 export type SchemaClusterStatus = definitions['SchemaClusterStatus'];
+// Nodes
+export type NodesStatusResponse = definitions['NodesStatusResponse'];
