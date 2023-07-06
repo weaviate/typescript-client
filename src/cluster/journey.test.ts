@@ -7,8 +7,8 @@ const {
   SOUP_CLASS_NAME,
 } = require('../utils/testData');
 
-const EXPECTED_WEAVIATE_VERSION = '1.19.2';
-const EXPECTED_WEAVIATE_GIT_HASH = '44d10b2';
+const EXPECTED_WEAVIATE_VERSION = '1.20.0-prealpha';
+const EXPECTED_WEAVIATE_GIT_HASH = '0529e8e';
 
 describe('cluster nodes endpoint', () => {
   const client = weaviate.client({
@@ -29,7 +29,7 @@ describe('cluster nodes endpoint', () => {
         expect(node.status).toEqual('HEALTHY');
         expect(node.stats.objectCount).toEqual(0);
         expect(node.stats.shardCount).toEqual(0);
-        expect(node.shards).toHaveLength(0);
+        expect(node.shards).toBeNull();
       })
       .catch((e: any) => {
         throw new Error('should not fail on getting nodes: ' + e);

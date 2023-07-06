@@ -10,6 +10,7 @@ export default class GetterById extends CommandBase {
   private id!: string;
   private consistencyLevel?: ConsistencyLevel;
   private nodeName?: string;
+  private tenant?: string;
   private objectsPath: ObjectsPath;
 
   constructor(client: Connection, objectsPath: ObjectsPath) {
@@ -25,6 +26,11 @@ export default class GetterById extends CommandBase {
 
   withClassName = (className: string) => {
     this.className = className;
+    return this;
+  };
+
+  withTenant = (tenant: string) => {
+    this.tenant = tenant;
     return this;
   };
 
@@ -63,7 +69,8 @@ export default class GetterById extends CommandBase {
       this.className,
       this.additional,
       this.consistencyLevel,
-      this.nodeName
+      this.nodeName,
+      this.tenant
     );
   };
 

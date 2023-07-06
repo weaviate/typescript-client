@@ -18,6 +18,7 @@ export default class Aggregator extends CommandBase {
   private nearVectorString?: string;
   private objectLimit?: number;
   private whereString?: string;
+  private tenant?: string;
 
   constructor(client: Connection) {
     super(client);
@@ -107,6 +108,11 @@ export default class Aggregator extends CommandBase {
     return this;
   };
 
+  withTenant = (tenant: string) => {
+    this.tenant = tenant;
+    return this;
+  };
+
   validateGroup = () => {
     if (!this.groupBy) {
       // nothing to check if this optional parameter is not set
@@ -144,7 +150,8 @@ export default class Aggregator extends CommandBase {
       this.nearObjectString ||
       this.nearVectorString ||
       this.limit ||
-      this.groupBy
+      this.groupBy ||
+      this.tenant
     ) {
       let args: string[] = [];
 
@@ -174,6 +181,10 @@ export default class Aggregator extends CommandBase {
 
       if (this.objectLimit) {
         args = [...args, `objectLimit:${this.objectLimit}`];
+      }
+
+      if (this.tenant) {
+        args = [...args, `tenant:"${this.tenant}"`];
       }
 
       params = `(${args.join(',')})`;

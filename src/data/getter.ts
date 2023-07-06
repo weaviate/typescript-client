@@ -8,6 +8,7 @@ export default class Getter extends CommandBase {
   private after!: string;
   private className?: string;
   private limit?: number;
+  private tenant?: string;
   private objectsPath: ObjectsPath;
 
   constructor(client: Connection, objectsPath: ObjectsPath) {
@@ -31,6 +32,11 @@ export default class Getter extends CommandBase {
     return this;
   };
 
+  withTenant = (tenant: string) => {
+    this.tenant = tenant;
+    return this;
+  };
+
   extendAdditional = (prop: string) => {
     this.additional = [...this.additional, prop];
     return this;
@@ -50,7 +56,7 @@ export default class Getter extends CommandBase {
     }
 
     return this.objectsPath
-      .buildGet(this.className, this.limit, this.additional, this.after)
+      .buildGet(this.className, this.limit, this.additional, this.after, this.tenant)
       .then((path: string) => {
         return this.client.get(path);
       });

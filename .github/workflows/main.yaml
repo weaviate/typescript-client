@@ -48,7 +48,7 @@ jobs:
       run: |
         npm test
         npm run build
-    - name: "Stop weavaite"
+    - name: "Stop Weaviate"
       run: ci/stop_dependencies.sh
 
   publish:

@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
+import { doc } from 'prettier';
 import weaviate, { WeaviateClient } from '..';
 import {
   WeaviateObject,
@@ -6,6 +7,7 @@ import {
   WeaviateError,
   Properties,
   WeaviateClass,
+  Tenant,
 } from '../openapi/types';
 
 const thingClassName = 'DataJourneyTestThing';
@@ -1149,6 +1151,300 @@ describe('uuid support', () => {
       .then((res: void) => {
         expect(res).toEqual(undefined);
       });
+  });
+});
+
+describe('multi tenancy', () => {
+  const client = weaviate.client({
+    scheme: 'http',
+    host: 'localhost:8080',
+  });
+
+  const documentClassName = 'Document';
+  const document: WeaviateClass = {
+    class: documentClassName,
+    properties: [
+      {
+        name: 'tenant',
+        dataType: ['text'],
+      },
+      {
+        name: 'title',
+        dataType: ['text'],
+      },
+    ],
+    multiTenancyConfig: { enabled: true },
+  };
+
+  const passageClassName = 'Passage';
+  const passage: WeaviateClass = {
+    class: passageClassName,
+    properties: [
+      {
+        name: 'tenant',
+        dataType: ['text'],
+      },
+      {
+        name: 'content',
+        dataType: ['text'],
+      },
+      {
+        name: 'ofDocument',
+        dataType: [documentClassName],
+      },
+    ],
+    multiTenancyConfig: { enabled: true },
+  };
+
+  const tenants: Array<Tenant> = [{ name: 'tenantA' }, { name: 'tenantB' }, { name: 'tenantC' }];
+  const documentIDs = [
+    '00000000-0000-0000-0000-000000000011',
+    '00000000-0000-0000-0000-000000000022',
+    '00000000-0000-0000-0000-000000000033',
+  ];
+  const documentTitles = ['GAN', 'OpenAI', 'SpaceX'];
+  const passageIDs = [
+    '00000000-0000-0000-0000-000000000001',
+    '00000000-0000-0000-0000-000000000002',
+    '00000000-0000-0000-0000-000000000003',
+  ];
+  const txts = [
+    'A generative adversarial network (GAN) is a class of machine learning frameworks designed by Ian Goodfellow and his colleagues in June 2014.',
+    'OpenAI is an American artificial intelligence (AI) research laboratory consisting of the non-profit OpenAI Incorporated and its for-profit subsidiary corporation OpenAI Limited Partnership.',
+    'The Space Exploration Technologies Corporation, commonly referred to as SpaceX is an American spacecraft manufacturer, launcher, and satellite communications company headquartered in Hawthorne, California.',
+  ];
+
+  it('create Document and Passage class with tenants', async () => {
+    await client.schema
+      .classCreator()
+      .withClass(document)
+      .do()
+      .then()
+      .catch((e) => fail('it should not have errord: ' + e));
+
+    await client.schema
+      .tenantsCreator(documentClassName, tenants)
+      .do()
+      .then((res) => expect(res).toHaveLength(3))
+      .catch((e) => fail('it should not have errord: ' + e));
+
+    await client.schema
+      .classCreator()
+      .withClass(passage)
+      .do()
+      .then()
+      .catch((e) => fail('it should not have errord: ' + e));
+
+    return client.schema
+      .tenantsCreator(passageClassName, tenants)
+      .do()
+      .then((res) => expect(res).toHaveLength(3))
+      .catch((e) => fail('it should not have errord: ' + e));
+  });
+
+  it('inserts Documents tenants objects', async () => {
+    const expectFn = expect;
+    for (let i = 0; i < documentIDs.length; i++) {
+      client.data
+        .creator()
+        .withClassName(documentClassName)
+        .withId(documentIDs[i])
+        .withTenant(tenants[i].name!)
+        .withProperties({
+          title: documentTitles[i],
+          tenant: tenants[i].name,
+        })
+        .do()
+        .then((r) => {
+          expectFn(r.id).toEqual(documentIDs[i]);
+        })
+        .catch((e) => {
+          throw new Error('it should not have errored: ' + e);
+        });
+    }
+
+    await client.data
+      .creator()
+      .withClassName(passageClassName)
+      .withId(passageIDs[0])
+      .withTenant(tenants[0].name!)
+      .withProperties({
+        content: txts[0],
+        tenant: tenants[0].name,
+      })
+      .do()
+      .then((r) => {
+        expectFn(r.id).toEqual(passageIDs[0]);
+      })
+      .catch((e) => {
+        throw new Error('it should not have errored: ' + e);
+      });
+
+    await client.data
+      .creator()
+      .withClassName(passageClassName)
+      .withId(passageIDs[1])
+      .withTenant(tenants[1].name!)
+      .withProperties({
+        content: txts[1],
+        tenant: tenants[1].name,
+      })
+      .do()
+      .then((r) => {
+        expectFn(r.id).toEqual(passageIDs[1]);
+      })
+      .catch((e) => {
+        throw new Error('it should not have errored: ' + e);
+      });
+
+    return client.data
+      .creator()
+      .withClassName(passageClassName)
+      .withId(passageIDs[2])
+      .withTenant(tenants[2].name!)
+      .withProperties({
+        content: txts[2],
+        tenant: tenants[2].name,
+      })
+      .do()
+      .then((r) => {
+        expectFn(r.id).toEqual(passageIDs[2]);
+      })
+      .catch((e) => {
+        throw new Error('it should not have errored: ' + e);
+      });
+  });
+
+  it('exists Passage tenants objects', () => {
+    return client.data
+      .checker()
+      .withClassName(passageClassName)
+      .withId(passageIDs[0])
+      .withTenant(tenants[0].name!)
+      .do()
+      .then((r) => {
+        expect(r).toBe(true);
+      })
+      .catch((e) => {
+        throw new Error('it should not have errored: ' + e);
+      });
+  });
+
+  it('replaces Passage object', () => {
+    return client.data
+      .updater()
+      .withClassName(passageClassName)
+      .withId(passageIDs[0])
+      .withTenant(tenants[0].name!)
+      .withProperties({
+        content: 'some new content',
+        tenant: tenants[0].name,
+      })
+      .do()
+      .then((r) => {
+        expect(r.id).toEqual(passageIDs[0]);
+        expect(r.properties.content).toEqual('some new content');
+      })
+      .catch((e) => {
+        console.log(`error: ${e}`);
+        throw new Error('it should not have errored: ' + e);
+      });
+  });
+
+  it('gets by id a Passage object', () => {
+    return client.data
+      .getterById()
+      .withClassName(passageClassName)
+      .withId(passageIDs[0])
+      .withTenant(tenants[0].name!)
+      .do()
+      .then((r) => {
+        expect(r.id).toEqual(passageIDs[0]);
+        expect(r.properties!.content).toEqual('some new content');
+      })
+      .catch((e) => {
+        throw new Error('it should not have errored: ' + e);
+      });
+  });
+
+  it('adds a referene Passage object', () => {
+    return client.data
+      .referenceCreator()
+      .withId(passageIDs[0])
+      .withClassName(passageClassName)
+      .withReferenceProperty('ofDocument')
+      .withReference(
+        client.data
+          .referencePayloadBuilder()
+          .withId(documentIDs[0])
+          .withClassName(documentClassName)
+          .payload()
+      )
+      .withTenant(tenants[0].name!)
+      .do()
+      .catch((e: WeaviateError) => {
+        throw new Error('it should not have errord: ' + e);
+      });
+  });
+
+  it('gets by id a Passage object with reference', () => {
+    return client.data
+      .getterById()
+      .withClassName(passageClassName)
+      .withId(passageIDs[0])
+      .withTenant(tenants[0].name!)
+      .do()
+      .then((r) => {
+        expect(r.id).toEqual(passageIDs[0]);
+        expect(r.properties!.ofDocument).toHaveLength(1);
+      })
+      .catch((e) => {
+        throw new Error('it should not have errored: ' + e);
+      });
+  });
+
+  it('removes a referene Passage object', () => {
+    return client.data
+      .referenceDeleter()
+      .withId(passageIDs[0])
+      .withClassName(passageClassName)
+      .withReferenceProperty('ofDocument')
+      .withReference(
+        client.data
+          .referencePayloadBuilder()
+          .withId(documentIDs[0])
+          .withClassName(documentClassName)
+          .payload()
+      )
+      .withTenant(tenants[0].name!)
+      .do()
+      .catch((e: WeaviateError) => {
+        throw new Error('it should not have errord: ' + e);
+      });
+  });
+
+  it('gets by id a Passage object with no reference', () => {
+    return client.data
+      .getterById()
+      .withClassName(passageClassName)
+      .withId(passageIDs[0])
+      .withTenant(tenants[0].name!)
+      .do()
+      .then((r) => {
+        expect(r.id).toEqual(passageIDs[0]);
+        expect(r.properties!.ofDocument).toHaveLength(0);
+      })
+      .catch((e) => {
+        throw new Error('it should not have errored: ' + e);
+      });
+  });
+
+  it('delete Passage class', () => {
+    return client.schema.classDeleter().withClassName(passageClassName).do();
+  });
+
+  it('delete Document class', () => {
+    return client.schema.classDeleter().withClassName(documentClassName).do();
   });
 });
 

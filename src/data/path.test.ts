@@ -48,3 +48,23 @@ describe('paths', () => {
       .catch((e) => fail(`unexpected error: ${e}`));
   });
 });
+
+describe('paths with tenantKey', () => {
+  it('builds object delete', () => {
+    return objectsPathBuilder
+      .buildDelete('123456', 'SomeClass', 'ALL', 'tenantA')
+      .then((path) => expect(path).toEqual('/objects/SomeClass/123456?consistency_level=ALL&tenant=tenantA'))
+      .catch((e) => fail(`unexpected error: ${e}`));
+  });
+
+  it('builds references', () => {
+    return refsPathBuilder
+      .build('123456', 'SomeClass', 'SomeProp', 'ALL', 'tenantA')
+      .then((path) =>
+        expect(path).toEqual(
+          '/objects/SomeClass/123456/references/SomeProp?consistency_level=ALL&tenant=tenantA'
+        )
+      )
+      .catch((e) => fail(`unexpected error: ${e}`));
+  });
+});

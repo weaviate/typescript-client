@@ -2,7 +2,7 @@
 version: '3.4'
 services:
   weaviate:
-    image: semitechnologies/weaviate:1.19.2
+    image: semitechnologies/weaviate:preview-fix-validation-of-multi-tenancy-configuration-0529e8e
     restart: on-failure:0
     ports:
       - "8080:8080"

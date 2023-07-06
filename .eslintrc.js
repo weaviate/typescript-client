@@ -23,7 +23,7 @@ module.exports = {
     'comma-dangle': 'off',
     'comma-spacing': 'off',
     'comma-style': ['error', 'last'],
-    complexity: 'error',
+    complexity: ['error', 25],
     'computed-property-spacing': ['error', 'never'],
     'consistent-return': 'off',
     'consistent-this': 'off',

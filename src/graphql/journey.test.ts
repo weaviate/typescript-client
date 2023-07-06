@@ -1,5 +1,14 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import weaviate, { Reference, WeaviateClient, WeaviateError, WeaviateObject, WeaviateClass } from '..';
+import exp from 'constants';
+import weaviate, {
+  Reference,
+  WeaviateClient,
+  WeaviateError,
+  WeaviateObject,
+  WeaviateClass,
+  Tenant,
+  ReferenceCreator,
+} from '..';
 
 describe('the graphql journey', () => {
   let client: WeaviateClient;
@@ -1542,6 +1551,128 @@ describe('query with group by', () => {
   });
 });
 
+describe('multi tenancy', () => {
+  let client: WeaviateClient;
+
+  beforeEach(() => {
+    client = weaviate.client({
+      scheme: 'http',
+      host: 'localhost:8080',
+    });
+  });
+
+  const tenants: Array<Tenant> = [{ name: 'tenantA' }, { name: 'tenantB' }];
+
+  it('creates Document Passage schema classes with tenants', () => {
+    // this is just test setup, not part of what we want to test here
+    return setupMultiTenancy(client, tenants);
+  });
+
+  it('should not be able to Get results without a tenant parameter', () => {
+    return client.graphql
+      .get()
+      .withClassName('Passage')
+      .withFields('_additional { id }')
+      .do()
+      .catch((e: WeaviateError) => {
+        expect(e).toBeDefined();
+      });
+  });
+
+  it('should not be able to Get results without a tenant parameter', () => {
+    return client.graphql
+      .aggregate()
+      .withClassName('Passage')
+      .withFields('meta { count }')
+      .do()
+      .catch((e: WeaviateError) => {
+        expect(e).toBeDefined();
+      });
+  });
+
+  it('should not be able to Explore results', () => {
+    return client.graphql
+      .explore()
+      .withNearText({ concepts: ['SpaceX'] })
+      .withFields('beacon certainty className')
+      .do()
+      .catch((e: WeaviateError) => {
+        expect(e).toBeDefined();
+      });
+  });
+
+  it('should Get results with a proper tenant assigned to Passage objects', () => {
+    return client.graphql
+      .get()
+      .withClassName('Passage')
+      .withTenant(tenants[0].name!)
+      .withFields('_additional { id }')
+      .do()
+      .then((res: any) => {
+        expect(res.data.Get.Passage).toHaveLength(20);
+      })
+      .catch((e: WeaviateError) => {
+        throw new Error('it should not have errord ' + e);
+      });
+  });
+
+  it('should Aggregate results with a proper tenant assigned to Passage objects', () => {
+    return client.graphql
+      .aggregate()
+      .withClassName('Passage')
+      .withTenant(tenants[0].name!)
+      .withFields('meta { count }')
+      .do()
+      .then((res: any) => {
+        expect(res.data.Aggregate.Passage).toHaveLength(1);
+        expect(res.data.Aggregate.Passage[0].meta.count).toBe(20);
+      })
+      .catch((e: WeaviateError) => {
+        throw new Error('it should not have errord ' + e);
+      });
+  });
+
+  it('should Aggregate results with a tenant that has no objects', () => {
+    return client.graphql
+      .aggregate()
+      .withClassName('Passage')
+      .withTenant(tenants[1].name!)
+      .withFields('meta{count}')
+      .do()
+      .then((res: any) => {
+        expect(res.data.Aggregate.Passage).toHaveLength(1);
+        expect(res.data.Aggregate.Passage[0].meta.count).toBe(0);
+      })
+      .catch((e: WeaviateError) => {
+        throw new Error('it should not have errord ' + e);
+      });
+  });
+
+  it('should Get results with tenants and nearText', () => {
+    return client.graphql
+      .get()
+      .withClassName('Passage')
+      .withTenant(tenants[0].name!)
+      .withNearText({ concepts: ['SpaceX'] })
+      .withLimit(2)
+      .withFields('_additional { id }')
+      .do()
+      .then((res: any) => {
+        expect(res.data.Get.Passage).toHaveLength(2);
+      })
+      .catch((e: WeaviateError) => {
+        throw new Error('it should not have errord ' + e);
+      });
+  });
+
+  it('tears down Document Passage schema with tenants', () => {
+    return Promise.all([
+      client.schema.classDeleter().withClassName('Passage').do(),
+      client.schema.classDeleter().withClassName('Document').do(),
+    ]);
+  });
+});
+
 const setup = async (client: WeaviateClient) => {
   const thing = {
     class: 'Article',
@@ -1674,7 +1805,21 @@ const setupReplicated = async (client: WeaviateClient) => {
 };
 
 const setupGroupBy = async (client: WeaviateClient) => {
-  const document = {
+  const res = await setupDocumentPassageSchema(client, false);
+  return res;
+};
+
+const setupMultiTenancy = async (client: WeaviateClient, tenants: Array<Tenant>) => {
+  const res = await setupDocumentPassageSchema(client, true, tenants);
+  return res;
+};
+
+const setupDocumentPassageSchema = async (
+  client: WeaviateClient,
+  multiTenancyEnabled: boolean,
+  tenants?: Array<Tenant>
+) => {
+  const document: WeaviateClass = {
     class: 'Document',
     invertedIndexConfig: { indexTimestamps: true },
     properties: [
@@ -1683,9 +1828,12 @@ const setupGroupBy = async (client: WeaviateClient) => {
         dataType: ['text'],
       },
     ],
+    multiTenancyConfig: {
+      enabled: multiTenancyEnabled,
+    },
   };
 
-  const passage = {
+  const passage: WeaviateClass = {
     class: 'Passage',
     invertedIndexConfig: { indexTimestamps: true },
     properties: [
@@ -1702,10 +1850,23 @@ const setupGroupBy = async (client: WeaviateClient) => {
         dataType: ['Document'],
       },
     ],
+    multiTenancyConfig: {
+      enabled: multiTenancyEnabled,
+    },
   };
 
   await Promise.all([client.schema.classCreator().withClass(document).do()]);
   await Promise.all([client.schema.classCreator().withClass(passage).do()]);
+
+  if (tenants) {
+    const documentTenants = await client.schema.tenantsCreator(document.class!, tenants).do();
+    expect(documentTenants).toBeDefined();
+    expect(documentTenants).toHaveLength(tenants.length);
+
+    const passageTenants = await client.schema.tenantsCreator(passage.class!, tenants).do();
+    expect(passageTenants).toBeDefined();
+    expect(passageTenants).toHaveLength(tenants.length);
+  }
 
   // document, passage uuids
   const documentIds: string[] = [
@@ -1740,25 +1901,33 @@ const setupGroupBy = async (client: WeaviateClient) => {
 
   const documents: WeaviateObject[] = [];
   for (let i = 0; i < documentIds.length; i++) {
-    documents.push({
+    const obj: WeaviateObject = {
       id: documentIds[i],
       class: 'Document',
       properties: {
         title: `Title of the document ${i}`,
       },
-    });
+    };
+    if (tenants) {
+      obj.tenant = tenants[0].name!;
+    }
+    documents.push(obj);
   }
 
   const passages: WeaviateObject[] = [];
   for (let i = 0; i < passageIds.length; i++) {
-    passages.push({
+    const obj: WeaviateObject = {
       id: passageIds[i],
       class: 'Passage',
       properties: {
         content: `Passage content ${i}`,
         type: 'document-passage',
       },
-    });
+    };
+    if (tenants) {
+      obj.tenant = tenants[0].name!;
+    }
+    passages.push(obj);
   }
 
   let batch = client.batch.objectsBatcher();
@@ -1770,7 +1939,8 @@ const setupGroupBy = async (client: WeaviateClient) => {
   const createReferences = (
     client: WeaviateClient,
     document: WeaviateObject,
-    passages: WeaviateObject[]
+    passages: WeaviateObject[],
+    tenants?: Array<Tenant>
   ): void => {
     const ref: Reference = client.data
       .referencePayloadBuilder()
@@ -1778,21 +1948,23 @@ const setupGroupBy = async (client: WeaviateClient) => {
       .withClassName(document.class!)
       .payload();
     for (const passage of passages) {
-      client.data
+      const refCreator: ReferenceCreator = client.data
         .referenceCreator()
         .withId(passage.id!)
         .withClassName(passage.class!)
         .withReferenceProperty('ofDocument')
-        .withReference(ref)
-        .do()
-        .catch((e: WeaviateError) => {
-          throw new Error('it should not have errord: ' + e);
-        });
+        .withReference(ref);
+      if (tenants) {
+        refCreator.withTenant(tenants[0].name!);
+      }
+      refCreator.do().catch((e: WeaviateError) => {
+        throw new Error('it should not have errord: ' + e);
+      });
     }
   };
 
-  createReferences(client, documents[0], passages.slice(0, 10));
-  createReferences(client, documents[1], passages.slice(10, 14));
+  createReferences(client, documents[0], passages.slice(0, 10), tenants);
+  createReferences(client, documents[1], passages.slice(10, 14), tenants);
 
   return new Promise((resolve) => setTimeout(resolve, 1000));
 };

@@ -10,7 +10,7 @@ services:
       - --scheme
       - http
       - --write-timeout=600s
-    image: semitechnologies/weaviate:1.19.2
+    image: semitechnologies/weaviate:preview-fix-validation-of-multi-tenancy-configuration-0529e8e
     ports:
       - 8083:8083
     restart: on-failure:0

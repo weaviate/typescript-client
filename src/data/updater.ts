@@ -2,7 +2,7 @@ import { isValidStringProperty } from '../validation/string';
 import { ObjectsPath } from './path';
 import Connection from '../connection';
 import { CommandBase } from '../validation/commandBase';
-import { Properties } from '../openapi/types';
+import { Properties, WeaviateObject } from '../openapi/types';
 import { ConsistencyLevel } from './replication';
 
 export default class Updater extends CommandBase {
@@ -11,6 +11,7 @@ export default class Updater extends CommandBase {
   private id!: string;
   private objectsPath: ObjectsPath;
   private properties?: Properties;
+  private tenant?: string;
 
   constructor(client: Connection, objectsPath: ObjectsPath) {
     super(client);
@@ -32,6 +33,11 @@ export default class Updater extends CommandBase {
     return this;
   };
 
+  withTenant = (tenant: string) => {
+    this.tenant = tenant;
+    return this;
+  };
+
   validateClassName = () => {
     if (!isValidStringProperty(this.className)) {
       this.addError('className must be set - use withClassName(className)');
@@ -49,7 +55,8 @@ export default class Updater extends CommandBase {
     return this;
   };
 
-  payload = () => ({
+  payload = (): WeaviateObject => ({
+    tenant: this.tenant,
     properties: this.properties,
     class: this.className,
     id: this.id,

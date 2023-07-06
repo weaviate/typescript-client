@@ -11,43 +11,54 @@ export class ObjectsPath {
     this.dbVersionSupport = dbVersionSupport;
   }
 
-  buildCreate(consistencyLevel: string | undefined): Promise<string> {
+  buildCreate(consistencyLevel?: string): Promise<string> {
     return this.build({ consistencyLevel }, [this.addQueryParams]);
   }
-  buildDelete(id: string, className: string, consistencyLevel: string | undefined): Promise<string> {
-    return this.build({ id, className, consistencyLevel }, [
+  buildDelete(id: string, className: string, consistencyLevel?: string, tenant?: string): Promise<string> {
+    return this.build({ id, className, consistencyLevel, tenant: tenant }, [
       this.addClassNameDeprecatedNotSupportedCheck,
       this.addId,
       this.addQueryParams,
     ]);
   }
-  buildCheck(id: string, className: string): Promise<string> {
-    return this.build({ id, className }, [this.addClassNameDeprecatedNotSupportedCheck, this.addId]);
+  buildCheck(id: string, className: string, tenant?: string): Promise<string> {
+    return this.build({ id, className, tenant: tenant }, [
+      this.addClassNameDeprecatedNotSupportedCheck,
+      this.addId,
+      this.addQueryParams,
+    ]);
   }
   buildGetOne(
     id: string,
     className: string,
     additional: string[],
     consistencyLevel?: ConsistencyLevel,
-    nodeName?: string
+    nodeName?: string,
+    tenant?: string
   ): Promise<string> {
-    return this.build({ id, className, additional: additional, consistencyLevel, nodeName }, [
+    return this.build({ id, className, additional: additional, consistencyLevel, nodeName, tenant: tenant }, [
       this.addClassNameDeprecatedNotSupportedCheck,
       this.addId,
       this.addQueryParams,
     ]);
   }
-  buildGet(className?: string, limit?: number, additional?: string[], after?: string): Promise<string> {
-    return this.build({ className, limit, additional, after }, [this.addQueryParamsForGet]);
+  buildGet(
+    className?: string,
+    limit?: number,
+    additional?: string[],
+    after?: string,
+    tenant?: string
+  ): Promise<string> {
+    return this.build({ className, limit, additional, after, tenant: tenant }, [this.addQueryParamsForGet]);
   }
-  buildUpdate(id: string, className: string, consistencyLevel: string | undefined): Promise<string> {
+  buildUpdate(id: string, className: string, consistencyLevel?: string): Promise<string> {
     return this.build({ id, className, consistencyLevel }, [
       this.addClassNameDeprecatedCheck,
       this.addId,
       this.addQueryParams,
     ]);
   }
-  buildMerge(id: string, className: string, consistencyLevel: string | undefined): Promise<string> {
+  buildMerge(id: string, className: string, consistencyLevel?: string): Promise<string> {
     return this.build({ id, className, consistencyLevel }, [
       this.addClassNameDeprecatedCheck,
       this.addId,
@@ -104,6 +115,9 @@ export class ObjectsPath {
     if (isValidStringProperty(params.consistencyLevel)) {
       queryParams.push(`consistency_level=${params.consistencyLevel}`);
     }
+    if (isValidStringProperty(params.tenant)) {
+      queryParams.push(`tenant=${params.tenant}`);
+    }
     if (queryParams.length > 0) {
       return `${path}?${queryParams.join('&')}`;
     }
@@ -127,6 +141,9 @@ export class ObjectsPath {
     if (isValidStringProperty(params.after)) {
       queryParams.push(`after=${params.after}`);
     }
+    if (isValidStringProperty(params.tenant)) {
+      queryParams.push(`tenant=${params.tenant}`);
+    }
     if (queryParams.length > 0) {
       return `${path}?${queryParams.join('&')}`;
     }
@@ -145,7 +162,8 @@ export class ReferencesPath {
     id: string,
     className: string,
     property: string,
-    consistencyLevel?: ConsistencyLevel
+    consistencyLevel?: ConsistencyLevel,
+    tenant?: string
   ): Promise<string> {
     return this.dbVersionSupport.supportsClassNameNamespacedEndpointsPromise().then((support: any) => {
       let path = objectsPathPrefix;
@@ -165,8 +183,15 @@ export class ReferencesPath {
       if (isValidStringProperty(property)) {
         path = `${path}/${property}`;
       }
+      const queryParams: Array<string> = [];
       if (isValidStringProperty(consistencyLevel)) {
-        path = `${path}?consistency_level=${consistencyLevel}`;
+        queryParams.push(`consistency_level=${consistencyLevel}`);
+      }
+      if (isValidStringProperty(tenant)) {
+        queryParams.push(`tenant=${tenant}`);
+      }
+      if (queryParams.length > 0) {
+        path = `${path}?${queryParams.join('&')}`;
       }
       return path;
     });

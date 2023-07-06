@@ -1,4 +1,6 @@
-#!/bin/bash
+#!/usr/bin/env bash
+
+set -eou pipefail
 
 function ls_compose {
   ls ci | grep 'docker-compose'

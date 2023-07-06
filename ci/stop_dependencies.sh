@@ -1,6 +1,8 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-. ./ci/compose.sh
+set -eou pipefail
+
+source ./ci/compose.sh
 
 compose_down_all
 rm -rf weaviate-data || true

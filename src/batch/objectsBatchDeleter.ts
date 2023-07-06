@@ -12,6 +12,7 @@ export default class ObjectsBatchDeleter extends CommandBase {
   private dryRun?: boolean;
   private output?: DeleteOutput;
   private whereFilter?: WhereFilter;
+  private tenant?: string;
 
   constructor(client: Connection) {
     super(client);
@@ -41,6 +42,11 @@ export default class ObjectsBatchDeleter extends CommandBase {
     this.consistencyLevel = cl;
     return this;
   };
+
+  withTenant(tenant: string) {
+    this.tenant = tenant;
+    return this;
+  }
 
   payload = (): BatchDelete => {
     return {
@@ -78,6 +84,9 @@ export default class ObjectsBatchDeleter extends CommandBase {
     const params = new URLSearchParams();
     if (this.consistencyLevel) {
       params.set('consistency_level', this.consistencyLevel);
+    }
+    if (this.tenant) {
+      params.set('tenant', this.tenant);
     }
     const path = buildObjectsPath(params);
     return this.client.delete(path, this.payload(), true);

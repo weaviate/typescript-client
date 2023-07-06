@@ -5,7 +5,8 @@ import {
   BatchReferenceResponse,
   WeaviateObject,
   BatchDeleteResponse,
-  WhereFilter,
+  Tenant,
+  WeaviateClass,
 } from '../openapi/types';
 
 const thingClassName = 'BatchJourneyTestThing';
@@ -497,6 +498,190 @@ describe('batch deleting', () => {
   });
 
   it('tears down and cleans up', () => cleanup(client));
+});
+
+describe('multi tenancy', () => {
+  const client = weaviate.client({
+    scheme: 'http',
+    host: 'localhost:8080',
+  });
+
+  const passageClassName = 'Passage';
+  const passage: WeaviateClass = {
+    class: passageClassName,
+    properties: [
+      {
+        name: 'content',
+        dataType: ['text'],
+      },
+    ],
+    multiTenancyConfig: { enabled: true },
+  };
+
+  const tenants: Array<Tenant> = [{ name: 'tenantA' }, { name: 'tenantB' }];
+  const passageIDs = [
+    '00000000-0000-0000-0000-000000000001',
+    '00000000-0000-0000-0000-000000000002',
+    '00000000-0000-0000-0000-000000000003',
+  ];
+  const txts = [
+    'A generative adversarial network (GAN) is a class of machine learning frameworks designed by Ian Goodfellow and his colleagues in June 2014.',
+    'OpenAI is an American artificial intelligence (AI) research laboratory consisting of the non-profit OpenAI Incorporated and its for-profit subsidiary corporation OpenAI Limited Partnership.',
+    'The Space Exploration Technologies Corporation, commonly referred to as SpaceX is an American spacecraft manufacturer, launcher, and satellite communications company headquartered in Hawthorne, California.',
+  ];
+
+  it('create Passage class', () => {
+    return client.schema
+      .classCreator()
+      .withClass(passage)
+      .do()
+      .then((res) => {
+        expect(res).toBeDefined();
+        expect(res.class).toBe(passageClassName);
+      })
+      .catch((e) => {
+        throw new Error('it should not have errord ' + e);
+      });
+  });
+
+  it('create Passage classes tenants', () => {
+    return client.schema
+      .tenantsCreator(passageClassName, tenants)
+      .do()
+      .then((res) => {
+        expect(res).toHaveLength(2);
+      })
+      .catch((e) => {
+        throw new Error('it should not have errord ' + e);
+      });
+  });
+
+  it('get Passage classes tenants', () => {
+    return client.schema
+      .tenantsGetter(passageClassName)
+      .do()
+      .then((res) => {
+        expect(res).toHaveLength(2);
+      })
+      .catch((e) => {
+        throw new Error('it should not have errord ' + e);
+      });
+  });
+
+  it('should batch import Passage objects', () => {
+    const toImport: WeaviateObject[] = [];
+    for (let i = 0; i < passageIDs.length; i++) {
+      toImport.push({
+        class: passageClassName,
+        id: passageIDs[i],
+        properties: { content: txts[i] },
+        tenant: tenants[0].name!,
+      });
+    }
+    return client.batch
+      .objectsBatcher()
+      .withObjects(...toImport)
+      .do()
+      .then((res) => {
+        expect(res).toHaveLength(3);
+      })
+      .catch((e: any) => {
+        throw new Error('it should not have errord ' + e);
+      });
+  });
+
+  it('should get 3 Passage objects', () => {
+    return client.data
+      .getter()
+      .withClassName(passageClassName)
+      .withTenant(tenants[0].name!)
+      .do()
+      .then((res) => {
+        expect(res).toBeDefined();
+        expect(res.objects).toBeDefined();
+        expect(res.objects).toHaveLength(3);
+      })
+      .catch((e) => {
+        throw new Error('it should not have errord ' + e);
+      });
+  });
+
+  it('should not batch delete without tenant parameter', () => {
+    return client.batch
+      .objectsBatchDeleter()
+      .withClassName(passageClassName)
+      .withWhere({
+        operator: 'Equal',
+        valueText: passageIDs[0],
+        path: ['id'],
+      })
+      .withOutput('verbose')
+      .withDryRun(false)
+      .do()
+      .catch((e: any) => {
+        expect(e).toBeDefined();
+      });
+  });
+
+  it('batch delete with 1 tenant', () => {
+    return client.batch
+      .objectsBatchDeleter()
+      .withClassName(passageClassName)
+      .withWhere({
+        operator: 'Equal',
+        valueText: passageIDs[0],
+        path: ['id'],
+      })
+      .withTenant(tenants[0].name!)
+      .withOutput('verbose')
+      .withDryRun(false)
+      .do()
+      .then((result: any) => {
+        expect(result.dryRun).toBe(false);
+        expect(result.output).toBe('verbose');
+        expect(result.match).toEqual({
+          class: passageClassName,
+          where: {
+            operands: null,
+            operator: 'Equal',
+            valueText: passageIDs[0],
+            path: ['id'],
+          },
+        });
+        expect(result.results.successful).toBe(1);
+        expect(result.results.failed).toBe(0);
+        expect(result.results.matches).toBe(1);
+        expect(result.results.limit).toBe(10000);
+        expect(result.results.objects).toHaveLength(1);
+        expect(result.results.objects).toContainEqual({
+          id: passageIDs[0],
+          status: 'SUCCESS',
+        });
+      })
+      .catch((e: any) => {
+        throw new Error('it should not have errord ' + e);
+      });
+  });
+
+  it('should get only 2 Passage objects', () => {
+    return client.data
+      .getter()
+      .withClassName(passageClassName)
+      .withTenant(tenants[0].name!)
+      .do()
+      .then((res) => {
+        expect(res).toBeDefined();
+        expect(res.objects).toBeDefined();
+        expect(res.objects).toHaveLength(2);
+      })
+      .catch((e) => {
+        throw new Error('it should not have errord ' + e);
+      });
+  });
+
+  it('should remove Passage class', () => {
+    return client.schema.classDeleter().withClassName(passageClassName).do();
+  });
 });
 
 const setup = async (client: WeaviateClient) => {

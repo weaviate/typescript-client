@@ -5,6 +5,7 @@ import { CommandBase } from '../validation/commandBase';
 export default class Checker extends CommandBase {
   private className!: string;
   private id!: string;
+  private tenant?: string;
   private objectsPath: ObjectsPath;
 
   constructor(client: Connection, objectsPath: ObjectsPath) {
@@ -19,6 +20,11 @@ export default class Checker extends CommandBase {
 
   withClassName = (className: string) => {
     this.className = className;
+    return this;
+  };
+
+  withTenant = (tenant: string) => {
+    this.tenant = tenant;
     return this;
   };
 
@@ -42,7 +48,7 @@ export default class Checker extends CommandBase {
     }
     this.validate();
 
-    return this.objectsPath.buildCheck(this.id, this.className).then((path: string) => {
+    return this.objectsPath.buildCheck(this.id, this.className, this.tenant).then((path: string) => {
       return this.client.head(path, undefined);
     });
   };

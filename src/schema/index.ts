@@ -7,7 +7,11 @@ import SchemaGetter from './getter';
 import ShardsGetter from './shardsGetter';
 import ShardUpdater from './shardUpdater';
 import ShardsUpdater from './shardsUpdater';
+import TenantsCreator from './tenantsCreator';
+import TenantsGetter from './tenantsGetter';
+import TenantsDeleter from './tenantsDeleter';
 import Connection from '../connection';
+import { Tenant } from '../openapi/types';
 
 export interface Schema {
   classCreator: () => ClassCreator;
@@ -19,6 +23,9 @@ export interface Schema {
   shardsGetter: () => ShardsGetter;
   shardUpdater: () => ShardUpdater;
   shardsUpdater: () => ShardsUpdater;
+  tenantsCreator: (className: string, tenants: Array<Tenant>) => TenantsCreator;
+  tenantsGetter: (className: string) => TenantsGetter;
+  tenantsDeleter: (className: string, tenants: Array<string>) => TenantsDeleter;
 }
 
 const schema = (client: Connection): Schema => {
@@ -32,6 +39,11 @@ const schema = (client: Connection): Schema => {
     shardsGetter: () => new ShardsGetter(client),
     shardUpdater: () => new ShardUpdater(client),
     shardsUpdater: () => new ShardsUpdater(client),
+    tenantsCreator: (className: string, tenants: Array<Tenant>) =>
+      new TenantsCreator(client, className, tenants),
+    tenantsGetter: (className: string) => new TenantsGetter(client, className),
+    tenantsDeleter: (className: string, tenants: Array<string>) =>
+      new TenantsDeleter(client, className, tenants),
   };
 };
 
@@ -43,3 +55,6 @@ export { default as PropertyCreator } from './propertyCreator';
 export { default as SchemaGetter } from './getter';
 export { default as ShardUpdater } from './shardUpdater';
 export { default as ShardsUpdater } from './shardsUpdater';
+export { default as TenantsCreator } from './tenantsCreator';
+export { default as TenantsGetter } from './tenantsGetter';
+export { default as TenantsDeleter } from './tenantsDeleter';

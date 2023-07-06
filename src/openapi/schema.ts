@@ -112,6 +112,9 @@ export interface paths {
     /** Gives meta information about the server and can be used to provide information to another Weaviate instance that wants to interact with the current instance. */
     get: operations['meta.get'];
   };
+  '/schema/cluster-status': {
+    get: operations['schema.cluster.status'];
+  };
   '/schema': {
     get: operations['schema.dump'];
     post: operations['schema.objects.create'];
@@ -132,6 +135,14 @@ export interface paths {
     /** Update shard status of an Object Class */
     put: operations['schema.objects.shards.update'];
   };
+  '/schema/{className}/tenants': {
+    /** get all tenants from a specific class */
+    get: operations['tenants.get'];
+    /** Create a new tenant for a specific class */
+    post: operations['tenants.create'];
+    /** delete tenants from a specific class */
+    delete: operations['tenants.delete'];
+  };
   '/backups/{backend}': {
     /** Starts a process of creating a backup for a set of classes */
     post: operations['backups.create'];
@@ -149,6 +160,10 @@ export interface paths {
   '/nodes': {
     /** Returns status of Weaviate DB. */
     get: operations['nodes.get'];
+  };
+  '/nodes/{className}': {
+    /** Returns status of Weaviate DB. */
+    get: operations['nodes.get.class'];
   };
   '/classifications/': {
     /** Trigger a classification based on the specified params. Classifications will run in the background, use GET /classifications/<id> to retrieve the status of your classification. */
@@ -339,6 +354,11 @@ export interface definitions {
     /** @description stopwords to be removed from consideration */
     removals?: string[];
   };
+  /** @description Configuration related to multi-tenancy within a class */
+  MultiTenancyConfig: {
+    /** @description Whether or not multi-tenancy is enabled for this class */
+    enabled?: boolean;
+  };
   /** @description JSON object value. */
   JsonObject: { [key: string]: unknown };
   /** @description Contains meta information of the current Weaviate instance. */
@@ -422,6 +442,22 @@ export interface definitions {
     /** @description Name of the schema. */
     name?: string;
   };
+  /** @description Indicates the health of the schema in a cluster. */
+  SchemaClusterStatus: {
+    /** @description True if the cluster is in sync, false if there is an issue (see error). */
+    healthy?: boolean;
+    /** @description Contains the sync check error if one occurred */
+    error?: string;
+    /** @description Hostname of the coordinating node, i.e. the one that received the cluster. This can be useful information if the error message contains phrases such as 'other nodes agree, but local does not', etc. */
+    hostname?: string;
+    /**
+     * Format: int
+     * @description Number of nodes that participated in the sync check
+     */
+    nodeCount?: number;
+    /** @description The cluster check at startup can be ignored (to recover from an out-of-sync situation). */
+    ignoreSchemaSync?: boolean;
+  };
   Class: {
     /** @description Name of the class as URI relative to the schema URL. */
     class?: string;
@@ -433,6 +469,7 @@ export interface definitions {
     shardingConfig?: { [key: string]: unknown };
     replicationConfig?: definitions['ReplicationConfig'];
     invertedIndexConfig?: definitions['InvertedIndexConfig'];
+    multiTenancyConfig?: definitions['MultiTenancyConfig'];
     /** @description Specify how the vectors for this class should be determined. The options are either 'none' - this means you have to import a vector with each object yourself - or the name of a module that provides vectorization capabilities, such as 'text2vec-contextionary'. If left empty, it will use the globally configured default which can itself either be 'none' or a specific module. */
     vectorizer?: string;
     /** @description Configuration specific to modules this Weaviate instance has installed */
@@ -707,6 +744,8 @@ export interface definitions {
      * @example weaviate://localhost/97525810-a9a5-4eb0-858a-71449aeb007f
      */
     to?: string;
+    /** @description Name of the reference tenant. */
+    tenant?: string;
   };
   BatchReferenceResponse: definitions['BatchReference'] & {
     /**
@@ -778,6 +817,8 @@ export interface definitions {
     lastUpdateTimeUnix?: number;
     /** @description This object's position in the Contextionary vector space. Read-only if using a vectorizer other than 'none'. Writable and required if using 'none' as vectorizer. */
     vector?: definitions['C11yVector'];
+    /** @description Name of the Objects tenant. */
+    tenant?: string;
     additional?: definitions['AdditionalProperties'];
   };
   ObjectsGetResponse: definitions['Object'] & {
@@ -1046,6 +1087,11 @@ export interface definitions {
       max?: number;
     };
   };
+  /** @description attributes representing a single tenant within weaviate */
+  Tenant: {
+    /** @description name of the tenant */
+    name?: string;
+  };
 }
 
 export interface parameters {
@@ -1066,6 +1112,8 @@ export interface parameters {
   CommonIncludeParameterQuery: string;
   /** @description Determines how many replicas must acknowledge a request before it is considered successful */
   CommonConsistencyLevelParameterQuery: string;
+  /** @description Specifies the tenant in a request targeting a multi-tenant class */
+  CommonTenantParameterQuery: string;
   /** @description The target node which should fulfill the request */
   CommonNodeNameParameterQuery: string;
   /** @description Sort parameter to pass an information about the names of the sort fields */
@@ -1122,6 +1170,8 @@ export interface operations {
         order?: parameters['CommonOrderParameterQuery'];
         /** Class parameter specifies the class from which to query objects */
         class?: parameters['CommonClassParameterQuery'];
+        /** Specifies the tenant in a request targeting a multi-tenant class */
+        tenant?: parameters['CommonTenantParameterQuery'];
       };
     };
     responses: {
@@ -1270,6 +1320,8 @@ export interface operations {
       query: {
         /** Determines how many replicas must acknowledge a request before it is considered successful */
         consistency_level?: parameters['CommonConsistencyLevelParameterQuery'];
+        /** Specifies the tenant in a request targeting a multi-tenant class */
+        tenant?: parameters['CommonTenantParameterQuery'];
       };
     };
     responses: {
@@ -1368,6 +1420,8 @@ export interface operations {
         consistency_level?: parameters['CommonConsistencyLevelParameterQuery'];
         /** The target node which should fulfill the request */
         node_name?: parameters['CommonNodeNameParameterQuery'];
+        /** Specifies the tenant in a request targeting a multi-tenant class */
+        tenant?: parameters['CommonTenantParameterQuery'];
       };
     };
     responses: {
@@ -1443,6 +1497,8 @@ export interface operations {
       query: {
         /** Determines how many replicas must acknowledge a request before it is considered successful */
         consistency_level?: parameters['CommonConsistencyLevelParameterQuery'];
+        /** Specifies the tenant in a request targeting a multi-tenant class */
+        tenant?: parameters['CommonTenantParameterQuery'];
       };
     };
     responses: {
@@ -1478,6 +1534,8 @@ export interface operations {
       query: {
         /** Determines how many replicas must acknowledge a request before it is considered successful */
         consistency_level?: parameters['CommonConsistencyLevelParameterQuery'];
+        /** Specifies the tenant in a request targeting a multi-tenant class */
+        tenant?: parameters['CommonTenantParameterQuery'];
       };
     };
     responses: {
@@ -1550,6 +1608,10 @@ export interface operations {
       body: {
         body: definitions['MultipleRef'];
       };
+      query: {
+        /** Specifies the tenant in a request targeting a multi-tenant class */
+        tenant?: parameters['CommonTenantParameterQuery'];
+      };
     };
     responses: {
       /** Successfully replaced all the references. */
@@ -1582,6 +1644,10 @@ export interface operations {
       body: {
         body: definitions['SingleRef'];
       };
+      query: {
+        /** Specifies the tenant in a request targeting a multi-tenant class */
+        tenant?: parameters['CommonTenantParameterQuery'];
+      };
     };
     responses: {
       /** Successfully added the reference. */
@@ -1613,6 +1679,10 @@ export interface operations {
       };
       body: {
         body: definitions['SingleRef'];
+      };
+      query: {
+        /** Specifies the tenant in a request targeting a multi-tenant class */
+        tenant?: parameters['CommonTenantParameterQuery'];
       };
     };
     responses: {
@@ -1651,6 +1721,8 @@ export interface operations {
       query: {
         /** Determines how many replicas must acknowledge a request before it is considered successful */
         consistency_level?: parameters['CommonConsistencyLevelParameterQuery'];
+        /** Specifies the tenant in a request targeting a multi-tenant class */
+        tenant?: parameters['CommonTenantParameterQuery'];
       };
     };
     responses: {
@@ -1695,6 +1767,8 @@ export interface operations {
       query: {
         /** Determines how many replicas must acknowledge a request before it is considered successful */
         consistency_level?: parameters['CommonConsistencyLevelParameterQuery'];
+        /** Specifies the tenant in a request targeting a multi-tenant class */
+        tenant?: parameters['CommonTenantParameterQuery'];
       };
     };
     responses: {
@@ -1739,6 +1813,8 @@ export interface operations {
       query: {
         /** Determines how many replicas must acknowledge a request before it is considered successful */
         consistency_level?: parameters['CommonConsistencyLevelParameterQuery'];
+        /** Specifies the tenant in a request targeting a multi-tenant class */
+        tenant?: parameters['CommonTenantParameterQuery'];
       };
     };
     responses: {
@@ -1843,6 +1919,8 @@ export interface operations {
       query: {
         /** Determines how many replicas must acknowledge a request before it is considered successful */
         consistency_level?: parameters['CommonConsistencyLevelParameterQuery'];
+        /** Specifies the tenant in a request targeting a multi-tenant class */
+        tenant?: parameters['CommonTenantParameterQuery'];
       };
     };
     responses: {
@@ -1981,6 +2059,18 @@ export interface operations {
       /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
       500: {
         schema: definitions['ErrorResponse'];
+      };
+    };
+  };
+  'schema.cluster.status': {
+    responses: {
+      /** The schema in the cluster is in sync. */
+      200: {
+        schema: definitions['SchemaClusterStatus'];
+      };
+      /** The schema is either out of sync (see response body) or the sync check could not be completed. */
+      500: {
+        schema: definitions['SchemaClusterStatus'];
       };
     };
   };
@@ -2210,6 +2300,94 @@ export interface operations {
       };
     };
   };
+  /** get all tenants from a specific class */
+  'tenants.get': {
+    parameters: {
+      path: {
+        className: string;
+      };
+    };
+    responses: {
+      /** tenants from specified class. */
+      200: {
+        schema: definitions['Tenant'][];
+      };
+      /** Unauthorized or invalid credentials. */
+      401: unknown;
+      /** Forbidden */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Invalid Tenant class */
+      422: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
+  /** Create a new tenant for a specific class */
+  'tenants.create': {
+    parameters: {
+      path: {
+        className: string;
+      };
+      body: {
+        body: definitions['Tenant'][];
+      };
+    };
+    responses: {
+      /** Added new tenants to the specified class */
+      200: {
+        schema: definitions['Tenant'][];
+      };
+      /** Unauthorized or invalid credentials. */
+      401: unknown;
+      /** Forbidden */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Invalid Tenant class */
+      422: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
+  /** delete tenants from a specific class */
+  'tenants.delete': {
+    parameters: {
+      path: {
+        className: string;
+      };
+      body: {
+        tenants: string[];
+      };
+    };
+    responses: {
+      /** Deleted tenants from specified class. */
+      200: unknown;
+      /** Unauthorized or invalid credentials. */
+      401: unknown;
+      /** Forbidden */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Invalid Tenant class */
+      422: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
   /** Starts a process of creating a backup for a set of classes */
   'backups.create': {
     parameters: {
@@ -2348,6 +2526,38 @@ export interface operations {
   };
   /** Returns status of Weaviate DB. */
   'nodes.get': {
+    responses: {
+      /** Nodes status successfully returned */
+      200: {
+        schema: definitions['NodesStatusResponse'];
+      };
+      /** Unauthorized or invalid credentials. */
+      401: unknown;
+      /** Forbidden */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Not Found - Backup does not exist */
+      404: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Invalid backup restoration status attempt. */
+      422: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
+  /** Returns status of Weaviate DB. */
+  'nodes.get.class': {
+    parameters: {
+      path: {
+        className: string;
+      };
+    };
     responses: {
       /** Nodes status successfully returned */
       200: {
