@@ -3,6 +3,12 @@ export interface HybridArgs {
   query: string;
   vector?: number[];
   properties?: string[];
+  fusionType?: FusionType;
+}
+
+export enum FusionType {
+  rankedFusion = 'rankedFusion',
+  relativeScoreFusion = 'relativeScoreFusion',
 }
 
 export default class GraphQLHybrid {
@@ -10,12 +16,14 @@ export default class GraphQLHybrid {
   private query: string;
   private vector?: number[];
   private properties?: string[];
+  private fusionType?: FusionType;
 
   constructor(args: HybridArgs) {
     this.alpha = args.alpha;
     this.query = args.query;
     this.vector = args.vector;
     this.properties = args.properties;
+    this.fusionType = args.fusionType;
   }
 
   toString() {
@@ -32,6 +40,10 @@ export default class GraphQLHybrid {
     if (this.properties && this.properties.length > 0) {
       const props = this.properties.join('","');
       args = [...args, `properties:["${props}"]`];
+    }
+
+    if (this.fusionType !== undefined) {
+      args = [...args, `fusionType:${this.fusionType}`];
     }
 
     return `{${args.join(',')}}`;

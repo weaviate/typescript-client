@@ -15,6 +15,7 @@ import { GenerateArgs, GraphQLGenerate } from './generate';
 import { ConsistencyLevel } from '../data';
 import GroupBy, { GroupByArgs } from './groupBy';
 
+export { FusionType } from './hybrid';
 export default class GraphQLGetter extends CommandBase {
   private after?: string;
   private askString?: string;
