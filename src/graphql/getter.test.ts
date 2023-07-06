@@ -75,6 +75,27 @@ test('a simple query with a group', () => {
   expect(mockClient.query).toHaveBeenCalledWith(expectedQuery);
 });
 
+test('a simple query with autocut', () => {
+  const mockClient: any = {
+    query: jest.fn(),
+  };
+
+  const expectedQuery = `{Get{Person(where:{operator:Equal,valueText:"hawaii",path:["name"]},autocut:10){name}}}`;
+
+  new Getter(mockClient)
+    .withClassName('Person')
+    .withAutocut(10)
+    .withWhere({
+      operator: 'Equal',
+      valueText: 'hawaii',
+      path: ['name'],
+    })
+    .withFields('name')
+    .do();
+
+  expect(mockClient.query).toHaveBeenCalledWith(expectedQuery);
+});
+
 describe('query with consistency level', () => {
   test('One', () => {
     const mockClient: any = {
