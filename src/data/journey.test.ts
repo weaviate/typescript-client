@@ -1223,9 +1223,7 @@ describe('multi tenancy', () => {
       .catch((e) => fail('it should not have errord: ' + e));
 
     await client.schema
-      .tenantsCreator()
-      .withClassName(documentClassName)
-      .withTenants(tenants)
+      .tenantsCreator(documentClassName, tenants)
       .do()
       .then((res) => expect(res).toHaveLength(3))
       .catch((e) => fail('it should not have errord: ' + e));
@@ -1238,9 +1236,7 @@ describe('multi tenancy', () => {
       .catch((e) => fail('it should not have errord: ' + e));
 
     return client.schema
-      .tenantsCreator()
-      .withClassName(passageClassName)
-      .withTenants(tenants)
+      .tenantsCreator(passageClassName, tenants)
       .do()
       .then((res) => expect(res).toHaveLength(3))
       .catch((e) => fail('it should not have errord: ' + e));

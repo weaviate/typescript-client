@@ -677,9 +677,7 @@ describe('multi tenancy', () => {
 
   it('defines tenants for MultiTenancy class', () => {
     return client.schema
-      .tenantsCreator()
-      .withClassName(classObj.class!)
-      .withTenants(tenants)
+      .tenantsCreator(classObj.class!, tenants)
       .do()
       .then((res: Array<Tenant>) => {
         expect(res).toEqual(tenants);
@@ -688,8 +686,7 @@ describe('multi tenancy', () => {
 
   it('gets tenants for MultiTenancy class', () => {
     return client.schema
-      .tenantsGetter()
-      .withClassName(classObj.class!)
+      .tenantsGetter(classObj.class!)
       .do()
       .then((res: Array<Tenant>) => {
         expect(res).toHaveLength(3);
@@ -698,9 +695,7 @@ describe('multi tenancy', () => {
 
   it('delete one tenant in MultiTenancy class', () => {
     return client.schema
-      .tenantsDeleter()
-      .withClassName(classObj.class!)
-      .withTenants([tenants[0].name!])
+      .tenantsDeleter(classObj.class!, [tenants[0].name!])
       .do()
       .then((res) => {
         expect(res).toEqual(undefined);
@@ -709,8 +704,7 @@ describe('multi tenancy', () => {
 
   it('get tenants after delete for MultiTenancy class', () => {
     return client.schema
-      .tenantsGetter()
-      .withClassName(classObj.class!)
+      .tenantsGetter(classObj.class!)
       .do()
       .then((res: Array<Tenant>) => {
         expect(res).toHaveLength(2);
@@ -735,9 +729,7 @@ describe('multi tenancy', () => {
 
   it('fails to define tenants for NoMultiTenancy class', () => {
     return client.schema
-      .tenantsCreator()
-      .withClassName(classObjWithoutMultiTenancyConfig.class!)
-      .withTenants(tenants)
+      .tenantsCreator(classObjWithoutMultiTenancyConfig.class!, tenants)
       .do()
       .catch((e: Error) => {
         expect(e.message).toContain('multi-tenancy is not enabled for class \\"NoMultiTenancy\\"');

@@ -11,6 +11,7 @@ import TenantsCreator from './tenantsCreator';
 import TenantsGetter from './tenantsGetter';
 import TenantsDeleter from './tenantsDeleter';
 import Connection from '../connection';
+import { Tenant } from '../openapi/types';
 
 export interface Schema {
   classCreator: () => ClassCreator;
@@ -22,9 +23,9 @@ export interface Schema {
   shardsGetter: () => ShardsGetter;
   shardUpdater: () => ShardUpdater;
   shardsUpdater: () => ShardsUpdater;
-  tenantsCreator: () => TenantsCreator;
-  tenantsGetter: () => TenantsGetter;
-  tenantsDeleter: () => TenantsDeleter;
+  tenantsCreator: (className: string, tenants: Array<Tenant>) => TenantsCreator;
+  tenantsGetter: (className: string) => TenantsGetter;
+  tenantsDeleter: (className: string, tenants: Array<string>) => TenantsDeleter;
 }
 
 const schema = (client: Connection): Schema => {
@@ -38,9 +39,11 @@ const schema = (client: Connection): Schema => {
     shardsGetter: () => new ShardsGetter(client),
     shardUpdater: () => new ShardUpdater(client),
     shardsUpdater: () => new ShardsUpdater(client),
-    tenantsCreator: () => new TenantsCreator(client),
-    tenantsGetter: () => new TenantsGetter(client),
-    tenantsDeleter: () => new TenantsDeleter(client),
+    tenantsCreator: (className: string, tenants: Array<Tenant>) =>
+      new TenantsCreator(client, className, tenants),
+    tenantsGetter: (className: string) => new TenantsGetter(client, className),
+    tenantsDeleter: (className: string, tenants: Array<string>) =>
+      new TenantsDeleter(client, className, tenants),
   };
 };
 

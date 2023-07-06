@@ -1859,19 +1859,11 @@ const setupDocumentPassageSchema = async (
   await Promise.all([client.schema.classCreator().withClass(passage).do()]);
 
   if (tenants) {
-    const documentTenants = await client.schema
-      .tenantsCreator()
-      .withClassName(document.class!)
-      .withTenants(tenants)
-      .do();
+    const documentTenants = await client.schema.tenantsCreator(document.class!, tenants).do();
     expect(documentTenants).toBeDefined();
     expect(documentTenants).toHaveLength(tenants.length);
 
-    const passageTenants = await client.schema
-      .tenantsCreator()
-      .withClassName(passage.class!)
-      .withTenants(tenants)
-      .do();
+    const passageTenants = await client.schema.tenantsCreator(passage.class!, tenants).do();
     expect(passageTenants).toBeDefined();
     expect(passageTenants).toHaveLength(tenants.length);
   }

@@ -546,9 +546,7 @@ describe('multi tenancy', () => {
 
   it('create Passage classes tenants', () => {
     return client.schema
-      .tenantsCreator()
-      .withClassName(passageClassName)
-      .withTenants(tenants)
+      .tenantsCreator(passageClassName, tenants)
       .do()
       .then((res) => {
         expect(res).toHaveLength(2);
@@ -560,8 +558,7 @@ describe('multi tenancy', () => {
 
   it('get Passage classes tenants', () => {
     return client.schema
-      .tenantsGetter()
-      .withClassName(passageClassName)
+      .tenantsGetter(passageClassName)
       .do()
       .then((res) => {
         expect(res).toHaveLength(2);

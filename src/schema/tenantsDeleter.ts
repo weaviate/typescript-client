@@ -4,46 +4,20 @@ import { CommandBase } from '../validation/commandBase';
 import { Tenant } from '../openapi/types';
 
 export default class TenantsDeleter extends CommandBase {
-  private className?: string;
-  private tenants?: Array<string>;
+  private className: string;
+  private tenants: Array<string>;
 
-  constructor(client: Connection) {
+  constructor(client: Connection, className: string, tenants: Array<string>) {
     super(client);
+    this.className = className;
+    this.tenants = tenants;
   }
 
-  withClassName = (className: string) => {
-    this.className = className;
-    return this;
-  };
-
-  withTenants = (tenants: Array<string>) => {
-    this.tenants = tenants;
-    return this;
-  };
-
-  validateClassName = () => {
-    if (!isValidStringProperty(this.className)) {
-      this.addError('className must be set - set with .withClassName(className)');
-    }
-  };
-
-  validateTenants = () => {
-    if (!this.tenants || this.tenants.length == 0) {
-      this.addError('tenants must be set - set with .withTenants(tenants)');
-    }
-  };
-
   validate = () => {
-    this.validateClassName();
-    this.validateTenants();
+    // nothing to validate
   };
 
   do = (): Promise<void> => {
-    this.validate();
-    if (this.errors.length > 0) {
-      return Promise.reject(new Error('invalid usage: ' + this.errors.join(', ')));
-    }
-    const path = `/schema/${this.className}/tenants`;
-    return this.client.delete(path, this.tenants, false);
+    return this.client.delete(`/schema/${this.className}/tenants`, this.tenants, false);
   };
 }
