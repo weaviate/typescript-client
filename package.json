@@ -1,5 +1,5 @@
 {
-  "name": "weaviate-ts-client",
+  "name": "@catalystsquad/weaviate-ts-client",
   "version": "1.4.0",
   "description": "TypeScript client for Weaviate",
   "main": "./dist/index.js",
@@ -32,7 +32,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/weaviate/typescript-client.git"
+    "url": "git+https://github.com/catalystsquad/typescript-client.git"
   },
   "keywords": [
     "weaviate"
