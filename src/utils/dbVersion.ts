@@ -22,6 +22,10 @@ export class DbVersionSupport {
           console.warn(
             `Usage of beacons paths without className is deprecated in Weaviate ${version}. Please provide className parameter`
           ),
+        deprecatedWeaviateTooOld: () =>
+          console.warn(
+            `Usage of weaviate ${version} is deprecated. Please consider upgrading to the latest version. See https://www.weaviate.io/developers/weaviate for details.`
+          ),
         notSupportedClassNamespacedEndpointsForObjects: () =>
           console.warn(
             `Usage of objects paths with className is not supported in Weaviate ${version}. className parameter is ignored`
