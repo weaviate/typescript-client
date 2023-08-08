@@ -1,6 +1,6 @@
 import { isValidStringProperty } from '../validation/string';
 import { DbVersionSupport } from './dbVersion';
-import { isNotValidWeaviateVersion } from '../validation/version';
+import { isValidWeaviateVersion } from '../validation/version';
 
 const beaconPathPrefix = 'weaviate://localhost';
 
@@ -43,7 +43,7 @@ export class BeaconPath {
       support.warns.notSupportedClassNamespacedEndpointsForBeacons();
     }
     if (support.version) {
-      if (isNotValidWeaviateVersion(support.version)) {
+      if (!isValidWeaviateVersion(support.version)) {
         support.warns.deprecatedWeaviateTooOld();
       }
     }

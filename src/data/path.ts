@@ -1,7 +1,7 @@
 import { isValidStringProperty } from '../validation/string';
 import { DbVersionSupport } from '../utils/dbVersion';
 import { ConsistencyLevel } from './replication';
-import { isNotValidWeaviateVersion } from '../validation/version';
+import { isValidWeaviateVersion } from '../validation/version';
 
 const objectsPathPrefix = '/objects';
 
@@ -178,7 +178,7 @@ export class ReferencesPath {
         support.warns.notSupportedClassNamespacedEndpointsForReferences();
       }
       if (support.version) {
-        if (isNotValidWeaviateVersion(support.version)) {
+        if (!isValidWeaviateVersion(support.version)) {
           support.warns.deprecatedWeaviateTooOld();
         }
       }
