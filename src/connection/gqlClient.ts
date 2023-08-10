@@ -3,7 +3,11 @@ import { ConnectionParams } from '..';
 
 export type TQuery = any;
 export interface GraphQLClient {
-  query: (query: TQuery, variables?: Variables, headers?: HeadersInit) => Promise<{ data: any }>;
+  query: <V extends Variables, T>(
+    query: TQuery,
+    variables?: V,
+    headers?: HeadersInit
+  ) => Promise<{ data: T }>;
 }
 
 export const gqlClient = (config: ConnectionParams): GraphQLClient => {
@@ -13,7 +17,7 @@ export const gqlClient = (config: ConnectionParams): GraphQLClient => {
   return {
     // for backward compatibility with replaced graphql-client lib,
     // results are wrapped into { data: data }
-    query: (query: TQuery, variables?: Variables, headers?: HeadersInit) => {
+    query: <V extends Variables, T>(query: TQuery, variables?: V, headers?: HeadersInit) => {
       return new Client(`${scheme}://${host}/v1/graphql`, {
         headers: {
           ...defaultHeaders,
@@ -21,7 +25,7 @@ export const gqlClient = (config: ConnectionParams): GraphQLClient => {
         },
         fetch,
       })
-        .request(query, variables, headers)
+        .request<T>(query, variables, headers)
         .then((data) => ({ data }));
     },
   };

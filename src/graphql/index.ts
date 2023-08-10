@@ -5,7 +5,7 @@ import Raw from './raw';
 import Connection from '../connection';
 
 export interface GraphQL {
-  get: () => GraphQLGetter;
+  get: <TClassName extends string, TClass extends Record<string, any>>() => GraphQLGetter<TClassName, TClass>;
   aggregate: () => Aggregator;
   explore: () => Explorer;
   raw: () => Raw;
@@ -13,7 +13,8 @@ export interface GraphQL {
 
 const graphql = (client: Connection): GraphQL => {
   return {
-    get: () => new GraphQLGetter(client),
+    get: <TClassName extends string, TClass extends Record<string, any>>() =>
+      GraphQLGetter.use<TClassName, TClass>(client),
     aggregate: () => new Aggregator(client),
     explore: () => new Explorer(client),
     raw: () => new Raw(client),

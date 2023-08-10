@@ -16,7 +16,10 @@ import { ConsistencyLevel } from '../data';
 import GroupBy, { GroupByArgs } from './groupBy';
 
 export { FusionType } from './hybrid';
-export default class GraphQLGetter extends CommandBase {
+export default class GraphQLGetter<
+  TClassName extends string,
+  TClass extends Record<string, any>
+> extends CommandBase {
   private after?: string;
   private askString?: string;
   private bm25String?: string;
@@ -42,6 +45,10 @@ export default class GraphQLGetter extends CommandBase {
   constructor(client: Connection) {
     super(client);
     this.includesNearMediaFilter = false;
+  }
+
+  static use<TClassName extends string, TClass extends Record<string, any>>(client: Connection) {
+    return new GraphQLGetter<TClassName, TClass>(client);
   }
 
   withFields = (fields: string) => {
@@ -307,6 +314,14 @@ export default class GraphQLGetter extends CommandBase {
       params = `(${args.join(',')})`;
     }
 
-    return this.client.query(`{Get{${this.className}${params}{${this.fields}}}}`);
+    return this.client.query<any, GetReturn<TClassName, TClass>>(
+      `{Get{${this.className}${params}{${this.fields}}}}`
+    );
   };
 }
+
+export type GetReturn<ClassName extends string, T> = {
+  Get: {
+    [key in ClassName]: T[];
+  };
+};

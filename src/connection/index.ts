@@ -85,14 +85,14 @@ export default class Connection {
     return this.http.get(path, expectReturnContent);
   };
 
-  query = (query: any, variables?: Variables) => {
+  query = <V extends Variables, T>(query: any, variables?: V) => {
     if (this.authEnabled) {
       return this.login().then((token) => {
         const headers = { Authorization: `Bearer ${token}` };
-        return this.gql.query(query, variables, headers);
+        return this.gql.query<V, T>(query, variables, headers);
       });
     }
-    return this.gql.query(query, variables);
+    return this.gql.query<V, T>(query, variables);
   };
 
   login = async () => {

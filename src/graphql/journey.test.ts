@@ -1140,7 +1140,7 @@ describe('the graphql journey', () => {
 
   test('graphql get method with sort filter: title desc', () => {
     return client.graphql
-      .get()
+      .get<'Article', Article>()
       .withClassName('Article')
       .withFields('title')
       .withSort([{ path: ['title'], order: 'desc' }])
@@ -1155,7 +1155,7 @@ describe('the graphql journey', () => {
 
   test('graphql get method with [sort] filter: title desc', () => {
     return client.graphql
-      .get()
+      .get<'Article', Article>()
       .withClassName('Article')
       .withFields('title')
       .withSort([{ path: ['title'], order: 'desc' }])
@@ -1724,6 +1724,12 @@ describe('multi tenancy', () => {
     ]);
   });
 });
+
+type Article = {
+  title: string;
+  url: string;
+  wordCount: number;
+};
 
 const setup = async (client: WeaviateClient) => {
   const thing = {
