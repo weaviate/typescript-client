@@ -1050,7 +1050,9 @@ export interface definitions {
       | 'LessThan'
       | 'LessThanEqual'
       | 'WithinGeoRange'
-      | 'IsNull';
+      | 'IsNull'
+      | 'ContainsAny'
+      | 'ContainsAll';
     /**
      * @description path to the property currently being filtered
      * @example [
@@ -1092,6 +1094,45 @@ export interface definitions {
      * @example TODO
      */
     valueDate?: string;
+    /**
+     * @description value as integer
+     * @example [100, 200]
+     */
+    valueIntArray?: number[];
+    /**
+     * @description value as number/float
+     * @example [
+     *   3.14
+     * ]
+     */
+    valueNumberArray?: number[];
+    /**
+     * @description value as boolean
+     * @example [
+     *   true,
+     *   false
+     * ]
+     */
+    valueBooleanArray?: boolean[];
+    /**
+     * @description value as text (deprecated as of v1.19; alias for valueText)
+     * @example [
+     *   "my search term"
+     * ]
+     */
+    valueStringArray?: string[];
+    /**
+     * @description value as text
+     * @example [
+     *   "my search term"
+     * ]
+     */
+    valueTextArray?: string[];
+    /**
+     * @description value as date (as string)
+     * @example TODO
+     */
+    valueDateArray?: string[];
     /** @description value as geo coordinates and distance */
     valueGeoRange?: definitions['WhereFilterGeoRange'];
   };

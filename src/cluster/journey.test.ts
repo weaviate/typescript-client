@@ -7,8 +7,8 @@ import {
   SOUP_CLASS_NAME,
 } from '../utils/testData';
 
-const EXPECTED_WEAVIATE_VERSION = '1.21.0-rc.1';
-const EXPECTED_WEAVIATE_GIT_HASH = 'b0d0063';
+const EXPECTED_WEAVIATE_VERSION = '1.21.0';
+const EXPECTED_WEAVIATE_GIT_HASH = '8172acb';
 
 describe('cluster nodes endpoint', () => {
   const client = weaviate.client({
