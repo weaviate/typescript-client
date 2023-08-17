@@ -1170,6 +1170,24 @@ describe('bm25 valid searchers', () => {
     expect(mockClient.query).toHaveBeenCalledWith(expectedQuery);
   });
 
+  test('query and generic properties', () => {
+    const expectedQuery = `{Get{Person(bm25:{query:"accountant",properties:["profession"]}){name}}}`;
+
+    type Person = {
+      name: string;
+      profession: string;
+      position: string;
+    };
+
+    new Getter<'Person', Person>(mockClient)
+      .withClassName('Person')
+      .withFields('name')
+      .withBm25({ query: 'accountant', properties: { profession: true, name: false } })
+      .do();
+
+    expect(mockClient.query).toHaveBeenCalledWith(expectedQuery);
+  });
+
   test('query and empty properties', () => {
     const subQuery = `(bm25:{query:"accountant",properties:[]})`;
     const expectedQuery = `{Get{Person` + subQuery + `{name}}}`;

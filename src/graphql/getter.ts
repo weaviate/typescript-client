@@ -14,11 +14,12 @@ import { WhereFilter } from '../openapi/types';
 import { GenerateArgs, GraphQLGenerate } from './generate';
 import { ConsistencyLevel } from '../data';
 import GroupBy, { GroupByArgs } from './groupBy';
+import { ObjectQueryFields } from './types';
 
 export { FusionType } from './hybrid';
 export default class GraphQLGetter<
   TClassName extends string,
-  TClass extends Record<string, any>
+  TClassProperties extends Record<string, any>
 > extends CommandBase {
   private after?: string;
   private askString?: string;
@@ -47,8 +48,8 @@ export default class GraphQLGetter<
     this.includesNearMediaFilter = false;
   }
 
-  static use<TClassName extends string, TClass extends Record<string, any>>(client: Connection) {
-    return new GraphQLGetter<TClassName, TClass>(client);
+  static use<TClassName extends string, TClassProperties extends Record<string, any>>(client: Connection) {
+    return new GraphQLGetter<TClassName, TClassProperties>(client);
   }
 
   withFields = (fields: string) => {
@@ -96,9 +97,9 @@ export default class GraphQLGetter<
     return this;
   };
 
-  withBm25 = (args: Bm25Args) => {
+  withBm25 = (args: Bm25Args<ObjectQueryFields<TClassProperties>>) => {
     try {
-      this.bm25String = new Bm25(args).toString();
+      this.bm25String = new Bm25<TClassProperties>(args).toString();
     } catch (e: any) {
       this.addError(e.toString());
     }
@@ -314,7 +315,7 @@ export default class GraphQLGetter<
       params = `(${args.join(',')})`;
     }
 
-    return this.client.query<any, GetReturn<TClassName, TClass>>(
+    return this.client.query<any, GetReturn<TClassName, TClassProperties>>(
       `{Get{${this.className}${params}{${this.fields}}}}`
     );
   };
