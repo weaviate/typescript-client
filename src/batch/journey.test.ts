@@ -544,7 +544,7 @@ describe('multi tenancy', () => {
       });
   });
 
-  it('create Passage classes tenants', () => {
+  it('creates Passage class tenants', () => {
     return client.schema
       .tenantsCreator(passageClassName, tenants)
       .do()
@@ -556,9 +556,54 @@ describe('multi tenancy', () => {
       });
   });
 
-  it('get Passage classes tenants', () => {
+  it('gets Passage class tenants', () => {
     return client.schema
       .tenantsGetter(passageClassName)
+      .do()
+      .then((res) => {
+        expect(res).toHaveLength(2);
+      })
+      .catch((e) => {
+        throw new Error('it should not have errord ' + e);
+      });
+  });
+
+  it('updates Passage class tenants (deactivates)', () => {
+    return client.schema
+      .tenantsUpdater(passageClassName, [
+        { name: tenants[0].name, activityStatus: 'COLD' },
+        { name: tenants[1].name, activityStatus: 'COLD' },
+      ])
+      .do()
+      .then((res) => {
+        expect(res).toHaveLength(2);
+      })
+      .catch((e) => {
+        throw new Error('it should not have errord ' + e);
+      });
+  });
+
+  it('does not get objects due to inactivity', () => {
+    return client.data
+      .getter()
+      .withClassName(passageClassName)
+      .withTenant(tenants[0].name!)
+      .do()
+      .then(() => {
+        throw new Error('should fail on data get');
+      })
+      .catch((err) => {
+        expect(err.message).toContain('422');
+        expect(err.message).toContain('tenant not active');
+      });
+  });
+
+  it('updates Passage class tenants (activates again)', () => {
+    return client.schema
+      .tenantsUpdater(passageClassName, [
+        { name: tenants[0].name, activityStatus: 'HOT' },
+        { name: tenants[1].name, activityStatus: 'HOT' },
+      ])
       .do()
       .then((res) => {
         expect(res).toHaveLength(2);
