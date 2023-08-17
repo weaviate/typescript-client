@@ -1,6 +1,6 @@
-import { ObjectQueryFields, parseProperties } from './types';
+import { QueryProperties, parseProperties } from './types';
 
-export interface AskArgs<P> {
+export interface AskArgs<P = any> {
   autocorrect?: boolean;
   certainty?: number;
   distance?: number;
@@ -17,7 +17,7 @@ export default class GraphQLAsk<P extends Record<string, any>> {
   private question?: string;
   private rerank?: boolean;
 
-  constructor(args: AskArgs<P>) {
+  constructor(args: AskArgs<QueryProperties<P>>) {
     this.autocorrect = args.autocorrect;
     this.certainty = args.certainty;
     this.distance = args.distance;

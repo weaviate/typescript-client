@@ -14,7 +14,7 @@ import { WhereFilter } from '../openapi/types';
 import { GenerateArgs, GraphQLGenerate } from './generate';
 import { ConsistencyLevel } from '../data';
 import GroupBy, { GroupByArgs } from './groupBy';
-import { ObjectQueryFields } from './types';
+import { QueryProperties } from './types';
 
 export { FusionType } from './hybrid';
 export default class GraphQLGetter<
@@ -97,9 +97,9 @@ export default class GraphQLGetter<
     return this;
   };
 
-  withBm25 = (args: Bm25Args<ObjectQueryFields<TClassProperties>>) => {
+  withBm25 = (args: Bm25Args<QueryProperties<TClassProperties>>) => {
     try {
-      this.bm25String = new Bm25<TClassProperties>(args).toString();
+      this.bm25String = new Bm25<QueryProperties<TClassProperties>>(args).toString();
     } catch (e: any) {
       this.addError(e.toString());
     }
@@ -107,9 +107,9 @@ export default class GraphQLGetter<
     return this;
   };
 
-  withHybrid = (args: HybridArgs<TClassProperties>) => {
+  withHybrid = (args: HybridArgs<QueryProperties<TClassProperties>>) => {
     try {
-      this.hybridString = new Hybrid<TClassProperties>(args).toString();
+      this.hybridString = new Hybrid<QueryProperties<TClassProperties>>(args).toString();
     } catch (e: any) {
       this.addError(e.toString());
     }
@@ -132,9 +132,9 @@ export default class GraphQLGetter<
     return this;
   };
 
-  withAsk = (askObj: AskArgs<TClassProperties>) => {
+  withAsk = (askObj: AskArgs<QueryProperties<TClassProperties>>) => {
     try {
-      this.askString = new Ask<TClassProperties>(askObj).toString();
+      this.askString = new Ask<QueryProperties<TClassProperties>>(askObj).toString();
     } catch (e: any) {
       this.addError(e.toString());
     }
@@ -191,8 +191,8 @@ export default class GraphQLGetter<
     return this;
   };
 
-  withGenerate = (args: GenerateArgs<TClassProperties>) => {
-    this.generateString = new GraphQLGenerate<TClassProperties>(args).toString();
+  withGenerate = (args: GenerateArgs<QueryProperties<TClassProperties>>) => {
+    this.generateString = new GraphQLGenerate<QueryProperties<TClassProperties>>(args).toString();
     return this;
   };
 

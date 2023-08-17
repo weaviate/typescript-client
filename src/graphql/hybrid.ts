@@ -1,4 +1,4 @@
-import { ObjectQueryFields, parseProperties } from './types';
+import { QueryProperties, parseProperties } from './types';
 
 export interface HybridArgs<P> {
   alpha?: number;
@@ -20,7 +20,7 @@ export default class GraphQLHybrid<P extends Record<string, any>> {
   private properties?: string[];
   private fusionType?: FusionType;
 
-  constructor(args: HybridArgs<P>) {
+  constructor(args: HybridArgs<QueryProperties<P>>) {
     this.alpha = args.alpha;
     this.query = args.query;
     this.vector = args.vector;

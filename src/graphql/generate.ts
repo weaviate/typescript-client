@@ -1,4 +1,4 @@
-import { ObjectQueryFields, parseProperties } from './types';
+import { QueryProperties, parseProperties } from './types';
 
 export interface GenerateArgs<P> {
   groupedTask?: string;
@@ -17,7 +17,7 @@ export class GraphQLGenerate<P extends Record<string, any>> {
   private groupedProperties?: string[];
   private singlePrompt?: string;
 
-  constructor(args: GenerateArgs<ObjectQueryFields<P>>) {
+  constructor(args: GenerateArgs<QueryProperties<P>>) {
     this.groupedTask = args.groupedTask;
     this.groupedProperties = args.groupedProperties
       ? parseProperties(args.groupedProperties)

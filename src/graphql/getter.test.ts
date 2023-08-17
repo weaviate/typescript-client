@@ -784,6 +784,34 @@ describe('ask searchers', () => {
     expect(mockClient.query).toHaveBeenCalledWith(expectedQuery);
   });
 
+  test('a query with a valid ask with question and generic properties', () => {
+    const mockClient: any = {
+      query: jest.fn(),
+    };
+
+    type Person = {
+      name: string;
+      prop1: string;
+      prop2: string;
+    };
+
+    const expectedQuery = `{Get{Person(ask:{question:"What is Weaviate?",properties:["prop1"]}){name}}}`;
+
+    new Getter<'Person', Person>(mockClient)
+      .withClassName('Person')
+      .withFields('name')
+      .withAsk({
+        question: 'What is Weaviate?',
+        properties: {
+          prop1: true,
+          prop2: false,
+        },
+      })
+      .do();
+
+    expect(mockClient.query).toHaveBeenCalledWith(expectedQuery);
+  });
+
   test('a query with a valid ask with question, properties, certainty', () => {
     const mockClient: any = {
       query: jest.fn(),

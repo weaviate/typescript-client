@@ -1,9 +1,9 @@
 // https://www.typescriptlang.org/docs/handbook/2/mapped-types.html
-export type ObjectQueryFields<P> = {
+export type QueryProperties<P> = {
   [Property in keyof P]?: boolean;
 };
 
-export type QueryFields<P> = ObjectQueryFields<P> & {
+export type QueryFields<P> = QueryProperties<P> & {
   _additional?: {
     certainty?: boolean;
     classification?: boolean;
@@ -16,7 +16,7 @@ export type QueryFields<P> = ObjectQueryFields<P> & {
         path?: boolean;
         value?: boolean;
       };
-      hits?: ObjectQueryFields<P> & {
+      hits?: QueryProperties<P> & {
         _additional?: {
           distance?: boolean;
           id?: boolean;
@@ -38,16 +38,14 @@ export function isQueryFields(obj: any): obj is QueryFields<any> {
   return typeof obj === 'object' && obj !== null && !Array.isArray(obj);
 }
 
-export function isObjectQueryFields<P extends Record<string, any>>(obj: any): obj is ObjectQueryFields<P> {
+export function isQueryProperties<P extends Record<string, any>>(obj: any): obj is QueryProperties<P> {
   return typeof obj === 'object' && obj !== null && !Array.isArray(obj);
 }
 
-export function parseObjectQueryFields<P extends Record<string, any>>(obj: ObjectQueryFields<P>): string[] {
+export function parseQueryProperties<P extends Record<string, any>>(obj: QueryProperties<P>): string[] {
   return Object.keys(obj).filter((key) => obj[key]);
 }
 
-export function parseProperties<P extends Record<string, any>>(
-  obj: string[] | ObjectQueryFields<P>
-): string[] {
-  return isObjectQueryFields(obj) ? parseObjectQueryFields(obj) : obj;
+export function parseProperties<P extends Record<string, any>>(obj: string[] | QueryProperties<P>): string[] {
+  return isQueryProperties(obj) ? parseQueryProperties(obj) : obj;
 }
