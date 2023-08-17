@@ -5,17 +5,25 @@ import Raw from './raw';
 import Connection from '../connection';
 
 export interface GraphQL {
-  get: () => GraphQLGetter;
+  get: <TClassName extends string, TClassProperties extends Record<string, any>>() => GraphQLGetter<
+    TClassName,
+    TClassProperties
+  >;
   aggregate: () => Aggregator;
-  explore: () => Explorer;
+  explore: <TClassName extends string, TClassProperties extends Record<string, any>>() => Explorer<
+    TClassName,
+    TClassProperties
+  >;
   raw: () => Raw;
 }
 
 const graphql = (client: Connection): GraphQL => {
   return {
-    get: () => new GraphQLGetter(client),
+    get: <TClassName extends string, TClassProperties extends Record<string, any>>() =>
+      GraphQLGetter.use<TClassName, TClassProperties>(client),
     aggregate: () => new Aggregator(client),
-    explore: () => new Explorer(client),
+    explore: <TClassName extends string, TClassProperties extends Record<string, any>>() =>
+      Explorer.use<TClassName, TClassProperties>(client),
     raw: () => new Raw(client),
   };
 };

@@ -5,8 +5,12 @@ import NearImage, { NearImageArgs } from './nearImage';
 import Ask, { AskArgs } from './ask';
 import Connection from '../connection';
 import { CommandBase } from '../validation/commandBase';
+import { QueryProperties } from './types';
 
-export default class Explorer extends CommandBase {
+export default class Explorer<
+  TClassName extends string,
+  TClassProperties extends Record<string, any>
+> extends CommandBase {
   private askString?: string;
   private fields?: string;
   private group?: string[];
@@ -20,6 +24,10 @@ export default class Explorer extends CommandBase {
   constructor(client: Connection) {
     super(client);
     this.params = {};
+  }
+
+  static use<TClassName extends string, TClassProperties extends Record<string, any>>(client: Connection) {
+    return new Explorer<TClassName, TClassProperties>(client);
   }
 
   withFields = (fields: string) => {
@@ -50,9 +58,9 @@ export default class Explorer extends CommandBase {
     return this;
   };
 
-  withAsk = (args: AskArgs) => {
+  withAsk = (args: AskArgs<QueryProperties<TClassProperties>>) => {
     try {
-      this.askString = new Ask(args).toString();
+      this.askString = new Ask<QueryProperties<TClassProperties>>(args).toString();
     } catch (e: any) {
       this.addError(e.toString());
     }

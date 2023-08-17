@@ -784,6 +784,34 @@ describe('ask searchers', () => {
     expect(mockClient.query).toHaveBeenCalledWith(expectedQuery);
   });
 
+  test('a query with a valid ask with question and generic properties', () => {
+    const mockClient: any = {
+      query: jest.fn(),
+    };
+
+    type Person = {
+      name: string;
+      prop1: string;
+      prop2: string;
+    };
+
+    const expectedQuery = `{Get{Person(ask:{question:"What is Weaviate?",properties:["prop1"]}){name}}}`;
+
+    new Getter<'Person', Person>(mockClient)
+      .withClassName('Person')
+      .withFields('name')
+      .withAsk({
+        question: 'What is Weaviate?',
+        properties: {
+          prop1: true,
+          prop2: false,
+        },
+      })
+      .do();
+
+    expect(mockClient.query).toHaveBeenCalledWith(expectedQuery);
+  });
+
   test('a query with a valid ask with question, properties, certainty', () => {
     const mockClient: any = {
       query: jest.fn(),
@@ -1165,6 +1193,24 @@ describe('bm25 valid searchers', () => {
       .withClassName('Person')
       .withFields('name')
       .withBm25({ query: 'accountant', properties: ['profession', 'position'] })
+      .do();
+
+    expect(mockClient.query).toHaveBeenCalledWith(expectedQuery);
+  });
+
+  test('query and generic properties', () => {
+    const expectedQuery = `{Get{Person(bm25:{query:"accountant",properties:["profession"]}){name}}}`;
+
+    type Person = {
+      name: string;
+      profession: string;
+      position: string;
+    };
+
+    new Getter<'Person', Person>(mockClient)
+      .withClassName('Person')
+      .withFields('name')
+      .withBm25({ query: 'accountant', properties: { profession: true, name: false } })
       .do();
 
     expect(mockClient.query).toHaveBeenCalledWith(expectedQuery);

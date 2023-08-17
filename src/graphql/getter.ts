@@ -14,9 +14,13 @@ import { WhereFilter } from '../openapi/types';
 import { GenerateArgs, GraphQLGenerate } from './generate';
 import { ConsistencyLevel } from '../data';
 import GroupBy, { GroupByArgs } from './groupBy';
+import { QueryProperties } from './types';
 
 export { FusionType } from './hybrid';
-export default class GraphQLGetter extends CommandBase {
+export default class GraphQLGetter<
+  TClassName extends string,
+  TClassProperties extends Record<string, any>
+> extends CommandBase {
   private after?: string;
   private askString?: string;
   private bm25String?: string;
@@ -42,6 +46,10 @@ export default class GraphQLGetter extends CommandBase {
   constructor(client: Connection) {
     super(client);
     this.includesNearMediaFilter = false;
+  }
+
+  static use<TClassName extends string, TClassProperties extends Record<string, any>>(client: Connection) {
+    return new GraphQLGetter<TClassName, TClassProperties>(client);
   }
 
   withFields = (fields: string) => {
@@ -89,9 +97,9 @@ export default class GraphQLGetter extends CommandBase {
     return this;
   };
 
-  withBm25 = (args: Bm25Args) => {
+  withBm25 = (args: Bm25Args<QueryProperties<TClassProperties>>) => {
     try {
-      this.bm25String = new Bm25(args).toString();
+      this.bm25String = new Bm25<QueryProperties<TClassProperties>>(args).toString();
     } catch (e: any) {
       this.addError(e.toString());
     }
@@ -99,9 +107,9 @@ export default class GraphQLGetter extends CommandBase {
     return this;
   };
 
-  withHybrid = (args: HybridArgs) => {
+  withHybrid = (args: HybridArgs<QueryProperties<TClassProperties>>) => {
     try {
-      this.hybridString = new Hybrid(args).toString();
+      this.hybridString = new Hybrid<QueryProperties<TClassProperties>>(args).toString();
     } catch (e: any) {
       this.addError(e.toString());
     }
@@ -124,9 +132,9 @@ export default class GraphQLGetter extends CommandBase {
     return this;
   };
 
-  withAsk = (askObj: AskArgs) => {
+  withAsk = (askObj: AskArgs<QueryProperties<TClassProperties>>) => {
     try {
-      this.askString = new Ask(askObj).toString();
+      this.askString = new Ask<QueryProperties<TClassProperties>>(askObj).toString();
     } catch (e: any) {
       this.addError(e.toString());
     }
@@ -183,8 +191,8 @@ export default class GraphQLGetter extends CommandBase {
     return this;
   };
 
-  withGenerate = (args: GenerateArgs) => {
-    this.generateString = new GraphQLGenerate(args).toString();
+  withGenerate = (args: GenerateArgs<QueryProperties<TClassProperties>>) => {
+    this.generateString = new GraphQLGenerate<QueryProperties<TClassProperties>>(args).toString();
     return this;
   };
 
@@ -307,6 +315,14 @@ export default class GraphQLGetter extends CommandBase {
       params = `(${args.join(',')})`;
     }
 
-    return this.client.query(`{Get{${this.className}${params}{${this.fields}}}}`);
+    return this.client.query<any, GetReturn<TClassName, TClassProperties>>(
+      `{Get{${this.className}${params}{${this.fields}}}}`
+    );
   };
 }
+
+export type GetReturn<ClassName extends string, T> = {
+  Get: {
+    [key in ClassName]: T[];
+  };
+};
