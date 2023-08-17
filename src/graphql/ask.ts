@@ -1,13 +1,15 @@
-export interface AskArgs {
+import { ObjectQueryFields, parseProperties } from './types';
+
+export interface AskArgs<P> {
   autocorrect?: boolean;
   certainty?: number;
   distance?: number;
-  properties?: string[];
+  properties?: string[] | P;
   question?: string;
   rerank?: boolean;
 }
 
-export default class GraphQLAsk {
+export default class GraphQLAsk<P extends Record<string, any>> {
   private autocorrect?: boolean;
   private certainty?: number;
   private distance?: number;
@@ -15,11 +17,11 @@ export default class GraphQLAsk {
   private question?: string;
   private rerank?: boolean;
 
-  constructor(args: AskArgs) {
+  constructor(args: AskArgs<P>) {
     this.autocorrect = args.autocorrect;
     this.certainty = args.certainty;
     this.distance = args.distance;
-    this.properties = args.properties;
+    this.properties = args.properties ? parseProperties(args.properties) : args.properties;
     this.question = args.question;
     this.rerank = args.rerank;
   }

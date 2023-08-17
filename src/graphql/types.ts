@@ -45,3 +45,9 @@ export function isObjectQueryFields<P extends Record<string, any>>(obj: any): ob
 export function parseObjectQueryFields<P extends Record<string, any>>(obj: ObjectQueryFields<P>): string[] {
   return Object.keys(obj).filter((key) => obj[key]);
 }
+
+export function parseProperties<P extends Record<string, any>>(
+  obj: string[] | ObjectQueryFields<P>
+): string[] {
+  return isObjectQueryFields(obj) ? parseObjectQueryFields(obj) : obj;
+}

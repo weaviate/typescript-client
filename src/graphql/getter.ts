@@ -107,9 +107,9 @@ export default class GraphQLGetter<
     return this;
   };
 
-  withHybrid = (args: HybridArgs) => {
+  withHybrid = (args: HybridArgs<TClassProperties>) => {
     try {
-      this.hybridString = new Hybrid(args).toString();
+      this.hybridString = new Hybrid<TClassProperties>(args).toString();
     } catch (e: any) {
       this.addError(e.toString());
     }
@@ -132,9 +132,9 @@ export default class GraphQLGetter<
     return this;
   };
 
-  withAsk = (askObj: AskArgs) => {
+  withAsk = (askObj: AskArgs<TClassProperties>) => {
     try {
-      this.askString = new Ask(askObj).toString();
+      this.askString = new Ask<TClassProperties>(askObj).toString();
     } catch (e: any) {
       this.addError(e.toString());
     }
@@ -191,8 +191,8 @@ export default class GraphQLGetter<
     return this;
   };
 
-  withGenerate = (args: GenerateArgs) => {
-    this.generateString = new GraphQLGenerate(args).toString();
+  withGenerate = (args: GenerateArgs<TClassProperties>) => {
+    this.generateString = new GraphQLGenerate<TClassProperties>(args).toString();
     return this;
   };
 

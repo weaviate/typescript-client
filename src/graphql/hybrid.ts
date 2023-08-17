@@ -1,8 +1,10 @@
-export interface HybridArgs {
+import { ObjectQueryFields, parseProperties } from './types';
+
+export interface HybridArgs<P> {
   alpha?: number;
   query: string;
   vector?: number[];
-  properties?: string[];
+  properties?: string[] | P;
   fusionType?: FusionType;
 }
 
@@ -11,18 +13,18 @@ export enum FusionType {
   relativeScoreFusion = 'relativeScoreFusion',
 }
 
-export default class GraphQLHybrid {
+export default class GraphQLHybrid<P extends Record<string, any>> {
   private alpha?: number;
   private query: string;
   private vector?: number[];
   private properties?: string[];
   private fusionType?: FusionType;
 
-  constructor(args: HybridArgs) {
+  constructor(args: HybridArgs<P>) {
     this.alpha = args.alpha;
     this.query = args.query;
     this.vector = args.vector;
-    this.properties = args.properties;
+    this.properties = args.properties ? parseProperties(args.properties) : args.properties;
     this.fusionType = args.fusionType;
   }
 

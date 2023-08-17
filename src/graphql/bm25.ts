@@ -1,5 +1,5 @@
 import { isValidStringArray, isValidStringProperty } from '../validation/string';
-import { ObjectQueryFields, isObjectQueryFields, parseObjectQueryFields } from './types';
+import { ObjectQueryFields, parseProperties } from './types';
 
 export interface Bm25Args<P> {
   properties?: string[] | P;
@@ -11,9 +11,7 @@ export default class GraphQLBm25<P extends Record<string, any>> {
   private query: string;
 
   constructor(args: Bm25Args<ObjectQueryFields<P>>) {
-    this.properties = isObjectQueryFields<P>(args.properties)
-      ? parseObjectQueryFields<P>(args.properties)
-      : args.properties;
+    this.properties = args.properties ? parseProperties(args.properties) : args.properties;
     this.query = args.query;
   }
 
