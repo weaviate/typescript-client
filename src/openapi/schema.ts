@@ -138,6 +138,8 @@ export interface paths {
   '/schema/{className}/tenants': {
     /** get all tenants from a specific class */
     get: operations['tenants.get'];
+    /** Update tenant of a specific class */
+    put: operations['tenants.update'];
     /** Create a new tenant for a specific class */
     post: operations['tenants.create'];
     /** delete tenants from a specific class */
@@ -619,6 +621,19 @@ export interface definitions {
      */
     objectCount?: number;
   };
+  /** @description The summary of a nodes batch queue congestion status. */
+  BatchStats: {
+    /**
+     * Format: int
+     * @description How many objects are currently in the batch queue.
+     */
+    queueLength?: number;
+    /**
+     * Format: int
+     * @description How many objects are approximately processed from the batch queue per second.
+     */
+    ratePerSecond?: number;
+  };
   /** @description The definition of a node shard status response body */
   NodeShardStatus: {
     /** @description The name of the shard. */
@@ -647,6 +662,8 @@ export interface definitions {
     gitHash?: string;
     /** @description Weaviate overall statistics. */
     stats?: definitions['NodeStats'];
+    /** @description Weaviate batch statistics. */
+    batchStats?: definitions['BatchStats'];
     /** @description The list of the shards with it's statistics. */
     shards?: definitions['NodeShardStatus'][];
   };
@@ -1027,7 +1044,6 @@ export interface definitions {
       | 'Or'
       | 'Equal'
       | 'Like'
-      | 'Not'
       | 'NotEqual'
       | 'GreaterThan'
       | 'GreaterThanEqual'
@@ -1091,6 +1107,11 @@ export interface definitions {
   Tenant: {
     /** @description name of the tenant */
     name?: string;
+    /**
+     * @description activity status of the tenant's shard. Optional for creating tenant (implicit `HOT`) and required for updating tenant. Allowed values are `HOT` - tenant is fully active, `WARM` - tenant is active, some restrictions are imposed (TBD; not supported yet), `COLD` - tenant is inactive; no actions can be performed on tenant, tenant's files are stored locally, `FROZEN` - as COLD, but files are stored on cloud storage (not supported yet)
+     * @enum {string}
+     */
+    activityStatus?: 'HOT' | 'WARM' | 'COLD' | 'FROZEN';
   };
 }
 
@@ -1441,6 +1462,10 @@ export interface operations {
       };
       /** Successful query result but no resource was found. */
       404: unknown;
+      /** Request is well-formed (i.e., syntactically correct), but erroneous. */
+      422: {
+        schema: definitions['ErrorResponse'];
+      };
       /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
       500: {
         schema: definitions['ErrorResponse'];
@@ -1516,6 +1541,10 @@ export interface operations {
       };
       /** Successful query result but no resource was found. */
       404: unknown;
+      /** Request is well-formed (i.e., syntactically correct), but erroneous. */
+      422: {
+        schema: definitions['ErrorResponse'];
+      };
       /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
       500: {
         schema: definitions['ErrorResponse'];
@@ -1549,6 +1578,10 @@ export interface operations {
       };
       /** Object doesn't exist. */
       404: unknown;
+      /** Request is well-formed (i.e., syntactically correct), but erroneous. */
+      422: {
+        schema: definitions['ErrorResponse'];
+      };
       /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
       500: {
         schema: definitions['ErrorResponse'];
@@ -1577,7 +1610,9 @@ export interface operations {
       /** Successfully applied. No content provided. */
       204: never;
       /** The patch-JSON is malformed. */
-      400: unknown;
+      400: {
+        schema: definitions['ErrorResponse'];
+      };
       /** Unauthorized or invalid credentials. */
       401: unknown;
       /** Forbidden */
@@ -2184,9 +2219,6 @@ export interface operations {
       path: {
         className: string;
       };
-      query: {
-        force?: boolean;
-      };
     };
     responses: {
       /** Removed the Object class from the schema. */
@@ -2309,6 +2341,37 @@ export interface operations {
     };
     responses: {
       /** tenants from specified class. */
+      200: {
+        schema: definitions['Tenant'][];
+      };
+      /** Unauthorized or invalid credentials. */
+      401: unknown;
+      /** Forbidden */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Invalid Tenant class */
+      422: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
+  /** Update tenant of a specific class */
+  'tenants.update': {
+    parameters: {
+      path: {
+        className: string;
+      };
+      body: {
+        body: definitions['Tenant'][];
+      };
+    };
+    responses: {
+      /** Updated tenants of the specified class */
       200: {
         schema: definitions['Tenant'][];
       };
