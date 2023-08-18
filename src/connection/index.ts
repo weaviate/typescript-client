@@ -43,11 +43,20 @@ export default class Connection {
     return params;
   }
 
-  post = (path: string, payload: any, expectReturnContent = true) => {
+  postReturn = <B, T>(path: string, payload: B): Promise<T> => {
     if (this.authEnabled) {
-      return this.login().then((token) => this.http.post(path, payload, expectReturnContent, token));
+      return this.login().then((token) =>
+        this.http.post<B, T>(path, payload, true, token).then((res) => res as T)
+      );
     }
-    return this.http.post(path, payload, expectReturnContent);
+    return this.http.post<B, T>(path, payload, true, '').then((res) => res as T);
+  };
+
+  postEmpty = <B>(path: string, payload: B): Promise<void> => {
+    if (this.authEnabled) {
+      return this.login().then((token) => this.http.post<B, void>(path, payload, false, token));
+    }
+    return this.http.post<B, void>(path, payload, false, '');
   };
 
   put = (path: string, payload: any, expectReturnContent = true) => {

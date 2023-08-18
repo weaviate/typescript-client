@@ -44,6 +44,6 @@ export default class PropertyCreator extends CommandBase {
       return Promise.reject(new Error('invalid usage: ' + this.errors.join(', ')));
     }
     const path = `/schema/${this.className}/properties`;
-    return this.client.post(path, this.property);
+    return this.client.postReturn<Property, Property>(path, this.property).then((r) => r as Property);
   };
 }

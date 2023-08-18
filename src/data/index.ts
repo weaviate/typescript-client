@@ -14,9 +14,10 @@ import { ObjectsPath, ReferencesPath } from './path';
 import { BeaconPath } from '../utils/beaconPath';
 import { DbVersionSupport } from '../utils/dbVersion';
 import Connection from '../connection';
+import { Properties } from '../openapi/types';
 
 export interface Data {
-  creator: () => Creator;
+  creator: <TClassProperties extends Properties>() => Creator<TClassProperties>;
   validator: () => Validator;
   updater: () => Updater;
   merger: () => Merger;
@@ -36,7 +37,7 @@ const data = (client: Connection, dbVersionSupport: DbVersionSupport): Data => {
   const beaconPath = new BeaconPath(dbVersionSupport);
 
   return {
-    creator: () => new Creator(client, objectsPath),
+    creator: <TClassProperties extends Properties>() => new Creator<TClassProperties>(client, objectsPath),
     validator: () => new Validator(client),
     updater: () => new Updater(client, objectsPath),
     merger: () => new Merger(client, objectsPath),

@@ -86,7 +86,7 @@ export default class BackupRestorer extends CommandBase {
   };
 
   _restore = (payload: BackupRestoreRequest): Promise<BackupRestoreResponse> => {
-    return this.client.post(this._path(), payload);
+    return this.client.postReturn(this._path(), payload);
   };
 
   _restoreAndWaitForCompletion = (payload: BackupRestoreRequest): Promise<BackupRestoreResponse> => {

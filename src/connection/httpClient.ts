@@ -4,7 +4,12 @@ import { ConnectionParams } from '..';
 export interface HttpClient {
   patch: (path: string, payload: any, bearerToken?: string) => any;
   head: (path: string, payload: any, bearerToken?: string) => any;
-  post: (path: string, payload: any, expectReturnContent?: boolean, bearerToken?: string) => any;
+  post: <B, T>(
+    path: string,
+    payload: B,
+    expectReturnContent: boolean,
+    bearerToken: string
+  ) => Promise<T | undefined>;
   get: (path: string, expectReturnContent?: boolean, bearerToken?: string) => any;
   externalPost: (externalUrl: string, body: any, contentType: any) => any;
   getRaw: (path: string, bearerToken?: string) => any;
@@ -21,8 +26,8 @@ export const httpClient = (config: ConnectionParams): HttpClient => {
     post: <B, T>(
       path: string,
       payload: B,
-      expectReturnContent = true,
-      bearerToken = ''
+      expectReturnContent: boolean,
+      bearerToken: string
     ): Promise<T | undefined> => {
       const request = {
         method: 'POST',
@@ -74,7 +79,7 @@ export const httpClient = (config: ConnectionParams): HttpClient => {
         body: payload ? JSON.stringify(payload) : undefined,
       };
       addAuthHeaderIfNeeded(request, bearerToken);
-      return fetch(url(path), request).then(checkStatus(expectReturnContent));
+      return fetch(url(path), request).then(checkStatus<undefined>(expectReturnContent));
     },
     head: <B>(path: string, payload: B | null = null, bearerToken = '') => {
       const request = {
@@ -86,7 +91,7 @@ export const httpClient = (config: ConnectionParams): HttpClient => {
         body: payload ? JSON.stringify(payload) : undefined,
       };
       addAuthHeaderIfNeeded(request, bearerToken);
-      return fetch(url(path), request).then(handleHeadResponse(false));
+      return fetch(url(path), request).then(handleHeadResponse<undefined>(false));
     },
     get: <T>(path: string, expectReturnContent = true, bearerToken = ''): Promise<T | undefined> => {
       const request = {
@@ -115,7 +120,7 @@ export const httpClient = (config: ConnectionParams): HttpClient => {
         headers: {
           ...config.headers,
         },
-      }).then(checkStatus(true));
+      }).then(checkStatus<any>(true));
     },
     externalPost: (externalUrl: string, body: any, contentType: any) => {
       if (contentType == undefined || contentType == '') {
@@ -132,7 +137,7 @@ export const httpClient = (config: ConnectionParams): HttpClient => {
       if (body != null) {
         request.body = body;
       }
-      return fetch(externalUrl, request).then(checkStatus(true));
+      return fetch(externalUrl, request).then(checkStatus<any>(true));
     },
   };
 };

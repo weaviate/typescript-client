@@ -128,7 +128,7 @@ export default class ClassificationsScheduler extends CommandBase {
     this.validate();
 
     const path = `/classifications`;
-    return this.client.post(path, this.payload()).then((res: any) => {
+    return this.client.postReturn(path, this.payload()).then((res: any) => {
       if (!this.waitForCompletion) {
         return Promise.resolve(res);
       }

@@ -32,7 +32,7 @@ describe('the graphql journey', () => {
       .withQuery('{Get{Article{title url wordCount}}}')
       .do()
       .then(function (result) {
-        expect(result.data.Get.Article.length).toEqual(3);
+        expect(result?.data.Get.Article.length).toEqual(3);
       });
   });
 

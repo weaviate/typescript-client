@@ -24,7 +24,7 @@ export default class RawGraphQL extends CommandBase {
     this.validateIsSet(this.query, 'query', '.raw().withQuery(query)');
   };
 
-  do = <V extends Variables, T>(): Promise<{ data: T } | undefined> => {
+  do = <V extends Variables, T = any>(): Promise<{ data: T } | undefined> => {
     const params = '';
 
     this.validate();

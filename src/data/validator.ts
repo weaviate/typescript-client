@@ -49,6 +49,6 @@ export default class Validator extends CommandBase {
       return Promise.reject(new Error('invalid usage: ' + this.errors.join(', ')));
     }
     const path = `/objects/validate`;
-    return this.client.post(path, this.payload(), false).then(() => true);
+    return this.client.postEmpty(path, this.payload()).then(() => true);
   };
 }

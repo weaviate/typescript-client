@@ -30,6 +30,6 @@ export default class ClassCreator extends CommandBase {
       return Promise.reject(new Error('invalid usage: ' + this.errors.join(', ')));
     }
     const path = `/schema`;
-    return this.client.post(path, this.class);
+    return this.client.postReturn(path, this.class);
   };
 }

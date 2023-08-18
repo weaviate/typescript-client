@@ -5,12 +5,20 @@ import { CommandBase } from '../validation/commandBase';
 import { Properties, WeaviateObject } from '../openapi/types';
 import { ConsistencyLevel } from './replication';
 
-export default class Creator extends CommandBase {
+export type CreateObjectPayload<P extends Properties = Properties> = {
+  tenant?: string;
+  vector?: number[];
+  properties?: P;
+  class?: string;
+  id?: string;
+};
+
+export default class Creator<TClassProperties extends Properties> extends CommandBase {
   private className?: string;
   private consistencyLevel?: ConsistencyLevel;
   private id?: string;
   private objectsPath: ObjectsPath;
-  private properties?: Properties;
+  private properties?: TClassProperties;
   private vector?: number[];
   private tenant?: string;
 
@@ -29,7 +37,7 @@ export default class Creator extends CommandBase {
     return this;
   };
 
-  withProperties = (properties: Properties) => {
+  withProperties = (properties: TClassProperties) => {
     this.properties = properties;
     return this;
   };
@@ -55,7 +63,7 @@ export default class Creator extends CommandBase {
     }
   };
 
-  payload = (): WeaviateObject => ({
+  payload = (): CreateObjectPayload<TClassProperties> => ({
     tenant: this.tenant,
     vector: this.vector,
     properties: this.properties,
@@ -67,7 +75,7 @@ export default class Creator extends CommandBase {
     this.validateClassName();
   };
 
-  do = (): Promise<WeaviateObject> => {
+  do = (): Promise<WeaviateObject<TClassProperties>> => {
     this.validate();
     if (this.errors.length > 0) {
       return Promise.reject(new Error('invalid usage: ' + this.errors.join(', ')));
@@ -75,6 +83,6 @@ export default class Creator extends CommandBase {
 
     return this.objectsPath
       .buildCreate(this.consistencyLevel)
-      .then((path: string) => this.client.post(path, this.payload()));
+      .then((path: string) => this.client.postReturn(path, this.payload()));
   };
 }

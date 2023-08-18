@@ -121,6 +121,27 @@ describe('data', () => {
       });
   });
 
+  // it('creates a generic thing', () => {
+  //   type GenericThing = {
+  //     stringProp: string;
+  //   }
+  //   const id = '6781a974-cfbf-455d-ace8-f1dba4564230';
+
+  //   return client.data
+  //     .creator<GenericThing>()
+  //     .withClassName('DataJourneyTestGeneric')
+  //     .withProperties({ stringProp: 'generic'})
+  //     .withId(id)
+  //     .do()
+  //     .then((res) => {
+  //       expect(res.properties).toEqual({ stringProp: 'generic' });
+  //       expect(res.id).toEqual(id);
+  //     })
+  //     .catch((e: WeaviateError) => {
+  //       throw new Error('it should not have errord: ' + e);
+  //     });
+  // })
+
   it('errors without a className', () => {
     return client.data
       .creator()

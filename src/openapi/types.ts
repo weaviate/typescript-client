@@ -1,6 +1,6 @@
 import { definitions } from './schema';
 
-export type WeaviateObject = definitions['Object'];
+// export type WeaviateObject = definitions['Object'];
 export type WeaviateObjectsList = definitions['ObjectsListResponse'];
 export type WeaviateObjectsGet = definitions['ObjectsGetResponse'];
 export type Reference = definitions['SingleRef'];
@@ -40,3 +40,30 @@ export type Tenant = definitions['Tenant'];
 export type SchemaClusterStatus = definitions['SchemaClusterStatus'];
 // Nodes
 export type NodesStatusResponse = definitions['NodesStatusResponse'];
+
+export type WeaviateObject<P extends Properties = Properties> = {
+  /** @description Class of the Object, defined in the schema. */
+  class?: string;
+  vectorWeights?: definitions['VectorWeights'];
+  properties?: P;
+  /**
+   * Format: uuid
+   * @description ID of the Object.
+   */
+  id?: string;
+  /**
+   * Format: int64
+   * @description Timestamp of creation of this Object in milliseconds since epoch UTC.
+   */
+  creationTimeUnix?: number;
+  /**
+   * Format: int64
+   * @description Timestamp of the last Object update in milliseconds since epoch UTC.
+   */
+  lastUpdateTimeUnix?: number;
+  /** @description This object's position in the Contextionary vector space. Read-only if using a vectorizer other than 'none'. Writable and required if using 'none' as vectorizer. */
+  vector?: definitions['C11yVector'];
+  /** @description Name of the Objects tenant. */
+  tenant?: string;
+  additional?: definitions['AdditionalProperties'];
+};

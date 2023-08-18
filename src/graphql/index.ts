@@ -9,7 +9,10 @@ export interface GraphQL {
     TClassName,
     TClassProperties
   >;
-  aggregate: () => Aggregator;
+  aggregate: <TClassName extends string, TClassProperties extends Record<string, any>>() => Aggregator<
+    TClassName,
+    TClassProperties
+  >;
   explore: <TClassName extends string, TClassProperties extends Record<string, any>>() => Explorer<
     TClassName,
     TClassProperties
