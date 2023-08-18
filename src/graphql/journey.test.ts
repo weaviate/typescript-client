@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import exp from 'constants';
 import weaviate, {
   Reference,
   WeaviateClient,
@@ -8,6 +7,7 @@ import weaviate, {
   WeaviateClass,
   Tenant,
   ReferenceCreator,
+  WhereFilter,
 } from '..';
 import { FusionType } from './hybrid';
 
@@ -1725,6 +1725,384 @@ describe('multi tenancy', () => {
   });
 });
 
+describe('where test', () => {
+  let client: WeaviateClient;
+
+  beforeEach(() => {
+    client = weaviate.client({
+      scheme: 'http',
+      host: 'localhost:8080',
+    });
+  });
+
+  const className = 'WhereTest';
+  const id1 = '00000000-0000-0000-0000-000000000001';
+  const id2 = '00000000-0000-0000-0000-000000000002';
+  const id3 = '00000000-0000-0000-0000-000000000003';
+  const ids: Array<string> = [id1, id2, id3];
+
+  describe('setup', () => {
+    it('should create WhereTest class', () => {
+      const whereTest = {
+        class: className,
+        invertedIndexConfig: { indexTimestamps: true },
+        properties: [
+          {
+            name: 'color',
+            dataType: ['text'],
+          },
+          {
+            name: 'colors',
+            dataType: ['text[]'],
+          },
+          {
+            name: 'author',
+            dataType: ['string'],
+          },
+          {
+            name: 'authors',
+            dataType: ['string[]'],
+          },
+          {
+            name: 'number',
+            dataType: ['number'],
+          },
+          {
+            name: 'numbers',
+            dataType: ['number[]'],
+          },
+          {
+            name: 'int',
+            dataType: ['int'],
+          },
+          {
+            name: 'ints',
+            dataType: ['int[]'],
+          },
+          {
+            name: 'date',
+            dataType: ['date'],
+          },
+          {
+            name: 'dates',
+            dataType: ['date[]'],
+          },
+          {
+            name: 'bool',
+            dataType: ['boolean'],
+          },
+          {
+            name: 'bools',
+            dataType: ['boolean[]'],
+          },
+          {
+            name: 'uuid',
+            dataType: ['uuid'],
+          },
+          {
+            name: 'uuids',
+            dataType: ['uuid[]'],
+          },
+        ],
+      };
+      return client.schema.classCreator().withClass(whereTest).do();
+    });
+
+    it('should insert WhereTest data', () => {
+      const authors = ['John', 'Jenny', 'Joseph'];
+      const authorsArray = [['John', 'Jenny', 'Joseph'], ['John', 'Jenny'], ['John']];
+      const colors = ['red', 'blue', 'green'];
+      const colorssArray = [['red', 'blue', 'green'], ['red', 'blue'], ['red']];
+      const numbers = [1.1, 2.2, 3.3];
+      const numbersArray = [[1.1, 2.2, 3.3], [1.1, 2.2], [1.1]];
+      const ints = [1, 2, 3];
+      const intsArray = [[1, 2, 3], [1, 2], [1]];
+      const uuids = [id1, id2, id3];
+      const uuidsArray = [[id1, id2, id3], [id1, id2], [id1]];
+      const dates = ['2009-11-01T23:00:00Z', '2009-11-02T23:00:00Z', '2009-11-03T23:00:00Z'];
+      const datesArray = [
+        ['2009-11-01T23:00:00Z', '2009-11-02T23:00:00Z', '2009-11-03T23:00:00Z'],
+        ['2009-11-01T23:00:00Z', '2009-11-02T23:00:00Z'],
+        ['2009-11-01T23:00:00Z'],
+      ];
+      const bools = [true, false, true];
+      const boolsArray = [[true, false, true], [true, false], [true]];
+
+      const objects: WeaviateObject[] = [];
+      for (let i = 0; i < ids.length; i++) {
+        const obj: WeaviateObject = {
+          id: ids[i],
+          class: className,
+          properties: {
+            color: colors[i],
+            colors: colorssArray[i],
+            author: authors[i],
+            authors: authorsArray[i],
+            number: numbers[i],
+            numbers: numbersArray[i],
+            int: ints[i],
+            ints: intsArray[i],
+            uuid: uuids[i],
+            uuids: uuidsArray[i],
+            date: dates[i],
+            dates: datesArray[i],
+            bool: bools[i],
+            bools: boolsArray[i],
+          },
+        };
+        objects.push(obj);
+      }
+      let batch = client.batch.objectsBatcher();
+      objects.forEach((elem) => {
+        batch = batch.withObject(elem);
+      });
+      return batch.do();
+    });
+  });
+
+  describe('test contains operators', () => {
+    interface testCase {
+      name: string;
+      where: WhereFilter;
+      expectedIds: Array<string>;
+    }
+    const testCases: Array<testCase> = [
+      // arrays
+      {
+        name: 'contains all authors with string array',
+        where: {
+          path: ['authors'],
+          operator: 'ContainsAll',
+          valueStringArray: ['John', 'Jenny', 'Joseph'],
+        },
+        expectedIds: [id1],
+      },
+      {
+        name: 'contains any authors with string array',
+        where: {
+          path: ['authors'],
+          operator: 'ContainsAny',
+          valueStringArray: ['John', 'Jenny', 'Joseph'],
+        },
+        expectedIds: [id1, id2, id3],
+      },
+      {
+        name: 'contains all colors with text array',
+        where: {
+          path: ['colors'],
+          operator: 'ContainsAll',
+          valueTextArray: ['red', 'blue', 'green'],
+        },
+        expectedIds: [id1],
+      },
+      {
+        name: 'contains any colors with text array',
+        where: {
+          path: ['colors'],
+          operator: 'ContainsAny',
+          valueTextArray: ['red', 'blue', 'green'],
+        },
+        expectedIds: [id1, id2, id3],
+      },
+      {
+        name: 'contains all numbers with number array',
+        where: {
+          path: ['numbers'],
+          operator: 'ContainsAll',
+          valueNumberArray: [1.1, 2.2, 3.3],
+        },
+        expectedIds: [id1],
+      },
+      {
+        name: 'contains any numbers with number array',
+        where: {
+          path: ['numbers'],
+          operator: 'ContainsAny',
+          valueNumberArray: [1.1, 2.2, 3.3],
+        },
+        expectedIds: [id1, id2, id3],
+      },
+      {
+        name: 'contains all ints with int array',
+        where: {
+          path: ['ints'],
+          operator: 'ContainsAll',
+          valueIntArray: [1, 2, 3],
+        },
+        expectedIds: [id1],
+      },
+      {
+        name: 'contains any ints with int array',
+        where: {
+          path: ['ints'],
+          operator: 'ContainsAny',
+          valueIntArray: [1, 2, 3],
+        },
+        expectedIds: [id1, id2, id3],
+      },
+      {
+        name: 'contains all uuids with uuid array',
+        where: {
+          path: ['uuids'],
+          operator: 'ContainsAll',
+          valueTextArray: [id1, id2, id3],
+        },
+        expectedIds: [id1],
+      },
+      {
+        name: 'contains any uuids with uuid array',
+        where: {
+          path: ['uuids'],
+          operator: 'ContainsAny',
+          valueTextArray: [id1, id2, id3],
+        },
+        expectedIds: [id1, id2, id3],
+      },
+      {
+        name: 'contains all dates with date array',
+        where: {
+          path: ['dates'],
+          operator: 'ContainsAll',
+          valueDateArray: ['2009-11-01T23:00:00Z', '2009-11-02T23:00:00Z', '2009-11-03T23:00:00Z'],
+        },
+        expectedIds: [id1],
+      },
+      {
+        name: 'contains any dates with date array',
+        where: {
+          path: ['dates'],
+          operator: 'ContainsAny',
+          valueDateArray: ['2009-11-01T23:00:00Z', '2009-11-02T23:00:00Z', '2009-11-03T23:00:00Z'],
+        },
+        expectedIds: [id1, id2, id3],
+      },
+      {
+        name: 'complex contains all ints and all numbers with AND on int array',
+        where: {
+          path: ['dates'],
+          operator: 'And',
+          operands: [
+            {
+              path: ['ints'],
+              operator: 'ContainsAll',
+              valueIntArray: [1, 2, 3],
+            },
+            {
+              path: ['ints'],
+              operator: 'ContainsAll',
+              valueIntArray: [1, 2, 3],
+            },
+          ],
+        },
+        expectedIds: [id1],
+      },
+      {
+        name: 'complex contains any ints and all numbers with OR on int array',
+        where: {
+          path: ['dates'],
+          operator: 'Or',
+          operands: [
+            {
+              path: ['ints'],
+              operator: 'ContainsAll',
+              valueIntArray: [1, 2, 3],
+            },
+            {
+              path: ['ints'],
+              operator: 'ContainsAny',
+              valueIntArray: [1, 2, 3],
+            },
+          ],
+        },
+        expectedIds: [id1, id2, id3],
+      },
+      // primitives
+      {
+        name: 'contains any author with string',
+        where: {
+          path: ['author'],
+          operator: 'ContainsAny',
+          valueStringArray: ['John', 'Jenny', 'Joseph'],
+        },
+        expectedIds: [id1, id2, id3],
+      },
+      {
+        name: 'contains any color with text',
+        where: {
+          path: ['color'],
+          operator: 'ContainsAny',
+          valueTextArray: ['red', 'blue', 'green'],
+        },
+        expectedIds: [id1, id2, id3],
+      },
+      {
+        name: 'contains any number with number',
+        where: {
+          path: ['number'],
+          operator: 'ContainsAny',
+          valueNumberArray: [1.1, 2.2, 3.3],
+        },
+        expectedIds: [id1, id2, id3],
+      },
+      {
+        name: 'contains any int with int',
+        where: {
+          path: ['int'],
+          operator: 'ContainsAny',
+          valueIntArray: [1, 2, 3],
+        },
+        expectedIds: [id1, id2, id3],
+      },
+      {
+        name: 'contains any uuid with uuid',
+        where: {
+          path: ['uuid'],
+          operator: 'ContainsAny',
+          valueTextArray: [id1, id2, id3],
+        },
+        expectedIds: [id1, id2, id3],
+      },
+      {
+        name: 'contains any date with date',
+        where: {
+          path: ['date'],
+          operator: 'ContainsAny',
+          valueDateArray: ['2009-11-01T23:00:00Z', '2009-11-02T23:00:00Z', '2009-11-03T23:00:00Z'],
+        },
+        expectedIds: [id1, id2, id3],
+      },
+    ];
+    it.each(testCases.map((tc) => [tc.name, tc]))('%s', (_, t) => {
+      const tc = t as testCase;
+      return client.graphql
+        .get()
+        .withClassName(className)
+        .withWhere(tc.where)
+        .withFields('_additional { id }')
+        .do()
+        .then((res: any) => {
+          expect(res.data.Get.WhereTest.length).toBe(tc.expectedIds.length);
+          const result: Array<string> = [];
+          for (let i = 0; i < tc.expectedIds.length; i++) {
+            result.push(res.data.Get.WhereTest[i]._additional.id);
+          }
+          for (const expectedId of tc.expectedIds) {
+            expect(result).toContainEqual(expectedId);
+          }
+        })
+        .catch((e: any) => {
+          throw new Error('it should not have errord' + e);
+        });
+    });
+  });
+
+  describe('destroy', () => {
+    it('tears down WhereTest class', () => {
+      return client.schema.classDeleter().withClassName(className).do();
+    });
+  });
+});
+
 const setup = async (client: WeaviateClient) => {
   const thing = {
     class: 'Article',
@@ -1867,6 +2245,161 @@ const setupMultiTenancy = async (client: WeaviateClient, tenants: Array<Tenant>)
 };
 
 const setupDocumentPassageSchema = async (
+  client: WeaviateClient,
+  multiTenancyEnabled: boolean,
+  tenants?: Array<Tenant>
+) => {
+  const document: WeaviateClass = {
+    class: 'Document',
+    invertedIndexConfig: { indexTimestamps: true },
+    properties: [
+      {
+        name: 'title',
+        dataType: ['text'],
+      },
+    ],
+    multiTenancyConfig: {
+      enabled: multiTenancyEnabled,
+    },
+  };
+
+  const passage: WeaviateClass = {
+    class: 'Passage',
+    invertedIndexConfig: { indexTimestamps: true },
+    properties: [
+      {
+        name: 'content',
+        dataType: ['text'],
+      },
+      {
+        name: 'type',
+        dataType: ['text'],
+      },
+      {
+        name: 'ofDocument',
+        dataType: ['Document'],
+      },
+    ],
+    multiTenancyConfig: {
+      enabled: multiTenancyEnabled,
+    },
+  };
+
+  await Promise.all([client.schema.classCreator().withClass(document).do()]);
+  await Promise.all([client.schema.classCreator().withClass(passage).do()]);
+
+  if (tenants) {
+    const documentTenants = await client.schema.tenantsCreator(document.class!, tenants).do();
+    expect(documentTenants).toBeDefined();
+    expect(documentTenants).toHaveLength(tenants.length);
+
+    const passageTenants = await client.schema.tenantsCreator(passage.class!, tenants).do();
+    expect(passageTenants).toBeDefined();
+    expect(passageTenants).toHaveLength(tenants.length);
+  }
+
+  // document, passage uuids
+  const documentIds: string[] = [
+    '00000000-0000-0000-0000-00000000000a',
+    '00000000-0000-0000-0000-00000000000b',
+    '00000000-0000-0000-0000-00000000000c',
+    '00000000-0000-0000-0000-00000000000d',
+  ];
+
+  const passageIds: string[] = [
+    '00000000-0000-0000-0000-000000000001',
+    '00000000-0000-0000-0000-000000000002',
+    '00000000-0000-0000-0000-000000000003',
+    '00000000-0000-0000-0000-000000000004',
+    '00000000-0000-0000-0000-000000000005',
+    '00000000-0000-0000-0000-000000000006',
+    '00000000-0000-0000-0000-000000000007',
+    '00000000-0000-0000-0000-000000000008',
+    '00000000-0000-0000-0000-000000000009',
+    '00000000-0000-0000-0000-000000000010',
+    '00000000-0000-0000-0000-000000000011',
+    '00000000-0000-0000-0000-000000000012',
+    '00000000-0000-0000-0000-000000000013',
+    '00000000-0000-0000-0000-000000000014',
+    '00000000-0000-0000-0000-000000000015',
+    '00000000-0000-0000-0000-000000000016',
+    '00000000-0000-0000-0000-000000000017',
+    '00000000-0000-0000-0000-000000000018',
+    '00000000-0000-0000-0000-000000000019',
+    '00000000-0000-0000-0000-000000000020',
+  ];
+
+  const documents: WeaviateObject[] = [];
+  for (let i = 0; i < documentIds.length; i++) {
+    const obj: WeaviateObject = {
+      id: documentIds[i],
+      class: 'Document',
+      properties: {
+        title: `Title of the document ${i}`,
+      },
+    };
+    if (tenants) {
+      obj.tenant = tenants[0].name!;
+    }
+    documents.push(obj);
+  }
+
+  const passages: WeaviateObject[] = [];
+  for (let i = 0; i < passageIds.length; i++) {
+    const obj: WeaviateObject = {
+      id: passageIds[i],
+      class: 'Passage',
+      properties: {
+        content: `Passage content ${i}`,
+        type: 'document-passage',
+      },
+    };
+    if (tenants) {
+      obj.tenant = tenants[0].name!;
+    }
+    passages.push(obj);
+  }
+
+  let batch = client.batch.objectsBatcher();
+  [...documents, ...passages].forEach((elem) => {
+    batch = batch.withObject(elem);
+  });
+  await batch.do();
+
+  const createReferences = (
+    client: WeaviateClient,
+    document: WeaviateObject,
+    passages: WeaviateObject[],
+    tenants?: Array<Tenant>
+  ): void => {
+    const ref: Reference = client.data
+      .referencePayloadBuilder()
+      .withId(document.id!)
+      .withClassName(document.class!)
+      .payload();
+    for (const passage of passages) {
+      const refCreator: ReferenceCreator = client.data
+        .referenceCreator()
+        .withId(passage.id!)
+        .withClassName(passage.class!)
+        .withReferenceProperty('ofDocument')
+        .withReference(ref);
+      if (tenants) {
+        refCreator.withTenant(tenants[0].name!);
+      }
+      refCreator.do().catch((e: WeaviateError) => {
+        throw new Error('it should not have errord: ' + e);
+      });
+    }
+  };
+
+  createReferences(client, documents[0], passages.slice(0, 10), tenants);
+  createReferences(client, documents[1], passages.slice(10, 14), tenants);
+
+  return new Promise((resolve) => setTimeout(resolve, 1000));
+};
+
+const setupWhereTestSchema = async (
   client: WeaviateClient,
   multiTenancyEnabled: boolean,
   tenants?: Array<Tenant>

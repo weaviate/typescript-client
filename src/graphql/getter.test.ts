@@ -1430,3 +1430,114 @@ describe('groupBy valid searchers', () => {
     expect(mockClient.query).toHaveBeenCalledWith(expectedQuery);
   });
 });
+
+describe('query with where with ContainsAny / ContainsAll operators', () => {
+  const mockClient: any = {
+    query: jest.fn(),
+  };
+
+  const operators: Array<WhereFilter['operator']> = ['ContainsAll', 'ContainsAny'];
+
+  test.each(operators)('valueTextArray with %s', (operator) => {
+    const whereQuery = `(where:{operator:` + operator + `,valueText:["red","blue","green"],path:["colors"]})`;
+    const expectedQuery = `{Get{WhereTest` + whereQuery + `{colors}}}`;
+
+    new Getter(mockClient)
+      .withClassName('WhereTest')
+      .withFields('colors')
+      .withWhere({
+        operator,
+        path: ['colors'],
+        valueTextArray: ['red', 'blue', 'green'],
+      })
+      .do();
+
+    expect(mockClient.query).toHaveBeenCalledWith(expectedQuery);
+  });
+
+  test.each(operators)('valueStringArray with %s', (operator) => {
+    const whereQuery = `(where:{operator:` + operator + `,valueString:["red"],path:["colors"]})`;
+    const expectedQuery = `{Get{WhereTest` + whereQuery + `{colors}}}`;
+
+    new Getter(mockClient)
+      .withClassName('WhereTest')
+      .withFields('colors')
+      .withWhere({
+        operator,
+        path: ['colors'],
+        valueStringArray: ['red'],
+      })
+      .do();
+
+    expect(mockClient.query).toHaveBeenCalledWith(expectedQuery);
+  });
+
+  test.each(operators)('valueNumberArray with %s', (operator) => {
+    const whereQuery = `(where:{operator:` + operator + `,valueNumber:[1.1,2.1],path:["numbers"]})`;
+    const expectedQuery = `{Get{WhereTest` + whereQuery + `{numbers}}}`;
+
+    new Getter(mockClient)
+      .withClassName('WhereTest')
+      .withFields('numbers')
+      .withWhere({
+        operator,
+        path: ['numbers'],
+        valueNumberArray: [1.1, 2.1],
+      })
+      .do();
+
+    expect(mockClient.query).toHaveBeenCalledWith(expectedQuery);
+  });
+
+  test.each(operators)('valueIntArray with %s', (operator) => {
+    const whereQuery = `(where:{operator:` + operator + `,valueInt:[1],path:["numbers"]})`;
+    const expectedQuery = `{Get{WhereTest` + whereQuery + `{numbers}}}`;
+
+    new Getter(mockClient)
+      .withClassName('WhereTest')
+      .withFields('numbers')
+      .withWhere({
+        operator,
+        path: ['numbers'],
+        valueIntArray: [1],
+      })
+      .do();
+
+    expect(mockClient.query).toHaveBeenCalledWith(expectedQuery);
+  });
+
+  test.each(operators)('valueDateArray with %s', (operator) => {
+    const whereQuery =
+      `(where:{operator:` + operator + `,valueDate:["2009-11-01T23:00:00Z"],path:["dates"]})`;
+    const expectedQuery = `{Get{WhereTest` + whereQuery + `{dates}}}`;
+
+    new Getter(mockClient)
+      .withClassName('WhereTest')
+      .withFields('dates')
+      .withWhere({
+        operator,
+        path: ['dates'],
+        valueDateArray: ['2009-11-01T23:00:00Z'],
+      })
+      .do();
+
+    expect(mockClient.query).toHaveBeenCalledWith(expectedQuery);
+  });
+
+  test.each(operators)('valueBooleanArray with %s', (operator) => {
+    const whereQuery = `(where:{operator:` + operator + `,valueBoolean:[true,false],path:["bools"]})`;
+    const expectedQuery = `{Get{WhereTest` + whereQuery + `{bools}}}`;
+
+    new Getter(mockClient)
+      .withClassName('WhereTest')
+      .withFields('bools')
+      .withWhere({
+        operator,
+        path: ['bools'],
+        valueBooleanArray: [true, false],
+      })
+      .do();
+
+    expect(mockClient.query).toHaveBeenCalledWith(expectedQuery);
+  });
+});

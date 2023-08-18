@@ -20,11 +20,12 @@ export default class GraphQLWhere {
     } else {
       // this is an on-value filter
 
+      const valueType = this.getValueType();
       const valueContent = this.marshalValueContent();
       return (
         `{` +
         `operator:${this.operator},` +
-        `${this.valueType}:${valueContent},` +
+        `${valueType}:${valueContent},` +
         `path:${JSON.stringify(this.path)}` +
         `}`
       );
@@ -37,6 +38,32 @@ export default class GraphQLWhere {
     }
 
     return JSON.stringify(this.valueContent);
+  }
+
+  getValueType() {
+    switch (this.valueType) {
+      case 'valueStringArray': {
+        return 'valueString';
+      }
+      case 'valueTextArray': {
+        return 'valueText';
+      }
+      case 'valueIntArray': {
+        return 'valueInt';
+      }
+      case 'valueNumberArray': {
+        return 'valueNumber';
+      }
+      case 'valueDateArray': {
+        return 'valueDate';
+      }
+      case 'valueBooleanArray': {
+        return 'valueBoolean';
+      }
+      default: {
+        return this.valueType;
+      }
+    }
   }
 
   marshalValueGeoRange() {
@@ -130,6 +157,12 @@ export default class GraphQLWhere {
       case 'valueNumber':
       case 'valueDate':
       case 'valueBoolean':
+      case 'valueStringArray':
+      case 'valueTextArray':
+      case 'valueIntArray':
+      case 'valueNumberArray':
+      case 'valueDateArray':
+      case 'valueBooleanArray':
       case 'valueGeoRange':
         break;
       default:
