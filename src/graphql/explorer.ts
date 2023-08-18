@@ -142,6 +142,14 @@ export default class Explorer<
 
     params = `(${args.join(',')})`;
 
-    return this.client.query(`{Explore${params}{${this.fields}}}`);
+    return this.client.query<any, ExploreReturn<TClassName, TClassProperties>>(
+      `{Explore${params}{${this.fields}}}`
+    );
   };
 }
+
+export type ExploreReturn<ClassName extends string, T> = {
+  Explore: {
+    [key in ClassName]: T[];
+  };
+};

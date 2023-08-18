@@ -7,7 +7,10 @@ import Connection from '../connection';
 import { CommandBase } from '../validation/commandBase';
 import { WhereFilter } from '../openapi/types';
 
-export default class Aggregator extends CommandBase {
+export default class Aggregator<
+  TClassName extends string,
+  TClassProperties extends Record<string, any>
+> extends CommandBase {
   private className?: string;
   private fields?: string;
   private groupBy?: string[];
@@ -190,6 +193,14 @@ export default class Aggregator extends CommandBase {
       params = `(${args.join(',')})`;
     }
 
-    return this.client.query(`{Aggregate{${this.className}${params}{${this.fields}}}}`);
+    return this.client.query<any, AggregateReturn<TClassName, TClassProperties>>(
+      `{Aggregate{${this.className}${params}{${this.fields}}}}`
+    );
   };
 }
+
+export type AggregateReturn<ClassName extends string, T> = {
+  Aggregate: {
+    [key in ClassName]: T[];
+  };
+};

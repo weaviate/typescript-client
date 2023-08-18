@@ -1,3 +1,4 @@
+import { Variables } from 'graphql-request';
 import Connection from '../connection';
 import { CommandBase } from '../validation/commandBase';
 
@@ -23,7 +24,7 @@ export default class RawGraphQL extends CommandBase {
     this.validateIsSet(this.query, 'query', '.raw().withQuery(query)');
   };
 
-  do = (): Promise<any> => {
+  do = <V extends Variables, T>(): Promise<{ data: T } | undefined> => {
     const params = '';
 
     this.validate();
@@ -32,7 +33,7 @@ export default class RawGraphQL extends CommandBase {
     }
 
     if (this.query) {
-      return this.client.query(this.query);
+      return this.client.query<V, T>(this.query);
     }
 
     return Promise.resolve(undefined);
