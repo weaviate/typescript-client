@@ -27,7 +27,7 @@ export function testServer() {
     lastRequest = ctx.request;
     return next();
   });
-  app.use(getLocalOidcConfig, getRemoteOidcConfig, issueToken);
+  app.use(getLocalOidcConfig, getRemoteOidcConfig, issueToken, mockGetEndpoint, mockGraphQLResponse);
   const server = app.listen(port);
 
   serverCache = {
@@ -45,6 +45,28 @@ export function testServer() {
 
   return serverCache;
 }
+
+const mockGetEndpoint = (ctx: any, next: any) => {
+  if (ctx.path !== '/v1/testEndpoint') {
+    return next();
+  }
+
+  ctx.response.status = 200;
+  ctx.response.body = { message: 'test endpoint' };
+};
+
+const mockGraphQLResponse = (ctx: any, next: any) => {
+  if (ctx.path !== '/v1/graphql') {
+    return next();
+  }
+
+  ctx.response.status = 200;
+  ctx.response.body = {
+    data: {
+      someField: 'someValue',
+    },
+  };
+};
 
 const getLocalOidcConfig = (ctx: any, next: any) => {
   if (ctx.path !== '/v1/.well-known/openid-configuration') {

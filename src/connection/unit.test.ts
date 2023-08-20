@@ -124,6 +124,40 @@ describe('mock server auth tests', () => {
     await conn.login().then((key) => expect(key).toEqual(apiKey));
   });
 
+  it('should construct the correct baseUri for conn.http when host contains scheme', async () => {
+    const apiKey = 'abcd123';
+
+    const conn = new Connection({
+      scheme: 'http',
+      host: 'http://localhost:' + server.port,
+      apiKey: new ApiKey(apiKey),
+    });
+
+    await conn.http.get('/testEndpoint');
+    const lastRequestURL = server.lastRequest().path; // Get the path of the last request
+    const expectedPath = '/v1/testEndpoint';
+    expect(lastRequestURL).toEqual(expectedPath);
+  });
+
+  it('should construct the correct baseUri for conn.query when host contains scheme', async () => {
+    const apiKey = 'abcd123';
+
+    const conn = new Connection({
+      scheme: 'http',
+      host: 'http://localhost:' + server.port,
+      apiKey: new ApiKey(apiKey),
+    });
+
+    try {
+      await conn.query('{ query { users } }');
+    } catch (error) {
+      // We just want to test the last request path
+    }
+    const lastRequestURL = server.lastRequest().path;
+    const expectedPath = '/v1/graphql';
+    expect(lastRequestURL).toEqual(expectedPath);
+  });
+
   it('shuts down the server', () => {
     return server.close();
   });
