@@ -1,9 +1,11 @@
 import Connection from '../connection';
+import { ConsistencyLevel } from './replication';
 import { ObjectsPath } from './path';
 import { CommandBase } from '../validation/commandBase';
 
 export default class Checker extends CommandBase {
   private className!: string;
+  private consistencyLevel?: ConsistencyLevel;
   private id!: string;
   private tenant?: string;
   private objectsPath: ObjectsPath;
@@ -28,6 +30,15 @@ export default class Checker extends CommandBase {
     return this;
   };
 
+  withConsistencyLevel = (consistencyLevel: ConsistencyLevel) => {
+    this.consistencyLevel = consistencyLevel;
+    return this;
+  };
+
+  buildPath = () => {
+    return this.objectsPath.buildCheck(this.id, this.className, this.consistencyLevel, this.tenant);
+  };
+
   validateIsSet = (prop: string | undefined | null, name: string, setter: string) => {
     if (prop == undefined || prop == null || prop.length == 0) {
       this.addError(`${name} must be set - set with ${setter}`);
@@ -42,14 +53,12 @@ export default class Checker extends CommandBase {
     this.validateId();
   };
 
-  do = () => {
+  do = (): Promise<boolean> => {
     if (this.errors.length > 0) {
       return Promise.reject(new Error('invalid usage: ' + this.errors.join(', ')));
     }
     this.validate();
 
-    return this.objectsPath.buildCheck(this.id, this.className, this.tenant).then((path: string) => {
-      return this.client.head(path, undefined);
-    });
+    return this.buildPath().then((path: string) => this.client.head(path, undefined));
   };
 }
