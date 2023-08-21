@@ -1,7 +1,16 @@
 import NearText, { NearTextArgs } from './nearText';
 import NearVector, { NearVectorArgs } from './nearVector';
 import NearObject, { NearObjectArgs } from './nearObject';
-import NearMedia, { NearImageArgs, NearMediaArgs, NearMediaType } from './nearMedia';
+import NearMedia, {
+  NearAudioArgs,
+  NearDepthArgs,
+  NearIMUArgs,
+  NearImageArgs,
+  NearMediaArgs,
+  NearMediaType,
+  NearThermalArgs,
+  NearVideoArgs,
+} from './nearMedia';
 import Ask, { AskArgs } from './ask';
 import Connection from '../connection';
 import { CommandBase } from '../validation/commandBase';
@@ -71,29 +80,7 @@ export default class Explorer extends CommandBase {
     return this;
   };
 
-  withNearImage = (args: NearImageArgs) => {
-    if (this.includesNearMediaFilter) {
-      throw new Error('cannot use multiple near<Media> filters in a single query');
-    }
-    try {
-      if (!args.image) {
-        throw new Error('nearImage filter: image field must be present');
-      }
-      this.nearMediaString = new NearMedia({
-        certainty: args.certainty,
-        distance: args.distance,
-        media: args.image,
-        type: NearMediaType.Image,
-      }).toString();
-      this.nearMediaType = NearMediaType.Image;
-      this.includesNearMediaFilter = true;
-    } catch (e: any) {
-      this.addError(e.toString());
-    }
-    return this;
-  };
-
-  withNearMedia = (args: NearMediaArgs) => {
+  private withNearMedia = (args: NearMediaArgs) => {
     if (this.includesNearMediaFilter) {
       throw new Error('cannot use multiple near<Media> filters in a single query');
     }
@@ -105,6 +92,34 @@ export default class Explorer extends CommandBase {
       this.addError(e.toString());
     }
     return this;
+  };
+
+  withNearImage = (args: NearImageArgs) => {
+    return this.withNearMedia({
+      ...args,
+      media: args.image ? args.image : 'UNSET',
+      type: NearMediaType.Image,
+    });
+  };
+
+  withNearAudio = (args: NearAudioArgs) => {
+    return this.withNearMedia({ ...args, media: args.audio, type: NearMediaType.Audio });
+  };
+
+  withNearVideo = (args: NearVideoArgs) => {
+    return this.withNearMedia({ ...args, media: args.video, type: NearMediaType.Video });
+  };
+
+  withNearDepth = (args: NearDepthArgs) => {
+    return this.withNearMedia({ ...args, media: args.depth, type: NearMediaType.Depth });
+  };
+
+  withNearThermal = (args: NearThermalArgs) => {
+    return this.withNearMedia({ ...args, media: args.thermal, type: NearMediaType.Thermal });
+  };
+
+  withNearIMU = (args: NearIMUArgs) => {
+    return this.withNearMedia({ ...args, media: args.imu, type: NearMediaType.IMU });
   };
 
   withNearVector = (args: NearVectorArgs) => {

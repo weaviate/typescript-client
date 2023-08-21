@@ -158,7 +158,7 @@ export default class GraphQLGetter extends CommandBase {
     return this;
   };
 
-  public withNearImage = (args: NearImageArgs) => {
+  withNearImage = (args: NearImageArgs) => {
     return this.withNearMedia({
       ...args,
       type: NearMediaType.Image,
@@ -166,7 +166,7 @@ export default class GraphQLGetter extends CommandBase {
     });
   };
 
-  public withNearAudio = (args: NearAudioArgs) => {
+  withNearAudio = (args: NearAudioArgs) => {
     return this.withNearMedia({
       ...args,
       type: NearMediaType.Audio,
@@ -174,7 +174,7 @@ export default class GraphQLGetter extends CommandBase {
     });
   };
 
-  public withNearVideo = (args: NearVideoArgs) => {
+  withNearVideo = (args: NearVideoArgs) => {
     return this.withNearMedia({
       ...args,
       type: NearMediaType.Video,
@@ -182,7 +182,7 @@ export default class GraphQLGetter extends CommandBase {
     });
   };
 
-  public withNearThermal = (args: NearThermalArgs) => {
+  withNearThermal = (args: NearThermalArgs) => {
     return this.withNearMedia({
       ...args,
       type: NearMediaType.Thermal,
@@ -190,7 +190,7 @@ export default class GraphQLGetter extends CommandBase {
     });
   };
 
-  public withNearDepth = (args: NearDepthArgs) => {
+  withNearDepth = (args: NearDepthArgs) => {
     return this.withNearMedia({
       ...args,
       type: NearMediaType.Depth,
@@ -198,7 +198,7 @@ export default class GraphQLGetter extends CommandBase {
     });
   };
 
-  public withNearIMU = (args: NearIMUArgs) => {
+  withNearIMU = (args: NearIMUArgs) => {
     return this.withNearMedia({
       ...args,
       type: NearMediaType.IMU,
@@ -206,7 +206,7 @@ export default class GraphQLGetter extends CommandBase {
     });
   };
 
-  public withNearVector = (args: NearVectorArgs) => {
+  withNearVector = (args: NearVectorArgs) => {
     if (this.includesNearMediaFilter) {
       throw new Error('cannot use multiple near<Media> filters in a single query');
     }

@@ -1,5 +1,13 @@
 import Where from './where';
-import NearMedia, { NearMediaArgs } from './nearMedia';
+import NearMedia, {
+  NearMediaArgs,
+  NearVideoArgs,
+  NearAudioArgs,
+  NearDepthArgs,
+  NearIMUArgs,
+  NearMediaBase,
+  NearMediaType,
+} from './nearMedia';
 import NearText, { NearTextArgs } from './nearText';
 import NearVector, { NearVectorArgs } from './nearVector';
 import NearObject, { NearObjectArgs } from './nearObject';
@@ -7,6 +15,10 @@ import { isValidPositiveIntProperty } from '../validation/number';
 import Connection from '../connection';
 import { CommandBase } from '../validation/commandBase';
 import { WhereFilter } from '../openapi/types';
+
+interface NearImageArgs extends NearMediaBase {
+  image: string;
+}
 
 export default class Aggregator extends CommandBase {
   private className?: string;
@@ -47,7 +59,7 @@ export default class Aggregator extends CommandBase {
     return this;
   };
 
-  withNearMedia = (args: NearMediaArgs) => {
+  private withNearMedia = (args: NearMediaArgs) => {
     if (this.includesNearMediaFilter) {
       throw new Error('cannot use multiple near<Media> filters in a single query');
     }
@@ -60,6 +72,26 @@ export default class Aggregator extends CommandBase {
     }
 
     return this;
+  };
+
+  withNearImage = (args: NearImageArgs) => {
+    return this.withNearMedia({ ...args, media: args.image, type: NearMediaType.Image });
+  };
+
+  withNearAudio = (args: NearAudioArgs) => {
+    return this.withNearMedia({ ...args, media: args.audio, type: NearMediaType.Audio });
+  };
+
+  withNearVideo = (args: NearVideoArgs) => {
+    return this.withNearMedia({ ...args, media: args.video, type: NearMediaType.Video });
+  };
+
+  withNearDepth = (args: NearDepthArgs) => {
+    return this.withNearMedia({ ...args, media: args.depth, type: NearMediaType.Depth });
+  };
+
+  withNearIMU = (args: NearIMUArgs) => {
+    return this.withNearMedia({ ...args, media: args.imu, type: NearMediaType.IMU });
   };
 
   withNearText = (args: NearTextArgs) => {
