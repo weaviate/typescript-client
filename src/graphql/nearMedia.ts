@@ -50,6 +50,10 @@ export default class GraphQLNearMedia {
   toString(wrap = true) {
     let args: string[] = [];
 
+    if (this.media === 'UNSET') {
+      throw new Error(`near${this.type} filter: ${this.type.toLowerCase()} field must be present`);
+    }
+
     if (this.media.startsWith('data:')) {
       const base64part = ';base64,';
       this.media = this.media.substring(this.media.indexOf(base64part) + base64part.length);
