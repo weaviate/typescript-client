@@ -36,6 +36,9 @@ export default class Explorer extends CommandBase {
   };
 
   withNearText = (args: NearTextArgs) => {
+    if (this.includesNearMediaFilter) {
+      throw new Error('cannot use multiple near<Media> filters in a single query');
+    }
     try {
       this.nearTextString = new NearText(args).toString();
     } catch (e: any) {
@@ -45,6 +48,9 @@ export default class Explorer extends CommandBase {
   };
 
   withNearObject = (args: NearObjectArgs) => {
+    if (this.includesNearMediaFilter) {
+      throw new Error('cannot use multiple near<Media> filters in a single query');
+    }
     try {
       this.nearObjectString = new NearObject(args).toString();
     } catch (e: any) {
@@ -54,6 +60,9 @@ export default class Explorer extends CommandBase {
   };
 
   withAsk = (args: AskArgs) => {
+    if (this.includesNearMediaFilter) {
+      throw new Error('cannot use multiple near<Media> filters in a single query');
+    }
     try {
       this.askString = new Ask(args).toString();
     } catch (e: any) {
@@ -66,7 +75,6 @@ export default class Explorer extends CommandBase {
     if (this.includesNearMediaFilter) {
       throw new Error('cannot use multiple near<Media> filters in a single query');
     }
-
     try {
       if (!args.image) {
         throw new Error('nearImage filter: image field must be present');
@@ -82,7 +90,6 @@ export default class Explorer extends CommandBase {
     } catch (e: any) {
       this.addError(e.toString());
     }
-
     return this;
   };
 
@@ -90,7 +97,6 @@ export default class Explorer extends CommandBase {
     if (this.includesNearMediaFilter) {
       throw new Error('cannot use multiple near<Media> filters in a single query');
     }
-
     try {
       this.nearMediaString = new NearMedia(args).toString();
       this.nearMediaType = args.type;
@@ -98,11 +104,13 @@ export default class Explorer extends CommandBase {
     } catch (e: any) {
       this.addError(e.toString());
     }
-
     return this;
   };
 
   withNearVector = (args: NearVectorArgs) => {
+    if (this.includesNearMediaFilter) {
+      throw new Error('cannot use multiple near<Media> filters in a single query');
+    }
     try {
       this.nearVectorString = new NearVector(args).toString();
     } catch (e: any) {
