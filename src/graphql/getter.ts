@@ -4,7 +4,16 @@ import NearVector, { NearVectorArgs } from './nearVector';
 import Bm25, { Bm25Args } from './bm25';
 import Hybrid, { HybridArgs } from './hybrid';
 import NearObject, { NearObjectArgs } from './nearObject';
-import NearMedia, { NearImageArgs, NearMediaArgs, NearMediaType } from './nearMedia';
+import NearMedia, {
+  NearAudioArgs,
+  NearDepthArgs,
+  NearIMUArgs,
+  NearImageArgs,
+  NearMediaArgs,
+  NearMediaType,
+  NearThermalArgs,
+  NearVideoArgs,
+} from './nearMedia';
 import Ask, { AskArgs } from './ask';
 import Group, { GroupArgs } from './group';
 import Sort, { SortArgs } from './sort';
@@ -134,47 +143,72 @@ export default class GraphQLGetter extends CommandBase {
     return this;
   };
 
-  withNearImage = (args: NearImageArgs) => {
+  private withNearMedia = (args: NearMediaArgs) => {
     if (this.includesNearMediaFilter) {
       throw new Error('cannot use multiple near<Media> filters in a single query');
     }
-
     try {
-      if (!args.image) {
-        throw new Error('nearImage filter: image field must be present');
-      }
-      this.nearMediaString = new NearMedia({
-        certainty: args.certainty,
-        distance: args.distance,
-        media: args.image,
-        type: NearMediaType.Image,
-      }).toString();
+      this.nearMediaString = new NearMedia(args).toString();
       this.nearMediaType = NearMediaType.Image;
       this.includesNearMediaFilter = true;
     } catch (e: any) {
       this.addError(e.toString());
     }
-
     return this;
   };
 
-  withNearMedia = (args: NearMediaArgs) => {
-    if (this.includesNearMediaFilter) {
-      throw new Error('cannot use multiple near<Media> filters in a single query');
+  public withNearImage = (args: NearImageArgs) => {
+    if (!args.image) {
+      throw new Error('nearImage filter: image field must be present');
     }
-
-    try {
-      this.nearMediaString = new NearMedia(args).toString();
-      this.nearMediaType = args.type;
-      this.includesNearMediaFilter = true;
-    } catch (e: any) {
-      this.addError(e.toString());
-    }
-
-    return this;
+    return this.withNearMedia({
+      ...args,
+      type: NearMediaType.Image,
+      media: args.image,
+    });
   };
 
-  withNearVector = (args: NearVectorArgs) => {
+  public withNearAudio = (args: NearAudioArgs) => {
+    return this.withNearMedia({
+      ...args,
+      type: NearMediaType.Audio,
+      media: args.audio,
+    });
+  };
+
+  public withNearVideo = (args: NearVideoArgs) => {
+    return this.withNearMedia({
+      ...args,
+      type: NearMediaType.Video,
+      media: args.video,
+    });
+  };
+
+  public withNearThermal = (args: NearThermalArgs) => {
+    return this.withNearMedia({
+      ...args,
+      type: NearMediaType.Thermal,
+      media: args.thermal,
+    });
+  };
+
+  public withNearDepth = (args: NearDepthArgs) => {
+    return this.withNearMedia({
+      ...args,
+      type: NearMediaType.Depth,
+      media: args.depth,
+    });
+  };
+
+  public withNearIMU = (args: NearIMUArgs) => {
+    return this.withNearMedia({
+      ...args,
+      type: NearMediaType.IMU,
+      media: args.imu,
+    });
+  };
+
+  public withNearVector = (args: NearVectorArgs) => {
     if (this.includesNearMediaFilter) {
       throw new Error('cannot use multiple near<Media> filters in a single query');
     }

@@ -9,6 +9,21 @@ export interface NearMediaArgs extends NearMediaBase {
 export interface NearImageArgs extends NearMediaBase {
   image?: string;
 }
+export interface NearAudioArgs extends NearMediaBase {
+  audio: string;
+}
+export interface NearVideoArgs extends NearMediaBase {
+  video: string;
+}
+export interface NearThermalArgs extends NearMediaBase {
+  thermal: string;
+}
+export interface NearDepthArgs extends NearMediaBase {
+  depth: string;
+}
+export interface NearIMUArgs extends NearMediaBase {
+  imu: string;
+}
 
 export enum NearMediaType {
   Image = 'Image',
