@@ -149,7 +149,7 @@ export default class GraphQLGetter extends CommandBase {
     }
     try {
       this.nearMediaString = new NearMedia(args).toString();
-      this.nearMediaType = NearMediaType.Image;
+      this.nearMediaType = args.type;
       this.includesNearMediaFilter = true;
     } catch (e: any) {
       this.addError(e.toString());
