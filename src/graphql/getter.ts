@@ -4,7 +4,7 @@ import NearVector, { NearVectorArgs } from './nearVector';
 import Bm25, { Bm25Args } from './bm25';
 import Hybrid, { HybridArgs } from './hybrid';
 import NearObject, { NearObjectArgs } from './nearObject';
-import NearImage, { NearImageArgs } from './nearImage';
+import NearMedia, { NearImageArgs, NearMediaArgs, NearMediaType } from './nearMedia';
 import Ask, { AskArgs } from './ask';
 import Group, { GroupArgs } from './group';
 import Sort, { SortArgs } from './sort';
@@ -27,6 +27,8 @@ export default class GraphQLGetter extends CommandBase {
   private includesNearMediaFilter: boolean;
   private limit?: number;
   private nearImageString?: string;
+  private nearMediaString?: string;
+  private nearMediaType?: NearMediaType;
   private nearObjectString?: string;
   private nearTextString?: string;
   private nearVectorString?: string;
@@ -139,7 +141,31 @@ export default class GraphQLGetter extends CommandBase {
     }
 
     try {
-      this.nearImageString = new NearImage(args).toString();
+      if (!args.image) {
+        throw new Error('nearImage filter: image field must be present');
+      }
+      this.nearImageString = new NearMedia({
+        certainty: args.certainty,
+        distance: args.distance,
+        media: args.image,
+        type: NearMediaType.Image,
+      }).toString();
+      this.includesNearMediaFilter = true;
+    } catch (e: any) {
+      this.addError(e.toString());
+    }
+
+    return this;
+  };
+
+  withNearMedia = (args: NearMediaArgs) => {
+    if (this.includesNearMediaFilter) {
+      throw new Error('cannot use multiple near<Media> filters in a single query');
+    }
+
+    try {
+      this.nearMediaString = new NearMedia(args).toString();
+      this.nearMediaType = args.type;
       this.includesNearMediaFilter = true;
     } catch (e: any) {
       this.addError(e.toString());
@@ -245,6 +271,10 @@ export default class GraphQLGetter extends CommandBase {
 
     if (this.nearImageString) {
       args = [...args, `nearImage:${this.nearImageString}`];
+    }
+
+    if (this.nearMediaString) {
+      args = [...args, `near${this.nearMediaType}:${this.nearMediaString}`];
     }
 
     if (this.nearVectorString) {

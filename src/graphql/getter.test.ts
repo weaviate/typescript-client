@@ -5,6 +5,7 @@ import { AskArgs } from './ask';
 import { NearImageArgs } from './nearImage';
 import { SortArgs } from './sort';
 import { NearTextArgs } from './nearText';
+import { NearMediaArgs, NearMediaType } from './nearMedia';
 
 test('a simple query without params', () => {
   const mockClient: any = {
@@ -1088,6 +1089,167 @@ describe('nearImage searchers', () => {
           });
       });
     });
+  });
+});
+
+describe('nearMedia searchers', () => {
+  test('a query with a valid nearMedia with image', () => {
+    const mockClient: any = {
+      query: jest.fn(),
+    };
+
+    const subQuery = `(nearImage:{image:"iVBORw0KGgoAAAANS"})`;
+    const expectedQuery = `{Get{Person` + subQuery + `{name}}}`;
+
+    new Getter(mockClient)
+      .withClassName('Person')
+      .withFields('name')
+      .withNearMedia({ media: 'iVBORw0KGgoAAAANS', type: NearMediaType.Image })
+      .do();
+
+    expect(mockClient.query).toHaveBeenCalledWith(expectedQuery);
+  });
+
+  test('a query with a valid nearMedia with video', () => {
+    const mockClient: any = {
+      query: jest.fn(),
+    };
+
+    const subQuery = `(nearVideo:{video:"iVBORw0KGgoAAAANS"})`;
+    const expectedQuery = `{Get{Person` + subQuery + `{name}}}`;
+
+    new Getter(mockClient)
+      .withClassName('Person')
+      .withFields('name')
+      .withNearMedia({ media: 'iVBORw0KGgoAAAANS', type: NearMediaType.Video })
+      .do();
+
+    expect(mockClient.query).toHaveBeenCalledWith(expectedQuery);
+  });
+
+  test('a query with a valid nearMedia with audio', () => {
+    const mockClient: any = {
+      query: jest.fn(),
+    };
+
+    const subQuery = `(nearAudio:{audio:"iVBORw0KGgoAAAANS"})`;
+    const expectedQuery = `{Get{Person` + subQuery + `{name}}}`;
+
+    new Getter(mockClient)
+      .withClassName('Person')
+      .withFields('name')
+      .withNearMedia({ media: 'iVBORw0KGgoAAAANS', type: NearMediaType.Audio })
+      .do();
+
+    expect(mockClient.query).toHaveBeenCalledWith(expectedQuery);
+  });
+
+  test('a query with a valid nearMedia with thermal', () => {
+    const mockClient: any = {
+      query: jest.fn(),
+    };
+
+    const subQuery = `(nearThermal:{thermal:"iVBORw0KGgoAAAANS"})`;
+    const expectedQuery = `{Get{Person` + subQuery + `{name}}}`;
+
+    new Getter(mockClient)
+      .withClassName('Person')
+      .withFields('name')
+      .withNearMedia({ media: 'iVBORw0KGgoAAAANS', type: NearMediaType.Thermal })
+      .do();
+
+    expect(mockClient.query).toHaveBeenCalledWith(expectedQuery);
+  });
+
+  test('a query with a valid nearMedia with depth', () => {
+    const mockClient: any = {
+      query: jest.fn(),
+    };
+
+    const subQuery = `(nearDepth:{depth:"iVBORw0KGgoAAAANS"})`;
+    const expectedQuery = `{Get{Person` + subQuery + `{name}}}`;
+
+    new Getter(mockClient)
+      .withClassName('Person')
+      .withFields('name')
+      .withNearMedia({ media: 'iVBORw0KGgoAAAANS', type: NearMediaType.Depth })
+      .do();
+
+    expect(mockClient.query).toHaveBeenCalledWith(expectedQuery);
+  });
+
+  test('a query with a valid nearMedia with IMU', () => {
+    const mockClient: any = {
+      query: jest.fn(),
+    };
+
+    const subQuery = `(nearIMU:{imu:"iVBORw0KGgoAAAANS"})`;
+    const expectedQuery = `{Get{Person` + subQuery + `{name}}}`;
+
+    new Getter(mockClient)
+      .withClassName('Person')
+      .withFields('name')
+      .withNearMedia({ media: 'iVBORw0KGgoAAAANS', type: NearMediaType.IMU })
+      .do();
+
+    expect(mockClient.query).toHaveBeenCalledWith(expectedQuery);
+  });
+
+  test('a query with a valid nearMedia with image and all params (with certainty)', () => {
+    const mockClient: any = {
+      query: jest.fn(),
+    };
+
+    const expectedQuery = `{Get{Person(nearImage:{image:"iVBORw0KGgoAAAANS",certainty:0.8}){name}}}`;
+
+    new Getter(mockClient)
+      .withClassName('Person')
+      .withFields('name')
+      .withNearMedia({
+        media: 'iVBORw0KGgoAAAANS',
+        certainty: 0.8,
+        type: NearMediaType.Image,
+      })
+      .do();
+
+    expect(mockClient.query).toHaveBeenCalledWith(expectedQuery);
+  });
+
+  test('a query with a valid nearMedia with image and all params (with distance)', () => {
+    const mockClient: any = {
+      query: jest.fn(),
+    };
+
+    const expectedQuery = `{Get{Person(nearImage:{image:"iVBORw0KGgoAAAANS",distance:0.8}){name}}}`;
+
+    new Getter(mockClient)
+      .withClassName('Person')
+      .withFields('name')
+      .withNearMedia({
+        media: 'iVBORw0KGgoAAAANS',
+        distance: 0.8,
+        type: NearMediaType.Image,
+      })
+      .do();
+
+    expect(mockClient.query).toHaveBeenCalledWith(expectedQuery);
+  });
+
+  test('a query with a valid nearMedia with base64 encoded image', () => {
+    const mockClient: any = {
+      query: jest.fn(),
+    };
+
+    const subQuery = `(nearImage:{image:"iVBORw0KGgoAAAANS"})`;
+    const expectedQuery = `{Get{Person` + subQuery + `{name}}}`;
+
+    new Getter(mockClient)
+      .withClassName('Person')
+      .withFields('name')
+      .withNearMedia({ media: 'data:image/png;base64,iVBORw0KGgoAAAANS', type: NearMediaType.Image })
+      .do();
+
+    expect(mockClient.query).toHaveBeenCalledWith(expectedQuery);
   });
 });
 
