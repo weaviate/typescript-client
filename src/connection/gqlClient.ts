@@ -9,9 +9,7 @@ export interface GraphQLClient {
 export const gqlClient = (config: ConnectionParams): GraphQLClient => {
   const defaultHeaders = config.headers;
   const version = '/v1/graphql';
-  const baseUri = config.host.startsWith(`${config.scheme}://`)
-    ? `${config.host}${version}`
-    : `${config.scheme}://${config.host}${version}`;
+  const baseUri = `${config.host}${version}`;
 
   return {
     // for backward compatibility with replaced graphql-client lib,

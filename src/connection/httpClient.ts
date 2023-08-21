@@ -15,9 +15,7 @@ export interface HttpClient {
 
 export const httpClient = (config: ConnectionParams): HttpClient => {
   const version = '/v1';
-  const baseUri = config.host.startsWith(`${config.scheme}://`)
-    ? `${config.host}${version}`
-    : `${config.scheme}://${config.host}${version}`;
+  const baseUri = `${config.host}${version}`;
   const url = makeUrl(baseUri);
 
   return {

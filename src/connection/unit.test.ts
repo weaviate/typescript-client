@@ -124,7 +124,7 @@ describe('mock server auth tests', () => {
     await conn.login().then((key) => expect(key).toEqual(apiKey));
   });
 
-  it('should construct the correct baseUri for conn.http when host contains scheme', async () => {
+  it('should construct the correct url when host contains scheme', () => {
     const apiKey = 'abcd123';
 
     const conn = new Connection({
@@ -132,30 +132,65 @@ describe('mock server auth tests', () => {
       host: 'http://localhost:' + server.port,
       apiKey: new ApiKey(apiKey),
     });
+    const expectedPath = 'http://localhost:' + server.port;
 
-    await conn.http.get('/testEndpoint');
-    const lastRequestURL = server.lastRequest().path; // Get the path of the last request
-    const expectedPath = '/v1/testEndpoint';
-    expect(lastRequestURL).toEqual(expectedPath);
+    expect(conn.host).toEqual(expectedPath);
   });
 
-  it('should construct the correct baseUri for conn.query when host contains scheme', async () => {
+  it('should construct the correct url when scheme specified and host does not contain scheme', () => {
     const apiKey = 'abcd123';
 
     const conn = new Connection({
       scheme: 'http',
+      host: 'localhost:' + server.port,
+      apiKey: new ApiKey(apiKey),
+    });
+    const expectedPath = 'http://localhost:' + server.port;
+
+    expect(conn.host).toEqual(expectedPath);
+  });
+
+  it('should construct the correct url when no scheme is specified but host contains scheme', () => {
+    const apiKey = 'abcd123';
+
+    const conn = new Connection({
       host: 'http://localhost:' + server.port,
       apiKey: new ApiKey(apiKey),
     });
+    const expectedPath = 'http://localhost:' + server.port;
 
-    try {
-      await conn.query('{ query { users } }');
-    } catch (error) {
-      // We just want to test the last request path
-    }
-    const lastRequestURL = server.lastRequest().path;
-    const expectedPath = '/v1/graphql';
-    expect(lastRequestURL).toEqual(expectedPath);
+    expect(conn.host).toEqual(expectedPath);
+  });
+
+  it('should throw error when host contains different scheme than specified', () => {
+    const apiKey = 'abcd123';
+
+    const createConnection = () => {
+      return new Connection({
+        scheme: 'https',
+        host: 'http://localhost:' + server.port,
+        apiKey: new ApiKey(apiKey),
+      });
+    };
+
+    expect(createConnection).toThrow(
+      'The host contains a different protocol than specified in the scheme (scheme: https:// != host: http://)'
+    );
+  });
+
+  it('should throw error when scheme not specified and included in host', () => {
+    const apiKey = 'abcd123';
+
+    const createConnection = () => {
+      return new Connection({
+        host: 'localhost:' + server.port,
+        apiKey: new ApiKey(apiKey),
+      });
+    };
+
+    expect(createConnection).toThrow(
+      'The host must start with a recognized protocol (e.g., http:// or https://) if no scheme is provided.'
+    );
   });
 
   it('shuts down the server', () => {
