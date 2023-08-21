@@ -2,10 +2,9 @@ import Getter, { FusionType } from './getter';
 import { WhereFilter } from '../openapi/types';
 import { NearObjectArgs } from './nearObject';
 import { AskArgs } from './ask';
-import { NearImageArgs } from './nearImage';
 import { SortArgs } from './sort';
 import { NearTextArgs } from './nearText';
-import { NearMediaArgs, NearMediaType } from './nearMedia';
+import { NearImageArgs, NearMediaType } from './nearMedia';
 
 test('a simple query without params', () => {
   const mockClient: any = {

@@ -1,7 +1,7 @@
 import NearText, { NearTextArgs } from './nearText';
 import NearVector, { NearVectorArgs } from './nearVector';
 import NearObject, { NearObjectArgs } from './nearObject';
-import NearImage, { NearImageArgs } from './nearImage';
+import NearMedia, { NearImageArgs, NearMediaArgs, NearMediaType } from './nearMedia';
 import Ask, { AskArgs } from './ask';
 import Connection from '../connection';
 import { CommandBase } from '../validation/commandBase';
@@ -11,7 +11,9 @@ export default class Explorer extends CommandBase {
   private fields?: string;
   private group?: string[];
   private limit?: number;
-  private nearImageString?: string;
+  private includesNearMediaFilter: boolean;
+  private nearMediaString?: string;
+  private nearMediaType?: NearMediaType;
   private nearObjectString?: string;
   private nearTextString?: string;
   private nearVectorString?: string;
@@ -20,6 +22,7 @@ export default class Explorer extends CommandBase {
   constructor(client: Connection) {
     super(client);
     this.params = {};
+    this.includesNearMediaFilter = false;
   }
 
   withFields = (fields: string) => {
@@ -60,11 +63,42 @@ export default class Explorer extends CommandBase {
   };
 
   withNearImage = (args: NearImageArgs) => {
+    if (this.includesNearMediaFilter) {
+      throw new Error('cannot use multiple near<Media> filters in a single query');
+    }
+
     try {
-      this.nearImageString = new NearImage(args).toString();
+      if (!args.image) {
+        throw new Error('nearImage filter: image field must be present');
+      }
+      this.nearMediaString = new NearMedia({
+        certainty: args.certainty,
+        distance: args.distance,
+        media: args.image,
+        type: NearMediaType.Image,
+      }).toString();
+      this.nearMediaType = NearMediaType.Image;
+      this.includesNearMediaFilter = true;
     } catch (e: any) {
       this.addError(e.toString());
     }
+
+    return this;
+  };
+
+  withNearMedia = (args: NearMediaArgs) => {
+    if (this.includesNearMediaFilter) {
+      throw new Error('cannot use multiple near<Media> filters in a single query');
+    }
+
+    try {
+      this.nearMediaString = new NearMedia(args).toString();
+      this.nearMediaType = args.type;
+      this.includesNearMediaFilter = true;
+    } catch (e: any) {
+      this.addError(e.toString());
+    }
+
     return this;
   };
 
@@ -120,8 +154,8 @@ export default class Explorer extends CommandBase {
       args = [...args, `ask:${this.askString}`];
     }
 
-    if (this.nearImageString) {
-      args = [...args, `nearImage:${this.nearImageString}`];
+    if (this.nearMediaString) {
+      args = [...args, `${this.nearMediaType}:${this.nearMediaString}`];
     }
 
     if (this.nearVectorString) {

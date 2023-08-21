@@ -26,7 +26,6 @@ export default class GraphQLGetter extends CommandBase {
   private hybridString?: string;
   private includesNearMediaFilter: boolean;
   private limit?: number;
-  private nearImageString?: string;
   private nearMediaString?: string;
   private nearMediaType?: NearMediaType;
   private nearObjectString?: string;
@@ -144,12 +143,13 @@ export default class GraphQLGetter extends CommandBase {
       if (!args.image) {
         throw new Error('nearImage filter: image field must be present');
       }
-      this.nearImageString = new NearMedia({
+      this.nearMediaString = new NearMedia({
         certainty: args.certainty,
         distance: args.distance,
         media: args.image,
         type: NearMediaType.Image,
       }).toString();
+      this.nearMediaType = NearMediaType.Image;
       this.includesNearMediaFilter = true;
     } catch (e: any) {
       this.addError(e.toString());
@@ -267,10 +267,6 @@ export default class GraphQLGetter extends CommandBase {
 
     if (this.askString) {
       args = [...args, `ask:${this.askString}`];
-    }
-
-    if (this.nearImageString) {
-      args = [...args, `nearImage:${this.nearImageString}`];
     }
 
     if (this.nearMediaString) {
