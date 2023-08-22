@@ -395,6 +395,23 @@ describe('schema', () => {
 
     return deleteClass(client, newClass.class);
   });
+
+  it('delete all data from the schema', () => {
+    const newClass: any = newClassObject('LetsDeleteThisClass');
+    const newClass2: any = newClassObject('LetsDeleteThisClassToo');
+    const classNames = [newClass.class, newClass2.class];
+    Promise.all([
+      client.schema.classCreator().withClass(newClass).do(),
+      client.schema.classCreator().withClass(newClass2).do(),
+    ])
+      .then(() => client.schema.getter().do())
+      .then((schema) => classNames.forEach((cn) => expect(schema.classes?.map((c) => c.class)).toContain(cn)))
+      .then(() => client.schema.deleteAll())
+      .then(() => client.schema.getter().do())
+      .then((schema) =>
+        classNames.forEach((cn) => expect(schema.classes?.map((c) => c.class)).not.toContain(cn))
+      );
+  });
 });
 
 describe('property setting defaults and migrations', () => {
