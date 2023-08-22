@@ -105,3 +105,4 @@ export * from './backup';
 export * from './cluster';
 export * from './connection';
 export * from './utils/uuid';
+export * from './utils/base64';
