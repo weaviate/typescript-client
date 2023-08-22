@@ -12,7 +12,7 @@ import TenantsGetter from './tenantsGetter';
 import TenantsUpdater from './tenantsUpdater';
 import TenantsDeleter from './tenantsDeleter';
 import Connection from '../connection';
-import purge from './purge';
+import deleteAll from './deleteAll';
 import { Tenant } from '../openapi/types';
 
 export interface Schema {
@@ -22,7 +22,7 @@ export interface Schema {
   exists: (className: string) => Promise<boolean>;
   getter: () => SchemaGetter;
   propertyCreator: () => PropertyCreator;
-  purge: () => Promise<void>;
+  deleteAll: () => Promise<void>;
   shardsGetter: () => ShardsGetter;
   shardUpdater: () => ShardUpdater;
   shardsUpdater: () => ShardsUpdater;
@@ -40,7 +40,7 @@ const schema = (client: Connection): Schema => {
     exists: (className: string) => new ClassExists(client).withClassName(className).do(),
     getter: () => new SchemaGetter(client),
     propertyCreator: () => new PropertyCreator(client),
-    purge: () => purge(client),
+    deleteAll: () => deleteAll(client),
     shardsGetter: () => new ShardsGetter(client),
     shardUpdater: () => new ShardUpdater(client),
     shardsUpdater: () => new ShardsUpdater(client),
