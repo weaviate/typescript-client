@@ -14,6 +14,10 @@ const thingClassName = 'DataJourneyTestThing';
 const refSourceClassName = 'DataJourneyTestRefSource';
 const classCustomVectorClassName = 'ClassCustomVector';
 
+const fail = (msg: string) => {
+  throw new Error(msg);
+};
+
 describe('data', () => {
   const client = weaviate.client({
     scheme: 'http',
@@ -699,6 +703,23 @@ describe('data', () => {
       });
   });
 
+  it('forms a exists query with consistency_level set', () => {
+    const id = '00000000-0000-0000-0000-000000000000';
+
+    return client.data
+      .checker()
+      .withClassName(thingClassName)
+      .withId(id)
+      .withConsistencyLevel('QUORUM')
+      .buildPath()
+      .then((path: string) => {
+        expect(path).toContain('consistency_level=QUORUM');
+      })
+      .catch((e: WeaviateError) => {
+        throw new Error('it should not have errord: ' + e);
+      });
+  });
+
   it('creates object with consistency_level set', async () => {
     const id = '144d1944-3ab4-4aa1-8095-92429d6cbaba';
     const properties = { foo: 'bar' };
@@ -1075,6 +1096,33 @@ describe('data', () => {
       .withConsistencyLevel('ONE')
       .withReference(client.data.referencePayloadBuilder().withId(id1).payload())
       .do()
+      .catch((e) => fail('it should not have errord: ' + e));
+  });
+
+  it('checks an object exists with consistency_level set', async () => {
+    const id = 'e7c7f6d5-4c9d-4a4e-8e1b-9d3d5a0e4d9f';
+    const props = { stringProp: 'foobar' };
+
+    await client.data
+      .creator()
+      .withClassName(thingClassName)
+      .withProperties(props)
+      .withId(id)
+      .do()
+      .then((res) => {
+        expect(res.properties).toEqual(props);
+        expect(res.id).toEqual(id);
+      })
+      .catch((e) => fail('it should not have errord: ' + e));
+
+    return client.data
+      .checker()
+      .withId(id)
+      .withConsistencyLevel('QUORUM')
+      .do()
+      .then((exists) => {
+        expect(exists).toBe(true);
+      })
       .catch((e) => fail('it should not have errord: ' + e));
   });
 

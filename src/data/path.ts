@@ -22,8 +22,13 @@ export class ObjectsPath {
       this.addQueryParams,
     ]);
   }
-  buildCheck(id: string, className: string, tenant?: string): Promise<string> {
-    return this.build({ id, className, tenant: tenant }, [
+  buildCheck(
+    id: string,
+    className: string,
+    consistencyLevel?: ConsistencyLevel,
+    tenant?: string
+  ): Promise<string> {
+    return this.build({ id, className, consistencyLevel, tenant }, [
       this.addClassNameDeprecatedNotSupportedCheck,
       this.addId,
       this.addQueryParams,
