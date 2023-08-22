@@ -1,11 +1,11 @@
 import NearText, { NearTextArgs } from './nearText';
 import NearVector, { NearVectorArgs } from './nearVector';
+import NearImage, { NearImageArgs } from './nearImage';
 import NearObject, { NearObjectArgs } from './nearObject';
 import NearMedia, {
   NearAudioArgs,
   NearDepthArgs,
   NearIMUArgs,
-  NearImageArgs,
   NearMediaArgs,
   NearMediaType,
   NearThermalArgs,
@@ -95,11 +95,17 @@ export default class Explorer extends CommandBase {
   };
 
   withNearImage = (args: NearImageArgs) => {
-    return this.withNearMedia({
-      ...args,
-      media: args.image ? args.image : 'UNSET',
-      type: NearMediaType.Image,
-    });
+    if (this.includesNearMediaFilter) {
+      throw new Error('cannot use multiple near<Media> filters in a single query');
+    }
+    try {
+      this.nearMediaString = new NearImage(args).toString();
+      this.nearMediaType = NearMediaType.Image;
+      this.includesNearMediaFilter = true;
+    } catch (e: any) {
+      this.addError(e.toString());
+    }
+    return this;
   };
 
   withNearAudio = (args: NearAudioArgs) => {

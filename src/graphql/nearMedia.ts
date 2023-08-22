@@ -7,7 +7,7 @@ export interface NearMediaArgs extends NearMediaBase {
   type: NearMediaType;
 }
 export interface NearImageArgs extends NearMediaBase {
-  image?: string;
+  image: string;
 }
 export interface NearAudioArgs extends NearMediaBase {
   audio: string;
@@ -49,10 +49,6 @@ export default class GraphQLNearMedia {
 
   toString(wrap = true) {
     let args: string[] = [];
-
-    if (this.media === 'UNSET') {
-      throw new Error(`near${this.type} filter: ${this.type.toLowerCase()} field must be present`);
-    }
 
     if (this.media.startsWith('data:')) {
       const base64part = ';base64,';

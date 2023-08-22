@@ -4,7 +4,7 @@ import { NearObjectArgs } from './nearObject';
 import { AskArgs } from './ask';
 import { SortArgs } from './sort';
 import { NearTextArgs } from './nearText';
-import { NearImageArgs, NearMediaType } from './nearMedia';
+import { NearImageArgs } from './nearImage';
 
 test('a simple query without params', () => {
   const mockClient: any = {
