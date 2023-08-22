@@ -1109,6 +1109,26 @@ describe('nearMedia searchers', () => {
     expect(mockClient.query).toHaveBeenCalledWith(expectedQuery);
   });
 
+  test('a query with a valid nearVideo with all params', () => {
+    const mockClient: any = {
+      query: jest.fn(),
+    };
+
+    const expectedQuery = `{Get{Person(nearVideo:{video:"iVBORw0KGgoAAAANS",certainty:0.8,distance:0.6}){name}}}`;
+
+    new Getter(mockClient)
+      .withClassName('Person')
+      .withFields('name')
+      .withNearVideo({
+        video: 'iVBORw0KGgoAAAANS',
+        certainty: 0.8,
+        distance: 0.6,
+      })
+      .do();
+
+    expect(mockClient.query).toHaveBeenCalledWith(expectedQuery);
+  });
+
   test('a query with a valid nearAudio', () => {
     const mockClient: any = {
       query: jest.fn(),
