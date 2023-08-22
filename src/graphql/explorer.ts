@@ -1,7 +1,16 @@
 import NearText, { NearTextArgs } from './nearText';
 import NearVector, { NearVectorArgs } from './nearVector';
-import NearObject, { NearObjectArgs } from './nearObject';
 import NearImage, { NearImageArgs } from './nearImage';
+import NearObject, { NearObjectArgs } from './nearObject';
+import NearMedia, {
+  NearAudioArgs,
+  NearDepthArgs,
+  NearIMUArgs,
+  NearMediaArgs,
+  NearMediaType,
+  NearThermalArgs,
+  NearVideoArgs,
+} from './nearMedia';
 import Ask, { AskArgs } from './ask';
 import Connection from '../connection';
 import { CommandBase } from '../validation/commandBase';
@@ -11,7 +20,9 @@ export default class Explorer extends CommandBase {
   private fields?: string;
   private group?: string[];
   private limit?: number;
-  private nearImageString?: string;
+  private includesNearMediaFilter: boolean;
+  private nearMediaString?: string;
+  private nearMediaType?: NearMediaType;
   private nearObjectString?: string;
   private nearTextString?: string;
   private nearVectorString?: string;
@@ -20,6 +31,7 @@ export default class Explorer extends CommandBase {
   constructor(client: Connection) {
     super(client);
     this.params = {};
+    this.includesNearMediaFilter = false;
   }
 
   withFields = (fields: string) => {
@@ -33,6 +45,9 @@ export default class Explorer extends CommandBase {
   };
 
   withNearText = (args: NearTextArgs) => {
+    if (this.includesNearMediaFilter) {
+      throw new Error('cannot use multiple near<Media> filters in a single query');
+    }
     try {
       this.nearTextString = new NearText(args).toString();
     } catch (e: any) {
@@ -42,6 +57,9 @@ export default class Explorer extends CommandBase {
   };
 
   withNearObject = (args: NearObjectArgs) => {
+    if (this.includesNearMediaFilter) {
+      throw new Error('cannot use multiple near<Media> filters in a single query');
+    }
     try {
       this.nearObjectString = new NearObject(args).toString();
     } catch (e: any) {
@@ -51,6 +69,9 @@ export default class Explorer extends CommandBase {
   };
 
   withAsk = (args: AskArgs) => {
+    if (this.includesNearMediaFilter) {
+      throw new Error('cannot use multiple near<Media> filters in a single query');
+    }
     try {
       this.askString = new Ask(args).toString();
     } catch (e: any) {
@@ -59,16 +80,58 @@ export default class Explorer extends CommandBase {
     return this;
   };
 
-  withNearImage = (args: NearImageArgs) => {
+  private withNearMedia = (args: NearMediaArgs) => {
+    if (this.includesNearMediaFilter) {
+      throw new Error('cannot use multiple near<Media> filters in a single query');
+    }
     try {
-      this.nearImageString = new NearImage(args).toString();
+      this.nearMediaString = new NearMedia(args).toString();
+      this.nearMediaType = args.type;
+      this.includesNearMediaFilter = true;
     } catch (e: any) {
       this.addError(e.toString());
     }
     return this;
   };
 
+  withNearImage = (args: NearImageArgs) => {
+    if (this.includesNearMediaFilter) {
+      throw new Error('cannot use multiple near<Media> filters in a single query');
+    }
+    try {
+      this.nearMediaString = new NearImage(args).toString();
+      this.nearMediaType = NearMediaType.Image;
+      this.includesNearMediaFilter = true;
+    } catch (e: any) {
+      this.addError(e.toString());
+    }
+    return this;
+  };
+
+  withNearAudio = (args: NearAudioArgs) => {
+    return this.withNearMedia({ ...args, media: args.audio, type: NearMediaType.Audio });
+  };
+
+  withNearVideo = (args: NearVideoArgs) => {
+    return this.withNearMedia({ ...args, media: args.video, type: NearMediaType.Video });
+  };
+
+  withNearDepth = (args: NearDepthArgs) => {
+    return this.withNearMedia({ ...args, media: args.depth, type: NearMediaType.Depth });
+  };
+
+  withNearThermal = (args: NearThermalArgs) => {
+    return this.withNearMedia({ ...args, media: args.thermal, type: NearMediaType.Thermal });
+  };
+
+  withNearIMU = (args: NearIMUArgs) => {
+    return this.withNearMedia({ ...args, media: args.imu, type: NearMediaType.IMU });
+  };
+
   withNearVector = (args: NearVectorArgs) => {
+    if (this.includesNearMediaFilter) {
+      throw new Error('cannot use multiple near<Media> filters in a single query');
+    }
     try {
       this.nearVectorString = new NearVector(args).toString();
     } catch (e: any) {
@@ -120,8 +183,8 @@ export default class Explorer extends CommandBase {
       args = [...args, `ask:${this.askString}`];
     }
 
-    if (this.nearImageString) {
-      args = [...args, `nearImage:${this.nearImageString}`];
+    if (this.nearMediaString) {
+      args = [...args, `${this.nearMediaType}:${this.nearMediaString}`];
     }
 
     if (this.nearVectorString) {

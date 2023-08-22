@@ -3,8 +3,17 @@ import NearText, { NearTextArgs } from './nearText';
 import NearVector, { NearVectorArgs } from './nearVector';
 import Bm25, { Bm25Args } from './bm25';
 import Hybrid, { HybridArgs } from './hybrid';
-import NearObject, { NearObjectArgs } from './nearObject';
 import NearImage, { NearImageArgs } from './nearImage';
+import NearObject, { NearObjectArgs } from './nearObject';
+import NearMedia, {
+  NearAudioArgs,
+  NearDepthArgs,
+  NearIMUArgs,
+  NearMediaArgs,
+  NearMediaType,
+  NearThermalArgs,
+  NearVideoArgs,
+} from './nearMedia';
 import Ask, { AskArgs } from './ask';
 import Group, { GroupArgs } from './group';
 import Sort, { SortArgs } from './sort';
@@ -26,7 +35,9 @@ export default class GraphQLGetter extends CommandBase {
   private hybridString?: string;
   private includesNearMediaFilter: boolean;
   private limit?: number;
-  private nearImageString?: string;
+  private nearImageNotSet?: boolean;
+  private nearMediaString?: string;
+  private nearMediaType?: NearMediaType;
   private nearObjectString?: string;
   private nearTextString?: string;
   private nearVectorString?: string;
@@ -133,19 +144,72 @@ export default class GraphQLGetter extends CommandBase {
     return this;
   };
 
-  withNearImage = (args: NearImageArgs) => {
+  private withNearMedia = (args: NearMediaArgs) => {
     if (this.includesNearMediaFilter) {
       throw new Error('cannot use multiple near<Media> filters in a single query');
     }
-
     try {
-      this.nearImageString = new NearImage(args).toString();
+      this.nearMediaString = new NearMedia(args).toString();
+      this.nearMediaType = args.type;
       this.includesNearMediaFilter = true;
     } catch (e: any) {
       this.addError(e.toString());
     }
-
     return this;
+  };
+
+  withNearImage = (args: NearImageArgs) => {
+    if (this.includesNearMediaFilter) {
+      throw new Error('cannot use multiple near<Media> filters in a single query');
+    }
+    try {
+      this.nearMediaString = new NearImage(args).toString();
+      this.nearMediaType = NearMediaType.Image;
+      this.includesNearMediaFilter = true;
+    } catch (e: any) {
+      this.addError(e.toString());
+    }
+    return this;
+  };
+
+  withNearAudio = (args: NearAudioArgs) => {
+    return this.withNearMedia({
+      ...args,
+      type: NearMediaType.Audio,
+      media: args.audio,
+    });
+  };
+
+  withNearVideo = (args: NearVideoArgs) => {
+    return this.withNearMedia({
+      ...args,
+      type: NearMediaType.Video,
+      media: args.video,
+    });
+  };
+
+  withNearThermal = (args: NearThermalArgs) => {
+    return this.withNearMedia({
+      ...args,
+      type: NearMediaType.Thermal,
+      media: args.thermal,
+    });
+  };
+
+  withNearDepth = (args: NearDepthArgs) => {
+    return this.withNearMedia({
+      ...args,
+      type: NearMediaType.Depth,
+      media: args.depth,
+    });
+  };
+
+  withNearIMU = (args: NearIMUArgs) => {
+    return this.withNearMedia({
+      ...args,
+      type: NearMediaType.IMU,
+      media: args.imu,
+    });
   };
 
   withNearVector = (args: NearVectorArgs) => {
@@ -243,8 +307,8 @@ export default class GraphQLGetter extends CommandBase {
       args = [...args, `ask:${this.askString}`];
     }
 
-    if (this.nearImageString) {
-      args = [...args, `nearImage:${this.nearImageString}`];
+    if (this.nearMediaString) {
+      args = [...args, `near${this.nearMediaType}:${this.nearMediaString}`];
     }
 
     if (this.nearVectorString) {

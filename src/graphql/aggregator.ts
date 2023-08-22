@@ -1,4 +1,13 @@
 import Where from './where';
+import NearMedia, {
+  NearMediaArgs,
+  NearVideoArgs,
+  NearAudioArgs,
+  NearDepthArgs,
+  NearIMUArgs,
+  NearMediaBase,
+  NearMediaType,
+} from './nearMedia';
 import NearText, { NearTextArgs } from './nearText';
 import NearVector, { NearVectorArgs } from './nearVector';
 import NearObject, { NearObjectArgs } from './nearObject';
@@ -7,12 +16,18 @@ import Connection from '../connection';
 import { CommandBase } from '../validation/commandBase';
 import { WhereFilter } from '../openapi/types';
 
+interface NearImageArgs extends NearMediaBase {
+  image: string;
+}
+
 export default class Aggregator extends CommandBase {
   private className?: string;
   private fields?: string;
   private groupBy?: string[];
   private includesNearMediaFilter: boolean;
   private limit?: number;
+  private nearMediaString?: string;
+  private nearMediaType?: string;
   private nearObjectString?: string;
   private nearTextString?: string;
   private nearVectorString?: string;
@@ -44,18 +59,51 @@ export default class Aggregator extends CommandBase {
     return this;
   };
 
+  private withNearMedia = (args: NearMediaArgs) => {
+    if (this.includesNearMediaFilter) {
+      throw new Error('cannot use multiple near<Media> filters in a single query');
+    }
+    try {
+      this.nearMediaString = new NearMedia(args).toString();
+      this.nearMediaType = args.type;
+      this.includesNearMediaFilter = true;
+    } catch (e: any) {
+      this.addError(e.toString());
+    }
+
+    return this;
+  };
+
+  withNearImage = (args: NearImageArgs) => {
+    return this.withNearMedia({ ...args, media: args.image, type: NearMediaType.Image });
+  };
+
+  withNearAudio = (args: NearAudioArgs) => {
+    return this.withNearMedia({ ...args, media: args.audio, type: NearMediaType.Audio });
+  };
+
+  withNearVideo = (args: NearVideoArgs) => {
+    return this.withNearMedia({ ...args, media: args.video, type: NearMediaType.Video });
+  };
+
+  withNearDepth = (args: NearDepthArgs) => {
+    return this.withNearMedia({ ...args, media: args.depth, type: NearMediaType.Depth });
+  };
+
+  withNearIMU = (args: NearIMUArgs) => {
+    return this.withNearMedia({ ...args, media: args.imu, type: NearMediaType.IMU });
+  };
+
   withNearText = (args: NearTextArgs) => {
     if (this.includesNearMediaFilter) {
       throw new Error('cannot use multiple near<Media> filters in a single query');
     }
-
     try {
       this.nearTextString = new NearText(args).toString();
       this.includesNearMediaFilter = true;
     } catch (e: any) {
       this.addError(e.toString());
     }
-
     return this;
   };
 
@@ -63,14 +111,12 @@ export default class Aggregator extends CommandBase {
     if (this.includesNearMediaFilter) {
       throw new Error('cannot use multiple near<Media> filters in a single query');
     }
-
     try {
       this.nearObjectString = new NearObject(args).toString();
       this.includesNearMediaFilter = true;
     } catch (e: any) {
       this.addError(e.toString());
     }
-
     return this;
   };
 
@@ -78,14 +124,12 @@ export default class Aggregator extends CommandBase {
     if (this.includesNearMediaFilter) {
       throw new Error('cannot use multiple near<Media> filters in a single query');
     }
-
     try {
       this.nearVectorString = new NearVector(args).toString();
       this.includesNearMediaFilter = true;
     } catch (e: any) {
       this.addError(e.toString());
     }
-
     return this;
   };
 
@@ -93,7 +137,6 @@ export default class Aggregator extends CommandBase {
     if (!isValidPositiveIntProperty(objectLimit)) {
       throw new Error('objectLimit must be a non-negative integer');
     }
-
     this.objectLimit = objectLimit;
     return this;
   };
@@ -169,6 +212,10 @@ export default class Aggregator extends CommandBase {
 
       if (this.nearVectorString) {
         args = [...args, `nearVector:${this.nearVectorString}`];
+      }
+
+      if (this.nearMediaString) {
+        args = [...args, `${this.nearMediaType}:${this.nearMediaString}`];
       }
 
       if (this.groupBy) {

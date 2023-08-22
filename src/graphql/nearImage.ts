@@ -1,6 +1,6 @@
-export interface NearImageArgs {
-  certainty?: number;
-  distance?: number;
+import { NearMediaBase } from './nearMedia';
+
+export interface NearImageArgs extends NearMediaBase {
   image?: string;
 }
 
