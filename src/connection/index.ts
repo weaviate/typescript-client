@@ -43,15 +43,15 @@ export default class Connection {
       params.host = params.host.slice(0, -1);
     }
 
-    const protocolPattern = /^(https?:\/\/|ftp:\/\/|file:\/\/)/;
+    const protocolPattern = /^(https?|ftp|file)(?::\/\/)/;
     const extractedSchemeMatch = params.host.match(protocolPattern);
 
     // Check for the existence of scheme in params
     if (params.scheme) {
       // If the host contains a scheme different than provided scheme, replace it and throw a warning
-      if (extractedSchemeMatch && extractedSchemeMatch[0] !== `${params.scheme}://`) {
+      if (extractedSchemeMatch && extractedSchemeMatch[1] !== `${params.scheme}`) {
         throw new Error(
-          `The host contains a different protocol than specified in the scheme (scheme: ${params.scheme}:// != host: ${extractedSchemeMatch[0]})`
+          `The host contains a different protocol than specified in the scheme (scheme: ${params.scheme} != host: ${extractedSchemeMatch[1]})`
         );
       } else if (!extractedSchemeMatch) {
         // If no scheme in the host, simply prefix with the provided scheme
@@ -60,7 +60,7 @@ export default class Connection {
       // If there's no scheme in params, ensure the host starts with a recognized protocol
     } else if (!extractedSchemeMatch) {
       throw new Error(
-        'The host must start with a recognized protocol (e.g., http:// or https://) if no scheme is provided.'
+        'The host must start with a recognized protocol (e.g., http or https) if no scheme is provided.'
       );
     }
 

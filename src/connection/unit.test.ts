@@ -174,7 +174,7 @@ describe('mock server auth tests', () => {
     };
 
     expect(createConnection).toThrow(
-      'The host contains a different protocol than specified in the scheme (scheme: https:// != host: http://)'
+      'The host contains a different protocol than specified in the scheme (scheme: https != host: http)'
     );
   });
 
@@ -189,7 +189,7 @@ describe('mock server auth tests', () => {
     };
 
     expect(createConnection).toThrow(
-      'The host must start with a recognized protocol (e.g., http:// or https://) if no scheme is provided.'
+      'The host must start with a recognized protocol (e.g., http or https) if no scheme is provided.'
     );
   });
 
