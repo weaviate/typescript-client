@@ -124,6 +124,75 @@ describe('mock server auth tests', () => {
     await conn.login().then((key) => expect(key).toEqual(apiKey));
   });
 
+  it('should construct the correct url when host contains scheme', () => {
+    const apiKey = 'abcd123';
+
+    const conn = new Connection({
+      scheme: 'http',
+      host: 'http://localhost:' + server.port,
+      apiKey: new ApiKey(apiKey),
+    });
+    const expectedPath = 'http://localhost:' + server.port;
+
+    expect(conn.host).toEqual(expectedPath);
+  });
+
+  it('should construct the correct url when scheme specified and host does not contain scheme', () => {
+    const apiKey = 'abcd123';
+
+    const conn = new Connection({
+      scheme: 'http',
+      host: 'localhost:' + server.port,
+      apiKey: new ApiKey(apiKey),
+    });
+    const expectedPath = 'http://localhost:' + server.port;
+
+    expect(conn.host).toEqual(expectedPath);
+  });
+
+  it('should construct the correct url when no scheme is specified but host contains scheme', () => {
+    const apiKey = 'abcd123';
+
+    const conn = new Connection({
+      host: 'http://localhost:' + server.port,
+      apiKey: new ApiKey(apiKey),
+    });
+    const expectedPath = 'http://localhost:' + server.port;
+
+    expect(conn.host).toEqual(expectedPath);
+  });
+
+  it('should throw error when host contains different scheme than specified', () => {
+    const apiKey = 'abcd123';
+
+    const createConnection = () => {
+      return new Connection({
+        scheme: 'https',
+        host: 'http://localhost:' + server.port,
+        apiKey: new ApiKey(apiKey),
+      });
+    };
+
+    expect(createConnection).toThrow(
+      'The host contains a different protocol than specified in the scheme (scheme: https != host: http)'
+    );
+  });
+
+  it('should throw error when scheme not specified and included in host', () => {
+    const apiKey = 'abcd123';
+
+    const createConnection = () => {
+      return new Connection({
+        host: 'localhost:' + server.port,
+        apiKey: new ApiKey(apiKey),
+      });
+    };
+
+    expect(createConnection).toThrow(
+      'The host must start with a recognized protocol (e.g., http or https) if no scheme is provided.'
+    );
+  });
+
   it('shuts down the server', () => {
     return server.close();
   });

@@ -10,11 +10,13 @@ export default class Connection {
   private apiKey?: string;
   private authEnabled: boolean;
   private gql: GraphQLClient;
+  public readonly host: string;
   public readonly http: HttpClient;
   public oidcAuth?: OidcAuthenticator;
 
   constructor(params: ConnectionParams) {
     params = this.sanitizeParams(params);
+    this.host = params.host;
     this.http = httpClient(params);
     this.gql = gqlClient(params);
     this.authEnabled = this.parseAuthParams(params);
@@ -36,8 +38,30 @@ export default class Connection {
   }
 
   private sanitizeParams(params: ConnectionParams) {
+    // Remove trailing slashes from the host
     while (params.host.endsWith('/')) {
       params.host = params.host.slice(0, -1);
+    }
+
+    const protocolPattern = /^(https?|ftp|file)(?::\/\/)/;
+    const extractedSchemeMatch = params.host.match(protocolPattern);
+
+    // Check for the existence of scheme in params
+    if (params.scheme) {
+      // If the host contains a scheme different than provided scheme, replace it and throw a warning
+      if (extractedSchemeMatch && extractedSchemeMatch[1] !== `${params.scheme}`) {
+        throw new Error(
+          `The host contains a different protocol than specified in the scheme (scheme: ${params.scheme} != host: ${extractedSchemeMatch[1]})`
+        );
+      } else if (!extractedSchemeMatch) {
+        // If no scheme in the host, simply prefix with the provided scheme
+        params.host = `${params.scheme}://${params.host}`;
+      }
+      // If there's no scheme in params, ensure the host starts with a recognized protocol
+    } else if (!extractedSchemeMatch) {
+      throw new Error(
+        'The host must start with a recognized protocol (e.g., http or https) if no scheme is provided.'
+      );
     }
 
     return params;

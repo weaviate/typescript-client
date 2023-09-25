@@ -22,7 +22,7 @@ export interface ConnectionParams {
   authClientSecret?: AuthClientCredentials | AuthAccessTokenCredentials | AuthUserPasswordCredentials;
   apiKey?: ApiKey;
   host: string;
-  scheme: string;
+  scheme?: string;
   headers?: HeadersInit;
 }
 
@@ -43,9 +43,6 @@ const app = {
   client: function (params: ConnectionParams): WeaviateClient {
     // check if the URL is set
     if (!params.host) throw new Error('Missing `host` parameter');
-
-    // check if the scheme is set
-    if (!params.scheme) throw new Error('Missing `scheme` parameter');
 
     // check if headers are set
     if (!params.headers) params.headers = {};
