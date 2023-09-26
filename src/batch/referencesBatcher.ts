@@ -73,6 +73,7 @@ export default class ReferencesBatcher extends CommandBase {
     return this.beaconPath.rebuild(reference.to!).then((beaconTo: any) => ({
       from: reference.from,
       to: beaconTo,
+      tenant: reference.tenant,
     }));
   };
 }
