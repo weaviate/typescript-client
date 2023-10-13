@@ -981,8 +981,8 @@ describe('data', () => {
             properties: {
               refProp: [
                 {
-                  beacon: `weaviate://localhost/${id1}`,
-                  href: `/v1/objects/${id1}`,
+                  beacon: `weaviate://localhost/DataJourneyTestThing/${id1}`,
+                  href: `/v1/objects/DataJourneyTestThing/${id1}`,
                 },
               ],
             },
@@ -1079,8 +1079,8 @@ describe('data', () => {
             properties: {
               refProp: [
                 {
-                  beacon: `weaviate://localhost/${id1}`,
-                  href: `/v1/objects/${id1}`,
+                  beacon: `weaviate://localhost/DataJourneyTestThing/${id1}`,
+                  href: `/v1/objects/DataJourneyTestThing/${id1}`,
                 },
               ],
             },

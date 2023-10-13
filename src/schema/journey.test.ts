@@ -583,9 +583,8 @@ describe('property setting defaults and migrations', () => {
   );
 
   const errMsg1 =
-    '`indexInverted` is deprecated and can not be set together with `indexFilterable` or `indexSearchable`.';
-  const errMsg2 =
-    '`indexSearchable` is allowed only for text/text[] data types. For other data types set false or leave empty';
+    '`indexInverted` is deprecated and can not be set together with `indexFilterable` or `indexSearchable`';
+  const errMsg2 = '`indexSearchable` is not allowed for other than text/text[] data types';
   test.each([
     ['text', false, null, false, errMsg1],
     ['text', false, null, true, errMsg1],
@@ -697,7 +696,8 @@ describe('multi tenancy', () => {
       .tenantsCreator(classObj.class!, tenants)
       .do()
       .then((res: Array<Tenant>) => {
-        expect(res).toEqual(tenants);
+        expect(res).toHaveLength(tenants.length);
+        expect(res).toEqual(expect.arrayContaining(tenants));
       });
   });
 
