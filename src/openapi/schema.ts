@@ -501,6 +501,18 @@ export interface definitions {
      * @enum {string}
      */
     tokenization?: 'word' | 'lowercase' | 'whitespace' | 'field';
+    /** @description The properties of the nested object(s). Applies to object and object[] data types. */
+    nestedProperties?: definitions['NestedProperty'][];
+  };
+  NestedProperty: {
+    dataType?: string[];
+    description?: string;
+    name?: string;
+    indexFilterable?: boolean;
+    indexSearchable?: boolean;
+    /** @enum {string} */
+    tokenization?: 'word' | 'lowercase' | 'whitespace' | 'field';
+    nestedProperties?: definitions['NestedProperty'][];
   };
   /** @description The status of all the shards of a Class */
   ShardStatusList: definitions['ShardStatusGetResponse'][];

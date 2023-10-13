@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { doc } from 'prettier';
 import weaviate, { WeaviateClient } from '..';
 import {
   WeaviateObject,
@@ -30,7 +29,26 @@ describe('data', () => {
   });
 
   it('validates a valid thing', () => {
-    const properties = { stringProp: 'without-id' };
+    const properties = {
+      stringProp: 'without-id',
+      objectProp: {
+        nestedInt: 123,
+        nestedNumber: 123.45,
+        nestedText: 'some text',
+        nestedObjects: [
+          {
+            nestedBoolLvl2: true,
+            nestedDateLvl2: '2022-01-01T00:00:00+02:00',
+            nestedNumbersLvl2: [11.1, 22.2],
+          },
+          {
+            nestedBoolLvl2: false,
+            nestedDateLvl2: '2023-01-01T00:00:00+02:00',
+            nestedNumbersLvl2: [33.3, 44.4],
+          },
+        ],
+      },
+    };
 
     return client.data
       .validator()
@@ -65,7 +83,26 @@ describe('data', () => {
   let implicitThingId: string | undefined;
 
   it('creates a new thing object without an explicit id', () => {
-    const properties = { stringProp: 'without-id' };
+    const properties = {
+      stringProp: 'without-id',
+      objectProp: {
+        nestedInt: 123,
+        nestedNumber: 123.45,
+        nestedText: 'some text',
+        nestedObjects: [
+          {
+            nestedBoolLvl2: true,
+            nestedDateLvl2: '2022-01-01T00:00:00+02:00',
+            nestedNumbersLvl2: [11.1, 22.2],
+          },
+          {
+            nestedBoolLvl2: false,
+            nestedDateLvl2: '2023-01-01T00:00:00+02:00',
+            nestedNumbersLvl2: [33.3, 44.4],
+          },
+        ],
+      },
+    };
 
     return client.data
       .creator()
@@ -82,7 +119,26 @@ describe('data', () => {
   });
 
   it('creates a new thing object with an explicit id', () => {
-    const properties = { stringProp: 'with-id' };
+    const properties = {
+      stringProp: 'with-id',
+      objectProp: {
+        nestedInt: 999,
+        nestedNumber: 88.8,
+        nestedText: 'another text',
+        nestedObjects: [
+          {
+            nestedBoolLvl2: false,
+            nestedDateLvl2: '2020-01-01T00:00:00+02:00',
+            nestedNumbersLvl2: [55.5, 66.6],
+          },
+          {
+            nestedBoolLvl2: true,
+            nestedDateLvl2: '2021-01-01T00:00:00+02:00',
+            nestedNumbersLvl2: [77.7, 88.8],
+          },
+        ],
+      },
+    };
     // explicitly make this an all-zero UUID. This way we can be sure that it's
     // the first to come up when using the cursor API. Since this test suite
     // also contains dynamicaly generated IDs, this is the only way to make
@@ -149,10 +205,48 @@ describe('data', () => {
           expect.arrayContaining([
             expect.objectContaining({
               id: '00000000-0000-0000-0000-000000000000',
-              properties: { stringProp: 'with-id' },
+              properties: {
+                stringProp: 'with-id',
+                objectProp: {
+                  nestedInt: 999,
+                  nestedNumber: 88.8,
+                  nestedText: 'another text',
+                  nestedObjects: [
+                    {
+                      nestedBoolLvl2: false,
+                      nestedDateLvl2: '2020-01-01T00:00:00+02:00',
+                      nestedNumbersLvl2: [55.5, 66.6],
+                    },
+                    {
+                      nestedBoolLvl2: true,
+                      nestedDateLvl2: '2021-01-01T00:00:00+02:00',
+                      nestedNumbersLvl2: [77.7, 88.8],
+                    },
+                  ],
+                },
+              },
             }),
             expect.objectContaining({
-              properties: { stringProp: 'without-id' },
+              properties: {
+                stringProp: 'without-id',
+                objectProp: {
+                  nestedInt: 123,
+                  nestedNumber: 123.45,
+                  nestedText: 'some text',
+                  nestedObjects: [
+                    {
+                      nestedBoolLvl2: true,
+                      nestedDateLvl2: '2022-01-01T00:00:00+02:00',
+                      nestedNumbersLvl2: [11.1, 22.2],
+                    },
+                    {
+                      nestedBoolLvl2: false,
+                      nestedDateLvl2: '2023-01-01T00:00:00+02:00',
+                      nestedNumbersLvl2: [33.3, 44.4],
+                    },
+                  ],
+                },
+              },
             }),
           ])
         );
@@ -173,10 +267,48 @@ describe('data', () => {
           expect.arrayContaining([
             expect.objectContaining({
               id: '00000000-0000-0000-0000-000000000000',
-              properties: { stringProp: 'with-id' },
+              properties: {
+                stringProp: 'with-id',
+                objectProp: {
+                  nestedInt: 999,
+                  nestedNumber: 88.8,
+                  nestedText: 'another text',
+                  nestedObjects: [
+                    {
+                      nestedBoolLvl2: false,
+                      nestedDateLvl2: '2020-01-01T00:00:00+02:00',
+                      nestedNumbersLvl2: [55.5, 66.6],
+                    },
+                    {
+                      nestedBoolLvl2: true,
+                      nestedDateLvl2: '2021-01-01T00:00:00+02:00',
+                      nestedNumbersLvl2: [77.7, 88.8],
+                    },
+                  ],
+                },
+              },
             }),
             expect.objectContaining({
-              properties: { stringProp: 'without-id' },
+              properties: {
+                stringProp: 'without-id',
+                objectProp: {
+                  nestedInt: 123,
+                  nestedNumber: 123.45,
+                  nestedText: 'some text',
+                  nestedObjects: [
+                    {
+                      nestedBoolLvl2: true,
+                      nestedDateLvl2: '2022-01-01T00:00:00+02:00',
+                      nestedNumbersLvl2: [11.1, 22.2],
+                    },
+                    {
+                      nestedBoolLvl2: false,
+                      nestedDateLvl2: '2023-01-01T00:00:00+02:00',
+                      nestedNumbersLvl2: [33.3, 44.4],
+                    },
+                  ],
+                },
+              },
             }),
           ])
         );
@@ -198,7 +330,26 @@ describe('data', () => {
         expect(res.objects).toEqual(
           expect.arrayContaining([
             expect.objectContaining({
-              properties: { stringProp: 'without-id' },
+              properties: {
+                stringProp: 'without-id',
+                objectProp: {
+                  nestedInt: 123,
+                  nestedNumber: 123.45,
+                  nestedText: 'some text',
+                  nestedObjects: [
+                    {
+                      nestedBoolLvl2: true,
+                      nestedDateLvl2: '2022-01-01T00:00:00+02:00',
+                      nestedNumbersLvl2: [11.1, 22.2],
+                    },
+                    {
+                      nestedBoolLvl2: false,
+                      nestedDateLvl2: '2023-01-01T00:00:00+02:00',
+                      nestedNumbersLvl2: [33.3, 44.4],
+                    },
+                  ],
+                },
+              },
             }),
           ])
         );
@@ -267,7 +418,26 @@ describe('data', () => {
         expect(res).toEqual(
           expect.objectContaining({
             id: '00000000-0000-0000-0000-000000000000',
-            properties: { stringProp: 'with-id' },
+            properties: {
+              stringProp: 'with-id',
+              objectProp: {
+                nestedInt: 999,
+                nestedNumber: 88.8,
+                nestedText: 'another text',
+                nestedObjects: [
+                  {
+                    nestedBoolLvl2: false,
+                    nestedDateLvl2: '2020-01-01T00:00:00+02:00',
+                    nestedNumbersLvl2: [55.5, 66.6],
+                  },
+                  {
+                    nestedBoolLvl2: true,
+                    nestedDateLvl2: '2021-01-01T00:00:00+02:00',
+                    nestedNumbersLvl2: [77.7, 88.8],
+                  },
+                ],
+              },
+            },
           })
         );
       })
@@ -286,7 +456,26 @@ describe('data', () => {
         expect(res).toEqual(
           expect.objectContaining({
             id: '00000000-0000-0000-0000-000000000000',
-            properties: { stringProp: 'with-id' },
+            properties: {
+              stringProp: 'with-id',
+              objectProp: {
+                nestedInt: 999,
+                nestedNumber: 88.8,
+                nestedText: 'another text',
+                nestedObjects: [
+                  {
+                    nestedBoolLvl2: false,
+                    nestedDateLvl2: '2020-01-01T00:00:00+02:00',
+                    nestedNumbersLvl2: [55.5, 66.6],
+                  },
+                  {
+                    nestedBoolLvl2: true,
+                    nestedDateLvl2: '2021-01-01T00:00:00+02:00',
+                    nestedNumbersLvl2: [77.7, 88.8],
+                  },
+                ],
+              },
+            },
           })
         );
       })
@@ -354,6 +543,23 @@ describe('data', () => {
       .then((res: WeaviateObject) => {
         expect(res.properties).toEqual({
           stringProp: 'thing-updated',
+          objectProp: {
+            nestedInt: 999,
+            nestedNumber: 88.8,
+            nestedText: 'another text',
+            nestedObjects: [
+              {
+                nestedBoolLvl2: false,
+                nestedDateLvl2: '2020-01-01T00:00:00+02:00',
+                nestedNumbersLvl2: [55.5, 66.6],
+              },
+              {
+                nestedBoolLvl2: true,
+                nestedDateLvl2: '2021-01-01T00:00:00+02:00',
+                nestedNumbersLvl2: [77.7, 88.8],
+              },
+            ],
+          },
         });
       })
       .catch((e: WeaviateError) => {
@@ -376,6 +582,23 @@ describe('data', () => {
       .then((res: WeaviateObject) => {
         expect(res.properties).toEqual({
           stringProp: 'thing-updated-with-class-name',
+          objectProp: {
+            nestedInt: 999,
+            nestedNumber: 88.8,
+            nestedText: 'another text',
+            nestedObjects: [
+              {
+                nestedBoolLvl2: false,
+                nestedDateLvl2: '2020-01-01T00:00:00+02:00',
+                nestedNumbersLvl2: [55.5, 66.6],
+              },
+              {
+                nestedBoolLvl2: true,
+                nestedDateLvl2: '2021-01-01T00:00:00+02:00',
+                nestedNumbersLvl2: [77.7, 88.8],
+              },
+            ],
+          },
         });
       })
       .catch((e: WeaviateError) => {
@@ -1497,7 +1720,7 @@ describe('multi tenancy', () => {
 });
 
 const setup = async (client: WeaviateClient) => {
-  const thing = {
+  const thing: WeaviateClass = {
     class: thingClassName,
     properties: [
       {
@@ -1507,6 +1730,42 @@ const setup = async (client: WeaviateClient) => {
       {
         name: 'intProp',
         dataType: ['int'],
+      },
+      {
+        name: 'objectProp',
+        dataType: ['object'],
+        nestedProperties: [
+          {
+            name: 'nestedInt',
+            dataType: ['int'],
+          },
+          {
+            name: 'nestedNumber',
+            dataType: ['number'],
+          },
+          {
+            name: 'nestedText',
+            dataType: ['text'],
+          },
+          {
+            name: 'nestedObjects',
+            dataType: ['object[]'],
+            nestedProperties: [
+              {
+                name: 'nestedBoolLvl2',
+                dataType: ['boolean'],
+              },
+              {
+                name: 'nestedDateLvl2',
+                dataType: ['date'],
+              },
+              {
+                name: 'nestedNumbersLvl2',
+                dataType: ['number[]'],
+              },
+            ],
+          },
+        ],
       },
     ],
   };
