@@ -384,7 +384,7 @@ describe('data', () => {
       });
   });
 
-  it('gets all classes objects  with all optional _additional params', () => {
+  it('gets all classes objects with all optional _additional params', () => {
     return client.data
       .getter()
       .withClassName(thingClassName)
@@ -538,25 +538,44 @@ describe('data', () => {
         // alter the schema
         const properties: Properties = res.properties!;
         properties!.stringProp = 'thing-updated';
+        properties!.objectProp = {
+          nestedNumber: 55.5,
+          nestedText: 'updated text',
+          nestedObjects: [
+            {
+              nestedBoolLvl2: false,
+              nestedNumbersLvl2: [],
+            },
+            {
+              nestedBoolLvl2: true,
+              nestedNumbersLvl2: [1.1],
+            },
+            {
+              nestedBoolLvl2: true,
+              nestedNumbersLvl2: [2.2, 3.3],
+            },
+          ],
+        };
         return client.data.updater().withId(id).withClassName(thingClassName).withProperties(properties).do();
       })
       .then((res: WeaviateObject) => {
         expect(res.properties).toEqual({
           stringProp: 'thing-updated',
           objectProp: {
-            nestedInt: 999,
-            nestedNumber: 88.8,
-            nestedText: 'another text',
+            nestedNumber: 55.5,
+            nestedText: 'updated text',
             nestedObjects: [
               {
                 nestedBoolLvl2: false,
-                nestedDateLvl2: '2020-01-01T00:00:00+02:00',
-                nestedNumbersLvl2: [55.5, 66.6],
+                nestedNumbersLvl2: [],
               },
               {
                 nestedBoolLvl2: true,
-                nestedDateLvl2: '2021-01-01T00:00:00+02:00',
-                nestedNumbersLvl2: [77.7, 88.8],
+                nestedNumbersLvl2: [1.1],
+              },
+              {
+                nestedBoolLvl2: true,
+                nestedNumbersLvl2: [2.2, 3.3],
               },
             ],
           },
@@ -583,19 +602,20 @@ describe('data', () => {
         expect(res.properties).toEqual({
           stringProp: 'thing-updated-with-class-name',
           objectProp: {
-            nestedInt: 999,
-            nestedNumber: 88.8,
-            nestedText: 'another text',
+            nestedNumber: 55.5,
+            nestedText: 'updated text',
             nestedObjects: [
               {
                 nestedBoolLvl2: false,
-                nestedDateLvl2: '2020-01-01T00:00:00+02:00',
-                nestedNumbersLvl2: [55.5, 66.6],
+                nestedNumbersLvl2: [],
               },
               {
                 nestedBoolLvl2: true,
-                nestedDateLvl2: '2021-01-01T00:00:00+02:00',
-                nestedNumbersLvl2: [77.7, 88.8],
+                nestedNumbersLvl2: [1.1],
+              },
+              {
+                nestedBoolLvl2: true,
+                nestedNumbersLvl2: [2.2, 3.3],
               },
             ],
           },
