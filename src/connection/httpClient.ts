@@ -1,4 +1,3 @@
-import fetch from 'isomorphic-fetch';
 import { ConnectionParams } from '..';
 
 export interface HttpClient {
