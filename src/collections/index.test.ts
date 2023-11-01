@@ -68,7 +68,7 @@ describe('Testing of the collections methods', () => {
     const response = await cluster.collections.create({
       name: className,
       description: 'A test collection',
-      invertedIndexConfig: {
+      invertedIndex: {
         bm25: {
           b: 0.8,
           k1: 1.3,
@@ -153,13 +153,13 @@ describe('Testing of the collections methods', () => {
           dataType: ['phoneNumber'],
         },
       ],
-      multiTenancyConfig: {
+      multiTenancy: {
         enabled: true,
       },
-      replicationConfig: {
+      replication: {
         factor: 2,
       },
-      vectorIndexConfig: {
+      vectorIndex: {
         cleanupIntervalSeconds: 10,
         distance: 'dot',
         dynamicEfFactor: 6,
@@ -273,7 +273,7 @@ describe('Testing of the collections methods', () => {
           dataType: ['text'],
         },
       ],
-      vectorizerConfig: {
+      vectorizer: {
         'text2vec-contextionary': {
           vectorizeClassName: false,
         },
@@ -300,7 +300,7 @@ describe('Testing of the collections methods', () => {
           dataType: ['text'],
         },
       ],
-      vectorizerConfig: {
+      vectorizer: {
         'text2vec-openai': {
           vectorizeClassName: true,
         },

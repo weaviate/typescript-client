@@ -7,13 +7,15 @@ import { CollectionConfig } from './types';
 const collections = (connection: Connection, dbVersionSupport: DbVersionSupport) => {
   return {
     create: (config: CollectionConfig) => {
-      const { name, ...rest } = config;
-      const vectorizer = config.vectorizerConfig ? Object.keys(config.vectorizerConfig)[0] : undefined;
+      const { name, invertedIndex, multiTenancy, replication, sharding, vectorIndex, ...rest } = config;
+      const vectorizer = config.vectorizer ? Object.keys(config.vectorizer)[0] : undefined;
       const schema = {
         ...rest,
         class: name,
         vectorizer: vectorizer || 'none',
-        moduleConfig: config.vectorizerConfig,
+        invertedIndexConfig: invertedIndex,
+        moduleConfig: config.vectorizer,
+        multiTenancyConfig: multiTenancy,
         properties: config.properties?.map((prop) => {
           const { skipVectorisation, vectorizePropertyName, ...rest } = prop;
           const moduleConfig: any = {};
@@ -28,6 +30,9 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
             moduleConfig,
           };
         }),
+        replicationConfig: replication,
+        shardingConfig: sharding,
+        vectorIndexConfig: vectorIndex,
       };
       return connection.postReturn<any, WeaviateClass>('/schema', schema);
     },

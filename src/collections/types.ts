@@ -91,13 +91,13 @@ export interface VectorIndexConfig {
 export interface CollectionConfig {
   name: string;
   description?: string;
-  invertedIndexConfig?: InvertedIndexConfig;
-  multiTenancyConfig?: MultiTenancyConfig;
+  invertedIndex?: InvertedIndexConfig;
+  multiTenancy?: MultiTenancyConfig;
   properties?: PropertyConfig[];
-  replicationConfig?: ReplicationConfig;
-  shardingConfig?: ShardingConfig;
-  vectorIndexConfig?: VectorIndexConfig;
-  vectorizerConfig?: VectorizerConfig;
+  replication?: ReplicationConfig;
+  sharding?: ShardingConfig;
+  vectorIndex?: VectorIndexConfig;
+  vectorizer?: VectorizerConfig;
 }
 
 interface Img2VecNeural {
