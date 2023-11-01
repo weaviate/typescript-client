@@ -51,6 +51,6 @@ export default class ExtensionCreator extends CommandBase {
     }
 
     const path = `/modules/text2vec-contextionary/extensions`;
-    return this.client.post(path, this.payload());
+    return this.client.postReturn(path, this.payload());
   };
 }

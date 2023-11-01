@@ -38,40 +38,27 @@ export default class Connection {
   }
 
   private sanitizeParams(params: ConnectionParams) {
-    // Remove trailing slashes from the host
     while (params.host.endsWith('/')) {
       params.host = params.host.slice(0, -1);
-    }
-
-    const protocolPattern = /^(https?|ftp|file)(?::\/\/)/;
-    const extractedSchemeMatch = params.host.match(protocolPattern);
-
-    // Check for the existence of scheme in params
-    if (params.scheme) {
-      // If the host contains a scheme different than provided scheme, replace it and throw a warning
-      if (extractedSchemeMatch && extractedSchemeMatch[1] !== `${params.scheme}`) {
-        throw new Error(
-          `The host contains a different protocol than specified in the scheme (scheme: ${params.scheme} != host: ${extractedSchemeMatch[1]})`
-        );
-      } else if (!extractedSchemeMatch) {
-        // If no scheme in the host, simply prefix with the provided scheme
-        params.host = `${params.scheme}://${params.host}`;
-      }
-      // If there's no scheme in params, ensure the host starts with a recognized protocol
-    } else if (!extractedSchemeMatch) {
-      throw new Error(
-        'The host must start with a recognized protocol (e.g., http or https) if no scheme is provided.'
-      );
     }
 
     return params;
   }
 
-  post = (path: string, payload: any, expectReturnContent = true) => {
+  postReturn = <B, T>(path: string, payload: B): Promise<T> => {
     if (this.authEnabled) {
-      return this.login().then((token) => this.http.post(path, payload, expectReturnContent, token));
+      return this.login().then((token) =>
+        this.http.post<B, T>(path, payload, true, token).then((res) => res as T)
+      );
     }
-    return this.http.post(path, payload, expectReturnContent);
+    return this.http.post<B, T>(path, payload, true, '').then((res) => res as T);
+  };
+
+  postEmpty = <B>(path: string, payload: B): Promise<void> => {
+    if (this.authEnabled) {
+      return this.login().then((token) => this.http.post<B, void>(path, payload, false, token));
+    }
+    return this.http.post<B, void>(path, payload, false, '');
   };
 
   put = (path: string, payload: any, expectReturnContent = true) => {
@@ -109,14 +96,14 @@ export default class Connection {
     return this.http.get(path, expectReturnContent);
   };
 
-  query = (query: any, variables?: Variables) => {
+  query = <V extends Variables, T = any>(query: any, variables?: V) => {
     if (this.authEnabled) {
       return this.login().then((token) => {
         const headers = { Authorization: `Bearer ${token}` };
-        return this.gql.query(query, variables, headers);
+        return this.gql.query<V, T>(query, variables, headers);
       });
     }
-    return this.gql.query(query, variables);
+    return this.gql.query<V, T>(query, variables);
   };
 
   login = async () => {

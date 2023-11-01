@@ -80,7 +80,7 @@ export default class ReferenceCreator extends CommandBase {
     ]).then((results) => {
       const path = results[0];
       const beacon = results[1];
-      return this.client.post(path, { beacon }, false);
+      return this.client.postEmpty(path, { beacon });
     });
   };
 }

@@ -3,7 +3,12 @@ import { ConnectionParams } from '..';
 export interface HttpClient {
   patch: (path: string, payload: any, bearerToken?: string) => any;
   head: (path: string, payload: any, bearerToken?: string) => any;
-  post: (path: string, payload: any, expectReturnContent?: boolean, bearerToken?: string) => any;
+  post: <B, T>(
+    path: string,
+    payload: B,
+    expectReturnContent: boolean,
+    bearerToken: string
+  ) => Promise<T | undefined>;
   get: (path: string, expectReturnContent?: boolean, bearerToken?: string) => any;
   externalPost: (externalUrl: string, body: any, contentType: any) => any;
   getRaw: (path: string, bearerToken?: string) => any;
@@ -13,12 +18,16 @@ export interface HttpClient {
 }
 
 export const httpClient = (config: ConnectionParams): HttpClient => {
-  const version = '/v1';
-  const baseUri = `${config.host}${version}`;
+  const baseUri = `${config.scheme}://${config.host}/v1`;
   const url = makeUrl(baseUri);
 
   return {
-    post: (path: string, payload: any, expectReturnContent = true, bearerToken = '') => {
+    post: <B, T>(
+      path: string,
+      payload: B,
+      expectReturnContent: boolean,
+      bearerToken: string
+    ): Promise<T | undefined> => {
       const request = {
         method: 'POST',
         headers: {
@@ -28,9 +37,14 @@ export const httpClient = (config: ConnectionParams): HttpClient => {
         body: JSON.stringify(payload),
       };
       addAuthHeaderIfNeeded(request, bearerToken);
-      return fetch(url(path), request).then(makeCheckStatus(expectReturnContent));
+      return fetch(url(path), request).then(checkStatus<T>(expectReturnContent));
     },
-    put: (path: string, payload: any, expectReturnContent = true, bearerToken = '') => {
+    put: <B, T>(
+      path: string,
+      payload: B,
+      expectReturnContent = true,
+      bearerToken = ''
+    ): Promise<T | undefined> => {
       const request = {
         method: 'PUT',
         headers: {
@@ -40,9 +54,9 @@ export const httpClient = (config: ConnectionParams): HttpClient => {
         body: JSON.stringify(payload),
       };
       addAuthHeaderIfNeeded(request, bearerToken);
-      return fetch(url(path), request).then(makeCheckStatus(expectReturnContent));
+      return fetch(url(path), request).then(checkStatus<T>(expectReturnContent));
     },
-    patch: (path: string, payload: any, bearerToken = '') => {
+    patch: <B, T>(path: string, payload: B, bearerToken = ''): Promise<T | undefined> => {
       const request = {
         method: 'PATCH',
         headers: {
@@ -52,9 +66,9 @@ export const httpClient = (config: ConnectionParams): HttpClient => {
         body: JSON.stringify(payload),
       };
       addAuthHeaderIfNeeded(request, bearerToken);
-      return fetch(url(path), request).then(makeCheckStatus(false));
+      return fetch(url(path), request).then(checkStatus<T>(false));
     },
-    delete: (path: string, payload: any, expectReturnContent = false, bearerToken = '') => {
+    delete: <B>(path: string, payload: B | null = null, expectReturnContent = false, bearerToken = '') => {
       const request = {
         method: 'DELETE',
         headers: {
@@ -64,9 +78,9 @@ export const httpClient = (config: ConnectionParams): HttpClient => {
         body: payload ? JSON.stringify(payload) : undefined,
       };
       addAuthHeaderIfNeeded(request, bearerToken);
-      return fetch(url(path), request).then(makeCheckStatus(expectReturnContent));
+      return fetch(url(path), request).then(checkStatus<undefined>(expectReturnContent));
     },
-    head: (path: string, payload: any, bearerToken = '') => {
+    head: <B>(path: string, payload: B | null = null, bearerToken = '') => {
       const request = {
         method: 'HEAD',
         headers: {
@@ -76,9 +90,9 @@ export const httpClient = (config: ConnectionParams): HttpClient => {
         body: payload ? JSON.stringify(payload) : undefined,
       };
       addAuthHeaderIfNeeded(request, bearerToken);
-      return fetch(url(path), request).then(handleHeadResponse(false));
+      return fetch(url(path), request).then(handleHeadResponse<undefined>(false));
     },
-    get: (path: string, expectReturnContent = true, bearerToken = '') => {
+    get: <T>(path: string, expectReturnContent = true, bearerToken = ''): Promise<T | undefined> => {
       const request = {
         method: 'GET',
         headers: {
@@ -86,7 +100,7 @@ export const httpClient = (config: ConnectionParams): HttpClient => {
         },
       };
       addAuthHeaderIfNeeded(request, bearerToken);
-      return fetch(url(path), request).then(makeCheckStatus(expectReturnContent));
+      return fetch(url(path), request).then(checkStatus<T>(expectReturnContent));
     },
     getRaw: (path: string, bearerToken = '') => {
       // getRaw does not handle the status leaving this to the caller
@@ -105,7 +119,7 @@ export const httpClient = (config: ConnectionParams): HttpClient => {
         headers: {
           ...config.headers,
         },
-      }).then(makeCheckStatus(true));
+      }).then(checkStatus<any>(true));
     },
     externalPost: (externalUrl: string, body: any, contentType: any) => {
       if (contentType == undefined || contentType == '') {
@@ -122,38 +136,42 @@ export const httpClient = (config: ConnectionParams): HttpClient => {
       if (body != null) {
         request.body = body;
       }
-      return fetch(externalUrl, request).then(makeCheckStatus(true));
+      return fetch(externalUrl, request).then(checkStatus<any>(true));
     },
   };
 };
 
 const makeUrl = (basePath: string) => (path: string) => basePath + path;
 
-const makeCheckStatus = (expectResponseBody: boolean) => (res: Response) => {
-  if (res.status >= 400) {
-    return res.text().then((errText: string) => {
-      let err: string;
-      try {
-        // in case of invalid json response (like empty string)
-        err = JSON.stringify(JSON.parse(errText));
-      } catch (e) {
-        err = errText;
-      }
-      return Promise.reject(new Error(`usage error (${res.status}): ${err}`));
-    });
-  }
+const checkStatus =
+  <T>(expectResponseBody: boolean) =>
+  (res: Response) => {
+    if (res.status >= 400) {
+      return res.text().then((errText: string) => {
+        let err: string;
+        try {
+          // in case of invalid json response (like empty string)
+          err = JSON.stringify(JSON.parse(errText));
+        } catch (e) {
+          err = errText;
+        }
+        return Promise.reject(new Error(`usage error (${res.status}): ${err}`));
+      });
+    }
+    if (expectResponseBody) {
+      return res.json() as Promise<T>;
+    }
+    return Promise.resolve(undefined);
+  };
 
-  if (expectResponseBody) {
-    return res.json();
-  }
-};
-
-const handleHeadResponse = (expectResponseBody: boolean) => (res: Response) => {
-  if (res.status == 204 || res.status == 404) {
-    return res.status == 204;
-  }
-  return makeCheckStatus(expectResponseBody)(res);
-};
+const handleHeadResponse =
+  <T>(expectResponseBody: boolean) =>
+  (res: Response) => {
+    if (res.status == 204 || res.status == 404) {
+      return Promise.resolve(res.status == 204);
+    }
+    return checkStatus<T>(expectResponseBody)(res);
+  };
 
 function addAuthHeaderIfNeeded(request: any, bearerToken: string) {
   if (bearerToken !== '') {

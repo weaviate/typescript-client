@@ -17,6 +17,6 @@ export default class TenantsCreator extends CommandBase {
   };
 
   do = (): Promise<Array<Tenant>> => {
-    return this.client.post(`/schema/${this.className}/tenants`, this.tenants);
+    return this.client.postReturn(`/schema/${this.className}/tenants`, this.tenants);
   };
 }

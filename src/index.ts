@@ -17,6 +17,7 @@ import {
   OidcAuthenticator,
 } from './connection/auth';
 import MetaGetter from './misc/metaGetter';
+import collections, { Collections } from './collections';
 
 export interface ConnectionParams {
   authClientSecret?: AuthClientCredentials | AuthAccessTokenCredentials | AuthUserPasswordCredentials;
@@ -31,6 +32,7 @@ export interface WeaviateClient {
   schema: Schema;
   data: Data;
   classifications: Classifications;
+  collections: Collections;
   batch: Batch;
   misc: Misc;
   c11y: C11y;
@@ -56,6 +58,7 @@ const app = {
       schema: schema(conn),
       data: data(conn, dbVersionSupport),
       classifications: classifications(conn),
+      collections: collections(conn, dbVersionSupport),
       batch: batch(conn, dbVersionSupport),
       misc: misc(conn, dbVersionProvider),
       c11y: c11y(conn),
@@ -95,6 +98,7 @@ export * from './graphql';
 export * from './schema';
 export * from './data';
 export * from './classifications';
+export * from './collections';
 export * from './batch';
 export * from './misc';
 export * from './c11y';

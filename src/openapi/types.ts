@@ -1,6 +1,12 @@
 import { definitions } from './schema';
 
-export type WeaviateObject = definitions['Object'];
+type Override<T1, T2> = Omit<T1, keyof T2> & T2;
+type DefaultProperties = { [key: string]: unknown };
+
+export type WeaviateObject<T extends Record<string, any> = DefaultProperties> = Override<
+  definitions['Object'],
+  { properties?: T }
+>;
 export type WeaviateObjectsList = definitions['ObjectsListResponse'];
 export type WeaviateObjectsGet = definitions['ObjectsGetResponse'];
 export type Reference = definitions['SingleRef'];
@@ -20,7 +26,7 @@ export type BatchDelete = definitions['BatchDelete'];
 export type BatchDeleteResponse = definitions['BatchDeleteResponse'];
 export type BatchRequest = {
   fields?: ('ALL' | 'class' | 'schema' | 'id' | 'creationTimeUnix')[];
-  objects?: WeaviateObject[];
+  objects?: WeaviateObject<any>[];
 };
 export type BatchReference = definitions['BatchReference'];
 export type BatchReferenceResponse = definitions['BatchReferenceResponse'];

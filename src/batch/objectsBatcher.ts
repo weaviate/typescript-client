@@ -62,6 +62,6 @@ export default class ObjectsBatcher extends CommandBase {
       params.set('consistency_level', this.consistencyLevel);
     }
     const path = buildObjectsPath(params);
-    return this.client.post(path, this.payload());
+    return this.client.postReturn(path, this.payload());
   };
 }

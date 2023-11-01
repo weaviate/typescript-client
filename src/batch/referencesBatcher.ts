@@ -65,7 +65,7 @@ export default class ReferencesBatcher extends CommandBase {
     const path = buildRefsPath(params);
     const payloadPromise = Promise.all(this.references.map((ref) => this.rebuildReferencePromise(ref)));
 
-    return payloadPromise.then((payload) => this.client.post(path, payload));
+    return payloadPromise.then((payload) => this.client.postReturn(path, payload));
   };
 
   rebuildReferencePromise = (reference: BatchReference): Promise<BatchReference> => {

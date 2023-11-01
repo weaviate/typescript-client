@@ -75,6 +75,6 @@ export default class Creator extends CommandBase {
 
     return this.objectsPath
       .buildCreate(this.consistencyLevel)
-      .then((path: string) => this.client.post(path, this.payload()));
+      .then((path: string) => this.client.postReturn(path, this.payload()));
   };
 }

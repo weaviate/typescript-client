@@ -87,7 +87,7 @@ export default class BackupCreator extends CommandBase {
   };
 
   _create = (payload: BackupCreateRequest): Promise<BackupCreateResponse> => {
-    return this.client.post(this._path(), payload) as Promise<BackupCreateResponse>;
+    return this.client.postReturn(this._path(), payload) as Promise<BackupCreateResponse>;
   };
 
   _createAndWaitForCompletion = (payload: BackupCreateRequest): Promise<BackupCreateResponse> => {
