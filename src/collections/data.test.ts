@@ -17,7 +17,7 @@ describe('Testing of the data methods', () => {
   beforeAll(async () => {
     const promises = [
       client.collections.create({
-        class: className,
+        name: className,
         properties: [
           {
             name: 'testProp',

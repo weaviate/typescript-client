@@ -17,7 +17,7 @@ describe('Testing of the query methods', () => {
   beforeAll(async () => {
     id = await client.collections
       .create({
-        class: className,
+        name: className,
         properties: [
           {
             name: 'testProp',

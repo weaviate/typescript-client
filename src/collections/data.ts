@@ -31,7 +31,7 @@ const data = <T extends Record<string, any>>(
         .then((path) =>
           connection.postReturn<WeaviateObject<T>, WeaviateObject<T>>(path, { class: name, ...object })
         )
-        .then((obj) => obj.id),
+        .then((obj) => obj.id!),
   };
 };
 

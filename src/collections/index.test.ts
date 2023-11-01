@@ -22,7 +22,7 @@ describe('Testing of the collections methods', () => {
   it('should be able to create a simple collection', async () => {
     const className = 'TestCollectionSimple';
     const response = await contextionary.collections.create({
-      class: className,
+      name: className,
       properties: [
         {
           name: 'testProp',
@@ -40,7 +40,7 @@ describe('Testing of the collections methods', () => {
   it('should be able to create a nested collection', async () => {
     const className = 'TestCollectionNested';
     const response = await contextionary.collections.create({
-      class: className,
+      name: className,
       properties: [
         {
           name: 'testProp',
@@ -66,7 +66,7 @@ describe('Testing of the collections methods', () => {
   it('should be able to create a complex collection', async () => {
     const className = 'TestCollectionSimple';
     const response = await cluster.collections.create({
-      class: className,
+      name: className,
       description: 'A test collection',
       invertedIndexConfig: {
         bm25: {
@@ -266,7 +266,7 @@ describe('Testing of the collections methods', () => {
   it('should be able to create a collection with the contextionary vectorizer', async () => {
     const className = 'TestCollectionContextionaryVectorizer';
     const response = await contextionary.collections.create({
-      class: className,
+      name: className,
       properties: [
         {
           name: 'testProp',
@@ -293,7 +293,7 @@ describe('Testing of the collections methods', () => {
   it('should be able to create a collection with the openai vectorizer', async () => {
     const className = 'TestCollectionOpenAIVectorizer';
     const response = await openai.collections.create({
-      class: className,
+      name: className,
       properties: [
         {
           name: 'testProp',

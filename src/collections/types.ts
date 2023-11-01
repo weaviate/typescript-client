@@ -89,7 +89,7 @@ export interface VectorIndexConfig {
 }
 
 export interface CollectionConfig {
-  class: string;
+  name: string;
   description?: string;
   invertedIndexConfig?: InvertedIndexConfig;
   multiTenancyConfig?: MultiTenancyConfig;

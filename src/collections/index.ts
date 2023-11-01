@@ -7,9 +7,11 @@ import { CollectionConfig } from './types';
 const collections = (connection: Connection, dbVersionSupport: DbVersionSupport) => {
   return {
     create: (config: CollectionConfig) => {
+      const { name, ...rest } = config;
       const vectorizer = config.vectorizerConfig ? Object.keys(config.vectorizerConfig)[0] : undefined;
       const schema = {
-        ...config,
+        ...rest,
+        class: name,
         vectorizer: vectorizer || 'none',
         moduleConfig: config.vectorizerConfig,
         properties: config.properties?.map((prop) => {
