@@ -15,6 +15,8 @@ describe('Testing of the query methods', () => {
   const className = 'TestCollectionQuery';
   let id: string;
 
+  const collection = client.collections.get<TestCollectionQuery>(className);
+
   beforeAll(async () => {
     id = await client.collections
       .create({
@@ -27,7 +29,6 @@ describe('Testing of the query methods', () => {
         ],
       })
       .then(() => {
-        const collection = client.collections.get<TestCollectionQuery>(className);
         return collection.data.insert({
           properties: {
             testProp: 'test',
@@ -37,16 +38,24 @@ describe('Testing of the query methods', () => {
   });
 
   it('should fetch an object by its id', async () => {
-    const collection = client.collections.get<TestCollectionQuery>(className);
     const object = await collection.query.fetchObjectById({ id });
     expect(object.properties.testProp).toEqual('test');
     expect(object.metadata.uuid).toEqual(id);
   });
 
-  it('should fetch all objects with no options', async () => {
-    const collection = client.collections.get<TestCollectionQuery>(className);
+  it('should query without search all objects with minimal options', async () => {
     const ret = await collection.query.fetchObjects();
     expect(ret.objects.length).toEqual(1);
     expect(ret.objects[0].properties.testProp).toEqual('test');
+    expect(ret.objects[0].metadata.uuid).toEqual(id);
+  });
+
+  it('should query with bm25 all objects with minimal options', async () => {
+    const ret = await collection.query.bm25({
+      query: 'test',
+    });
+    expect(ret.objects.length).toEqual(1);
+    expect(ret.objects[0].properties.testProp).toEqual('test');
+    expect(ret.objects[0].metadata.uuid).toEqual(id);
   });
 });

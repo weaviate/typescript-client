@@ -1,5 +1,5 @@
-import { MetadataResult, PropertiesResult } from '../proto/v1/search_get';
-import { MetadataReturn } from './types';
+import { MetadataResult, PropertiesResult, SearchReply } from '../proto/v1/search_get';
+import { MetadataReturn, QueryReturn } from './types';
 
 export interface PropertiesGrpc {
   nonRefProperties?: {
@@ -32,7 +32,18 @@ export interface PropertiesGrpc {
 }
 
 export default class Deserialize {
-  static properties<T extends Record<string, any>>(properties: PropertiesResult): T {
+  static replyQuery<T extends Record<string, any>>(reply: SearchReply): QueryReturn<T> {
+    return {
+      objects: reply.results.map((result) => {
+        return {
+          properties: result.properties ? Deserialize.properties<T>(result.properties) : ({} as T),
+          metadata: result.metadata ? Deserialize.metadata(result.metadata) : {},
+        };
+      }),
+    };
+  }
+
+  private static properties<T extends Record<string, any>>(properties: PropertiesResult): T {
     const out = this.objectProperties(properties);
     properties.refProps.forEach((property) => {
       out[property.propName] = property.properties.map((property) => this.properties(property));
@@ -40,7 +51,7 @@ export default class Deserialize {
     return out as T;
   }
 
-  static objectProperties(properties: PropertiesGrpc): Record<string, any> {
+  private static objectProperties(properties: PropertiesGrpc): Record<string, any> {
     const out: Record<string, any> = {};
     if (properties.nonRefProperties) {
       Object.entries(properties.nonRefProperties).forEach(([key, value]) => {
@@ -69,7 +80,7 @@ export default class Deserialize {
     return out;
   }
 
-  static metadata(metadata: MetadataResult): MetadataReturn {
+  private static metadata(metadata: MetadataResult): MetadataReturn {
     return {
       uuid: metadata.id.length > 0 ? metadata.id : undefined,
       vector: metadata.vector.length > 0 ? metadata.vector : undefined,

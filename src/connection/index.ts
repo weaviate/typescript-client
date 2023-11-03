@@ -3,8 +3,9 @@ import OpenidConfigurationGetter from '../misc/openidConfigurationGetter';
 
 import httpClient, { HttpClient } from './httpClient';
 import gqlClient, { GraphQLClient } from './gqlClient';
-import grpcClient, { GrpcClient, Search } from './grpcClient';
-import { ConnectionParams } from '..';
+import grpcClient, { GrpcClient } from './grpcClient';
+import { Search } from '../grpc/search';
+import { ConnectionParams, ConsistencyLevel } from '..';
 import { Variables } from 'graphql-request';
 
 export default class Connection {
@@ -109,7 +110,7 @@ export default class Connection {
     return this.gql.query<V, T>(query, variables);
   };
 
-  search = (name: string) => {
+  search = (name: string, consistencyLevel?: ConsistencyLevel, tenant?: string) => {
     const grpc = this.grpc;
     if (!grpc) {
       throw new Error(
@@ -119,10 +120,10 @@ export default class Connection {
     if (this.authEnabled) {
       return this.login().then((token) => {
         const headers = { Authorization: `Bearer ${token}` };
-        return grpc.search(name, headers);
+        return grpc.search(name, consistencyLevel, tenant, headers);
       });
     }
-    return new Promise<Search>((resolve) => resolve(grpc.search(name)));
+    return new Promise<Search>((resolve) => resolve(grpc.search(name, consistencyLevel, tenant)));
   };
 
   login = async () => {

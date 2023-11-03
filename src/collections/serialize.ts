@@ -17,6 +17,8 @@ import {
   SortBy,
   MetadataQuery,
 } from './types';
+import { SearchBm25Args, SearchFetchArgs } from '../grpc/search';
+import { Bm25Args, FetchObjectsArgs } from './query';
 
 const isNotPrimitive = <T>(argument: T | string): argument is T => {
   return typeof argument !== 'string';
@@ -73,7 +75,33 @@ const isBooleanArray = (argument?: FilterValueType): argument is boolean[] => {
 // Cannot do argument.every((arg) => typeof arg === type) because of type erasure
 
 export default class Serialize {
-  static filters = <T extends FilterValueType>(filters: Filters<T>): FiltersGrpc => {
+  static fetchObjects = (args?: FetchObjectsArgs): SearchFetchArgs => {
+    return {
+      limit: args?.limit,
+      offset: args?.offset,
+      after: args?.after,
+      filters: args?.filters ? Serialize.filters(args.filters) : undefined,
+      sort: args?.sort ? Serialize.sortBy(args.sort) : undefined,
+      returnProperties: args?.returnProperties ? Serialize.properties(args.returnProperties) : undefined,
+      returnMetadata: args?.returnMetadata ? Serialize.metadata(args.returnMetadata) : undefined,
+    };
+  };
+
+  static bm25 = (args: Bm25Args): SearchBm25Args => {
+    return {
+      bm25: {
+        query: args.query,
+        properties: args.queryProperties ? args.queryProperties : [],
+      },
+      limit: args.limit,
+      autocut: args.autoLimit,
+      filters: args.filters ? Serialize.filters(args.filters) : undefined,
+      returnProperties: args.returnProperties ? Serialize.properties(args.returnProperties) : undefined,
+      returnMetadata: args.returnMetadata ? Serialize.metadata(args.returnMetadata) : undefined,
+    };
+  };
+
+  private static filters = <T extends FilterValueType>(filters: Filters<T>): FiltersGrpc => {
     const resolveFilters = (filters: Filters<T>): FiltersGrpc[] => {
       const out: FiltersGrpc[] = [];
       filters.filters?.forEach((val) => {
@@ -114,7 +142,7 @@ export default class Serialize {
     }
   };
 
-  static operator = (operator: string): Filters_Operator => {
+  private static operator = (operator: string): Filters_Operator => {
     switch (operator) {
       case 'Equal':
         return Filters_Operator.OPERATOR_EQUAL;
@@ -141,7 +169,7 @@ export default class Serialize {
     }
   };
 
-  static properties = (properties?: Property[]): PropertiesRequest => {
+  private static properties = (properties?: Property[]): PropertiesRequest => {
     const nonRefProperties = properties?.filter((property) => typeof property === 'string') as
       | string[]
       | undefined;
@@ -188,7 +216,7 @@ export default class Serialize {
     };
   };
 
-  static metadata = (metadata: MetadataQuery): MetadataRequest => {
+  private static metadata = (metadata: MetadataQuery): MetadataRequest => {
     const out: any = {};
     Object.entries(metadata).forEach(([key, value]) => {
       out[key] = !!value;
@@ -196,7 +224,7 @@ export default class Serialize {
     return out;
   };
 
-  static sortBy = (sort: SortBy[]): SortByGrpc[] => {
+  private static sortBy = (sort: SortBy[]): SortByGrpc[] => {
     return sort.map((sort) => {
       return {
         ascending: !!sort.ascending,

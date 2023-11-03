@@ -21,7 +21,7 @@ const data = <T extends Record<string, any>>(
   dbVersionSupport: DbVersionSupport,
   consistencyLevel?: ConsistencyLevel,
   tenant?: string
-) => {
+): Data<T> => {
   const path = new ObjectsPath(dbVersionSupport);
 
   return {

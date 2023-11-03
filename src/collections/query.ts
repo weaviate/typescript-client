@@ -11,6 +11,11 @@ import Serialize from './serialize';
 
 import { MetadataQuery, WeaviateObject, Property, QueryReturn, SortBy } from './types';
 
+export interface FetchObjectByIdArgs {
+  id: string;
+  additional?: string[];
+}
+
 export interface FetchObjectsArgs {
   limit?: number;
   offset?: number;
@@ -21,9 +26,14 @@ export interface FetchObjectsArgs {
   returnProperties?: Property[];
 }
 
-export interface FetchObjectByIdArgs {
-  id: string;
-  additional?: string[];
+export interface Bm25Args {
+  query: string;
+  queryProperties?: string[];
+  limit?: number;
+  autoLimit?: number;
+  filters?: Filters<FilterValueType>;
+  returnMetadata?: MetadataQuery;
+  returnProperties?: Property[];
 }
 
 const query = <T extends Record<string, any>>(
@@ -32,7 +42,7 @@ const query = <T extends Record<string, any>>(
   dbVersionSupport: DbVersionSupport,
   consistencyLevel?: ConsistencyLevel,
   tenant?: string
-) => {
+): Query<T> => {
   const path = new ObjectsPath(dbVersionSupport);
   return {
     fetchObjectById: (args: FetchObjectByIdArgs): Promise<WeaviateObject<T>> =>
@@ -59,29 +69,11 @@ const query = <T extends Record<string, any>>(
         }),
     fetchObjects: (args?: FetchObjectsArgs): Promise<QueryReturn<T>> =>
       connection.search(name).then((search) => {
-        return search
-          .get({
-            limit: args?.limit,
-            offset: args?.offset,
-            after: args?.after,
-            filters: args?.filters ? Serialize.filters(args.filters) : undefined,
-            sort: args?.sort ? Serialize.sortBy(args.sort) : undefined,
-            returnProperties: args?.returnProperties
-              ? Serialize.properties(args.returnProperties)
-              : undefined,
-            returnMetadata: args?.returnMetadata ? Serialize.metadata(args.returnMetadata) : undefined,
-          })
-          .then((res) =>
-            res.results.map((result) => {
-              return {
-                properties: result.properties ? Deserialize.properties<T>(result.properties) : ({} as T),
-                metadata: result.metadata ? Deserialize.metadata(result.metadata) : {},
-              };
-            })
-          )
-          .then((objs) => {
-            return { objects: objs };
-          });
+        return search.withFetch(Serialize.fetchObjects(args)).then(Deserialize.replyQuery<T>);
+      }),
+    bm25: (args: Bm25Args): Promise<QueryReturn<T>> =>
+      connection.search(name).then((search) => {
+        return search.withBm25(Serialize.bm25(args)).then(Deserialize.replyQuery<T>);
       }),
   };
 };
@@ -89,6 +81,7 @@ const query = <T extends Record<string, any>>(
 export interface Query<T extends Record<string, any>> {
   fetchObjectById: (args: FetchObjectByIdArgs) => Promise<WeaviateObject<T>>;
   fetchObjects: (args?: FetchObjectsArgs) => Promise<QueryReturn<T>>;
+  bm25: (args: Bm25Args) => Promise<QueryReturn<T>>;
 }
 
 export default query;
