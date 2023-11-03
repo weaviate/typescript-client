@@ -91,6 +91,7 @@ export interface VectorIndexConfig {
 export interface CollectionConfig {
   name: string;
   description?: string;
+  generative?: GenerativeConfig;
   invertedIndex?: InvertedIndexConfig;
   multiTenancy?: MultiTenancyConfig;
   properties?: PropertyConfig[];
@@ -100,75 +101,199 @@ export interface CollectionConfig {
   vectorizer?: VectorizerConfig;
 }
 
-interface Img2VecNeural {
-  'img2vec-neural': {
-    imageFields?: string[];
-  };
+export interface Img2VecNeuralArgs {
+  imageFields?: string[];
+}
+export interface Img2VecNeuralConfig {
+  'img2vec-neural': Img2VecNeuralArgs;
 }
 
-interface Multi2VecClip {
-  'multi2vec-clip': {
-    imageFields?: string[];
-    textFields?: string[];
-    vectorizeClassName?: boolean;
-  };
+export interface Multi2VecClipArgs {
+  imageFields?: string[];
+  textFields?: string[];
+  vectorizeClassName?: boolean;
+}
+export interface Multi2VecClipConfig {
+  'multi2vec-clip': Multi2VecClipArgs;
 }
 
-interface Multi2VecBind {
-  'multi2vec-bind': {
-    audioFields?: string[];
-    depthFields?: string[];
-    imageFields?: string[];
-    IMUFields?: string[];
-    textFields?: string[];
-    thermalFields?: string[];
-    videoFields?: string[];
-    vectorizeClassName?: boolean;
-  };
+export interface Multi2VecBindArgs {
+  audioFields?: string[];
+  depthFields?: string[];
+  imageFields?: string[];
+  IMUFields?: string[];
+  textFields?: string[];
+  thermalFields?: string[];
+  videoFields?: string[];
+  vectorizeClassName?: boolean;
+}
+export interface Multi2VecBindConfig {
+  'multi2vec-bind': Multi2VecBindArgs;
 }
 
-interface Ref2VecCentroid {
-  'ref2vec-centroid': {
-    referenceProperties: string[];
-    method: 'mean';
-  };
+export interface Ref2VecCentroidArgs {
+  referenceProperties: string[];
+  method: 'mean';
+}
+export interface Ref2VecCentroidConfig {
+  'ref2vec-centroid': Ref2VecCentroidArgs;
 }
 
-interface Text2VecContextionary {
-  'text2vec-contextionary': {
-    vectorizeClassName?: boolean;
-  };
+export interface Text2VecContextionaryArgs {
+  vectorizeClassName?: boolean;
+}
+export interface Text2VecContextionaryConfig {
+  'text2vec-contextionary': Text2VecContextionaryArgs;
 }
 
-interface Text2VecOpenAIConfig {
-  'text2vec-openai': {
-    model?: 'ada' | 'babbage' | 'curie' | 'davinci';
-    modelVersion?: string;
-    type?: 'text' | 'code';
-    vectorizeClassName?: boolean;
-  };
+export interface Text2VecOpenAIArgs {
+  model?: 'ada' | 'babbage' | 'curie' | 'davinci';
+  modelVersion?: string;
+  type?: 'text' | 'code';
+  vectorizeClassName?: boolean;
+}
+export interface Text2VecOpenAIConfig {
+  'text2vec-openai': Text2VecOpenAIArgs;
 }
 
-interface Text2VecCohere {
-  'text2vec-cohere': {
-    model?:
-      | 'embed-multilingual-v2.0'
-      | 'small'
-      | 'medium'
-      | 'large'
-      | 'multilingual-22-12'
-      | 'embed-english-v2.0'
-      | 'embed-english-light-v2.0';
-    truncate?: 'RIGHT' | 'NONE';
-    vectorizeClassName?: boolean;
-  };
+export interface Text2VecCohereArgs {
+  model?:
+    | 'embed-multilingual-v2.0'
+    | 'small'
+    | 'medium'
+    | 'large'
+    | 'multilingual-22-12'
+    | 'embed-english-v2.0'
+    | 'embed-english-light-v2.0';
+  truncate?: 'RIGHT' | 'NONE';
+  vectorizeClassName?: boolean;
+}
+export interface Text2VecCohereConfig {
+  'text2vec-cohere': Text2VecCohereArgs;
 }
 
 export type VectorizerConfig =
-  | Img2VecNeural
-  | Multi2VecClip
-  | Multi2VecBind
-  | Ref2VecCentroid
-  | Text2VecContextionary
-  | Text2VecCohere
+  | Img2VecNeuralConfig
+  | Multi2VecClipConfig
+  | Multi2VecBindConfig
+  | Ref2VecCentroidConfig
+  | Text2VecContextionaryConfig
+  | Text2VecCohereConfig
   | Text2VecOpenAIConfig;
+
+interface GenerativeOpenAIArgsBase {
+  frequencyPenaltyProperty?: number;
+  presencePenaltyProperty?: number;
+  maxTokensProperty?: number;
+  temperatureProperty?: number;
+  topPProperty?: number;
+}
+
+export interface GenerativeOpenAIArgs extends GenerativeOpenAIArgsBase {
+  model?: string;
+}
+export interface GenerativeOpenAIConfig {
+  'generative-openai': GenerativeOpenAIArgs;
+}
+
+export interface GenerativeAzureOpenAIArgs extends GenerativeOpenAIArgsBase {
+  resourceName: string;
+  deploymentId: string;
+}
+export interface GenerativeAzureOpenAIConfig {
+  'generative-openai': GenerativeAzureOpenAIArgs;
+}
+
+export interface GenerativeCohereArgs {
+  kProperty?: number;
+  model?: string;
+  maxTokensProperty?: number;
+  returnLikelihoodsProperty?: string;
+  stopSequencesProperty?: string[];
+  temperatureProperty?: number;
+}
+export interface GenerativeCohereConfig {
+  'generative-cohere': GenerativeCohereArgs;
+}
+
+export interface GenerativePaLMArgs {
+  apiEndpoint?: string;
+  maxOutputTokens?: number;
+  modelId?: string;
+  projectId: string;
+  temperature?: number;
+  topK?: number;
+  topP?: number;
+}
+export interface GenerativePaLMConfig {
+  'generative-palm': GenerativePaLMArgs;
+}
+
+export type GenerativeConfig =
+  | GenerativeAzureOpenAIConfig
+  | GenerativeOpenAIConfig
+  | GenerativeCohereConfig
+  | GenerativePaLMConfig;
+
+export interface MetadataQuery {
+  uuid?: boolean;
+  vector?: boolean;
+  creationTimeUnix?: boolean;
+  lastUpdateTimeUnix?: boolean;
+  distance?: boolean;
+  certainty?: boolean;
+  score?: boolean;
+  explainScore?: boolean;
+  isConsistent?: boolean;
+}
+
+export type MetadataReturn = {
+  uuid?: string;
+  vector?: number[];
+  creationTimeUnix?: number;
+  lastUpdateTimeUnix?: number;
+  distance?: number;
+  certainty?: number;
+  score?: number;
+  explainScore?: string;
+  isConsistent?: boolean;
+};
+
+export type WeaviateObject<T> = {
+  properties: T;
+  metadata: MetadataReturn;
+};
+
+export type QueryReturn<T> = {
+  objects: WeaviateObject<T>[];
+};
+
+export interface RefProperty {
+  type: 'ref';
+  linkOn: string;
+  returnProperties: Property[];
+  returnMetadata: MetadataQuery;
+}
+
+export interface MultiRefProperty {
+  type: 'multi-ref';
+  linkOn: string;
+  returnProperties: Property[];
+  returnMetadata: MetadataQuery;
+  targetCollection: string;
+}
+
+export interface NestedProperty {
+  type: 'nested';
+  name: string;
+  properties: NonRefProperty[];
+}
+
+export type Property = 'string' | RefProperty | MultiRefProperty | NestedProperty;
+export type NonRefProperty = 'string' | NestedProperty;
+export type NonPrimitiveProperty = RefProperty | MultiRefProperty | NestedProperty;
+
+export interface SortBy {
+  property: string;
+  ascending?: boolean;
+}

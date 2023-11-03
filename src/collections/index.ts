@@ -9,12 +9,21 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
     create: (config: CollectionConfig) => {
       const { name, invertedIndex, multiTenancy, replication, sharding, vectorIndex, ...rest } = config;
       const vectorizer = config.vectorizer ? Object.keys(config.vectorizer)[0] : undefined;
+
+      let moduleConfig: any;
+      if (config.vectorizer) {
+        moduleConfig = config.vectorizer;
+      }
+      if (config.generative) {
+        moduleConfig = { ...moduleConfig, ...config.generative };
+      }
+
       const schema = {
         ...rest,
         class: name,
         vectorizer: vectorizer || 'none',
         invertedIndexConfig: invertedIndex,
-        moduleConfig: config.vectorizer,
+        moduleConfig: moduleConfig,
         multiTenancyConfig: multiTenancy,
         properties: config.properties?.map((prop) => {
           const { skipVectorisation, vectorizePropertyName, ...rest } = prop;

@@ -1,38 +1,54 @@
 /* eslint-disable */
-import _m0 from "protobufjs/minimal";
+import type { CallContext, CallOptions } from "nice-grpc-common";
 import { BatchObjectsReply, BatchObjectsRequest } from "./batch";
 import { SearchReply, SearchRequest } from "./search_get";
 
 export const protobufPackage = "weaviate.v1";
 
-export interface Weaviate {
-  Search(request: SearchRequest): Promise<SearchReply>;
-  BatchObjects(request: BatchObjectsRequest): Promise<BatchObjectsReply>;
+export type WeaviateDefinition = typeof WeaviateDefinition;
+export const WeaviateDefinition = {
+  name: "Weaviate",
+  fullName: "weaviate.v1.Weaviate",
+  methods: {
+    search: {
+      name: "Search",
+      requestType: SearchRequest,
+      requestStream: false,
+      responseType: SearchReply,
+      responseStream: false,
+      options: {},
+    },
+    batchObjects: {
+      name: "BatchObjects",
+      requestType: BatchObjectsRequest,
+      requestStream: false,
+      responseType: BatchObjectsReply,
+      responseStream: false,
+      options: {},
+    },
+  },
+} as const;
+
+export interface WeaviateServiceImplementation<CallContextExt = {}> {
+  search(request: SearchRequest, context: CallContext & CallContextExt): Promise<DeepPartial<SearchReply>>;
+  batchObjects(
+    request: BatchObjectsRequest,
+    context: CallContext & CallContextExt,
+  ): Promise<DeepPartial<BatchObjectsReply>>;
 }
 
-export const WeaviateServiceName = "weaviate.v1.Weaviate";
-export class WeaviateClientImpl implements Weaviate {
-  private readonly rpc: Rpc;
-  private readonly service: string;
-  constructor(rpc: Rpc, opts?: { service?: string }) {
-    this.service = opts?.service || WeaviateServiceName;
-    this.rpc = rpc;
-    this.Search = this.Search.bind(this);
-    this.BatchObjects = this.BatchObjects.bind(this);
-  }
-  Search(request: SearchRequest): Promise<SearchReply> {
-    const data = SearchRequest.encode(request).finish();
-    const promise = this.rpc.request(this.service, "Search", data);
-    return promise.then((data) => SearchReply.decode(_m0.Reader.create(data)));
-  }
-
-  BatchObjects(request: BatchObjectsRequest): Promise<BatchObjectsReply> {
-    const data = BatchObjectsRequest.encode(request).finish();
-    const promise = this.rpc.request(this.service, "BatchObjects", data);
-    return promise.then((data) => BatchObjectsReply.decode(_m0.Reader.create(data)));
-  }
+export interface WeaviateClient<CallOptionsExt = {}> {
+  search(request: DeepPartial<SearchRequest>, options?: CallOptions & CallOptionsExt): Promise<SearchReply>;
+  batchObjects(
+    request: DeepPartial<BatchObjectsRequest>,
+    options?: CallOptions & CallOptionsExt,
+  ): Promise<BatchObjectsReply>;
 }
 
-interface Rpc {
-  request(service: string, method: string, data: Uint8Array): Promise<Uint8Array>;
-}
+type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
+
+export type DeepPartial<T> = T extends Builtin ? T
+  : T extends globalThis.Array<infer U> ? globalThis.Array<DeepPartial<U>>
+  : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
+  : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
+  : Partial<T>;

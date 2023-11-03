@@ -25,13 +25,17 @@ const data = <T extends Record<string, any>>(
   const path = new ObjectsPath(dbVersionSupport);
 
   return {
-    insert: (object: InsertObject<T>) =>
+    insert: (object: InsertObject<T>): Promise<string> =>
       path
         .buildCreate(consistencyLevel)
         .then((path) =>
-          connection.postReturn<WeaviateObject<T>, WeaviateObject<T>>(path, { class: name, ...object })
+          connection.postReturn<WeaviateObject<T>, Required<WeaviateObject<T>>>(path, {
+            class: name,
+            tenant: tenant,
+            ...object,
+          })
         )
-        .then((obj) => obj.id!),
+        .then((obj) => obj.id),
   };
 };
 

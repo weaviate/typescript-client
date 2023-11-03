@@ -9,6 +9,7 @@ describe('Testing of the query methods', () => {
   const client = weaviate.client({
     scheme: 'http',
     host: 'localhost:8080',
+    grpcAddress: 'localhost:50051',
   });
 
   const className = 'TestCollectionQuery';
@@ -37,9 +38,15 @@ describe('Testing of the query methods', () => {
 
   it('should fetch an object by its id', async () => {
     const collection = client.collections.get<TestCollectionQuery>(className);
-    const object = await collection.query.fetchById(id);
-    expect(object.class).toEqual(className);
-    expect(object.id).toEqual(id);
-    expect(object.properties?.testProp).toEqual('test');
+    const object = await collection.query.fetchObjectById({ id });
+    expect(object.properties.testProp).toEqual('test');
+    expect(object.metadata.uuid).toEqual(id);
+  });
+
+  it('should fetch all objects with no options', async () => {
+    const collection = client.collections.get<TestCollectionQuery>(className);
+    const ret = await collection.query.fetchObjects();
+    expect(ret.objects.length).toEqual(1);
+    expect(ret.objects[0].properties.testProp).toEqual('test');
   });
 });

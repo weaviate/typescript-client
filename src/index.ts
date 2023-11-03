@@ -25,6 +25,7 @@ export interface ConnectionParams {
   host: string;
   scheme?: string;
   headers?: HeadersInit;
+  grpcAddress?: string;
 }
 
 export interface WeaviateClient {

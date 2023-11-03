@@ -3,6 +3,7 @@ import OpenidConfigurationGetter from '../misc/openidConfigurationGetter';
 
 import httpClient, { HttpClient } from './httpClient';
 import gqlClient, { GraphQLClient } from './gqlClient';
+import grpcClient, { GrpcClient, Search } from './grpcClient';
 import { ConnectionParams } from '..';
 import { Variables } from 'graphql-request';
 
@@ -12,6 +13,7 @@ export default class Connection {
   private gql: GraphQLClient;
   public readonly host: string;
   public readonly http: HttpClient;
+  private grpc?: GrpcClient;
   public oidcAuth?: OidcAuthenticator;
 
   constructor(params: ConnectionParams) {
@@ -19,6 +21,7 @@ export default class Connection {
     this.host = params.host;
     this.http = httpClient(params);
     this.gql = gqlClient(params);
+    this.grpc = grpcClient(params);
     this.authEnabled = this.parseAuthParams(params);
   }
 
@@ -104,6 +107,22 @@ export default class Connection {
       });
     }
     return this.gql.query<V, T>(query, variables);
+  };
+
+  search = (name: string) => {
+    const grpc = this.grpc;
+    if (!grpc) {
+      throw new Error(
+        'gRPC client not initialized, did you forget to set the gRPC address in ConnectionParams?'
+      );
+    }
+    if (this.authEnabled) {
+      return this.login().then((token) => {
+        const headers = { Authorization: `Bearer ${token}` };
+        return grpc.search(name, headers);
+      });
+    }
+    return new Promise<Search>((resolve) => resolve(grpc.search(name)));
   };
 
   login = async () => {

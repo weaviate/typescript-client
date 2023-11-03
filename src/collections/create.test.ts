@@ -1,11 +1,12 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import weaviate from '..';
+import Configure from './configure';
 
 const fail = (msg: string) => {
   throw new Error(msg);
 };
 
-describe('Testing of the collections methods', () => {
+describe('Testing of the collections.create method', () => {
   const cluster = weaviate.client({
     scheme: 'http',
     host: 'localhost:8087',
@@ -17,6 +18,15 @@ describe('Testing of the collections methods', () => {
   const openai = weaviate.client({
     scheme: 'http',
     host: 'localhost:8086',
+  });
+
+  afterAll(async () => {
+    const promises = [
+      cluster.schema.deleteAll(),
+      contextionary.schema.deleteAll(),
+      openai.schema.deleteAll(),
+    ];
+    await Promise.all(promises);
   });
 
   it('should be able to create a simple collection', async () => {
@@ -290,6 +300,29 @@ describe('Testing of the collections methods', () => {
     });
   });
 
+  it('should be able to create a collection with the contextionary vectorizer using Configure.Vectorizer', async () => {
+    const className = 'ThisOneIsATest'; // must include words in contextionary's vocabulary to pass since vectorizeClassName will be true
+    const response = await contextionary.collections.create({
+      name: className,
+      properties: [
+        {
+          name: 'testProp',
+          dataType: ['text'],
+        },
+      ],
+      vectorizer: Configure.Vectorizer.text2VecContextionary(),
+    });
+    expect(response.class).toEqual(className);
+    expect(response.properties?.length).toEqual(1);
+    expect(response.properties?.[0].name).toEqual('testProp');
+    expect(response.properties?.[0].dataType).toEqual(['text']);
+    expect(response.moduleConfig).toEqual({
+      'text2vec-contextionary': {
+        vectorizeClassName: true,
+      },
+    });
+  });
+
   it('should be able to create a collection with the openai vectorizer', async () => {
     const className = 'TestCollectionOpenAIVectorizer';
     const response = await openai.collections.create({
@@ -313,5 +346,47 @@ describe('Testing of the collections methods', () => {
     expect(response.properties?.[0].dataType).toEqual(['text']);
     expect(vectorizer).toBeDefined();
     expect(vectorizer.vectorizeClassName).toEqual(true);
+  });
+
+  it('should be able to create a collection with the openai vectorizer with Configure.Vectorizer', async () => {
+    const className = 'TestCollectionOpenAIVectorizerWithConfigureVectorizer';
+    const response = await openai.collections.create({
+      name: className,
+      properties: [
+        {
+          name: 'testProp',
+          dataType: ['text'],
+        },
+      ],
+      vectorizer: Configure.Vectorizer.text2VecOpenAI(),
+    });
+    const vectorizer: any = response.moduleConfig?.['text2vec-openai'];
+    expect(response.class).toEqual(className);
+    expect(response.properties?.length).toEqual(1);
+    expect(response.properties?.[0].name).toEqual('testProp');
+    expect(response.properties?.[0].dataType).toEqual(['text']);
+    expect(vectorizer).toBeDefined();
+    expect(vectorizer.vectorizeClassName).toEqual(true);
+  });
+
+  it('should be able to create a collection with the openai generative with Configure.Generative', async () => {
+    const className = 'TestCollectionOpenAIGenerativeWithConfigureGenerative';
+    const response = await openai.collections.create({
+      name: className,
+      properties: [
+        {
+          name: 'testProp',
+          dataType: ['text'],
+        },
+      ],
+      generative: Configure.Generative.openai(),
+    });
+    const generative: any = response.moduleConfig?.['generative-openai'];
+    expect(response.class).toEqual(className);
+    expect(response.properties?.length).toEqual(1);
+    expect(response.properties?.[0].name).toEqual('testProp');
+    expect(response.properties?.[0].dataType).toEqual(['text']);
+    expect(generative).toBeDefined();
+    expect(generative).toEqual({});
   });
 });
