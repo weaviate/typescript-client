@@ -4,7 +4,7 @@ import { createChannel, createClient } from 'nice-grpc';
 
 import { WeaviateDefinition, WeaviateClient } from '../proto/v1/weaviate';
 
-import SearchClient, { Search } from '../grpc/search';
+import Searcher, { Search } from '../grpc/searcher';
 
 export interface GrpcClient {
   search: (
@@ -22,6 +22,6 @@ export default (config: ConnectionParams): GrpcClient | undefined => {
   const client: WeaviateClient = createClient(WeaviateDefinition, createChannel(config.grpcAddress));
   return {
     search: (name: string, consistencyLevel?: ConsistencyLevel, tenant?: string, headers?: HeadersInit) =>
-      SearchClient.use(client, name, consistencyLevel, tenant),
+      Searcher.use(client, name, consistencyLevel, tenant),
   };
 };

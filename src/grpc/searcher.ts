@@ -35,33 +35,61 @@ export interface SearchFetchArgs {
   generative?: GenerativeSearch;
 }
 
-export interface SearchBm25Args {
-  bm25: BM25;
+interface BaseSearchArgs {
   limit?: number;
   autocut?: number;
   filters?: Filters;
   returnMetadata?: MetadataRequest;
   returnProperties?: PropertiesRequest;
   generative?: GenerativeSearch;
+  groupBy?: GroupBy;
 }
 
-export interface SearchHybridArgs {
+export interface SearchBm25Args extends BaseSearchArgs {
+  bm25: BM25;
+}
+
+export interface SearchHybridArgs extends BaseSearchArgs {
   hybrid: Hybrid;
-  limit?: number;
-  autocut?: number;
-  filters?: Filters;
-  returnMetadata?: MetadataRequest;
-  returnProperties?: PropertiesRequest;
-  generative?: GenerativeSearch;
+}
+
+export interface SearchNearAudioArgs extends BaseSearchArgs {
+  nearAudio: NearAudioSearch;
+}
+
+export interface SearchNearImageArgs extends BaseSearchArgs {
+  nearImage: NearImageSearch;
+}
+
+export interface SearchNearObjectArgs extends BaseSearchArgs {
+  nearObject: NearObject;
+}
+
+export interface SearchNearTextArgs extends BaseSearchArgs {
+  nearText: NearTextSearch;
+}
+
+export interface SearchNearVectorArgs extends BaseSearchArgs {
+  nearVector: NearVector;
+}
+
+export interface SearchNearVideoArgs extends BaseSearchArgs {
+  nearVideo: NearVideoSearch;
 }
 
 export interface Search {
   withFetch: (args: SearchFetchArgs) => Promise<SearchReply>;
   withBm25: (args: SearchBm25Args) => Promise<SearchReply>;
   withHybrid: (args: SearchHybridArgs) => Promise<SearchReply>;
+  withNearAudio: (args: SearchNearAudioArgs) => Promise<SearchReply>;
+  withNearImage: (args: SearchNearImageArgs) => Promise<SearchReply>;
+  withNearObject: (args: SearchNearObjectArgs) => Promise<SearchReply>;
+  withNearText: (args: SearchNearTextArgs) => Promise<SearchReply>;
+  withNearVector: (args: SearchNearVectorArgs) => Promise<SearchReply>;
+  withNearVideo: (args: SearchNearVideoArgs) => Promise<SearchReply>;
 }
 
-export default class SearchClient implements Search {
+export default class Searcher implements Search {
   private connection: WeaviateClient;
   private name: string;
   private consistencyLevel?: ConsistencyLevelGrpc;
@@ -85,12 +113,18 @@ export default class SearchClient implements Search {
     consistencyLevel?: ConsistencyLevel,
     tenant?: string
   ): Search {
-    return new SearchClient(connection, name, consistencyLevel, tenant);
+    return new Searcher(connection, name, consistencyLevel, tenant);
   }
 
   public withFetch = (args: SearchFetchArgs) => this.call(SearchRequest.fromPartial(args));
   public withBm25 = (args: SearchBm25Args) => this.call(SearchRequest.fromPartial(args));
   public withHybrid = (args: SearchHybridArgs) => this.call(SearchRequest.fromPartial(args));
+  public withNearAudio = (args: SearchNearAudioArgs) => this.call(SearchRequest.fromPartial(args));
+  public withNearImage = (args: SearchNearImageArgs) => this.call(SearchRequest.fromPartial(args));
+  public withNearObject = (args: SearchNearObjectArgs) => this.call(SearchRequest.fromPartial(args));
+  public withNearText = (args: SearchNearTextArgs) => this.call(SearchRequest.fromPartial(args));
+  public withNearVector = (args: SearchNearVectorArgs) => this.call(SearchRequest.fromPartial(args));
+  public withNearVideo = (args: SearchNearVideoArgs) => this.call(SearchRequest.fromPartial(args));
 
   private call(message: SearchRequest) {
     return this.connection.search({

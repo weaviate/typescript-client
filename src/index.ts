@@ -18,6 +18,7 @@ import {
 } from './connection/auth';
 import MetaGetter from './misc/metaGetter';
 import collections, { Collections } from './collections';
+import Configure from './collections/configure';
 
 export interface ConnectionParams {
   authClientSecret?: AuthClientCredentials | AuthAccessTokenCredentials | AuthUserPasswordCredentials;
@@ -76,6 +77,7 @@ const app = {
   AuthUserPasswordCredentials,
   AuthAccessTokenCredentials,
   AuthClientCredentials,
+  Configure,
 };
 
 function initDbVersionProvider(conn: Connection) {

@@ -4,7 +4,7 @@ import OpenidConfigurationGetter from '../misc/openidConfigurationGetter';
 import httpClient, { HttpClient } from './httpClient';
 import gqlClient, { GraphQLClient } from './gqlClient';
 import grpcClient, { GrpcClient } from './grpcClient';
-import { Search } from '../grpc/search';
+import { Search } from '../grpc/searcher';
 import { ConnectionParams, ConsistencyLevel } from '..';
 import { Variables } from 'graphql-request';
 

@@ -13,7 +13,7 @@ import { MetadataQuery, WeaviateObject, Property, QueryReturn, SortBy } from './
 
 export interface FetchObjectByIdArgs {
   id: string;
-  additional?: string[];
+  includeVector?: boolean;
 }
 
 export interface FetchObjectsArgs {
@@ -26,14 +26,62 @@ export interface FetchObjectsArgs {
   returnProperties?: Property[];
 }
 
-export interface Bm25Args {
-  query: string;
-  queryProperties?: string[];
+export interface QueryArgs {
   limit?: number;
   autoLimit?: number;
   filters?: Filters<FilterValueType>;
   returnMetadata?: MetadataQuery;
   returnProperties?: Property[];
+}
+
+export interface Bm25Args extends QueryArgs {
+  query: string;
+  queryProperties?: string[];
+}
+
+export interface HybridArgs extends QueryArgs {
+  query: string;
+  alpha?: number;
+  vector?: number[];
+  queryProperties?: string[];
+  fusionType?: 'Ranked' | 'RelativeScore';
+}
+
+export interface NearMediaArgs extends QueryArgs {
+  certainty?: number;
+  distance?: number;
+}
+
+export interface NearAudioArgs extends NearMediaArgs {
+  nearAudio: string;
+}
+
+export interface NearImageArgs extends NearMediaArgs {
+  nearImage: string;
+}
+
+export interface NearObjectArgs extends NearMediaArgs {
+  nearObject: string;
+}
+
+export interface MoveArgs {
+  force: number;
+  objects?: string[];
+  concepts?: string[];
+}
+
+export interface NearTextArgs extends NearMediaArgs {
+  query: string | string[];
+  moveTo?: MoveArgs;
+  moveAway?: MoveArgs;
+}
+
+export interface NearVectorArgs extends NearMediaArgs {
+  nearVector: number[];
+}
+
+export interface NearVideoArgs extends NearMediaArgs {
+  nearVideo: string;
 }
 
 const query = <T extends Record<string, any>>(
@@ -47,14 +95,7 @@ const query = <T extends Record<string, any>>(
   return {
     fetchObjectById: (args: FetchObjectByIdArgs): Promise<WeaviateObject<T>> =>
       path
-        .buildGetOne(
-          args.id,
-          name,
-          args.additional ? args.additional : [],
-          consistencyLevel,
-          undefined,
-          tenant
-        )
+        .buildGetOne(args.id, name, args.includeVector ? ['vector'] : [], consistencyLevel, undefined, tenant)
         .then((path) => connection.get(path))
         .then((res: Required<WeaviateObjectRest<T>>) => {
           return {
@@ -75,6 +116,34 @@ const query = <T extends Record<string, any>>(
       connection.search(name).then((search) => {
         return search.withBm25(Serialize.bm25(args)).then(Deserialize.replyQuery<T>);
       }),
+    hybrid: (args: HybridArgs): Promise<QueryReturn<T>> =>
+      connection.search(name).then((search) => {
+        return search.withHybrid(Serialize.hybrid(args)).then(Deserialize.replyQuery<T>);
+      }),
+    nearAudio: (args: NearAudioArgs): Promise<QueryReturn<T>> =>
+      connection.search(name).then((search) => {
+        return search.withNearAudio(Serialize.nearAudio(args)).then(Deserialize.replyQuery<T>);
+      }),
+    nearImage: (args: NearImageArgs): Promise<QueryReturn<T>> =>
+      connection.search(name).then((search) => {
+        return search.withNearImage(Serialize.nearImage(args)).then(Deserialize.replyQuery<T>);
+      }),
+    nearObject: (args: NearObjectArgs): Promise<QueryReturn<T>> =>
+      connection.search(name).then((search) => {
+        return search.withNearObject(Serialize.nearObject(args)).then(Deserialize.replyQuery<T>);
+      }),
+    nearText: (args: NearTextArgs): Promise<QueryReturn<T>> =>
+      connection.search(name).then((search) => {
+        return search.withNearText(Serialize.nearText(args)).then(Deserialize.replyQuery<T>);
+      }),
+    nearVector: (args: NearVectorArgs): Promise<QueryReturn<T>> =>
+      connection.search(name).then((search) => {
+        return search.withNearVector(Serialize.nearVector(args)).then(Deserialize.replyQuery<T>);
+      }),
+    nearVideo: (args: NearVideoArgs): Promise<QueryReturn<T>> =>
+      connection.search(name).then((search) => {
+        return search.withNearVideo(Serialize.nearVideo(args)).then(Deserialize.replyQuery<T>);
+      }),
   };
 };
 
@@ -82,6 +151,13 @@ export interface Query<T extends Record<string, any>> {
   fetchObjectById: (args: FetchObjectByIdArgs) => Promise<WeaviateObject<T>>;
   fetchObjects: (args?: FetchObjectsArgs) => Promise<QueryReturn<T>>;
   bm25: (args: Bm25Args) => Promise<QueryReturn<T>>;
+  hybrid: (args: HybridArgs) => Promise<QueryReturn<T>>;
+  nearAudio: (args: NearAudioArgs) => Promise<QueryReturn<T>>;
+  nearImage: (args: NearImageArgs) => Promise<QueryReturn<T>>;
+  nearObject: (args: NearObjectArgs) => Promise<QueryReturn<T>>;
+  nearText: (args: NearTextArgs) => Promise<QueryReturn<T>>;
+  nearVector: (args: NearVectorArgs) => Promise<QueryReturn<T>>;
+  nearVideo: (args: NearVideoArgs) => Promise<QueryReturn<T>>;
 }
 
 export default query;
