@@ -1,28 +1,27 @@
 import { ConsistencyLevel } from '..';
 
 import { WeaviateClient } from '../proto/v1/weaviate';
-import { ConsistencyLevel as ConsistencyLevelGrpc } from '../proto/v1/base';
 import {
   BM25,
   Filters,
   GenerativeSearch,
   GroupBy,
   Hybrid,
-  Hybrid_FusionType,
   MetadataRequest,
   NearAudioSearch,
   NearImageSearch,
   NearObject,
   NearTextSearch,
-  NearTextSearch_Move,
   NearVector,
   NearVideoSearch,
-  ObjectPropertiesRequest,
   PropertiesRequest,
   SearchReply,
   SearchRequest,
   SortBy,
 } from '../proto/v1/search_get';
+import { Metadata } from 'nice-grpc';
+
+import Base from './base';
 
 export interface SearchFetchArgs {
   limit?: number;
@@ -30,17 +29,18 @@ export interface SearchFetchArgs {
   after?: string;
   filters?: Filters;
   sort?: SortBy[];
-  returnMetadata?: MetadataRequest;
-  returnProperties?: PropertiesRequest;
+  metadata?: MetadataRequest;
+  properties?: PropertiesRequest;
   generative?: GenerativeSearch;
+  groupBy?: GroupBy;
 }
 
 interface BaseSearchArgs {
   limit?: number;
   autocut?: number;
   filters?: Filters;
-  returnMetadata?: MetadataRequest;
-  returnProperties?: PropertiesRequest;
+  metadata?: MetadataRequest;
+  properties?: PropertiesRequest;
   generative?: GenerativeSearch;
   groupBy?: GroupBy;
 }
@@ -89,31 +89,15 @@ export interface Search {
   withNearVideo: (args: SearchNearVideoArgs) => Promise<SearchReply>;
 }
 
-export default class Searcher implements Search {
-  private connection: WeaviateClient;
-  private name: string;
-  private consistencyLevel?: ConsistencyLevelGrpc;
-  private tenant?: string;
-
-  private constructor(
-    connection: WeaviateClient,
-    name: string,
-    consistencyLevel?: ConsistencyLevel,
-    tenant?: string
-  ) {
-    this.connection = connection;
-    this.name = name;
-    this.consistencyLevel = this.mapConsistencyLevel(consistencyLevel);
-    this.tenant = tenant;
-  }
-
+export default class Searcher extends Base implements Search {
   public static use(
     connection: WeaviateClient,
     name: string,
+    metadata: Metadata,
     consistencyLevel?: ConsistencyLevel,
     tenant?: string
   ): Search {
-    return new Searcher(connection, name, consistencyLevel, tenant);
+    return new Searcher(connection, name, metadata, consistencyLevel, tenant);
   }
 
   public withFetch = (args: SearchFetchArgs) => this.call(SearchRequest.fromPartial(args));
@@ -127,24 +111,16 @@ export default class Searcher implements Search {
   public withNearVideo = (args: SearchNearVideoArgs) => this.call(SearchRequest.fromPartial(args));
 
   private call(message: SearchRequest) {
-    return this.connection.search({
-      ...message,
-      collection: this.name,
-      consistencyLevel: this.consistencyLevel,
-      tenant: this.tenant,
-    });
-  }
-
-  private mapConsistencyLevel(consistencyLevel?: ConsistencyLevel): ConsistencyLevelGrpc {
-    switch (consistencyLevel) {
-      case 'ALL':
-        return ConsistencyLevelGrpc.CONSISTENCY_LEVEL_ALL;
-      case 'QUORUM':
-        return ConsistencyLevelGrpc.CONSISTENCY_LEVEL_QUORUM;
-      case 'ONE':
-        return ConsistencyLevelGrpc.CONSISTENCY_LEVEL_ONE;
-      default:
-        return ConsistencyLevelGrpc.CONSISTENCY_LEVEL_UNSPECIFIED;
-    }
+    return this.connection.search(
+      {
+        ...message,
+        collection: this.name,
+        consistencyLevel: this.consistencyLevel,
+        tenant: this.tenant,
+      },
+      {
+        metadata: this.metadata,
+      }
+    );
   }
 }

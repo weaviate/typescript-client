@@ -3,10 +3,13 @@ import OpenidConfigurationGetter from '../misc/openidConfigurationGetter';
 
 import httpClient, { HttpClient } from './httpClient';
 import gqlClient, { GraphQLClient } from './gqlClient';
-import grpcClient, { GrpcClient } from './grpcClient';
-import { Search } from '../grpc/searcher';
 import { ConnectionParams, ConsistencyLevel } from '..';
 import { Variables } from 'graphql-request';
+
+import { Metadata } from 'nice-grpc';
+import grpcClient, { GrpcClient } from './grpcClient';
+import { Search } from '../grpc/searcher';
+import { Batch } from '../grpc/batcher';
 
 export default class Connection {
   private apiKey?: string;
@@ -119,11 +122,25 @@ export default class Connection {
     }
     if (this.authEnabled) {
       return this.login().then((token) => {
-        const headers = { Authorization: `Bearer ${token}` };
-        return grpc.search(name, consistencyLevel, tenant, headers);
+        return grpc.search(name, consistencyLevel, tenant, `Bearer ${token}`);
       });
     }
     return new Promise<Search>((resolve) => resolve(grpc.search(name, consistencyLevel, tenant)));
+  };
+
+  batch = (consistencyLevel?: ConsistencyLevel) => {
+    const grpc = this.grpc;
+    if (!grpc) {
+      throw new Error(
+        'gRPC client not initialized, did you forget to set the gRPC address in ConnectionParams?'
+      );
+    }
+    if (this.authEnabled) {
+      return this.login().then((token) => {
+        return grpc.batch(consistencyLevel, `Bearer ${token}`);
+      });
+    }
+    return new Promise<Batch>((resolve) => resolve(grpc.batch(consistencyLevel)));
   };
 
   login = async () => {

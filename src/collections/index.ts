@@ -2,7 +2,7 @@ import Connection from '../connection';
 import { DbVersionSupport } from '../utils/dbVersion';
 import collection, { Collection } from './collection';
 import { WeaviateClass } from '../openapi/types';
-import { CollectionConfig } from './types';
+import { CollectionConfig, Properties } from './types';
 
 const collections = (connection: Connection, dbVersionSupport: DbVersionSupport) => {
   return {
@@ -45,14 +45,14 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
       };
       return connection.postReturn<any, WeaviateClass>('/schema', schema);
     },
-    get: <TProperties extends Record<string, any>>(name: string) =>
+    get: <TProperties extends Properties>(name: string) =>
       collection<TProperties>(connection, name, dbVersionSupport),
   };
 };
 
 export interface Collections {
   create(class_: CollectionConfig): Promise<WeaviateClass>;
-  get<TProperties extends Record<string, any>>(name: string): Collection<TProperties>;
+  get<TProperties extends Properties>(name: string): Collection<TProperties>;
 }
 
 export default collections;

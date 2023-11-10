@@ -1,17 +1,19 @@
 import { ConnectionParams, ConsistencyLevel } from '..';
 
-import { createChannel, createClient } from 'nice-grpc';
+import { createChannel, createClient, Metadata } from 'nice-grpc';
 
 import { WeaviateDefinition, WeaviateClient } from '../proto/v1/weaviate';
 
+import Batcher, { Batch } from '../grpc/batcher';
 import Searcher, { Search } from '../grpc/searcher';
 
 export interface GrpcClient {
+  batch: (consistencyLevel?: ConsistencyLevel, bearerToken?: string) => Batch;
   search: (
     name: string,
     consistencyLevel?: ConsistencyLevel,
     tenant?: string,
-    headers?: HeadersInit
+    bearerToken?: string
   ) => Search;
 }
 
@@ -21,7 +23,19 @@ export default (config: ConnectionParams): GrpcClient | undefined => {
   }
   const client: WeaviateClient = createClient(WeaviateDefinition, createChannel(config.grpcAddress));
   return {
-    search: (name: string, consistencyLevel?: ConsistencyLevel, tenant?: string, headers?: HeadersInit) =>
-      Searcher.use(client, name, consistencyLevel, tenant),
+    batch: (consistencyLevel?: ConsistencyLevel, bearerToken?: string) =>
+      Batcher.use(
+        client,
+        new Metadata(bearerToken ? { ...config.headers, authorization: bearerToken } : config.headers),
+        consistencyLevel
+      ),
+    search: (name: string, consistencyLevel?: ConsistencyLevel, tenant?: string, bearerToken?: string) =>
+      Searcher.use(
+        client,
+        name,
+        new Metadata(bearerToken ? { ...config.headers, authorization: bearerToken } : config.headers),
+        consistencyLevel,
+        tenant
+      ),
   };
 };

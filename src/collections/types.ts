@@ -1,3 +1,6 @@
+import { BatchReference } from '../openapi/types';
+import { Operator } from './filters';
+
 export type DataType =
   | 'int'
   | 'int[]'
@@ -235,17 +238,17 @@ export type GenerativeConfig =
   | GenerativeCohereConfig
   | GenerativePaLMConfig;
 
-export interface MetadataQuery {
-  uuid?: boolean;
-  vector?: boolean;
-  creationTimeUnix?: boolean;
-  lastUpdateTimeUnix?: boolean;
-  distance?: boolean;
-  certainty?: boolean;
-  score?: boolean;
-  explainScore?: boolean;
-  isConsistent?: boolean;
-}
+export type MetadataQuery = (
+  | 'uuid'
+  | 'vector'
+  | 'creationTimeUnix'
+  | 'lastUpdateTimeUnix'
+  | 'distance'
+  | 'certainty'
+  | 'score'
+  | 'explainScore'
+  | 'isConsistent'
+)[];
 
 export type MetadataReturn = {
   uuid?: string;
@@ -268,32 +271,125 @@ export type QueryReturn<T> = {
   objects: WeaviateObject<T>[];
 };
 
-export interface RefProperty {
+export type GenerateObject<T> = WeaviateObject<T> & {
+  generated?: string;
+};
+
+export type GenerateReturn<T> = {
+  objects: GenerateObject<T>[];
+  generated?: string;
+};
+
+export type GroupByObject<T> = WeaviateObject<T> & {
+  belongsToGroup: string;
+};
+
+export type GroupByResult<T> = {
+  name: string;
+  minDistance: number;
+  maxDistance: number;
+  numberOfObjects: number;
+  objects: WeaviateObject<T>[];
+};
+
+export type GroupByReturn<T> = {
+  objects: GroupByObject<T>[];
+  groups: Record<string, GroupByResult<T>>;
+};
+
+export interface RefProperty<T> {
   type: 'ref';
   linkOn: string;
-  returnProperties: Property[];
-  returnMetadata: MetadataQuery;
+  returnProperties?: Property<T>[];
+  returnMetadata?: MetadataQuery;
 }
 
-export interface MultiRefProperty {
+export interface MultiRefProperty<T> {
   type: 'multi-ref';
   linkOn: string;
-  returnProperties: Property[];
-  returnMetadata: MetadataQuery;
+  returnProperties?: Property<T>[];
+  returnMetadata?: MetadataQuery;
   targetCollection: string;
 }
 
-export interface NestedProperty {
+export interface NestedProperty<T> {
   type: 'nested';
   name: string;
-  properties: NonRefProperty[];
+  properties: NonRefProperty<T>[];
 }
 
-export type Property = 'string' | RefProperty | MultiRefProperty | NestedProperty;
-export type NonRefProperty = 'string' | NestedProperty;
-export type NonPrimitiveProperty = RefProperty | MultiRefProperty | NestedProperty;
+export type Property<T> = keyof T | RefProperty<T> | MultiRefProperty<T> | NestedProperty<T>;
+export type NonRefProperty<T> = keyof T | NestedProperty<T>;
+export type NonPrimitiveProperty<T> = RefProperty<T> | MultiRefProperty<T> | NestedProperty<T>;
 
 export interface SortBy {
   property: string;
   ascending?: boolean;
 }
+
+export type Reference<T> = {
+  objects: WeaviateObject<T>[];
+};
+
+export type Properties = Record<string, any>;
+
+export type FiltersREST = {
+  operator: Operator;
+  operands?: FiltersREST[];
+  path?: string[];
+} & {
+  [Key in AllowedKeys]?: AllowedValues;
+};
+
+type AllowedKeys =
+  | 'valueText'
+  | 'valueDate'
+  | 'valueBoolean'
+  | 'valueNumber'
+  | 'valueInt'
+  | 'valueTextArray'
+  | 'valueDateArray'
+  | 'valueBooleanArray'
+  | 'valueNumberArray'
+  | 'valueIntArray';
+type AllowedValues = string | string[] | boolean | boolean[] | number | number[];
+
+export type DataObject<T> = {
+  uuid?: string;
+  properties: T;
+  vector?: number[];
+};
+
+export type BatchObjectsReturn<T> = {
+  allResponses: (string | ErrorObject<T>)[];
+  elapsedSeconds: number;
+  errors: Record<number, ErrorObject<T>>;
+  hasErrors: boolean;
+  uuids: Record<number, string>;
+};
+
+export type ErrorObject<T> = {
+  code?: number;
+  message: string;
+  object: BatchObject<T>;
+  originalUuid?: string;
+};
+
+export type BatchObject<T> = {
+  collection: string;
+  properties: T;
+  uuid?: string;
+  vector?: number[];
+  tenant?: string;
+};
+
+export type ErrorReference = {
+  message: string;
+  reference: BatchReference;
+};
+
+export type BatchReferencesReturn = {
+  elapsedSeconds: number;
+  errors: Record<number, ErrorReference>;
+  hasErrors: boolean;
+};

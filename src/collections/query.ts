@@ -9,58 +9,58 @@ import { Filters, FilterValueType } from './filters';
 import Deserialize from './deserialize';
 import Serialize from './serialize';
 
-import { MetadataQuery, WeaviateObject, Property, QueryReturn, SortBy } from './types';
+import { MetadataQuery, WeaviateObject, Property, Properties, QueryReturn, SortBy } from './types';
 
 export interface FetchObjectByIdArgs {
   id: string;
   includeVector?: boolean;
 }
 
-export interface FetchObjectsArgs {
+export interface QueryFetchObjectsArgs<T extends Properties> {
   limit?: number;
   offset?: number;
   after?: string;
   filters?: Filters<FilterValueType>;
   sort?: SortBy[];
   returnMetadata?: MetadataQuery;
-  returnProperties?: Property[];
+  returnProperties?: Property<T>[];
 }
 
-export interface QueryArgs {
+export interface QueryArgs<T extends Properties> {
   limit?: number;
   autoLimit?: number;
   filters?: Filters<FilterValueType>;
   returnMetadata?: MetadataQuery;
-  returnProperties?: Property[];
+  returnProperties?: Property<T>[];
 }
 
-export interface Bm25Args extends QueryArgs {
+export interface QueryBm25Args<T extends Properties> extends QueryArgs<T> {
   query: string;
-  queryProperties?: string[];
+  queryProperties?: (keyof T)[];
 }
 
-export interface HybridArgs extends QueryArgs {
+export interface QueryHybridArgs<T extends Properties> extends QueryArgs<T> {
   query: string;
   alpha?: number;
   vector?: number[];
-  queryProperties?: string[];
+  queryProperties?: (keyof T)[];
   fusionType?: 'Ranked' | 'RelativeScore';
 }
 
-export interface NearMediaArgs extends QueryArgs {
+export interface QueryNearMediaArgs<T extends Properties> extends QueryArgs<T> {
   certainty?: number;
   distance?: number;
 }
 
-export interface NearAudioArgs extends NearMediaArgs {
+export interface QueryNearAudioArgs<T extends Properties> extends QueryNearMediaArgs<T> {
   nearAudio: string;
 }
 
-export interface NearImageArgs extends NearMediaArgs {
+export interface QueryNearImageArgs<T extends Properties> extends QueryNearMediaArgs<T> {
   nearImage: string;
 }
 
-export interface NearObjectArgs extends NearMediaArgs {
+export interface QueryNearObjectArgs<T extends Properties> extends QueryNearMediaArgs<T> {
   nearObject: string;
 }
 
@@ -70,94 +70,160 @@ export interface MoveArgs {
   concepts?: string[];
 }
 
-export interface NearTextArgs extends NearMediaArgs {
+export interface QueryNearTextArgs<T extends Properties> extends QueryNearMediaArgs<T> {
   query: string | string[];
   moveTo?: MoveArgs;
   moveAway?: MoveArgs;
 }
 
-export interface NearVectorArgs extends NearMediaArgs {
+export interface QueryNearVectorArgs<T extends Properties> extends QueryNearMediaArgs<T> {
   nearVector: number[];
 }
 
-export interface NearVideoArgs extends NearMediaArgs {
+export interface QueryNearVideoArgs<T extends Properties> extends QueryNearMediaArgs<T> {
   nearVideo: string;
 }
 
-const query = <T extends Record<string, any>>(
-  connection: Connection,
-  name: string,
-  dbVersionSupport: DbVersionSupport,
-  consistencyLevel?: ConsistencyLevel,
-  tenant?: string
-): Query<T> => {
-  const path = new ObjectsPath(dbVersionSupport);
-  return {
-    fetchObjectById: (args: FetchObjectByIdArgs): Promise<WeaviateObject<T>> =>
-      path
-        .buildGetOne(args.id, name, args.includeVector ? ['vector'] : [], consistencyLevel, undefined, tenant)
-        .then((path) => connection.get(path))
-        .then((res: Required<WeaviateObjectRest<T>>) => {
-          return {
-            properties: res.properties,
-            metadata: {
-              uuid: res.id,
-              vector: res.vector,
-              creationTimeUnix: res.creationTimeUnix,
-              lastUpdateTimeUnix: res.lastUpdateTimeUnix,
-            },
-          };
-        }),
-    fetchObjects: (args?: FetchObjectsArgs): Promise<QueryReturn<T>> =>
-      connection.search(name).then((search) => {
-        return search.withFetch(Serialize.fetchObjects(args)).then(Deserialize.replyQuery<T>);
-      }),
-    bm25: (args: Bm25Args): Promise<QueryReturn<T>> =>
-      connection.search(name).then((search) => {
-        return search.withBm25(Serialize.bm25(args)).then(Deserialize.replyQuery<T>);
-      }),
-    hybrid: (args: HybridArgs): Promise<QueryReturn<T>> =>
-      connection.search(name).then((search) => {
-        return search.withHybrid(Serialize.hybrid(args)).then(Deserialize.replyQuery<T>);
-      }),
-    nearAudio: (args: NearAudioArgs): Promise<QueryReturn<T>> =>
-      connection.search(name).then((search) => {
-        return search.withNearAudio(Serialize.nearAudio(args)).then(Deserialize.replyQuery<T>);
-      }),
-    nearImage: (args: NearImageArgs): Promise<QueryReturn<T>> =>
-      connection.search(name).then((search) => {
-        return search.withNearImage(Serialize.nearImage(args)).then(Deserialize.replyQuery<T>);
-      }),
-    nearObject: (args: NearObjectArgs): Promise<QueryReturn<T>> =>
-      connection.search(name).then((search) => {
-        return search.withNearObject(Serialize.nearObject(args)).then(Deserialize.replyQuery<T>);
-      }),
-    nearText: (args: NearTextArgs): Promise<QueryReturn<T>> =>
-      connection.search(name).then((search) => {
-        return search.withNearText(Serialize.nearText(args)).then(Deserialize.replyQuery<T>);
-      }),
-    nearVector: (args: NearVectorArgs): Promise<QueryReturn<T>> =>
-      connection.search(name).then((search) => {
-        return search.withNearVector(Serialize.nearVector(args)).then(Deserialize.replyQuery<T>);
-      }),
-    nearVideo: (args: NearVideoArgs): Promise<QueryReturn<T>> =>
-      connection.search(name).then((search) => {
-        return search.withNearVideo(Serialize.nearVideo(args)).then(Deserialize.replyQuery<T>);
-      }),
-  };
-};
+class QueryManager<T extends Properties> implements Query<T> {
+  connection: Connection;
+  name: string;
+  dbVersionSupport: DbVersionSupport;
+  consistencyLevel?: ConsistencyLevel;
+  tenant?: string;
 
-export interface Query<T extends Record<string, any>> {
-  fetchObjectById: (args: FetchObjectByIdArgs) => Promise<WeaviateObject<T>>;
-  fetchObjects: (args?: FetchObjectsArgs) => Promise<QueryReturn<T>>;
-  bm25: (args: Bm25Args) => Promise<QueryReturn<T>>;
-  hybrid: (args: HybridArgs) => Promise<QueryReturn<T>>;
-  nearAudio: (args: NearAudioArgs) => Promise<QueryReturn<T>>;
-  nearImage: (args: NearImageArgs) => Promise<QueryReturn<T>>;
-  nearObject: (args: NearObjectArgs) => Promise<QueryReturn<T>>;
-  nearText: (args: NearTextArgs) => Promise<QueryReturn<T>>;
-  nearVector: (args: NearVectorArgs) => Promise<QueryReturn<T>>;
-  nearVideo: (args: NearVideoArgs) => Promise<QueryReturn<T>>;
+  private constructor(
+    connection: Connection,
+    name: string,
+    dbVersionSupport: DbVersionSupport,
+    consistencyLevel?: ConsistencyLevel,
+    tenant?: string
+  ) {
+    this.connection = connection;
+    this.name = name;
+    this.dbVersionSupport = dbVersionSupport;
+    this.consistencyLevel = consistencyLevel;
+    this.tenant = tenant;
+  }
+
+  public static use<T extends Properties>(
+    connection: Connection,
+    name: string,
+    dbVersionSupport: DbVersionSupport,
+    consistencyLevel?: ConsistencyLevel,
+    tenant?: string
+  ): QueryManager<T> {
+    return new QueryManager<T>(connection, name, dbVersionSupport, consistencyLevel, tenant);
+  }
+
+  public fetchObjectById(args: FetchObjectByIdArgs): Promise<WeaviateObject<T>> {
+    const path = new ObjectsPath(this.dbVersionSupport);
+    return path
+      .buildGetOne(
+        args.id,
+        this.name,
+        args.includeVector ? ['vector'] : [],
+        this.consistencyLevel,
+        undefined,
+        this.tenant
+      )
+      .then((path) => this.connection.get(path))
+      .then((res: Required<WeaviateObjectRest<T>>) => {
+        return {
+          properties: res.properties,
+          metadata: {
+            uuid: res.id,
+            vector: res.vector,
+            creationTimeUnix: res.creationTimeUnix,
+            lastUpdateTimeUnix: res.lastUpdateTimeUnix,
+          },
+        };
+      });
+  }
+
+  public fetchObjects(args?: QueryFetchObjectsArgs<T>): Promise<QueryReturn<T>>;
+  public fetchObjects<P extends Properties>(args?: QueryFetchObjectsArgs<P>): Promise<QueryReturn<P>>;
+  public fetchObjects<P extends Properties>(args?: QueryFetchObjectsArgs<P>): Promise<QueryReturn<P>> {
+    return this.connection
+      .search(this.name, this.consistencyLevel, this.tenant)
+      .then((search) => search.withFetch(Serialize.fetchObjects(args)).then(Deserialize.query<P>));
+  }
+
+  public bm25(args: QueryBm25Args<T>): Promise<QueryReturn<T>>;
+  public bm25<P extends Properties>(args: QueryBm25Args<P>): Promise<QueryReturn<P>>;
+  public bm25<P extends Properties>(args: QueryBm25Args<P>): Promise<QueryReturn<P>> {
+    return this.connection
+      .search(this.name, this.consistencyLevel, this.tenant)
+      .then((search) => search.withBm25(Serialize.bm25(args)).then(Deserialize.query<P>));
+  }
+
+  public hybrid(args: QueryHybridArgs<T>): Promise<QueryReturn<T>>;
+  public hybrid<P extends Properties>(args: QueryHybridArgs<P>): Promise<QueryReturn<P>>;
+  public hybrid<P extends Properties>(args: QueryHybridArgs<P>): Promise<QueryReturn<P>> {
+    return this.connection
+      .search(this.name, this.consistencyLevel, this.tenant)
+      .then((search) => search.withHybrid(Serialize.hybrid(args)).then(Deserialize.query<P>));
+  }
+
+  public nearAudio(args: QueryNearAudioArgs<T>): Promise<QueryReturn<T>>;
+  public nearAudio<P extends Properties>(args: QueryNearAudioArgs<P>): Promise<QueryReturn<P>>;
+  public nearAudio<P extends Properties>(args: QueryNearAudioArgs<P>): Promise<QueryReturn<P>> {
+    return this.connection
+      .search(this.name, this.consistencyLevel, this.tenant)
+      .then((search) => search.withNearAudio(Serialize.nearAudio(args)).then(Deserialize.query<P>));
+  }
+
+  public nearImage(args: QueryNearImageArgs<T>): Promise<QueryReturn<T>>;
+  public nearImage<P extends Properties>(args: QueryNearImageArgs<P>): Promise<QueryReturn<P>>;
+  public nearImage<P extends Properties>(args: QueryNearImageArgs<P>): Promise<QueryReturn<P>> {
+    return this.connection
+      .search(this.name, this.consistencyLevel, this.tenant)
+      .then((search) => search.withNearImage(Serialize.nearImage(args)).then(Deserialize.query<P>));
+  }
+
+  public nearObject(args: QueryNearObjectArgs<T>): Promise<QueryReturn<T>>;
+  public nearObject<P extends Properties>(args: QueryNearObjectArgs<P>): Promise<QueryReturn<P>>;
+  public nearObject<P extends Properties>(args: QueryNearObjectArgs<P>): Promise<QueryReturn<P>> {
+    return this.connection
+      .search(this.name, this.consistencyLevel, this.tenant)
+      .then((search) => search.withNearObject(Serialize.nearObject(args)).then(Deserialize.query<P>));
+  }
+
+  public nearText(args: QueryNearTextArgs<T>): Promise<QueryReturn<T>>;
+  public nearText<P extends Properties>(args: QueryNearTextArgs<P>): Promise<QueryReturn<P>>;
+  public nearText<P extends Properties>(args: QueryNearTextArgs<P>): Promise<QueryReturn<P>> {
+    return this.connection
+      .search(this.name, this.consistencyLevel, this.tenant)
+      .then((search) => search.withNearText(Serialize.nearText(args)).then(Deserialize.query<P>));
+  }
+
+  public nearVector(args: QueryNearVectorArgs<T>): Promise<QueryReturn<T>>;
+  public nearVector<P extends Properties>(args: QueryNearVectorArgs<P>): Promise<QueryReturn<P>>;
+  public nearVector<P extends Properties>(args: QueryNearVectorArgs<P>): Promise<QueryReturn<P>> {
+    return this.connection
+      .search(this.name, this.consistencyLevel, this.tenant)
+      .then((search) => search.withNearVector(Serialize.nearVector(args)).then(Deserialize.query<P>));
+  }
+
+  public nearVideo(args: QueryNearVideoArgs<T>): Promise<QueryReturn<T>>;
+  public nearVideo<P extends Properties>(args: QueryNearVideoArgs<P>): Promise<QueryReturn<P>>;
+  public nearVideo<P extends Properties>(args: QueryNearVideoArgs<P>): Promise<QueryReturn<P>> {
+    return this.connection
+      .search(this.name, this.consistencyLevel, this.tenant)
+      .then((search) => search.withNearVideo(Serialize.nearVideo(args)).then(Deserialize.query<P>));
+  }
 }
 
-export default query;
+export interface Query<T extends Properties> {
+  fetchObjectById: (args: FetchObjectByIdArgs) => Promise<WeaviateObject<T>>;
+  fetchObjects: (args?: QueryFetchObjectsArgs<T>) => Promise<QueryReturn<T>>;
+  bm25: (args: QueryBm25Args<T>) => Promise<QueryReturn<T>>;
+  hybrid: (args: QueryHybridArgs<T>) => Promise<QueryReturn<T>>;
+  nearAudio: (args: QueryNearAudioArgs<T>) => Promise<QueryReturn<T>>;
+  nearImage: (args: QueryNearImageArgs<T>) => Promise<QueryReturn<T>>;
+  nearObject: (args: QueryNearObjectArgs<T>) => Promise<QueryReturn<T>>;
+  nearText: (args: QueryNearTextArgs<T>) => Promise<QueryReturn<T>>;
+  nearVector: (args: QueryNearVectorArgs<T>) => Promise<QueryReturn<T>>;
+  nearVideo: (args: QueryNearVideoArgs<T>) => Promise<QueryReturn<T>>;
+}
+
+export default QueryManager.use;

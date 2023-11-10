@@ -1,5 +1,25 @@
+import { v4 as uuidv4 } from 'uuid';
+import { Metadata } from 'nice-grpc';
 import { MetadataResult, PropertiesResult, SearchReply } from '../proto/v1/search_get';
-import { MetadataReturn, QueryReturn } from './types';
+import { referenceFromObjects } from './references';
+import {
+  BatchObjectsReturn,
+  DataObject,
+  MetadataReturn,
+  Properties,
+  GenerateReturn,
+  QueryReturn,
+  GroupByObject,
+  GroupByResult,
+  GroupByReturn,
+  ErrorObject,
+  BatchObject,
+} from './types';
+import {
+  BatchObject as BatchObjectGrpc,
+  BatchObjectsReply,
+  BatchObjectsReply_BatchError,
+} from '../proto/v1/batch';
 
 export interface PropertiesGrpc {
   nonRefProperties?: {
@@ -32,7 +52,7 @@ export interface PropertiesGrpc {
 }
 
 export default class Deserialize {
-  static replyQuery<T extends Record<string, any>>(reply: SearchReply): QueryReturn<T> {
+  public static query<T extends Properties>(reply: SearchReply): QueryReturn<T> {
     return {
       objects: reply.results.map((result) => {
         return {
@@ -43,16 +63,62 @@ export default class Deserialize {
     };
   }
 
-  private static properties<T extends Record<string, any>>(properties: PropertiesResult): T {
-    const out = this.objectProperties(properties);
+  public static generate<T extends Properties>(reply: SearchReply): GenerateReturn<T> {
+    return {
+      objects: reply.results.map((result) => {
+        return {
+          properties: result.properties ? Deserialize.properties<T>(result.properties) : ({} as T),
+          metadata: result.metadata ? Deserialize.metadata(result.metadata) : {},
+          generated: result.metadata?.generativePresent ? result.metadata?.generative : undefined,
+        };
+      }),
+      generated: reply.generativeGroupedResult,
+    };
+  }
+
+  public static groupBy<T extends Properties>(reply: SearchReply): GroupByReturn<T> {
+    const objects: GroupByObject<T>[] = [];
+    const groups: Record<string, GroupByResult<T>> = {};
+    reply.groupByResults.forEach((result) => {
+      const objs = result.objects.map((object) => {
+        return {
+          properties: object.properties ? Deserialize.properties<T>(object.properties) : ({} as T),
+          metadata: object.metadata ? Deserialize.metadata(object.metadata) : {},
+          belongsToGroup: result.name,
+        };
+      });
+      groups[result.name] = {
+        maxDistance: result.maxDistance,
+        minDistance: result.minDistance,
+        name: result.name,
+        numberOfObjects: result.numberOfObjects,
+        objects: objs,
+      };
+      objects.push(...objs);
+    });
+    return {
+      objects: objects,
+      groups: groups,
+    };
+  }
+
+  private static properties<T extends Properties>(properties: PropertiesResult): T {
+    const out = Deserialize.objectProperties(properties);
     properties.refProps.forEach((property) => {
-      out[property.propName] = property.properties.map((property) => this.properties(property));
+      out[property.propName] = referenceFromObjects(
+        property.properties.map((property) => {
+          return {
+            properties: Deserialize.properties(property),
+            metadata: property.metadata ? Deserialize.metadata(property.metadata) : {},
+          };
+        })
+      );
     });
     return out as T;
   }
 
-  private static objectProperties(properties: PropertiesGrpc): Record<string, any> {
-    const out: Record<string, any> = {};
+  private static objectProperties(properties: PropertiesGrpc): Properties {
+    const out: Properties = {};
     if (properties.nonRefProperties) {
       Object.entries(properties.nonRefProperties).forEach(([key, value]) => {
         out[key] = value;
@@ -72,25 +138,65 @@ export default class Deserialize {
     });
     properties.objectProperties.forEach((property) => {
       if (!property.value) return;
-      out[property.propName] = this.objectProperties(property.value);
+      out[property.propName] = Deserialize.objectProperties(property.value);
     });
     properties.objectArrayProperties.forEach((property) => {
-      out[property.propName] = property.values.map((value) => this.objectProperties(value));
+      out[property.propName] = property.values.map((value) => Deserialize.objectProperties(value));
     });
     return out;
   }
 
   private static metadata(metadata: MetadataResult): MetadataReturn {
+    const out: MetadataReturn = {};
+    if (metadata.id.length > 0) out.uuid = metadata.id;
+    if (metadata.vector.length > 0) out.vector = metadata.vector;
+    if (metadata.creationTimeUnixPresent) out.creationTimeUnix = metadata.creationTimeUnix;
+    if (metadata.lastUpdateTimeUnixPresent) out.lastUpdateTimeUnix = metadata.lastUpdateTimeUnix;
+    if (metadata.distancePresent) out.distance = metadata.distance;
+    if (metadata.certaintyPresent) out.certainty = metadata.certainty;
+    if (metadata.scorePresent) out.score = metadata.score;
+    if (metadata.explainScorePresent) out.explainScore = metadata.explainScore;
+    if (metadata.isConsistent) out.isConsistent = metadata.isConsistent;
+    return out;
+  }
+
+  public static batchObjects<T extends Properties>(
+    reply: BatchObjectsReply,
+    originalObjs: BatchObject<T>[],
+    mappedObjs: BatchObjectGrpc[],
+    elapsed: number
+  ): BatchObjectsReturn<T> {
+    const allResponses = [];
+    const errors: Record<number, ErrorObject<T>> = {};
+    const successes: Record<number, string> = {};
+
+    const batchErrors: Record<number, string> = {};
+    reply.errors.forEach((error) => {
+      batchErrors[error.index] = error.error;
+    });
+
+    for (const [index, object] of originalObjs.entries()) {
+      if (index in batchErrors) {
+        const error: ErrorObject<T> = {
+          message: batchErrors[index],
+          object: object,
+          originalUuid: object.uuid,
+        };
+        errors[index] = error;
+        allResponses[index] = error;
+      } else {
+        const mappedObj = mappedObjs[index];
+        successes[index] = mappedObj.uuid;
+        allResponses[index] = mappedObj.uuid;
+      }
+    }
+
     return {
-      uuid: metadata.id.length > 0 ? metadata.id : undefined,
-      vector: metadata.vector.length > 0 ? metadata.vector : undefined,
-      distance: metadata.distancePresent ? metadata.distance : undefined,
-      certainty: metadata.certaintyPresent ? metadata.certainty : undefined,
-      creationTimeUnix: metadata.creationTimeUnixPresent ? metadata.creationTimeUnix : undefined,
-      lastUpdateTimeUnix: metadata.lastUpdateTimeUnixPresent ? metadata.lastUpdateTimeUnix : undefined,
-      score: metadata.scorePresent ? metadata.score : undefined,
-      explainScore: metadata.explainScorePresent ? metadata.explainScore : undefined,
-      isConsistent: metadata.isConsistent,
+      uuids: successes,
+      errors: errors,
+      hasErrors: reply.errors.length > 0,
+      allResponses: allResponses,
+      elapsedSeconds: elapsed,
     };
   }
 }

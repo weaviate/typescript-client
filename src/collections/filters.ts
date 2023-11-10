@@ -60,8 +60,8 @@ export type FilterValueType =
   | PrimitiveListFilterValueType
   | Filters<FilterValueType>;
 
-export type PrimitiveFilterValueType = number | string | boolean;
-export type PrimitiveListFilterValueType = number[] | string[] | boolean[];
+export type PrimitiveFilterValueType = number | string | boolean | Date;
+export type PrimitiveListFilterValueType = number[] | string[] | boolean[] | Date[];
 
 export class Filter {
   private path: string[];
