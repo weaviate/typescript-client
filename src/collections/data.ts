@@ -153,7 +153,13 @@ const data = <T extends Properties>(
     referenceAdd: <P extends Properties>(args: ReferenceArgs<P>): Promise<void> =>
       referencesPath
         .build(args.fromUuid, name, args.fromProperty, consistencyLevel, tenant)
-        .then((path) => connection.postEmpty(path, args.reference.toBeaconObjs())),
+        .then((path) =>
+          Promise.all(args.reference.toBeaconObjs().map((beacon) => connection.postEmpty(path, beacon)))
+        )
+        .then(() => {})
+        .catch((err) => {
+          throw err;
+        }),
     referenceAddMany: <P extends Properties>(args: ReferenceManyArgs<P>): Promise<BatchReferencesReturn> => {
       const path = buildRefsPath(
         new URLSearchParams(consistencyLevel ? { consistency_level: consistencyLevel } : {})

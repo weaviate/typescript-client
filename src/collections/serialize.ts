@@ -415,8 +415,8 @@ export default class Serialize {
         ? refProperties.map((property) => {
             const metadata: any = {};
             if (property.returnMetadata) {
-              Object.entries(property.returnMetadata).forEach(([key, value]) => {
-                metadata[key] = !!value;
+              property.returnMetadata.forEach((key) => {
+                metadata[key] = true;
               });
             }
             return {

@@ -1,5 +1,6 @@
 import { BatchReference } from '../openapi/types';
 import { Operator } from './filters';
+import { CrossReference } from './references';
 
 export type DataType =
   | 'int'
@@ -297,18 +298,20 @@ export type GroupByReturn<T> = {
   groups: Record<string, GroupByResult<T>>;
 };
 
-export interface RefProperty<T> {
-  type: 'ref';
-  linkOn: string;
-  returnProperties?: Property<T>[];
+interface BaseRefProperty<T> {
+  linkOn: keyof T & string; // https://github.com/microsoft/TypeScript/issues/56239
+  returnProperties?: Property<ExtractCrossReferenceType<T[this['linkOn']]>>[];
   returnMetadata?: MetadataQuery;
 }
 
-export interface MultiRefProperty<T> {
+export interface RefProperty<T> extends BaseRefProperty<T> {
+  type: 'ref';
+}
+
+type ExtractCrossReferenceType<T> = T extends CrossReference<infer U> ? U : never;
+
+export interface MultiRefProperty<T> extends BaseRefProperty<T> {
   type: 'multi-ref';
-  linkOn: string;
-  returnProperties?: Property<T>[];
-  returnMetadata?: MetadataQuery;
   targetCollection: string;
 }
 

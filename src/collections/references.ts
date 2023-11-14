@@ -1,7 +1,7 @@
 import { Properties, WeaviateObject } from './types';
 
 interface ReferenceToArgs {
-  uuids: string[];
+  uuids: string | string[];
 }
 
 interface ReferenceToMultiTargetArgs extends ReferenceToArgs {
@@ -48,12 +48,20 @@ export class ReferenceManager<T extends Properties> {
 
 export class Reference {
   public static to<TProperties extends Properties>(args: ReferenceToArgs): ReferenceManager<TProperties> {
-    return new ReferenceManager<TProperties>('', undefined, args.uuids);
+    return new ReferenceManager<TProperties>(
+      '',
+      undefined,
+      Array.isArray(args.uuids) ? args.uuids : [args.uuids]
+    );
   }
   public static toMultiTarget<TProperties extends Properties>(
     args: ReferenceToMultiTargetArgs
   ): ReferenceManager<TProperties> {
-    return new ReferenceManager<TProperties>(args.targetCollection, undefined, args.uuids);
+    return new ReferenceManager<TProperties>(
+      args.targetCollection,
+      undefined,
+      Array.isArray(args.uuids) ? args.uuids : [args.uuids]
+    );
   }
 }
 

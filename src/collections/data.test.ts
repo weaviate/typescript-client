@@ -2,10 +2,12 @@
 import weaviate from '..';
 import { v4 } from 'uuid';
 import { DataObject } from './types';
+import { CrossReference, Reference } from './references';
 
 type TestCollectionData = {
   testProp: string;
   testProp2?: number;
+  ref?: CrossReference<TestCollectionData>;
 };
 
 describe('Testing of the collection.data methods', () => {
@@ -18,35 +20,14 @@ describe('Testing of the collection.data methods', () => {
 
   const className = 'TestCollectionData';
   const collection = client.collections.get<TestCollectionData>(className);
-  let toBeReplacedID: string;
-  let toBeUpdatedID: string;
 
-  beforeAll(async () => {
-    await fetch(`${url}/schema`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        class: className,
-        properties: [
-          {
-            name: 'testProp',
-            dataType: ['text'],
-            tokenization: 'field',
-          },
-          {
-            name: 'testProp2',
-            dataType: ['int'],
-          },
-        ],
-      }),
-    }).then(async (res) => {
-      if (res.status !== 200) {
-        console.error(await res.json());
-        throw new Error('Failed to create class');
-      }
-      const promises = ['DELETE ME', 'DELETE ME', 'DELETE ME'].map((text) =>
+  const existingID = v4();
+  const toBeReplacedID = v4();
+  const toBeUpdatedID = v4();
+
+  beforeAll(() => {
+    const toBeDeleteds = () =>
+      ['DELETE ME', 'DELETE ME', 'DELETE ME'].map((text) =>
         fetch(`${url}/objects`, {
           method: 'POST',
           headers: {
@@ -65,8 +46,32 @@ describe('Testing of the collection.data methods', () => {
           }
         })
       );
-      await Promise.all(promises);
-      toBeReplacedID = await fetch(`${url}/objects`, {
+
+    const existing = () =>
+      fetch(`${url}/objects`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          class: className,
+          properties: {
+            testProp: 'EXISTING',
+            testProp2: 1,
+          },
+          id: existingID,
+        }),
+      }).then(async (res) => {
+        if (res.status !== 200) {
+          console.error(await res.json());
+          throw new Error('Failed to create object');
+        }
+        const json = await res.json();
+        return json.id;
+      });
+
+    const toBeReplaced = () =>
+      fetch(`${url}/objects`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -77,6 +82,7 @@ describe('Testing of the collection.data methods', () => {
             testProp: 'REPLACE ME',
             testProp2: 1,
           },
+          id: toBeReplacedID,
         }),
       }).then(async (res) => {
         if (res.status !== 200) {
@@ -86,7 +92,9 @@ describe('Testing of the collection.data methods', () => {
         const json = await res.json();
         return json.id;
       });
-      toBeUpdatedID = await fetch(`${url}/objects`, {
+
+    const toBeUpdated = () =>
+      fetch(`${url}/objects`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -97,6 +105,7 @@ describe('Testing of the collection.data methods', () => {
             testProp: 'UPDATE ME',
             testProp2: 1,
           },
+          id: toBeUpdatedID,
         }),
       }).then(async (res) => {
         if (res.status !== 200) {
@@ -106,7 +115,75 @@ describe('Testing of the collection.data methods', () => {
         const json = await res.json();
         return json.id;
       });
-    });
+
+    const repToUpd = () =>
+      fetch(`${url}/objects/${className}/${toBeReplacedID}/references/ref`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          beacon: `weaviate://localhost/${className}/${toBeUpdatedID}`,
+        }),
+      }).then(async (res) => {
+        if (res.status !== 200) {
+          console.error(await res.json());
+          throw new Error('Failed to create reference');
+        }
+      });
+
+    const updToRep = () =>
+      fetch(`${url}/objects/${className}/${toBeUpdatedID}/references/ref`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          beacon: `weaviate://localhost/${className}/${toBeReplacedID}`,
+        }),
+      }).then(async (res) => {
+        if (res.status !== 200) {
+          console.error(await res.json());
+          throw new Error('Failed to create reference');
+        }
+      });
+
+    return fetch(`${url}/schema`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        class: className,
+        properties: [
+          {
+            name: 'testProp',
+            dataType: ['text'],
+            tokenization: 'field',
+          },
+          {
+            name: 'testProp2',
+            dataType: ['int'],
+          },
+          {
+            name: 'ref',
+            dataType: [className],
+          },
+        ],
+      }),
+    })
+      .then(async (res) => {
+        if (res.status !== 200) {
+          console.error(await res.json());
+          throw new Error('Failed to create class');
+        }
+        return Promise.all([existing(), toBeReplaced(), toBeUpdated(), ...toBeDeleteds()]).then(() =>
+          Promise.all([repToUpd(), updToRep()])
+        );
+      })
+      .catch((err) => {
+        throw err;
+      });
   });
 
   it('should be able to insert an object without an id', async () => {
@@ -252,5 +329,31 @@ describe('Testing of the collection.data methods', () => {
     expect(insert.allResponses.length).toEqual(1000);
     expect(Object.values(insert.errors).length).toEqual(0);
     expect(Object.values(insert.uuids).length).toEqual(1000);
+  });
+
+  it('should be able to insert a reference between two objects', async () => {
+    await collection.data
+      .referenceAdd({
+        fromProperty: 'ref',
+        fromUuid: existingID,
+        reference: Reference.to({ uuids: existingID }),
+      })
+      .then(async () => {
+        const ret = await collection.query.fetchObjects({
+          returnProperties: [
+            {
+              type: 'ref',
+              linkOn: 'ref',
+              returnProperties: ['testProp'],
+              returnMetadata: ['uuid'],
+            },
+          ],
+          returnMetadata: ['uuid'],
+        });
+        const objs = ret.objects.filter((obj) => obj.metadata.uuid === existingID);
+        expect(objs.length).toEqual(1);
+        expect(objs[0].properties.ref?.objects[0].properties?.testProp).toEqual('EXISTING');
+        expect(objs[0].properties.ref?.objects[0].metadata?.uuid).toEqual(existingID);
+      });
   });
 });
