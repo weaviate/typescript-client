@@ -45,7 +45,7 @@ describe('Testing of the collection.generate methods with a simple collection', 
         });
       });
     const res = await collection.query.fetchObjectById({ id, includeVector: true });
-    vector = res.metadata.vector!; // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    vector = res.vector!; // eslint-disable-line @typescript-eslint/no-non-null-assertion
   });
 
   // it('should groupBy without search', async () => {
@@ -108,7 +108,7 @@ describe('Testing of the collection.generate methods with a simple collection', 
     expect(ret.groups).toBeDefined();
     expect(Object.keys(ret.groups)).toEqual(['test']);
     expect(ret.objects[0].properties.testProp).toEqual('test');
-    expect(ret.objects[0].metadata.uuid).toEqual(id);
+    expect(ret.objects[0].uuid).toEqual(id);
     expect(ret.objects[0].belongsToGroup).toEqual('test');
   });
 
@@ -121,7 +121,7 @@ describe('Testing of the collection.generate methods with a simple collection', 
     expect(ret.groups).toBeDefined();
     expect(Object.keys(ret.groups)).toEqual(['test']);
     expect(ret.objects[0].properties.testProp).toEqual('test');
-    expect(ret.objects[0].metadata.uuid).toEqual(id);
+    expect(ret.objects[0].uuid).toEqual(id);
     expect(ret.objects[0].belongsToGroup).toEqual('test');
   });
 
@@ -134,7 +134,7 @@ describe('Testing of the collection.generate methods with a simple collection', 
     expect(ret.groups).toBeDefined();
     expect(Object.keys(ret.groups)).toEqual(['test']);
     expect(ret.objects[0].properties.testProp).toEqual('test');
-    expect(ret.objects[0].metadata.uuid).toEqual(id);
+    expect(ret.objects[0].uuid).toEqual(id);
     expect(ret.objects[0].belongsToGroup).toEqual('test');
   });
 });

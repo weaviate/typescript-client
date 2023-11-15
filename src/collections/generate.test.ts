@@ -48,7 +48,7 @@ describe('Testing of the collection.generate methods with a simple collection', 
         });
       });
     const res = await collection.query.fetchObjectById({ id, includeVector: true });
-    vector = res.metadata.vector!; // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    vector = res.vector!; // eslint-disable-line @typescript-eslint/no-non-null-assertion
   });
 
   it('should generate without search', async () => {
@@ -56,20 +56,19 @@ describe('Testing of the collection.generate methods with a simple collection', 
     expect(ret.objects.length).toEqual(1);
     expect(ret.generated).toBeDefined();
     expect(ret.objects[0].properties.testProp).toEqual('test');
-    expect(ret.objects[0].metadata.uuid).toEqual(id);
+    expect(ret.objects[0].uuid).toEqual(id);
     expect(ret.objects[0].generated).toBeDefined();
   });
 
   it('should generate without search specifying return properties', async () => {
     const ret = await collection.generate.fetchObjects({
       returnProperties: ['testProp'],
-      returnMetadata: ['uuid'],
       ...generateArgs,
     });
     expect(ret.objects.length).toEqual(1);
     expect(ret.generated).toBeDefined();
     expect(ret.objects[0].properties.testProp).toEqual('test');
-    expect(ret.objects[0].metadata.uuid).toEqual(id);
+    expect(ret.objects[0].uuid).toEqual(id);
     expect(ret.objects[0].generated).toBeDefined();
   });
 
@@ -81,7 +80,7 @@ describe('Testing of the collection.generate methods with a simple collection', 
     expect(ret.objects.length).toEqual(1);
     expect(ret.generated).toBeDefined();
     expect(ret.objects[0].properties.testProp).toEqual('test');
-    expect(ret.objects[0].metadata.uuid).toEqual(id);
+    expect(ret.objects[0].uuid).toEqual(id);
     expect(ret.objects[0].generated).toBeDefined();
   });
 
@@ -93,7 +92,7 @@ describe('Testing of the collection.generate methods with a simple collection', 
     expect(ret.objects.length).toEqual(1);
     expect(ret.generated).toBeDefined();
     expect(ret.objects[0].properties.testProp).toEqual('test');
-    expect(ret.objects[0].metadata.uuid).toEqual(id);
+    expect(ret.objects[0].uuid).toEqual(id);
     expect(ret.objects[0].generated).toBeDefined();
   });
 
@@ -105,7 +104,7 @@ describe('Testing of the collection.generate methods with a simple collection', 
     expect(ret.objects.length).toEqual(1);
     expect(ret.generated).toBeDefined();
     expect(ret.objects[0].properties.testProp).toEqual('test');
-    expect(ret.objects[0].metadata.uuid).toEqual(id);
+    expect(ret.objects[0].uuid).toEqual(id);
     expect(ret.objects[0].generated).toBeDefined();
   });
 
@@ -117,7 +116,7 @@ describe('Testing of the collection.generate methods with a simple collection', 
     expect(ret.objects.length).toEqual(1);
     expect(ret.generated).toBeDefined();
     expect(ret.objects[0].properties.testProp).toEqual('test');
-    expect(ret.objects[0].metadata.uuid).toEqual(id);
+    expect(ret.objects[0].uuid).toEqual(id);
     expect(ret.objects[0].generated).toBeDefined();
   });
 
@@ -129,7 +128,7 @@ describe('Testing of the collection.generate methods with a simple collection', 
     expect(ret.objects.length).toEqual(1);
     expect(ret.generated).toBeDefined();
     expect(ret.objects[0].properties.testProp).toEqual('test');
-    expect(ret.objects[0].metadata.uuid).toEqual(id);
+    expect(ret.objects[0].uuid).toEqual(id);
     expect(ret.objects[0].generated).toBeDefined();
   });
 });

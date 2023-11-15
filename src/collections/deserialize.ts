@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { Metadata } from 'nice-grpc';
 import { MetadataResult, PropertiesResult, SearchReply } from '../proto/v1/search_get';
-import { referenceFromObjects } from './references';
+import { ReferenceManager, referenceFromObjects } from './references';
 import {
   BatchObjectsReturn,
   DataObject,
@@ -56,8 +56,10 @@ export default class Deserialize {
     return {
       objects: reply.results.map((result) => {
         return {
-          properties: result.properties ? Deserialize.properties<T>(result.properties) : ({} as T),
-          metadata: result.metadata ? Deserialize.metadata(result.metadata) : {},
+          metadata: Deserialize.metadata(result.metadata),
+          properties: Deserialize.properties<T>(result.properties),
+          uuid: Deserialize.uuid(result.metadata),
+          vector: Deserialize.vector(result.metadata),
         };
       }),
     };
@@ -67,9 +69,11 @@ export default class Deserialize {
     return {
       objects: reply.results.map((result) => {
         return {
-          properties: result.properties ? Deserialize.properties<T>(result.properties) : ({} as T),
-          metadata: result.metadata ? Deserialize.metadata(result.metadata) : {},
           generated: result.metadata?.generativePresent ? result.metadata?.generative : undefined,
+          metadata: Deserialize.metadata(result.metadata),
+          properties: Deserialize.properties<T>(result.properties),
+          uuid: Deserialize.uuid(result.metadata),
+          vector: Deserialize.vector(result.metadata),
         };
       }),
       generated: reply.generativeGroupedResult,
@@ -82,9 +86,11 @@ export default class Deserialize {
     reply.groupByResults.forEach((result) => {
       const objs = result.objects.map((object) => {
         return {
-          properties: object.properties ? Deserialize.properties<T>(object.properties) : ({} as T),
-          metadata: object.metadata ? Deserialize.metadata(object.metadata) : {},
           belongsToGroup: result.name,
+          metadata: Deserialize.metadata(object.metadata),
+          properties: Deserialize.properties<T>(object.properties),
+          uuid: Deserialize.uuid(object.metadata),
+          vector: Deserialize.vector(object.metadata),
         };
       });
       groups[result.name] = {
@@ -102,14 +108,17 @@ export default class Deserialize {
     };
   }
 
-  private static properties<T extends Properties>(properties: PropertiesResult): T {
+  private static properties<T extends Properties>(properties?: PropertiesResult): T {
+    if (!properties) return {} as T;
     const out = Deserialize.objectProperties(properties);
     properties.refProps.forEach((property) => {
       out[property.propName] = referenceFromObjects(
         property.properties.map((property) => {
           return {
             properties: Deserialize.properties(property),
-            metadata: property.metadata ? Deserialize.metadata(property.metadata) : {},
+            metadata: Deserialize.metadata(property.metadata),
+            uuid: Deserialize.uuid(property.metadata),
+            vector: Deserialize.vector(property.metadata),
           };
         })
       );
@@ -146,10 +155,9 @@ export default class Deserialize {
     return out;
   }
 
-  private static metadata(metadata: MetadataResult): MetadataReturn {
+  private static metadata(metadata?: MetadataResult): MetadataReturn | undefined {
     const out: MetadataReturn = {};
-    if (metadata.id.length > 0) out.uuid = metadata.id;
-    if (metadata.vector.length > 0) out.vector = metadata.vector;
+    if (!metadata) return undefined;
     if (metadata.creationTimeUnixPresent) out.creationTimeUnix = metadata.creationTimeUnix;
     if (metadata.lastUpdateTimeUnixPresent) out.lastUpdateTimeUnix = metadata.lastUpdateTimeUnix;
     if (metadata.distancePresent) out.distance = metadata.distance;
@@ -158,6 +166,16 @@ export default class Deserialize {
     if (metadata.explainScorePresent) out.explainScore = metadata.explainScore;
     if (metadata.isConsistent) out.isConsistent = metadata.isConsistent;
     return out;
+  }
+
+  private static uuid(metadata?: MetadataResult): string {
+    if (!metadata || !(metadata.id.length > 0)) throw new Error('No uuid returned from server');
+    return metadata.id;
+  }
+
+  private static vector(metadata?: MetadataResult): number[] | undefined {
+    if (!metadata) return undefined;
+    if (metadata.vector.length > 0) return metadata.vector;
   }
 
   public static batchObjects<T extends Properties>(
@@ -198,5 +216,24 @@ export default class Deserialize {
       allResponses: allResponses,
       elapsedSeconds: elapsed,
     };
+  }
+
+  public static propertiesREST<T extends Properties>(properties: Record<string, any>): T {
+    const isRefProp = (value: any): value is Array<{ beacon: string; href: string }> => {
+      return (
+        Array.isArray(value) &&
+        value.every((v) => Object.keys(v).every((k) => k === 'beacon' || k === 'href'))
+      );
+    };
+    const out: Properties = {};
+    Object.entries(properties).forEach(([key, value]) => {
+      if (isRefProp(value)) {
+        out[key] =
+          value.length > 0 ? ReferenceManager.fromBeaconStrings(value.map((v) => v.beacon)) : undefined;
+      } else {
+        out[key] = value;
+      }
+    });
+    return out as T;
   }
 }

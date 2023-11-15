@@ -151,7 +151,7 @@ export default class Serialize {
       limit: args?.limit,
       filters: args?.filters ? Serialize.filtersGRPC(args.filters) : undefined,
       properties: args?.returnProperties ? Serialize.properties(args.returnProperties) : undefined,
-      metadata: args?.returnMetadata ? Serialize.metadata(args.returnMetadata) : undefined,
+      metadata: Serialize.metadata(args?.includeVector, args?.returnMetadata),
     };
   };
 
@@ -190,7 +190,7 @@ export default class Serialize {
       ...Serialize.common(args),
       hybrid: Hybrid.fromPartial({
         query: args.query,
-        alpha: args.alpha,
+        alpha: args.alpha ? args.alpha : 0.5,
         properties: args.queryProperties?.filter(isStringKey), // TS strangely can't infer that keyof T is a string here so type guard needed
         vector: args.vector,
         fusionType: fusionType(args.fusionType),
@@ -413,7 +413,7 @@ export default class Serialize {
       nonRefProperties: nonRefProperties ? nonRefProperties : [],
       refProperties: refProperties
         ? refProperties.map((property) => {
-            const metadata: any = {};
+            const metadata: any = { uuid: true };
             if (property.returnMetadata) {
               property.returnMetadata.forEach((key) => {
                 metadata[key] = true;
@@ -441,17 +441,12 @@ export default class Serialize {
     };
   };
 
-  // private static metadata = (metadata: MetadataQuery): MetadataRequest => {
-  //   const out: any = {};
-  //   Object.entries(metadata).forEach(([key, value]) => {
-  //     out[key] = !!value;
-  //   });
-  //   return out;
-  // };
-
-  private static metadata = (metadata: MetadataQuery): MetadataRequest => {
-    const out: any = {};
-    metadata.forEach((key) => {
+  private static metadata = (includeVector?: boolean, metadata?: MetadataQuery): MetadataRequest => {
+    const out: any = {
+      uuid: true,
+      vector: includeVector === true,
+    };
+    metadata?.forEach((key) => {
       out[key] = true;
     });
     return out;
@@ -548,7 +543,7 @@ export default class Serialize {
       }
     }
     return {
-      nonRefProperties: Struct.fromPartial({ fields: nonRefProperties }),
+      nonRefProperties: nonRefProperties,
       multiTargetRefProps: multiTarget,
       singleTargetRefProps: singleTarget,
       textArrayProperties: textArray,
@@ -589,7 +584,7 @@ export default class Serialize {
           collection: collection,
           properties: Serialize.batchProperties(object.properties),
           tenant: tenant,
-          uuid: object.uuid ? object.uuid : uuidv4(),
+          uuid: object.id ? object.id : uuidv4(),
           vector: object.vector,
         })
       );
@@ -617,5 +612,36 @@ export default class Serialize {
     return waitFor().then(() => {
       return { batch: batch, mapped: objs };
     });
+  };
+
+  public static batchObjectsSimple = <T extends Properties>(
+    collection: string,
+    objects: DataObject<T>[],
+    tenant?: string
+  ): {
+    batch: BatchObject<T>[];
+    mapped: BatchObjectGrpc[];
+  } => {
+    const objs: BatchObjectGrpc[] = [];
+    const batch: BatchObject<T>[] = [];
+
+    for (const object of objects) {
+      objs.push(
+        BatchObjectGrpc.fromPartial({
+          collection: collection,
+          properties: Serialize.batchProperties(object.properties),
+          tenant: tenant,
+          uuid: object.id ? object.id : uuidv4(),
+          vector: object.vector,
+        })
+      );
+
+      batch.push({
+        ...object,
+        collection: collection,
+        tenant: tenant,
+      });
+    }
+    return { batch, mapped: objs };
   };
 }

@@ -26,135 +26,9 @@ describe('Testing of the collection.data methods', () => {
   const toBeUpdatedID = v4();
 
   beforeAll(() => {
-    const toBeDeleteds = () =>
-      ['DELETE ME', 'DELETE ME', 'DELETE ME'].map((text) =>
-        fetch(`${url}/objects`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            class: className,
-            properties: {
-              testProp: text,
-            },
-          }),
-        }).then(async (res) => {
-          if (res.status !== 200) {
-            console.error(await res.json());
-            throw new Error('Failed to create object');
-          }
-        })
-      );
-
-    const existing = () =>
-      fetch(`${url}/objects`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          class: className,
-          properties: {
-            testProp: 'EXISTING',
-            testProp2: 1,
-          },
-          id: existingID,
-        }),
-      }).then(async (res) => {
-        if (res.status !== 200) {
-          console.error(await res.json());
-          throw new Error('Failed to create object');
-        }
-        const json = await res.json();
-        return json.id;
-      });
-
-    const toBeReplaced = () =>
-      fetch(`${url}/objects`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          class: className,
-          properties: {
-            testProp: 'REPLACE ME',
-            testProp2: 1,
-          },
-          id: toBeReplacedID,
-        }),
-      }).then(async (res) => {
-        if (res.status !== 200) {
-          console.error(await res.json());
-          throw new Error('Failed to create object');
-        }
-        const json = await res.json();
-        return json.id;
-      });
-
-    const toBeUpdated = () =>
-      fetch(`${url}/objects`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          class: className,
-          properties: {
-            testProp: 'UPDATE ME',
-            testProp2: 1,
-          },
-          id: toBeUpdatedID,
-        }),
-      }).then(async (res) => {
-        if (res.status !== 200) {
-          console.error(await res.json());
-          throw new Error('Failed to create object');
-        }
-        const json = await res.json();
-        return json.id;
-      });
-
-    const repToUpd = () =>
-      fetch(`${url}/objects/${className}/${toBeReplacedID}/references/ref`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          beacon: `weaviate://localhost/${className}/${toBeUpdatedID}`,
-        }),
-      }).then(async (res) => {
-        if (res.status !== 200) {
-          console.error(await res.json());
-          throw new Error('Failed to create reference');
-        }
-      });
-
-    const updToRep = () =>
-      fetch(`${url}/objects/${className}/${toBeUpdatedID}/references/ref`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          beacon: `weaviate://localhost/${className}/${toBeReplacedID}`,
-        }),
-      }).then(async (res) => {
-        if (res.status !== 200) {
-          console.error(await res.json());
-          throw new Error('Failed to create reference');
-        }
-      });
-
-    return fetch(`${url}/schema`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        class: className,
+    return client.collections
+      .create({
+        name: className,
         properties: [
           {
             name: 'testProp',
@@ -170,16 +44,49 @@ describe('Testing of the collection.data methods', () => {
             dataType: [className],
           },
         ],
-      }),
-    })
-      .then(async (res) => {
-        if (res.status !== 200) {
-          console.error(await res.json());
-          throw new Error('Failed to create class');
-        }
-        return Promise.all([existing(), toBeReplaced(), toBeUpdated(), ...toBeDeleteds()]).then(() =>
-          Promise.all([repToUpd(), updToRep()])
-        );
+      })
+      .then(() => {
+        return collection.data.insertMany({
+          objects: [
+            { properties: { testProp: 'DELETE ME' } },
+            { properties: { testProp: 'DELETE ME' } },
+            { properties: { testProp: 'DELETE ME' } },
+            {
+              properties: {
+                testProp: 'EXISTING',
+                testProp2: 1,
+              },
+              id: existingID,
+            },
+            {
+              properties: {
+                testProp: 'REPLACE ME',
+                testProp2: 1,
+              },
+              id: toBeReplacedID,
+            },
+            {
+              properties: {
+                testProp: 'UPDATE ME',
+                testProp2: 1,
+              },
+              id: toBeUpdatedID,
+            },
+          ],
+        });
+      })
+      .then(() => {
+        const one = collection.data.referenceAdd({
+          fromProperty: 'ref',
+          fromUuid: toBeReplacedID,
+          reference: Reference.to({ uuids: toBeUpdatedID }),
+        });
+        const two = collection.data.referenceAdd({
+          fromProperty: 'ref',
+          fromUuid: toBeUpdatedID,
+          reference: Reference.to({ uuids: toBeReplacedID }),
+        });
+        return Promise.all([one, two]);
       })
       .catch((err) => {
         throw err;
@@ -216,17 +123,9 @@ describe('Testing of the collection.data methods', () => {
   });
 
   it('should be able to replace an object', async () => {
-    await fetch(`${url}/objects/${toBeReplacedID}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
-      .then((res) => res.json())
-      .then((json) => {
-        expect(json.properties.testProp).toEqual('REPLACE ME');
-        expect(json.properties.testProp2).toEqual(1);
-      });
+    const obj = await collection.query.fetchObjectById({ id: toBeReplacedID });
+    expect(obj.properties.testProp).toEqual('REPLACE ME');
+    expect(obj.properties.testProp2).toEqual(1);
     await collection.data
       .replace({
         id: toBeReplacedID,
@@ -235,32 +134,16 @@ describe('Testing of the collection.data methods', () => {
         },
       })
       .then(async () => {
-        await fetch(`${url}/objects/${toBeReplacedID}`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        })
-          .then((res) => res.json())
-          .then((json) => {
-            expect(json.properties.testProp).toEqual('REPLACED');
-            expect(json.properties.testProp2).toBeUndefined();
-          });
+        const obj = await collection.query.fetchObjectById({ id: toBeReplacedID });
+        expect(obj.properties.testProp).toEqual('REPLACED');
+        expect(obj.properties.testProp2).toBeUndefined();
       });
   });
 
   it('should be able to update an object', async () => {
-    await fetch(`${url}/objects/${toBeUpdatedID}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
-      .then((res) => res.json())
-      .then((json) => {
-        expect(json.properties.testProp).toEqual('UPDATE ME');
-        expect(json.properties.testProp2).toEqual(1);
-      });
+    const obj = await collection.query.fetchObjectById({ id: toBeUpdatedID });
+    expect(obj.properties.testProp).toEqual('UPDATE ME');
+    expect(obj.properties.testProp2).toEqual(1);
     await collection.data
       .update({
         id: toBeUpdatedID,
@@ -269,17 +152,9 @@ describe('Testing of the collection.data methods', () => {
         },
       })
       .then(async () => {
-        await fetch(`${url}/objects/${toBeUpdatedID}`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        })
-          .then((res) => res.json())
-          .then((json) => {
-            expect(json.properties.testProp).toEqual('UPDATED');
-            expect(json.properties.testProp2).toEqual(1);
-          });
+        const obj = await collection.query.fetchObjectById({ id: toBeUpdatedID });
+        expect(obj.properties.testProp).toEqual('UPDATED');
+        expect(obj.properties.testProp2).toEqual(1);
       });
   });
 
@@ -288,15 +163,23 @@ describe('Testing of the collection.data methods', () => {
     for (let j = 0; j < 10; j++) {
       objects.push({
         properties: {
-          testProp: 'test',
+          testProp: 'testInsertMany10',
         },
       });
     }
-    const insert = await collection.data.insertMany({ objects });
-    expect(insert.hasErrors).toBeFalsy();
-    expect(insert.allResponses.length).toEqual(10);
-    expect(Object.values(insert.errors).length).toEqual(0);
-    expect(Object.values(insert.uuids).length).toEqual(10);
+    await collection.data.insertMany({ objects }).then(async (insert) => {
+      expect(insert.hasErrors).toBeFalsy();
+      expect(insert.allResponses.length).toEqual(10);
+      expect(Object.values(insert.errors).length).toEqual(0);
+      expect(Object.values(insert.uuids).length).toEqual(10);
+      const query = await collection.query.fetchObjects({ limit: 100 });
+      expect(query.objects.filter((obj) => Object.values(insert.uuids).includes(obj.uuid)).length).toEqual(
+        10
+      );
+      expect(query.objects.filter((obj) => obj.properties.testProp === 'testInsertMany10').length).toEqual(
+        10
+      );
+    });
   });
 
   it('should be able to insert many (100) objects at once', async () => {
@@ -304,15 +187,23 @@ describe('Testing of the collection.data methods', () => {
     for (let j = 0; j < 100; j++) {
       objects.push({
         properties: {
-          testProp: 'test',
+          testProp: 'testInsertMany100',
         },
       });
     }
-    const insert = await collection.data.insertMany({ objects });
-    expect(insert.hasErrors).toBeFalsy();
-    expect(insert.allResponses.length).toEqual(100);
-    expect(Object.values(insert.errors).length).toEqual(0);
-    expect(Object.values(insert.uuids).length).toEqual(100);
+    const insert = await collection.data.insertMany({ objects }).then(async (insert) => {
+      expect(insert.hasErrors).toBeFalsy();
+      expect(insert.allResponses.length).toEqual(100);
+      expect(Object.values(insert.errors).length).toEqual(0);
+      expect(Object.values(insert.uuids).length).toEqual(100);
+      const query = await collection.query.fetchObjects({ limit: 1000 });
+      expect(query.objects.filter((obj) => Object.values(insert.uuids).includes(obj.uuid)).length).toEqual(
+        100
+      );
+      expect(query.objects.filter((obj) => obj.properties.testProp === 'testInsertMany100').length).toEqual(
+        100
+      );
+    });
   });
 
   it('should be able to insert many (1000) objects at once', async () => {
@@ -320,15 +211,23 @@ describe('Testing of the collection.data methods', () => {
     for (let j = 0; j < 1000; j++) {
       objects.push({
         properties: {
-          testProp: 'test',
+          testProp: 'testInsertMany1000',
         },
       });
     }
-    const insert = await collection.data.insertMany({ objects });
-    expect(insert.hasErrors).toBeFalsy();
-    expect(insert.allResponses.length).toEqual(1000);
-    expect(Object.values(insert.errors).length).toEqual(0);
-    expect(Object.values(insert.uuids).length).toEqual(1000);
+    const insert = await collection.data.insertMany({ objects }).then(async (insert) => {
+      expect(insert.hasErrors).toBeFalsy();
+      expect(insert.allResponses.length).toEqual(1000);
+      expect(Object.values(insert.errors).length).toEqual(0);
+      expect(Object.values(insert.uuids).length).toEqual(1000);
+      const query = await collection.query.fetchObjects({ limit: 2000 });
+      expect(query.objects.filter((obj) => Object.values(insert.uuids).includes(obj.uuid)).length).toEqual(
+        1000
+      );
+      expect(query.objects.filter((obj) => obj.properties.testProp === 'testInsertMany1000').length).toEqual(
+        1000
+      );
+    });
   });
 
   it('should be able to insert a reference between two objects', async () => {
@@ -339,21 +238,80 @@ describe('Testing of the collection.data methods', () => {
         reference: Reference.to({ uuids: existingID }),
       })
       .then(async () => {
-        const ret = await collection.query.fetchObjects({
-          returnProperties: [
-            {
-              type: 'ref',
-              linkOn: 'ref',
-              returnProperties: ['testProp'],
-              returnMetadata: ['uuid'],
-            },
-          ],
-          returnMetadata: ['uuid'],
+        const obj = await collection.query.fetchObjectById({
+          id: existingID,
         });
-        const objs = ret.objects.filter((obj) => obj.metadata.uuid === existingID);
-        expect(objs.length).toEqual(1);
-        expect(objs[0].properties.ref?.objects[0].properties?.testProp).toEqual('EXISTING');
-        expect(objs[0].properties.ref?.objects[0].metadata?.uuid).toEqual(existingID);
+        expect(obj.properties.ref?.objects).toEqual([]);
+        expect(obj.properties.ref?.targetCollection).toEqual(className);
+        expect(obj.properties.ref?.uuids?.includes(existingID)).toEqual(true);
+      });
+  });
+
+  it('should be able to replace a reference between two objects', async () => {
+    await collection.data
+      .referenceReplace({
+        fromProperty: 'ref',
+        fromUuid: toBeReplacedID,
+        reference: Reference.to({ uuids: existingID }),
+      })
+      .then(async () => {
+        const obj = await collection.query.fetchObjectById({
+          id: toBeReplacedID,
+        });
+        expect(obj.properties.ref?.objects).toEqual([]);
+        expect(obj.properties.ref?.targetCollection).toEqual(className);
+        expect(obj.properties.ref?.uuids).toEqual([existingID]);
+      });
+  });
+
+  it('should be able to delete a reference between two objects', async () => {
+    await collection.data
+      .referenceDelete({
+        fromProperty: 'ref',
+        fromUuid: toBeUpdatedID,
+        reference: Reference.to({ uuids: toBeReplacedID }),
+      })
+      .then(async () => {
+        const obj = await collection.query.fetchObjectById({
+          id: toBeUpdatedID,
+        });
+        expect(obj.properties.ref).toBeUndefined();
+      });
+  });
+
+  it('it should be able to add many references in batch', async () => {
+    await collection.data
+      .referenceAddMany({
+        refs: [
+          {
+            fromProperty: 'ref',
+            fromUuid: existingID,
+            reference: Reference.to({ uuids: [toBeReplacedID, toBeUpdatedID] }),
+          },
+          // {
+          //   fromProperty: 'ref',
+          //   fromUuid: toBeUpdatedID,
+          //   reference: Reference.to({ uuids: existingID }),
+          // },
+          // currently causes bug in Weaviate due to first deleting last reference and then adding new one
+        ],
+      })
+      .then(async (res) => {
+        if (res.hasErrors) console.error(res.errors);
+        expect(res.hasErrors).toEqual(false);
+        const obj1 = await collection.query.fetchObjectById({
+          id: existingID,
+        });
+        expect(obj1.properties.ref?.objects).toEqual([]);
+        expect(obj1.properties.ref?.targetCollection).toEqual(className);
+        expect(obj1.properties.ref?.uuids?.includes(toBeReplacedID)).toEqual(true);
+        expect(obj1.properties.ref?.uuids?.includes(toBeUpdatedID)).toEqual(true);
+        // const obj2 = await collection.query.fetchObjectById({
+        //   id: toBeUpdatedID
+        // });
+        // expect(obj2.properties.ref?.objects).toEqual([]);
+        // expect(obj2.properties.ref?.targetCollection).toEqual(className);
+        // expect(obj2.properties.ref?.uuids?.includes(existingID)).toEqual(true);
       });
   });
 });

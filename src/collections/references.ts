@@ -23,7 +23,7 @@ export class ReferenceManager<T extends Properties> {
     this.uuids = uuids;
   }
 
-  toBeaconObjs(): Beacon[] {
+  public toBeaconObjs(): Beacon[] {
     return this.uuids
       ? this.uuids.map((uuid) => {
           return {
@@ -33,12 +33,26 @@ export class ReferenceManager<T extends Properties> {
       : [];
   }
 
-  toBeaconStrings(): string[] {
+  public toBeaconStrings(): string[] {
     return this.uuids
       ? this.uuids.map((uuid) => {
           return `weaviate://localhost/${this.targetCollection ? `${this.targetCollection}/` : ''}${uuid}`;
         })
       : [];
+  }
+
+  static fromBeaconStrings<T extends Properties>(beacons: string[]): ReferenceManager<T> {
+    let targetCollection = '';
+    if (beacons.length > 0) {
+      targetCollection = beacons[0].split('/').length > 3 ? beacons[0].split('/')[3] : '';
+    }
+    return new ReferenceManager<T>(
+      targetCollection,
+      undefined,
+      beacons.map((beacon) => {
+        return beacon.split('/').pop() as string;
+      })
+    );
   }
 
   public isMultiTarget(): boolean {

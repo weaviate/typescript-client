@@ -240,8 +240,6 @@ export type GenerativeConfig =
   | GenerativePaLMConfig;
 
 export type MetadataQuery = (
-  | 'uuid'
-  | 'vector'
   | 'creationTimeUnix'
   | 'lastUpdateTimeUnix'
   | 'distance'
@@ -252,8 +250,6 @@ export type MetadataQuery = (
 )[];
 
 export type MetadataReturn = {
-  uuid?: string;
-  vector?: number[];
   creationTimeUnix?: number;
   lastUpdateTimeUnix?: number;
   distance?: number;
@@ -265,7 +261,9 @@ export type MetadataReturn = {
 
 export type WeaviateObject<T> = {
   properties: T;
-  metadata: MetadataReturn;
+  metadata?: MetadataReturn;
+  uuid: string;
+  vector?: number[];
 };
 
 export type QueryReturn<T> = {
@@ -358,7 +356,7 @@ type AllowedKeys =
 type AllowedValues = string | string[] | boolean | boolean[] | number | number[];
 
 export type DataObject<T> = {
-  uuid?: string;
+  id?: string;
   properties: T;
   vector?: number[];
 };

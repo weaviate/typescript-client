@@ -22,6 +22,7 @@ export interface QueryFetchObjectsArgs<T extends Properties> {
   after?: string;
   filters?: Filters<FilterValueType>;
   sort?: SortBy[];
+  includeVector?: boolean;
   returnMetadata?: MetadataQuery;
   returnProperties?: Property<T>[];
 }
@@ -30,6 +31,7 @@ export interface QueryArgs<T extends Properties> {
   limit?: number;
   autoLimit?: number;
   filters?: Filters<FilterValueType>;
+  includeVector?: boolean;
   returnMetadata?: MetadataQuery;
   returnProperties?: Property<T>[];
 }
@@ -129,13 +131,13 @@ class QueryManager<T extends Properties> implements Query<T> {
       .then((path) => this.connection.get(path))
       .then((res: Required<WeaviateObjectRest<T>>) => {
         return {
-          properties: res.properties,
+          properties: Deserialize.propertiesREST(res.properties),
           metadata: {
-            uuid: res.id,
-            vector: res.vector,
             creationTimeUnix: res.creationTimeUnix,
             lastUpdateTimeUnix: res.lastUpdateTimeUnix,
           },
+          uuid: res.id,
+          vector: res.vector,
         };
       });
   }

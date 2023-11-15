@@ -168,7 +168,7 @@ const data = <T extends Properties>(
       args.refs.forEach((ref) => {
         ref.reference.toBeaconStrings().forEach((beaconStr) => {
           references.push({
-            from: `localhost://weaviate/${name}/${ref.fromUuid}/${ref.fromProperty}`,
+            from: `weaviate://localhost/${name}/${ref.fromUuid}/${ref.fromProperty}`,
             to: beaconStr,
             tenant: tenant,
           });
@@ -200,7 +200,13 @@ const data = <T extends Properties>(
     referenceDelete: <P extends Properties>(args: ReferenceArgs<P>): Promise<void> =>
       referencesPath
         .build(args.fromUuid, name, args.fromProperty, consistencyLevel, tenant)
-        .then((path) => connection.delete(path, args.reference.toBeaconObjs(), false)),
+        .then((path) =>
+          Promise.all(args.reference.toBeaconObjs().map((beacon) => connection.delete(path, beacon, false)))
+        )
+        .then(() => {})
+        .catch((err) => {
+          throw err;
+        }),
     referenceReplace: <P extends Properties>(args: ReferenceArgs<P>): Promise<void> =>
       referencesPath
         .build(args.fromUuid, name, args.fromProperty, consistencyLevel, tenant)

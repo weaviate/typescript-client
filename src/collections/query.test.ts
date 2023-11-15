@@ -39,30 +39,29 @@ describe('Testing of the collection.query methods with a simple collection', () 
         });
       });
     const res = await collection.query.fetchObjectById({ id, includeVector: true });
-    vector = res.metadata.vector!; // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    vector = res.vector!; // eslint-disable-line @typescript-eslint/no-non-null-assertion
   });
 
   it('should fetch an object by its id', async () => {
     const object = await collection.query.fetchObjectById({ id });
     expect(object.properties.testProp).toEqual('test');
-    expect(object.metadata.uuid).toEqual(id);
+    expect(object.uuid).toEqual(id);
   });
 
   it('should query without search', async () => {
     const ret = await collection.query.fetchObjects();
     expect(ret.objects.length).toEqual(1);
     expect(ret.objects[0].properties.testProp).toEqual('test');
-    expect(ret.objects[0].metadata.uuid).toEqual(id);
+    expect(ret.objects[0].uuid).toEqual(id);
   });
 
   it('should query without search specifying return properties', async () => {
     const ret = await collection.query.fetchObjects({
       returnProperties: ['testProp'],
-      returnMetadata: ['uuid'],
     });
     expect(ret.objects.length).toEqual(1);
     expect(ret.objects[0].properties.testProp).toEqual('test');
-    expect(ret.objects[0].metadata.uuid).toEqual(id);
+    expect(ret.objects[0].uuid).toEqual(id);
   });
 
   it('should query with bm25', async () => {
@@ -71,7 +70,7 @@ describe('Testing of the collection.query methods with a simple collection', () 
     });
     expect(ret.objects.length).toEqual(1);
     expect(ret.objects[0].properties.testProp).toEqual('test');
-    expect(ret.objects[0].metadata.uuid).toEqual(id);
+    expect(ret.objects[0].uuid).toEqual(id);
   });
 
   it('should query with hybrid', async () => {
@@ -80,7 +79,7 @@ describe('Testing of the collection.query methods with a simple collection', () 
     });
     expect(ret.objects.length).toEqual(1);
     expect(ret.objects[0].properties.testProp).toEqual('test');
-    expect(ret.objects[0].metadata.uuid).toEqual(id);
+    expect(ret.objects[0].uuid).toEqual(id);
   });
 
   it('should query with nearObject', async () => {
@@ -89,7 +88,7 @@ describe('Testing of the collection.query methods with a simple collection', () 
     });
     expect(ret.objects.length).toEqual(1);
     expect(ret.objects[0].properties.testProp).toEqual('test');
-    expect(ret.objects[0].metadata.uuid).toEqual(id);
+    expect(ret.objects[0].uuid).toEqual(id);
   });
 
   it('should query with nearText', async () => {
@@ -98,7 +97,7 @@ describe('Testing of the collection.query methods with a simple collection', () 
     });
     expect(ret.objects.length).toEqual(1);
     expect(ret.objects[0].properties.testProp).toEqual('test');
-    expect(ret.objects[0].metadata.uuid).toEqual(id);
+    expect(ret.objects[0].uuid).toEqual(id);
   });
 
   it('should query with nearVector', async () => {
@@ -107,7 +106,7 @@ describe('Testing of the collection.query methods with a simple collection', () 
     });
     expect(ret.objects.length).toEqual(1);
     expect(ret.objects[0].properties.testProp).toEqual('test');
-    expect(ret.objects[0].metadata.uuid).toEqual(id);
+    expect(ret.objects[0].uuid).toEqual(id);
   });
 });
 
@@ -129,8 +128,8 @@ describe('Testing of the collection.query methods with a collection with a refer
   };
 
   const collection = client.collections.get<TestCollectionQueryWithRefProp>(className);
-  beforeAll(async () => {
-    await client.collections
+  beforeAll(() => {
+    return client.collections
       .create({
         name: className,
         properties: [
@@ -156,7 +155,7 @@ describe('Testing of the collection.query methods with a collection with a refer
         id2 = await collection.data.insert({
           properties: {
             testProp: 'other',
-            refProp: Reference.to<TestCollectionQueryWithRefProp>({ uuids: [id1] }),
+            refProp: Reference.to<TestCollectionQueryWithRefProp>({ uuids: id1 }),
           },
         });
       });
@@ -184,7 +183,6 @@ describe('Testing of the collection.query methods with a collection with a refer
   it('should query with bm25 returning the referenced object', async () => {
     const ret = await collection.query.bm25({
       query: 'other',
-      limit: 1,
       returnProperties: [
         'testProp',
         {
@@ -194,15 +192,20 @@ describe('Testing of the collection.query methods with a collection with a refer
         },
       ],
     });
-    expect(ret.objects.length).toEqual(1);
-    expect(ret.objects[0].properties.testProp).toEqual('other');
-    expect(ret.objects[0].properties.refProp?.objects[0].properties?.testProp).toEqual('test');
+    expect(ret.objects.length).toEqual(2);
+    expect(ret.objects.map((obj) => obj.properties.testProp).includes('other')).toEqual(true);
+    expect(
+      ret.objects.find((obj) => obj.properties.testProp === 'other')?.properties.refProp?.objects.length
+    ).toEqual(1);
+    expect(
+      ret.objects.find((obj) => obj.properties.testProp === 'other')?.properties.refProp?.objects[0]
+        .properties?.testProp
+    ).toEqual('test');
   });
 
   it('should query with hybrid returning the referenced object', async () => {
     const ret = await collection.query.hybrid({
       query: 'other',
-      limit: 1,
       returnProperties: [
         'testProp',
         {
@@ -212,15 +215,20 @@ describe('Testing of the collection.query methods with a collection with a refer
         },
       ],
     });
-    expect(ret.objects.length).toEqual(1);
-    expect(ret.objects[0].properties.testProp).toEqual('other');
-    expect(ret.objects[0].properties.refProp?.objects[0].properties?.testProp).toEqual('test');
+    expect(ret.objects.length).toEqual(2);
+    expect(ret.objects.map((obj) => obj.properties.testProp).includes('other')).toEqual(true);
+    expect(
+      ret.objects.find((obj) => obj.properties.testProp === 'other')?.properties.refProp?.objects.length
+    ).toEqual(1);
+    expect(
+      ret.objects.find((obj) => obj.properties.testProp === 'other')?.properties.refProp?.objects[0]
+        .properties?.testProp
+    ).toEqual('test');
   });
 
   it('should query with nearObject returning the referenced object', async () => {
     const ret = await collection.query.nearObject({
       nearObject: id2,
-      limit: 1,
       returnProperties: [
         'testProp',
         {
@@ -230,16 +238,21 @@ describe('Testing of the collection.query methods with a collection with a refer
         },
       ],
     });
-    expect(ret.objects.length).toEqual(1);
-    expect(ret.objects[0].properties.testProp).toEqual('other');
-    expect(ret.objects[0].properties.refProp?.objects[0].properties?.testProp).toEqual('test');
+    expect(ret.objects.length).toEqual(2);
+    expect(ret.objects.map((obj) => obj.properties.testProp).includes('other')).toEqual(true);
+    expect(
+      ret.objects.find((obj) => obj.properties.testProp === 'other')?.properties.refProp?.objects.length
+    ).toEqual(1);
+    expect(
+      ret.objects.find((obj) => obj.properties.testProp === 'other')?.properties.refProp?.objects[0]
+        .properties?.testProp
+    ).toEqual('test');
   });
 
   it('should query with nearVector returning the referenced object', async () => {
     const res = await collection.query.fetchObjectById({ id: id2, includeVector: true });
     const ret = await collection.query.nearVector({
-      nearVector: res.metadata.vector!,
-      limit: 1,
+      nearVector: res.vector!,
       returnProperties: [
         'testProp',
         {
@@ -249,8 +262,14 @@ describe('Testing of the collection.query methods with a collection with a refer
         },
       ],
     });
-    expect(ret.objects.length).toEqual(1);
-    expect(ret.objects[0].properties.testProp).toEqual('other');
-    expect(ret.objects[0].properties.refProp?.objects[0].properties?.testProp).toEqual('test');
+    expect(ret.objects.length).toEqual(2);
+    expect(ret.objects.map((obj) => obj.properties.testProp).includes('other')).toEqual(true);
+    expect(
+      ret.objects.find((obj) => obj.properties.testProp === 'other')?.properties.refProp?.objects.length
+    ).toEqual(1);
+    expect(
+      ret.objects.find((obj) => obj.properties.testProp === 'other')?.properties.refProp?.objects[0]
+        .properties?.testProp
+    ).toEqual('test');
   });
 });
