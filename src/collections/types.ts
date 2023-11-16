@@ -334,13 +334,13 @@ export type Reference<T> = {
 
 export type Properties = Record<string, any>;
 
-export type FiltersREST = {
-  operator: Operator;
-  operands?: FiltersREST[];
-  path?: string[];
-} & {
-  [Key in AllowedKeys]?: AllowedValues;
-};
+// export type FiltersREST = {
+//   operator: Operator;
+//   operands?: FiltersREST[];
+//   path?: string[];
+// } & {
+//   [Key in AllowedKeys]?: AllowedValues;
+// };
 
 type AllowedKeys =
   | 'valueText'

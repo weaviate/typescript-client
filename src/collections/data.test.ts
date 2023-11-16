@@ -293,7 +293,7 @@ describe('Testing of the collection.data methods', () => {
           //   fromUuid: toBeUpdatedID,
           //   reference: Reference.to({ uuids: existingID }),
           // },
-          // currently causes bug in Weaviate due to first deleting last reference and then adding new one
+          // currently causes bug in Weaviate due to first deleting last reference in above test and then adding new one
         ],
       })
       .then(async (res) => {

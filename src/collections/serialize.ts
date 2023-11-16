@@ -1,10 +1,10 @@
 import { v4 as uuidv4 } from 'uuid';
+import { WhereFilter } from '../openapi/types';
 import {
   BatchObject as BatchObjectGrpc,
   BatchObject_MultiTargetRefProps,
   BatchObject_Properties,
   BatchObject_SingleTargetRefProps,
-  BatchObjectsRequest,
 } from '../proto/v1/batch';
 import {
   PropertiesRequest,
@@ -30,7 +30,6 @@ import { Filters, FilterValueType, PrimitiveFilterValueType, PrimitiveListFilter
 import {
   BatchObject,
   DataObject,
-  FiltersREST,
   MetadataQuery,
   MultiRefProperty,
   NestedProperty,
@@ -65,7 +64,6 @@ import {
 } from './query';
 import { GenerateArgs } from './generate';
 import { GroupByArgs } from './groupby';
-import { Struct } from '../proto/google/protobuf/struct';
 import {
   BooleanArrayProperties,
   IntArrayProperties,
@@ -312,9 +310,9 @@ export default class Serialize {
     }
   };
 
-  public static filtersREST = <T extends FilterValueType>(filters: Filters<T>): FiltersREST => {
-    const resolveFilters = (filters: Filters<T>): FiltersREST[] => {
-      const out: FiltersREST[] = [];
+  public static filtersREST = <T extends FilterValueType>(filters: Filters<T>): WhereFilter => {
+    const resolveFilters = (filters: Filters<T>): WhereFilter[] => {
+      const out: WhereFilter[] = [];
       filters.filters?.forEach((val) => {
         if (isFilters(val)) {
           out.push(Serialize.filtersREST(val));
@@ -334,30 +332,55 @@ export default class Serialize {
         path: filters.path,
         operator: filters.operator,
       };
-      if (isText(value) || isTextArray(value)) {
+      if (isText(value)) {
         return {
           ...out,
           valueText: value,
         };
-      } else if (isInt(value) || isIntArray(value)) {
+      } else if (isTextArray(value)) {
+        return {
+          ...out,
+          valueTextArray: value,
+        };
+      } else if (isInt(value)) {
         return {
           ...out,
           valueInt: value,
         };
-      } else if (isBoolean(value) || isBooleanArray(value)) {
+      } else if (isIntArray(value)) {
+        return {
+          ...out,
+          valueIntArray: value,
+        };
+      } else if (isBoolean(value)) {
         return {
           ...out,
           valueBoolean: value,
         };
-      } else if (isFloat(value) || isFloatArray(value)) {
+      } else if (isBooleanArray(value)) {
+        return {
+          ...out,
+          valueBooleanArray: value,
+        };
+      } else if (isFloat(value)) {
         return {
           ...out,
           valueNumber: value,
         };
-      } else if (isDate(value) || isDateArray(value)) {
+      } else if (isFloatArray(value)) {
+        return {
+          ...out,
+          valueNumberArray: value,
+        };
+      } else if (isDate(value)) {
         return {
           ...out,
           valueDate: value.toString(),
+        };
+      } else if (isDateArray(value)) {
+        return {
+          ...out,
+          valueDateArray: value.map((v) => v.toString()),
         };
       } else {
         throw new Error('Invalid filter value type');
