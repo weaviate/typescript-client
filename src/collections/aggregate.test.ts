@@ -126,6 +126,14 @@ describe('Testing of the collection.aggregate methods', () => {
     expect(result.totalCount).toEqual(100);
   });
 
+  it('should aggregate grouped by data without a search and no property metrics', async () => {
+    const result = await collection.aggregate.groupBy.overAll({ groupBy: 'text' });
+    expect(result.length).toEqual(1);
+    expect(result[0].totalCount).toEqual(100);
+    expect(result[0].groupedBy.prop).toEqual('text');
+    expect(result[0].groupedBy.value).toEqual('test');
+  });
+
   it('should aggregate data without a search and one property metric', async () => {
     const result = await collection.aggregate.overAll({
       returnMetrics: Metrics.aggregate('text').text(['count', 'topOccurrencesOccurs', 'topOccurrencesValue']),
