@@ -9,11 +9,10 @@ import { Properties } from './types';
 import { Aggregator } from '../graphql';
 import Serialize from './serialize';
 
-interface AggregateArgs<T extends Properties> {
+interface AggregateArgs<T extends Properties, M extends PropertiesMetrics<T> | undefined> {
   filters?: Filters<FilterValueType>;
   limit?: number;
-  totalCount?: boolean;
-  returnMetrics?: PropertiesMetrics<T>;
+  returnMetrics?: M;
 }
 
 interface NearArgs {
@@ -22,19 +21,28 @@ interface NearArgs {
   objectLimit?: number;
 }
 
-interface AggregateNearImageArgs<T extends Properties> extends AggregateArgs<T>, NearArgs {
+export interface AggregateNearImageArgs<T extends Properties, M extends PropertiesMetrics<T> | undefined>
+  extends AggregateArgs<T, M>,
+    NearArgs {
   nearImage: string;
 }
-interface AggregateNearObjectArgs<T extends Properties> extends AggregateArgs<T>, NearArgs {
+export interface AggregateNearObjectArgs<T extends Properties, M extends PropertiesMetrics<T> | undefined>
+  extends AggregateArgs<T, M>,
+    NearArgs {
   nearObject: string;
 }
-interface AggregateNearTextArgs<T extends Properties> extends AggregateArgs<T>, NearArgs {
+export interface AggregateNearTextArgs<T extends Properties, M extends PropertiesMetrics<T> | undefined>
+  extends AggregateArgs<T, M>,
+    NearArgs {
   query: string | string[];
 }
-interface AggregateNearVectorArgs<T extends Properties> extends AggregateArgs<T>, NearArgs {
+export interface AggregateNearVectorArgs<T extends Properties, M extends PropertiesMetrics<T> | undefined>
+  extends AggregateArgs<T, M>,
+    NearArgs {
   vector: number[];
 }
-interface AggregateOverAllArgs<T extends Properties> extends AggregateArgs<T> {}
+export interface AggregateOverAllArgs<T extends Properties, M extends PropertiesMetrics<T> | undefined>
+  extends AggregateArgs<T, M> {}
 
 type AggregateBoolean = {
   count?: number;
@@ -69,12 +77,12 @@ type AggregateReference = {
 type AggregateText = {
   count?: number;
   topOccurrences?: {
-    count?: number;
+    occurs?: number;
     value?: number;
   }[];
 };
 
-type Metrics<T extends Properties> =
+type MetricsInput<T extends Properties> =
   | MetricsBoolean<T>
   | MetricsInteger<T>
   | MetricsNumber<T>
@@ -82,19 +90,21 @@ type Metrics<T extends Properties> =
   | MetricsDate<T>
   | MetricsReference<T>;
 
-type PropertiesMetrics<T extends Properties> = Metrics<T> | Metrics<T>[];
+type PropertiesMetrics<T extends Properties> = MetricsInput<T> | MetricsInput<T>[];
 
 type MetricsBase<T extends Properties, K extends 'boolean' | 'date' | 'integer' | 'number' | 'text'> = {
-  _kind: K;
+  kind: K;
   propertyName: keyof T & string;
 };
 
-type MetricsBoolean<T extends Properties> = MetricsBase<T, 'boolean'> & Partial<AggregateBoolean>;
-type MetricsDate<T extends Properties> = MetricsBase<T, 'date'> & Partial<AggregateDate>;
-type MetricsInteger<T extends Properties> = MetricsBase<T, 'integer'> & Partial<AggregateNumber>;
-type MetricsNumber<T extends Properties> = MetricsBase<T, 'number'> & Partial<AggregateNumber>;
+type Option<A> = { [key in keyof A]: boolean };
+
+type MetricsBoolean<T extends Properties> = MetricsBase<T, 'boolean'> & Partial<Option<AggregateBoolean>>;
+type MetricsDate<T extends Properties> = MetricsBase<T, 'date'> & Partial<Option<AggregateDate>>;
+type MetricsInteger<T extends Properties> = MetricsBase<T, 'integer'> & Partial<Option<AggregateNumber>>;
+type MetricsNumber<T extends Properties> = MetricsBase<T, 'number'> & Partial<Option<AggregateNumber>>;
 type MetricsReference<T> = {
-  _kind: 'reference';
+  kind: 'reference';
   propertyName: keyof T & string;
   pointingTo?: boolean;
   type?: boolean;
@@ -102,20 +112,120 @@ type MetricsReference<T> = {
 type MetricsText<T extends Properties> = MetricsBase<T, 'text'> & {
   count?: boolean;
   topOccurrences?: {
-    count?: boolean;
+    occurs?: boolean;
     value?: boolean;
   };
 };
 
-type AggregateResult<T extends Properties> = {
-  properties?: Record<
-    keyof T,
-    AggregateBoolean | AggregateDate | AggregateNumber | AggregateReference | AggregateText
-  >;
-  totalCount?: number;
+export class Metrics<T extends Properties> {
+  private propertyName: keyof T & string;
+
+  private constructor(property: keyof T & string) {
+    this.propertyName = property;
+  }
+
+  static aggregate<T extends Properties>(property: keyof T & string): Metrics<T> {
+    return new Metrics<T>(property);
+  }
+
+  private map<A>(metrics: (keyof A)[]): Option<A> {
+    const out: any = {};
+    metrics.forEach((metric) => {
+      out[metric] = true;
+    });
+    return out as Option<A>;
+  }
+
+  public boolean(
+    metrics: ('count' | 'percentageFalse' | 'percentageTrue' | 'totalFalse' | 'totalTrue')[]
+  ): MetricsBoolean<T> {
+    return {
+      ...this.map(metrics),
+      kind: 'boolean',
+      propertyName: this.propertyName,
+    };
+  }
+
+  public date(metrics: ('count' | 'maximum' | 'median' | 'minimum' | 'mode')[]): MetricsDate<T> {
+    return {
+      ...this.map(metrics),
+      kind: 'date',
+      propertyName: this.propertyName,
+    };
+  }
+
+  public integer(
+    metrics: ('count' | 'maximum' | 'mean' | 'median' | 'minimum' | 'mode' | 'sum')[]
+  ): MetricsInteger<T> {
+    return {
+      ...this.map(metrics),
+      kind: 'integer',
+      propertyName: this.propertyName,
+    };
+  }
+
+  public number(
+    metrics: ('count' | 'maximum' | 'mean' | 'median' | 'minimum' | 'mode' | 'sum')[]
+  ): MetricsNumber<T> {
+    return {
+      ...this.map(metrics),
+      kind: 'number',
+      propertyName: this.propertyName,
+    };
+  }
+
+  public reference(metrics: 'pointingTo'[]): MetricsReference<T> {
+    return {
+      ...this.map(metrics),
+      kind: 'reference',
+      propertyName: this.propertyName,
+    };
+  }
+
+  public text(metrics: ('count' | 'topOccurrencesOccurs' | 'topOccurrencesValue')[]): MetricsText<T> {
+    return {
+      count: metrics.includes('count'),
+      topOccurrences:
+        metrics.includes('topOccurrencesOccurs') || metrics.includes('topOccurrencesValue')
+          ? {
+              occurs: metrics.includes('topOccurrencesOccurs'),
+              value: metrics.includes('topOccurrencesValue'),
+            }
+          : undefined,
+      kind: 'text',
+      propertyName: this.propertyName,
+    };
+  }
+}
+
+// https://chat.openai.com/share/e12e2e07-d2e4-4ba1-9eee-ddf874e3915c
+// copyright for this outrageously good code
+type KindToAggregateType<K> = K extends 'text'
+  ? AggregateText
+  : K extends 'date'
+  ? AggregateDate
+  : K extends 'integer'
+  ? AggregateNumber
+  : K extends 'number'
+  ? AggregateNumber
+  : K extends 'boolean'
+  ? AggregateBoolean
+  : AggregateReference;
+
+type AggregateResult<T extends Properties, M extends PropertiesMetrics<T> | undefined> = {
+  properties?: M extends MetricsInput<T>[]
+    ? {
+        [K in M[number] as K['propertyName']]: KindToAggregateType<K['kind']>;
+      }
+    : M extends MetricsInput<T>
+    ? {
+        [K in M as K['propertyName']]: KindToAggregateType<K['kind']>;
+      }
+    : undefined;
+  totalCount: number;
 };
 
-class AggregateManager<T extends Properties> implements Aggregate<T> {
+export class AggregateManager<T extends Properties> implements Aggregate<T> {
   connection: Connection;
   name: string;
   dbVersionSupport: DbVersionSupport;
@@ -147,7 +257,7 @@ class AggregateManager<T extends Properties> implements Aggregate<T> {
     limit?: number
   ) {
     let fields = '';
-    let builder = this.query();
+    let builder = this.query().withClassName(this.name);
     if (totalCount) {
       fields += 'meta { count }';
     }
@@ -170,26 +280,27 @@ class AggregateManager<T extends Properties> implements Aggregate<T> {
     return builder;
   }
 
-  private metrics(metrics: Metrics<T>) {
+  private metrics(metrics: MetricsInput<T>) {
     let body = '';
-    switch (metrics._kind) {
+    const { kind, propertyName, ...rest } = metrics;
+    switch (kind) {
       case 'text':
-        body = Object.entries(metrics)
+        body = Object.entries(rest)
           .map(([key, value]) => {
             if (value) {
               return value instanceof Object
-                ? `topOccurrences { ${value.count ? value.count : ''} ${value.value ? value.value : ''} }`
+                ? `topOccurrences { ${value.occurs ? 'occurs' : ''} ${value.value ? 'value' : ''} }`
                 : key;
             }
           })
           .join(' ');
         break;
       default:
-        body = Object.entries(metrics)
+        body = Object.entries(rest)
           .map(([key, value]) => (value ? key : ''))
           .join(' ');
     }
-    return `${metrics.propertyName} { ${body} }`;
+    return `${propertyName} { ${body} }`;
   }
 
   public static use<T extends Properties>(
@@ -202,30 +313,24 @@ class AggregateManager<T extends Properties> implements Aggregate<T> {
     return new AggregateManager<T>(connection, name, dbVersionSupport, consistencyLevel, tenant);
   }
 
-  public nearImage(args: AggregateNearImageArgs<T>): Promise<AggregateResult<T>> {
-    const builder = this.base(
-      args.totalCount === true,
-      args.returnMetrics,
-      args.filters,
-      args.limit
-    ).withNearImage({
+  public nearImage<M extends PropertiesMetrics<T> | undefined>(
+    args: AggregateNearImageArgs<T, M>
+  ): Promise<AggregateResult<T, M>> {
+    const builder = this.base(true, args.returnMetrics, args.filters, args.limit).withNearImage({
       image: args.nearImage,
       certainty: args.certainty,
       distance: args.distance,
     });
-    if (args.objectLimit) {
-      builder.withObjectLimit(args.objectLimit);
+    if (args?.objectLimit) {
+      builder.withObjectLimit(args?.objectLimit);
     }
     return this.do(builder);
   }
 
-  public nearObject(args: AggregateNearObjectArgs<T>): Promise<AggregateResult<T>> {
-    const builder = this.base(
-      args.totalCount === true,
-      args.returnMetrics,
-      args.filters,
-      args.limit
-    ).withNearObject({
+  public nearObject<M extends PropertiesMetrics<T> | undefined>(
+    args: AggregateNearObjectArgs<T, M>
+  ): Promise<AggregateResult<T, M>> {
+    const builder = this.base(true, args.returnMetrics, args.filters, args.limit).withNearObject({
       id: args.nearObject,
       certainty: args.certainty,
       distance: args.distance,
@@ -236,13 +341,10 @@ class AggregateManager<T extends Properties> implements Aggregate<T> {
     return this.do(builder);
   }
 
-  public nearText(args: AggregateNearTextArgs<T>): Promise<AggregateResult<T>> {
-    const builder = this.base(
-      args.totalCount === true,
-      args.returnMetrics,
-      args.filters,
-      args.limit
-    ).withNearText({
+  public nearText<M extends PropertiesMetrics<T> | undefined>(
+    args: AggregateNearTextArgs<T, M>
+  ): Promise<AggregateResult<T, M>> {
+    const builder = this.base(true, args.returnMetrics, args.filters, args.limit).withNearText({
       concepts: Array.isArray(args.query) ? args.query : [args.query],
       certainty: args.certainty,
       distance: args.distance,
@@ -253,13 +355,10 @@ class AggregateManager<T extends Properties> implements Aggregate<T> {
     return this.do(builder);
   }
 
-  public nearVector(args: AggregateNearVectorArgs<T>): Promise<AggregateResult<T>> {
-    const builder = this.base(
-      args.totalCount === true,
-      args.returnMetrics,
-      args.filters,
-      args.limit
-    ).withNearVector({
+  public nearVector<M extends PropertiesMetrics<T> | undefined>(
+    args: AggregateNearVectorArgs<T, M>
+  ): Promise<AggregateResult<T, M>> {
+    const builder = this.base(true, args.returnMetrics, args.filters, args.limit).withNearVector({
       vector: args.vector,
       certainty: args.certainty,
       distance: args.distance,
@@ -270,17 +369,18 @@ class AggregateManager<T extends Properties> implements Aggregate<T> {
     return this.do(builder);
   }
 
-  public overAll(args: AggregateOverAllArgs<T>): Promise<AggregateResult<T>> {
-    const builder = this.base(args.totalCount === true, args.returnMetrics, args.filters, args.limit);
+  public overAll<M extends PropertiesMetrics<T> | undefined>(
+    args?: AggregateOverAllArgs<T, M>
+  ): Promise<AggregateResult<T, M>> {
+    const builder = this.base(true, args?.returnMetrics, args?.filters, args?.limit);
     return this.do(builder);
   }
 
   private do = (query: Aggregator) => {
-    return query.do().then((data: any) => {
-      const res = data.Aggregate[this.name][0];
-      const meta: { count: number } | undefined = res.pop('meta', undefined);
+    return query.do().then(({ data }: any) => {
+      const { meta, ...rest } = data.Aggregate[this.name][0];
       return {
-        properties: res,
+        properties: rest,
         totalCount: meta?.count,
       };
     });
@@ -288,11 +388,21 @@ class AggregateManager<T extends Properties> implements Aggregate<T> {
 }
 
 export interface Aggregate<T extends Properties> {
-  nearImage: (args: AggregateNearImageArgs<T>) => Promise<AggregateResult<T>>;
-  nearObject: (args: AggregateNearObjectArgs<T>) => Promise<AggregateResult<T>>;
-  nearText: (args: AggregateNearTextArgs<T>) => Promise<AggregateResult<T>>;
-  nearVector: (args: AggregateNearVectorArgs<T>) => Promise<AggregateResult<T>>;
-  overAll: (args: AggregateOverAllArgs<T>) => Promise<AggregateResult<T>>;
+  nearImage: <M extends PropertiesMetrics<T> | undefined>(
+    args: AggregateNearImageArgs<T, M>
+  ) => Promise<AggregateResult<T, M>>;
+  nearObject: <M extends PropertiesMetrics<T> | undefined>(
+    args: AggregateNearObjectArgs<T, M>
+  ) => Promise<AggregateResult<T, M>>;
+  nearText: <M extends PropertiesMetrics<T> | undefined>(
+    args: AggregateNearTextArgs<T, M>
+  ) => Promise<AggregateResult<T, M>>;
+  nearVector: <M extends PropertiesMetrics<T> | undefined>(
+    args: AggregateNearVectorArgs<T, M>
+  ) => Promise<AggregateResult<T, M>>;
+  overAll: <M extends PropertiesMetrics<T> | undefined>(
+    args?: AggregateOverAllArgs<T, M>
+  ) => Promise<AggregateResult<T, M>>;
 }
 
 export default AggregateManager.use;

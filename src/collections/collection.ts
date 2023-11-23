@@ -2,6 +2,7 @@ import Connection from '../connection';
 import { ConsistencyLevel } from '../data';
 import { DbVersionSupport } from '../utils/dbVersion';
 
+import aggregate, { Aggregate } from './aggregate';
 import data, { Data } from './data';
 import generate, { Generate } from './generate';
 import groupBy, { GroupBy } from './groupby';
@@ -9,6 +10,7 @@ import query, { Query } from './query';
 import { Properties } from './types';
 
 export interface Collection<T extends Properties> {
+  aggregate: Aggregate<T>;
   data: Data<T>;
   generate: Generate<T>;
   groupBy: GroupBy<T>;
@@ -25,6 +27,7 @@ const collection = <T extends Properties>(
   tenant?: string
 ) => {
   return {
+    aggregate: aggregate<T>(connection, name, dbVersionSupport, consistencyLevel, tenant),
     data: data<T>(connection, name, dbVersionSupport, consistencyLevel, tenant),
     generate: generate<T>(connection, name, dbVersionSupport, consistencyLevel, tenant),
     groupBy: groupBy<T>(connection, name, dbVersionSupport, consistencyLevel, tenant),
