@@ -135,6 +135,14 @@ describe('Testing of the collection.query methods with a collection with a refer
   };
 
   const collection = client.collections.get<TestCollectionQueryWithRefProp>(className);
+
+  afterAll(() => {
+    return client.collections.delete(className).catch((err) => {
+      console.error(err);
+      throw err;
+    });
+  });
+
   beforeAll(() => {
     return client.collections
       .create({
