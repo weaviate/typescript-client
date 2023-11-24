@@ -19,6 +19,13 @@ describe('Testing of the collection.query methods with a simple collection', () 
 
   const collection = client.collections.get<TestCollectionQueryMinimalOptions>(className);
 
+  afterAll(() => {
+    return client.collections.delete(className).catch((err) => {
+      console.error(err);
+      throw err;
+    });
+  });
+
   beforeAll(async () => {
     id = await client.collections
       .create({

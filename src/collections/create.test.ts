@@ -20,15 +20,6 @@ describe('Testing of the collections.create method', () => {
     host: 'localhost:8086',
   });
 
-  afterAll(async () => {
-    const promises = [
-      cluster.schema.deleteAll(),
-      contextionary.schema.deleteAll(),
-      openai.schema.deleteAll(),
-    ];
-    await Promise.all(promises);
-  });
-
   it('should be able to create a simple collection', async () => {
     const className = 'TestCollectionSimple';
     const response = await contextionary.collections.create({
@@ -45,6 +36,8 @@ describe('Testing of the collections.create method', () => {
     expect(response.properties?.[0].name).toEqual('testProp');
     expect(response.properties?.[0].dataType).toEqual(['text']);
     expect(response.moduleConfig).toBeUndefined();
+
+    await contextionary.collections.delete(className);
   });
 
   it('should be able to create a nested collection', async () => {
@@ -71,6 +64,8 @@ describe('Testing of the collections.create method', () => {
     expect(response.properties?.[0].nestedProperties?.length).toEqual(1);
     expect(response.properties?.[0].nestedProperties?.[0].name).toEqual('nestedProp');
     expect(response.moduleConfig).toBeUndefined();
+
+    await contextionary.collections.delete(className);
   });
 
   it('should be able to create a complex collection', async () => {
@@ -271,6 +266,8 @@ describe('Testing of the collections.create method', () => {
     expect(response.vectorIndexConfig?.vectorCacheMaxObjects).toEqual(100000);
 
     expect(response.vectorIndexType).toEqual('hnsw');
+
+    await cluster.collections.delete(className);
   });
 
   it('should be able to create a collection with the contextionary vectorizer', async () => {
@@ -298,6 +295,8 @@ describe('Testing of the collections.create method', () => {
         vectorizeClassName: false,
       },
     });
+
+    await contextionary.collections.delete(className);
   });
 
   it('should be able to create a collection with the contextionary vectorizer using Configure.Vectorizer', async () => {
@@ -321,6 +320,8 @@ describe('Testing of the collections.create method', () => {
         vectorizeClassName: true,
       },
     });
+
+    await contextionary.collections.delete(className);
   });
 
   it('should be able to create a collection with the openai vectorizer', async () => {
@@ -346,6 +347,8 @@ describe('Testing of the collections.create method', () => {
     expect(response.properties?.[0].dataType).toEqual(['text']);
     expect(vectorizer).toBeDefined();
     expect(vectorizer.vectorizeClassName).toEqual(true);
+
+    await openai.collections.delete(className);
   });
 
   it('should be able to create a collection with the openai vectorizer with Configure.Vectorizer', async () => {
@@ -367,6 +370,8 @@ describe('Testing of the collections.create method', () => {
     expect(response.properties?.[0].dataType).toEqual(['text']);
     expect(vectorizer).toBeDefined();
     expect(vectorizer.vectorizeClassName).toEqual(true);
+
+    await openai.collections.delete(className);
   });
 
   it('should be able to create a collection with the openai generative with Configure.Generative', async () => {
@@ -388,5 +393,7 @@ describe('Testing of the collections.create method', () => {
     expect(response.properties?.[0].dataType).toEqual(['text']);
     expect(generative).toBeDefined();
     expect(generative).toEqual({});
+
+    await openai.collections.delete(className);
   });
 });

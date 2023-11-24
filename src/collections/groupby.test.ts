@@ -25,6 +25,13 @@ describe('Testing of the collection.generate methods with a simple collection', 
     groupByProperty: 'testProp',
   };
 
+  afterAll(() => {
+    return client.collections.delete(className).catch((err) => {
+      console.error(err);
+      throw err;
+    });
+  });
+
   beforeAll(async () => {
     id = await client.collections
       .create({

@@ -35,6 +35,13 @@ describe('Testing of the collection.aggregate methods', () => {
   const date2 = '2023-01-02T00:00:00Z';
   const dateMid = '2023-01-01T12:00:00Z';
 
+  afterAll(() => {
+    return client.collections.delete(className).catch((err) => {
+      console.error(err);
+      throw err;
+    });
+  });
+
   beforeAll(() => {
     return client.collections
       .create({

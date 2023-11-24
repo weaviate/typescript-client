@@ -2,6 +2,7 @@ import Connection from '../connection';
 import { DbVersionSupport } from '../utils/dbVersion';
 import collection, { Collection } from './collection';
 import { WeaviateClass } from '../openapi/types';
+import { ClassCreator, ClassDeleter } from '../schema';
 import { CollectionConfig, Properties } from './types';
 
 const collections = (connection: Connection, dbVersionSupport: DbVersionSupport) => {
@@ -43,8 +44,9 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
         shardingConfig: sharding,
         vectorIndexConfig: vectorIndex,
       };
-      return connection.postReturn<any, WeaviateClass>('/schema', schema);
+      return new ClassCreator(connection).withClass(schema).do();
     },
+    delete: (name: string) => new ClassDeleter(connection).withClassName(name).do(),
     get: <TProperties extends Properties>(name: string) =>
       collection<TProperties>(connection, name, dbVersionSupport),
   };
@@ -52,6 +54,7 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
 
 export interface Collections {
   create(class_: CollectionConfig): Promise<WeaviateClass>;
+  delete(class_: string): Promise<void>;
   get<TProperties extends Properties>(name: string): Collection<TProperties>;
 }
 

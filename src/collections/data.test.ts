@@ -25,6 +25,13 @@ describe('Testing of the collection.data methods', () => {
   const toBeReplacedID = v4();
   const toBeUpdatedID = v4();
 
+  afterAll(() => {
+    return client.collections.delete(className).catch((err) => {
+      console.error(err);
+      throw err;
+    });
+  });
+
   beforeAll(() => {
     return client.collections
       .create({
