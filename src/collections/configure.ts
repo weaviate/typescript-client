@@ -13,6 +13,7 @@ import {
   Multi2VecBindConfig,
   Multi2VecClipArgs,
   Multi2VecClipConfig,
+  MultiTenancyConfig,
   Ref2VecCentroidArgs,
   Ref2VecCentroidConfig,
   Text2VecCohereArgs,
@@ -96,4 +97,8 @@ class Generative {
 export default class Configure {
   static Vectorizer = Vectorizer;
   static Generative = Generative;
+
+  static multiTenancy = (args: { enabled: boolean }): MultiTenancyConfig => {
+    return args;
+  };
 }

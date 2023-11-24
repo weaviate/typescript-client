@@ -7,6 +7,7 @@ import data, { Data } from './data';
 import generate, { Generate } from './generate';
 import groupBy, { GroupBy } from './groupby';
 import query, { Query } from './query';
+import tenants, { Tenants } from './tenants';
 import { Properties } from './types';
 
 export interface Collection<T extends Properties> {
@@ -15,6 +16,7 @@ export interface Collection<T extends Properties> {
   generate: Generate<T>;
   groupBy: GroupBy<T>;
   query: Query<T>;
+  tenants: Tenants;
   withConsistency: (consistencyLevel: ConsistencyLevel) => Collection<T>;
   withTenant: (tenant: string) => Collection<T>;
 }
@@ -32,6 +34,7 @@ const collection = <T extends Properties>(
     generate: generate<T>(connection, name, dbVersionSupport, consistencyLevel, tenant),
     groupBy: groupBy<T>(connection, name, dbVersionSupport, consistencyLevel, tenant),
     query: query<T>(connection, name, dbVersionSupport, consistencyLevel, tenant),
+    tenants: tenants(connection, name),
     withConsistency: (consistencyLevel: ConsistencyLevel) =>
       collection<T>(connection, name, dbVersionSupport, consistencyLevel, tenant),
     withTenant: (tenant: string) =>
