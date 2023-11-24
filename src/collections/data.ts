@@ -6,7 +6,7 @@ import {
   BatchReference,
   BatchReferenceResponse,
 } from '../openapi/types';
-import { buildRefsPath } from '../batch/path';
+import { buildObjectsPath, buildRefsPath } from '../batch/path';
 import { ObjectsPath, ReferencesPath } from '../data/path';
 import { DbVersionSupport } from '../utils/dbVersion';
 import { ConsistencyLevel } from '../data';
@@ -124,13 +124,22 @@ const data = <T extends Properties>(
   return {
     delete: (args: DeleteArgs): Promise<boolean> =>
       objectsPath
-        .buildDelete(args.id, name, consistencyLevel)
+        .buildDelete(args.id, name, consistencyLevel, tenant)
         .then((path) => connection.delete(path, undefined, false))
         .then(() => true),
-    deleteMany: (args: DeleteManyArgs) =>
-      connection
-        .delete(`/batch/objects`, parseDeleteMany(args), true)
-        .then((res: BatchDeleteResponse) => res.results),
+    deleteMany: (args: DeleteManyArgs) => {
+      const params = new URLSearchParams();
+      if (consistencyLevel) {
+        params.set('consistency_level', consistencyLevel);
+      }
+      if (tenant) {
+        params.set('tenant', tenant);
+      }
+      const path = buildObjectsPath(params);
+      return connection
+        .delete(path, parseDeleteMany(args), true)
+        .then((res: BatchDeleteResponse) => res.results);
+    },
     insert: (args: InsertArgs<T>): Promise<string> =>
       objectsPath
         .buildCreate(consistencyLevel)
