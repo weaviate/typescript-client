@@ -11,14 +11,14 @@ export interface GraphQLClient {
 }
 
 export const gqlClient = (config: ConnectionParams): GraphQLClient => {
-  const scheme = config.scheme;
-  const host = config.host;
+  const version = '/v1/graphql';
+  const baseUri = `${config.host}${version}`;
   const defaultHeaders = config.headers;
   return {
     // for backward compatibility with replaced graphql-client lib,
     // results are wrapped into { data: data }
     query: <V extends Variables, T>(query: TQuery, variables?: V, headers?: HeadersInit) => {
-      return new Client(`${scheme}://${host}/v1/graphql`, {
+      return new Client(baseUri, {
         headers: {
           ...defaultHeaders,
           ...headers,
