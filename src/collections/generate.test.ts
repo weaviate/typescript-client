@@ -2,7 +2,9 @@
 import weaviate from '..';
 import { GenerateArgs } from './generate';
 
-describe('Testing of the collection.generate methods with a simple collection', () => {
+const maybe = process.env.OPENAI_APIKEY ? describe : describe.skip;
+
+maybe('Testing of the collection.generate methods with a simple collection', () => {
   const client = weaviate.client({
     scheme: 'http',
     host: 'localhost:8086',
