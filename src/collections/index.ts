@@ -8,7 +8,16 @@ import { CollectionConfig, Properties } from './types';
 const collections = (connection: Connection, dbVersionSupport: DbVersionSupport) => {
   return {
     create: (config: CollectionConfig) => {
-      const { name, invertedIndex, multiTenancy, replication, sharding, vectorIndex, ...rest } = config;
+      const {
+        name,
+        invertedIndex,
+        multiTenancy,
+        replication,
+        sharding,
+        vectorIndex,
+        vectorIndexType,
+        ...rest
+      } = config;
       const vectorizer = config.vectorizer ? Object.keys(config.vectorizer)[0] : undefined;
 
       let moduleConfig: any;
@@ -43,6 +52,7 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
         replicationConfig: replication,
         shardingConfig: sharding,
         vectorIndexConfig: vectorIndex,
+        vectorIndexType: vectorIndexType || 'hnsw',
       };
       return new ClassCreator(connection).withClass(schema).do();
     },

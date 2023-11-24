@@ -67,6 +67,11 @@ export interface ShardingConfig {
 
 export type VectorDistance = 'cosine' | 'dot' | 'l2-squared' | 'hamming';
 
+export type PqEncoderType = 'kmeans' | 'tile';
+export type PqEncoderDistribution = 'log_normal' | 'normal';
+
+export type VectorIndexType = 'hnsw';
+
 export interface VectorIndexConfig {
   cleanupIntervalSeconds?: number;
   distance: VectorDistance;
@@ -82,8 +87,8 @@ export interface VectorIndexConfig {
     centroids?: number;
     enabled?: boolean;
     encoder?: {
-      type?: 'kmeans' | 'tile';
-      distribution?: 'log_normal' | 'normal';
+      type?: PqEncoderType;
+      distribution?: PqEncoderDistribution;
     };
     segments?: number;
     trainingLimit?: number;
@@ -102,6 +107,7 @@ export interface CollectionConfig {
   replication?: ReplicationConfig;
   sharding?: ShardingConfig;
   vectorIndex?: VectorIndexConfig;
+  vectorIndexType?: VectorIndexType;
   vectorizer?: VectorizerConfig;
 }
 

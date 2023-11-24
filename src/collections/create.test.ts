@@ -188,6 +188,7 @@ describe('Testing of the collections.create method', () => {
         skip: true,
         vectorCacheMaxObjects: 100000,
       },
+      vectorIndexType: 'hnsw',
     });
 
     expect(response.class).toEqual(className);
