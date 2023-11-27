@@ -48,17 +48,13 @@ export interface ReplaceArgs<T> {
   vector?: number[];
 }
 
-export interface InsertManyArgs<T extends Properties> {
-  objects: DataObject<T>[];
-}
-
 export interface UpdateArgs<T> extends ReplaceArgs<T> {}
 
 export interface Data<T extends Properties> {
   delete: (args: DeleteArgs) => Promise<boolean>;
   deleteMany: (args: DeleteManyArgs) => Promise<BatchDeleteResult>;
   insert: (args: InsertArgs<T>) => Promise<string>;
-  insertMany: (args: InsertManyArgs<T>) => Promise<BatchObjectsReturn<T>>;
+  insertMany: (objects: (DataObject<T> | T)[]) => Promise<BatchObjectsReturn<T>>;
   referenceAdd: <P extends Properties>(args: ReferenceArgs<P>) => Promise<void>;
   referenceAddMany: <P extends Properties>(args: ReferenceManyArgs<P>) => Promise<BatchReferencesReturn>;
   referenceDelete: <P extends Properties>(args: ReferenceArgs<P>) => Promise<void>;
@@ -151,9 +147,9 @@ const data = <T extends Properties>(
           })
         )
         .then((obj) => obj.id),
-    insertMany: (args: InsertManyArgs<T>): Promise<BatchObjectsReturn<T>> =>
+    insertMany: (objects: (DataObject<T> | T)[]): Promise<BatchObjectsReturn<T>> =>
       connection.batch(consistencyLevel).then(async (batch) => {
-        const serialized = await Serialize.batchObjects(name, args.objects, tenant);
+        const serialized = await Serialize.batchObjects(name, objects, tenant);
         const start = Date.now();
         const reply = await batch.objects({ objects: serialized.mapped });
         const end = Date.now();

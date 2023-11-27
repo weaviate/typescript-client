@@ -53,34 +53,32 @@ describe('Testing of the collection.data methods', () => {
         ],
       })
       .then(() => {
-        return collection.data.insertMany({
-          objects: [
-            { properties: { testProp: 'DELETE ME' } },
-            { properties: { testProp: 'DELETE ME' } },
-            { properties: { testProp: 'DELETE ME' } },
-            {
-              properties: {
-                testProp: 'EXISTING',
-                testProp2: 1,
-              },
-              id: existingID,
+        return collection.data.insertMany([
+          { properties: { testProp: 'DELETE ME' } },
+          { properties: { testProp: 'DELETE ME' } },
+          { properties: { testProp: 'DELETE ME' } },
+          {
+            properties: {
+              testProp: 'EXISTING',
+              testProp2: 1,
             },
-            {
-              properties: {
-                testProp: 'REPLACE ME',
-                testProp2: 1,
-              },
-              id: toBeReplacedID,
+            id: existingID,
+          },
+          {
+            properties: {
+              testProp: 'REPLACE ME',
+              testProp2: 1,
             },
-            {
-              properties: {
-                testProp: 'UPDATE ME',
-                testProp2: 1,
-              },
-              id: toBeUpdatedID,
+            id: toBeReplacedID,
+          },
+          {
+            properties: {
+              testProp: 'UPDATE ME',
+              testProp2: 1,
             },
-          ],
-        });
+            id: toBeUpdatedID,
+          },
+        ]);
       })
       .then(() => {
         const one = collection.data.referenceAdd({
@@ -174,7 +172,7 @@ describe('Testing of the collection.data methods', () => {
         },
       });
     }
-    await collection.data.insertMany({ objects }).then(async (insert) => {
+    await collection.data.insertMany(objects).then(async (insert) => {
       expect(insert.hasErrors).toBeFalsy();
       expect(insert.allResponses.length).toEqual(10);
       expect(Object.values(insert.errors).length).toEqual(0);
@@ -198,7 +196,7 @@ describe('Testing of the collection.data methods', () => {
         },
       });
     }
-    const insert = await collection.data.insertMany({ objects }).then(async (insert) => {
+    const insert = await collection.data.insertMany(objects).then(async (insert) => {
       expect(insert.hasErrors).toBeFalsy();
       expect(insert.allResponses.length).toEqual(100);
       expect(Object.values(insert.errors).length).toEqual(0);
@@ -214,15 +212,13 @@ describe('Testing of the collection.data methods', () => {
   });
 
   it('should be able to insert many (1000) objects at once', async () => {
-    const objects: DataObject<TestCollectionData>[] = [];
+    const objects: TestCollectionData[] = [];
     for (let j = 0; j < 1000; j++) {
       objects.push({
-        properties: {
-          testProp: 'testInsertMany1000',
-        },
+        testProp: 'testInsertMany1000',
       });
     }
-    const insert = await collection.data.insertMany({ objects }).then(async (insert) => {
+    const insert = await collection.data.insertMany(objects).then(async (insert) => {
       expect(insert.hasErrors).toBeFalsy();
       expect(insert.allResponses.length).toEqual(1000);
       expect(Object.values(insert.errors).length).toEqual(0);

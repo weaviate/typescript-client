@@ -141,6 +141,10 @@ const isStringKey = <T extends Properties>(argument?: Property<T>): argument is 
   return typeof argument === 'string';
 };
 
+const isDataObject = <T extends Properties>(obj: DataObject<T> | T): obj is DataObject<T> => {
+  return (obj as DataObject<T>).properties !== undefined;
+};
+
 // Cannot do argument.every((arg) => typeof arg === type) in the above because of type erasure
 
 export default class Serialize {
@@ -580,7 +584,7 @@ export default class Serialize {
 
   public static batchObjects = <T extends Properties>(
     collection: string,
-    objects: DataObject<T>[],
+    objects: (DataObject<T> | T)[],
     tenant?: string
   ): Promise<{
     batch: BatchObject<T>[];
@@ -601,19 +605,20 @@ export default class Serialize {
       }
 
       const object = objects[index];
+      const obj = isDataObject(object) ? object : { properties: object };
 
       objs.push(
         BatchObjectGrpc.fromPartial({
           collection: collection,
-          properties: Serialize.batchProperties(object.properties),
+          properties: Serialize.batchProperties(obj.properties),
           tenant: tenant,
-          uuid: object.id ? object.id : uuidv4(),
-          vector: object.vector,
+          uuid: obj.id ? obj.id : uuidv4(),
+          vector: obj.vector,
         })
       );
 
       batch.push({
-        ...object,
+        ...obj,
         collection: collection,
         tenant: tenant,
       });

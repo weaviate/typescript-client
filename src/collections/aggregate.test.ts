@@ -111,7 +111,7 @@ describe('Testing of the collection.aggregate methods', () => {
             },
           });
         }
-        const res = await collection.data.insertMany({ objects: data });
+        const res = await collection.data.insertMany(data);
         return res;
       });
     // .then(async (res) => {
