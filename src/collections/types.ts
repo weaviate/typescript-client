@@ -265,56 +265,59 @@ export type MetadataReturn = {
   isConsistent?: boolean;
 };
 
-export type WeaviateObject<T> = {
-  properties: T;
+export type WeaviateObject<T, U> = {
   metadata?: MetadataReturn;
+  properties: T;
+  references: U;
   uuid: string;
   vector?: number[];
 };
 
-export type QueryReturn<T> = {
-  objects: WeaviateObject<T>[];
+export type QueryReturn<T, U> = {
+  objects: WeaviateObject<T, U>[];
 };
 
-export type GenerateObject<T> = WeaviateObject<T> & {
+export type GenerateObject<T, U> = WeaviateObject<T, U> & {
   generated?: string;
 };
 
-export type GenerateReturn<T> = {
-  objects: GenerateObject<T>[];
+export type GenerateReturn<T, U> = {
+  objects: GenerateObject<T, U>[];
   generated?: string;
 };
 
-export type GroupByObject<T> = WeaviateObject<T> & {
+export type GroupByObject<T, U> = WeaviateObject<T, U> & {
   belongsToGroup: string;
 };
 
-export type GroupByResult<T> = {
+export type GroupByResult<T, U> = {
   name: string;
   minDistance: number;
   maxDistance: number;
   numberOfObjects: number;
-  objects: WeaviateObject<T>[];
+  objects: WeaviateObject<T, U>[];
 };
 
-export type GroupByReturn<T> = {
-  objects: GroupByObject<T>[];
-  groups: Record<string, GroupByResult<T>>;
+export type GroupByReturn<T, U> = {
+  objects: GroupByObject<T, U>[];
+  groups: Record<string, GroupByResult<T, U>>;
 };
 
-interface BaseRefProperty<T> {
+interface BaseRefProperty<T, U> {
   linkOn: keyof T & string; // https://github.com/microsoft/TypeScript/issues/56239
-  returnProperties?: Property<ExtractCrossReferenceType<T[this['linkOn']]>>[];
   returnMetadata?: MetadataQuery;
+  returnProperties?: Property<ExtractCrossReferencePropertiesType<T[this['linkOn']], U>>[];
+  returnReferences?: ReferenceProperty<ExtractCrossReferenceReferencesType<T, U[keyof U]>, U>[];
 }
 
-export interface RefProperty<T> extends BaseRefProperty<T> {
+export interface RefProperty<T, U> extends BaseRefProperty<T, U> {
   type: 'ref';
 }
 
-type ExtractCrossReferenceType<T> = T extends CrossReference<infer U> ? U : never;
+type ExtractCrossReferencePropertiesType<T, U> = T extends CrossReference<infer V, infer U> ? V : never;
+type ExtractCrossReferenceReferencesType<T, U> = T extends CrossReference<infer V, infer U> ? U : never;
 
-export interface MultiRefProperty<T> extends BaseRefProperty<T> {
+export interface MultiRefProperty<T, U> extends BaseRefProperty<T, U> {
   type: 'multi-ref';
   targetCollection: string;
 }
@@ -325,20 +328,33 @@ export interface NestedProperty<T> {
   properties: NonRefProperty<T>[];
 }
 
-export type Property<T> = keyof T | RefProperty<T> | MultiRefProperty<T> | NestedProperty<T>;
+export type Property<T> = keyof T | NestedProperty<T>;
 export type NonRefProperty<T> = keyof T | NestedProperty<T>;
-export type NonPrimitiveProperty<T> = RefProperty<T> | MultiRefProperty<T> | NestedProperty<T>;
+export type NonPrimitiveProperty<T, U> = RefProperty<T, U> | MultiRefProperty<T, U> | NestedProperty<T>;
+export type ReferenceProperty<T, U> = RefProperty<T, U> | MultiRefProperty<T, U>;
 
 export interface SortBy {
   property: string;
   ascending?: boolean;
 }
 
-export type Reference<T> = {
-  objects: WeaviateObject<T>[];
+export type Reference<T, U> = {
+  objects: WeaviateObject<T, U>[];
 };
 
-export type Properties = Record<string, any>;
+export type Properties = Record<
+  string,
+  string | string[] | boolean | boolean[] | number | number[] | Date | Date[] | null
+>;
+
+// Type alias 'References' circularly references itself.
+// export type References = Record<string, Reference<Properties, References>>;
+
+export interface References {
+  [key: string]: Reference<Properties, ReferencesType>;
+}
+
+export type ReferencesType<T = null> = T extends null ? References | null : T;
 
 // export type FiltersREST = {
 //   operator: Operator;

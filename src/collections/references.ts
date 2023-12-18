@@ -1,4 +1,4 @@
-import { Properties, WeaviateObject } from './types';
+import { Properties, ReferencesType, WeaviateObject } from './types';
 
 interface ReferenceToArgs {
   uuids: string | string[];
@@ -12,12 +12,12 @@ export type Beacon = {
   beacon: string;
 };
 
-export class ReferenceManager<T extends Properties> {
-  public objects: WeaviateObject<T>[];
+export class ReferenceManager<T extends Properties, U extends ReferencesType> {
+  public objects: WeaviateObject<T, U>[];
   public targetCollection: string;
   public uuids?: string[];
 
-  constructor(targetCollection: string, objects?: WeaviateObject<T>[], uuids?: string[]) {
+  constructor(targetCollection: string, objects?: WeaviateObject<T, U>[], uuids?: string[]) {
     this.objects = objects ?? [];
     this.targetCollection = targetCollection;
     this.uuids = uuids;
@@ -41,12 +41,14 @@ export class ReferenceManager<T extends Properties> {
       : [];
   }
 
-  static fromBeaconStrings<T extends Properties>(beacons: string[]): ReferenceManager<T> {
+  static fromBeaconStrings<T extends Properties, U extends ReferencesType>(
+    beacons: string[]
+  ): ReferenceManager<T, U> {
     let targetCollection = '';
     if (beacons.length > 0) {
       targetCollection = beacons[0].split('/').length > 3 ? beacons[0].split('/')[3] : '';
     }
-    return new ReferenceManager<T>(
+    return new ReferenceManager<T, U>(
       targetCollection,
       undefined,
       beacons.map((beacon) => {
@@ -61,17 +63,19 @@ export class ReferenceManager<T extends Properties> {
 }
 
 export class Reference {
-  public static to<TProperties extends Properties>(args: ReferenceToArgs): ReferenceManager<TProperties> {
-    return new ReferenceManager<TProperties>(
+  public static to<TProperties extends Properties, TReferences extends ReferencesType>(
+    args: ReferenceToArgs
+  ): ReferenceManager<TProperties, TReferences> {
+    return new ReferenceManager<TProperties, TReferences>(
       '',
       undefined,
       Array.isArray(args.uuids) ? args.uuids : [args.uuids]
     );
   }
-  public static toMultiTarget<TProperties extends Properties>(
+  public static toMultiTarget<TProperties extends Properties, TReferences extends ReferencesType>(
     args: ReferenceToMultiTargetArgs
-  ): ReferenceManager<TProperties> {
-    return new ReferenceManager<TProperties>(
+  ): ReferenceManager<TProperties, TReferences> {
+    return new ReferenceManager<TProperties, TReferences>(
       args.targetCollection,
       undefined,
       Array.isArray(args.uuids) ? args.uuids : [args.uuids]
@@ -79,10 +83,13 @@ export class Reference {
   }
 }
 
-export const referenceFromObjects = <TProperties extends Properties>(
-  objects: WeaviateObject<TProperties>[]
-): ReferenceManager<TProperties> => {
-  return new ReferenceManager<TProperties>('', objects);
+export const referenceFromObjects = <TProperties extends Properties, TReferences extends ReferencesType>(
+  objects: WeaviateObject<TProperties, TReferences>[]
+): ReferenceManager<TProperties, TReferences> => {
+  return new ReferenceManager<TProperties, TReferences>('', objects);
 };
 
-export type CrossReference<TProperties extends Properties> = ReferenceManager<TProperties>;
+export type CrossReference<
+  TProperties extends Properties,
+  TReferences extends ReferencesType
+> = ReferenceManager<TProperties, TReferences>;

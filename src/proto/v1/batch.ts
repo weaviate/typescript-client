@@ -22,11 +22,16 @@ export interface BatchObjectsRequest {
 
 export interface BatchObject {
   uuid: string;
-  /** protolint:disable:next REPEATED_FIELD_NAMES_PLURALIZED */
+  /**
+   * protolint:disable:next REPEATED_FIELD_NAMES_PLURALIZED
+   *
+   * @deprecated
+   */
   vector: number[];
   properties: BatchObject_Properties | undefined;
   collection: string;
   tenant: string;
+  vectorBytes: Uint8Array;
 }
 
 export interface BatchObject_Properties {
@@ -137,7 +142,7 @@ export const BatchObjectsRequest = {
 };
 
 function createBaseBatchObject(): BatchObject {
-  return { uuid: "", vector: [], properties: undefined, collection: "", tenant: "" };
+  return { uuid: "", vector: [], properties: undefined, collection: "", tenant: "", vectorBytes: new Uint8Array(0) };
 }
 
 export const BatchObject = {
@@ -158,6 +163,9 @@ export const BatchObject = {
     }
     if (message.tenant !== "") {
       writer.uint32(42).string(message.tenant);
+    }
+    if (message.vectorBytes.length !== 0) {
+      writer.uint32(50).bytes(message.vectorBytes);
     }
     return writer;
   },
@@ -214,6 +222,13 @@ export const BatchObject = {
 
           message.tenant = reader.string();
           continue;
+        case 6:
+          if (tag !== 50) {
+            break;
+          }
+
+          message.vectorBytes = reader.bytes();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -230,6 +245,7 @@ export const BatchObject = {
       properties: isSet(object.properties) ? BatchObject_Properties.fromJSON(object.properties) : undefined,
       collection: isSet(object.collection) ? globalThis.String(object.collection) : "",
       tenant: isSet(object.tenant) ? globalThis.String(object.tenant) : "",
+      vectorBytes: isSet(object.vectorBytes) ? bytesFromBase64(object.vectorBytes) : new Uint8Array(0),
     };
   },
 
@@ -250,6 +266,9 @@ export const BatchObject = {
     if (message.tenant !== "") {
       obj.tenant = message.tenant;
     }
+    if (message.vectorBytes.length !== 0) {
+      obj.vectorBytes = base64FromBytes(message.vectorBytes);
+    }
     return obj;
   },
 
@@ -265,6 +284,7 @@ export const BatchObject = {
       : undefined;
     message.collection = object.collection ?? "";
     message.tenant = object.tenant ?? "";
+    message.vectorBytes = object.vectorBytes ?? new Uint8Array(0);
     return message;
   },
 };
@@ -791,6 +811,31 @@ export const BatchObjectsReply_BatchError = {
     return message;
   },
 };
+
+function bytesFromBase64(b64: string): Uint8Array {
+  if (globalThis.Buffer) {
+    return Uint8Array.from(globalThis.Buffer.from(b64, "base64"));
+  } else {
+    const bin = globalThis.atob(b64);
+    const arr = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; ++i) {
+      arr[i] = bin.charCodeAt(i);
+    }
+    return arr;
+  }
+}
+
+function base64FromBytes(arr: Uint8Array): string {
+  if (globalThis.Buffer) {
+    return globalThis.Buffer.from(arr).toString("base64");
+  } else {
+    const bin: string[] = [];
+    arr.forEach((byte) => {
+      bin.push(globalThis.String.fromCharCode(byte));
+    });
+    return globalThis.btoa(bin.join(""));
+  }
+}
 
 type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 

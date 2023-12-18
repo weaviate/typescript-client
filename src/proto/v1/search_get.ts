@@ -13,6 +13,7 @@ import {
   ObjectProperties,
   TextArrayProperties,
 } from "./base";
+import { Properties } from "./properties";
 
 export const protobufPackage = "weaviate.v1";
 
@@ -47,7 +48,11 @@ export interface SearchRequest {
   nearImage?: NearImageSearch | undefined;
   nearAudio?: NearAudioSearch | undefined;
   nearVideo?: NearVideoSearch | undefined;
-  generative?: GenerativeSearch | undefined;
+  generative?:
+    | GenerativeSearch
+    | undefined;
+  /** @deprecated */
+  uses123Api: boolean;
 }
 
 export interface GroupBy {
@@ -107,6 +112,7 @@ export interface Filters {
   valueIntArray?: IntArray | undefined;
   valueBooleanArray?: BooleanArray | undefined;
   valueNumberArray?: NumberArray | undefined;
+  valueGeo?: GeoCoordinatesFilter | undefined;
 }
 
 export enum Filters_Operator {
@@ -214,6 +220,12 @@ export function filters_OperatorToJSON(object: Filters_Operator): string {
   }
 }
 
+export interface GeoCoordinatesFilter {
+  latitude: number;
+  longitude: number;
+  distance: number;
+}
+
 export interface MetadataRequest {
   uuid: boolean;
   vector: boolean;
@@ -230,6 +242,7 @@ export interface PropertiesRequest {
   nonRefProperties: string[];
   refProperties: RefPropertiesRequest[];
   objectProperties: ObjectPropertiesRequest[];
+  returnAllNonrefProperties: boolean;
 }
 
 export interface ObjectPropertiesRequest {
@@ -241,10 +254,15 @@ export interface ObjectPropertiesRequest {
 export interface Hybrid {
   query: string;
   properties: string[];
-  /** protolint:disable:next REPEATED_FIELD_NAMES_PLURALIZED */
+  /**
+   * protolint:disable:next REPEATED_FIELD_NAMES_PLURALIZED
+   *
+   * @deprecated
+   */
   vector: number[];
   alpha: number;
   fusionType: Hybrid_FusionType;
+  vectorBytes: Uint8Array;
 }
 
 export enum Hybrid_FusionType {
@@ -332,10 +350,15 @@ export interface RefPropertiesRequest {
 }
 
 export interface NearVector {
-  /** protolint:disable:next REPEATED_FIELD_NAMES_PLURALIZED */
+  /**
+   * protolint:disable:next REPEATED_FIELD_NAMES_PLURALIZED
+   *
+   * @deprecated
+   */
   vector: number[];
   certainty?: number | undefined;
   distance?: number | undefined;
+  vectorBytes: Uint8Array;
 }
 
 export interface NearObject {
@@ -366,7 +389,11 @@ export interface SearchResult {
 
 export interface MetadataResult {
   id: string;
-  /** protolint:disable:next REPEATED_FIELD_NAMES_PLURALIZED */
+  /**
+   * protolint:disable:next REPEATED_FIELD_NAMES_PLURALIZED
+   *
+   * @deprecated
+   */
   vector: number[];
   creationTimeUnix: number;
   creationTimeUnixPresent: boolean;
@@ -383,19 +410,32 @@ export interface MetadataResult {
   isConsistent?: boolean | undefined;
   generative: string;
   generativePresent: boolean;
+  isConsistentPresent: boolean;
+  vectorBytes: Uint8Array;
+  idBytes: Uint8Array;
 }
 
 export interface PropertiesResult {
+  /** @deprecated */
   nonRefProperties: { [key: string]: any } | undefined;
   refProps: RefPropertiesResult[];
   targetCollection: string;
-  metadata: MetadataResult | undefined;
+  metadata:
+    | MetadataResult
+    | undefined;
+  /** @deprecated */
   numberArrayProperties: NumberArrayProperties[];
+  /** @deprecated */
   intArrayProperties: IntArrayProperties[];
+  /** @deprecated */
   textArrayProperties: TextArrayProperties[];
+  /** @deprecated */
   booleanArrayProperties: BooleanArrayProperties[];
+  /** @deprecated */
   objectProperties: ObjectProperties[];
+  /** @deprecated */
   objectArrayProperties: ObjectArrayProperties[];
+  nonRefProps: Properties | undefined;
 }
 
 export interface RefPropertiesResult {
@@ -426,6 +466,7 @@ function createBaseSearchRequest(): SearchRequest {
     nearAudio: undefined,
     nearVideo: undefined,
     generative: undefined,
+    uses123Api: false,
   };
 }
 
@@ -493,6 +534,9 @@ export const SearchRequest = {
     }
     if (message.generative !== undefined) {
       GenerativeSearch.encode(message.generative, writer.uint32(482).fork()).ldelim();
+    }
+    if (message.uses123Api === true) {
+      writer.uint32(800).bool(message.uses123Api);
     }
     return writer;
   },
@@ -651,6 +695,13 @@ export const SearchRequest = {
 
           message.generative = GenerativeSearch.decode(reader, reader.uint32());
           continue;
+        case 100:
+          if (tag !== 800) {
+            break;
+          }
+
+          message.uses123Api = reader.bool();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -683,6 +734,7 @@ export const SearchRequest = {
       nearAudio: isSet(object.nearAudio) ? NearAudioSearch.fromJSON(object.nearAudio) : undefined,
       nearVideo: isSet(object.nearVideo) ? NearVideoSearch.fromJSON(object.nearVideo) : undefined,
       generative: isSet(object.generative) ? GenerativeSearch.fromJSON(object.generative) : undefined,
+      uses123Api: isSet(object.uses123Api) ? globalThis.Boolean(object.uses123Api) : false,
     };
   },
 
@@ -751,6 +803,9 @@ export const SearchRequest = {
     if (message.generative !== undefined) {
       obj.generative = GenerativeSearch.toJSON(message.generative);
     }
+    if (message.uses123Api === true) {
+      obj.uses123Api = message.uses123Api;
+    }
     return obj;
   },
 
@@ -806,6 +861,7 @@ export const SearchRequest = {
     message.generative = (object.generative !== undefined && object.generative !== null)
       ? GenerativeSearch.fromPartial(object.generative)
       : undefined;
+    message.uses123Api = object.uses123Api ?? false;
     return message;
   },
 };
@@ -1349,6 +1405,7 @@ function createBaseFilters(): Filters {
     valueIntArray: undefined,
     valueBooleanArray: undefined,
     valueNumberArray: undefined,
+    valueGeo: undefined,
   };
 }
 
@@ -1373,7 +1430,7 @@ export const Filters = {
       writer.uint32(48).bool(message.valueBoolean);
     }
     if (message.valueNumber !== undefined) {
-      writer.uint32(61).float(message.valueNumber);
+      writer.uint32(57).double(message.valueNumber);
     }
     if (message.valueTextArray !== undefined) {
       TextArray.encode(message.valueTextArray, writer.uint32(74).fork()).ldelim();
@@ -1386,6 +1443,9 @@ export const Filters = {
     }
     if (message.valueNumberArray !== undefined) {
       NumberArray.encode(message.valueNumberArray, writer.uint32(98).fork()).ldelim();
+    }
+    if (message.valueGeo !== undefined) {
+      GeoCoordinatesFilter.encode(message.valueGeo, writer.uint32(106).fork()).ldelim();
     }
     return writer;
   },
@@ -1440,11 +1500,11 @@ export const Filters = {
           message.valueBoolean = reader.bool();
           continue;
         case 7:
-          if (tag !== 61) {
+          if (tag !== 57) {
             break;
           }
 
-          message.valueNumber = reader.float();
+          message.valueNumber = reader.double();
           continue;
         case 9:
           if (tag !== 74) {
@@ -1474,6 +1534,13 @@ export const Filters = {
 
           message.valueNumberArray = NumberArray.decode(reader, reader.uint32());
           continue;
+        case 13:
+          if (tag !== 106) {
+            break;
+          }
+
+          message.valueGeo = GeoCoordinatesFilter.decode(reader, reader.uint32());
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1496,6 +1563,7 @@ export const Filters = {
       valueIntArray: isSet(object.valueIntArray) ? IntArray.fromJSON(object.valueIntArray) : undefined,
       valueBooleanArray: isSet(object.valueBooleanArray) ? BooleanArray.fromJSON(object.valueBooleanArray) : undefined,
       valueNumberArray: isSet(object.valueNumberArray) ? NumberArray.fromJSON(object.valueNumberArray) : undefined,
+      valueGeo: isSet(object.valueGeo) ? GeoCoordinatesFilter.fromJSON(object.valueGeo) : undefined,
     };
   },
 
@@ -1534,6 +1602,9 @@ export const Filters = {
     if (message.valueNumberArray !== undefined) {
       obj.valueNumberArray = NumberArray.toJSON(message.valueNumberArray);
     }
+    if (message.valueGeo !== undefined) {
+      obj.valueGeo = GeoCoordinatesFilter.toJSON(message.valueGeo);
+    }
     return obj;
   },
 
@@ -1561,6 +1632,98 @@ export const Filters = {
     message.valueNumberArray = (object.valueNumberArray !== undefined && object.valueNumberArray !== null)
       ? NumberArray.fromPartial(object.valueNumberArray)
       : undefined;
+    message.valueGeo = (object.valueGeo !== undefined && object.valueGeo !== null)
+      ? GeoCoordinatesFilter.fromPartial(object.valueGeo)
+      : undefined;
+    return message;
+  },
+};
+
+function createBaseGeoCoordinatesFilter(): GeoCoordinatesFilter {
+  return { latitude: 0, longitude: 0, distance: 0 };
+}
+
+export const GeoCoordinatesFilter = {
+  encode(message: GeoCoordinatesFilter, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.latitude !== 0) {
+      writer.uint32(13).float(message.latitude);
+    }
+    if (message.longitude !== 0) {
+      writer.uint32(21).float(message.longitude);
+    }
+    if (message.distance !== 0) {
+      writer.uint32(29).float(message.distance);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): GeoCoordinatesFilter {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGeoCoordinatesFilter();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 13) {
+            break;
+          }
+
+          message.latitude = reader.float();
+          continue;
+        case 2:
+          if (tag !== 21) {
+            break;
+          }
+
+          message.longitude = reader.float();
+          continue;
+        case 3:
+          if (tag !== 29) {
+            break;
+          }
+
+          message.distance = reader.float();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GeoCoordinatesFilter {
+    return {
+      latitude: isSet(object.latitude) ? globalThis.Number(object.latitude) : 0,
+      longitude: isSet(object.longitude) ? globalThis.Number(object.longitude) : 0,
+      distance: isSet(object.distance) ? globalThis.Number(object.distance) : 0,
+    };
+  },
+
+  toJSON(message: GeoCoordinatesFilter): unknown {
+    const obj: any = {};
+    if (message.latitude !== 0) {
+      obj.latitude = message.latitude;
+    }
+    if (message.longitude !== 0) {
+      obj.longitude = message.longitude;
+    }
+    if (message.distance !== 0) {
+      obj.distance = message.distance;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<GeoCoordinatesFilter>): GeoCoordinatesFilter {
+    return GeoCoordinatesFilter.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<GeoCoordinatesFilter>): GeoCoordinatesFilter {
+    const message = createBaseGeoCoordinatesFilter();
+    message.latitude = object.latitude ?? 0;
+    message.longitude = object.longitude ?? 0;
+    message.distance = object.distance ?? 0;
     return message;
   },
 };
@@ -1755,7 +1918,7 @@ export const MetadataRequest = {
 };
 
 function createBasePropertiesRequest(): PropertiesRequest {
-  return { nonRefProperties: [], refProperties: [], objectProperties: [] };
+  return { nonRefProperties: [], refProperties: [], objectProperties: [], returnAllNonrefProperties: false };
 }
 
 export const PropertiesRequest = {
@@ -1768,6 +1931,9 @@ export const PropertiesRequest = {
     }
     for (const v of message.objectProperties) {
       ObjectPropertiesRequest.encode(v!, writer.uint32(26).fork()).ldelim();
+    }
+    if (message.returnAllNonrefProperties === true) {
+      writer.uint32(88).bool(message.returnAllNonrefProperties);
     }
     return writer;
   },
@@ -1800,6 +1966,13 @@ export const PropertiesRequest = {
 
           message.objectProperties.push(ObjectPropertiesRequest.decode(reader, reader.uint32()));
           continue;
+        case 11:
+          if (tag !== 88) {
+            break;
+          }
+
+          message.returnAllNonrefProperties = reader.bool();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1820,6 +1993,9 @@ export const PropertiesRequest = {
       objectProperties: globalThis.Array.isArray(object?.objectProperties)
         ? object.objectProperties.map((e: any) => ObjectPropertiesRequest.fromJSON(e))
         : [],
+      returnAllNonrefProperties: isSet(object.returnAllNonrefProperties)
+        ? globalThis.Boolean(object.returnAllNonrefProperties)
+        : false,
     };
   },
 
@@ -1834,6 +2010,9 @@ export const PropertiesRequest = {
     if (message.objectProperties?.length) {
       obj.objectProperties = message.objectProperties.map((e) => ObjectPropertiesRequest.toJSON(e));
     }
+    if (message.returnAllNonrefProperties === true) {
+      obj.returnAllNonrefProperties = message.returnAllNonrefProperties;
+    }
     return obj;
   },
 
@@ -1845,6 +2024,7 @@ export const PropertiesRequest = {
     message.nonRefProperties = object.nonRefProperties?.map((e) => e) || [];
     message.refProperties = object.refProperties?.map((e) => RefPropertiesRequest.fromPartial(e)) || [];
     message.objectProperties = object.objectProperties?.map((e) => ObjectPropertiesRequest.fromPartial(e)) || [];
+    message.returnAllNonrefProperties = object.returnAllNonrefProperties ?? false;
     return message;
   },
 };
@@ -1943,7 +2123,7 @@ export const ObjectPropertiesRequest = {
 };
 
 function createBaseHybrid(): Hybrid {
-  return { query: "", properties: [], vector: [], alpha: 0, fusionType: 0 };
+  return { query: "", properties: [], vector: [], alpha: 0, fusionType: 0, vectorBytes: new Uint8Array(0) };
 }
 
 export const Hybrid = {
@@ -1964,6 +2144,9 @@ export const Hybrid = {
     }
     if (message.fusionType !== 0) {
       writer.uint32(40).int32(message.fusionType);
+    }
+    if (message.vectorBytes.length !== 0) {
+      writer.uint32(50).bytes(message.vectorBytes);
     }
     return writer;
   },
@@ -2020,6 +2203,13 @@ export const Hybrid = {
 
           message.fusionType = reader.int32() as any;
           continue;
+        case 6:
+          if (tag !== 50) {
+            break;
+          }
+
+          message.vectorBytes = reader.bytes();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -2038,6 +2228,7 @@ export const Hybrid = {
       vector: globalThis.Array.isArray(object?.vector) ? object.vector.map((e: any) => globalThis.Number(e)) : [],
       alpha: isSet(object.alpha) ? globalThis.Number(object.alpha) : 0,
       fusionType: isSet(object.fusionType) ? hybrid_FusionTypeFromJSON(object.fusionType) : 0,
+      vectorBytes: isSet(object.vectorBytes) ? bytesFromBase64(object.vectorBytes) : new Uint8Array(0),
     };
   },
 
@@ -2058,6 +2249,9 @@ export const Hybrid = {
     if (message.fusionType !== 0) {
       obj.fusionType = hybrid_FusionTypeToJSON(message.fusionType);
     }
+    if (message.vectorBytes.length !== 0) {
+      obj.vectorBytes = base64FromBytes(message.vectorBytes);
+    }
     return obj;
   },
 
@@ -2071,6 +2265,7 @@ export const Hybrid = {
     message.vector = object.vector?.map((e) => e) || [];
     message.alpha = object.alpha ?? 0;
     message.fusionType = object.fusionType ?? 0;
+    message.vectorBytes = object.vectorBytes ?? new Uint8Array(0);
     return message;
   },
 };
@@ -2739,7 +2934,7 @@ export const RefPropertiesRequest = {
 };
 
 function createBaseNearVector(): NearVector {
-  return { vector: [], certainty: undefined, distance: undefined };
+  return { vector: [], certainty: undefined, distance: undefined, vectorBytes: new Uint8Array(0) };
 }
 
 export const NearVector = {
@@ -2754,6 +2949,9 @@ export const NearVector = {
     }
     if (message.distance !== undefined) {
       writer.uint32(25).double(message.distance);
+    }
+    if (message.vectorBytes.length !== 0) {
+      writer.uint32(34).bytes(message.vectorBytes);
     }
     return writer;
   },
@@ -2796,6 +2994,13 @@ export const NearVector = {
 
           message.distance = reader.double();
           continue;
+        case 4:
+          if (tag !== 34) {
+            break;
+          }
+
+          message.vectorBytes = reader.bytes();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -2810,6 +3015,7 @@ export const NearVector = {
       vector: globalThis.Array.isArray(object?.vector) ? object.vector.map((e: any) => globalThis.Number(e)) : [],
       certainty: isSet(object.certainty) ? globalThis.Number(object.certainty) : undefined,
       distance: isSet(object.distance) ? globalThis.Number(object.distance) : undefined,
+      vectorBytes: isSet(object.vectorBytes) ? bytesFromBase64(object.vectorBytes) : new Uint8Array(0),
     };
   },
 
@@ -2824,6 +3030,9 @@ export const NearVector = {
     if (message.distance !== undefined) {
       obj.distance = message.distance;
     }
+    if (message.vectorBytes.length !== 0) {
+      obj.vectorBytes = base64FromBytes(message.vectorBytes);
+    }
     return obj;
   },
 
@@ -2835,6 +3044,7 @@ export const NearVector = {
     message.vector = object.vector?.map((e) => e) || [];
     message.certainty = object.certainty ?? undefined;
     message.distance = object.distance ?? undefined;
+    message.vectorBytes = object.vectorBytes ?? new Uint8Array(0);
     return message;
   },
 };
@@ -3256,6 +3466,9 @@ function createBaseMetadataResult(): MetadataResult {
     isConsistent: undefined,
     generative: "",
     generativePresent: false,
+    isConsistentPresent: false,
+    vectorBytes: new Uint8Array(0),
+    idBytes: new Uint8Array(0),
   };
 }
 
@@ -3313,6 +3526,15 @@ export const MetadataResult = {
     }
     if (message.generativePresent === true) {
       writer.uint32(136).bool(message.generativePresent);
+    }
+    if (message.isConsistentPresent === true) {
+      writer.uint32(144).bool(message.isConsistentPresent);
+    }
+    if (message.vectorBytes.length !== 0) {
+      writer.uint32(154).bytes(message.vectorBytes);
+    }
+    if (message.idBytes.length !== 0) {
+      writer.uint32(162).bytes(message.idBytes);
     }
     return writer;
   },
@@ -3453,6 +3675,27 @@ export const MetadataResult = {
 
           message.generativePresent = reader.bool();
           continue;
+        case 18:
+          if (tag !== 144) {
+            break;
+          }
+
+          message.isConsistentPresent = reader.bool();
+          continue;
+        case 19:
+          if (tag !== 154) {
+            break;
+          }
+
+          message.vectorBytes = reader.bytes();
+          continue;
+        case 20:
+          if (tag !== 162) {
+            break;
+          }
+
+          message.idBytes = reader.bytes();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -3485,6 +3728,9 @@ export const MetadataResult = {
       isConsistent: isSet(object.isConsistent) ? globalThis.Boolean(object.isConsistent) : undefined,
       generative: isSet(object.generative) ? globalThis.String(object.generative) : "",
       generativePresent: isSet(object.generativePresent) ? globalThis.Boolean(object.generativePresent) : false,
+      isConsistentPresent: isSet(object.isConsistentPresent) ? globalThis.Boolean(object.isConsistentPresent) : false,
+      vectorBytes: isSet(object.vectorBytes) ? bytesFromBase64(object.vectorBytes) : new Uint8Array(0),
+      idBytes: isSet(object.idBytes) ? bytesFromBase64(object.idBytes) : new Uint8Array(0),
     };
   },
 
@@ -3541,6 +3787,15 @@ export const MetadataResult = {
     if (message.generativePresent === true) {
       obj.generativePresent = message.generativePresent;
     }
+    if (message.isConsistentPresent === true) {
+      obj.isConsistentPresent = message.isConsistentPresent;
+    }
+    if (message.vectorBytes.length !== 0) {
+      obj.vectorBytes = base64FromBytes(message.vectorBytes);
+    }
+    if (message.idBytes.length !== 0) {
+      obj.idBytes = base64FromBytes(message.idBytes);
+    }
     return obj;
   },
 
@@ -3566,6 +3821,9 @@ export const MetadataResult = {
     message.isConsistent = object.isConsistent ?? undefined;
     message.generative = object.generative ?? "";
     message.generativePresent = object.generativePresent ?? false;
+    message.isConsistentPresent = object.isConsistentPresent ?? false;
+    message.vectorBytes = object.vectorBytes ?? new Uint8Array(0);
+    message.idBytes = object.idBytes ?? new Uint8Array(0);
     return message;
   },
 };
@@ -3582,6 +3840,7 @@ function createBasePropertiesResult(): PropertiesResult {
     booleanArrayProperties: [],
     objectProperties: [],
     objectArrayProperties: [],
+    nonRefProps: undefined,
   };
 }
 
@@ -3616,6 +3875,9 @@ export const PropertiesResult = {
     }
     for (const v of message.objectArrayProperties) {
       ObjectArrayProperties.encode(v!, writer.uint32(82).fork()).ldelim();
+    }
+    if (message.nonRefProps !== undefined) {
+      Properties.encode(message.nonRefProps, writer.uint32(90).fork()).ldelim();
     }
     return writer;
   },
@@ -3697,6 +3959,13 @@ export const PropertiesResult = {
 
           message.objectArrayProperties.push(ObjectArrayProperties.decode(reader, reader.uint32()));
           continue;
+        case 11:
+          if (tag !== 90) {
+            break;
+          }
+
+          message.nonRefProps = Properties.decode(reader, reader.uint32());
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -3732,6 +4001,7 @@ export const PropertiesResult = {
       objectArrayProperties: globalThis.Array.isArray(object?.objectArrayProperties)
         ? object.objectArrayProperties.map((e: any) => ObjectArrayProperties.fromJSON(e))
         : [],
+      nonRefProps: isSet(object.nonRefProps) ? Properties.fromJSON(object.nonRefProps) : undefined,
     };
   },
 
@@ -3767,6 +4037,9 @@ export const PropertiesResult = {
     if (message.objectArrayProperties?.length) {
       obj.objectArrayProperties = message.objectArrayProperties.map((e) => ObjectArrayProperties.toJSON(e));
     }
+    if (message.nonRefProps !== undefined) {
+      obj.nonRefProps = Properties.toJSON(message.nonRefProps);
+    }
     return obj;
   },
 
@@ -3790,6 +4063,9 @@ export const PropertiesResult = {
     message.objectProperties = object.objectProperties?.map((e) => ObjectProperties.fromPartial(e)) || [];
     message.objectArrayProperties = object.objectArrayProperties?.map((e) => ObjectArrayProperties.fromPartial(e)) ||
       [];
+    message.nonRefProps = (object.nonRefProps !== undefined && object.nonRefProps !== null)
+      ? Properties.fromPartial(object.nonRefProps)
+      : undefined;
     return message;
   },
 };
@@ -3869,6 +4145,31 @@ export const RefPropertiesResult = {
     return message;
   },
 };
+
+function bytesFromBase64(b64: string): Uint8Array {
+  if (globalThis.Buffer) {
+    return Uint8Array.from(globalThis.Buffer.from(b64, "base64"));
+  } else {
+    const bin = globalThis.atob(b64);
+    const arr = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; ++i) {
+      arr[i] = bin.charCodeAt(i);
+    }
+    return arr;
+  }
+}
+
+function base64FromBytes(arr: Uint8Array): string {
+  if (globalThis.Buffer) {
+    return globalThis.Buffer.from(arr).toString("base64");
+  } else {
+    const bin: string[] = [];
+    arr.forEach((byte) => {
+      bin.push(globalThis.String.fromCharCode(byte));
+    });
+    return globalThis.btoa(bin.join(""));
+  }
+}
 
 type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 
