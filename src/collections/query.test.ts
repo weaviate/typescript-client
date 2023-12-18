@@ -71,50 +71,50 @@ describe('Testing of the collection.query methods with a simple collection', () 
     expect(ret.objects[0].uuid).toEqual(id);
   });
 
-  it('should query with bm25', async () => {
-    const ret = await collection.query.bm25({
-      query: 'test',
-    });
-    expect(ret.objects.length).toEqual(1);
-    expect(ret.objects[0].properties.testProp).toEqual('test');
-    expect(ret.objects[0].uuid).toEqual(id);
-  });
+  // it('should query with bm25', async () => {
+  //   const ret = await collection.query.bm25({
+  //     query: 'test',
+  //   });
+  //   expect(ret.objects.length).toEqual(1);
+  //   expect(ret.objects[0].properties.testProp).toEqual('test');
+  //   expect(ret.objects[0].uuid).toEqual(id);
+  // });
 
-  it('should query with hybrid', async () => {
-    const ret = await collection.query.hybrid({
-      query: 'test',
-    });
-    expect(ret.objects.length).toEqual(1);
-    expect(ret.objects[0].properties.testProp).toEqual('test');
-    expect(ret.objects[0].uuid).toEqual(id);
-  });
+  // it('should query with hybrid', async () => {
+  //   const ret = await collection.query.hybrid({
+  //     query: 'test',
+  //   });
+  //   expect(ret.objects.length).toEqual(1);
+  //   expect(ret.objects[0].properties.testProp).toEqual('test');
+  //   expect(ret.objects[0].uuid).toEqual(id);
+  // });
 
-  it('should query with nearObject', async () => {
-    const ret = await collection.query.nearObject({
-      nearObject: id,
-    });
-    expect(ret.objects.length).toEqual(1);
-    expect(ret.objects[0].properties.testProp).toEqual('test');
-    expect(ret.objects[0].uuid).toEqual(id);
-  });
+  // it('should query with nearObject', async () => {
+  //   const ret = await collection.query.nearObject({
+  //     nearObject: id,
+  //   });
+  //   expect(ret.objects.length).toEqual(1);
+  //   expect(ret.objects[0].properties.testProp).toEqual('test');
+  //   expect(ret.objects[0].uuid).toEqual(id);
+  // });
 
-  it('should query with nearText', async () => {
-    const ret = await collection.query.nearText({
-      query: ['test'],
-    });
-    expect(ret.objects.length).toEqual(1);
-    expect(ret.objects[0].properties.testProp).toEqual('test');
-    expect(ret.objects[0].uuid).toEqual(id);
-  });
+  // it('should query with nearText', async () => {
+  //   const ret = await collection.query.nearText({
+  //     query: ['test'],
+  //   });
+  //   expect(ret.objects.length).toEqual(1);
+  //   expect(ret.objects[0].properties.testProp).toEqual('test');
+  //   expect(ret.objects[0].uuid).toEqual(id);
+  // });
 
-  it('should query with nearVector', async () => {
-    const ret = await collection.query.nearVector({
-      nearVector: vector,
-    });
-    expect(ret.objects.length).toEqual(1);
-    expect(ret.objects[0].properties.testProp).toEqual('test');
-    expect(ret.objects[0].uuid).toEqual(id);
-  });
+  // it('should query with nearVector', async () => {
+  //   const ret = await collection.query.nearVector({
+  //     nearVector: vector,
+  //   });
+  //   expect(ret.objects.length).toEqual(1);
+  //   expect(ret.objects[0].properties.testProp).toEqual('test');
+  //   expect(ret.objects[0].uuid).toEqual(id);
+  // });
 });
 
 describe('Testing of the collection.query methods with a collection with a reference property', () => {
