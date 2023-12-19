@@ -51,8 +51,14 @@ export function consistencyLevelToJSON(object: ConsistencyLevel): string {
 }
 
 export interface NumberArrayProperties {
+  /**
+   * will be removed in the future, use vector_bytes
+   *
+   * @deprecated
+   */
   values: number[];
   propName: string;
+  valuesBytes: Uint8Array;
 }
 
 export interface IntArrayProperties {
@@ -91,7 +97,7 @@ export interface ObjectProperties {
 }
 
 function createBaseNumberArrayProperties(): NumberArrayProperties {
-  return { values: [], propName: "" };
+  return { values: [], propName: "", valuesBytes: new Uint8Array(0) };
 }
 
 export const NumberArrayProperties = {
@@ -103,6 +109,9 @@ export const NumberArrayProperties = {
     writer.ldelim();
     if (message.propName !== "") {
       writer.uint32(18).string(message.propName);
+    }
+    if (message.valuesBytes.length !== 0) {
+      writer.uint32(26).bytes(message.valuesBytes);
     }
     return writer;
   },
@@ -138,6 +147,13 @@ export const NumberArrayProperties = {
 
           message.propName = reader.string();
           continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.valuesBytes = reader.bytes();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -151,6 +167,7 @@ export const NumberArrayProperties = {
     return {
       values: globalThis.Array.isArray(object?.values) ? object.values.map((e: any) => globalThis.Number(e)) : [],
       propName: isSet(object.propName) ? globalThis.String(object.propName) : "",
+      valuesBytes: isSet(object.valuesBytes) ? bytesFromBase64(object.valuesBytes) : new Uint8Array(0),
     };
   },
 
@@ -162,6 +179,9 @@ export const NumberArrayProperties = {
     if (message.propName !== "") {
       obj.propName = message.propName;
     }
+    if (message.valuesBytes.length !== 0) {
+      obj.valuesBytes = base64FromBytes(message.valuesBytes);
+    }
     return obj;
   },
 
@@ -172,6 +192,7 @@ export const NumberArrayProperties = {
     const message = createBaseNumberArrayProperties();
     message.values = object.values?.map((e) => e) || [];
     message.propName = object.propName ?? "";
+    message.valuesBytes = object.valuesBytes ?? new Uint8Array(0);
     return message;
   },
 };
@@ -745,6 +766,31 @@ export const ObjectProperties = {
     return message;
   },
 };
+
+function bytesFromBase64(b64: string): Uint8Array {
+  if (globalThis.Buffer) {
+    return Uint8Array.from(globalThis.Buffer.from(b64, "base64"));
+  } else {
+    const bin = globalThis.atob(b64);
+    const arr = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; ++i) {
+      arr[i] = bin.charCodeAt(i);
+    }
+    return arr;
+  }
+}
+
+function base64FromBytes(arr: Uint8Array): string {
+  if (globalThis.Buffer) {
+    return globalThis.Buffer.from(arr).toString("base64");
+  } else {
+    const bin: string[] = [];
+    arr.forEach((byte) => {
+      bin.push(globalThis.String.fromCharCode(byte));
+    });
+    return globalThis.btoa(bin.join(""));
+  }
+}
 
 type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 

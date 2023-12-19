@@ -266,8 +266,9 @@ export type MetadataReturn = {
 };
 
 export type WeaviateObject<T> = {
-  properties: T;
+  properties: ReturnProperties<T>;
   metadata?: MetadataReturn;
+  references: ReturnReferences<T> | undefined;
   uuid: string;
   vector?: number[];
 };
@@ -303,31 +304,65 @@ export type GroupByReturn<T> = {
 };
 
 interface BaseRefProperty<T> {
-  linkOn: keyof T & string; // https://github.com/microsoft/TypeScript/issues/56239
-  returnProperties?: Property<ExtractCrossReferenceType<T[this['linkOn']]>>[];
+  // linkOn: keyof T & string; // https://github.com/microsoft/TypeScript/issues/56239
+  linkOn: RefKeys<T>;
   returnMetadata?: MetadataQuery;
+  returnProperties?: QueryProperty<T>[];
+  returnReferences?: QueryReference<ExtractCrossReferenceType<T[this['linkOn']]>>[];
+  targetCollection?: string;
 }
 
 export interface RefProperty<T> extends BaseRefProperty<T> {
-  type: 'ref';
+  // targetCollection: undefined
 }
 
 type ExtractCrossReferenceType<T> = T extends CrossReference<infer U> ? U : never;
 
+type ExtractNestedType<T> = T extends object ? T : never;
+
 export interface MultiRefProperty<T> extends BaseRefProperty<T> {
-  type: 'multi-ref';
-  targetCollection: string;
+  // targetCollection: string;
 }
 
-export interface NestedProperty<T> {
-  type: 'nested';
-  name: string;
-  properties: NonRefProperty<T>[];
+export interface QueryNested<T> {
+  name: NestedKey<T>;
+  properties: QueryProperty<ExtractNestedType<T[this['name']]>>[];
 }
 
-export type Property<T> = keyof T | RefProperty<T> | MultiRefProperty<T> | NestedProperty<T>;
-export type NonRefProperty<T> = keyof T | NestedProperty<T>;
-export type NonPrimitiveProperty<T> = RefProperty<T> | MultiRefProperty<T> | NestedProperty<T>;
+export type QueryProperty<T> = PrimitiveKey<T> | QueryNested<T>;
+export type QueryReference<T> = RefProperty<T> | MultiRefProperty<T>;
+export type NonRefProperty<T> = keyof T | QueryNested<T>;
+export type NonPrimitiveProperty<T> = RefProperty<T> | MultiRefProperty<T> | QueryNested<T>;
+
+export type ResolvedNestedProperty<T> = QueryNested<ExtractNestedType<T>>;
+
+export type PrimitiveKey<Obj> = {
+  [Key in keyof Obj]: Obj[Key] extends string ? Key : never;
+}[keyof Obj] &
+  string;
+
+// Helper type to extract keys that have CrossReference types
+export type RefKeys<Obj> = {
+  [Key in keyof Obj]: Obj[Key] extends CrossReference<any> | undefined ? Key : never;
+}[keyof Obj] &
+  string;
+
+// Helper type to extract keys that match a certain condition
+export type NonRefKey<Obj> = {
+  [Key in keyof Obj]: Obj[Key] extends CrossReference<any> | undefined ? never : Key;
+}[keyof Obj] &
+  string;
+
+export type NestedKey<Obj> = {
+  [Key in keyof Obj]: Obj[Key] extends string ? never : Key;
+}[keyof Obj] &
+  string;
+
+export type IsEmptyType<T> = keyof T extends never ? true : false;
+
+export type ReturnProperties<T> = Pick<T, NonRefKey<T>>;
+
+export type ReturnReferences<T> = Pick<T, RefKeys<T>>;
 
 export interface SortBy {
   property: string;
@@ -338,7 +373,25 @@ export type Reference<T> = {
   objects: WeaviateObject<T>[];
 };
 
-export type Properties = Record<string, any>;
+export type WeaviateField =
+  | string
+  | string[]
+  | boolean
+  | boolean[]
+  | number
+  | number[]
+  | Date
+  | Date[]
+  | NestedProperties
+  | NestedProperties[];
+
+export interface Properties {
+  [k: string]: WeaviateField | CrossReference<Properties> | undefined;
+}
+
+export interface NestedProperties {
+  [k: string]: WeaviateField | undefined;
+}
 
 // export type FiltersREST = {
 //   operator: Operator;

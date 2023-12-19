@@ -26,18 +26,29 @@ import {
   GroupBy,
 } from '../proto/v1/search_get';
 
-import { Filters, FilterValueType, PrimitiveFilterValueType, PrimitiveListFilterValueType } from './filters';
+import {
+  Filter,
+  Filters,
+  FilterValueType,
+  PrimitiveFilterValueType,
+  PrimitiveListFilterValueType,
+} from './filters';
 import {
   BatchObject,
   DataObject,
   MetadataQuery,
   MultiRefProperty,
-  NestedProperty,
   NonPrimitiveProperty,
-  Property,
-  RefProperty,
+  QueryReference,
+  QueryNested,
+  QueryProperty,
   SortBy,
   Properties,
+  WeaviateField,
+  NestedProperties,
+  NonRefKey,
+  PrimitiveKey,
+  ResolvedNestedProperty,
 } from './types';
 import {
   SearchNearAudioArgs,
@@ -52,6 +63,7 @@ import {
 } from '../grpc/searcher';
 import {
   QueryBm25Args,
+  QueryFetchObjectByIdArgs,
   QueryFetchObjectsArgs,
   QueryHybridArgs,
   QueryNearAudioArgs,
@@ -75,69 +87,129 @@ import {
 } from '../proto/v1/base';
 import { ReferenceManager } from './references';
 
-const isNotPrimitive = <T extends Properties, P>(argument: P | keyof T): argument is P => {
+const isNested = <T extends Properties, P extends ResolvedNestedProperty<T>>(
+  argument: PrimitiveKey<T> | P
+): argument is P => {
   return typeof argument !== 'string';
 };
 
-const isNotNested = <T extends Properties, P extends NonPrimitiveProperty<T>>(
-  argument: P | NestedProperty<T>
-): argument is P => {
-  return argument.type !== 'nested';
+// const isNotNested = <T extends Properties, P extends NonPrimitiveProperty<T>>(
+//   argument: P | QueryNested<T>
+// ): argument is P => {
+//   return argument.type !== 'nested';
+// };
+
+// const isNotRef = <T extends Properties, P extends NonPrimitiveProperty<T>>(
+//   argument: P | RefProperty<T> | MultiRefProperty<T>
+// ): argument is P => {
+//   return argument.type !== 'ref' && argument.type !== 'multi-ref';
+// };
+
+const isMultiTargetRef = <T extends Properties, P extends QueryReference<T>>(
+  argument: P | MultiRefProperty<T>
+): argument is MultiRefProperty<T> => {
+  return argument.targetCollection != undefined;
 };
 
-const isNotRef = <T extends Properties, P extends NonPrimitiveProperty<T>>(
-  argument: P | RefProperty<T> | MultiRefProperty<T>
-): argument is P => {
-  return argument.type !== 'ref' && argument.type !== 'multi-ref';
-};
+class FilterGuards {
+  static isFilters = <T extends FilterValueType>(
+    argument?: Filters<T> | PrimitiveFilterValueType | PrimitiveListFilterValueType
+  ): argument is Filters<T> => {
+    return argument instanceof Filters;
+  };
 
-const isFilters = <T extends FilterValueType>(
-  argument?: Filters<T> | PrimitiveFilterValueType | PrimitiveListFilterValueType
-): argument is Filters<T> => {
-  return argument instanceof Filters;
-};
+  static isText = (argument?: FilterValueType): argument is string => {
+    return !FilterGuards.isFilters(argument) && typeof argument === 'string';
+  };
 
-const isText = (argument?: FilterValueType): argument is string => {
-  return !isFilters(argument) && typeof argument === 'string';
-};
+  static isTextArray = (argument?: FilterValueType): argument is string[] => {
+    return !FilterGuards.isFilters(argument) && argument instanceof Array && typeof argument[0] === 'string';
+  };
 
-const isTextArray = (argument?: FilterValueType): argument is string[] => {
-  return !isFilters(argument) && argument instanceof Array && typeof argument[0] === 'string';
-};
+  static isInt = (argument?: FilterValueType): argument is number => {
+    return !FilterGuards.isFilters(argument) && typeof argument === 'number' && Number.isInteger(argument);
+  };
 
-const isInt = (argument?: FilterValueType): argument is number => {
-  return !isFilters(argument) && typeof argument === 'number' && Number.isInteger(argument);
-};
+  static isIntArray = (argument?: FilterValueType): argument is number[] => {
+    return !FilterGuards.isFilters(argument) && argument instanceof Array && Number.isInteger(argument[0]);
+  };
 
-const isIntArray = (argument?: FilterValueType): argument is number[] => {
-  return !isFilters(argument) && argument instanceof Array && Number.isInteger(argument[0]);
-};
+  static isFloat = (argument?: FilterValueType): argument is number => {
+    return !FilterGuards.isFilters(argument) && typeof argument === 'number';
+  };
 
-const isFloat = (argument?: FilterValueType): argument is number => {
-  return !isFilters(argument) && typeof argument === 'number';
-};
+  static isFloatArray = (argument?: FilterValueType): argument is number[] => {
+    return !FilterGuards.isFilters(argument) && argument instanceof Array && typeof argument[0] === 'number';
+  };
 
-const isFloatArray = (argument?: FilterValueType): argument is number[] => {
-  return !isFilters(argument) && argument instanceof Array && typeof argument[0] === 'number';
-};
+  static isBoolean = (argument?: FilterValueType): argument is boolean => {
+    return !FilterGuards.isFilters(argument) && typeof argument === 'boolean';
+  };
 
-const isBoolean = (argument?: FilterValueType): argument is boolean => {
-  return !isFilters(argument) && typeof argument === 'boolean';
-};
+  static isBooleanArray = (argument?: FilterValueType): argument is boolean[] => {
+    return !FilterGuards.isFilters(argument) && argument instanceof Array && typeof argument[0] === 'boolean';
+  };
 
-const isBooleanArray = (argument?: FilterValueType): argument is boolean[] => {
-  return !isFilters(argument) && argument instanceof Array && typeof argument[0] === 'boolean';
-};
+  static isDate = (argument?: FilterValueType): argument is Date => {
+    return !FilterGuards.isFilters(argument) && argument instanceof Date;
+  };
 
-const isDate = (argument?: FilterValueType): argument is Date => {
-  return !isFilters(argument) && argument instanceof Date;
-};
+  static isDateArray = (argument?: FilterValueType): argument is Date[] => {
+    return !FilterGuards.isFilters(argument) && argument instanceof Array && argument[0] instanceof Date;
+  };
+}
 
-const isDateArray = (argument?: FilterValueType): argument is Date[] => {
-  return !isFilters(argument) && argument instanceof Array && argument[0] instanceof Date;
-};
+class BatchGuards {
+  static isText = (argument?: WeaviateField): argument is string => {
+    return typeof argument === 'string';
+  };
 
-const isStringKey = <T extends Properties>(argument?: Property<T>): argument is string => {
+  static isTextArray = (argument?: WeaviateField): argument is string[] => {
+    return argument instanceof Array && typeof argument[0] === 'string';
+  };
+
+  static isInt = (argument?: WeaviateField): argument is number => {
+    return typeof argument === 'number' && Number.isInteger(argument);
+  };
+
+  static isIntArray = (argument?: WeaviateField): argument is number[] => {
+    return argument instanceof Array && Number.isInteger(argument[0]);
+  };
+
+  static isFloat = (argument?: WeaviateField): argument is number => {
+    return typeof argument === 'number';
+  };
+
+  static isFloatArray = (argument?: WeaviateField): argument is number[] => {
+    return argument instanceof Array && typeof argument[0] === 'number';
+  };
+
+  static isBoolean = (argument?: WeaviateField): argument is boolean => {
+    return typeof argument === 'boolean';
+  };
+
+  static isBooleanArray = (argument?: WeaviateField): argument is boolean[] => {
+    return argument instanceof Array && typeof argument[0] === 'boolean';
+  };
+
+  static isDate = (argument?: WeaviateField): argument is Date => {
+    return argument instanceof Date;
+  };
+
+  static isDateArray = (argument?: WeaviateField): argument is Date[] => {
+    return argument instanceof Array && argument[0] instanceof Date;
+  };
+
+  static isNested = (argument?: WeaviateField): argument is NestedProperties => {
+    return typeof argument === 'object';
+  };
+
+  static isNestedArray = (argument?: WeaviateField): argument is NestedProperties[] => {
+    return argument instanceof Array && typeof argument[0] === 'object';
+  };
+}
+
+const isStringKey = <T extends Properties>(argument?: QueryProperty<T>): argument is PrimitiveKey<T> => {
   return typeof argument === 'string';
 };
 
@@ -152,7 +224,10 @@ export default class Serialize {
     return {
       limit: args?.limit,
       filters: args?.filters ? Serialize.filtersGRPC(args.filters) : undefined,
-      properties: args?.returnProperties ? Serialize.properties(args.returnProperties) : undefined,
+      properties:
+        args?.returnProperties || args?.returnReferences
+          ? Serialize.properties(args.returnProperties, args.returnReferences)
+          : undefined,
       metadata: Serialize.metadata(args?.includeVector, args?.returnMetadata),
     };
   };
@@ -163,6 +238,19 @@ export default class Serialize {
       offset: args?.offset,
       after: args?.after,
       sort: args?.sort ? Serialize.sortBy(args.sort) : undefined,
+    };
+  };
+
+  public static fetchObjectById = <T extends Properties>(
+    args: QueryFetchObjectByIdArgs<T>
+  ): SearchFetchArgs => {
+    return {
+      ...Serialize.common({
+        filters: Filter.by('_id').equal(args.id),
+        includeVector: args.includeVector,
+        returnProperties: args.returnProperties,
+        returnReferences: args.returnReferences,
+      }),
     };
   };
 
@@ -277,7 +365,7 @@ export default class Serialize {
     const resolveFilters = (filters: Filters<T>): FiltersGRPC[] => {
       const out: FiltersGRPC[] = [];
       filters.filters?.forEach((val) => {
-        if (isFilters(val)) {
+        if (FilterGuards.isFilters(val)) {
           out.push(Serialize.filtersGRPC(val));
         }
       });
@@ -302,14 +390,14 @@ export default class Serialize {
           on: filters.path,
           operator: Serialize.operator(filters.operator),
           filters: [],
-          valueText: isText(value) ? value : undefined,
-          valueTextArray: isTextArray(value) ? { values: value } : undefined,
-          valueInt: isInt(value) ? value : undefined,
-          valueIntArray: isIntArray(value) ? { values: value } : undefined,
-          valueNumber: isFloat(value) ? value : undefined,
-          valueNumberArray: isFloatArray(value) ? { values: value } : undefined,
-          valueBoolean: isBoolean(value) ? value : undefined,
-          valueBooleanArray: isBooleanArray(value) ? { values: value } : undefined,
+          valueText: FilterGuards.isText(value) ? value : undefined,
+          valueTextArray: FilterGuards.isTextArray(value) ? { values: value } : undefined,
+          valueInt: FilterGuards.isInt(value) ? value : undefined,
+          valueIntArray: FilterGuards.isIntArray(value) ? { values: value } : undefined,
+          valueNumber: FilterGuards.isFloat(value) ? value : undefined,
+          valueNumberArray: FilterGuards.isFloatArray(value) ? { values: value } : undefined,
+          valueBoolean: FilterGuards.isBoolean(value) ? value : undefined,
+          valueBooleanArray: FilterGuards.isBooleanArray(value) ? { values: value } : undefined,
         };
     }
   };
@@ -318,7 +406,7 @@ export default class Serialize {
     const resolveFilters = (filters: Filters<T>): WhereFilter[] => {
       const out: WhereFilter[] = [];
       filters.filters?.forEach((val) => {
-        if (isFilters(val)) {
+        if (FilterGuards.isFilters(val)) {
           out.push(Serialize.filtersREST(val));
         }
       });
@@ -336,52 +424,52 @@ export default class Serialize {
         path: filters.path,
         operator: filters.operator,
       };
-      if (isText(value)) {
+      if (FilterGuards.isText(value)) {
         return {
           ...out,
           valueText: value,
         };
-      } else if (isTextArray(value)) {
+      } else if (FilterGuards.isTextArray(value)) {
         return {
           ...out,
           valueTextArray: value,
         };
-      } else if (isInt(value)) {
+      } else if (FilterGuards.isInt(value)) {
         return {
           ...out,
           valueInt: value,
         };
-      } else if (isIntArray(value)) {
+      } else if (FilterGuards.isIntArray(value)) {
         return {
           ...out,
           valueIntArray: value,
         };
-      } else if (isBoolean(value)) {
+      } else if (FilterGuards.isBoolean(value)) {
         return {
           ...out,
           valueBoolean: value,
         };
-      } else if (isBooleanArray(value)) {
+      } else if (FilterGuards.isBooleanArray(value)) {
         return {
           ...out,
           valueBooleanArray: value,
         };
-      } else if (isFloat(value)) {
+      } else if (FilterGuards.isFloat(value)) {
         return {
           ...out,
           valueNumber: value,
         };
-      } else if (isFloatArray(value)) {
+      } else if (FilterGuards.isFloatArray(value)) {
         return {
           ...out,
           valueNumberArray: value,
         };
-      } else if (isDate(value)) {
+      } else if (FilterGuards.isDate(value)) {
         return {
           ...out,
           valueDate: value.toString(),
         };
-      } else if (isDateArray(value)) {
+      } else if (FilterGuards.isDateArray(value)) {
         return {
           ...out,
           valueDateArray: value.map((v) => v.toString()),
@@ -419,25 +507,32 @@ export default class Serialize {
     }
   };
 
-  private static properties = <T extends Properties>(properties?: Property<T>[]): PropertiesRequest => {
+  private static properties = <T extends Properties>(
+    properties?: QueryProperty<T>[],
+    references?: QueryReference<T>[]
+  ): PropertiesRequest => {
     const nonRefProperties = properties?.filter((property) => typeof property === 'string') as
       | string[]
       | undefined;
-    const refProperties = properties?.filter(isNotPrimitive)?.filter(isNotNested);
-    const objectProperties = properties?.filter(isNotPrimitive)?.filter(isNotRef);
+    const refProperties = references;
+    const objectProperties = properties?.filter((property) => typeof property === 'object') as
+      | QueryNested<T>[]
+      | undefined;
 
-    const resolveObjectProperty = (property: NestedProperty<T>): ObjectPropertiesRequest => {
+    const resolveObjectProperty = (property: QueryNested<T>): ObjectPropertiesRequest => {
+      const objProps = property.properties.filter((property) => typeof property !== 'string') as unknown; // cannot get types to work currently :(
       return {
         propName: property.name,
         primitiveProperties: property.properties.filter(
           (property) => typeof property === 'string'
         ) as string[],
-        objectProperties: property.properties.filter(isNotPrimitive).map(resolveObjectProperty),
+        objectProperties: (objProps as QueryNested<T>[]).map(resolveObjectProperty),
       };
     };
 
     return {
-      nonRefProperties: nonRefProperties ? nonRefProperties : [],
+      nonRefProperties: nonRefProperties === undefined ? [] : nonRefProperties,
+      returnAllNonrefProperties: nonRefProperties === undefined,
       refProperties: refProperties
         ? refProperties.map((property) => {
             const metadata: any = { uuid: true };
@@ -450,18 +545,21 @@ export default class Serialize {
               referenceProperty: property.linkOn,
               properties: Serialize.properties(property.returnProperties),
               metadata: metadata,
-              targetCollection: property.type === 'multi-ref' ? property.targetCollection : '',
+              targetCollection: property.targetCollection ? property.targetCollection : '',
             };
           })
         : [],
       objectProperties: objectProperties
         ? objectProperties.map((property) => {
+            const objProps = property.properties.filter(
+              (property) => typeof property !== 'string'
+            ) as unknown; // cannot get types to work currently :(
             return {
               propName: property.name,
               primitiveProperties: property.properties.filter(
                 (property) => typeof property === 'string'
               ) as string[],
-              objectProperties: property.properties.filter(isNotPrimitive).map(resolveObjectProperty),
+              objectProperties: (objProps as QueryNested<T>[]).map(resolveObjectProperty),
             };
           })
         : [],
@@ -529,38 +627,39 @@ export default class Serialize {
             uuids: value.toBeaconStrings(),
           });
         }
-      } else if (isBooleanArray(value)) {
+      } else if (BatchGuards.isBooleanArray(value)) {
         boolArray.push({
           propName: key,
           values: value,
         });
-      } else if (isDateArray(value)) {
+      } else if (BatchGuards.isDateArray(value)) {
         textArray.push({
           propName: key,
           values: value.map((v) => v.toISOString()),
         });
-      } else if (isTextArray(value)) {
+      } else if (BatchGuards.isTextArray(value)) {
         textArray.push({
           propName: key,
           values: value,
         });
-      } else if (isIntArray(value)) {
+      } else if (BatchGuards.isIntArray(value)) {
         intArray.push({
           propName: key,
           values: value,
         });
-      } else if (isFloatArray(value)) {
+      } else if (BatchGuards.isFloatArray(value)) {
         floatArray.push({
           propName: key,
-          values: value,
+          values: [],
+          valuesBytes: new Uint8Array(new Float64Array(value).buffer),
         });
-      } else if (typeof value === 'object') {
+      } else if (BatchGuards.isNested(value)) {
         const parsed = Serialize.batchProperties(value);
         objectProperties.push({
           propName: key,
           value: ObjectPropertiesValue.fromPartial(parsed),
         });
-      } else if (value instanceof Array && typeof value[0] === 'object') {
+      } else if (BatchGuards.isNestedArray(value)) {
         objectArrayProperties.push({
           propName: key,
           values: value.map((v) => ObjectPropertiesValue.fromPartial(Serialize.batchProperties(v))),

@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
+/* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
 import weaviate from '..';
 import { GenerateArgs } from './generate';
 
@@ -57,7 +58,7 @@ maybe('Testing of the collection.generate methods with a simple collection', () 
         });
       });
     const res = await collection.query.fetchObjectById({ id, includeVector: true });
-    vector = res.vector!; // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    vector = res?.vector!;
   });
 
   it('should generate without search', async () => {

@@ -1,4 +1,4 @@
-import { Properties, WeaviateObject } from './types';
+import { Properties, ReturnProperties, ReturnReferences, WeaviateObject } from './types';
 
 interface ReferenceToArgs {
   uuids: string | string[];

@@ -35,7 +35,7 @@ export interface InsertArgs<T> {
 export interface ReferenceArgs<T extends Properties> {
   fromUuid: string;
   fromProperty: string;
-  reference: ReferenceManager<T>;
+  to: ReferenceManager<T>;
 }
 
 export interface ReferenceManyArgs<T extends Properties> {
@@ -159,7 +159,7 @@ const data = <T extends Properties>(
       referencesPath
         .build(args.fromUuid, name, args.fromProperty, consistencyLevel, tenant)
         .then((path) =>
-          Promise.all(args.reference.toBeaconObjs().map((beacon) => connection.postEmpty(path, beacon)))
+          Promise.all(args.to.toBeaconObjs().map((beacon) => connection.postEmpty(path, beacon)))
         )
         .then(() => {})
         .catch((err) => {
@@ -171,7 +171,7 @@ const data = <T extends Properties>(
       );
       const references: BatchReference[] = [];
       args.refs.forEach((ref) => {
-        ref.reference.toBeaconStrings().forEach((beaconStr) => {
+        ref.to.toBeaconStrings().forEach((beaconStr) => {
           references.push({
             from: `weaviate://localhost/${name}/${ref.fromUuid}/${ref.fromProperty}`,
             to: beaconStr,
@@ -206,7 +206,7 @@ const data = <T extends Properties>(
       referencesPath
         .build(args.fromUuid, name, args.fromProperty, consistencyLevel, tenant)
         .then((path) =>
-          Promise.all(args.reference.toBeaconObjs().map((beacon) => connection.delete(path, beacon, false)))
+          Promise.all(args.to.toBeaconObjs().map((beacon) => connection.delete(path, beacon, false)))
         )
         .then(() => {})
         .catch((err) => {
@@ -215,7 +215,7 @@ const data = <T extends Properties>(
     referenceReplace: <P extends Properties>(args: ReferenceArgs<P>): Promise<void> =>
       referencesPath
         .build(args.fromUuid, name, args.fromProperty, consistencyLevel, tenant)
-        .then((path) => connection.put(path, args.reference.toBeaconObjs(), false)),
+        .then((path) => connection.put(path, args.to.toBeaconObjs(), false)),
     replace: (args: ReplaceArgs<T>): Promise<void> =>
       objectsPath.buildUpdate(args.id, name, consistencyLevel).then((path) =>
         connection.put(path, {

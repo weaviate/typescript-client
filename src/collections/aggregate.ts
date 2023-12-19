@@ -4,10 +4,11 @@ import { DbVersionSupport } from '../utils/dbVersion';
 import { ConsistencyLevel } from '../data';
 
 import { FilterValueType, Filters } from './filters';
-import { Properties } from './types';
 
 import { Aggregator } from '../graphql';
 import Serialize from './serialize';
+
+type Properties = Record<string, any>;
 
 interface AggregateBaseArgs<T extends Properties, M extends PropertiesMetrics<T> | undefined> {
   filters?: Filters<FilterValueType>;
@@ -125,8 +126,8 @@ type MetricsInput<T extends Properties> =
   | MetricsInteger<T>
   | MetricsNumber<T>
   | MetricsText<T>
-  | MetricsDate<T>
-  | MetricsReference<T>;
+  | MetricsDate<T>;
+// | MetricsReference<T>;
 
 type PropertiesMetrics<T extends Properties> = MetricsInput<T> | MetricsInput<T>[];
 
@@ -141,12 +142,12 @@ type MetricsBoolean<T extends Properties> = MetricsBase<T, 'boolean'> & Partial<
 type MetricsDate<T extends Properties> = MetricsBase<T, 'date'> & Partial<Option<AggregateDate>>;
 type MetricsInteger<T extends Properties> = MetricsBase<T, 'integer'> & Partial<Option<AggregateNumber>>;
 type MetricsNumber<T extends Properties> = MetricsBase<T, 'number'> & Partial<Option<AggregateNumber>>;
-type MetricsReference<T> = {
-  kind: 'reference';
-  propertyName: keyof T & string;
-  pointingTo?: boolean;
-  type?: boolean;
-};
+// type MetricsReference<T> = {
+//   kind: 'reference';
+//   propertyName: RefKeys<T>;
+//   pointingTo?: boolean;
+//   type?: boolean;
+// };
 type MetricsText<T extends Properties> = MetricsBase<T, 'text'> & {
   count?: boolean;
   topOccurrences?: {
@@ -212,13 +213,13 @@ export class Metrics<T extends Properties> {
     };
   }
 
-  public reference(metrics: 'pointingTo'[]): MetricsReference<T> {
-    return {
-      ...this.map(metrics),
-      kind: 'reference',
-      propertyName: this.propertyName,
-    };
-  }
+  // public reference(metrics: 'pointingTo'[]): MetricsReference<T> {
+  //   return {
+  //     ...this.map(metrics),
+  //     kind: 'reference',
+  //     propertyName: this.propertyName,
+  //   };
+  // }
 
   public text(metrics: ('count' | 'topOccurrencesOccurs' | 'topOccurrencesValue')[]): MetricsText<T> {
     return {

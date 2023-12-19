@@ -117,6 +117,7 @@ export default class Searcher extends Base implements Search {
         collection: this.name,
         consistencyLevel: this.consistencyLevel,
         tenant: this.tenant,
+        uses123Api: true,
       },
       {
         metadata: this.metadata,

@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
+/* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
 import weaviate from '..';
 import { v4 } from 'uuid';
 import { DataObject } from './types';
@@ -84,12 +85,12 @@ describe('Testing of the collection.data methods', () => {
         const one = collection.data.referenceAdd({
           fromProperty: 'ref',
           fromUuid: toBeReplacedID,
-          reference: Reference.to({ uuids: toBeUpdatedID }),
+          to: Reference.to({ uuids: toBeUpdatedID }),
         });
         const two = collection.data.referenceAdd({
           fromProperty: 'ref',
           fromUuid: toBeUpdatedID,
-          reference: Reference.to({ uuids: toBeReplacedID }),
+          to: Reference.to({ uuids: toBeReplacedID }),
         });
         return Promise.all([one, two]);
       })
@@ -129,8 +130,8 @@ describe('Testing of the collection.data methods', () => {
 
   it('should be able to replace an object', async () => {
     const obj = await collection.query.fetchObjectById({ id: toBeReplacedID });
-    expect(obj.properties.testProp).toEqual('REPLACE ME');
-    expect(obj.properties.testProp2).toEqual(1);
+    expect(obj?.properties.testProp).toEqual('REPLACE ME');
+    expect(obj?.properties.testProp2).toEqual(1);
     await collection.data
       .replace({
         id: toBeReplacedID,
@@ -140,15 +141,15 @@ describe('Testing of the collection.data methods', () => {
       })
       .then(async () => {
         const obj = await collection.query.fetchObjectById({ id: toBeReplacedID });
-        expect(obj.properties.testProp).toEqual('REPLACED');
-        expect(obj.properties.testProp2).toBeUndefined();
+        expect(obj?.properties.testProp).toEqual('REPLACED');
+        expect(obj?.properties.testProp2).toBeUndefined();
       });
   });
 
   it('should be able to update an object', async () => {
     const obj = await collection.query.fetchObjectById({ id: toBeUpdatedID });
-    expect(obj.properties.testProp).toEqual('UPDATE ME');
-    expect(obj.properties.testProp2).toEqual(1);
+    expect(obj?.properties.testProp).toEqual('UPDATE ME');
+    expect(obj?.properties.testProp2).toEqual(1);
     await collection.data
       .update({
         id: toBeUpdatedID,
@@ -158,8 +159,8 @@ describe('Testing of the collection.data methods', () => {
       })
       .then(async () => {
         const obj = await collection.query.fetchObjectById({ id: toBeUpdatedID });
-        expect(obj.properties.testProp).toEqual('UPDATED');
-        expect(obj.properties.testProp2).toEqual(1);
+        expect(obj?.properties.testProp).toEqual('UPDATED');
+        expect(obj?.properties.testProp2).toEqual(1);
       });
   });
 
@@ -238,15 +239,15 @@ describe('Testing of the collection.data methods', () => {
       .referenceAdd({
         fromProperty: 'ref',
         fromUuid: existingID,
-        reference: Reference.to({ uuids: existingID }),
+        to: Reference.to({ uuids: existingID }),
       })
       .then(async () => {
         const obj = await collection.query.fetchObjectById({
           id: existingID,
+          returnReferences: [{ linkOn: 'ref' }],
         });
-        expect(obj.properties.ref?.objects).toEqual([]);
-        expect(obj.properties.ref?.targetCollection).toEqual(className);
-        expect(obj.properties.ref?.uuids?.includes(existingID)).toEqual(true);
+        expect(obj).not.toBeNull();
+        expect(obj?.references?.ref?.objects[0].uuid).toEqual(existingID);
       });
   });
 
@@ -255,15 +256,15 @@ describe('Testing of the collection.data methods', () => {
       .referenceReplace({
         fromProperty: 'ref',
         fromUuid: toBeReplacedID,
-        reference: Reference.to({ uuids: existingID }),
+        to: Reference.to({ uuids: existingID }),
       })
       .then(async () => {
         const obj = await collection.query.fetchObjectById({
           id: toBeReplacedID,
+          returnReferences: [{ linkOn: 'ref' }],
         });
-        expect(obj.properties.ref?.objects).toEqual([]);
-        expect(obj.properties.ref?.targetCollection).toEqual(className);
-        expect(obj.properties.ref?.uuids).toEqual([existingID]);
+        expect(obj).not.toBeNull();
+        expect(obj?.references?.ref?.objects[0].uuid).toEqual(existingID);
       });
   });
 
@@ -272,13 +273,15 @@ describe('Testing of the collection.data methods', () => {
       .referenceDelete({
         fromProperty: 'ref',
         fromUuid: toBeUpdatedID,
-        reference: Reference.to({ uuids: toBeReplacedID }),
+        to: Reference.to({ uuids: toBeReplacedID }),
       })
       .then(async () => {
         const obj = await collection.query.fetchObjectById({
           id: toBeUpdatedID,
+          returnReferences: [{ linkOn: 'ref' }],
         });
-        expect(obj.properties.ref).toBeUndefined();
+        expect(obj).not.toBeNull();
+        expect(obj?.references?.ref?.objects).toEqual([]);
       });
   });
 
@@ -289,7 +292,7 @@ describe('Testing of the collection.data methods', () => {
           {
             fromProperty: 'ref',
             fromUuid: existingID,
-            reference: Reference.to({ uuids: [toBeReplacedID, toBeUpdatedID] }),
+            to: Reference.to({ uuids: [toBeReplacedID, toBeUpdatedID] }),
           },
           // {
           //   fromProperty: 'ref',
@@ -304,11 +307,11 @@ describe('Testing of the collection.data methods', () => {
         expect(res.hasErrors).toEqual(false);
         const obj1 = await collection.query.fetchObjectById({
           id: existingID,
+          returnReferences: [{ linkOn: 'ref' }],
         });
-        expect(obj1.properties.ref?.objects).toEqual([]);
-        expect(obj1.properties.ref?.targetCollection).toEqual(className);
-        expect(obj1.properties.ref?.uuids?.includes(toBeReplacedID)).toEqual(true);
-        expect(obj1.properties.ref?.uuids?.includes(toBeUpdatedID)).toEqual(true);
+        expect(obj1).not.toBeNull();
+        expect(obj1?.references?.ref?.objects.map((o) => o.uuid)).toContain(toBeReplacedID);
+        expect(obj1?.references?.ref?.objects.map((o) => o.uuid)).toContain(toBeUpdatedID);
         // const obj2 = await collection.query.fetchObjectById({
         //   id: toBeUpdatedID
         // });

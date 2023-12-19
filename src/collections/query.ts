@@ -9,11 +9,22 @@ import { Filters, FilterValueType } from './filters';
 import Deserialize from './deserialize';
 import Serialize from './serialize';
 
-import { MetadataQuery, WeaviateObject, Property, Properties, QueryReturn, SortBy } from './types';
+import {
+  MetadataQuery,
+  WeaviateObject,
+  QueryProperty,
+  QueryReference,
+  Properties,
+  QueryReturn,
+  SortBy,
+  PrimitiveKey,
+} from './types';
 
-export interface FetchObjectByIdArgs {
+export interface QueryFetchObjectByIdArgs<T> {
   id: string;
   includeVector?: boolean;
+  returnProperties?: QueryProperty<T>[];
+  returnReferences?: QueryReference<T>[];
 }
 
 export interface QueryFetchObjectsArgs<T extends Properties> {
@@ -24,7 +35,8 @@ export interface QueryFetchObjectsArgs<T extends Properties> {
   sort?: SortBy[];
   includeVector?: boolean;
   returnMetadata?: MetadataQuery;
-  returnProperties?: Property<T>[];
+  returnProperties?: QueryProperty<T>[];
+  returnReferences?: QueryReference<T>[];
 }
 
 export interface QueryArgs<T extends Properties> {
@@ -33,19 +45,20 @@ export interface QueryArgs<T extends Properties> {
   filters?: Filters<FilterValueType>;
   includeVector?: boolean;
   returnMetadata?: MetadataQuery;
-  returnProperties?: Property<T>[];
+  returnProperties?: QueryProperty<T>[];
+  returnReferences?: QueryReference<T>[];
 }
 
 export interface QueryBm25Args<T extends Properties> extends QueryArgs<T> {
   query: string;
-  queryProperties?: (keyof T)[];
+  queryProperties?: PrimitiveKey<T>[];
 }
 
 export interface QueryHybridArgs<T extends Properties> extends QueryArgs<T> {
   query: string;
   alpha?: number;
   vector?: number[];
-  queryProperties?: (keyof T)[];
+  queryProperties?: PrimitiveKey<T>[];
   fusionType?: 'Ranked' | 'RelativeScore';
 }
 
@@ -117,29 +130,14 @@ class QueryManager<T extends Properties> implements Query<T> {
     return new QueryManager<T>(connection, name, dbVersionSupport, consistencyLevel, tenant);
   }
 
-  public fetchObjectById(args: FetchObjectByIdArgs): Promise<WeaviateObject<T>> {
+  public fetchObjectById(args: QueryFetchObjectByIdArgs<T>): Promise<WeaviateObject<T> | null> {
     const path = new ObjectsPath(this.dbVersionSupport);
-    return path
-      .buildGetOne(
-        args.id,
-        this.name,
-        args.includeVector ? ['vector'] : [],
-        this.consistencyLevel,
-        undefined,
-        this.tenant
-      )
-      .then((path) => this.connection.get(path))
-      .then((res: Required<WeaviateObjectRest<T>>) => {
-        return {
-          properties: Deserialize.propertiesREST(res.properties),
-          metadata: {
-            creationTimeUnix: res.creationTimeUnix,
-            lastUpdateTimeUnix: res.lastUpdateTimeUnix,
-          },
-          uuid: res.id,
-          vector: res.vector,
-        };
-      });
+    return this.connection.search(this.name, this.consistencyLevel, this.tenant).then((search) =>
+      search
+        .withFetch(Serialize.fetchObjectById(args))
+        .then(Deserialize.query<T>)
+        .then((res) => (res.objects.length === 1 ? res.objects[0] : null))
+    );
   }
 
   public fetchObjects(args?: QueryFetchObjectsArgs<T>): Promise<QueryReturn<T>>;
@@ -216,7 +214,7 @@ class QueryManager<T extends Properties> implements Query<T> {
 }
 
 export interface Query<T extends Properties> {
-  fetchObjectById: (args: FetchObjectByIdArgs) => Promise<WeaviateObject<T>>;
+  fetchObjectById: (args: QueryFetchObjectByIdArgs<T>) => Promise<WeaviateObject<T> | null>;
   fetchObjects: (args?: QueryFetchObjectsArgs<T>) => Promise<QueryReturn<T>>;
   bm25: (args: QueryBm25Args<T>) => Promise<QueryReturn<T>>;
   hybrid: (args: QueryHybridArgs<T>) => Promise<QueryReturn<T>>;

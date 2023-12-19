@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
+/* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
 import weaviate from '..';
 import { v4 } from 'uuid';
 import { DataObject } from './types';

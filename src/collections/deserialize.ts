@@ -14,42 +14,11 @@ import {
   GroupByReturn,
   ErrorObject,
   BatchObject,
+  ReturnProperties,
+  ReturnReferences,
 } from './types';
-import {
-  BatchObject as BatchObjectGrpc,
-  BatchObjectsReply,
-  BatchObjectsReply_BatchError,
-} from '../proto/v1/batch';
-
-export interface PropertiesGrpc {
-  nonRefProperties?: {
-    [key: string]: any;
-  };
-  textArrayProperties: {
-    propName: string;
-    values: string[];
-  }[];
-  intArrayProperties: {
-    propName: string;
-    values: number[];
-  }[];
-  numberArrayProperties: {
-    propName: string;
-    values: number[];
-  }[];
-  booleanArrayProperties: {
-    propName: string;
-    values: boolean[];
-  }[];
-  objectProperties: {
-    propName: string;
-    value?: PropertiesGrpc;
-  }[];
-  objectArrayProperties: {
-    propName: string;
-    values: PropertiesGrpc[];
-  }[];
-}
+import { BatchObject as BatchObjectGrpc, BatchObjectsReply } from '../proto/v1/batch';
+import { Properties as PropertiesGrpc, Value } from '../proto/v1/properties';
 
 export default class Deserialize {
   public static query<T extends Properties>(reply: SearchReply): QueryReturn<T> {
@@ -58,6 +27,7 @@ export default class Deserialize {
         return {
           metadata: Deserialize.metadata(result.metadata),
           properties: Deserialize.properties<T>(result.properties),
+          references: Deserialize.references<T>(result.properties),
           uuid: Deserialize.uuid(result.metadata),
           vector: Deserialize.vector(result.metadata),
         };
@@ -72,6 +42,7 @@ export default class Deserialize {
           generated: result.metadata?.generativePresent ? result.metadata?.generative : undefined,
           metadata: Deserialize.metadata(result.metadata),
           properties: Deserialize.properties<T>(result.properties),
+          references: Deserialize.references<T>(result.properties),
           uuid: Deserialize.uuid(result.metadata),
           vector: Deserialize.vector(result.metadata),
         };
@@ -89,6 +60,7 @@ export default class Deserialize {
           belongsToGroup: result.name,
           metadata: Deserialize.metadata(object.metadata),
           properties: Deserialize.properties<T>(object.properties),
+          references: Deserialize.references<T>(object.properties),
           uuid: Deserialize.uuid(object.metadata),
           vector: Deserialize.vector(object.metadata),
         };
@@ -108,50 +80,52 @@ export default class Deserialize {
     };
   }
 
-  private static properties<T extends Properties>(properties?: PropertiesResult): T {
+  private static properties<T extends Properties>(properties?: PropertiesResult): ReturnProperties<T> {
     if (!properties) return {} as T;
-    const out = Deserialize.objectProperties(properties);
+    return Deserialize.objectProperties(properties.nonRefProps) as ReturnProperties<T>;
+  }
+
+  private static references<T extends Properties>(
+    properties?: PropertiesResult
+  ): ReturnReferences<T> | undefined {
+    if (!properties) return undefined;
+    if (properties.refProps.length === 0) return undefined;
+    const out: any = {};
     properties.refProps.forEach((property) => {
       out[property.propName] = referenceFromObjects(
         property.properties.map((property) => {
           return {
-            properties: Deserialize.properties(property),
             metadata: Deserialize.metadata(property.metadata),
+            properties: Deserialize.properties(property),
+            references: Deserialize.references(property),
             uuid: Deserialize.uuid(property.metadata),
             vector: Deserialize.vector(property.metadata),
           };
         })
       );
     });
-    return out as T;
+    return out as ReturnReferences<T>;
   }
 
-  private static objectProperties(properties: PropertiesGrpc): Properties {
+  private static parsePropertyValue(value: Value): any {
+    if (value.boolValue) return value.boolValue;
+    if (value.dateValue) return new Date(value.dateValue);
+    if (value.geoValue) return value.geoValue;
+    if (value.intValue) return value.intValue;
+    if (value.listValue) return value.listValue.values.map((v) => Deserialize.parsePropertyValue(v));
+    if (value.numberValue) return value.numberValue;
+    if (value.objectValue) return Deserialize.objectProperties(value.objectValue);
+    if (value.stringValue) return value.stringValue;
+    if (value.uuidValue) return value.uuidValue;
+  }
+
+  private static objectProperties(properties?: PropertiesGrpc): Properties {
     const out: Properties = {};
-    if (properties.nonRefProperties) {
-      Object.entries(properties.nonRefProperties).forEach(([key, value]) => {
-        out[key] = value;
+    if (properties) {
+      Object.entries(properties.fields).forEach(([key, value]) => {
+        out[key] = Deserialize.parsePropertyValue(value);
       });
     }
-    properties.textArrayProperties.forEach((property) => {
-      out[property.propName] = property.values;
-    });
-    properties.intArrayProperties.forEach((property) => {
-      out[property.propName] = property.values;
-    });
-    properties.numberArrayProperties.forEach((property) => {
-      out[property.propName] = property.values;
-    });
-    properties.booleanArrayProperties.forEach((property) => {
-      out[property.propName] = property.values;
-    });
-    properties.objectProperties.forEach((property) => {
-      if (!property.value) return;
-      out[property.propName] = Deserialize.objectProperties(property.value);
-    });
-    properties.objectArrayProperties.forEach((property) => {
-      out[property.propName] = property.values.map((value) => Deserialize.objectProperties(value));
-    });
     return out;
   }
 
@@ -228,8 +202,9 @@ export default class Deserialize {
     const out: Properties = {};
     Object.entries(properties).forEach(([key, value]) => {
       if (isRefProp(value)) {
-        out[key] =
-          value.length > 0 ? ReferenceManager.fromBeaconStrings(value.map((v) => v.beacon)) : undefined;
+        // out[key] =
+        //   value.length > 0 ? ReferenceManager.fromBeaconStrings(value.map((v) => v.beacon)) : null;
+        out[key] = undefined;
       } else {
         out[key] = value;
       }
