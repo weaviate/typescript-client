@@ -8,7 +8,7 @@ import {
 } from '../utils/testData';
 
 const EXPECTED_WEAVIATE_VERSION = '1.23.0';
-const EXPECTED_WEAVIATE_GIT_HASH = '350f8c5';
+const EXPECTED_WEAVIATE_GIT_HASH = 'bbf8c87';
 
 describe('cluster nodes endpoint', () => {
   const client = weaviate.client({
