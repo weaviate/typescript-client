@@ -19,6 +19,7 @@ describe('cluster nodes endpoint', () => {
   it('get nodes status of empty db', () => {
     return client.cluster
       .nodesStatusGetter()
+      .withOutput('verbose')
       .do()
       .then((nodesStatusResponse: NodesStatusResponse) => {
         expect(nodesStatusResponse.nodes).toBeDefined();
@@ -44,7 +45,52 @@ describe('cluster nodes endpoint', () => {
 
   it('sets up db', () => createTestFoodSchemaAndData(client));
 
-  it('get nodes status of food db', () => {
+  it('get verbose nodes status of food db', () => {
+    return client.cluster
+      .nodesStatusGetter()
+      .withOutput('verbose')
+      .do()
+      .then((nodesStatusResponse: NodesStatusResponse) => {
+        expect(nodesStatusResponse.nodes).toHaveLength(1);
+        if (nodesStatusResponse.nodes) {
+          const node = nodesStatusResponse.nodes[0];
+          expect(node.name).toMatch(/.+/);
+          expect(node.version).toEqual(EXPECTED_WEAVIATE_VERSION);
+          expect(node.gitHash).toEqual(EXPECTED_WEAVIATE_GIT_HASH);
+          expect(node.status).toEqual('HEALTHY');
+          expect(node.stats?.objectCount).toEqual(6);
+          expect(node.stats?.shardCount).toEqual(2);
+          expect(node.shards).toBeDefined();
+          expect(node.shards).toHaveLength(2);
+          if (node.shards) {
+            expect([node.shards[0].class, node.shards[1].class]).toEqual(
+              expect.arrayContaining([PIZZA_CLASS_NAME, SOUP_CLASS_NAME])
+            );
+            for (let i = 0; i < node.shards.length; i++) {
+              const shard = node.shards[i];
+              expect(shard.name).toMatch(/.+/);
+              switch (shard.class) {
+                case PIZZA_CLASS_NAME:
+                  expect(shard.objectCount).toEqual(4);
+                  break;
+                case SOUP_CLASS_NAME:
+                  expect(shard.objectCount).toEqual(2);
+                  break;
+              }
+            }
+          } else {
+            throw new Error('node.shards should be defined');
+          }
+        } else {
+          throw new Error('nodesStatusResponse.nodes should be defined');
+        }
+      })
+      .catch((e: any) => {
+        throw new Error('should not fail on getting nodes: ' + e);
+      });
+  });
+
+  it('get default nodes status of food db', () => {
     return client.cluster
       .nodesStatusGetter()
       .do()
@@ -88,10 +134,36 @@ describe('cluster nodes endpoint', () => {
       });
   });
 
+  it('get minimal nodes status of food db', () => {
+    return client.cluster
+      .nodesStatusGetter()
+      .withOutput('minimal')
+      .do()
+      .then((nodesStatusResponse: NodesStatusResponse) => {
+        expect(nodesStatusResponse.nodes).toHaveLength(1);
+        if (nodesStatusResponse.nodes) {
+          const node = nodesStatusResponse.nodes[0];
+          expect(node.name).toMatch(/.+/);
+          expect(node.version).toEqual(EXPECTED_WEAVIATE_VERSION);
+          expect(node.gitHash).toEqual(EXPECTED_WEAVIATE_GIT_HASH);
+          expect(node.status).toEqual('HEALTHY');
+          expect(node.stats?.objectCount).toEqual(6);
+          expect(node.stats?.shardCount).toEqual(2);
+          expect(node.shards).toBeNull();
+        } else {
+          throw new Error('nodesStatusResponse.nodes should be defined');
+        }
+      })
+      .catch((e: any) => {
+        throw new Error('should not fail on getting nodes: ' + e);
+      });
+  });
+
   it('get nodes status of only Pizza class in food db', () => {
     return client.cluster
       .nodesStatusGetter()
       .withClassName(PIZZA_CLASS_NAME)
+      .withOutput('verbose')
       .do()
       .then((nodesStatusResponse: NodesStatusResponse) => {
         expect(nodesStatusResponse.nodes).toBeDefined();

@@ -4,6 +4,7 @@ import { CommandBase } from '../validation/commandBase';
 
 export default class NodesStatusGetter extends CommandBase {
   private className?: string;
+  private output?: string;
 
   constructor(client: Connection) {
     super(client);
@@ -14,14 +15,25 @@ export default class NodesStatusGetter extends CommandBase {
     return this;
   };
 
+  withOutput = (output: 'minimal' | 'verbose') => {
+    this.output = output;
+    return this;
+  };
+
   validate() {
     // nothing to validate
   }
 
   do = (): Promise<NodesStatusResponse> => {
+    let path = '/nodes';
     if (this.className) {
-      return this.client.get(`/nodes/${this.className}`);
+      path = `${path}/${this.className}`;
     }
-    return this.client.get('/nodes');
+    if (this.output) {
+      path = `${path}?output=${this.output}`;
+    } else {
+      path = `${path}?output=verbose`;
+    }
+    return this.client.get(path);
   };
 }
