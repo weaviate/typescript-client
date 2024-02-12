@@ -219,7 +219,7 @@ export default class Configure {
     OBJECT: 'object',
     OBJECT_ARRAY: 'object[]',
     BLOB: 'blob',
-    GEO_COORDINATE: 'geoCoordinates',
+    GEO_COORDINATES: 'geoCoordinates',
     PHONE_NUMBER: 'phoneNumber',
   };
 

@@ -144,8 +144,7 @@ describe('cluster nodes endpoint', () => {
           expect(node.version).toBeDefined();
           expect(node.gitHash).toBeDefined();
           expect(node.status).toEqual('HEALTHY');
-          expect(node.stats?.objectCount).toEqual(6);
-          expect(node.stats?.shardCount).toEqual(2);
+          expect(node.stats).toBeUndefined();
           expect(node.shards).toBeNull();
         } else {
           throw new Error('nodesStatusResponse.nodes should be defined');
