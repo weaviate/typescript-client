@@ -113,7 +113,7 @@ export default class Deserialize {
   }
 
   private static properties<T extends Properties>(properties?: PropertiesResult): ReturnProperties<T> {
-    if (!properties) return {} as T;
+    if (!properties) return {} as ReturnProperties<T>;
     return Deserialize.objectProperties(properties.nonRefProps) as ReturnProperties<T>;
   }
 
@@ -148,9 +148,9 @@ export default class Deserialize {
     if (value.objectValue) return Deserialize.objectProperties(value.objectValue);
     if (value.stringValue) return value.stringValue;
     if (value.uuidValue) return value.uuidValue;
-    // if (value.blobValue) return value.blobValue;
-    // if (value.geoValue) return value.geoValue;
-    // if (value.phoneValue) return value.phoneValue;
+    if (value.blobValue) return value.blobValue;
+    if (value.geoValue) return value.geoValue;
+    if (value.phoneValue) return value.phoneValue;
     if (value.nullValue) return null;
     throw new Error('Unknown value type');
   }

@@ -4,11 +4,17 @@ import weaviate from '..';
 import { v4 } from 'uuid';
 import { DataObject } from './types';
 import { CrossReference, Reference } from './references';
+import { GeoCoordinate, PhoneNumber } from '../proto/v1/properties';
 
 type TestCollectionData = {
   testProp: string;
   testProp2?: number;
   ref?: CrossReference<TestCollectionData>;
+  geo?: GeoCoordinate;
+  phone?: PhoneNumber;
+  nested?: {
+    testProp: string;
+  };
 };
 
 describe('Testing of the collection.data methods', () => {
@@ -46,6 +52,10 @@ describe('Testing of the collection.data methods', () => {
           {
             name: 'testProp2',
             dataType: 'int',
+          },
+          {
+            name: 'geo',
+            dataType: 'geoCoordinates',
           },
         ],
         references: [
@@ -215,7 +225,7 @@ describe('Testing of the collection.data methods', () => {
   });
 
   it('should be able to insert many (1000) objects at once', async () => {
-    const objects: TestCollectionData[] = [];
+    const objects: any[] = [];
     for (let j = 0; j < 1000; j++) {
       objects.push({
         testProp: 'testInsertMany1000',
@@ -284,7 +294,7 @@ describe('Testing of the collection.data methods', () => {
       });
   });
 
-  it('it should be able to add many references in batch', async () => {
+  it('should be able to add many references in batch', async () => {
     await collection.data
       .referenceAddMany({
         refs: [
@@ -317,5 +327,51 @@ describe('Testing of the collection.data methods', () => {
         // expect(obj2.properties.ref?.targetCollection).toEqual(className);
         // expect(obj2.properties.ref?.uuids?.includes(existingID)).toEqual(true);
       });
+  });
+
+  it('should be able to add objects with a geo coordinate', async () => {
+    const obj = {
+      testProp: 'test',
+      geo: {
+        latitude: 1,
+        longitude: 1,
+      },
+    };
+    const id = await collection.data.insert(obj);
+    const res = await collection.data.insertMany([obj]);
+    const obj1 = await collection.query.fetchObjectById(id, {
+      returnProperties: ['geo'],
+    });
+    console.log(obj1);
+    const obj2 = await collection.query.fetchObjectById(res.uuids[0], {
+      returnProperties: ['geo'],
+    });
+    expect(obj1?.properties.geo).toEqual({
+      latitude: 1,
+      longitude: 1,
+    });
+    expect(obj2?.properties.geo).toEqual({
+      latitude: 1,
+      longitude: 1,
+    });
+  });
+
+  it('should be able to add objects with a phone number', async () => {
+    const obj = {
+      testProp: 'test',
+      phone: {
+        number: '+441612345000',
+      },
+    };
+    const id = await collection.data.insert(obj);
+    const res = await collection.data.insertMany([obj]);
+    const obj1 = await collection.query.fetchObjectById(id, {
+      returnProperties: ['phone'],
+    });
+    const obj2 = await collection.query.fetchObjectById(res.uuids[0], {
+      returnProperties: ['phone'],
+    });
+    expect(obj1?.properties.phone?.input).toEqual('+441612345000');
+    expect(obj2?.properties.phone?.input).toEqual('+441612345000');
   });
 });

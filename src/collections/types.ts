@@ -1,26 +1,12 @@
+export { GeoCoordinate, PhoneNumber } from '../proto/v1/properties';
+import { GeoCoordinate, PhoneNumber } from '../proto/v1/properties';
+
 import { BatchReference } from '../openapi/types';
 import { CrossReference, ReferenceManager } from './references';
 
 type RecursivePartial<T> = {
   [P in keyof T]?: RecursivePartial<T[P]>;
 };
-
-// export type DataType =
-//   | 'int'
-//   | 'int[]'
-//   | 'number'
-//   | 'number[]'
-//   | 'text'
-//   | 'text[]'
-//   | 'boolean'
-//   | 'boolean[]'
-//   | 'date'
-//   | 'date[]'
-//   | 'object'
-//   | 'object[]'
-//   | 'blob'
-//   | 'geoCoordinates'
-//   | 'phoneNumber'
 
 export type DataType<T = any> = T extends string
   ? 'text'
@@ -44,6 +30,10 @@ export type DataType<T = any> = T extends string
   ? 'object[]'
   : T extends Blob
   ? 'blob'
+  : T extends GeoCoordinate
+  ? 'geoCoordinates'
+  : T extends PhoneNumber
+  ? 'phoneNumber'
   : never;
 
 export type InvertedIndexConfig = {
@@ -480,12 +470,12 @@ export type NonPrimitiveProperty<T> = RefProperty<T> | MultiRefProperty<T> | Que
 export type ResolvedNestedProperty<T> = QueryNested<ExtractNestedType<T>>;
 
 export type PrimitiveKeys<Obj> = {
-  [Key in keyof Obj]: Obj[Key] extends string ? Key : never;
+  [Key in keyof Obj]: Obj[Key] extends PrimitiveField | undefined ? Key : never;
 }[keyof Obj] &
   string;
 
 export type NestedKeys<Obj> = {
-  [Key in keyof Obj]: Obj[Key] extends string ? never : Key;
+  [Key in keyof Obj]: Obj[Key] extends PrimitiveField ? never : Key;
 }[keyof Obj] &
   string;
 
@@ -530,8 +520,10 @@ export type NonRefKeys<Obj> = {
 
 // Adjusted NonRefs to correctly map over Obj and preserve optional types
 export type NonReferenceInputs<Obj> = {
-  [Key in keyof Obj as Key extends NonRefKeys<Obj> ? Key : never]: Obj[Key];
+  [Key in keyof Obj as Key extends NonRefKeys<Obj> ? Key : never]: MapPhoneNumberType<Obj[Key]>;
 };
+
+export type MapPhoneNumberType<T> = T extends PhoneNumber ? PhoneNumberInput : T;
 
 export interface ReferenceToMultiTarget {
   targetCollection: string;
@@ -553,7 +545,7 @@ export type Reference<T> = {
   objects: WeaviateObject<T>[];
 };
 
-export type WeaviateField =
+type PrimitiveField =
   | string
   | string[]
   | boolean
@@ -562,12 +554,17 @@ export type WeaviateField =
   | number[]
   | Date
   | Date[]
-  | NestedProperties
-  | NestedProperties[]
+  | Blob
+  | GeoCoordinate
+  | PhoneNumber
   | null;
 
+type NestedField = NestedProperties | NestedProperties[];
+
+export type WeaviateField = PrimitiveField | NestedField | undefined;
+
 export interface Properties {
-  [k: string]: WeaviateField | CrossReference<Properties>;
+  [k: string]: WeaviateField | CrossReference<Properties> | undefined;
 }
 
 export interface NestedProperties {
@@ -597,7 +594,7 @@ type AllowedValues = string | string[] | boolean | boolean[] | number | number[]
 
 export type DataObject<T> = {
   id?: string;
-  properties: NonReferenceInputs<T>;
+  properties?: NonReferenceInputs<T>;
   references?: ReferenceInputs<T>;
   vector?: number[];
 };
@@ -619,7 +616,7 @@ export type ErrorObject<T> = {
 
 export type BatchObject<T> = {
   collection: string;
-  properties: NonReferenceInputs<T>;
+  properties?: NonReferenceInputs<T>;
   references?: ReferenceInputs<T>;
   uuid?: string;
   vector?: number[];
@@ -692,3 +689,8 @@ export type RerankerConfig<R> = R extends 'reranker-cohere'
   : R extends 'none'
   ? undefined
   : Record<string, any> | undefined;
+
+export interface PhoneNumberInput {
+  number: string;
+  defaultCountry?: string;
+}

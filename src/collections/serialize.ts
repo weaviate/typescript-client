@@ -50,6 +50,10 @@ import {
   PrimitiveKeys,
   ResolvedNestedProperty,
   GroupByOptions,
+  NonReferenceInputs,
+  GeoCoordinate,
+  PhoneNumberInput,
+  ReferenceInputs,
 } from './types';
 import {
   SearchBm25Args,
@@ -86,7 +90,7 @@ import {
   Filters as FiltersGRPC,
   Filters_Operator,
 } from '../proto/v1/base';
-import { ReferenceManager } from './references';
+import { ReferenceManager, uuidToBeacon } from './references';
 
 const isNested = <T extends Properties, P extends ResolvedNestedProperty<T>>(
   argument: PrimitiveKeys<T> | P
@@ -160,7 +164,7 @@ class FilterGuards {
   };
 }
 
-class BatchGuards {
+export class DataGuards {
   static isText = (argument?: WeaviateField): argument is string => {
     return typeof argument === 'string';
   };
@@ -201,6 +205,14 @@ class BatchGuards {
     return argument instanceof Array && argument[0] instanceof Date;
   };
 
+  static isGeoCoordinate = <T>(argument?: GeoCoordinate | T): argument is GeoCoordinate => {
+    return argument instanceof Object && argument.latitude !== undefined && argument.longitude !== undefined;
+  };
+
+  static isPhoneNumber = <T>(argument?: PhoneNumberInput | T): argument is PhoneNumberInput => {
+    return argument instanceof Object && argument.number !== undefined;
+  };
+
   static isNested = (argument?: WeaviateField): argument is NestedProperties => {
     return typeof argument === 'object';
   };
@@ -212,11 +224,13 @@ class BatchGuards {
   static isEmptyArray = (argument?: WeaviateField): argument is [] => {
     return argument instanceof Array && argument.length === 0;
   };
-}
 
-const isDataObject = <T extends Properties>(obj: DataObject<T> | T): obj is DataObject<T> => {
-  return (obj as DataObject<T>).properties !== undefined;
-};
+  static isDataObject = <T extends Properties>(
+    obj: DataObject<T> | NonReferenceInputs<T>
+  ): obj is DataObject<T> => {
+    return (obj as DataObject<T>).properties !== undefined;
+  };
+}
 
 // Cannot do argument.every((arg) => typeof arg === type) in the above because of type erasure
 
@@ -676,7 +690,50 @@ export default class Serialize {
     return args.groupBy !== undefined;
   };
 
-  private static batchProperties = <T extends Properties>(properties: T): BatchObject_Properties => {
+  public static restProperties = <T>(properties: Record<string, any>, references?: ReferenceInputs<T>): T => {
+    const parsedProperties: any = {};
+    Object.keys(properties).forEach((key) => {
+      const value = properties[key];
+      if (DataGuards.isDate(value)) {
+        parsedProperties[key] = value.toISOString();
+      } else if (DataGuards.isDateArray(value)) {
+        parsedProperties[key] = value.map((v) => v.toISOString());
+      } else if (DataGuards.isPhoneNumber(value)) {
+        parsedProperties[key] = {
+          input: value.number,
+          defaultCountry: value.defaultCountry,
+        };
+      } else if (DataGuards.isNested(value)) {
+        parsedProperties[key] = Serialize.restProperties(value);
+      } else if (DataGuards.isNestedArray(value)) {
+        parsedProperties[key] = value.map((v) => Serialize.restProperties(v));
+      } else {
+        parsedProperties[key] = value;
+      }
+    });
+    if (!references) return parsedProperties as T;
+    Object.keys(references).forEach((key) => {
+      const value = references[key as keyof ReferenceInputs<T>];
+      if (value !== null && value instanceof ReferenceManager) {
+        parsedProperties[key] = value.toBeaconObjs();
+      } else if (typeof value === 'string') {
+        parsedProperties[key] = [uuidToBeacon(value)];
+      } else if (Array.isArray(value)) {
+        parsedProperties[key] = value.map((uuid) => uuidToBeacon(uuid));
+      } else {
+        parsedProperties[key] =
+          typeof value.uuids === 'string'
+            ? [uuidToBeacon(value.uuids, value.targetCollection)]
+            : value.uuids.map((uuid) => uuidToBeacon(uuid, value.targetCollection));
+      }
+    });
+    return parsedProperties as T;
+  };
+
+  private static batchProperties = (
+    properties?: Record<string, any>,
+    references?: Record<string, any>
+  ): BatchObject_Properties => {
     const multiTarget: BatchObject_MultiTargetRefProps[] = [];
     const singleTarget: BatchObject_SingleTargetRefProps[] = [];
     const nonRefProperties: Record<string, any> = {};
@@ -688,63 +745,77 @@ export default class Serialize {
     const objectProperties: ObjectProperties[] = [];
     const objectArrayProperties: ObjectArrayProperties[] = [];
 
-    for (const [key, value] of Object.entries(properties)) {
-      if (value instanceof ReferenceManager) {
-        if (value.isMultiTarget()) {
-          multiTarget.push({
+    if (properties) {
+      for (const [key, value] of Object.entries(properties)) {
+        if (DataGuards.isEmptyArray(value)) {
+          emptyArray.push(key);
+        } else if (DataGuards.isBooleanArray(value)) {
+          boolArray.push({
             propName: key,
-            targetCollection: value.targetCollection,
-            uuids: value.toBeaconStrings(),
+            values: value,
+          });
+        } else if (DataGuards.isDateArray(value)) {
+          textArray.push({
+            propName: key,
+            values: value.map((v) => v.toISOString()),
+          });
+        } else if (DataGuards.isTextArray(value)) {
+          textArray.push({
+            propName: key,
+            values: value,
+          });
+        } else if (DataGuards.isIntArray(value)) {
+          intArray.push({
+            propName: key,
+            values: value,
+          });
+        } else if (DataGuards.isFloatArray(value)) {
+          floatArray.push({
+            propName: key,
+            values: [],
+            valuesBytes: new Uint8Array(new Float64Array(value).buffer),
+          });
+        } else if (DataGuards.isDate(value)) {
+          nonRefProperties[key] = value.toISOString();
+        } else if (DataGuards.isPhoneNumber(value)) {
+          nonRefProperties[key] = {
+            input: value.number,
+            defaultCountry: value.defaultCountry,
+          };
+        } else if (DataGuards.isGeoCoordinate(value)) {
+          nonRefProperties[key] = value;
+        } else if (DataGuards.isNested(value)) {
+          const parsed = Serialize.batchProperties(value);
+          objectProperties.push({
+            propName: key,
+            value: ObjectPropertiesValue.fromPartial(parsed),
+          });
+        } else if (DataGuards.isNestedArray(value)) {
+          objectArrayProperties.push({
+            propName: key,
+            values: value.map((v) => ObjectPropertiesValue.fromPartial(Serialize.batchProperties(v))),
           });
         } else {
-          singleTarget.push({
-            propName: key,
-            uuids: value.toBeaconStrings(),
-          });
+          nonRefProperties[key] = value;
         }
-      } else if (BatchGuards.isEmptyArray(value)) {
-        emptyArray.push(key);
-      } else if (BatchGuards.isBooleanArray(value)) {
-        boolArray.push({
-          propName: key,
-          values: value,
-        });
-      } else if (BatchGuards.isDateArray(value)) {
-        textArray.push({
-          propName: key,
-          values: value.map((v) => v.toISOString()),
-        });
-      } else if (BatchGuards.isTextArray(value)) {
-        textArray.push({
-          propName: key,
-          values: value,
-        });
-      } else if (BatchGuards.isIntArray(value)) {
-        intArray.push({
-          propName: key,
-          values: value,
-        });
-      } else if (BatchGuards.isFloatArray(value)) {
-        floatArray.push({
-          propName: key,
-          values: [],
-          valuesBytes: new Uint8Array(new Float64Array(value).buffer),
-        });
-      } else if (BatchGuards.isDate(value)) {
-        nonRefProperties[key] = value.toISOString();
-      } else if (BatchGuards.isNested(value)) {
-        const parsed = Serialize.batchProperties(value);
-        objectProperties.push({
-          propName: key,
-          value: ObjectPropertiesValue.fromPartial(parsed),
-        });
-      } else if (BatchGuards.isNestedArray(value)) {
-        objectArrayProperties.push({
-          propName: key,
-          values: value.map((v) => ObjectPropertiesValue.fromPartial(Serialize.batchProperties(v))),
-        });
-      } else {
-        nonRefProperties[key] = value;
+      }
+    }
+    if (references) {
+      for (const [key, value] of Object.entries(references)) {
+        if (value instanceof ReferenceManager) {
+          if (value.isMultiTarget()) {
+            multiTarget.push({
+              propName: key,
+              targetCollection: value.targetCollection,
+              uuids: value.toBeaconStrings(),
+            });
+          } else {
+            singleTarget.push({
+              propName: key,
+              uuids: value.toBeaconStrings(),
+            });
+          }
+        }
       }
     }
     return {
@@ -763,7 +834,7 @@ export default class Serialize {
 
   public static batchObjects = <T extends Properties>(
     collection: string,
-    objects: (DataObject<T> | T)[],
+    objects: (DataObject<T> | NonReferenceInputs<T>)[],
     tenant?: string
   ): Promise<{
     batch: BatchObject<T>[];
@@ -784,12 +855,14 @@ export default class Serialize {
       }
 
       const object = objects[index];
-      const obj = isDataObject(object) ? object : { properties: object };
+      const obj = DataGuards.isDataObject(object)
+        ? object
+        : { id: undefined, properties: object, references: undefined, vector: undefined };
 
       objs.push(
         BatchObjectGrpc.fromPartial({
           collection: collection,
-          properties: Serialize.batchProperties(obj.properties),
+          properties: Serialize.batchProperties(obj.properties, obj.references),
           tenant: tenant,
           uuid: obj.id ? obj.id : uuidv4(),
           vector: obj.vector,

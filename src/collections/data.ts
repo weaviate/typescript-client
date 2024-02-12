@@ -11,7 +11,7 @@ import { ObjectsPath, ReferencesPath } from '../data/path';
 import { DbVersionSupport } from '../utils/dbVersion';
 import { ConsistencyLevel } from '../data';
 import { ReferenceManager, uuidToBeacon } from './references';
-import Serialize from './serialize';
+import Serialize, { DataGuards } from './serialize';
 import {
   BatchObjectsReturn,
   BatchReferencesReturn,
@@ -58,8 +58,8 @@ export interface UpdateArgs<T> extends ReplaceArgs<T> {}
 export interface Data<T extends Properties> {
   delete: (id: string) => Promise<boolean>;
   deleteMany: (where: FilterValue, opts?: DeleteManyOptions) => Promise<BatchDeleteResult>;
-  insert: (args: InsertArgs<T>) => Promise<string>;
-  insertMany: (objects: (DataObject<T> | T)[]) => Promise<BatchObjectsReturn<T>>;
+  insert: (args: InsertArgs<T> | NonReferenceInputs<T>) => Promise<string>;
+  insertMany: (objects: (DataObject<T> | NonReferenceInputs<T>)[]) => Promise<BatchObjectsReturn<T>>;
   referenceAdd: <P extends Properties>(args: ReferenceArgs<P>) => Promise<void>;
   referenceAddMany: <P extends Properties>(args: ReferenceManyArgs<P>) => Promise<BatchReferencesReturn>;
   referenceDelete: <P extends Properties>(args: ReferenceArgs<P>) => Promise<void>;
@@ -87,39 +87,12 @@ const data = <T extends Properties>(
   const objectsPath = new ObjectsPath(dbVersionSupport);
   const referencesPath = new ReferencesPath(dbVersionSupport);
 
-  const parseProperties = (properties: Record<string, any>, references?: ReferenceInputs<T>): T => {
-    const parsedProperties: Properties = {};
-    Object.keys(properties).forEach((key) => {
-      const value = properties[key];
-      if (value !== null && value instanceof ReferenceManager) {
-        parsedProperties[key] = value.toBeaconObjs();
-      } else {
-        parsedProperties[key] = value;
-      }
-    });
-    if (!references) return parsedProperties as T;
-    Object.keys(references).forEach((key) => {
-      const value = references[key as keyof ReferenceInputs<T>];
-      if (value !== null && value instanceof ReferenceManager) {
-        parsedProperties[key] = value.toBeaconObjs();
-      } else if (typeof value === 'string') {
-        parsedProperties[key] = [uuidToBeacon(value)];
-      } else if (Array.isArray(value)) {
-        parsedProperties[key] = value.map((uuid) => uuidToBeacon(uuid));
-      } else {
-        parsedProperties[key] =
-          typeof value.uuids === 'string'
-            ? [uuidToBeacon(value.uuids, value.targetCollection)]
-            : value.uuids.map((uuid) => uuidToBeacon(uuid, value.targetCollection));
-      }
-    });
-    return parsedProperties as T;
-  };
-
-  const parseObject = (object: InsertObject<T>): WeaviateObject<T> => {
+  const parseObject = (object: any): WeaviateObject<T> => {
     return {
       id: object.id,
-      properties: object.properties ? parseProperties(object.properties, object.references) : undefined,
+      properties: object.properties
+        ? Serialize.restProperties(object.properties, object.references)
+        : undefined,
       vector: object.vector,
     };
   };
@@ -157,18 +130,18 @@ const data = <T extends Properties>(
         .delete(path, parseDeleteMany(where, opts), true)
         .then((res: BatchDeleteResponse) => res.results);
     },
-    insert: (args: InsertArgs<T>): Promise<string> =>
+    insert: (args: InsertArgs<T> | NonReferenceInputs<T>): Promise<string> =>
       objectsPath
         .buildCreate(consistencyLevel)
         .then((path) =>
           connection.postReturn<WeaviateObject<T>, Required<WeaviateObject<T>>>(path, {
             class: name,
             tenant: tenant,
-            ...parseObject(args),
+            ...parseObject(DataGuards.isDataObject(args) ? args : ({ properties: args } as InsertObject<T>)),
           })
         )
         .then((obj) => obj.id),
-    insertMany: (objects: (DataObject<T> | T)[]): Promise<BatchObjectsReturn<T>> =>
+    insertMany: (objects: (DataObject<T> | NonReferenceInputs<T>)[]): Promise<BatchObjectsReturn<T>> =>
       connection.batch(consistencyLevel).then(async (batch) => {
         const serialized = await Serialize.batchObjects(name, objects, tenant);
         const start = Date.now();

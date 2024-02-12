@@ -219,8 +219,8 @@ export default class Configure {
     OBJECT: 'object',
     OBJECT_ARRAY: 'object[]',
     BLOB: 'blob',
-    // GEO_COORDINATES: 'geoCoordinates',
-    // PHONE_NUMBER: 'phoneNumber',
+    GEO_COORDINATE: 'geoCoordinates',
+    PHONE_NUMBER: 'phoneNumber',
   };
 
   static invertedIndex = (Options?: {
