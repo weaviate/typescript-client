@@ -112,248 +112,287 @@ describe('Testing of the Sort class with a simple collection', () => {
         ])
       )
       .then((res) => {
-        console.log(res); // collection is not created before other tests without this line
         if (res.hasErrors) {
           console.error(res.errors);
           throw new Error('Failed to insert objects');
         }
         return Object.values(res.uuids);
+      })
+      .catch((err) => {
+        throw err;
       });
+    return ids;
   });
 
-  it('should sort by text ascending', () => {
-    collections.forEach((c) =>
-      c.query
-        .fetchObjects({
-          sort: collection.sort.byProperty('text'),
-        })
-        .then((res) =>
-          expect(res.objects.map((o) => o.properties.text)).toEqual(['four', 'one', 'three', 'two'])
-        )
-    );
-  });
-
-  it('should sort by text descending', () => {
-    collections.forEach((c) =>
-      c.query
-        .fetchObjects({
-          sort: collection.sort.byProperty('text', false),
-        })
-        .then((res) =>
-          expect(res.objects.map((o) => o.properties.text)).toEqual(['two', 'three', 'one', 'four'])
-        )
-    );
-  });
-
-  it('should sort by int ascending', () => {
-    collections.forEach((c) =>
-      c.query
-        .fetchObjects({
-          sort: collection.sort.byProperty('int'),
-        })
-        .then((res) => expect(res.objects.map((o) => o.properties.int)).toEqual([1, 2, 3, 4]))
-    );
-  });
-
-  it('should sort by int descending', () => {
-    collections.forEach((c) =>
-      c.query
-        .fetchObjects({
-          sort: collection.sort.byProperty('int', false),
-        })
-        .then((res) => expect(res.objects.map((o) => o.properties.int)).toEqual([4, 3, 2, 1]))
-    );
-  });
-
-  it('should sort by float ascending', () => {
-    collections.forEach((c) =>
-      c.query
-        .fetchObjects({
-          sort: collection.sort.byProperty('float'),
-        })
-        .then((res) => expect(res.objects.map((o) => o.properties.float)).toEqual([1.1, 2.2, 3.3, 4.4]))
-    );
-  });
-
-  it('should sort by float descending', () => {
-    collections.forEach((c) =>
-      c.query
-        .fetchObjects({
-          sort: collection.sort.byProperty('float', false),
-        })
-        .then((res) => expect(res.objects.map((o) => o.properties.float)).toEqual([4.4, 3.3, 2.2, 1.1]))
-    );
-  });
-
-  it('should sort by date ascending', () => {
-    collections.forEach((c) =>
-      c.query
-        .fetchObjects({
-          sort: collection.sort.byProperty('date'),
-        })
-        .then((res) =>
-          expect(res.objects.map((o) => o.properties.date)).toEqual([
-            new Date('2021-01-01'),
-            new Date('2021-01-02'),
-            new Date('2021-01-03'),
-            new Date('2021-01-04'),
-          ])
-        )
-    );
-  });
-
-  it('should sort by date descending', () => {
-    collections.forEach((c) =>
-      c.query
-        .fetchObjects({
-          sort: collection.sort.byProperty('date', false),
-        })
-        .then((res) =>
-          expect(res.objects.map((o) => o.properties.date)).toEqual([
-            new Date('2021-01-04'),
-            new Date('2021-01-03'),
-            new Date('2021-01-02'),
-            new Date('2021-01-01'),
-          ])
-        )
-    );
-  });
-
-  it('should sort by boolean ascending', () => {
-    collections.forEach((c) =>
-      c.query
-        .fetchObjects({
-          sort: collection.sort.byProperty('isCool'),
-        })
-        .then((res) =>
-          expect(res.objects.map((o) => o.properties.isCool)).toEqual([false, false, false, true])
-        )
-    );
-  });
-
-  it('should sort by boolean descending', () => {
-    collections.forEach((c) =>
-      c.query
-        .fetchObjects({
-          sort: collection.sort.byProperty('isCool', false),
-        })
-        .then((res) =>
-          expect(res.objects.map((o) => o.properties.isCool)).toEqual([true, false, false, false])
-        )
-    );
-  });
-
-  it('should sort with nullable ascending', () => {
-    collections.forEach((c) =>
-      c.query
-        .fetchObjects({
-          sort: collection.sort.byProperty('nullable'),
-        })
-        .then((res) =>
-          expect(res.objects.map((o) => o.properties.nullable)).toEqual([
-            undefined,
-            undefined,
-            undefined,
-            'oi',
-          ])
-        )
-    );
-  });
-
-  it('should sort with nullable descending', () => {
-    collections.forEach((c) =>
-      c.query
-        .fetchObjects({
-          sort: collection.sort.byProperty('nullable', false),
-        })
-        .then((res) =>
-          expect(res.objects.map((o) => o.properties.nullable)).toEqual([
-            'oi',
-            undefined,
-            undefined,
-            undefined,
-          ])
-        )
-    );
-  });
-
-  it('should sort by id ascending', () => {
-    collections.forEach((c) =>
-      c.query
-        .fetchObjects({
-          sort: collection.sort.byId(),
-        })
-        .then((res) => expect(res.objects.map((o) => o.uuid)).toEqual(ids))
-    );
-  });
-
-  it('should sort by id descending', () => {
-    collections.forEach((c) =>
-      c.query
-        .fetchObjects({
-          sort: collection.sort.byId(false),
-        })
-        .then((res) => expect(res.objects.map((o) => o.uuid)).toEqual(ids.slice().reverse()))
-    );
-  });
-
-  it('should sort by creation time ascending', () => {
-    collections.forEach((c) =>
-      c.query
-        .fetchObjects({
-          sort: collection.sort.byCreationTime(),
-          returnMetadata: ['creationTime'],
-        })
-        .then((res) =>
-          expect(res.objects.map((o) => o.metadata?.creationTime)).toEqual(
-            res.objects.map((o) => o.metadata?.creationTime!).sort((a, b) => a - b)
+  it('should sort by text ascending', async () => {
+    await Promise.all(
+      collections.map((c) =>
+        c.query
+          .fetchObjects({
+            sort: collection.sort.byProperty('text'),
+          })
+          .then((res) =>
+            expect(res.objects.map((o) => o.properties.text)).toEqual(['four', 'one', 'three', 'two'])
           )
-        )
+      )
     );
   });
 
-  it('should sort by creation time descending', () => {
-    collections.forEach((c) =>
-      c.query
-        .fetchObjects({
-          sort: collection.sort.byCreationTime(false),
-          returnMetadata: ['creationTime'],
-        })
-        .then((res) =>
-          expect(res.objects.map((o) => o.metadata?.updateTime)).toEqual(
-            res.objects.map((o) => o.metadata?.updateTime!).sort((a, b) => b - a)
+  it('should sort by text descending', async () => {
+    await Promise.all(
+      collections.map((c) =>
+        c.query
+          .fetchObjects({
+            sort: collection.sort.byProperty('text', false),
+          })
+          .then((res) =>
+            expect(res.objects.map((o) => o.properties.text)).toEqual(['two', 'three', 'one', 'four'])
           )
-        )
+      )
     );
   });
 
-  it('should sort by update time ascending', () => {
-    collections.forEach((c) =>
-      c.query
-        .fetchObjects({
-          sort: collection.sort.byUpdateTime(),
-          returnMetadata: ['updateTime'],
-        })
-        .then((res) =>
-          expect(res.objects.map((o) => o.metadata?.updateTime)).toEqual(
-            res.objects.map((o) => o.metadata?.updateTime!).sort((a, b) => a - b)
-          )
-        )
+  it('should sort by int ascending', async () => {
+    await Promise.all(
+      collections.map((c) =>
+        c.query
+          .fetchObjects({
+            sort: collection.sort.byProperty('int'),
+          })
+          .then((res) => expect(res.objects.map((o) => o.properties.int)).toEqual([1, 2, 3, 4]))
+      )
     );
   });
 
-  it('should sort by update time descending', () => {
-    collections.forEach((c) =>
-      c.query
-        .fetchObjects({
-          sort: collection.sort.byUpdateTime(false),
-          returnMetadata: ['updateTime'],
-        })
-        .then((res) =>
-          expect(res.objects.map((o) => o.metadata?.updateTime)).toEqual(
-            res.objects.map((o) => o.metadata?.updateTime!).sort((a, b) => b - a)
+  it('should sort by int descending', async () => {
+    await Promise.all(
+      collections.map((c) =>
+        c.query
+          .fetchObjects({
+            sort: collection.sort.byProperty('int', false),
+          })
+          .then((res) => expect(res.objects.map((o) => o.properties.int)).toEqual([4, 3, 2, 1]))
+      )
+    );
+  });
+
+  it('should sort by float ascending', async () => {
+    await Promise.all(
+      collections.map((c) =>
+        c.query
+          .fetchObjects({
+            sort: collection.sort.byProperty('float'),
+          })
+          .then((res) => expect(res.objects.map((o) => o.properties.float)).toEqual([1.1, 2.2, 3.3, 4.4]))
+      )
+    );
+  });
+
+  it('should sort by float descending', async () => {
+    await Promise.all(
+      collections.map((c) =>
+        c.query
+          .fetchObjects({
+            sort: collection.sort.byProperty('float', false),
+          })
+          .then((res) => expect(res.objects.map((o) => o.properties.float)).toEqual([4.4, 3.3, 2.2, 1.1]))
+      )
+    );
+  });
+
+  it('should sort by date ascending', async () => {
+    await Promise.all(
+      collections.map((c) =>
+        c.query
+          .fetchObjects({
+            sort: collection.sort.byProperty('date'),
+          })
+          .then((res) =>
+            expect(res.objects.map((o) => o.properties.date)).toEqual([
+              new Date('2021-01-01'),
+              new Date('2021-01-02'),
+              new Date('2021-01-03'),
+              new Date('2021-01-04'),
+            ])
           )
-        )
+      )
+    );
+  });
+
+  it('should sort by date descending', async () => {
+    await Promise.all(
+      collections.map((c) =>
+        c.query
+          .fetchObjects({
+            sort: collection.sort.byProperty('date', false),
+          })
+          .then((res) =>
+            expect(res.objects.map((o) => o.properties.date)).toEqual([
+              new Date('2021-01-04'),
+              new Date('2021-01-03'),
+              new Date('2021-01-02'),
+              new Date('2021-01-01'),
+            ])
+          )
+      )
+    );
+  });
+
+  it('should sort by boolean ascending', async () => {
+    await Promise.all(
+      collections.map((c) =>
+        c.query
+          .fetchObjects({
+            sort: collection.sort.byProperty('isCool'),
+          })
+          .then((res) =>
+            expect(res.objects.map((o) => o.properties.isCool)).toEqual([false, false, false, true])
+          )
+      )
+    );
+  });
+
+  it('should sort by boolean descending', async () => {
+    await Promise.all(
+      collections.map((c) =>
+        c.query
+          .fetchObjects({
+            sort: collection.sort.byProperty('isCool', false),
+          })
+          .then((res) =>
+            expect(res.objects.map((o) => o.properties.isCool)).toEqual([true, false, false, false])
+          )
+      )
+    );
+  });
+
+  it('should sort with nullable ascending', async () => {
+    await Promise.all(
+      collections.map((c) =>
+        c.query
+          .fetchObjects({
+            sort: collection.sort.byProperty('nullable'),
+          })
+          .then((res) =>
+            expect(res.objects.map((o) => o.properties.nullable)).toEqual([
+              undefined,
+              undefined,
+              undefined,
+              'oi',
+            ])
+          )
+      )
+    );
+  });
+
+  it('should sort with nullable descending', async () => {
+    await Promise.all(
+      collections.map((c) =>
+        c.query
+          .fetchObjects({
+            sort: collection.sort.byProperty('nullable', false),
+          })
+          .then((res) =>
+            expect(res.objects.map((o) => o.properties.nullable)).toEqual([
+              'oi',
+              undefined,
+              undefined,
+              undefined,
+            ])
+          )
+      )
+    );
+  });
+
+  it('should sort by id ascending', async () => {
+    await Promise.all(
+      collections.map((c) =>
+        c.query
+          .fetchObjects({
+            sort: collection.sort.byId(),
+          })
+          .then((res) => expect(res.objects.map((o) => o.uuid)).toEqual(ids))
+      )
+    );
+  });
+
+  it('should sort by id descending', async () => {
+    await Promise.all(
+      collections.map((c) =>
+        c.query
+          .fetchObjects({
+            sort: collection.sort.byId(false),
+          })
+          .then((res) => expect(res.objects.map((o) => o.uuid)).toEqual(ids.slice().reverse()))
+      )
+    );
+  });
+
+  it('should sort by creation time ascending', async () => {
+    await Promise.all(
+      collections.map((c) =>
+        c.query
+          .fetchObjects({
+            sort: collection.sort.byCreationTime(),
+            returnMetadata: ['creationTime'],
+          })
+          .then((res) =>
+            expect(res.objects.map((o) => o.metadata?.creationTime)).toEqual(
+              res.objects.map((o) => o.metadata?.creationTime!).sort((a, b) => a - b)
+            )
+          )
+      )
+    );
+  });
+
+  it('should sort by creation time descending', async () => {
+    await Promise.all(
+      collections.map((c) =>
+        c.query
+          .fetchObjects({
+            sort: collection.sort.byCreationTime(false),
+            returnMetadata: ['creationTime'],
+          })
+          .then((res) =>
+            expect(res.objects.map((o) => o.metadata?.updateTime)).toEqual(
+              res.objects.map((o) => o.metadata?.updateTime!).sort((a, b) => b - a)
+            )
+          )
+      )
+    );
+  });
+
+  it('should sort by update time ascending', async () => {
+    await Promise.all(
+      collections.map((c) =>
+        c.query
+          .fetchObjects({
+            sort: collection.sort.byUpdateTime(),
+            returnMetadata: ['updateTime'],
+          })
+          .then((res) =>
+            expect(res.objects.map((o) => o.metadata?.updateTime)).toEqual(
+              res.objects.map((o) => o.metadata?.updateTime!).sort((a, b) => a - b)
+            )
+          )
+      )
+    );
+  });
+
+  it('should sort by update time descending', async () => {
+    await Promise.all(
+      collections.map((c) =>
+        c.query
+          .fetchObjects({
+            sort: collection.sort.byUpdateTime(false),
+            returnMetadata: ['updateTime'],
+          })
+          .then((res) =>
+            expect(res.objects.map((o) => o.metadata?.updateTime)).toEqual(
+              res.objects.map((o) => o.metadata?.updateTime!).sort((a, b) => b - a)
+            )
+          )
+      )
     );
   });
 });
