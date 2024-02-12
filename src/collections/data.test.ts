@@ -342,7 +342,6 @@ describe('Testing of the collection.data methods', () => {
     const obj1 = await collection.query.fetchObjectById(id, {
       returnProperties: ['geo'],
     });
-    console.log(obj1);
     const obj2 = await collection.query.fetchObjectById(res.uuids[0], {
       returnProperties: ['geo'],
     });
