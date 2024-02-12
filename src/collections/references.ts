@@ -12,7 +12,13 @@ export type Beacon = {
   beacon: string;
 };
 
-export class ReferenceManager<T extends Properties> {
+export function uuidToBeacon(uuid: string, targetCollection?: string): Beacon {
+  return {
+    beacon: `weaviate://localhost/${targetCollection ? `${targetCollection}/` : ''}${uuid}`,
+  };
+}
+
+export class ReferenceManager<T> {
   public objects: WeaviateObject<T>[];
   public targetCollection: string;
   public uuids?: string[];
@@ -24,21 +30,11 @@ export class ReferenceManager<T extends Properties> {
   }
 
   public toBeaconObjs(): Beacon[] {
-    return this.uuids
-      ? this.uuids.map((uuid) => {
-          return {
-            beacon: `weaviate://localhost/${this.targetCollection ? `${this.targetCollection}/` : ''}${uuid}`,
-          };
-        })
-      : [];
+    return this.uuids ? this.uuids.map((uuid) => uuidToBeacon(uuid, this.targetCollection)) : [];
   }
 
   public toBeaconStrings(): string[] {
-    return this.uuids
-      ? this.uuids.map((uuid) => {
-          return `weaviate://localhost/${this.targetCollection ? `${this.targetCollection}/` : ''}${uuid}`;
-        })
-      : [];
+    return this.uuids ? this.uuids.map((uuid) => uuidToBeacon(uuid, this.targetCollection).beacon) : [];
   }
 
   static fromBeaconStrings<T extends Properties>(beacons: string[]): ReferenceManager<T> {
@@ -61,20 +57,17 @@ export class ReferenceManager<T extends Properties> {
 }
 
 export class Reference {
-  public static to<TProperties extends Properties>(args: ReferenceToArgs): ReferenceManager<TProperties> {
-    return new ReferenceManager<TProperties>(
-      '',
-      undefined,
-      Array.isArray(args.uuids) ? args.uuids : [args.uuids]
-    );
+  public static to<TProperties extends Properties>(uuids: string | string[]): ReferenceManager<TProperties> {
+    return new ReferenceManager<TProperties>('', undefined, Array.isArray(uuids) ? uuids : [uuids]);
   }
   public static toMultiTarget<TProperties extends Properties>(
-    args: ReferenceToMultiTargetArgs
+    uuids: string | string[],
+    targetCollection: string
   ): ReferenceManager<TProperties> {
     return new ReferenceManager<TProperties>(
-      args.targetCollection,
+      targetCollection,
       undefined,
-      Array.isArray(args.uuids) ? args.uuids : [args.uuids]
+      Array.isArray(uuids) ? uuids : [uuids]
     );
   }
 }
@@ -85,4 +78,4 @@ export const referenceFromObjects = <TProperties extends Properties>(
   return new ReferenceManager<TProperties>('', objects);
 };
 
-export type CrossReference<TProperties extends Properties> = ReferenceManager<TProperties>;
+export type CrossReference<TProperties extends Properties> = ReferenceManager<TProperties> | null;

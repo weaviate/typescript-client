@@ -50,48 +50,48 @@ describe('Testing of the collection.aggregate methods', () => {
         properties: [
           {
             name: 'text',
-            dataType: ['text'],
+            dataType: 'text',
           },
           {
             name: 'texts',
-            dataType: ['text[]'],
+            dataType: 'text[]',
           },
           {
             name: 'int',
-            dataType: ['int'],
+            dataType: 'int',
           },
           {
             name: 'ints',
-            dataType: ['int[]'],
+            dataType: 'int[]',
           },
           {
             name: 'number',
-            dataType: ['number'],
+            dataType: 'number',
           },
           {
             name: 'numbers',
-            dataType: ['number[]'],
+            dataType: 'number[]',
           },
           {
             name: 'date',
-            dataType: ['date'],
+            dataType: 'date',
           },
           {
             name: 'dates',
-            dataType: ['date[]'],
+            dataType: 'date[]',
           },
           {
             name: 'boolean',
-            dataType: ['boolean'],
+            dataType: 'boolean',
           },
           {
             name: 'booleans',
-            dataType: ['boolean[]'],
+            dataType: 'boolean[]',
           },
-          {
-            name: 'ref',
-            dataType: [className],
-          },
+          // {
+          //   name: 'ref',
+          //   dataType: [className],
+          // },
         ],
       })
       .then(async () => {

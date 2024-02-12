@@ -5,41 +5,46 @@ import { ConsistencyLevel } from '../data';
 
 import Deserialize from './deserialize';
 import Serialize from './serialize';
-
 import {
-  QueryFetchObjectsArgs,
-  QueryBm25Args,
-  QueryHybridArgs,
-  QueryNearAudioArgs,
-  QueryNearImageArgs,
-  QueryNearObjectArgs,
-  QueryNearTextArgs,
-  QueryNearVectorArgs,
-  QueryNearVideoArgs,
+  QueryFetchObjectsOptions,
+  QueryBm25Options,
+  QueryHybridOptions,
+  QueryNearTextOptions,
+  QueryNearOptions,
+  QueryNearMediaType,
 } from './query';
-import { GenerateReturn, Properties } from './types';
+import {
+  GenerativeReturn,
+  GenerativeGroupByReturn,
+  GroupByOptions,
+  Properties,
+  WeaviateReturn,
+} from './types';
+import { SearchReply } from '../proto/v1/search_get';
 
-export interface GenerateArgs<T extends Properties> {
+export interface GenerateOptions<T extends Properties> {
   singlePrompt?: string;
   groupedTask?: string;
   groupedProperties?: (keyof T)[];
 }
 
-export interface GenerateFetchObjectsArgs<T extends Properties>
-  extends QueryFetchObjectsArgs<T>,
-    GenerateArgs<T> {}
-export interface GenerateBm25Args<T extends Properties> extends QueryBm25Args<T>, GenerateArgs<T> {}
-export interface GenerateHybridArgs<T extends Properties> extends QueryHybridArgs<T>, GenerateArgs<T> {}
-export interface GenerateNearAudioArgs<T extends Properties> extends QueryNearAudioArgs<T>, GenerateArgs<T> {}
-export interface GenerateNearImageArgs<T extends Properties> extends QueryNearImageArgs<T>, GenerateArgs<T> {}
-export interface GenerateNearObjectArgs<T extends Properties>
-  extends QueryNearObjectArgs<T>,
-    GenerateArgs<T> {}
-export interface GenerateNearTextArgs<T extends Properties> extends QueryNearTextArgs<T>, GenerateArgs<T> {}
-export interface GenerateNearVectorArgs<T extends Properties>
-  extends QueryNearVectorArgs<T>,
-    GenerateArgs<T> {}
-export interface GenerateNearVideoArgs<T extends Properties> extends QueryNearVideoArgs<T>, GenerateArgs<T> {}
+export interface GenerateFetchObjectsOptions<T extends Properties>
+  extends QueryFetchObjectsOptions<T>,
+    GenerateOptions<T> {}
+export interface GenerateBm25Options<T extends Properties> extends QueryBm25Options<T>, GenerateOptions<T> {}
+export interface GenerateHybridOptions<T extends Properties>
+  extends QueryHybridOptions<T>,
+    GenerateOptions<T> {}
+export interface GenerateNearOptions<T extends Properties> extends QueryNearOptions<T>, GenerateOptions<T> {}
+export interface GenerateGroupByNearOptions<T extends Properties> extends GenerateNearOptions<T> {
+  groupBy: GroupByOptions<T>;
+}
+export interface GenerateNearTextOptions<T extends Properties>
+  extends QueryNearTextOptions<T>,
+    GenerateOptions<T> {}
+export interface GenerateGroupByNearTextOptions<T extends Properties> extends GenerateNearTextOptions<T> {
+  groupBy: GroupByOptions<T>;
+}
 
 class GenerateManager<T extends Properties> implements Generate<T> {
   connection: Connection;
@@ -72,134 +77,208 @@ class GenerateManager<T extends Properties> implements Generate<T> {
     return new GenerateManager<T>(connection, name, dbVersionSupport, consistencyLevel, tenant);
   }
 
-  public fetchObjects(args?: GenerateFetchObjectsArgs<T>): Promise<GenerateReturn<T>>;
-  public fetchObjects<P extends Properties>(args?: GenerateFetchObjectsArgs<P>): Promise<GenerateReturn<P>>;
-  public fetchObjects<P extends Properties>(args?: GenerateFetchObjectsArgs<P>): Promise<GenerateReturn<P>> {
+  public fetchObjects(opts?: GenerateFetchObjectsOptions<T>): Promise<GenerativeReturn<T>> {
     return this.connection.search(this.name).then((search) =>
       search
         .withFetch({
-          ...Serialize.fetchObjects(args),
-          generative: Serialize.generative(args),
+          ...Serialize.fetchObjects(opts),
+          generative: Serialize.generative(opts),
         })
-        .then(Deserialize.generate<P>)
+        .then(Deserialize.generate<T>)
     );
   }
 
-  public bm25(args: GenerateBm25Args<T>): Promise<GenerateReturn<T>>;
-  public bm25<P extends Properties>(args: GenerateBm25Args<P>): Promise<GenerateReturn<P>>;
-  public bm25<P extends Properties>(args: GenerateBm25Args<P>): Promise<GenerateReturn<P>> {
+  public bm25(query: string, opts?: GenerateBm25Options<T>): Promise<GenerativeReturn<T>> {
     return this.connection.search(this.name).then((search) =>
       search
         .withBm25({
-          ...Serialize.bm25(args),
-          generative: Serialize.generative(args),
+          ...Serialize.bm25({ query, ...opts }),
+          generative: Serialize.generative(opts),
         })
-        .then(Deserialize.generate<P>)
+        .then(Deserialize.generate<T>)
     );
   }
 
-  public hybrid(args: GenerateHybridArgs<T>): Promise<GenerateReturn<T>>;
-  public hybrid<P extends Properties>(args: GenerateHybridArgs<P>): Promise<GenerateReturn<P>>;
-  public hybrid<P extends Properties>(args: GenerateHybridArgs<P>): Promise<GenerateReturn<P>> {
+  public hybrid(query: string, opts?: GenerateHybridOptions<T>): Promise<GenerativeReturn<T>> {
     return this.connection.search(this.name).then((search) =>
       search
         .withHybrid({
-          ...Serialize.hybrid(args),
-          generative: Serialize.generative(args),
+          ...Serialize.hybrid({ query, ...opts }),
+          generative: Serialize.generative(opts),
         })
-        .then(Deserialize.generate<P>)
+        .then(Deserialize.generate<T>)
     );
   }
 
-  public nearAudio(args: GenerateNearAudioArgs<T>): Promise<GenerateReturn<T>>;
-  public nearAudio<P extends Properties>(args: GenerateNearAudioArgs<P>): Promise<GenerateReturn<P>>;
-  public nearAudio<P extends Properties>(args: GenerateNearAudioArgs<P>): Promise<GenerateReturn<P>> {
-    return this.connection.search(this.name).then((search) =>
-      search
-        .withNearAudio({
-          ...Serialize.nearAudio(args),
-          generative: Serialize.generative(args),
-        })
-        .then(Deserialize.generate<P>)
+  public nearImage<O extends GenerateNearOptions<T> | GenerateGroupByNearOptions<T>>(
+    image: string,
+    opts?: O
+  ): GenerateReturn<O, T> {
+    return this.connection.search(this.name).then(
+      (search) =>
+        search
+          .withNearImage({
+            ...Serialize.nearImage({ image, ...opts }),
+            generative: Serialize.generative(opts),
+            groupBy: Serialize.isGroupBy(opts) ? Serialize.groupBy(opts.groupBy) : undefined,
+          })
+          .then((reply) =>
+            Serialize.isGenerateGroupBy(opts)
+              ? Deserialize.generateGroupBy<T>(reply)
+              : Deserialize.generate<T>(reply)
+          ) as GenerateReturn<O, T>
     );
   }
 
-  public nearImage(args: GenerateNearImageArgs<T>): Promise<GenerateReturn<T>>;
-  public nearImage<P extends Properties>(args: GenerateNearImageArgs<P>): Promise<GenerateReturn<P>>;
-  public nearImage<P extends Properties>(args: GenerateNearImageArgs<P>): Promise<GenerateReturn<P>> {
-    return this.connection.search(this.name).then((search) =>
-      search
-        .withNearImage({
-          ...Serialize.nearImage(args),
-          generative: Serialize.generative(args),
-        })
-        .then(Deserialize.generate<P>)
+  public nearObject<O extends GenerateNearOptions<T> | GenerateGroupByNearOptions<T>>(
+    id: string,
+    opts?: O
+  ): GenerateReturn<O, T> {
+    return this.connection.search(this.name).then(
+      (search) =>
+        search
+          .withNearObject({
+            ...Serialize.nearObject({ id, ...opts }),
+            generative: Serialize.generative(opts),
+            groupBy: Serialize.isGroupBy(opts) ? Serialize.groupBy(opts.groupBy) : undefined,
+          })
+          .then((reply) =>
+            Serialize.isGenerateGroupBy(opts)
+              ? Deserialize.generateGroupBy<T>(reply)
+              : Deserialize.generate<T>(reply)
+          ) as GenerateReturn<O, T>
     );
   }
 
-  public nearObject(args: GenerateNearObjectArgs<T>): Promise<GenerateReturn<T>>;
-  public nearObject<P extends Properties>(args: GenerateNearObjectArgs<P>): Promise<GenerateReturn<P>>;
-  public nearObject<P extends Properties>(args: GenerateNearObjectArgs<P>): Promise<GenerateReturn<P>> {
-    return this.connection.search(this.name).then((search) =>
-      search
-        .withNearObject({
-          ...Serialize.nearObject(args),
-          generative: Serialize.generative(args),
-        })
-        .then(Deserialize.generate<P>)
+  public nearText<O extends GenerateNearOptions<T> | GenerateGroupByNearOptions<T>>(
+    query: string | string[],
+    opts?: O
+  ): GenerateReturn<O, T> {
+    return this.connection.search(this.name).then(
+      (search) =>
+        search
+          .withNearText({
+            ...Serialize.nearText({ query, ...opts }),
+            generative: Serialize.generative(opts),
+            groupBy: Serialize.isGroupBy(opts) ? Serialize.groupBy(opts.groupBy) : undefined,
+          })
+          .then((reply) =>
+            Serialize.isGenerateGroupBy(opts)
+              ? Deserialize.generateGroupBy<T>(reply)
+              : Deserialize.generate<T>(reply)
+          ) as GenerateReturn<O, T>
     );
   }
 
-  public nearText(args: GenerateNearTextArgs<T>): Promise<GenerateReturn<T>>;
-  public nearText<P extends Properties>(args: GenerateNearTextArgs<P>): Promise<GenerateReturn<P>>;
-  public nearText<P extends Properties>(args: GenerateNearTextArgs<P>): Promise<GenerateReturn<P>> {
-    return this.connection.search(this.name).then((search) =>
-      search
-        .withNearText({
-          ...Serialize.nearText(args),
-          generative: Serialize.generative(args),
-        })
-        .then(Deserialize.generate<P>)
+  public nearVector<O extends GenerateNearOptions<T> | GenerateGroupByNearOptions<T>>(
+    vector: number[],
+    opts?: O
+  ): GenerateReturn<O, T> {
+    return this.connection.search(this.name).then(
+      (search) =>
+        search
+          .withNearVector({
+            ...Serialize.nearVector({ vector, ...opts }),
+            generative: Serialize.generative(opts),
+            groupBy: Serialize.isGroupBy(opts) ? Serialize.groupBy(opts.groupBy) : undefined,
+          })
+          .then((reply) =>
+            Serialize.isGenerateGroupBy(opts)
+              ? Deserialize.generateGroupBy<T>(reply)
+              : Deserialize.generate<T>(reply)
+          ) as GenerateReturn<O, T>
     );
   }
 
-  public nearVector(args: GenerateNearVectorArgs<T>): Promise<GenerateReturn<T>>;
-  public nearVector<P extends Properties>(args: GenerateNearVectorArgs<P>): Promise<GenerateReturn<P>>;
-  public nearVector<P extends Properties>(args: GenerateNearVectorArgs<P>): Promise<GenerateReturn<P>> {
-    return this.connection.search(this.name).then((search) =>
-      search
-        .withNearVector({
-          ...Serialize.nearVector(args),
-          generative: Serialize.generative(args),
-        })
-        .then(Deserialize.generate<P>)
-    );
-  }
-
-  public nearVideo(args: GenerateNearVideoArgs<T>): Promise<GenerateReturn<T>>;
-  public nearVideo<P extends Properties>(args: GenerateNearVideoArgs<P>): Promise<GenerateReturn<P>>;
-  public nearVideo<P extends Properties>(args: GenerateNearVideoArgs<P>): Promise<GenerateReturn<P>> {
-    return this.connection.search(this.name).then((search) =>
-      search
-        .withNearVideo({
-          ...Serialize.nearVideo(args),
-          generative: Serialize.generative(args),
-        })
-        .then(Deserialize.generate<P>)
-    );
+  public nearMedia<O extends GenerateNearOptions<T> | GenerateGroupByNearOptions<T>>(
+    media: string,
+    type: QueryNearMediaType,
+    opts?: O
+  ): GenerateReturn<O, T> {
+    return this.connection.search(this.name).then((search) => {
+      let reply: Promise<SearchReply>;
+      const generative = Serialize.generative(opts);
+      const groupBy = Serialize.isGenerateGroupBy(opts) ? Serialize.groupBy(opts.groupBy) : undefined;
+      switch (type) {
+        case 'audio':
+          reply = search.withNearAudio({
+            ...Serialize.nearAudio({ audio: media, ...opts }),
+            generative,
+            groupBy,
+          });
+          break;
+        case 'depth':
+          reply = search.withNearDepth({
+            ...Serialize.nearDepth({ depth: media, ...opts }),
+            generative,
+            groupBy,
+          });
+          break;
+        case 'image':
+          reply = search.withNearImage({
+            ...Serialize.nearImage({ image: media, ...opts }),
+            generative,
+            groupBy,
+          });
+          break;
+        case 'imu':
+          reply = search.withNearIMU({ ...Serialize.nearIMU({ imu: media, ...opts }), generative, groupBy });
+          break;
+        case 'thermal':
+          reply = search.withNearThermal({
+            ...Serialize.nearThermal({ thermal: media, ...opts }),
+            generative,
+            groupBy,
+          });
+          break;
+        case 'video':
+          reply = search.withNearVideo({
+            ...Serialize.nearVideo({ video: media, ...opts }),
+            generative,
+            groupBy,
+          });
+          break;
+        default:
+          throw new Error(`Invalid media type: ${type}`);
+      }
+      return reply.then((reply) =>
+        groupBy ? Deserialize.generateGroupBy<T>(reply) : Deserialize.generate<T>(reply)
+      ) as GenerateReturn<O, T>;
+    });
   }
 }
 
 export interface Generate<T extends Properties> {
-  fetchObjects: (args?: GenerateFetchObjectsArgs<T>) => Promise<GenerateReturn<T>>;
-  bm25: (args: GenerateBm25Args<T>) => Promise<GenerateReturn<T>>;
-  hybrid: (args: GenerateHybridArgs<T>) => Promise<GenerateReturn<T>>;
-  nearAudio: (args: GenerateNearAudioArgs<T>) => Promise<GenerateReturn<T>>;
-  nearImage: (args: GenerateNearImageArgs<T>) => Promise<GenerateReturn<T>>;
-  nearObject: (args: GenerateNearObjectArgs<T>) => Promise<GenerateReturn<T>>;
-  nearText: (args: GenerateNearTextArgs<T>) => Promise<GenerateReturn<T>>;
-  nearVector: (args: GenerateNearVectorArgs<T>) => Promise<GenerateReturn<T>>;
-  nearVideo: (args: GenerateNearVideoArgs<T>) => Promise<GenerateReturn<T>>;
+  fetchObjects: (opts?: GenerateFetchObjectsOptions<T>) => Promise<GenerativeReturn<T>>;
+  bm25: (query: string, opts?: GenerateBm25Options<T>) => Promise<GenerativeReturn<T>>;
+  hybrid: (query: string, opts?: GenerateHybridOptions<T>) => Promise<GenerativeReturn<T>>;
+
+  nearImage<O extends GenerateNearOptions<T> | GenerateGroupByNearOptions<T>>(
+    image: string,
+    opts?: O
+  ): GenerateReturn<O, T>;
+  nearMedia<O extends GenerateNearOptions<T> | GenerateGroupByNearOptions<T>>(
+    media: string,
+    type: QueryNearMediaType,
+    opts?: O
+  ): GenerateReturn<O, T>;
+  nearObject<O extends GenerateNearOptions<T> | GenerateGroupByNearOptions<T>>(
+    id: string,
+    opts?: O
+  ): GenerateReturn<O, T>;
+  nearText<O extends GenerateNearTextOptions<T> | GenerateGroupByNearTextOptions<T>>(
+    query: string | string[],
+    opts?: O
+  ): GenerateReturn<O, T>;
+  nearVector<O extends GenerateNearOptions<T> | GenerateGroupByNearOptions<T>>(
+    vector: number[],
+    opts?: O
+  ): GenerateReturn<O, T>;
 }
+
+export type GenerateReturn<
+  O extends GenerateNearOptions<T> | GenerateGroupByNearOptions<T>,
+  T extends Properties
+> = Promise<O extends GenerateGroupByNearOptions<T> ? GenerativeGroupByReturn<T> : GenerativeReturn<T>>;
 
 export default GenerateManager.use;

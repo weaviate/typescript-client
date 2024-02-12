@@ -1,6 +1,7 @@
 /* eslint-disable */
 import Long from "long";
 import _m0 from "protobufjs/minimal";
+import { NullValue, nullValueFromJSON, nullValueToJSON } from "../google/protobuf/struct";
 
 export const protobufPackage = "weaviate.v1";
 
@@ -23,6 +24,9 @@ export interface Value {
   uuidValue?: string | undefined;
   intValue?: number | undefined;
   geoValue?: GeoCoordinate | undefined;
+  blobValue?: string | undefined;
+  phoneValue?: PhoneNumber | undefined;
+  nullValue?: NullValue | undefined;
 }
 
 export interface ListValue {
@@ -32,6 +36,16 @@ export interface ListValue {
 export interface GeoCoordinate {
   longitude: number;
   latitude: number;
+}
+
+export interface PhoneNumber {
+  countryCode: number;
+  defaultCountry: string;
+  input: string;
+  internationalFormatted: string;
+  national: number;
+  nationalFormatted: string;
+  valid: boolean;
 }
 
 function createBaseProperties(): Properties {
@@ -197,6 +211,9 @@ function createBaseValue(): Value {
     uuidValue: undefined,
     intValue: undefined,
     geoValue: undefined,
+    blobValue: undefined,
+    phoneValue: undefined,
+    nullValue: undefined,
   };
 }
 
@@ -228,6 +245,15 @@ export const Value = {
     }
     if (message.geoValue !== undefined) {
       GeoCoordinate.encode(message.geoValue, writer.uint32(74).fork()).ldelim();
+    }
+    if (message.blobValue !== undefined) {
+      writer.uint32(82).string(message.blobValue);
+    }
+    if (message.phoneValue !== undefined) {
+      PhoneNumber.encode(message.phoneValue, writer.uint32(90).fork()).ldelim();
+    }
+    if (message.nullValue !== undefined) {
+      writer.uint32(96).int32(message.nullValue);
     }
     return writer;
   },
@@ -302,6 +328,27 @@ export const Value = {
 
           message.geoValue = GeoCoordinate.decode(reader, reader.uint32());
           continue;
+        case 10:
+          if (tag !== 82) {
+            break;
+          }
+
+          message.blobValue = reader.string();
+          continue;
+        case 11:
+          if (tag !== 90) {
+            break;
+          }
+
+          message.phoneValue = PhoneNumber.decode(reader, reader.uint32());
+          continue;
+        case 12:
+          if (tag !== 96) {
+            break;
+          }
+
+          message.nullValue = reader.int32() as any;
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -322,6 +369,9 @@ export const Value = {
       uuidValue: isSet(object.uuidValue) ? globalThis.String(object.uuidValue) : undefined,
       intValue: isSet(object.intValue) ? globalThis.Number(object.intValue) : undefined,
       geoValue: isSet(object.geoValue) ? GeoCoordinate.fromJSON(object.geoValue) : undefined,
+      blobValue: isSet(object.blobValue) ? globalThis.String(object.blobValue) : undefined,
+      phoneValue: isSet(object.phoneValue) ? PhoneNumber.fromJSON(object.phoneValue) : undefined,
+      nullValue: isSet(object.nullValue) ? nullValueFromJSON(object.nullValue) : undefined,
     };
   },
 
@@ -354,6 +404,15 @@ export const Value = {
     if (message.geoValue !== undefined) {
       obj.geoValue = GeoCoordinate.toJSON(message.geoValue);
     }
+    if (message.blobValue !== undefined) {
+      obj.blobValue = message.blobValue;
+    }
+    if (message.phoneValue !== undefined) {
+      obj.phoneValue = PhoneNumber.toJSON(message.phoneValue);
+    }
+    if (message.nullValue !== undefined) {
+      obj.nullValue = nullValueToJSON(message.nullValue);
+    }
     return obj;
   },
 
@@ -377,6 +436,11 @@ export const Value = {
     message.geoValue = (object.geoValue !== undefined && object.geoValue !== null)
       ? GeoCoordinate.fromPartial(object.geoValue)
       : undefined;
+    message.blobValue = object.blobValue ?? undefined;
+    message.phoneValue = (object.phoneValue !== undefined && object.phoneValue !== null)
+      ? PhoneNumber.fromPartial(object.phoneValue)
+      : undefined;
+    message.nullValue = object.nullValue ?? undefined;
     return message;
   },
 };
@@ -508,6 +572,165 @@ export const GeoCoordinate = {
     const message = createBaseGeoCoordinate();
     message.longitude = object.longitude ?? 0;
     message.latitude = object.latitude ?? 0;
+    return message;
+  },
+};
+
+function createBasePhoneNumber(): PhoneNumber {
+  return {
+    countryCode: 0,
+    defaultCountry: "",
+    input: "",
+    internationalFormatted: "",
+    national: 0,
+    nationalFormatted: "",
+    valid: false,
+  };
+}
+
+export const PhoneNumber = {
+  encode(message: PhoneNumber, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.countryCode !== 0) {
+      writer.uint32(8).uint64(message.countryCode);
+    }
+    if (message.defaultCountry !== "") {
+      writer.uint32(18).string(message.defaultCountry);
+    }
+    if (message.input !== "") {
+      writer.uint32(26).string(message.input);
+    }
+    if (message.internationalFormatted !== "") {
+      writer.uint32(34).string(message.internationalFormatted);
+    }
+    if (message.national !== 0) {
+      writer.uint32(40).uint64(message.national);
+    }
+    if (message.nationalFormatted !== "") {
+      writer.uint32(50).string(message.nationalFormatted);
+    }
+    if (message.valid === true) {
+      writer.uint32(56).bool(message.valid);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): PhoneNumber {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBasePhoneNumber();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 8) {
+            break;
+          }
+
+          message.countryCode = longToNumber(reader.uint64() as Long);
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.defaultCountry = reader.string();
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.input = reader.string();
+          continue;
+        case 4:
+          if (tag !== 34) {
+            break;
+          }
+
+          message.internationalFormatted = reader.string();
+          continue;
+        case 5:
+          if (tag !== 40) {
+            break;
+          }
+
+          message.national = longToNumber(reader.uint64() as Long);
+          continue;
+        case 6:
+          if (tag !== 50) {
+            break;
+          }
+
+          message.nationalFormatted = reader.string();
+          continue;
+        case 7:
+          if (tag !== 56) {
+            break;
+          }
+
+          message.valid = reader.bool();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): PhoneNumber {
+    return {
+      countryCode: isSet(object.countryCode) ? globalThis.Number(object.countryCode) : 0,
+      defaultCountry: isSet(object.defaultCountry) ? globalThis.String(object.defaultCountry) : "",
+      input: isSet(object.input) ? globalThis.String(object.input) : "",
+      internationalFormatted: isSet(object.internationalFormatted)
+        ? globalThis.String(object.internationalFormatted)
+        : "",
+      national: isSet(object.national) ? globalThis.Number(object.national) : 0,
+      nationalFormatted: isSet(object.nationalFormatted) ? globalThis.String(object.nationalFormatted) : "",
+      valid: isSet(object.valid) ? globalThis.Boolean(object.valid) : false,
+    };
+  },
+
+  toJSON(message: PhoneNumber): unknown {
+    const obj: any = {};
+    if (message.countryCode !== 0) {
+      obj.countryCode = Math.round(message.countryCode);
+    }
+    if (message.defaultCountry !== "") {
+      obj.defaultCountry = message.defaultCountry;
+    }
+    if (message.input !== "") {
+      obj.input = message.input;
+    }
+    if (message.internationalFormatted !== "") {
+      obj.internationalFormatted = message.internationalFormatted;
+    }
+    if (message.national !== 0) {
+      obj.national = Math.round(message.national);
+    }
+    if (message.nationalFormatted !== "") {
+      obj.nationalFormatted = message.nationalFormatted;
+    }
+    if (message.valid === true) {
+      obj.valid = message.valid;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<PhoneNumber>): PhoneNumber {
+    return PhoneNumber.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<PhoneNumber>): PhoneNumber {
+    const message = createBasePhoneNumber();
+    message.countryCode = object.countryCode ?? 0;
+    message.defaultCountry = object.defaultCountry ?? "";
+    message.input = object.input ?? "";
+    message.internationalFormatted = object.internationalFormatted ?? "";
+    message.national = object.national ?? 0;
+    message.nationalFormatted = object.nationalFormatted ?? "";
+    message.valid = object.valid ?? false;
     return message;
   },
 };

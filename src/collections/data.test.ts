@@ -40,16 +40,18 @@ describe('Testing of the collection.data methods', () => {
         properties: [
           {
             name: 'testProp',
-            dataType: ['text'],
+            dataType: 'text',
             tokenization: 'field',
           },
           {
             name: 'testProp2',
-            dataType: ['int'],
+            dataType: 'int',
           },
+        ],
+        references: [
           {
             name: 'ref',
-            dataType: [className],
+            targetCollection: className,
           },
         ],
       })
@@ -85,12 +87,12 @@ describe('Testing of the collection.data methods', () => {
         const one = collection.data.referenceAdd({
           fromProperty: 'ref',
           fromUuid: toBeReplacedID,
-          to: Reference.to({ uuids: toBeUpdatedID }),
+          to: Reference.to(toBeUpdatedID),
         });
         const two = collection.data.referenceAdd({
           fromProperty: 'ref',
           fromUuid: toBeUpdatedID,
-          to: Reference.to({ uuids: toBeReplacedID }),
+          to: Reference.to(toBeReplacedID),
         });
         return Promise.all([one, two]);
       })
@@ -120,16 +122,16 @@ describe('Testing of the collection.data methods', () => {
   });
 
   it('should be able to delete many objects with a filter', async () => {
-    const result = await collection.data.deleteMany({
-      where: weaviate.Filter.by('testProp').equal('DELETE ME'),
-    });
+    const result = await collection.data.deleteMany(
+      collection.filter.byProperty('testProp').equal('DELETE ME')
+    );
     expect(result.failed).toEqual(0);
     expect(result.matches).toEqual(3);
     expect(result.successful).toEqual(3);
   });
 
   it('should be able to replace an object', async () => {
-    const obj = await collection.query.fetchObjectById({ id: toBeReplacedID });
+    const obj = await collection.query.fetchObjectById(toBeReplacedID);
     expect(obj?.properties.testProp).toEqual('REPLACE ME');
     expect(obj?.properties.testProp2).toEqual(1);
     await collection.data
@@ -140,14 +142,14 @@ describe('Testing of the collection.data methods', () => {
         },
       })
       .then(async () => {
-        const obj = await collection.query.fetchObjectById({ id: toBeReplacedID });
+        const obj = await collection.query.fetchObjectById(toBeReplacedID);
         expect(obj?.properties.testProp).toEqual('REPLACED');
         expect(obj?.properties.testProp2).toBeUndefined();
       });
   });
 
   it('should be able to update an object', async () => {
-    const obj = await collection.query.fetchObjectById({ id: toBeUpdatedID });
+    const obj = await collection.query.fetchObjectById(toBeUpdatedID);
     expect(obj?.properties.testProp).toEqual('UPDATE ME');
     expect(obj?.properties.testProp2).toEqual(1);
     await collection.data
@@ -158,7 +160,7 @@ describe('Testing of the collection.data methods', () => {
         },
       })
       .then(async () => {
-        const obj = await collection.query.fetchObjectById({ id: toBeUpdatedID });
+        const obj = await collection.query.fetchObjectById(toBeUpdatedID);
         expect(obj?.properties.testProp).toEqual('UPDATED');
         expect(obj?.properties.testProp2).toEqual(1);
       });
@@ -239,11 +241,10 @@ describe('Testing of the collection.data methods', () => {
       .referenceAdd({
         fromProperty: 'ref',
         fromUuid: existingID,
-        to: Reference.to({ uuids: existingID }),
+        to: Reference.to(existingID),
       })
       .then(async () => {
-        const obj = await collection.query.fetchObjectById({
-          id: existingID,
+        const obj = await collection.query.fetchObjectById(existingID, {
           returnReferences: [{ linkOn: 'ref' }],
         });
         expect(obj).not.toBeNull();
@@ -256,11 +257,10 @@ describe('Testing of the collection.data methods', () => {
       .referenceReplace({
         fromProperty: 'ref',
         fromUuid: toBeReplacedID,
-        to: Reference.to({ uuids: existingID }),
+        to: Reference.to(existingID),
       })
       .then(async () => {
-        const obj = await collection.query.fetchObjectById({
-          id: toBeReplacedID,
+        const obj = await collection.query.fetchObjectById(toBeReplacedID, {
           returnReferences: [{ linkOn: 'ref' }],
         });
         expect(obj).not.toBeNull();
@@ -273,11 +273,10 @@ describe('Testing of the collection.data methods', () => {
       .referenceDelete({
         fromProperty: 'ref',
         fromUuid: toBeUpdatedID,
-        to: Reference.to({ uuids: toBeReplacedID }),
+        to: Reference.to(toBeReplacedID),
       })
       .then(async () => {
-        const obj = await collection.query.fetchObjectById({
-          id: toBeUpdatedID,
+        const obj = await collection.query.fetchObjectById(toBeUpdatedID, {
           returnReferences: [{ linkOn: 'ref' }],
         });
         expect(obj).not.toBeNull();
@@ -292,7 +291,7 @@ describe('Testing of the collection.data methods', () => {
           {
             fromProperty: 'ref',
             fromUuid: existingID,
-            to: Reference.to({ uuids: [toBeReplacedID, toBeUpdatedID] }),
+            to: Reference.to([toBeReplacedID, toBeUpdatedID]),
           },
           // {
           //   fromProperty: 'ref',
@@ -305,8 +304,7 @@ describe('Testing of the collection.data methods', () => {
       .then(async (res) => {
         if (res.hasErrors) console.error(res.errors);
         expect(res.hasErrors).toEqual(false);
-        const obj1 = await collection.query.fetchObjectById({
-          id: existingID,
+        const obj1 = await collection.query.fetchObjectById(existingID, {
           returnReferences: [{ linkOn: 'ref' }],
         });
         expect(obj1).not.toBeNull();

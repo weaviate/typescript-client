@@ -1,6 +1,7 @@
 /* eslint-disable */
 import type { CallContext, CallOptions } from "nice-grpc-common";
 import { BatchObjectsReply, BatchObjectsRequest } from "./batch";
+import { BatchDeleteReply, BatchDeleteRequest } from "./batch_delete";
 import { SearchReply, SearchRequest } from "./search_get";
 
 export const protobufPackage = "weaviate.v1";
@@ -26,6 +27,14 @@ export const WeaviateDefinition = {
       responseStream: false,
       options: {},
     },
+    batchDelete: {
+      name: "BatchDelete",
+      requestType: BatchDeleteRequest,
+      requestStream: false,
+      responseType: BatchDeleteReply,
+      responseStream: false,
+      options: {},
+    },
   },
 } as const;
 
@@ -35,6 +44,10 @@ export interface WeaviateServiceImplementation<CallContextExt = {}> {
     request: BatchObjectsRequest,
     context: CallContext & CallContextExt,
   ): Promise<DeepPartial<BatchObjectsReply>>;
+  batchDelete(
+    request: BatchDeleteRequest,
+    context: CallContext & CallContextExt,
+  ): Promise<DeepPartial<BatchDeleteReply>>;
 }
 
 export interface WeaviateClient<CallOptionsExt = {}> {
@@ -43,6 +56,10 @@ export interface WeaviateClient<CallOptionsExt = {}> {
     request: DeepPartial<BatchObjectsRequest>,
     options?: CallOptions & CallOptionsExt,
   ): Promise<BatchObjectsReply>;
+  batchDelete(
+    request: DeepPartial<BatchDeleteRequest>,
+    options?: CallOptions & CallOptionsExt,
+  ): Promise<BatchDeleteReply>;
 }
 
 type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;

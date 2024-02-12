@@ -1,17 +1,20 @@
 import { ConsistencyLevel } from '..';
 
 import { WeaviateClient } from '../proto/v1/weaviate';
+import { Filters } from '../proto/v1/base';
 import {
   BM25,
-  Filters,
   GenerativeSearch,
   GroupBy,
   Hybrid,
   MetadataRequest,
   NearAudioSearch,
+  NearDepthSearch,
   NearImageSearch,
+  NearIMUSearch,
   NearObject,
   NearTextSearch,
+  NearThermalSearch,
   NearVector,
   NearVideoSearch,
   PropertiesRequest,
@@ -28,7 +31,7 @@ export interface SearchFetchArgs {
   offset?: number;
   after?: string;
   filters?: Filters;
-  sort?: SortBy[];
+  sortBy?: SortBy[];
   metadata?: MetadataRequest;
   properties?: PropertiesRequest;
   generative?: GenerativeSearch;
@@ -57,8 +60,16 @@ export interface SearchNearAudioArgs extends BaseSearchArgs {
   nearAudio: NearAudioSearch;
 }
 
+export interface SearchNearDepthArgs extends BaseSearchArgs {
+  nearDepth: NearDepthSearch;
+}
+
 export interface SearchNearImageArgs extends BaseSearchArgs {
   nearImage: NearImageSearch;
+}
+
+export interface SearchNearIMUArgs extends BaseSearchArgs {
+  nearIMU: NearIMUSearch;
 }
 
 export interface SearchNearObjectArgs extends BaseSearchArgs {
@@ -67,6 +78,10 @@ export interface SearchNearObjectArgs extends BaseSearchArgs {
 
 export interface SearchNearTextArgs extends BaseSearchArgs {
   nearText: NearTextSearch;
+}
+
+export interface SearchNearThermalArgs extends BaseSearchArgs {
+  nearThermal: NearThermalSearch;
 }
 
 export interface SearchNearVectorArgs extends BaseSearchArgs {
@@ -82,9 +97,12 @@ export interface Search {
   withBm25: (args: SearchBm25Args) => Promise<SearchReply>;
   withHybrid: (args: SearchHybridArgs) => Promise<SearchReply>;
   withNearAudio: (args: SearchNearAudioArgs) => Promise<SearchReply>;
+  withNearDepth: (args: SearchNearDepthArgs) => Promise<SearchReply>;
   withNearImage: (args: SearchNearImageArgs) => Promise<SearchReply>;
+  withNearIMU: (args: SearchNearIMUArgs) => Promise<SearchReply>;
   withNearObject: (args: SearchNearObjectArgs) => Promise<SearchReply>;
   withNearText: (args: SearchNearTextArgs) => Promise<SearchReply>;
+  withNearThermal: (args: SearchNearThermalArgs) => Promise<SearchReply>;
   withNearVector: (args: SearchNearVectorArgs) => Promise<SearchReply>;
   withNearVideo: (args: SearchNearVideoArgs) => Promise<SearchReply>;
 }
@@ -104,9 +122,12 @@ export default class Searcher extends Base implements Search {
   public withBm25 = (args: SearchBm25Args) => this.call(SearchRequest.fromPartial(args));
   public withHybrid = (args: SearchHybridArgs) => this.call(SearchRequest.fromPartial(args));
   public withNearAudio = (args: SearchNearAudioArgs) => this.call(SearchRequest.fromPartial(args));
+  public withNearDepth = (args: SearchNearDepthArgs) => this.call(SearchRequest.fromPartial(args));
   public withNearImage = (args: SearchNearImageArgs) => this.call(SearchRequest.fromPartial(args));
+  public withNearIMU = (args: SearchNearIMUArgs) => this.call(SearchRequest.fromPartial(args));
   public withNearObject = (args: SearchNearObjectArgs) => this.call(SearchRequest.fromPartial(args));
   public withNearText = (args: SearchNearTextArgs) => this.call(SearchRequest.fromPartial(args));
+  public withNearThermal = (args: SearchNearThermalArgs) => this.call(SearchRequest.fromPartial(args));
   public withNearVector = (args: SearchNearVectorArgs) => this.call(SearchRequest.fromPartial(args));
   public withNearVideo = (args: SearchNearVideoArgs) => this.call(SearchRequest.fromPartial(args));
 

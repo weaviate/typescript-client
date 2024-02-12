@@ -10,25 +10,30 @@ import { buildObjectsPath, buildRefsPath } from '../batch/path';
 import { ObjectsPath, ReferencesPath } from '../data/path';
 import { DbVersionSupport } from '../utils/dbVersion';
 import { ConsistencyLevel } from '../data';
-import { ReferenceManager } from './references';
+import { ReferenceManager, uuidToBeacon } from './references';
 import Serialize from './serialize';
-import { BatchObjectsReturn, BatchReferencesReturn, DataObject, ErrorReference, Properties } from './types';
-import { Filters, FilterValueType } from './filters';
+import {
+  BatchObjectsReturn,
+  BatchReferencesReturn,
+  DataObject,
+  ErrorReference,
+  NonReferenceInputs,
+  Properties,
+  ReferenceInputs,
+  Refs,
+} from './types';
+import { FilterValue } from './filters';
 import Deserialize from './deserialize';
 
-export interface DeleteArgs {
-  id: string;
-}
-
-export interface DeleteManyArgs {
-  where: Filters<FilterValueType>;
+export interface DeleteManyOptions {
   verbose?: boolean;
   dryRun?: boolean;
 }
 
 export interface InsertArgs<T> {
   id?: string;
-  properties?: T;
+  properties?: NonReferenceInputs<T>;
+  references?: ReferenceInputs<T>;
   vector?: number[];
 }
 
@@ -51,8 +56,8 @@ export interface ReplaceArgs<T> {
 export interface UpdateArgs<T> extends ReplaceArgs<T> {}
 
 export interface Data<T extends Properties> {
-  delete: (args: DeleteArgs) => Promise<boolean>;
-  deleteMany: (args: DeleteManyArgs) => Promise<BatchDeleteResult>;
+  delete: (id: string) => Promise<boolean>;
+  deleteMany: (where: FilterValue, opts?: DeleteManyOptions) => Promise<BatchDeleteResult>;
   insert: (args: InsertArgs<T>) => Promise<string>;
   insertMany: (objects: (DataObject<T> | T)[]) => Promise<BatchObjectsReturn<T>>;
   referenceAdd: <P extends Properties>(args: ReferenceArgs<P>) => Promise<void>;
@@ -82,7 +87,7 @@ const data = <T extends Properties>(
   const objectsPath = new ObjectsPath(dbVersionSupport);
   const referencesPath = new ReferencesPath(dbVersionSupport);
 
-  const parseProperties = (properties: T): T => {
+  const parseProperties = (properties: Record<string, any>, references?: ReferenceInputs<T>): T => {
     const parsedProperties: Properties = {};
     Object.keys(properties).forEach((key) => {
       const value = properties[key];
@@ -92,38 +97,54 @@ const data = <T extends Properties>(
         parsedProperties[key] = value;
       }
     });
+    if (!references) return parsedProperties as T;
+    Object.keys(references).forEach((key) => {
+      const value = references[key as keyof ReferenceInputs<T>];
+      if (value !== null && value instanceof ReferenceManager) {
+        parsedProperties[key] = value.toBeaconObjs();
+      } else if (typeof value === 'string') {
+        parsedProperties[key] = [uuidToBeacon(value)];
+      } else if (Array.isArray(value)) {
+        parsedProperties[key] = value.map((uuid) => uuidToBeacon(uuid));
+      } else {
+        parsedProperties[key] =
+          typeof value.uuids === 'string'
+            ? [uuidToBeacon(value.uuids, value.targetCollection)]
+            : value.uuids.map((uuid) => uuidToBeacon(uuid, value.targetCollection));
+      }
+    });
     return parsedProperties as T;
   };
 
   const parseObject = (object: InsertObject<T>): WeaviateObject<T> => {
     return {
       id: object.id,
-      properties: object.properties ? parseProperties(object.properties) : undefined,
+      properties: object.properties ? parseProperties(object.properties, object.references) : undefined,
       vector: object.vector,
     };
   };
 
-  const parseDeleteMany = (args: DeleteManyArgs): any => {
+  const parseDeleteMany = (where: FilterValue, opts?: DeleteManyOptions): any => {
     const parsed: any = {
       class: name,
-      where: Serialize.filtersREST(args.where),
+      where: Serialize.filtersREST(where),
     };
-    if (args.verbose) {
+    if (opts?.verbose) {
       parsed.verbose = 'verbose';
     }
-    if (args.dryRun) {
+    if (opts?.dryRun) {
       parsed.dryRun = true;
     }
     return { match: parsed };
   };
 
   return {
-    delete: (args: DeleteArgs): Promise<boolean> =>
+    delete: (id: string): Promise<boolean> =>
       objectsPath
-        .buildDelete(args.id, name, consistencyLevel, tenant)
+        .buildDelete(id, name, consistencyLevel, tenant)
         .then((path) => connection.delete(path, undefined, false))
         .then(() => true),
-    deleteMany: (args: DeleteManyArgs) => {
+    deleteMany: (where: FilterValue, opts?: DeleteManyOptions) => {
       const params = new URLSearchParams();
       if (consistencyLevel) {
         params.set('consistency_level', consistencyLevel);
@@ -133,7 +154,7 @@ const data = <T extends Properties>(
       }
       const path = buildObjectsPath(params);
       return connection
-        .delete(path, parseDeleteMany(args), true)
+        .delete(path, parseDeleteMany(where, opts), true)
         .then((res: BatchDeleteResponse) => res.results);
     },
     insert: (args: InsertArgs<T>): Promise<string> =>
@@ -153,7 +174,7 @@ const data = <T extends Properties>(
         const start = Date.now();
         const reply = await batch.objects({ objects: serialized.mapped });
         const end = Date.now();
-        return Deserialize.batchObjects<T>(reply, serialized.batch, serialized.mapped, start - end);
+        return Deserialize.batchObjects<T>(reply, serialized.batch, serialized.mapped, end - start);
       }),
     referenceAdd: <P extends Properties>(args: ReferenceArgs<P>): Promise<void> =>
       referencesPath

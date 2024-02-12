@@ -9,8 +9,6 @@ import {
 import {
   PropertiesRequest,
   ObjectPropertiesRequest,
-  Filters as FiltersGRPC,
-  Filters_Operator,
   SortBy as SortByGrpc,
   MetadataRequest,
   NearAudioSearch,
@@ -24,21 +22,24 @@ import {
   BM25,
   GenerativeSearch,
   GroupBy,
+  NearThermalSearch,
+  NearDepthSearch,
+  NearIMUSearch,
 } from '../proto/v1/search_get';
 
 import {
-  Filter,
   Filters,
   FilterValueType,
+  FilterValue,
   PrimitiveFilterValueType,
   PrimitiveListFilterValueType,
+  FilterById,
 } from './filters';
 import {
   BatchObject,
   DataObject,
   MetadataQuery,
   MultiRefProperty,
-  NonPrimitiveProperty,
   QueryReference,
   QueryNested,
   QueryProperty,
@@ -46,36 +47,34 @@ import {
   Properties,
   WeaviateField,
   NestedProperties,
-  NonRefKey,
-  PrimitiveKey,
+  PrimitiveKeys,
   ResolvedNestedProperty,
+  GroupByOptions,
 } from './types';
 import {
-  SearchNearAudioArgs,
   SearchBm25Args,
   SearchFetchArgs,
   SearchHybridArgs,
+  SearchNearAudioArgs,
+  SearchNearDepthArgs,
   SearchNearImageArgs,
+  SearchNearIMUArgs,
   SearchNearObjectArgs,
   SearchNearTextArgs,
+  SearchNearThermalArgs,
   SearchNearVectorArgs,
   SearchNearVideoArgs,
 } from '../grpc/searcher';
 import {
-  QueryBm25Args,
-  QueryFetchObjectByIdArgs,
-  QueryFetchObjectsArgs,
-  QueryHybridArgs,
-  QueryNearAudioArgs,
-  QueryNearImageArgs,
-  QueryNearObjectArgs,
-  QueryNearTextArgs,
-  QueryNearVectorArgs,
-  QueryNearVideoArgs,
-  QueryArgs,
+  QueryBm25Options,
+  QueryFetchObjectByIdOptions,
+  QueryFetchObjectsOptions,
+  QueryHybridOptions,
+  QueryNearOptions,
+  QueryOptions,
+  QueryGroupByNearOptions,
 } from './query';
-import { GenerateArgs } from './generate';
-import { GroupByArgs } from './groupby';
+import { GenerateGroupByNearOptions, GenerateOptions } from './generate';
 import {
   BooleanArrayProperties,
   IntArrayProperties,
@@ -84,11 +83,13 @@ import {
   ObjectProperties,
   ObjectPropertiesValue,
   TextArrayProperties,
+  Filters as FiltersGRPC,
+  Filters_Operator,
 } from '../proto/v1/base';
 import { ReferenceManager } from './references';
 
 const isNested = <T extends Properties, P extends ResolvedNestedProperty<T>>(
-  argument: PrimitiveKey<T> | P
+  argument: PrimitiveKeys<T> | P
 ): argument is P => {
   return typeof argument !== 'string';
 };
@@ -113,49 +114,49 @@ const isMultiTargetRef = <T extends Properties, P extends QueryReference<T>>(
 
 class FilterGuards {
   static isFilters = <T extends FilterValueType>(
-    argument?: Filters<T> | PrimitiveFilterValueType | PrimitiveListFilterValueType
-  ): argument is Filters<T> => {
+    argument?: Filters | PrimitiveFilterValueType | PrimitiveListFilterValueType
+  ): argument is Filters => {
     return argument instanceof Filters;
   };
 
   static isText = (argument?: FilterValueType): argument is string => {
-    return !FilterGuards.isFilters(argument) && typeof argument === 'string';
+    return typeof argument === 'string';
   };
 
   static isTextArray = (argument?: FilterValueType): argument is string[] => {
-    return !FilterGuards.isFilters(argument) && argument instanceof Array && typeof argument[0] === 'string';
+    return argument instanceof Array && typeof argument[0] === 'string';
   };
 
   static isInt = (argument?: FilterValueType): argument is number => {
-    return !FilterGuards.isFilters(argument) && typeof argument === 'number' && Number.isInteger(argument);
+    return typeof argument === 'number' && Number.isInteger(argument);
   };
 
   static isIntArray = (argument?: FilterValueType): argument is number[] => {
-    return !FilterGuards.isFilters(argument) && argument instanceof Array && Number.isInteger(argument[0]);
+    return argument instanceof Array && Number.isInteger(argument[0]);
   };
 
   static isFloat = (argument?: FilterValueType): argument is number => {
-    return !FilterGuards.isFilters(argument) && typeof argument === 'number';
+    return typeof argument === 'number';
   };
 
   static isFloatArray = (argument?: FilterValueType): argument is number[] => {
-    return !FilterGuards.isFilters(argument) && argument instanceof Array && typeof argument[0] === 'number';
+    return argument instanceof Array && typeof argument[0] === 'number';
   };
 
   static isBoolean = (argument?: FilterValueType): argument is boolean => {
-    return !FilterGuards.isFilters(argument) && typeof argument === 'boolean';
+    return typeof argument === 'boolean';
   };
 
   static isBooleanArray = (argument?: FilterValueType): argument is boolean[] => {
-    return !FilterGuards.isFilters(argument) && argument instanceof Array && typeof argument[0] === 'boolean';
+    return argument instanceof Array && typeof argument[0] === 'boolean';
   };
 
   static isDate = (argument?: FilterValueType): argument is Date => {
-    return !FilterGuards.isFilters(argument) && argument instanceof Date;
+    return argument instanceof Date;
   };
 
   static isDateArray = (argument?: FilterValueType): argument is Date[] => {
-    return !FilterGuards.isFilters(argument) && argument instanceof Array && argument[0] instanceof Date;
+    return argument instanceof Array && argument[0] instanceof Date;
   };
 }
 
@@ -207,11 +208,11 @@ class BatchGuards {
   static isNestedArray = (argument?: WeaviateField): argument is NestedProperties[] => {
     return argument instanceof Array && typeof argument[0] === 'object';
   };
-}
 
-const isStringKey = <T extends Properties>(argument?: QueryProperty<T>): argument is PrimitiveKey<T> => {
-  return typeof argument === 'string';
-};
+  static isEmptyArray = (argument?: WeaviateField): argument is [] => {
+    return argument instanceof Array && argument.length === 0;
+  };
+}
 
 const isDataObject = <T extends Properties>(obj: DataObject<T> | T): obj is DataObject<T> => {
   return (obj as DataObject<T>).properties !== undefined;
@@ -220,7 +221,7 @@ const isDataObject = <T extends Properties>(obj: DataObject<T> | T): obj is Data
 // Cannot do argument.every((arg) => typeof arg === type) in the above because of type erasure
 
 export default class Serialize {
-  private static common = <T extends Properties>(args?: QueryArgs<T>) => {
+  private static common = <T extends Properties>(args?: QueryOptions<T>) => {
     return {
       limit: args?.limit,
       filters: args?.filters ? Serialize.filtersGRPC(args.filters) : undefined,
@@ -232,21 +233,23 @@ export default class Serialize {
     };
   };
 
-  public static fetchObjects = <T extends Properties>(args?: QueryFetchObjectsArgs<T>): SearchFetchArgs => {
+  public static fetchObjects = <T extends Properties>(
+    args?: QueryFetchObjectsOptions<T>
+  ): SearchFetchArgs => {
     return {
       ...Serialize.common(args),
       offset: args?.offset,
       after: args?.after,
-      sort: args?.sort ? Serialize.sortBy(args.sort) : undefined,
+      sortBy: args?.sort ? Serialize.sortBy(args.sort.get()) : undefined,
     };
   };
 
   public static fetchObjectById = <T extends Properties>(
-    args: QueryFetchObjectByIdArgs<T>
+    args: { id: string } & QueryFetchObjectByIdOptions<T>
   ): SearchFetchArgs => {
     return {
       ...Serialize.common({
-        filters: Filter.by('_id').equal(args.id),
+        filters: new FilterById().equal(args.id),
         includeVector: args.includeVector,
         returnProperties: args.returnProperties,
         returnReferences: args.returnReferences,
@@ -254,18 +257,22 @@ export default class Serialize {
     };
   };
 
-  public static bm25 = <T extends Properties>(args: QueryBm25Args<T>): SearchBm25Args => {
+  public static bm25 = <T extends Properties>(
+    args: { query: string } & QueryBm25Options<T>
+  ): SearchBm25Args => {
     return {
       ...Serialize.common(args),
       bm25: BM25.fromPartial({
         query: args.query,
-        properties: args.queryProperties?.filter(isStringKey), // TS strangely can't infer that keyof T is a string here so type guard needed
+        properties: args.queryProperties,
       }),
       autocut: args.autoLimit,
     };
   };
 
-  public static hybrid = <T extends Properties>(args: QueryHybridArgs<T>): SearchHybridArgs => {
+  public static hybrid = <T extends Properties>(
+    args: { query: string } & QueryHybridOptions<T>
+  ): SearchHybridArgs => {
     const fusionType = (fusionType?: string): Hybrid_FusionType => {
       switch (fusionType) {
         case 'Ranked':
@@ -281,7 +288,7 @@ export default class Serialize {
       hybrid: Hybrid.fromPartial({
         query: args.query,
         alpha: args.alpha ? args.alpha : 0.5,
-        properties: args.queryProperties?.filter(isStringKey), // TS strangely can't infer that keyof T is a string here so type guard needed
+        properties: args.queryProperties,
         vector: args.vector,
         fusionType: fusionType(args.fusionType),
       }),
@@ -289,11 +296,13 @@ export default class Serialize {
     };
   };
 
-  public static nearAudio = <T extends Properties>(args: QueryNearAudioArgs<T>): SearchNearAudioArgs => {
+  public static nearAudio = <T extends Properties>(
+    args: { audio: string } & QueryNearOptions<T>
+  ): SearchNearAudioArgs => {
     return {
       ...Serialize.common(args),
       nearAudio: NearAudioSearch.fromPartial({
-        audio: args.nearAudio,
+        audio: args.audio,
         certainty: args.certainty,
         distance: args.distance,
       }),
@@ -301,11 +310,27 @@ export default class Serialize {
     };
   };
 
-  public static nearImage = <T extends Properties>(args: QueryNearImageArgs<T>): SearchNearImageArgs => {
+  public static nearDepth = <T extends Properties>(
+    args: { depth: string } & QueryNearOptions<T>
+  ): SearchNearDepthArgs => {
+    return {
+      ...Serialize.common(args),
+      nearDepth: NearDepthSearch.fromPartial({
+        depth: args.depth,
+        certainty: args.certainty,
+        distance: args.distance,
+      }),
+      autocut: args.autoLimit,
+    };
+  };
+
+  public static nearImage = <T extends Properties>(
+    args: { image: string } & QueryNearOptions<T>
+  ): SearchNearImageArgs => {
     return {
       ...Serialize.common(args),
       nearImage: NearImageSearch.fromPartial({
-        image: args.nearImage,
+        image: args.image,
         certainty: args.certainty,
         distance: args.distance,
       }),
@@ -313,11 +338,27 @@ export default class Serialize {
     };
   };
 
-  public static nearObject = <T extends Properties>(args: QueryNearObjectArgs<T>): SearchNearObjectArgs => {
+  public static nearIMU = <T extends Properties>(
+    args: { imu: string } & QueryNearOptions<T>
+  ): SearchNearIMUArgs => {
+    return {
+      ...Serialize.common(args),
+      nearIMU: NearIMUSearch.fromPartial({
+        imu: args.imu,
+        certainty: args.certainty,
+        distance: args.distance,
+      }),
+      autocut: args.autoLimit,
+    };
+  };
+
+  public static nearObject = <T extends Properties>(
+    args: { id: string } & QueryNearOptions<T>
+  ): SearchNearObjectArgs => {
     return {
       ...Serialize.common(args),
       nearObject: NearObject.fromPartial({
-        id: args.nearObject,
+        id: args.id,
         certainty: args.certainty,
         distance: args.distance,
       }),
@@ -325,7 +366,9 @@ export default class Serialize {
     };
   };
 
-  public static nearText = <T extends Properties>(args: QueryNearTextArgs<T>): SearchNearTextArgs => {
+  public static nearText = <T extends Properties>(
+    args: { query: string | string[] } & QueryNearOptions<T>
+  ): SearchNearTextArgs => {
     return {
       ...Serialize.common(args),
       nearText: NearTextSearch.fromPartial({
@@ -337,11 +380,27 @@ export default class Serialize {
     };
   };
 
-  public static nearVector = <T extends Properties>(args: QueryNearVectorArgs<T>): SearchNearVectorArgs => {
+  public static nearThermal = <T extends Properties>(
+    args: { thermal: string } & QueryNearOptions<T>
+  ): SearchNearThermalArgs => {
+    return {
+      ...Serialize.common(args),
+      nearThermal: NearThermalSearch.fromPartial({
+        thermal: args.thermal,
+        certainty: args.certainty,
+        distance: args.distance,
+      }),
+      autocut: args.autoLimit,
+    };
+  };
+
+  public static nearVector = <T extends Properties>(
+    args: { vector: number[] } & QueryNearOptions<T>
+  ): SearchNearVectorArgs => {
     return {
       ...Serialize.common(args),
       nearVector: NearVector.fromPartial({
-        vector: args.nearVector,
+        vector: args.vector,
         certainty: args.certainty,
         distance: args.distance,
       }),
@@ -349,11 +408,13 @@ export default class Serialize {
     };
   };
 
-  public static nearVideo = <T extends Properties>(args: QueryNearVideoArgs<T>): SearchNearVideoArgs => {
+  public static nearVideo = <T extends Properties>(
+    args: { video: string } & QueryNearOptions<T>
+  ): SearchNearVideoArgs => {
     return {
       ...Serialize.common(args),
       nearVideo: NearVideoSearch.fromPartial({
-        video: args.nearVideo,
+        video: args.video,
         certainty: args.certainty,
         distance: args.distance,
       }),
@@ -361,35 +422,28 @@ export default class Serialize {
     };
   };
 
-  private static filtersGRPC = <T extends FilterValueType>(filters: Filters<T>): FiltersGRPC => {
-    const resolveFilters = (filters: Filters<T>): FiltersGRPC[] => {
+  private static filtersGRPC = (filters: FilterValue): FiltersGRPC => {
+    const resolveFilters = (filters: FilterValue): FiltersGRPC[] => {
       const out: FiltersGRPC[] = [];
-      filters.filters?.forEach((val) => {
-        if (FilterGuards.isFilters(val)) {
-          out.push(Serialize.filtersGRPC(val));
-        }
-      });
+      filters.filters?.forEach((val) => out.push(Serialize.filtersGRPC(val)));
       return out;
     };
     const { value } = filters;
     switch (filters.operator) {
       case 'And':
-        return {
-          on: filters.path,
+        return FiltersGRPC.fromPartial({
           operator: Filters_Operator.OPERATOR_AND,
           filters: resolveFilters(filters),
-        };
+        });
       case 'Or':
-        return {
-          on: filters.path,
+        return FiltersGRPC.fromPartial({
           operator: Filters_Operator.OPERATOR_OR,
           filters: resolveFilters(filters),
-        };
+        });
       default:
-        return {
-          on: filters.path,
+        return FiltersGRPC.fromPartial({
           operator: Serialize.operator(filters.operator),
-          filters: [],
+          target: filters.target,
           valueText: FilterGuards.isText(value) ? value : undefined,
           valueTextArray: FilterGuards.isTextArray(value) ? { values: value } : undefined,
           valueInt: FilterGuards.isInt(value) ? value : undefined,
@@ -398,12 +452,12 @@ export default class Serialize {
           valueNumberArray: FilterGuards.isFloatArray(value) ? { values: value } : undefined,
           valueBoolean: FilterGuards.isBoolean(value) ? value : undefined,
           valueBooleanArray: FilterGuards.isBooleanArray(value) ? { values: value } : undefined,
-        };
+        });
     }
   };
 
-  public static filtersREST = <T extends FilterValueType>(filters: Filters<T>): WhereFilter => {
-    const resolveFilters = (filters: Filters<T>): WhereFilter[] => {
+  public static filtersREST = <T extends FilterValueType>(filters: FilterValue): WhereFilter => {
+    const resolveFilters = (filters: FilterValue): WhereFilter[] => {
       const out: WhereFilter[] = [];
       filters.filters?.forEach((val) => {
         if (FilterGuards.isFilters(val)) {
@@ -415,13 +469,13 @@ export default class Serialize {
     const { value } = filters;
     if (filters.operator === 'And' || filters.operator === 'Or') {
       return {
-        path: filters.path,
+        // path: filters.path,
         operator: filters.operator,
         operands: resolveFilters(filters),
       };
     } else {
       const out = {
-        path: filters.path,
+        path: [filters.target?.property as string],
         operator: filters.operator,
       };
       if (FilterGuards.isText(value)) {
@@ -572,7 +626,15 @@ export default class Serialize {
       vector: includeVector === true,
     };
     metadata?.forEach((key) => {
-      out[key] = true;
+      let weaviateKey: string;
+      if (key === 'creationTime') {
+        weaviateKey = 'creationTimeUnix';
+      } else if (key === 'updateTime') {
+        weaviateKey = 'lastUpdateTimeUnix';
+      } else {
+        weaviateKey = key;
+      }
+      out[weaviateKey] = true;
     });
     return out;
   };
@@ -586,7 +648,7 @@ export default class Serialize {
     });
   };
 
-  public static generative = <T extends Properties>(generative?: GenerateArgs<T>): GenerativeSearch => {
+  public static generative = <T extends Properties>(generative?: GenerateOptions<T>): GenerativeSearch => {
     return GenerativeSearch.fromPartial({
       singleResponsePrompt: generative?.singlePrompt,
       groupedResponseTask: generative?.groupedTask,
@@ -594,18 +656,31 @@ export default class Serialize {
     });
   };
 
-  public static groupBy = <T extends Properties>(groupBy?: GroupByArgs<T>): GroupBy => {
+  public static groupBy = <T extends Properties>(groupBy?: GroupByOptions<T>): GroupBy => {
     return GroupBy.fromPartial({
-      path: groupBy?.groupByProperty ? [groupBy.groupByProperty as string] : undefined,
+      path: groupBy?.property ? [groupBy.property as string] : undefined,
       numberOfGroups: groupBy?.numberOfGroups,
       objectsPerGroup: groupBy?.objectsPerGroup,
     });
+  };
+
+  public static isGroupBy = <T extends Properties>(args: any): args is QueryGroupByNearOptions<T> => {
+    if (args === undefined) return false;
+    return args.groupBy !== undefined;
+  };
+
+  public static isGenerateGroupBy = <T extends Properties>(
+    args: any
+  ): args is GenerateGroupByNearOptions<T> => {
+    if (args === undefined) return false;
+    return args.groupBy !== undefined;
   };
 
   private static batchProperties = <T extends Properties>(properties: T): BatchObject_Properties => {
     const multiTarget: BatchObject_MultiTargetRefProps[] = [];
     const singleTarget: BatchObject_SingleTargetRefProps[] = [];
     const nonRefProperties: Record<string, any> = {};
+    const emptyArray: string[] = [];
     const boolArray: BooleanArrayProperties[] = [];
     const textArray: TextArrayProperties[] = [];
     const intArray: IntArrayProperties[] = [];
@@ -627,6 +702,8 @@ export default class Serialize {
             uuids: value.toBeaconStrings(),
           });
         }
+      } else if (BatchGuards.isEmptyArray(value)) {
+        emptyArray.push(key);
       } else if (BatchGuards.isBooleanArray(value)) {
         boolArray.push({
           propName: key,
@@ -653,6 +730,8 @@ export default class Serialize {
           values: [],
           valuesBytes: new Uint8Array(new Float64Array(value).buffer),
         });
+      } else if (BatchGuards.isDate(value)) {
+        nonRefProperties[key] = value.toISOString();
       } else if (BatchGuards.isNested(value)) {
         const parsed = Serialize.batchProperties(value);
         objectProperties.push({
@@ -678,6 +757,7 @@ export default class Serialize {
       booleanArrayProperties: boolArray,
       objectProperties: objectProperties,
       objectArrayProperties: objectArrayProperties,
+      emptyListProps: emptyArray,
     };
   };
 

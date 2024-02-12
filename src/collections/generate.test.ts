@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
 import weaviate from '..';
-import { GenerateArgs } from './generate';
+import { GenerateOptions } from './generate';
 
 const maybe = process.env.OPENAI_APIKEY ? describe : describe.skip;
 
@@ -25,7 +25,7 @@ maybe('Testing of the collection.generate methods with a simple collection', () 
 
   const collection = client.collections.get<TestCollectionGenerateSimple>(className);
 
-  const generateArgs: GenerateArgs<TestCollectionGenerateSimple> = {
+  const generateOpts: GenerateOptions<TestCollectionGenerateSimple> = {
     singlePrompt: 'Write a haiku about ducks for {testProp}',
     groupedTask: 'What is the value of testProp here?',
     groupedProperties: ['testProp'],
@@ -45,7 +45,7 @@ maybe('Testing of the collection.generate methods with a simple collection', () 
         properties: [
           {
             name: 'testProp',
-            dataType: ['text'],
+            dataType: 'text',
           },
         ],
         vectorizer: weaviate.Configure.Vectorizer.text2VecOpenAI({ vectorizeClassName: false }),
@@ -57,88 +57,96 @@ maybe('Testing of the collection.generate methods with a simple collection', () 
           },
         });
       });
-    const res = await collection.query.fetchObjectById({ id, includeVector: true });
+    const res = await collection.query.fetchObjectById(id, { includeVector: true });
     vector = res?.vector!;
   });
 
-  it('should generate without search', async () => {
-    const ret = await collection.generate.fetchObjects(generateArgs);
-    expect(ret.objects.length).toEqual(1);
-    expect(ret.generated).toBeDefined();
-    expect(ret.objects[0].properties.testProp).toEqual('test');
-    expect(ret.objects[0].uuid).toEqual(id);
-    expect(ret.objects[0].generated).toBeDefined();
+  describe('using a non-generic collection', () => {
+    it('should generate without search', async () => {
+      const ret = await client.collections.get(className).generate.fetchObjects(generateOpts);
+      expect(ret.objects.length).toEqual(1);
+      expect(ret.generated).toBeDefined();
+      expect(ret.objects[0].properties.testProp).toEqual('test');
+      expect(ret.objects[0].uuid).toEqual(id);
+      expect(ret.objects[0].generated).toBeDefined();
+    });
   });
 
-  it('should generate without search specifying return properties', async () => {
-    const ret = await collection.generate.fetchObjects({
-      returnProperties: ['testProp'],
-      ...generateArgs,
+  describe('using a generic collection', () => {
+    it('should generate without search', async () => {
+      const ret = await collection.generate.fetchObjects(generateOpts);
+      expect(ret.objects.length).toEqual(1);
+      expect(ret.generated).toBeDefined();
+      expect(ret.objects[0].properties.testProp).toEqual('test');
+      expect(ret.objects[0].uuid).toEqual(id);
+      expect(ret.objects[0].generated).toBeDefined();
     });
-    expect(ret.objects.length).toEqual(1);
-    expect(ret.generated).toBeDefined();
-    expect(ret.objects[0].properties.testProp).toEqual('test');
-    expect(ret.objects[0].uuid).toEqual(id);
-    expect(ret.objects[0].generated).toBeDefined();
-  });
 
-  it('should generate with bm25', async () => {
-    const ret = await collection.generate.bm25({
-      query: 'test',
-      ...generateArgs,
+    it('should generate without search specifying return properties', async () => {
+      const ret = await collection.generate.fetchObjects({
+        returnProperties: ['testProp'],
+        ...generateOpts,
+      });
+      expect(ret.objects.length).toEqual(1);
+      expect(ret.generated).toBeDefined();
+      expect(ret.objects[0].properties.testProp).toEqual('test');
+      expect(ret.objects[0].uuid).toEqual(id);
+      expect(ret.objects[0].generated).toBeDefined();
     });
-    expect(ret.objects.length).toEqual(1);
-    expect(ret.generated).toBeDefined();
-    expect(ret.objects[0].properties.testProp).toEqual('test');
-    expect(ret.objects[0].uuid).toEqual(id);
-    expect(ret.objects[0].generated).toBeDefined();
-  });
 
-  it('should generate with hybrid', async () => {
-    const ret = await collection.generate.hybrid({
-      query: 'test',
-      ...generateArgs,
+    it('should generate with bm25', async () => {
+      const ret = await collection.generate.bm25('test', {
+        ...generateOpts,
+      });
+      expect(ret.objects.length).toEqual(1);
+      expect(ret.generated).toBeDefined();
+      expect(ret.objects[0].properties.testProp).toEqual('test');
+      expect(ret.objects[0].uuid).toEqual(id);
+      expect(ret.objects[0].generated).toBeDefined();
     });
-    expect(ret.objects.length).toEqual(1);
-    expect(ret.generated).toBeDefined();
-    expect(ret.objects[0].properties.testProp).toEqual('test');
-    expect(ret.objects[0].uuid).toEqual(id);
-    expect(ret.objects[0].generated).toBeDefined();
-  });
 
-  it('should generate with nearObject', async () => {
-    const ret = await collection.generate.nearObject({
-      nearObject: id,
-      ...generateArgs,
+    it('should generate with hybrid', async () => {
+      const ret = await collection.generate.hybrid('test', {
+        ...generateOpts,
+      });
+      expect(ret.objects.length).toEqual(1);
+      expect(ret.generated).toBeDefined();
+      expect(ret.objects[0].properties.testProp).toEqual('test');
+      expect(ret.objects[0].uuid).toEqual(id);
+      expect(ret.objects[0].generated).toBeDefined();
     });
-    expect(ret.objects.length).toEqual(1);
-    expect(ret.generated).toBeDefined();
-    expect(ret.objects[0].properties.testProp).toEqual('test');
-    expect(ret.objects[0].uuid).toEqual(id);
-    expect(ret.objects[0].generated).toBeDefined();
-  });
 
-  it('should generate with nearText', async () => {
-    const ret = await collection.generate.nearText({
-      query: ['test'],
-      ...generateArgs,
+    it('should generate with nearObject', async () => {
+      const ret = await collection.generate.nearObject(id, {
+        ...generateOpts,
+      });
+      expect(ret.objects.length).toEqual(1);
+      expect(ret.generated).toBeDefined();
+      expect(ret.objects[0].properties.testProp).toEqual('test');
+      expect(ret.objects[0].uuid).toEqual(id);
+      expect(ret.objects[0].generated).toBeDefined();
     });
-    expect(ret.objects.length).toEqual(1);
-    expect(ret.generated).toBeDefined();
-    expect(ret.objects[0].properties.testProp).toEqual('test');
-    expect(ret.objects[0].uuid).toEqual(id);
-    expect(ret.objects[0].generated).toBeDefined();
-  });
 
-  it('should query with nearVector', async () => {
-    const ret = await collection.generate.nearVector({
-      nearVector: vector,
-      ...generateArgs,
+    it('should generate with nearText', async () => {
+      const ret = await collection.generate.nearText(['test'], {
+        ...generateOpts,
+      });
+      expect(ret.objects.length).toEqual(1);
+      expect(ret.generated).toBeDefined();
+      expect(ret.objects[0].properties.testProp).toEqual('test');
+      expect(ret.objects[0].uuid).toEqual(id);
+      expect(ret.objects[0].generated).toBeDefined();
     });
-    expect(ret.objects.length).toEqual(1);
-    expect(ret.generated).toBeDefined();
-    expect(ret.objects[0].properties.testProp).toEqual('test');
-    expect(ret.objects[0].uuid).toEqual(id);
-    expect(ret.objects[0].generated).toBeDefined();
+
+    it('should query with nearVector', async () => {
+      const ret = await collection.generate.nearVector(vector, {
+        ...generateOpts,
+      });
+      expect(ret.objects.length).toEqual(1);
+      expect(ret.generated).toBeDefined();
+      expect(ret.objects[0].properties.testProp).toEqual('test');
+      expect(ret.objects[0].uuid).toEqual(id);
+      expect(ret.objects[0].generated).toBeDefined();
+    });
   });
 });

@@ -44,6 +44,11 @@ export interface BatchObject_Properties {
   booleanArrayProperties: BooleanArrayProperties[];
   objectProperties: ObjectProperties[];
   objectArrayProperties: ObjectArrayProperties[];
+  /**
+   * empty lists do not have a type in many languages and clients do not know which datatype the property has.
+   * Weaviate can get the datatype from its schema
+   */
+  emptyListProps: string[];
 }
 
 export interface BatchObject_SingleTargetRefProps {
@@ -300,6 +305,7 @@ function createBaseBatchObject_Properties(): BatchObject_Properties {
     booleanArrayProperties: [],
     objectProperties: [],
     objectArrayProperties: [],
+    emptyListProps: [],
   };
 }
 
@@ -331,6 +337,9 @@ export const BatchObject_Properties = {
     }
     for (const v of message.objectArrayProperties) {
       ObjectArrayProperties.encode(v!, writer.uint32(74).fork()).ldelim();
+    }
+    for (const v of message.emptyListProps) {
+      writer.uint32(82).string(v!);
     }
     return writer;
   },
@@ -405,6 +414,13 @@ export const BatchObject_Properties = {
 
           message.objectArrayProperties.push(ObjectArrayProperties.decode(reader, reader.uint32()));
           continue;
+        case 10:
+          if (tag !== 82) {
+            break;
+          }
+
+          message.emptyListProps.push(reader.string());
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -441,6 +457,9 @@ export const BatchObject_Properties = {
       objectArrayProperties: globalThis.Array.isArray(object?.objectArrayProperties)
         ? object.objectArrayProperties.map((e: any) => ObjectArrayProperties.fromJSON(e))
         : [],
+      emptyListProps: globalThis.Array.isArray(object?.emptyListProps)
+        ? object.emptyListProps.map((e: any) => globalThis.String(e))
+        : [],
     };
   },
 
@@ -473,6 +492,9 @@ export const BatchObject_Properties = {
     if (message.objectArrayProperties?.length) {
       obj.objectArrayProperties = message.objectArrayProperties.map((e) => ObjectArrayProperties.toJSON(e));
     }
+    if (message.emptyListProps?.length) {
+      obj.emptyListProps = message.emptyListProps;
+    }
     return obj;
   },
 
@@ -495,6 +517,7 @@ export const BatchObject_Properties = {
     message.objectProperties = object.objectProperties?.map((e) => ObjectProperties.fromPartial(e)) || [];
     message.objectArrayProperties = object.objectArrayProperties?.map((e) => ObjectArrayProperties.fromPartial(e)) ||
       [];
+    message.emptyListProps = object.emptyListProps?.map((e) => e) || [];
     return message;
   },
 };

@@ -13,7 +13,9 @@ describe('Unit testing of the Configure factory class', () => {
       indexPropertyLength: false,
       indexNullState: false,
       stopwords: {
+        additions: [],
         preset: 'en',
+        removals: [],
       },
     });
   });
@@ -87,6 +89,9 @@ describe('Unit testing of the Configure factory class', () => {
       actualCount: 1,
       desiredVirtualCount: 128,
       actualVirtualCount: 128,
+      function: 'murmur3',
+      key: '_id',
+      strategy: 'hash',
     });
   });
 
@@ -104,11 +109,14 @@ describe('Unit testing of the Configure factory class', () => {
       actualCount: 2,
       desiredVirtualCount: 256,
       actualVirtualCount: 256,
+      function: 'murmur3',
+      key: '_id',
+      strategy: 'hash',
     });
   });
 
   it('should create the correct VectorIndexConfig type with defaults', () => {
-    const config = Configure.vectorIndex();
+    const config = Configure.VectorIndex.hnsw();
     expect(config).toEqual({
       cleanupIntervalSeconds: 300,
       distance: 'cosine',
@@ -119,24 +127,14 @@ describe('Unit testing of the Configure factory class', () => {
       efConstruction: 128,
       flatSearchCutoff: 40000,
       maxConnections: 64,
-      pq: {
-        bitCompression: false,
-        centroids: 256,
-        enabled: false,
-        encoder: {
-          distribution: 'log_normal',
-          type: 'kmeans',
-        },
-        segments: 0,
-        trainingLimit: 100000,
-      },
+      pq: undefined,
       skip: false,
       vectorCacheMaxObjects: 1000000000000,
     });
   });
 
   it('should create the correct VectorIndexConfig type with custom values', () => {
-    const config = Configure.vectorIndex({
+    const config = Configure.VectorIndex.hnsw({
       cleanupIntervalSeconds: 120,
       distanceMetric: 'dot',
       dynamicEfFactor: 16,
@@ -146,13 +144,16 @@ describe('Unit testing of the Configure factory class', () => {
       efConstruction: 256,
       flatSearchCutoff: 80000,
       maxConnections: 128,
-      pqBitCompression: true,
-      pqCentroids: 512,
-      pqEnabled: true,
-      pqEncoderDistribution: 'normal',
-      pqEncoderType: 'tile',
-      pqSegments: 1,
-      pqTrainingLimit: 200000,
+      pq: {
+        bitCompression: true,
+        centroids: 512,
+        encoder: {
+          distribution: 'normal',
+          type: 'tile',
+        },
+        segments: 1,
+        trainingLimit: 200000,
+      },
       skip: true,
       vectorCacheMaxObjects: 2000000000000,
     });

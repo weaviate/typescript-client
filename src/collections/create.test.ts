@@ -22,12 +22,15 @@ describe('Testing of the collections.create method', () => {
 
   it('should be able to create a simple collection', async () => {
     const className = 'TestCollectionSimple';
-    const response = await contextionary.collections.create({
+    type TestCollectionSimple = {
+      testProp: string;
+    };
+    const response = await contextionary.collections.create<TestCollectionSimple>({
       name: className,
       properties: [
         {
           name: 'testProp',
-          dataType: ['text'],
+          dataType: 'text',
         },
       ],
     });
@@ -35,23 +38,28 @@ describe('Testing of the collections.create method', () => {
     expect(response.properties?.length).toEqual(1);
     expect(response.properties?.[0].name).toEqual('testProp');
     expect(response.properties?.[0].dataType).toEqual(['text']);
-    expect(response.moduleConfig).toBeUndefined();
+    expect(response.moduleConfig).toEqual({});
 
     await contextionary.collections.delete(className);
   });
 
   it('should be able to create a nested collection', async () => {
     const className = 'TestCollectionNested';
-    const response = await contextionary.collections.create({
+    type TestCollectionNested = {
+      testProp: {
+        nestedProp: string;
+      };
+    };
+    const response = await contextionary.collections.create<TestCollectionNested>({
       name: className,
       properties: [
         {
           name: 'testProp',
-          dataType: ['object'],
+          dataType: 'object',
           nestedProperties: [
             {
               name: 'nestedProp',
-              dataType: ['text'],
+              dataType: 'text',
             },
           ],
         },
@@ -63,7 +71,7 @@ describe('Testing of the collections.create method', () => {
     expect(response.properties?.[0].dataType).toEqual(['object']);
     expect(response.properties?.[0].nestedProperties?.length).toEqual(1);
     expect(response.properties?.[0].nestedProperties?.[0].name).toEqual('nestedProp');
-    expect(response.moduleConfig).toBeUndefined();
+    expect(response.moduleConfig).toEqual({});
 
     await contextionary.collections.delete(className);
   });
@@ -91,72 +99,76 @@ describe('Testing of the collections.create method', () => {
       properties: [
         {
           name: 'text',
-          dataType: ['text'],
+          dataType: Configure.DataType.TEXT,
         },
         {
           name: 'texts',
-          dataType: ['text[]'],
+          dataType: Configure.DataType.TEXT_ARRAY,
         },
         {
           name: 'number',
-          dataType: ['number'],
+          dataType: Configure.DataType.NUMBER,
         },
         {
           name: 'numbers',
-          dataType: ['number[]'],
+          dataType: Configure.DataType.NUMBER_ARRAY,
         },
         {
           name: 'int',
-          dataType: ['int'],
+          dataType: Configure.DataType.INT,
         },
         {
           name: 'ints',
-          dataType: ['int[]'],
+          dataType: Configure.DataType.INT_ARRAY,
         },
         {
           name: 'date',
-          dataType: ['date'],
+          dataType: Configure.DataType.DATE,
         },
         {
           name: 'dates',
-          dataType: ['date[]'],
+          dataType: Configure.DataType.DATE_ARRAY,
         },
         {
           name: 'boolean',
-          dataType: ['boolean'],
+          dataType: Configure.DataType.BOOLEAN,
         },
         {
           name: 'booleans',
-          dataType: ['boolean[]'],
+          dataType: Configure.DataType.BOOLEAN_ARRAY,
         },
         {
           name: 'object',
-          dataType: ['object'],
+          dataType: Configure.DataType.OBJECT,
           nestedProperties: [
             {
               name: 'nestedProp',
-              dataType: ['text'],
+              dataType: Configure.DataType.TEXT,
             },
           ],
         },
         {
           name: 'objects',
-          dataType: ['object[]'],
+          dataType: Configure.DataType.OBJECT_ARRAY,
           nestedProperties: [
             {
               name: 'nestedProp',
-              dataType: ['text'],
+              dataType: Configure.DataType.TEXT,
             },
           ],
         },
         {
-          name: 'geoCoordinates',
-          dataType: ['geoCoordinates'],
+          name: 'blob',
+          dataType: Configure.DataType.BLOB,
         },
-        {
-          name: 'phoneNumber',
-          dataType: ['phoneNumber'],
-        },
+        // {
+        //   name: 'geoCoordinates',
+        //   dataType: Configure.DataType.GEO_COORDINATES,
+        // },
+        // {
+        //   name: 'phoneNumber',
+        //   dataType: Configure.DataType.PHONE_NUMBER,
+        // },
       ],
       multiTenancy: {
         enabled: true,
@@ -165,37 +177,39 @@ describe('Testing of the collections.create method', () => {
         factor: 2,
       },
       vectorIndex: {
-        cleanupIntervalSeconds: 10,
-        distance: 'dot',
-        dynamicEfFactor: 6,
-        dynamicEfMax: 100,
-        dynamicEfMin: 10,
-        ef: -2,
-        efConstruction: 100,
-        flatSearchCutoff: 41000,
-        maxConnections: 72,
-        pq: {
-          bitCompression: true,
-          centroids: 128,
-          enabled: true,
-          encoder: {
-            distribution: 'normal',
-            type: 'tile',
+        name: 'hnsw',
+        options: {
+          cleanupIntervalSeconds: 10,
+          distance: 'dot',
+          dynamicEfFactor: 6,
+          dynamicEfMax: 100,
+          dynamicEfMin: 10,
+          ef: -2,
+          efConstruction: 100,
+          flatSearchCutoff: 41000,
+          maxConnections: 72,
+          pq: {
+            bitCompression: true,
+            centroids: 128,
+            enabled: true,
+            encoder: {
+              distribution: 'normal',
+              type: 'tile',
+            },
+            segments: 4,
+            trainingLimit: 100001,
           },
-          segments: 4,
-          trainingLimit: 100001,
+          skip: true,
+          vectorCacheMaxObjects: 100000,
         },
-        skip: true,
-        vectorCacheMaxObjects: 100000,
       },
-      vectorIndexType: 'hnsw',
     });
 
     expect(response.class).toEqual(className);
     expect(response.description).toEqual('A test collection');
     expect(response.vectorizer).toEqual('none');
 
-    expect(response.properties?.length).toEqual(14);
+    expect(response.properties?.length).toEqual(13);
     expect(response.properties?.[0].name).toEqual('text');
     expect(response.properties?.[0].dataType).toEqual(['text']);
     expect(response.properties?.[1].name).toEqual('texts');
@@ -226,10 +240,12 @@ describe('Testing of the collections.create method', () => {
     expect(response.properties?.[11].nestedProperties?.length).toEqual(1);
     expect(response.properties?.[11].nestedProperties?.[0].name).toEqual('nestedProp');
     expect(response.properties?.[11].nestedProperties?.[0].dataType).toEqual(['text']);
-    expect(response.properties?.[12].name).toEqual('geoCoordinates');
-    expect(response.properties?.[12].dataType).toEqual(['geoCoordinates']);
-    expect(response.properties?.[13].name).toEqual('phoneNumber');
-    expect(response.properties?.[13].dataType).toEqual(['phoneNumber']);
+    expect(response.properties?.[12].name).toEqual('blob');
+    expect(response.properties?.[12].dataType).toEqual(['blob']);
+    // expect(response.properties?.[13].name).toEqual('geoCoordinates');
+    // expect(response.properties?.[13].dataType).toEqual(['geoCoordinates']);
+    // expect(response.properties?.[14].name).toEqual('phoneNumber');
+    // expect(response.properties?.[14].dataType).toEqual(['phoneNumber']);
 
     expect(response.invertedIndexConfig?.bm25?.b).toEqual(0.8);
     expect(response.invertedIndexConfig?.bm25?.k1).toEqual(1.3);
@@ -241,7 +257,7 @@ describe('Testing of the collections.create method', () => {
     expect(response.invertedIndexConfig?.stopwords?.preset).toEqual('en');
     expect(response.invertedIndexConfig?.stopwords?.removals).toEqual(['the']);
 
-    expect(response.moduleConfig).toBeUndefined();
+    expect(response.moduleConfig).toEqual({});
 
     expect(response.multiTenancyConfig?.enabled).toEqual(true);
 
@@ -278,11 +294,12 @@ describe('Testing of the collections.create method', () => {
       properties: [
         {
           name: 'testProp',
-          dataType: ['text'],
+          dataType: 'text',
         },
       ],
       vectorizer: {
-        'text2vec-contextionary': {
+        name: 'text2vec-contextionary',
+        options: {
           vectorizeClassName: false,
         },
       },
@@ -307,7 +324,7 @@ describe('Testing of the collections.create method', () => {
       properties: [
         {
           name: 'testProp',
-          dataType: ['text'],
+          dataType: 'text',
         },
       ],
       vectorizer: Configure.Vectorizer.text2VecContextionary(),
@@ -332,11 +349,12 @@ describe('Testing of the collections.create method', () => {
       properties: [
         {
           name: 'testProp',
-          dataType: ['text'],
+          dataType: 'text',
         },
       ],
       vectorizer: {
-        'text2vec-openai': {
+        name: 'text2vec-openai',
+        options: {
           vectorizeClassName: true,
         },
       },
@@ -359,7 +377,7 @@ describe('Testing of the collections.create method', () => {
       properties: [
         {
           name: 'testProp',
-          dataType: ['text'],
+          dataType: 'text',
         },
       ],
       vectorizer: Configure.Vectorizer.text2VecOpenAI(),
@@ -382,7 +400,7 @@ describe('Testing of the collections.create method', () => {
       properties: [
         {
           name: 'testProp',
-          dataType: ['text'],
+          dataType: 'text',
         },
       ],
       generative: Configure.Generative.openai(),

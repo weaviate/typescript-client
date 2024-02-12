@@ -40,9 +40,18 @@ export type WhereFilter = definitions['WhereFilter'];
 // Schema
 export type WeaviateSchema = definitions['Schema'];
 export type WeaviateClass = definitions['Class'];
+export type WeaviateProperty = definitions['Property'];
 export type ShardStatus = definitions['ShardStatus'];
 export type ShardStatusList = definitions['ShardStatusList'];
 export type Tenant = definitions['Tenant'];
 export type SchemaClusterStatus = definitions['SchemaClusterStatus'];
+export type WeaviateModuleConfig = WeaviateClass['moduleConfig'];
+export type WeaviateInvertedIndexConfig = definitions['InvertedIndexConfig'];
+export type WeaviateBM25Config = definitions['BM25Config'];
+export type WeaviateStopwordConfig = definitions['StopwordConfig'];
+export type WeaviateMultiTenancyConfig = definitions['MultiTenancyConfig'];
+export type WeaviateReplicationConfig = definitions['ReplicationConfig'];
+export type WeaviateShardingConfig = WeaviateClass['shardingConfig'];
+export type WeaviateVectorIndexConfig = WeaviateClass['vectorIndexConfig'];
 // Nodes
 export type NodesStatusResponse = definitions['NodesStatusResponse'];

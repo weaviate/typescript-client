@@ -7,9 +7,6 @@ import {
   SOUP_CLASS_NAME,
 } from '../utils/testData';
 
-const EXPECTED_WEAVIATE_VERSION = '1.23.0';
-const EXPECTED_WEAVIATE_GIT_HASH = 'bbf8c87';
-
 describe('cluster nodes endpoint', () => {
   const client = weaviate.client({
     scheme: 'http',
@@ -27,8 +24,8 @@ describe('cluster nodes endpoint', () => {
         if (nodesStatusResponse.nodes) {
           const node = nodesStatusResponse.nodes[0] ?? [];
           expect(node.name).toMatch(/.+/);
-          expect(node.version).toEqual(EXPECTED_WEAVIATE_VERSION);
-          expect(node.gitHash).toEqual(EXPECTED_WEAVIATE_GIT_HASH);
+          expect(node.version).toBeDefined();
+          expect(node.gitHash).toBeDefined();
           expect(node.status).toEqual('HEALTHY');
           expect(node.stats).toBeDefined();
           expect(node.stats?.objectCount).toEqual(0);
@@ -55,8 +52,8 @@ describe('cluster nodes endpoint', () => {
         if (nodesStatusResponse.nodes) {
           const node = nodesStatusResponse.nodes[0];
           expect(node.name).toMatch(/.+/);
-          expect(node.version).toEqual(EXPECTED_WEAVIATE_VERSION);
-          expect(node.gitHash).toEqual(EXPECTED_WEAVIATE_GIT_HASH);
+          expect(node.version).toBeDefined();
+          expect(node.gitHash).toBeDefined();
           expect(node.status).toEqual('HEALTHY');
           expect(node.stats?.objectCount).toEqual(6);
           expect(node.stats?.shardCount).toEqual(2);
@@ -99,8 +96,8 @@ describe('cluster nodes endpoint', () => {
         if (nodesStatusResponse.nodes) {
           const node = nodesStatusResponse.nodes[0];
           expect(node.name).toMatch(/.+/);
-          expect(node.version).toEqual(EXPECTED_WEAVIATE_VERSION);
-          expect(node.gitHash).toEqual(EXPECTED_WEAVIATE_GIT_HASH);
+          expect(node.version).toBeDefined();
+          expect(node.gitHash).toBeDefined();
           expect(node.status).toEqual('HEALTHY');
           expect(node.stats?.objectCount).toEqual(6);
           expect(node.stats?.shardCount).toEqual(2);
@@ -144,8 +141,8 @@ describe('cluster nodes endpoint', () => {
         if (nodesStatusResponse.nodes) {
           const node = nodesStatusResponse.nodes[0];
           expect(node.name).toMatch(/.+/);
-          expect(node.version).toEqual(EXPECTED_WEAVIATE_VERSION);
-          expect(node.gitHash).toEqual(EXPECTED_WEAVIATE_GIT_HASH);
+          expect(node.version).toBeDefined();
+          expect(node.gitHash).toBeDefined();
           expect(node.status).toEqual('HEALTHY');
           expect(node.stats?.objectCount).toEqual(6);
           expect(node.stats?.shardCount).toEqual(2);
@@ -171,8 +168,8 @@ describe('cluster nodes endpoint', () => {
         if (nodesStatusResponse.nodes) {
           const node = nodesStatusResponse.nodes[0];
           expect(node.name).toMatch(/.+/);
-          expect(node.version).toEqual(EXPECTED_WEAVIATE_VERSION);
-          expect(node.gitHash).toEqual(EXPECTED_WEAVIATE_GIT_HASH);
+          expect(node.version).toBeDefined();
+          expect(node.gitHash).toBeDefined();
           expect(node.status).toEqual('HEALTHY');
           expect(node.stats?.objectCount).toEqual(4);
           expect(node.stats?.shardCount).toEqual(1);

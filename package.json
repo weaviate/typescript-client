@@ -63,8 +63,8 @@
     "@types/jest": "^29.4.0",
     "@types/node": "^18.14.0",
     "@types/uuid": "^9.0.1",
-    "@typescript-eslint/eslint-plugin": "^5.54.1",
-    "@typescript-eslint/parser": "^5.54.1",
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.21.0",
     "babel-jest": "^29.4.3",
     "eslint": "^8.35.0",
     "eslint-config-prettier": "^8.7.0",
@@ -78,7 +78,7 @@
     "ts-jest": "^29.0.5",
     "ts-proto": "^1.163.0",
     "tsup": "^6.7.0",
-    "typescript": "^4.9.5"
+    "typescript": "^5.3.3"
   },
   "lint-staged": {
     "*.{ts,js}": [

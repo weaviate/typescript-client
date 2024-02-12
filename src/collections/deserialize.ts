@@ -1,14 +1,11 @@
-import { v4 as uuidv4 } from 'uuid';
-import { Metadata } from 'nice-grpc';
 import { MetadataResult, PropertiesResult, SearchReply } from '../proto/v1/search_get';
-import { ReferenceManager, referenceFromObjects } from './references';
+import { referenceFromObjects } from './references';
 import {
   BatchObjectsReturn,
-  DataObject,
   MetadataReturn,
   Properties,
-  GenerateReturn,
-  QueryReturn,
+  GenerativeReturn,
+  WeaviateReturn,
   GroupByObject,
   GroupByResult,
   GroupByReturn,
@@ -16,12 +13,16 @@ import {
   BatchObject,
   ReturnProperties,
   ReturnReferences,
+  GenerativeGroupByReturn,
+  GenerativeGroupByResult,
+  WeaviateField,
 } from './types';
 import { BatchObject as BatchObjectGrpc, BatchObjectsReply } from '../proto/v1/batch';
 import { Properties as PropertiesGrpc, Value } from '../proto/v1/properties';
+import Serialize from './serialize';
 
 export default class Deserialize {
-  public static query<T extends Properties>(reply: SearchReply): QueryReturn<T> {
+  public static query<T extends Properties>(reply: SearchReply): WeaviateReturn<T> {
     return {
       objects: reply.results.map((result) => {
         return {
@@ -35,7 +36,7 @@ export default class Deserialize {
     };
   }
 
-  public static generate<T extends Properties>(reply: SearchReply): GenerateReturn<T> {
+  public static generate<T extends Properties>(reply: SearchReply): GenerativeReturn<T> {
     return {
       objects: reply.results.map((result) => {
         return {
@@ -80,6 +81,37 @@ export default class Deserialize {
     };
   }
 
+  public static generateGroupBy<T extends Properties>(reply: SearchReply): GenerativeGroupByReturn<T> {
+    const objects: GroupByObject<T>[] = [];
+    const groups: Record<string, GenerativeGroupByResult<T>> = {};
+    reply.groupByResults.forEach((result) => {
+      const objs = result.objects.map((object) => {
+        return {
+          belongsToGroup: result.name,
+          metadata: Deserialize.metadata(object.metadata),
+          properties: Deserialize.properties<T>(object.properties),
+          references: Deserialize.references<T>(object.properties),
+          uuid: Deserialize.uuid(object.metadata),
+          vector: Deserialize.vector(object.metadata),
+        };
+      });
+      groups[result.name] = {
+        maxDistance: result.maxDistance,
+        minDistance: result.minDistance,
+        name: result.name,
+        numberOfObjects: result.numberOfObjects,
+        objects: objs,
+        generated: result.generative?.result,
+      };
+      objects.push(...objs);
+    });
+    return {
+      objects: objects,
+      groups: groups,
+      generated: reply.generativeGroupedResult,
+    };
+  }
+
   private static properties<T extends Properties>(properties?: PropertiesResult): ReturnProperties<T> {
     if (!properties) return {} as T;
     return Deserialize.objectProperties(properties.nonRefProps) as ReturnProperties<T>;
@@ -108,15 +140,19 @@ export default class Deserialize {
   }
 
   private static parsePropertyValue(value: Value): any {
-    if (value.boolValue) return value.boolValue;
+    if (value.boolValue !== undefined) return value.boolValue;
     if (value.dateValue) return new Date(value.dateValue);
-    if (value.geoValue) return value.geoValue;
     if (value.intValue) return value.intValue;
     if (value.listValue) return value.listValue.values.map((v) => Deserialize.parsePropertyValue(v));
     if (value.numberValue) return value.numberValue;
     if (value.objectValue) return Deserialize.objectProperties(value.objectValue);
     if (value.stringValue) return value.stringValue;
     if (value.uuidValue) return value.uuidValue;
+    // if (value.blobValue) return value.blobValue;
+    // if (value.geoValue) return value.geoValue;
+    // if (value.phoneValue) return value.phoneValue;
+    if (value.nullValue) return null;
+    throw new Error('Unknown value type');
   }
 
   private static objectProperties(properties?: PropertiesGrpc): Properties {
@@ -132,8 +168,8 @@ export default class Deserialize {
   private static metadata(metadata?: MetadataResult): MetadataReturn | undefined {
     const out: MetadataReturn = {};
     if (!metadata) return undefined;
-    if (metadata.creationTimeUnixPresent) out.creationTimeUnix = metadata.creationTimeUnix;
-    if (metadata.lastUpdateTimeUnixPresent) out.lastUpdateTimeUnix = metadata.lastUpdateTimeUnix;
+    if (metadata.creationTimeUnixPresent) out.creationTime = metadata.creationTimeUnix;
+    if (metadata.lastUpdateTimeUnixPresent) out.updateTime = metadata.lastUpdateTimeUnix;
     if (metadata.distancePresent) out.distance = metadata.distance;
     if (metadata.certaintyPresent) out.certainty = metadata.certainty;
     if (metadata.scorePresent) out.score = metadata.score;
@@ -204,7 +240,7 @@ export default class Deserialize {
       if (isRefProp(value)) {
         // out[key] =
         //   value.length > 0 ? ReferenceManager.fromBeaconStrings(value.map((v) => v.beacon)) : null;
-        out[key] = undefined;
+        out[key] = null;
       } else {
         out[key] = value;
       }

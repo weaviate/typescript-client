@@ -3,85 +3,77 @@ import Connection from '../connection';
 import { DbVersionSupport } from '../utils/dbVersion';
 import { ConsistencyLevel } from '../data';
 
-import { FilterValueType, Filters } from './filters';
+import { FilterValue } from './filters';
 
 import { Aggregator } from '../graphql';
-import Serialize from './serialize';
 
 type Properties = Record<string, any>;
 
-interface AggregateBaseArgs<T extends Properties, M extends PropertiesMetrics<T> | undefined> {
-  filters?: Filters<FilterValueType>;
+interface AggregateBaseOptions<T extends Properties, M extends PropertiesMetrics<T> | undefined> {
+  filters?: FilterValue;
   limit?: number;
   returnMetrics?: M;
 }
 
-interface AggregateGroupByArgs<T extends Properties, M extends PropertiesMetrics<T> | undefined>
-  extends AggregateBaseArgs<T, M> {
+interface AggregateGroupByOptions<T extends Properties, M extends PropertiesMetrics<T> | undefined>
+  extends AggregateBaseOptions<T, M> {
   groupBy: (keyof T & string) | (keyof T & string)[];
 }
 
-interface AggregateArgs<T extends Properties, M extends PropertiesMetrics<T> | undefined>
-  extends AggregateBaseArgs<T, M> {}
+interface AggregateOptions<T extends Properties, M extends PropertiesMetrics<T> | undefined>
+  extends AggregateBaseOptions<T, M> {}
 
-interface NearArgs {
+export interface NearOptions {
   certainty?: number;
   distance?: number;
   objectLimit?: number;
 }
 
-export interface NearImageArgs extends NearArgs {
-  nearImage: string;
-}
-export interface AggregateNearImageArgs<T extends Properties, M extends PropertiesMetrics<T> | undefined>
-  extends AggregateArgs<T, M>,
-    NearImageArgs {}
-export interface AggregateNearImageGroupByArgs<
+export interface AggregateNearImageOptions<T extends Properties, M extends PropertiesMetrics<T> | undefined>
+  extends AggregateOptions<T, M>,
+    NearOptions {}
+export interface AggregateNearImageGroupByOptions<
   T extends Properties,
   M extends PropertiesMetrics<T> | undefined
-> extends AggregateGroupByArgs<T, M>,
-    NearImageArgs {}
+> extends AggregateGroupByOptions<T, M>,
+    NearOptions {}
 
-export interface NearObjectArgs extends NearArgs {
-  nearObject: string;
-}
-export interface AggregateNearObjectArgs<T extends Properties, M extends PropertiesMetrics<T> | undefined>
-  extends AggregateArgs<T, M>,
-    NearObjectArgs {}
-export interface AggregateNearObjectGroupByArgs<
+export interface NearObjectOptions extends NearOptions {}
+export interface AggregateNearObjectOptions<T extends Properties, M extends PropertiesMetrics<T> | undefined>
+  extends AggregateOptions<T, M>,
+    NearObjectOptions {}
+export interface AggregateNearObjectGroupByOptions<
   T extends Properties,
   M extends PropertiesMetrics<T> | undefined
-> extends AggregateGroupByArgs<T, M>,
-    NearObjectArgs {}
+> extends AggregateGroupByOptions<T, M>,
+    NearObjectOptions {}
 
-export interface NearTextArgs extends NearArgs {
-  query: string | string[];
-}
-export interface AggregateNearTextArgs<T extends Properties, M extends PropertiesMetrics<T> | undefined>
-  extends AggregateArgs<T, M>,
-    NearTextArgs {}
-export interface AggregateNearTextGroupByArgs<
+export interface NearTextOptions extends NearOptions {}
+export interface AggregateNearTextOptions<T extends Properties, M extends PropertiesMetrics<T> | undefined>
+  extends AggregateOptions<T, M>,
+    NearTextOptions {}
+export interface AggregateNearTextGroupByOptions<
   T extends Properties,
   M extends PropertiesMetrics<T> | undefined
-> extends AggregateGroupByArgs<T, M>,
-    NearTextArgs {}
+> extends AggregateGroupByOptions<T, M>,
+    NearTextOptions {}
 
-export interface NearVectorArgs extends NearArgs {
-  vector: number[];
-}
-export interface AggregateNearVectorArgs<T extends Properties, M extends PropertiesMetrics<T> | undefined>
-  extends AggregateArgs<T, M>,
-    NearVectorArgs {}
-export interface AggregateNearVectorGroupByArgs<
+export interface NearVectorOptions extends NearOptions {}
+export interface AggregateNearVectorOptions<T extends Properties, M extends PropertiesMetrics<T> | undefined>
+  extends AggregateOptions<T, M>,
+    NearVectorOptions {}
+export interface AggregateNearVectorGroupByOptions<
   T extends Properties,
   M extends PropertiesMetrics<T> | undefined
-> extends AggregateGroupByArgs<T, M>,
-    NearVectorArgs {}
+> extends AggregateGroupByOptions<T, M>,
+    NearVectorOptions {}
 
-export interface AggregateOverAllArgs<T extends Properties, M extends PropertiesMetrics<T> | undefined>
-  extends AggregateArgs<T, M> {}
-export interface AggregateOverAllGroupByArgs<T extends Properties, M extends PropertiesMetrics<T> | undefined>
-  extends AggregateGroupByArgs<T, M> {}
+export interface AggregateOverAllOptions<T extends Properties, M extends PropertiesMetrics<T> | undefined>
+  extends AggregateOptions<T, M> {}
+export interface AggregateOverAllGroupByOptions<
+  T extends Properties,
+  M extends PropertiesMetrics<T> | undefined
+> extends AggregateGroupByOptions<T, M> {}
 
 type AggregateBoolean = {
   count?: number;
@@ -275,9 +267,9 @@ type AggregateGroupByResult<
 };
 
 const isAggregateGroupBy = <T extends Properties, M extends PropertiesMetrics<T> | undefined>(
-  args: any
-): args is AggregateGroupByArgs<T, M> => {
-  return args?.groupBy !== undefined;
+  opts: any
+): opts is AggregateGroupByOptions<T, M> => {
+  return opts?.groupBy !== undefined;
 };
 
 export class AggregateManager<T extends Properties> implements Aggregate<T> {
@@ -303,85 +295,89 @@ export class AggregateManager<T extends Properties> implements Aggregate<T> {
 
     this.groupBy = {
       nearImage: <M extends PropertiesMetrics<T> | undefined>(
-        args: AggregateNearImageGroupByArgs<T, M>
+        image: string,
+        opts?: AggregateNearImageGroupByOptions<T, M>
       ): Promise<AggregateGroupByResult<T, M>[]> => {
         const builder = this.base(
-          args.returnMetrics,
-          args.filters,
-          args.limit,
-          Array.isArray(args.groupBy) ? args.groupBy : [args.groupBy]
+          opts?.returnMetrics,
+          opts?.filters,
+          opts?.limit,
+          opts ? (Array.isArray(opts.groupBy) ? opts.groupBy : [opts.groupBy]) : undefined
         ).withNearImage({
-          image: args.nearImage,
-          certainty: args.certainty,
-          distance: args.distance,
+          image: image,
+          certainty: opts?.certainty,
+          distance: opts?.distance,
         });
-        if (args?.objectLimit) {
-          builder.withObjectLimit(args?.objectLimit);
+        if (opts?.objectLimit) {
+          builder.withObjectLimit(opts?.objectLimit);
         }
         return this.doGroupBy(builder);
       },
       nearObject: <M extends PropertiesMetrics<T> | undefined>(
-        args: AggregateNearObjectGroupByArgs<T, M>
+        id: string,
+        opts?: AggregateNearObjectGroupByOptions<T, M>
       ): Promise<AggregateGroupByResult<T, M>[]> => {
         const builder = this.base(
-          args.returnMetrics,
-          args.filters,
-          args.limit,
-          Array.isArray(args.groupBy) ? args.groupBy : [args.groupBy]
+          opts?.returnMetrics,
+          opts?.filters,
+          opts?.limit,
+          opts ? (Array.isArray(opts.groupBy) ? opts.groupBy : [opts.groupBy]) : undefined
         ).withNearObject({
-          id: args.nearObject,
-          certainty: args.certainty,
-          distance: args.distance,
+          id: id,
+          certainty: opts?.certainty,
+          distance: opts?.distance,
         });
-        if (args.objectLimit) {
-          builder.withObjectLimit(args.objectLimit);
+        if (opts?.objectLimit) {
+          builder.withObjectLimit(opts.objectLimit);
         }
         return this.doGroupBy(builder);
       },
       nearText: <M extends PropertiesMetrics<T> | undefined>(
-        args: AggregateNearTextGroupByArgs<T, M>
+        query: string | string[],
+        opts?: AggregateNearTextGroupByOptions<T, M>
       ): Promise<AggregateGroupByResult<T, M>[]> => {
         const builder = this.base(
-          args.returnMetrics,
-          args.filters,
-          args.limit,
-          Array.isArray(args.groupBy) ? args.groupBy : [args.groupBy]
+          opts?.returnMetrics,
+          opts?.filters,
+          opts?.limit,
+          opts ? (Array.isArray(opts.groupBy) ? opts.groupBy : [opts.groupBy]) : undefined
         ).withNearText({
-          concepts: Array.isArray(args.query) ? args.query : [args.query],
-          certainty: args.certainty,
-          distance: args.distance,
+          concepts: Array.isArray(query) ? query : [query],
+          certainty: opts?.certainty,
+          distance: opts?.distance,
         });
-        if (args.objectLimit) {
-          builder.withObjectLimit(args.objectLimit);
+        if (opts?.objectLimit) {
+          builder.withObjectLimit(opts.objectLimit);
         }
         return this.doGroupBy(builder);
       },
       nearVector: <M extends PropertiesMetrics<T> | undefined>(
-        args: AggregateNearVectorGroupByArgs<T, M>
+        vector: number[],
+        opts?: AggregateNearVectorGroupByOptions<T, M>
       ): Promise<AggregateGroupByResult<T, M>[]> => {
         const builder = this.base(
-          args.returnMetrics,
-          args.filters,
-          args.limit,
-          Array.isArray(args.groupBy) ? args.groupBy : [args.groupBy]
+          opts?.returnMetrics,
+          opts?.filters,
+          opts?.limit,
+          opts ? (Array.isArray(opts.groupBy) ? opts.groupBy : [opts.groupBy]) : undefined
         ).withNearVector({
-          vector: args.vector,
-          certainty: args.certainty,
-          distance: args.distance,
+          vector: vector,
+          certainty: opts?.certainty,
+          distance: opts?.distance,
         });
-        if (args.objectLimit) {
-          builder.withObjectLimit(args.objectLimit);
+        if (opts?.objectLimit) {
+          builder.withObjectLimit(opts.objectLimit);
         }
         return this.doGroupBy(builder);
       },
       overAll: <M extends PropertiesMetrics<T> | undefined = undefined>(
-        args: AggregateOverAllGroupByArgs<T, M>
+        opts: AggregateOverAllGroupByOptions<T, M>
       ): Promise<AggregateGroupByResult<T, M>[]> => {
         const builder = this.base(
-          args?.returnMetrics,
-          args?.filters,
-          args?.limit,
-          Array.isArray(args.groupBy) ? args.groupBy : [args.groupBy]
+          opts?.returnMetrics,
+          opts?.filters,
+          opts?.limit,
+          Array.isArray(opts.groupBy) ? opts.groupBy : [opts.groupBy]
         );
         return this.doGroupBy(builder);
       },
@@ -394,7 +390,7 @@ export class AggregateManager<T extends Properties> implements Aggregate<T> {
 
   private base(
     metrics?: PropertiesMetrics<T>,
-    filters?: Filters<FilterValueType>,
+    filters?: FilterValue,
     limit?: number,
     groupBy?: (keyof T & string)[]
   ) {
@@ -414,9 +410,9 @@ export class AggregateManager<T extends Properties> implements Aggregate<T> {
     if (fields !== '') {
       builder = builder.withFields(fields);
     }
-    if (filters) {
-      builder = builder.withWhere(Serialize.filtersREST(filters));
-    }
+    // if (filters) {
+    //   builder = builder.withWhere(Serialize.filtersREST(filters));
+    // }
     if (limit) {
       builder = builder.withLimit(limit);
     }
@@ -457,65 +453,69 @@ export class AggregateManager<T extends Properties> implements Aggregate<T> {
   }
 
   public nearImage<M extends PropertiesMetrics<T> | undefined>(
-    args: AggregateNearImageArgs<T, M>
+    image: string,
+    opts?: AggregateNearImageOptions<T, M>
   ): Promise<AggregateResult<T, M>> {
-    const builder = this.base(args.returnMetrics, args.filters, args.limit).withNearImage({
-      image: args.nearImage,
-      certainty: args.certainty,
-      distance: args.distance,
+    const builder = this.base(opts?.returnMetrics, opts?.filters, opts?.limit).withNearImage({
+      image: image,
+      certainty: opts?.certainty,
+      distance: opts?.distance,
     });
-    if (args?.objectLimit) {
-      builder.withObjectLimit(args?.objectLimit);
+    if (opts?.objectLimit) {
+      builder.withObjectLimit(opts?.objectLimit);
     }
     return this.do(builder);
   }
 
   public nearObject<M extends PropertiesMetrics<T> | undefined>(
-    args: AggregateNearObjectArgs<T, M>
+    id: string,
+    opts?: AggregateNearObjectOptions<T, M>
   ): Promise<AggregateResult<T, M>> {
-    const builder = this.base(args.returnMetrics, args.filters, args.limit).withNearObject({
-      id: args.nearObject,
-      certainty: args.certainty,
-      distance: args.distance,
+    const builder = this.base(opts?.returnMetrics, opts?.filters, opts?.limit).withNearObject({
+      id: id,
+      certainty: opts?.certainty,
+      distance: opts?.distance,
     });
-    if (args.objectLimit) {
-      builder.withObjectLimit(args.objectLimit);
+    if (opts?.objectLimit) {
+      builder.withObjectLimit(opts.objectLimit);
     }
     return this.do(builder);
   }
 
   public nearText<M extends PropertiesMetrics<T> | undefined>(
-    args: AggregateNearTextArgs<T, M>
+    query: string | string[],
+    opts?: AggregateNearTextOptions<T, M>
   ): Promise<AggregateResult<T, M>> {
-    const builder = this.base(args.returnMetrics, args.filters, args.limit).withNearText({
-      concepts: Array.isArray(args.query) ? args.query : [args.query],
-      certainty: args.certainty,
-      distance: args.distance,
+    const builder = this.base(opts?.returnMetrics, opts?.filters, opts?.limit).withNearText({
+      concepts: Array.isArray(query) ? query : [query],
+      certainty: opts?.certainty,
+      distance: opts?.distance,
     });
-    if (args.objectLimit) {
-      builder.withObjectLimit(args.objectLimit);
+    if (opts?.objectLimit) {
+      builder.withObjectLimit(opts.objectLimit);
     }
     return this.do(builder);
   }
 
   public nearVector<M extends PropertiesMetrics<T> | undefined>(
-    args: AggregateNearVectorArgs<T, M>
+    vector: number[],
+    opts?: AggregateNearVectorOptions<T, M>
   ): Promise<AggregateResult<T, M>> {
-    const builder = this.base(args.returnMetrics, args.filters, args.limit).withNearVector({
-      vector: args.vector,
-      certainty: args.certainty,
-      distance: args.distance,
+    const builder = this.base(opts?.returnMetrics, opts?.filters, opts?.limit).withNearVector({
+      vector: vector,
+      certainty: opts?.certainty,
+      distance: opts?.distance,
     });
-    if (args.objectLimit) {
-      builder.withObjectLimit(args.objectLimit);
+    if (opts?.objectLimit) {
+      builder.withObjectLimit(opts.objectLimit);
     }
     return this.do(builder);
   }
 
   public overAll<M extends PropertiesMetrics<T> | undefined = undefined>(
-    args?: AggregateOverAllArgs<T, M>
+    opts?: AggregateOverAllOptions<T, M>
   ): Promise<AggregateResult<T, M>> {
-    const builder = this.base(args?.returnMetrics, args?.filters, args?.limit);
+    const builder = this.base(opts?.returnMetrics, opts?.filters, opts?.limit);
     return this.do(builder);
   }
 
@@ -553,37 +553,45 @@ export class AggregateManager<T extends Properties> implements Aggregate<T> {
 export interface Aggregate<T extends Properties> {
   groupBy: AggregateGroupBy<T>;
   nearImage<M extends PropertiesMetrics<T> | undefined = undefined>(
-    args: AggregateNearImageArgs<T, M>
+    image: string,
+    opts?: AggregateNearImageOptions<T, M>
   ): Promise<AggregateResult<T, M>>;
   nearObject<M extends PropertiesMetrics<T> | undefined = undefined>(
-    args: AggregateNearObjectArgs<T, M>
+    id: string,
+    opts?: AggregateNearObjectOptions<T, M>
   ): Promise<AggregateResult<T, M>>;
   nearText<M extends PropertiesMetrics<T> | undefined = undefined>(
-    args: AggregateNearTextArgs<T, M>
+    query: string | string[],
+    opts?: AggregateNearTextOptions<T, M>
   ): Promise<AggregateResult<T, M>>;
   nearVector<M extends PropertiesMetrics<T> | undefined = undefined>(
-    args: AggregateNearVectorArgs<T, M>
+    vector: number[],
+    opts?: AggregateNearVectorOptions<T, M>
   ): Promise<AggregateResult<T, M>>;
   overAll<M extends PropertiesMetrics<T> | undefined = undefined>(
-    args?: AggregateOverAllArgs<T, M>
+    opts?: AggregateOverAllOptions<T, M>
   ): Promise<AggregateResult<T, M>>;
 }
 
 export interface AggregateGroupBy<T extends Properties> {
   nearImage<M extends PropertiesMetrics<T> | undefined = undefined>(
-    args: AggregateNearImageGroupByArgs<T, M>
+    image: string,
+    opts?: AggregateNearImageGroupByOptions<T, M>
   ): Promise<AggregateGroupByResult<T, M>[]>;
   nearObject<M extends PropertiesMetrics<T> | undefined = undefined>(
-    args: AggregateNearObjectGroupByArgs<T, M>
+    id: string,
+    opts?: AggregateNearObjectGroupByOptions<T, M>
   ): Promise<AggregateGroupByResult<T, M>[]>;
   nearText<M extends PropertiesMetrics<T> | undefined = undefined>(
-    args: AggregateNearTextGroupByArgs<T, M>
+    query: string | string[],
+    opts: AggregateNearTextGroupByOptions<T, M>
   ): Promise<AggregateGroupByResult<T, M>[]>;
   nearVector<M extends PropertiesMetrics<T> | undefined = undefined>(
-    args: AggregateNearVectorGroupByArgs<T, M>
+    vector: number[],
+    opts?: AggregateNearVectorGroupByOptions<T, M>
   ): Promise<AggregateGroupByResult<T, M>[]>;
   overAll<M extends PropertiesMetrics<T> | undefined = undefined>(
-    args: AggregateOverAllGroupByArgs<T, M>
+    opts?: AggregateOverAllGroupByOptions<T, M>
   ): Promise<AggregateGroupByResult<T, M>[]>;
 }
 

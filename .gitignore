@@ -11,3 +11,4 @@ weaviate-data/
 .npmrc
 .eslintcache
 test.sh
+scratch/
