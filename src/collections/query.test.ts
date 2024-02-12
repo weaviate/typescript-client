@@ -163,6 +163,8 @@ describe('Testing of the collection.query methods with a collection with a refer
         id2 = await collection.data.insert({
           properties: {
             testProp: 'other',
+          },
+          references: {
             refProp: Reference.to<TestCollectionQueryWithRefProp>(id1),
           },
         });

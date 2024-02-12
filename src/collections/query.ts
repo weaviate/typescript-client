@@ -1,5 +1,7 @@
 import Connection from '../connection';
 
+import { toBase64FromBlob } from '../utils/base64';
+
 import { WeaviateObject as WeaviateObjectRest } from '../openapi/types';
 import { ObjectsPath } from '../data/path';
 import { DbVersionSupport } from '../utils/dbVersion';
@@ -148,45 +150,61 @@ class QueryManager<T extends Properties> implements Query<T> {
   }
 
   public nearImage<O extends QueryNearOptions<T> | QueryGroupByNearOptions<T>>(
-    image: string,
+    image: string | Blob,
     opts?: O
   ): QueryReturn<O, T> {
     return this.connection
       .search(this.name, this.consistencyLevel, this.tenant)
-      .then((search) =>
-        search.withNearImage({
-          ...Serialize.nearImage({ image, ...opts }),
-          groupBy: Serialize.isGroupBy(opts) ? Serialize.groupBy(opts.groupBy) : undefined,
-        })
-      )
+      .then((search) => {
+        const imagePromise = typeof image === 'string' ? Promise.resolve(image) : toBase64FromBlob(image);
+        return imagePromise.then((image) =>
+          search.withNearImage({
+            ...Serialize.nearImage({ image, ...opts }),
+            groupBy: Serialize.isGroupBy(opts) ? Serialize.groupBy(opts.groupBy) : undefined,
+          })
+        );
+      })
       .then(Serialize.isGroupBy(opts) ? Deserialize.groupBy<T> : Deserialize.query<T>) as QueryReturn<O, T>;
   }
 
   public nearMedia<O extends QueryNearOptions<T> | QueryGroupByNearOptions<T>>(
-    media: string,
+    media: string | Blob,
     type: QueryNearMediaType,
     opts?: O
   ): QueryReturn<O, T> {
+    const mediaPromise = typeof media === 'string' ? Promise.resolve(media) : toBase64FromBlob(media);
     return this.connection.search(this.name, this.consistencyLevel, this.tenant).then((search) => {
       let reply: Promise<SearchReply>;
       switch (type) {
         case 'audio':
-          reply = search.withNearAudio(Serialize.nearAudio({ audio: media, ...opts }));
+          reply = mediaPromise.then((media) =>
+            search.withNearAudio(Serialize.nearAudio({ audio: media, ...opts }))
+          );
           break;
         case 'depth':
-          reply = search.withNearDepth(Serialize.nearDepth({ depth: media, ...opts }));
+          reply = mediaPromise.then((media) =>
+            search.withNearDepth(Serialize.nearDepth({ depth: media, ...opts }))
+          );
           break;
         case 'image':
-          reply = search.withNearImage(Serialize.nearImage({ image: media, ...opts }));
+          reply = mediaPromise.then((media) =>
+            search.withNearImage(Serialize.nearImage({ image: media, ...opts }))
+          );
           break;
         case 'imu':
-          reply = search.withNearIMU(Serialize.nearIMU({ imu: media, ...opts }));
+          reply = mediaPromise.then((media) =>
+            search.withNearIMU(Serialize.nearIMU({ imu: media, ...opts }))
+          );
           break;
         case 'thermal':
-          reply = search.withNearThermal(Serialize.nearThermal({ thermal: media, ...opts }));
+          reply = mediaPromise.then((media) =>
+            search.withNearThermal(Serialize.nearThermal({ thermal: media, ...opts }))
+          );
           break;
         case 'video':
-          reply = search.withNearVideo(Serialize.nearVideo({ video: media, ...opts }));
+          reply = mediaPromise.then((media) =>
+            search.withNearVideo(Serialize.nearVideo({ video: media, ...opts }))
+          );
           break;
         default:
           throw new Error(`Invalid media type: ${type}`);
@@ -251,11 +269,11 @@ export interface Query<T extends Properties> {
   hybrid: (query: string, opts?: QueryHybridOptions<T>) => Promise<WeaviateReturn<T>>;
 
   nearImage<O extends QueryNearOptions<T> | QueryGroupByNearOptions<T>>(
-    image: string,
+    image: string | Blob,
     opts?: O
   ): QueryReturn<O, T>;
   nearMedia<O extends QueryNearOptions<T> | QueryGroupByNearOptions<T>>(
-    media: string,
+    media: string | Blob,
     type: QueryNearMediaType,
     opts?: O
   ): QueryReturn<O, T>;

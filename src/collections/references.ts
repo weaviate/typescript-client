@@ -78,4 +78,4 @@ export const referenceFromObjects = <TProperties extends Properties>(
   return new ReferenceManager<TProperties>('', objects);
 };
 
-export type CrossReference<TProperties extends Properties> = ReferenceManager<TProperties> | null;
+export type CrossReference<TProperties extends Properties> = ReferenceManager<TProperties>;

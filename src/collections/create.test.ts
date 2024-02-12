@@ -161,14 +161,14 @@ describe('Testing of the collections.create method', () => {
           name: 'blob',
           dataType: Configure.DataType.BLOB,
         },
-        // {
-        //   name: 'geoCoordinates',
-        //   dataType: Configure.DataType.GEO_COORDINATES,
-        // },
-        // {
-        //   name: 'phoneNumber',
-        //   dataType: Configure.DataType.PHONE_NUMBER,
-        // },
+        {
+          name: 'geoCoordinates',
+          dataType: Configure.DataType.GEO_COORDINATES,
+        },
+        {
+          name: 'phoneNumber',
+          dataType: Configure.DataType.PHONE_NUMBER,
+        },
       ],
       multiTenancy: {
         enabled: true,
@@ -209,7 +209,7 @@ describe('Testing of the collections.create method', () => {
     expect(response.description).toEqual('A test collection');
     expect(response.vectorizer).toEqual('none');
 
-    expect(response.properties?.length).toEqual(13);
+    expect(response.properties?.length).toEqual(15);
     expect(response.properties?.[0].name).toEqual('text');
     expect(response.properties?.[0].dataType).toEqual(['text']);
     expect(response.properties?.[1].name).toEqual('texts');
@@ -242,10 +242,10 @@ describe('Testing of the collections.create method', () => {
     expect(response.properties?.[11].nestedProperties?.[0].dataType).toEqual(['text']);
     expect(response.properties?.[12].name).toEqual('blob');
     expect(response.properties?.[12].dataType).toEqual(['blob']);
-    // expect(response.properties?.[13].name).toEqual('geoCoordinates');
-    // expect(response.properties?.[13].dataType).toEqual(['geoCoordinates']);
-    // expect(response.properties?.[14].name).toEqual('phoneNumber');
-    // expect(response.properties?.[14].dataType).toEqual(['phoneNumber']);
+    expect(response.properties?.[13].name).toEqual('geoCoordinates');
+    expect(response.properties?.[13].dataType).toEqual(['geoCoordinates']);
+    expect(response.properties?.[14].name).toEqual('phoneNumber');
+    expect(response.properties?.[14].dataType).toEqual(['phoneNumber']);
 
     expect(response.invertedIndexConfig?.bm25?.b).toEqual(0.8);
     expect(response.invertedIndexConfig?.bm25?.k1).toEqual(1.3);

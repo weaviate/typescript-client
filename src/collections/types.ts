@@ -9,7 +9,7 @@ type RecursivePartial<T> = {
 };
 
 export type DataType<T = any> = T extends string
-  ? 'text'
+  ? 'text' | 'blob'
   : T extends number
   ? 'number' | 'int'
   : T extends boolean
@@ -28,8 +28,6 @@ export type DataType<T = any> = T extends string
   ? 'date[]'
   : T extends object[]
   ? 'object[]'
-  : T extends Blob
-  ? 'blob'
   : T extends GeoCoordinate
   ? 'geoCoordinates'
   : T extends PhoneNumber
@@ -500,7 +498,7 @@ export type Refs<Obj> = {
 export type ReferenceInput = string | string[] | ReferenceToMultiTarget;
 
 export type ReferenceInputs<Obj> = {
-  [Key in RefKeys<Obj>]: ReferenceInput | ReferenceManager<any>;
+  [Key in RefKeys<Obj>]: ReferenceInput | ReferenceManager<ExtractCrossReferenceType<Obj[Key]>>;
 };
 
 // Helper type to determine if a type is a WeaviateField excluding undefined
@@ -561,7 +559,7 @@ type PrimitiveField =
 
 type NestedField = NestedProperties | NestedProperties[];
 
-export type WeaviateField = PrimitiveField | NestedField | undefined;
+export type WeaviateField = PrimitiveField | NestedField;
 
 export interface Properties {
   [k: string]: WeaviateField | CrossReference<Properties> | undefined;

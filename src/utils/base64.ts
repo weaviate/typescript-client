@@ -19,10 +19,10 @@
  * const onChange = (event) => toBase64FromBlob(event.target.files[0]).then(setBase64);
  *
  * // Submit
- * const onSubmit = (base64: string) => client.data
+ * const onSubmit = (blob: Blob) => client.data
  *     .creator()
  *     .withClassName('MyClass')
- *     .withProperties({ myMediaField: base64 })
+ *     .withProperties({ myMediaField: toBase64FromBlob(base64) })
  *     .do();
  *
  */
