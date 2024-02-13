@@ -103,9 +103,12 @@ const app = {
     // check if headers are set
     if (!params.headers) params.headers = {};
 
+    const scheme = params.http.secure ? 'https' : 'http';
     const conn = new Connection({
-      host: params.http.host,
-      scheme: params.http.secure ? 'https' : 'http',
+      host: params.http.host.startsWith('http')
+        ? params.http.host
+        : `${scheme}://${params.http.host}:${params.http.port}`,
+      scheme: scheme,
       headers: params.headers,
       grpcAddress: `${params.grpc.host}:${params.grpc.port}`,
       grpcSecure: params.grpc.secure,
