@@ -3,10 +3,17 @@
 import weaviate from '..';
 
 describe('Testing of the Sort class with a simple collection', () => {
-  const client = weaviate.client({
-    scheme: 'http',
-    host: 'localhost:8080',
-    grpcAddress: 'localhost:50051',
+  const client = weaviate.next({
+    http: {
+      secure: false,
+      host: 'localhost',
+      port: 8080,
+    },
+    grpc: {
+      secure: false,
+      host: 'localhost',
+      port: 50051,
+    },
   });
 
   const className = 'TestCollectionSortSimple';

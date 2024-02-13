@@ -5,10 +5,17 @@ import { CrossReference, Reference } from './references';
 import { GroupByOptions } from './types';
 
 describe('Testing of the collection.query methods with a simple collection', () => {
-  const client = weaviate.client({
-    scheme: 'http',
-    host: 'localhost:8080',
-    grpcAddress: 'localhost:50051',
+  const client = weaviate.next({
+    http: {
+      secure: false,
+      host: 'localhost',
+      port: 8080,
+    },
+    grpc: {
+      secure: false,
+      host: 'localhost',
+      port: 50051,
+    },
   });
 
   const className = 'TestCollectionQueryMinimalOptions';
@@ -110,10 +117,17 @@ describe('Testing of the collection.query methods with a simple collection', () 
 });
 
 describe('Testing of the collection.query methods with a collection with a reference property', () => {
-  const client = weaviate.client({
-    scheme: 'http',
-    host: 'localhost:8080',
-    grpcAddress: 'localhost:50051',
+  const client = weaviate.next({
+    http: {
+      secure: false,
+      host: 'localhost',
+      port: 8080,
+    },
+    grpc: {
+      secure: false,
+      host: 'localhost',
+      port: 50051,
+    },
   });
 
   const className = 'TestCollectionQueryWithRefProp';
@@ -320,10 +334,17 @@ describe('Testing of the collection.query methods with a collection with a refer
   });
 
   describe('Testing of the collection.query methods with a collection with a nested property', () => {
-    const client = weaviate.client({
-      scheme: 'http',
-      host: 'localhost:8080',
-      grpcAddress: 'localhost:50051',
+    const client = weaviate.next({
+      http: {
+        secure: false,
+        host: 'localhost',
+        port: 8080,
+      },
+      grpc: {
+        secure: false,
+        host: 'localhost',
+        port: 50051,
+      },
     });
 
     const className = 'TestCollectionQueryWithNestedProp';
@@ -439,10 +460,17 @@ describe('Testing of the collection.query methods with a collection with a refer
 });
 
 describe('Testing of the groupBy collection.query methods with a simple collection', () => {
-  const client = weaviate.client({
-    scheme: 'http',
-    host: 'localhost:8080',
-    grpcAddress: 'localhost:50051',
+  const client = weaviate.next({
+    http: {
+      secure: false,
+      host: 'localhost',
+      port: 8080,
+    },
+    grpc: {
+      secure: false,
+      host: 'localhost',
+      port: 50051,
+    },
   });
 
   const className = 'TestCollectionGroupBySimple';

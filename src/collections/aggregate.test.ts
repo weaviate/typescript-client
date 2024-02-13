@@ -21,12 +21,18 @@ type TestCollectionAggregate = {
 };
 
 describe('Testing of the collection.aggregate methods', () => {
-  const client = weaviate.client({
-    scheme: 'http',
-    host: 'localhost:8080',
-    grpcAddress: 'localhost:50051',
+  const client = weaviate.next({
+    http: {
+      secure: false,
+      host: 'localhost',
+      port: 8080,
+    },
+    grpc: {
+      secure: false,
+      host: 'localhost',
+      port: 50051,
+    },
   });
-  const url = 'http://localhost:8080/v1';
 
   const className = 'TestCollectionAggregate';
   const collection = client.collections.get<TestCollectionAggregate>(className);

@@ -6,10 +6,17 @@ import { GenerateOptions } from './generate';
 const maybe = process.env.OPENAI_APIKEY ? describe : describe.skip;
 
 maybe('Testing of the collection.generate methods with a simple collection', () => {
-  const client = weaviate.client({
-    scheme: 'http',
-    host: 'localhost:8086',
-    grpcAddress: 'localhost:50057',
+  const client = weaviate.next({
+    http: {
+      secure: false,
+      host: 'localhost',
+      port: 8086,
+    },
+    grpc: {
+      secure: false,
+      host: 'localhost',
+      port: 50057,
+    },
     headers: {
       'X-Openai-Api-Key': process.env.OPENAI_APIKEY!,
     },

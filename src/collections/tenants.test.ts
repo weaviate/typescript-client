@@ -3,10 +3,17 @@ import weaviate from '..';
 import Configure from './configure';
 
 describe('Testing of the collection.data methods', () => {
-  const client = weaviate.client({
-    scheme: 'http',
-    host: 'localhost:8080',
-    grpcAddress: 'localhost:50051',
+  const client = weaviate.next({
+    http: {
+      secure: false,
+      host: 'localhost',
+      port: 8080,
+    },
+    grpc: {
+      secure: false,
+      host: 'localhost',
+      port: 50051,
+    },
   });
 
   const className = 'TestCollectionTenants';

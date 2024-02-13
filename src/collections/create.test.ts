@@ -7,17 +7,41 @@ const fail = (msg: string) => {
 };
 
 describe('Testing of the collections.create method', () => {
-  const cluster = weaviate.client({
-    scheme: 'http',
-    host: 'localhost:8087',
+  const cluster = weaviate.next({
+    http: {
+      secure: false,
+      host: 'localhost',
+      port: 8087,
+    },
+    grpc: {
+      secure: false,
+      host: 'localhost',
+      port: 50051,
+    },
   });
-  const contextionary = weaviate.client({
-    scheme: 'http',
-    host: 'localhost:8080',
+  const contextionary = weaviate.next({
+    http: {
+      secure: false,
+      host: 'localhost',
+      port: 8080,
+    },
+    grpc: {
+      secure: false,
+      host: 'localhost',
+      port: 50051,
+    },
   });
-  const openai = weaviate.client({
-    scheme: 'http',
-    host: 'localhost:8086',
+  const openai = weaviate.next({
+    http: {
+      secure: false,
+      host: 'localhost',
+      port: 8086,
+    },
+    grpc: {
+      secure: false,
+      host: 'localhost',
+      port: 50051,
+    },
   });
 
   it('should be able to create a simple collection', async () => {

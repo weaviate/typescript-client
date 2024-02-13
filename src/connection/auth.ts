@@ -1,5 +1,11 @@
 import { HttpClient } from './httpClient';
 
+export type AuthCredentials =
+  | AuthUserPasswordCredentials
+  | AuthAccessTokenCredentials
+  | AuthClientCredentials
+  | ApiKey;
+
 interface AuthenticatorResult {
   accessToken: string;
   expiresAt: number;

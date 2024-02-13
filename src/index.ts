@@ -14,11 +14,20 @@ import {
   AuthAccessTokenCredentials,
   AuthClientCredentials,
   AuthUserPasswordCredentials,
+  AuthCredentials,
   OidcAuthenticator,
 } from './connection/auth';
+import { connectToWCS } from './connection/helpers';
 import MetaGetter from './misc/metaGetter';
 import collections, { Collections } from './collections';
 import Configure from './collections/configure';
+import { Meta } from './openapi/types';
+
+export interface ProtocolParams {
+  secure: boolean;
+  host: string;
+  port: number;
+}
 
 export interface ConnectionParams {
   authClientSecret?: AuthClientCredentials | AuthAccessTokenCredentials | AuthUserPasswordCredentials;
@@ -27,6 +36,14 @@ export interface ConnectionParams {
   scheme?: string;
   headers?: HeadersInit;
   grpcAddress?: string;
+  grpcSecure?: boolean;
+}
+
+export interface ClientParams {
+  http: ProtocolParams;
+  grpc: ProtocolParams;
+  auth?: AuthCredentials;
+  headers?: HeadersInit;
 }
 
 export interface WeaviateClient {
@@ -34,12 +51,17 @@ export interface WeaviateClient {
   schema: Schema;
   data: Data;
   classifications: Classifications;
-  collections: Collections;
   batch: Batch;
   misc: Misc;
   c11y: C11y;
   backup: Backup;
   cluster: Cluster;
+  oidcAuth?: OidcAuthenticator;
+}
+
+export interface WeaviateNextClient {
+  collections: Collections;
+  getMeta: () => Promise<Meta>;
   oidcAuth?: OidcAuthenticator;
 }
 
@@ -60,7 +82,6 @@ const app = {
       schema: schema(conn),
       data: data(conn, dbVersionSupport),
       classifications: classifications(conn),
-      collections: collections(conn, dbVersionSupport),
       batch: batch(conn, dbVersionSupport),
       misc: misc(conn, dbVersionProvider),
       c11y: c11y(conn),
@@ -72,6 +93,37 @@ const app = {
 
     return ifc;
   },
+  connectToWCS: function (clusterURL: string, options?: ConnectToWCSOptions): Promise<WeaviateNextClient> {
+    return connectToWCS(clusterURL, options);
+  },
+  next: function (params: ClientParams): WeaviateNextClient {
+    // check if the URL is set
+    if (!params.http.host) throw new Error('Missing `host` parameter');
+
+    // check if headers are set
+    if (!params.headers) params.headers = {};
+
+    const conn = new Connection({
+      host: params.http.host,
+      scheme: params.http.secure ? 'https' : 'http',
+      headers: params.headers,
+      grpcAddress: `${params.grpc.host}:${params.grpc.port}`,
+      grpcSecure: params.grpc.secure,
+      apiKey: params.auth instanceof ApiKey ? params.auth : undefined,
+      authClientSecret: params.auth instanceof ApiKey ? undefined : params.auth,
+    });
+
+    const dbVersionProvider = initDbVersionProvider(conn);
+    const dbVersionSupport = new DbVersionSupport(dbVersionProvider);
+
+    const ifc: WeaviateNextClient = {
+      collections: collections(conn, dbVersionSupport),
+      getMeta: () => new MetaGetter(conn).do(),
+    };
+    if (conn.oidcAuth) ifc.oidcAuth = conn.oidcAuth;
+
+    return ifc;
+  },
 
   ApiKey,
   AuthUserPasswordCredentials,
@@ -79,6 +131,11 @@ const app = {
   AuthClientCredentials,
   Configure,
 };
+
+export interface ConnectToWCSOptions {
+  authCredentials?: AuthCredentials;
+  headers?: Record<string, string>;
+}
 
 function initDbVersionProvider(conn: Connection) {
   const metaGetter = new MetaGetter(conn);

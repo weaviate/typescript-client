@@ -5,10 +5,17 @@ import { Filters } from './filters';
 import { CrossReference, Reference } from './references';
 
 describe('Testing of the filter class with a simple collection', () => {
-  const client = weaviate.client({
-    scheme: 'http',
-    host: 'localhost:8080',
-    grpcAddress: 'localhost:50051',
+  const client = weaviate.next({
+    http: {
+      secure: false,
+      host: 'localhost',
+      port: 8080,
+    },
+    grpc: {
+      secure: false,
+      host: 'localhost',
+      port: 50051,
+    },
   });
 
   const className = 'TestCollectionFilterSimple';

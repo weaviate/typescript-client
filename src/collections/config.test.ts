@@ -7,9 +7,17 @@ const fail = (msg: string) => {
 };
 
 describe('Testing of the collection.config namespace', () => {
-  const client = weaviate.client({
-    scheme: 'http',
-    host: 'localhost:8080',
+  const client = weaviate.next({
+    http: {
+      secure: false,
+      host: 'localhost',
+      port: 8080,
+    },
+    grpc: {
+      secure: false,
+      host: 'localhost',
+      port: 50051,
+    },
   });
 
   it('should be able get the config of a collection without generics', async () => {

@@ -1,6 +1,6 @@
 import { ConnectionParams, ConsistencyLevel } from '..';
 
-import { createChannel, createClient, Metadata } from 'nice-grpc';
+import { ChannelCredentials, createChannel, createClient, Metadata } from 'nice-grpc';
 
 import { WeaviateDefinition, WeaviateClient } from '../proto/v1/weaviate';
 
@@ -21,7 +21,13 @@ export default (config: ConnectionParams): GrpcClient | undefined => {
   if (!config.grpcAddress) {
     return undefined;
   }
-  const client: WeaviateClient = createClient(WeaviateDefinition, createChannel(config.grpcAddress));
+  const client: WeaviateClient = createClient(
+    WeaviateDefinition,
+    createChannel(
+      config.grpcAddress,
+      config.grpcSecure ? ChannelCredentials.createSsl() : ChannelCredentials.createInsecure()
+    )
+  );
   return {
     batch: (consistencyLevel?: ConsistencyLevel, bearerToken?: string) =>
       Batcher.use(

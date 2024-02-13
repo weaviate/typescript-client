@@ -18,6 +18,7 @@ import {
   Vectorizers,
   VectorizersOptions,
 } from './types';
+import ClassExists from '../schema/classExists';
 
 class ReferenceTypeGuards {
   static isSingleTarget<T>(ref: ReferenceConfigCreate<T>): ref is ReferenceSingleTargetConfigCreate<T> {
@@ -99,6 +100,7 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
       return new ClassCreator(connection).withClass(schema).do();
     },
     delete: (name: string) => new ClassDeleter(connection).withClassName(name).do(),
+    exists: (name: string) => new ClassExists(connection).withClassName(name).do(),
     get: <TProperties extends Properties>(name: string) =>
       collection<TProperties>(connection, name, dbVersionSupport),
   };
@@ -115,6 +117,7 @@ export interface Collections {
     class_: CollectionConfigCreate<TProperties, Index, Generative, Reranker, Vectorizer>
   ): Promise<WeaviateClass>;
   delete(class_: string): Promise<void>;
+  exists(name: string): Promise<boolean>;
   get<TProperties extends Properties = any>(name: string): Collection<TProperties>;
 }
 
