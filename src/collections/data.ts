@@ -9,7 +9,7 @@ import {
 import { buildObjectsPath, buildRefsPath } from '../batch/path';
 import { ObjectsPath, ReferencesPath } from '../data/path';
 import { DbVersionSupport } from '../utils/dbVersion';
-import { ConsistencyLevel } from '../data';
+import { Checker, ConsistencyLevel } from '../data';
 import { ReferenceManager, uuidToBeacon } from './references';
 import Serialize, { DataGuards } from './serialize';
 import {
@@ -58,6 +58,7 @@ export interface UpdateArgs<T> extends ReplaceArgs<T> {}
 export interface Data<T extends Properties> {
   delete: (id: string) => Promise<boolean>;
   deleteMany: (where: FilterValue, opts?: DeleteManyOptions) => Promise<BatchDeleteResult>;
+  exists: (id: string) => Promise<boolean>;
   insert: (args: InsertArgs<T> | NonReferenceInputs<T>) => Promise<string>;
   insertMany: (objects: (DataObject<T> | NonReferenceInputs<T>)[]) => Promise<BatchObjectsReturn<T>>;
   referenceAdd: <P extends Properties>(args: ReferenceArgs<P>) => Promise<void>;
@@ -130,6 +131,8 @@ const data = <T extends Properties>(
         .delete(path, parseDeleteMany(where, opts), true)
         .then((res: BatchDeleteResponse) => res.results);
     },
+    exists: (id: string): Promise<boolean> =>
+      new Checker(connection, objectsPath).withId(id).withClassName(name).do(),
     insert: (args: InsertArgs<T> | NonReferenceInputs<T>): Promise<string> =>
       objectsPath
         .buildCreate(consistencyLevel)

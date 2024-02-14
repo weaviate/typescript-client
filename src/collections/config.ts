@@ -238,10 +238,7 @@ class ConfigGuards {
       bq: ConfigGuards.bq(v.bq),
     };
   }
-  static vectorIndex<I extends VectorIndexType>(
-    v: WeaviateVectorIndexConfig,
-    t?: string
-  ): VectorIndexConfig<I> {
+  static vectorIndex<I>(v: WeaviateVectorIndexConfig, t?: string): VectorIndexConfig<I> {
     if (t === undefined) throw new Error('Vector index type was not returned by Weaviate');
     if (t === 'hnsw') {
       return ConfigGuards.vectorIndexHNSW(v) as VectorIndexConfig<I>;
@@ -249,7 +246,7 @@ class ConfigGuards {
       return ConfigGuards.vectorIndexFlat(v) as VectorIndexConfig<I>;
     }
   }
-  static vectorIndexType<I extends VectorIndexType>(v?: string): I {
+  static vectorIndexType<I>(v?: string): I {
     if (!populated(v)) throw new Error('Vector index type was not returned by Weaviate');
     return v as I;
   }
@@ -303,15 +300,7 @@ class ConfigGuards {
   }
 }
 
-const classToCollection = <
-  T extends Properties,
-  I extends VectorIndexType,
-  G extends GenerativeSearches,
-  R extends Rerankers,
-  V extends Vectorizers
->(
-  cls: WeaviateClass
-): CollectionConfig<T, I, G, R, V> => {
+export const classToCollection = <T, I, G, R, V>(cls: WeaviateClass): CollectionConfig<T, I, G, R, V> => {
   return {
     name: ConfigGuards._name(cls.class),
     description: cls.description,

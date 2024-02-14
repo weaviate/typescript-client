@@ -2,8 +2,9 @@ import Connection from '../connection';
 import { DbVersionSupport } from '../utils/dbVersion';
 import collection, { Collection } from './collection';
 import { WeaviateClass } from '../openapi/types';
-import { ClassCreator, ClassDeleter } from '../schema';
+import { ClassCreator, ClassDeleter, ClassGetter, SchemaGetter } from '../schema';
 import {
+  CollectionConfig,
   CollectionConfigCreate,
   GenerativeSearches,
   GenerativeSearchesOptions,
@@ -19,6 +20,7 @@ import {
   VectorizersOptions,
 } from './types';
 import ClassExists from '../schema/classExists';
+import { classToCollection } from './config';
 
 class ReferenceTypeGuards {
   static isSingleTarget<T>(ref: ReferenceConfigCreate<T>): ref is ReferenceSingleTargetConfigCreate<T> {
@@ -30,6 +32,13 @@ class ReferenceTypeGuards {
 }
 
 const collections = (connection: Connection, dbVersionSupport: DbVersionSupport) => {
+  const listAll = () =>
+    new SchemaGetter(connection)
+      .do()
+      .then((schema) =>
+        schema.classes ? schema.classes?.map(classToCollection<any, any, any, any, any>) : []
+      );
+  const deleteCollection = (name: string) => new ClassDeleter(connection).withClassName(name).do();
   return {
     create: <TProperties, IndexType, GenerativeModule, RerankerModule, VectorizerModule>(
       config: CollectionConfigCreate<
@@ -97,12 +106,25 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
         vectorIndexConfig: vectorIndex ? vectorIndex.options : undefined,
         vectorIndexType: vectorIndex ? vectorIndex.name : 'hnsw',
       };
-      return new ClassCreator(connection).withClass(schema).do();
+      return new ClassCreator(connection)
+        .withClass(schema)
+        .do()
+        .then(classToCollection<TProperties, IndexType, GenerativeModule, RerankerModule, VectorizerModule>);
     },
-    delete: (name: string) => new ClassDeleter(connection).withClassName(name).do(),
+    delete: deleteCollection,
+    deleteAll: () =>
+      listAll().then((classes) =>
+        classes ? Promise.all(classes?.map((c) => deleteCollection(c.name))) : Promise.resolve([])
+      ),
     exists: (name: string) => new ClassExists(connection).withClassName(name).do(),
+    export: <TProperties, IndexType, GenerativeModule, RerankerModule, VectorizerModule>(name: string) =>
+      new ClassGetter(connection)
+        .withClassName(name)
+        .do()
+        .then(classToCollection<TProperties, IndexType, GenerativeModule, RerankerModule, VectorizerModule>),
     get: <TProperties extends Properties>(name: string) =>
       collection<TProperties>(connection, name, dbVersionSupport),
+    listAll: listAll,
   };
 };
 
@@ -115,10 +137,21 @@ export interface Collections {
     Vectorizer extends Vectorizers = 'none'
   >(
     class_: CollectionConfigCreate<TProperties, Index, Generative, Reranker, Vectorizer>
-  ): Promise<WeaviateClass>;
+  ): Promise<CollectionConfig<TProperties, Index, Generative, Reranker, Vectorizer>>;
   delete(class_: string): Promise<void>;
+  deleteAll(): Promise<void[]>;
   exists(name: string): Promise<boolean>;
+  export<
+    TProperties,
+    Index extends VectorIndexType = string,
+    Generative extends GenerativeSearches = string,
+    Reranker extends Rerankers = string,
+    Vectorizer extends Vectorizers = string
+  >(
+    name: string
+  ): Promise<CollectionConfig<TProperties, Index, Generative, Reranker, Vectorizer>>;
   get<TProperties extends Properties = any>(name: string): Collection<TProperties>;
+  listAll(): Promise<CollectionConfig<any, any, any, any, any>[]>;
 }
 
 export default collections;

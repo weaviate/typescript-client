@@ -8,7 +8,8 @@ import misc, { Misc } from './misc';
 import c11y, { C11y } from './c11y';
 import { DbVersionProvider, DbVersionSupport } from './utils/dbVersion';
 import backup, { Backup } from './backup';
-import cluster, { Cluster } from './cluster';
+import clusterV3, { Cluster as ClusterV3 } from './cluster';
+import cluster, { Cluster } from './collections/cluster';
 import {
   ApiKey,
   AuthAccessTokenCredentials,
@@ -55,11 +56,12 @@ export interface WeaviateClient {
   misc: Misc;
   c11y: C11y;
   backup: Backup;
-  cluster: Cluster;
+  cluster: ClusterV3;
   oidcAuth?: OidcAuthenticator;
 }
 
 export interface WeaviateNextClient {
+  cluster: Cluster;
   collections: Collections;
   getMeta: () => Promise<Meta>;
   oidcAuth?: OidcAuthenticator;
@@ -86,7 +88,7 @@ const app = {
       misc: misc(conn, dbVersionProvider),
       c11y: c11y(conn),
       backup: backup(conn),
-      cluster: cluster(conn),
+      cluster: clusterV3(conn),
     };
 
     if (conn.oidcAuth) ifc.oidcAuth = conn.oidcAuth;
@@ -94,7 +96,7 @@ const app = {
     return ifc;
   },
   connectToWCS: function (clusterURL: string, options?: ConnectToWCSOptions): Promise<WeaviateNextClient> {
-    return connectToWCS(clusterURL, options);
+    return connectToWCS(clusterURL, this.next, options);
   },
   next: function (params: ClientParams): WeaviateNextClient {
     // check if the URL is set
@@ -120,6 +122,7 @@ const app = {
     const dbVersionSupport = new DbVersionSupport(dbVersionProvider);
 
     const ifc: WeaviateNextClient = {
+      cluster: cluster(conn),
       collections: collections(conn, dbVersionSupport),
       getMeta: () => new MetaGetter(conn).do(),
     };

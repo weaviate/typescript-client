@@ -55,5 +55,8 @@ export type WeaviateShardingConfig = WeaviateClass['shardingConfig'];
 export type WeaviateVectorIndexConfig = WeaviateClass['vectorIndexConfig'];
 // Nodes
 export type NodesStatusResponse = definitions['NodesStatusResponse'];
+export type NodeStats = definitions['NodeStats'];
+export type BatchStats = definitions['BatchStats'];
+export type NodeShardStatus = definitions['NodeShardStatus'];
 // Meta
 export type Meta = definitions['Meta'];

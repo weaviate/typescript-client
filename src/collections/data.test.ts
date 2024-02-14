@@ -379,4 +379,9 @@ describe('Testing of the collection.data methods', () => {
     expect(obj1?.properties.phone?.input).toEqual('+441612345000');
     expect(obj2?.properties.phone?.input).toEqual('+441612345000');
   });
+
+  it('should be able to verify that an object exists', async () => {
+    const exists = await collection.data.exists(existingID);
+    expect(exists).toBeTruthy();
+  });
 });

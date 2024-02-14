@@ -1,12 +1,13 @@
 import { ApiKey } from '.';
-import { connectToWCS } from './helpers';
+import weaviate from '..';
 
 describe('Testing of the connection helper methods', () => {
   const collectionName = 'MyHelperConnectionsTestCollection';
   it('should connect to a WCS cluster using REST', () => {
-    connectToWCS('https://grpc-web-testing-832t1mjs.weaviate.network', {
-      authCredentials: new ApiKey('X8FEXBFBaHVRmDix9FgVHwoSfslD40FTc61b'),
-    })
+    weaviate
+      .connectToWCS('https://grpc-web-testing-832t1mjs.weaviate.network', {
+        authCredentials: new ApiKey('X8FEXBFBaHVRmDix9FgVHwoSfslD40FTc61b'),
+      })
       .then((client) => client.getMeta())
       .then((res: any) => {
         expect(res.version).toBeDefined();
@@ -17,9 +18,10 @@ describe('Testing of the connection helper methods', () => {
   });
 
   it('should connect to a WCS cluster using gRPC', () => {
-    return connectToWCS('https://grpc-web-testing-832t1mjs.weaviate.network', {
-      authCredentials: new ApiKey('X8FEXBFBaHVRmDix9FgVHwoSfslD40FTc61b'),
-    })
+    return weaviate
+      .connectToWCS('https://grpc-web-testing-832t1mjs.weaviate.network', {
+        authCredentials: new ApiKey('X8FEXBFBaHVRmDix9FgVHwoSfslD40FTc61b'),
+      })
       .then((client) => {
         return client.collections
           .delete(collectionName)

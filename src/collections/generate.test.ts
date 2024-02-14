@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
 import weaviate from '..';
 import { GenerateOptions } from './generate';
+import { GroupByOptions } from './types';
 
 const maybe = process.env.OPENAI_APIKEY ? describe : describe.skip;
 
@@ -55,6 +56,7 @@ maybe('Testing of the collection.generate methods with a simple collection', () 
             dataType: 'text',
           },
         ],
+        generative: weaviate.Configure.Generative.openai(),
         vectorizer: weaviate.Configure.Vectorizer.text2VecOpenAI({ vectorizeClassName: false }),
       })
       .then(() => {
@@ -145,7 +147,7 @@ maybe('Testing of the collection.generate methods with a simple collection', () 
       expect(ret.objects[0].generated).toBeDefined();
     });
 
-    it('should query with nearVector', async () => {
+    it('should generate with nearVector', async () => {
       const ret = await collection.generate.nearVector(vector, {
         ...generateOpts,
       });
@@ -155,5 +157,172 @@ maybe('Testing of the collection.generate methods with a simple collection', () 
       expect(ret.objects[0].uuid).toEqual(id);
       expect(ret.objects[0].generated).toBeDefined();
     });
+  });
+});
+
+describe('Testing of the groupBy collection.generate methods with a simple collection', () => {
+  const client = weaviate.next({
+    http: {
+      secure: false,
+      host: 'localhost',
+      port: 8086,
+    },
+    grpc: {
+      secure: false,
+      host: 'localhost',
+      port: 50057,
+    },
+    headers: {
+      'X-Openai-Api-Key': process.env.OPENAI_APIKEY!,
+    },
+  });
+
+  const className = 'TestCollectionGenerateGroupBySimple';
+  let id: string;
+  let vector: number[];
+
+  type TestCollectionGenerateGroupBySimple = {
+    testProp: string;
+  };
+
+  const collection = client.collections.get<TestCollectionGenerateGroupBySimple>(className);
+
+  const generateOpts: GenerateOptions<TestCollectionGenerateGroupBySimple> = {
+    singlePrompt: 'Write a haiku about ducks for {testProp}',
+    groupedTask: 'What is the value of testProp here?',
+    groupedProperties: ['testProp'],
+  };
+
+  const groupByArgs: GroupByOptions<TestCollectionGenerateGroupBySimple> = {
+    numberOfGroups: 1,
+    objectsPerGroup: 1,
+    property: 'testProp',
+  };
+
+  afterAll(() => {
+    return client.collections.delete(className).catch((err) => {
+      console.error(err);
+      throw err;
+    });
+  });
+
+  beforeAll(async () => {
+    id = await client.collections
+      .create({
+        name: className,
+        properties: [
+          {
+            name: 'testProp',
+            dataType: 'text',
+          },
+        ],
+        generative: weaviate.Configure.Generative.openai(),
+        vectorizer: weaviate.Configure.Vectorizer.text2VecOpenAI({ vectorizeClassName: false }),
+      })
+      .then(() => {
+        return collection.data.insert({
+          properties: {
+            testProp: 'test',
+          },
+        });
+      });
+    const res = await collection.query.fetchObjectById(id, { includeVector: true });
+    vector = res?.vector!;
+  });
+
+  // it('should groupBy without search', async () => {
+  //   const ret = await collection.groupBy.fetchObjects(groupByArgs);
+  //   expect(ret.objects.length).toEqual(1);
+  //   expect(ret.groups).toBeDefined();
+  //   expect(Object.keys(ret.groups)).toEqual(['test']);
+  //   expect(ret.objects[0].properties.testProp).toEqual('test');
+  //   expect(ret.objects[0].metadata.uuid).toEqual(id);
+  //   expect(ret.objects[0].belongsToGroup).toEqual('test');
+  // });
+
+  // it('should groupBy without search specifying return properties', async () => {
+  //   const ret = await collection.groupBy.fetchObjects({
+  //     returnProperties: ['testProp'],
+  //     returnMetadata: ['uuid'],
+  //     ...groupByArgs,
+  //   });
+  //   expect(ret.objects.length).toEqual(1);
+  //   expect(ret.groups).toBeDefined();
+  //   expect(Object.keys(ret.groups)).toEqual(['test']);
+  //   expect(ret.objects[0].properties.testProp).toEqual('test');
+  //   expect(ret.objects[0].metadata.uuid).toEqual(id);
+  //   expect(ret.objects[0].belongsToGroup).toEqual('test');
+  // });
+
+  // it('should groupBy with bm25', async () => {
+  //   const ret = await collection.groupBy.bm25({
+  //     query: 'test',
+  //     ...groupByArgs,
+  //   });
+  //   expect(ret.objects.length).toEqual(1);
+  //   expect(ret.groups).toBeDefined();
+  //   expect(Object.keys(ret.groups)).toEqual(['test']);
+  //   expect(ret.objects[0].properties.testProp).toEqual('test');
+  //   expect(ret.objects[0].metadata.uuid).toEqual(id);
+  //   expect(ret.objects[0].belongsToGroup).toEqual('test');
+  // });
+
+  // it('should groupBy with hybrid', async () => {
+  //   const ret = await collection.groupBy.hybrid({
+  //     query: 'test',
+  //     ...groupByArgs,
+
+  //   });
+  //   expect(ret.objects.length).toEqual(1);
+  //   expect(ret.groups).toBeDefined();
+  //   expect(Object.keys(ret.groups)).toEqual(['test']);
+  //   expect(ret.objects[0].properties.testProp).toEqual('test');
+  //   expect(ret.objects[0].metadata.uuid).toEqual(id);
+  //   expect(ret.objects[0].belongsToGroup).toEqual('test');
+  // });
+
+  it('should groupBy with nearObject', async () => {
+    const ret = await collection.generate.nearObject(id, {
+      groupBy: groupByArgs,
+      ...generateOpts,
+    });
+    expect(ret.objects.length).toEqual(1);
+    expect(ret.groups).toBeDefined();
+    expect(ret.generated).toBeDefined();
+    expect(Object.keys(ret.groups)).toEqual(['test']);
+    expect(ret.groups.test.generated).toBeDefined();
+    expect(ret.objects[0].properties.testProp).toEqual('test');
+    expect(ret.objects[0].uuid).toEqual(id);
+    expect(ret.objects[0].belongsToGroup).toEqual('test');
+  });
+
+  it('should groupBy with nearText', async () => {
+    const ret = await collection.generate.nearText(['test'], {
+      groupBy: groupByArgs,
+      ...generateOpts,
+    });
+    expect(ret.objects.length).toEqual(1);
+    expect(ret.groups).toBeDefined();
+    expect(ret.generated).toBeDefined();
+    expect(Object.keys(ret.groups)).toEqual(['test']);
+    expect(ret.groups.test.generated).toBeDefined();
+    expect(ret.objects[0].properties.testProp).toEqual('test');
+    expect(ret.objects[0].uuid).toEqual(id);
+    expect(ret.objects[0].belongsToGroup).toEqual('test');
+  });
+
+  it('should groupBy with nearVector', async () => {
+    const ret = await collection.generate.nearVector(vector, {
+      groupBy: groupByArgs,
+      ...generateOpts,
+    });
+    expect(ret.objects.length).toEqual(1);
+    expect(ret.groups).toBeDefined();
+    expect(ret.generated).toBeDefined();
+    expect(Object.keys(ret.groups)).toEqual(['test']);
+    expect(ret.groups.test.generated).toBeDefined();
+    expect(ret.objects[0].properties.testProp).toEqual('test');
+    expect(ret.objects[0].uuid).toEqual(id);
+    expect(ret.objects[0].belongsToGroup).toEqual('test');
   });
 });

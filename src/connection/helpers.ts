@@ -1,4 +1,4 @@
-import weaviate, { WeaviateNextClient } from '..';
+import { ClientParams, WeaviateNextClient } from '..';
 import {
   ApiKey,
   AuthAccessTokenCredentials,
@@ -12,7 +12,11 @@ export interface ConnectToWCSOptions {
   headers?: Record<string, string>;
 }
 
-export function connectToWCS(clusterURL: string, options?: ConnectToWCSOptions): Promise<WeaviateNextClient> {
+export function connectToWCS(
+  clusterURL: string,
+  clientMaker: (params: ClientParams) => WeaviateNextClient,
+  options?: ConnectToWCSOptions
+): Promise<WeaviateNextClient> {
   // check if the URL is set
   if (!clusterURL) throw new Error('Missing `clusterURL` parameter');
 
@@ -44,7 +48,7 @@ export function connectToWCS(clusterURL: string, options?: ConnectToWCSOptions):
     authClientSecret = options?.authCredentials;
   }
 
-  const client = weaviate.next({
+  const client = clientMaker({
     http: {
       secure: true,
       host: url.hostname,
