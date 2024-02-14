@@ -20,4 +20,5 @@ services:
       DEFAULT_VECTORIZER_MODULE: 'text2vec-openai'
       ENABLE_MODULES: 'text2vec-openai,generative-openai'
       CLUSTER_HOSTNAME: 'node1'
+      DISABLE_TELEMETRY: 'true'
 ...

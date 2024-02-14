@@ -15,6 +15,7 @@ services:
       ENABLE_MODULES: text2vec-contextionary
       CLUSTER_GOSSIP_BIND_PORT: "7110"
       CLUSTER_DATA_BIND_PORT: "7111"
+      DISABLE_TELEMETRY: 'true'
 
   weaviate-node-2:
     init: true
@@ -42,4 +43,5 @@ services:
       CLUSTER_GOSSIP_BIND_PORT: '7112'
       CLUSTER_DATA_BIND_PORT: '7113'
       CLUSTER_JOIN: 'weaviate-node-1:7110'
+      DISABLE_TELEMETRY: 'true'
 ...
