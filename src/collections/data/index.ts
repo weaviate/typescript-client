@@ -1,17 +1,17 @@
-import Connection from '../connection';
+import Connection from '../../connection';
 
 import {
   WeaviateObject,
   BatchDeleteResponse,
   BatchReference,
   BatchReferenceResponse,
-} from '../openapi/types';
-import { buildObjectsPath, buildRefsPath } from '../batch/path';
-import { ObjectsPath, ReferencesPath } from '../data/path';
-import { DbVersionSupport } from '../utils/dbVersion';
-import { Checker, ConsistencyLevel, Creator } from '../data';
-import { ReferenceManager, uuidToBeacon } from './references';
-import Serialize, { DataGuards } from './serialize';
+} from '../../openapi/types';
+import { buildObjectsPath, buildRefsPath } from '../../batch/path';
+import { ObjectsPath, ReferencesPath } from '../../data/path';
+import { DbVersionSupport } from '../../utils/dbVersion';
+import { Checker, ConsistencyLevel, Creator } from '../../data';
+import { ReferenceManager, uuidToBeacon } from '../references';
+import Serialize, { DataGuards } from '../serialize';
 import {
   BatchObjectsReturn,
   BatchReferencesReturn,
@@ -21,11 +21,11 @@ import {
   Properties,
   ReferenceInputs,
   Refs,
-} from './types';
-import { FilterValue } from './filters';
-import Deserialize from './deserialize';
+} from '../types';
+import { FilterValue } from '../filters';
+import Deserialize from '../deserialize';
 
-import { addContext } from '.';
+import { addContext } from '..';
 
 export interface DeleteManyOptions {
   verbose?: boolean;

@@ -1,11 +1,11 @@
-import Connection from '../connection';
+import Connection from '../../connection';
 
-import { DbVersionSupport } from '../utils/dbVersion';
-import { ConsistencyLevel } from '../data';
+import { DbVersionSupport } from '../../utils/dbVersion';
+import { ConsistencyLevel } from '../../data';
 
-import { FilterValue } from './filters';
+import { FilterValue } from '../filters';
 
-import { Aggregator } from '../graphql';
+import { Aggregator } from '../../graphql';
 
 type Properties = Record<string, any>;
 

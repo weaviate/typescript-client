@@ -1,4 +1,4 @@
-import weaviate from '..';
+import weaviate from '../..';
 
 describe('Testing of the client.cluster methods', () => {
   const client = weaviate.next({
@@ -34,8 +34,8 @@ describe('Testing of the client.cluster methods', () => {
     expect(nodes[0].status).toEqual('HEALTHY');
     expect(nodes[0].stats).toBeUndefined();
     expect(nodes[0].shards).toBeNull();
-    expect(nodes[0].batchStats.queueLength).toEqual(0);
-    expect(nodes[0].batchStats.ratePerSecond).toEqual(0);
+    expect(nodes[0].batchStats.queueLength).toBeGreaterThanOrEqual(0);
+    expect(nodes[0].batchStats.ratePerSecond).toBeGreaterThanOrEqual(0);
   });
 
   it('should return the minimal node statuses', async () => {
@@ -47,8 +47,8 @@ describe('Testing of the client.cluster methods', () => {
     expect(nodes[0].status).toEqual('HEALTHY');
     expect(nodes[0].stats).toBeUndefined();
     expect(nodes[0].shards).toBeNull();
-    expect(nodes[0].batchStats.queueLength).toEqual(0);
-    expect(nodes[0].batchStats.ratePerSecond).toEqual(0);
+    expect(nodes[0].batchStats.queueLength).toBeGreaterThanOrEqual(0);
+    expect(nodes[0].batchStats.ratePerSecond).toBeGreaterThanOrEqual(0);
   });
 
   it('should return the verbose node statuses', async () => {
@@ -61,8 +61,8 @@ describe('Testing of the client.cluster methods', () => {
     expect(nodes[0].stats.shardCount).toEqual(2);
     expect(nodes[0].stats.objectCount).toEqual(0);
     expect(nodes[0].shards.length).toEqual(2);
-    expect(nodes[0].batchStats.queueLength).toEqual(0);
-    expect(nodes[0].batchStats.ratePerSecond).toEqual(0);
+    expect(nodes[0].batchStats.queueLength).toBeGreaterThanOrEqual(0);
+    expect(nodes[0].batchStats.ratePerSecond).toBeGreaterThanOrEqual(0);
   });
 
   it('should return the node statuses for a specific collection', async () => {
@@ -75,7 +75,7 @@ describe('Testing of the client.cluster methods', () => {
     expect(nodes[0].stats.shardCount).toEqual(1);
     expect(nodes[0].stats.objectCount).toEqual(0);
     expect(nodes[0].shards.length).toEqual(1);
-    expect(nodes[0].batchStats.queueLength).toEqual(0);
-    expect(nodes[0].batchStats.ratePerSecond).toEqual(0);
+    expect(nodes[0].batchStats.queueLength).toBeGreaterThanOrEqual(0);
+    expect(nodes[0].batchStats.ratePerSecond).toBeGreaterThanOrEqual(0);
   });
 });

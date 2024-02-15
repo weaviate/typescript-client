@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
-import weaviate from '..';
-import { Filters } from './filters';
-import { CrossReference, Reference } from './references';
+import weaviate from '../..';
+import { Filters } from '.';
+import { CrossReference, Reference } from '../references';
 
 describe('Testing of the filter class with a simple collection', () => {
   const client = weaviate.next({

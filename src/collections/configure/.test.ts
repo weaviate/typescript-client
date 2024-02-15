@@ -1,4 +1,4 @@
-import Configure from './configure';
+import Configure from '.';
 
 describe('Unit testing of the Configure factory class', () => {
   it('should create the correct InvertedIndexConfig type with defaults', () => {

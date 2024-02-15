@@ -27,7 +27,7 @@ import {
   Text2VecOpenAIOptions,
   VectorDistance,
   VectorIndexConfigHNSWCreate,
-} from './types';
+} from '../types';
 
 class Vectorizer {
   static none = (): ModuleOptions<'none', Record<string, never>> => {

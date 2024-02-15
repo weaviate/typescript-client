@@ -1,4 +1,4 @@
-import { NonRefKeys, Properties, SortBy } from './types';
+import { NonRefKeys, Properties, SortBy } from '../types';
 
 export class Sorting<T> {
   private sorts: SortBy[];

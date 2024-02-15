@@ -1,10 +1,10 @@
-import Connection from '../connection';
+import Connection from '../../connection';
 
-import { DbVersionSupport } from '../utils/dbVersion';
-import { ConsistencyLevel } from '../data';
+import { DbVersionSupport } from '../../utils/dbVersion';
+import { ConsistencyLevel } from '../../data';
 
-import Deserialize from './deserialize';
-import Serialize from './serialize';
+import Deserialize from '../deserialize';
+import Serialize from '../serialize';
 import {
   QueryFetchObjectsOptions,
   QueryBm25Options,
@@ -12,15 +12,15 @@ import {
   QueryNearTextOptions,
   QueryNearOptions,
   QueryNearMediaType,
-} from './query';
+} from '../query';
 import {
   GenerativeReturn,
   GenerativeGroupByReturn,
   GroupByOptions,
   Properties,
   WeaviateReturn,
-} from './types';
-import { SearchReply } from '../proto/v1/search_get';
+} from '../types';
+import { SearchReply } from '../../proto/v1/search_get';
 
 export interface GenerateOptions<T extends Properties> {
   singlePrompt?: string;

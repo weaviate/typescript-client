@@ -3,8 +3,8 @@ import {
   FilterReferenceCount,
   FilterReferenceMultiTarget,
   FilterReferenceSingleTarget,
-} from '../proto/v1/base';
-import { ExtractCrossReferenceType, NonRefKeys, Properties, RefKeys } from './types';
+} from '../../proto/v1/base';
+import { ExtractCrossReferenceType, NonRefKeys, Properties, RefKeys } from '../types';
 
 export type Operator =
   | 'Equal'

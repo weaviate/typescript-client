@@ -1,4 +1,4 @@
-import { WeaviateObject } from './types';
+import { WeaviateObject } from '../types';
 
 const ITERATOR_CACHE_SIZE = 100;
 

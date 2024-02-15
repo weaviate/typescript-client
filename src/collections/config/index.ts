@@ -1,4 +1,4 @@
-import Connection from '../connection';
+import Connection from '../../connection';
 import {
   WeaviateClass,
   WeaviateInvertedIndexConfig,
@@ -10,8 +10,8 @@ import {
   WeaviateShardingConfig,
   WeaviateVectorIndexConfig,
   WeaviateProperty,
-} from '../openapi/types';
-import { ClassDeleter, ClassGetter } from '../schema';
+} from '../../openapi/types';
+import { ClassDeleter, ClassGetter } from '../../schema';
 import {
   BQConfig,
   CollectionConfig,
@@ -39,7 +39,7 @@ import {
   VectorIndexType,
   VectorizerConfig,
   Vectorizers,
-} from './types';
+} from '../types';
 
 function populated<T>(v: T | null | undefined): v is T {
   return v !== undefined && v !== null;

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import weaviate from '..';
-import Configure from './configure';
+import weaviate from '../..';
+import Configure from '../configure';
 
 describe('Testing of the collection.data methods', () => {
   const client = weaviate.next({

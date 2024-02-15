@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
-import weaviate from '..';
-import { GenerateOptions } from './generate';
-import { GroupByOptions } from './types';
+import weaviate from '../..';
+import { GenerateOptions } from '.';
+import { GroupByOptions } from '../types';
 
 const maybe = process.env.OPENAI_APIKEY ? describe : describe.skip;
 

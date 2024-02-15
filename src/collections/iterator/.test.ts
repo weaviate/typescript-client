@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
-import weaviate from '..';
-import { CrossReference, Reference } from './references';
-import { GroupByOptions } from './types';
+import weaviate from '../..';
+import { CrossReference, Reference } from '../references';
+import { GroupByOptions } from '../types';
 
 describe('Testing of the collection.iterator method with a simple collection', () => {
   const client = weaviate.next({

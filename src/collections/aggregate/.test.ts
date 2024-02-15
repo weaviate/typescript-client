@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
-import weaviate from '..';
+import weaviate from '../..';
 import { v4 } from 'uuid';
-import { DataObject } from './types';
-import { CrossReference, Reference } from './references';
-import { Metrics } from './aggregate';
+import { DataObject } from '../types';
+import { CrossReference, Reference } from '../references';
+import { Metrics } from '.';
 
 type TestCollectionAggregate = {
   text: string;

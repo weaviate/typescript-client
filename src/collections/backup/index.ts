@@ -5,9 +5,9 @@ import {
   BackupRestoreStatusGetter,
   BackupRestorer,
   BackupStatus,
-} from '../backup';
-import Connection from '../connection';
-import { BackupCreateResponse, BackupRestoreStatusResponse } from '../openapi/types';
+} from '../../backup';
+import Connection from '../../connection';
+import { BackupCreateResponse, BackupRestoreStatusResponse } from '../../openapi/types';
 
 export interface BackupArgs {
   backupId: string;
