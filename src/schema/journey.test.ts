@@ -155,6 +155,9 @@ describe('schema', () => {
                   segments: 0,
                   trainingLimit: 100000,
                 },
+                bq: {
+                  enabled: false,
+                },
                 skip: false,
                 efConstruction: 128,
                 vectorCacheMaxObjects: 500000,
@@ -796,6 +799,9 @@ function newClassObject(className: string) {
         },
         segments: 0,
         trainingLimit: 100000,
+      },
+      bq: {
+        enabled: false,
       },
       skip: false,
       efConstruction: 128,
