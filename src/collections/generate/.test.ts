@@ -160,7 +160,7 @@ maybe('Testing of the collection.generate methods with a simple collection', () 
   });
 });
 
-describe('Testing of the groupBy collection.generate methods with a simple collection', () => {
+maybe('Testing of the groupBy collection.generate methods with a simple collection', () => {
   const client = weaviate.next({
     http: {
       secure: false,
