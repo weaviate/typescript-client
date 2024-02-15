@@ -21,6 +21,7 @@ import {
 } from './types';
 import ClassExists from '../schema/classExists';
 import { classToCollection } from './config';
+import { ConsistencyLevel } from '../data';
 
 class ReferenceTypeGuards {
   static isSingleTarget<T>(ref: ReferenceConfigCreate<T>): ref is ReferenceSingleTargetConfigCreate<T> {
@@ -30,6 +31,25 @@ class ReferenceTypeGuards {
     return (ref as ReferenceMultiTargetConfigCreate<T>).targetCollections !== undefined;
   }
 }
+
+export interface IBuilder {
+  withConsistencyLevel(consistencyLevel: ConsistencyLevel): this;
+  withTenant(tenant: string): this;
+}
+
+export const addContext = <B extends IBuilder>(
+  builder: B,
+  consistencyLevel?: ConsistencyLevel,
+  tenant?: string
+): B => {
+  if (consistencyLevel) {
+    builder = builder.withConsistencyLevel(consistencyLevel);
+  }
+  if (tenant) {
+    builder = builder.withTenant(tenant);
+  }
+  return builder;
+};
 
 const collections = (connection: Connection, dbVersionSupport: DbVersionSupport) => {
   const listAll = () =>

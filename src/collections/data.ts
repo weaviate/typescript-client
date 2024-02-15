@@ -9,7 +9,7 @@ import {
 import { buildObjectsPath, buildRefsPath } from '../batch/path';
 import { ObjectsPath, ReferencesPath } from '../data/path';
 import { DbVersionSupport } from '../utils/dbVersion';
-import { Checker, ConsistencyLevel } from '../data';
+import { Checker, ConsistencyLevel, Creator } from '../data';
 import { ReferenceManager, uuidToBeacon } from './references';
 import Serialize, { DataGuards } from './serialize';
 import {
@@ -24,6 +24,8 @@ import {
 } from './types';
 import { FilterValue } from './filters';
 import Deserialize from './deserialize';
+
+import { addContext } from '.';
 
 export interface DeleteManyOptions {
   verbose?: boolean;
@@ -132,7 +134,11 @@ const data = <T extends Properties>(
         .then((res: BatchDeleteResponse) => res.results);
     },
     exists: (id: string): Promise<boolean> =>
-      new Checker(connection, objectsPath).withId(id).withClassName(name).do(),
+      addContext(
+        new Checker(connection, objectsPath).withId(id).withClassName(name),
+        consistencyLevel,
+        tenant
+      ).do(),
     insert: (args: InsertArgs<T> | NonReferenceInputs<T>): Promise<string> =>
       objectsPath
         .buildCreate(consistencyLevel)
