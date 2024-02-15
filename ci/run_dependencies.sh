@@ -2,6 +2,8 @@
 
 set -eou pipefail
 
+export WEAVIATE_VERSION=$1
+
 source ./ci/compose.sh
 
 echo "Stop existing session if running"

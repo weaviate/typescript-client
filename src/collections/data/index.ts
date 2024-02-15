@@ -16,6 +16,7 @@ import {
   BatchObjectsReturn,
   BatchReferencesReturn,
   DataObject,
+  DeleteManyReturn,
   ErrorReference,
   NonReferenceInputs,
   Properties,
@@ -27,8 +28,8 @@ import Deserialize from '../deserialize';
 
 import { addContext } from '..';
 
-export interface DeleteManyOptions {
-  verbose?: boolean;
+export interface DeleteManyOptions<V> {
+  verbose?: V;
   dryRun?: boolean;
 }
 
@@ -59,7 +60,10 @@ export interface UpdateArgs<T> extends ReplaceArgs<T> {}
 
 export interface Data<T extends Properties> {
   delete: (id: string) => Promise<boolean>;
-  deleteMany: (where: FilterValue, opts?: DeleteManyOptions) => Promise<BatchDeleteResult>;
+  deleteMany: <V extends boolean = false>(
+    where: FilterValue,
+    opts?: DeleteManyOptions<V>
+  ) => Promise<DeleteManyReturn<V>>;
   exists: (id: string) => Promise<boolean>;
   insert: (args: InsertArgs<T> | NonReferenceInputs<T>) => Promise<string>;
   insertMany: (objects: (DataObject<T> | NonReferenceInputs<T>)[]) => Promise<BatchObjectsReturn<T>>;
@@ -100,39 +104,26 @@ const data = <T extends Properties>(
     };
   };
 
-  const parseDeleteMany = (where: FilterValue, opts?: DeleteManyOptions): any => {
-    const parsed: any = {
-      class: name,
-      where: Serialize.filtersREST(where),
-    };
-    if (opts?.verbose) {
-      parsed.verbose = 'verbose';
-    }
-    if (opts?.dryRun) {
-      parsed.dryRun = true;
-    }
-    return { match: parsed };
-  };
-
   return {
     delete: (id: string): Promise<boolean> =>
       objectsPath
         .buildDelete(id, name, consistencyLevel, tenant)
         .then((path) => connection.delete(path, undefined, false))
         .then(() => true),
-    deleteMany: (where: FilterValue, opts?: DeleteManyOptions) => {
-      const params = new URLSearchParams();
-      if (consistencyLevel) {
-        params.set('consistency_level', consistencyLevel);
-      }
-      if (tenant) {
-        params.set('tenant', tenant);
-      }
-      const path = buildObjectsPath(params);
-      return connection
-        .delete(path, parseDeleteMany(where, opts), true)
-        .then((res: BatchDeleteResponse) => res.results);
-    },
+    deleteMany: <V extends boolean>(
+      where: FilterValue,
+      opts?: DeleteManyOptions<V>
+    ): Promise<DeleteManyReturn<V>> =>
+      connection
+        .batch(name, consistencyLevel, tenant)
+        .then((batch) =>
+          batch.withDelete({
+            filters: Serialize.filtersGRPC(where),
+            dryRun: opts?.dryRun,
+            verbose: opts?.verbose,
+          })
+        )
+        .then((reply) => Deserialize.deleteMany(reply, opts?.verbose)),
     exists: (id: string): Promise<boolean> =>
       addContext(
         new Checker(connection, objectsPath).withId(id).withClassName(name),
@@ -151,10 +142,10 @@ const data = <T extends Properties>(
         )
         .then((obj) => obj.id),
     insertMany: (objects: (DataObject<T> | NonReferenceInputs<T>)[]): Promise<BatchObjectsReturn<T>> =>
-      connection.batch(consistencyLevel).then(async (batch) => {
+      connection.batch(name, consistencyLevel).then(async (batch) => {
         const serialized = await Serialize.batchObjects(name, objects, tenant);
         const start = Date.now();
-        const reply = await batch.objects({ objects: serialized.mapped });
+        const reply = await batch.withObjects({ objects: serialized.mapped });
         const end = Date.now();
         return Deserialize.batchObjects<T>(reply, serialized.batch, serialized.mapped, end - start);
       }),

@@ -150,7 +150,7 @@ export default class Connection {
     return new Promise<Search>((resolve) => resolve(grpc.search(name, consistencyLevel, tenant)));
   };
 
-  batch = (consistencyLevel?: ConsistencyLevel) => {
+  batch = (name: string, consistencyLevel?: ConsistencyLevel, tenant?: string) => {
     const grpc = this.grpc;
     if (!grpc) {
       throw new Error(
@@ -159,10 +159,10 @@ export default class Connection {
     }
     if (this.authEnabled) {
       return this.login().then((token) => {
-        return grpc.batch(consistencyLevel, `Bearer ${token}`);
+        return grpc.batch(name, consistencyLevel, tenant, `Bearer ${token}`);
       });
     }
-    return new Promise<Batch>((resolve) => resolve(grpc.batch(consistencyLevel)));
+    return new Promise<Batch>((resolve) => resolve(grpc.batch(name, consistencyLevel)));
   };
 
   login = async () => {

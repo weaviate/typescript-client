@@ -597,6 +597,19 @@ export type DataObject<T> = {
   vector?: number[];
 };
 
+export type DeleteManyObject = {
+  id: string;
+  successful: boolean;
+  error?: string;
+};
+
+export type DeleteManyReturn<V> = {
+  failed: number;
+  matches: number;
+  objects: V extends true ? DeleteManyObject[] : undefined;
+  successful: number;
+};
+
 export type BatchObjectsReturn<T> = {
   allResponses: (string | ErrorObject<T>)[];
   elapsedSeconds: number;

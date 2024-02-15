@@ -7,7 +7,8 @@ import batch, { Batch } from './batch';
 import misc, { Misc } from './misc';
 import c11y, { C11y } from './c11y';
 import { DbVersionProvider, DbVersionSupport } from './utils/dbVersion';
-import backup, { Backup } from './backup';
+import backupV3, { Backup as BackupV3 } from './backup';
+import { backup, Backup } from './collections/backup';
 import clusterV3, { Cluster as ClusterV3 } from './cluster';
 import cluster, { Cluster } from './collections/cluster';
 import {
@@ -55,12 +56,13 @@ export interface WeaviateClient {
   batch: Batch;
   misc: Misc;
   c11y: C11y;
-  backup: Backup;
+  backup: BackupV3;
   cluster: ClusterV3;
   oidcAuth?: OidcAuthenticator;
 }
 
 export interface WeaviateNextClient {
+  backup: Backup;
   cluster: Cluster;
   collections: Collections;
   getMeta: () => Promise<Meta>;
@@ -87,7 +89,7 @@ const app = {
       batch: batch(conn, dbVersionSupport),
       misc: misc(conn, dbVersionProvider),
       c11y: c11y(conn),
-      backup: backup(conn),
+      backup: backupV3(conn),
       cluster: clusterV3(conn),
     };
 
@@ -122,6 +124,7 @@ const app = {
     const dbVersionSupport = new DbVersionSupport(dbVersionProvider);
 
     const ifc: WeaviateNextClient = {
+      backup: backup(conn),
       cluster: cluster(conn),
       collections: collections(conn, dbVersionSupport),
       getMeta: () => new MetaGetter(conn).do(),

@@ -436,7 +436,7 @@ export default class Serialize {
     };
   };
 
-  private static filtersGRPC = (filters: FilterValue): FiltersGRPC => {
+  public static filtersGRPC = (filters: FilterValue): FiltersGRPC => {
     const resolveFilters = (filters: FilterValue): FiltersGRPC[] => {
       const out: FiltersGRPC[] = [];
       filters.filters?.forEach((val) => out.push(Serialize.filtersGRPC(val)));

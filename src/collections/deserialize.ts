@@ -16,10 +16,13 @@ import {
   GenerativeGroupByReturn,
   GenerativeGroupByResult,
   WeaviateField,
+  DeleteManyReturn,
+  DeleteManyObject,
 } from './types';
 import { BatchObject as BatchObjectGrpc, BatchObjectsReply } from '../proto/v1/batch';
 import { Properties as PropertiesGrpc, Value } from '../proto/v1/properties';
 import Serialize from './serialize';
+import { BatchDeleteReply } from '../proto/v1/batch_delete';
 
 export default class Deserialize {
   public static query<T extends Properties>(reply: SearchReply): WeaviateReturn<T> {
@@ -225,6 +228,21 @@ export default class Deserialize {
       hasErrors: reply.errors.length > 0,
       allResponses: allResponses,
       elapsedSeconds: elapsed,
+    };
+  }
+
+  public static deleteMany<V extends boolean>(reply: BatchDeleteReply, verbose?: V): DeleteManyReturn<V> {
+    return {
+      ...reply,
+      objects: verbose
+        ? reply.objects.map((obj) => {
+            return {
+              id: obj.uuid.toString(),
+              successful: obj.successful,
+              error: obj.error,
+            };
+          })
+        : (undefined as any),
     };
   }
 

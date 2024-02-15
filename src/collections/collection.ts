@@ -3,6 +3,7 @@ import { ConsistencyLevel } from '../data';
 import { DbVersionSupport } from '../utils/dbVersion';
 
 import aggregate, { Aggregate } from './aggregate';
+import { backupCollection, BackupCollection } from './backup';
 import config, { Config } from './config';
 import data, { Data } from './data';
 import filter, { Filter } from './filters';
@@ -15,6 +16,7 @@ import { MetadataQuery, Properties, QueryProperty, QueryReference } from './type
 
 export interface Collection<T extends Properties> {
   aggregate: Aggregate<T>;
+  backup: BackupCollection;
   config: Config<T>;
   data: Data<T>;
   filter: Filter<T>;
@@ -44,6 +46,7 @@ const collection = <T extends Properties>(
   const queryCollection = query<T>(connection, name, dbVersionSupport, consistencyLevel, tenant);
   return {
     aggregate: aggregate<T>(connection, name, dbVersionSupport, consistencyLevel, tenant),
+    backup: backupCollection(connection, name),
     config: config<T>(connection, name),
     data: data<T>(connection, name, dbVersionSupport, consistencyLevel, tenant),
     filter: filter<T>(),

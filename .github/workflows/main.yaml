@@ -6,6 +6,8 @@ on:
       - '**'
   pull_request:
 
+env:
+  WEAVIATE_VERSION: 1.23.9
 
 jobs:
   checks:
@@ -32,7 +34,7 @@ jobs:
     - name: "Install dependencies"
       run: |
         npm install
-        ci/run_dependencies.sh
+        ci/run_dependencies.sh ${{ env.WEAVIATE_VERSION }}
     - name: "Run tests with authentication tests"
       if: ${{ !github.event.pull_request.head.repo.fork }}
       env:
@@ -49,7 +51,7 @@ jobs:
         npm test
         npm run build
     - name: "Stop Weaviate"
-      run: ci/stop_dependencies.sh
+      run: ci/stop_dependencies.sh ${{ env.WEAVIATE_VERSION }}
 
   publish:
     needs: tests
