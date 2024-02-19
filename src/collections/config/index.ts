@@ -11,7 +11,7 @@ import {
   WeaviateVectorIndexConfig,
   WeaviateProperty,
 } from '../../openapi/types';
-import { ClassDeleter, ClassGetter } from '../../schema';
+import { ClassGetter } from '../../schema';
 import {
   BQConfig,
   CollectionConfig,
@@ -19,7 +19,6 @@ import {
   GenerativeSearches,
   InvertedIndexConfig,
   MultiTenancyConfig,
-  NonRefs,
   PQConfig,
   PQEncoderConfig,
   PQEncoderDistribution,
@@ -27,7 +26,6 @@ import {
   Properties,
   PropertyConfig,
   ReferenceConfig,
-  Refs,
   ReplicationConfig,
   RerankerConfig,
   Rerankers,

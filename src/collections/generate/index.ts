@@ -1,4 +1,4 @@
-import Connection from '../../connection';
+import Connection from '../../connection/grpc';
 
 import { DbVersionSupport } from '../../utils/dbVersion';
 import { ConsistencyLevel } from '../../data';
@@ -13,13 +13,7 @@ import {
   QueryBaseNearOptions,
   QueryNearMediaType,
 } from '../query';
-import {
-  GenerativeReturn,
-  GenerativeGroupByReturn,
-  GroupByOptions,
-  Properties,
-  WeaviateReturn,
-} from '../types';
+import { GenerativeReturn, GenerativeGroupByReturn, GroupByOptions, Properties } from '../types';
 import { SearchReply } from '../../proto/v1/search_get';
 
 export interface GenerateOptions<T extends Properties> {

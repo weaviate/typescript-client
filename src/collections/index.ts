@@ -1,23 +1,18 @@
-import Connection from '../connection';
+import Connection from '../connection/grpc';
 import { DbVersionSupport } from '../utils/dbVersion';
 import collection, { Collection } from './collection';
-import { WeaviateClass } from '../openapi/types';
 import { ClassCreator, ClassDeleter, ClassGetter, SchemaGetter } from '../schema';
 import {
   CollectionConfig,
   CollectionConfigCreate,
   GenerativeSearches,
-  GenerativeSearchesOptions,
   Properties,
   ReferenceConfigCreate,
   ReferenceMultiTargetConfigCreate,
   ReferenceSingleTargetConfigCreate,
   Rerankers,
-  RerankersOptions,
   VectorIndexType,
-  VectorIndicesOptions,
   Vectorizers,
-  VectorizersOptions,
 } from './types';
 import ClassExists from '../schema/classExists';
 import { classToCollection } from './config';

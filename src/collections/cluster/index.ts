@@ -1,6 +1,6 @@
 import { NodesStatusGetter } from '../../cluster';
 import Connection from '../../connection';
-import { BatchStats, NodesStatusResponse, NodeStats, NodeShardStatus } from '../../openapi/types';
+import { BatchStats, NodeStats, NodeShardStatus } from '../../openapi/types';
 
 type Output = 'minimal' | 'verbose';
 

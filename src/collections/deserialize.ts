@@ -15,13 +15,10 @@ import {
   ReturnReferences,
   GenerativeGroupByReturn,
   GenerativeGroupByResult,
-  WeaviateField,
   DeleteManyReturn,
-  DeleteManyObject,
 } from './types';
 import { BatchObject as BatchObjectGrpc, BatchObjectsReply } from '../proto/v1/batch';
 import { Properties as PropertiesGrpc, Value } from '../proto/v1/properties';
-import Serialize from './serialize';
 import { BatchDeleteReply } from '../proto/v1/batch_delete';
 
 export default class Deserialize {

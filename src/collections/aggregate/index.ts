@@ -6,7 +6,6 @@ import { ConsistencyLevel } from '../../data';
 import { FilterValue } from '../filters';
 
 import { Aggregator } from '../../graphql';
-import Serialize from '../serialize';
 
 type Properties = Record<string, any>;
 

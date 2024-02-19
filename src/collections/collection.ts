@@ -1,4 +1,4 @@
-import Connection from '../connection';
+import Connection from '../connection/grpc';
 import { ConsistencyLevel } from '../data';
 import { DbVersionSupport } from '../utils/dbVersion';
 

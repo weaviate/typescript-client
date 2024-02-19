@@ -2,27 +2,32 @@
   "name": "weaviate-client",
   "version": "3.0.0-alpha.4",
   "description": "JS/TS client for Weaviate",
-  "main": "./dist/index.js",
-  "module": "./dist/index.mjs",
-  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "require": "./dist/index.js",
       "import": "./dist/index.mjs",
       "types": "./dist/index.d.ts"
+    },
+    "./node": {
+      "require": "./dist/node/index.js",
+      "import": "./dist/node/index.mjs",
+      "types": "./dist/node/index.d.ts"
     }
   },
   "engines": {
     "node": ">=16.0.0"
   },
   "files": [
+    "/dist/node/index.js",
+    "/dist/node/index.mjs",
+    "/dist/node/index.d.ts",
     "/dist/index.js",
     "/dist/index.mjs",
     "/dist/index.d.ts"
   ],
   "scripts": {
     "test": "tsc -noEmit -p tsconfig-test.json && jest --useStderr --runInBand --detectOpenHandles",
-    "build": "npm run lint && tsup src/index.ts --format cjs,esm --dts --clean --platform neutral --minify",
+    "build": "npm run lint && tsup && cp ./package.json ./dist/package.json",
     "prepack": "npm run build",
     "lint": "eslint --ext .ts,.js .",
     "lint:fix": "npm run lint -- --fix",

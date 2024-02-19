@@ -3,13 +3,8 @@ import OpenidConfigurationGetter from '../misc/openidConfigurationGetter';
 
 import httpClient, { HttpClient } from './httpClient';
 import gqlClient, { GraphQLClient } from './gqlClient';
-import { ConnectionParams, ConsistencyLevel } from '..';
+import { ConnectionParams } from '..';
 import { Variables } from 'graphql-request';
-
-import { Metadata } from 'nice-grpc';
-import grpcClient, { GrpcClient } from './grpcClient';
-import { Search } from '../grpc/searcher';
-import { Batch } from '../grpc/batcher';
 
 export default class Connection {
   private apiKey?: string;
@@ -17,7 +12,6 @@ export default class Connection {
   private gql: GraphQLClient;
   public readonly host: string;
   public readonly http: HttpClient;
-  private grpc?: GrpcClient;
   public oidcAuth?: OidcAuthenticator;
 
   constructor(params: ConnectionParams) {
@@ -25,7 +19,6 @@ export default class Connection {
     this.host = params.host;
     this.http = httpClient(params);
     this.gql = gqlClient(params);
-    this.grpc = grpcClient(params);
     this.authEnabled = this.parseAuthParams(params);
   }
 
@@ -133,36 +126,6 @@ export default class Connection {
       });
     }
     return this.gql.query<V, T>(query, variables);
-  };
-
-  search = (name: string, consistencyLevel?: ConsistencyLevel, tenant?: string) => {
-    const grpc = this.grpc;
-    if (!grpc) {
-      throw new Error(
-        'gRPC client not initialized, did you forget to set the gRPC address in ConnectionParams?'
-      );
-    }
-    if (this.authEnabled) {
-      return this.login().then((token) => {
-        return grpc.search(name, consistencyLevel, tenant, `Bearer ${token}`);
-      });
-    }
-    return new Promise<Search>((resolve) => resolve(grpc.search(name, consistencyLevel, tenant)));
-  };
-
-  batch = (name: string, consistencyLevel?: ConsistencyLevel, tenant?: string) => {
-    const grpc = this.grpc;
-    if (!grpc) {
-      throw new Error(
-        'gRPC client not initialized, did you forget to set the gRPC address in ConnectionParams?'
-      );
-    }
-    if (this.authEnabled) {
-      return this.login().then((token) => {
-        return grpc.batch(name, consistencyLevel, tenant, `Bearer ${token}`);
-      });
-    }
-    return new Promise<Batch>((resolve) => resolve(grpc.batch(name, consistencyLevel)));
   };
 
   login = async () => {

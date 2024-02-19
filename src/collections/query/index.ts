@@ -1,13 +1,12 @@
-import Connection from '../../connection';
+import Connection from '../../connection/grpc';
 
 import { toBase64FromBlob } from '../../utils/base64';
 
-import { WeaviateObject as WeaviateObjectRest } from '../../openapi/types';
 import { ObjectsPath } from '../../data/path';
 import { DbVersionSupport } from '../../utils/dbVersion';
 import { ConsistencyLevel } from '../../data';
 
-import { Filters, FilterValueType, FilterValue } from '../filters';
+import { FilterValue } from '../filters';
 import Deserialize from '../deserialize';
 import Serialize from '../serialize';
 import { Sorting } from '../sort';

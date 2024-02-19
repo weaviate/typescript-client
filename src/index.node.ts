@@ -1,4 +1,4 @@
-import Connection from './connection';
+import GrpcConnection from './connection/grpc';
 import { DbVersionSupport } from './utils/dbVersion';
 import { backup, Backup } from './collections/backup';
 import cluster, { Cluster } from './collections/cluster';
@@ -55,7 +55,7 @@ const app = {
     if (!params.headers) params.headers = {};
 
     const scheme = params.http.secure ? 'https' : 'http';
-    const conn = new Connection({
+    const conn = new GrpcConnection({
       host: params.http.host.startsWith('http')
         ? params.http.host
         : `${scheme}://${params.http.host}:${params.http.port}`,
