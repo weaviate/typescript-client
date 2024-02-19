@@ -1,6 +1,6 @@
 {
   "name": "weaviate-client",
-  "version": "3.0.0-alpha.4",
+  "version": "3.0.0-alpha.6",
   "description": "JS/TS client for Weaviate",
   "exports": {
     ".": {
