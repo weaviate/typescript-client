@@ -30,7 +30,7 @@ export interface QueryFetchObjectByIdOptions<T> {
   returnReferences?: QueryReference<T>[];
 }
 
-export interface QueryFetchObjectsOptions<T extends Properties> {
+export interface QueryFetchObjectsOptions<T> {
   limit?: number;
   offset?: number;
   after?: string;
@@ -42,7 +42,7 @@ export interface QueryFetchObjectsOptions<T extends Properties> {
   returnReferences?: QueryReference<T>[];
 }
 
-export interface QueryOptions<T extends Properties> {
+export interface QueryOptions<T> {
   limit?: number;
   autoLimit?: number;
   filters?: FilterValue;
@@ -52,22 +52,22 @@ export interface QueryOptions<T extends Properties> {
   returnReferences?: QueryReference<T>[];
 }
 
-export interface QueryBm25Options<T extends Properties> extends QueryOptions<T> {
+export interface QueryBm25Options<T> extends QueryOptions<T> {
   queryProperties?: PrimitiveKeys<T>[];
 }
 
-export interface QueryHybridOptions<T extends Properties> extends QueryOptions<T> {
+export interface QueryHybridOptions<T> extends QueryOptions<T> {
   alpha?: number;
   vector?: number[];
   queryProperties?: PrimitiveKeys<T>[];
   fusionType?: 'Ranked' | 'RelativeScore';
 }
 
-export interface QueryNearOptions<T extends Properties> extends QueryOptions<T> {
+export interface QueryBaseNearOptions<T> extends QueryOptions<T> {
   certainty?: number;
   distance?: number;
 }
-export interface QueryGroupByNearOptions<T extends Properties> extends QueryNearOptions<T> {
+export interface QueryGroupByNearOptions<T> extends QueryBaseNearOptions<T> {
   groupBy: GroupByOptions<T>;
 }
 
@@ -77,7 +77,7 @@ export interface MoveOptions {
   concepts?: string[];
 }
 
-export interface QueryNearTextOptions<T extends Properties> extends QueryNearOptions<T> {
+export interface QueryNearTextOptions<T> extends QueryBaseNearOptions<T> {
   moveTo?: MoveOptions;
   moveAway?: MoveOptions;
 }
@@ -149,17 +149,14 @@ class QueryManager<T extends Properties> implements Query<T> {
       .then(Deserialize.query<T>);
   }
 
-  public nearImage<O extends QueryNearOptions<T> | QueryGroupByNearOptions<T>>(
-    image: string | Blob,
-    opts?: O
-  ): QueryReturn<O, T> {
+  public nearImage<O extends QueryNearOptions<T>>(image: string | Blob, opts?: O): QueryReturn<O, T> {
     return this.connection
       .search(this.name, this.consistencyLevel, this.tenant)
       .then((search) => {
         const imagePromise = typeof image === 'string' ? Promise.resolve(image) : toBase64FromBlob(image);
         return imagePromise.then((image) =>
           search.withNearImage({
-            ...Serialize.nearImage({ image, ...opts }),
+            ...Serialize.nearImage({ image, ...(opts ? opts : {}) }),
             groupBy: Serialize.isGroupBy(opts) ? Serialize.groupBy(opts.groupBy) : undefined,
           })
         );
@@ -167,7 +164,7 @@ class QueryManager<T extends Properties> implements Query<T> {
       .then(Serialize.isGroupBy(opts) ? Deserialize.groupBy<T> : Deserialize.query<T>) as QueryReturn<O, T>;
   }
 
-  public nearMedia<O extends QueryNearOptions<T> | QueryGroupByNearOptions<T>>(
+  public nearMedia<O extends QueryNearOptions<T>>(
     media: string | Blob,
     type: QueryNearMediaType,
     opts?: O
@@ -178,32 +175,32 @@ class QueryManager<T extends Properties> implements Query<T> {
       switch (type) {
         case 'audio':
           reply = mediaPromise.then((media) =>
-            search.withNearAudio(Serialize.nearAudio({ audio: media, ...opts }))
+            search.withNearAudio(Serialize.nearAudio({ audio: media, ...(opts ? opts : {}) }))
           );
           break;
         case 'depth':
           reply = mediaPromise.then((media) =>
-            search.withNearDepth(Serialize.nearDepth({ depth: media, ...opts }))
+            search.withNearDepth(Serialize.nearDepth({ depth: media, ...(opts ? opts : {}) }))
           );
           break;
         case 'image':
           reply = mediaPromise.then((media) =>
-            search.withNearImage(Serialize.nearImage({ image: media, ...opts }))
+            search.withNearImage(Serialize.nearImage({ image: media, ...(opts ? opts : {}) }))
           );
           break;
         case 'imu':
           reply = mediaPromise.then((media) =>
-            search.withNearIMU(Serialize.nearIMU({ imu: media, ...opts }))
+            search.withNearIMU(Serialize.nearIMU({ imu: media, ...(opts ? opts : {}) }))
           );
           break;
         case 'thermal':
           reply = mediaPromise.then((media) =>
-            search.withNearThermal(Serialize.nearThermal({ thermal: media, ...opts }))
+            search.withNearThermal(Serialize.nearThermal({ thermal: media, ...(opts ? opts : {}) }))
           );
           break;
         case 'video':
           reply = mediaPromise.then((media) =>
-            search.withNearVideo(Serialize.nearVideo({ video: media, ...opts }))
+            search.withNearVideo(Serialize.nearVideo({ video: media, ...(opts ? opts : {}) }))
           );
           break;
         default:
@@ -215,45 +212,36 @@ class QueryManager<T extends Properties> implements Query<T> {
     });
   }
 
-  public nearObject<O extends QueryNearOptions<T> | QueryGroupByNearOptions<T>>(
-    id: string,
-    opts?: O
-  ): QueryReturn<O, T> {
+  public nearObject<O extends QueryNearOptions<T>>(id: string, opts?: O): QueryReturn<O, T> {
     return this.connection
       .search(this.name, this.consistencyLevel, this.tenant)
       .then((search) =>
         search.withNearObject({
-          ...Serialize.nearObject({ id, ...opts }),
+          ...Serialize.nearObject({ id, ...(opts ? opts : {}) }),
           groupBy: Serialize.isGroupBy(opts) ? Serialize.groupBy(opts.groupBy) : undefined,
         })
       )
       .then(Serialize.isGroupBy(opts) ? Deserialize.groupBy<T> : Deserialize.query<T>) as QueryReturn<O, T>;
   }
 
-  public nearText<O extends QueryNearOptions<T> | QueryGroupByNearOptions<T>>(
-    query: string | string[],
-    opts?: O
-  ): QueryReturn<O, T> {
+  public nearText<O extends QueryNearOptions<T>>(query: string | string[], opts?: O): QueryReturn<O, T> {
     return this.connection
       .search(this.name, this.consistencyLevel, this.tenant)
       .then((search) =>
         search.withNearText({
-          ...Serialize.nearText({ query, ...opts }),
+          ...Serialize.nearText({ query, ...(opts ? opts : {}) }),
           groupBy: Serialize.isGroupBy(opts) ? Serialize.groupBy(opts.groupBy) : undefined,
         })
       )
       .then(Serialize.isGroupBy(opts) ? Deserialize.groupBy<T> : Deserialize.query<T>) as QueryReturn<O, T>;
   }
 
-  public nearVector<O extends QueryNearOptions<T> | QueryGroupByNearOptions<T>>(
-    vector: number[],
-    opts?: O
-  ): QueryReturn<O, T> {
+  public nearVector<O extends QueryNearOptions<T>>(vector: number[], opts?: O): QueryReturn<O, T> {
     return this.connection
       .search(this.name, this.consistencyLevel, this.tenant)
       .then((search) =>
         search.withNearVector({
-          ...Serialize.nearVector({ vector, ...opts }),
+          ...Serialize.nearVector({ vector, ...(opts ? opts : {}) }),
           groupBy: Serialize.isGroupBy(opts) ? Serialize.groupBy(opts.groupBy) : undefined,
         })
       )
@@ -268,32 +256,21 @@ export interface Query<T extends Properties> {
   bm25: (query: string, opts?: QueryBm25Options<T>) => Promise<WeaviateReturn<T>>;
   hybrid: (query: string, opts?: QueryHybridOptions<T>) => Promise<WeaviateReturn<T>>;
 
-  nearImage<O extends QueryNearOptions<T> | QueryGroupByNearOptions<T>>(
-    image: string | Blob,
-    opts?: O
-  ): QueryReturn<O, T>;
-  nearMedia<O extends QueryNearOptions<T> | QueryGroupByNearOptions<T>>(
+  nearImage<O extends QueryNearOptions<T> = undefined>(image: string | Blob, opts?: O): QueryReturn<O, T>;
+  nearMedia<O extends QueryNearOptions<T> = undefined>(
     media: string | Blob,
     type: QueryNearMediaType,
     opts?: O
   ): QueryReturn<O, T>;
-  nearObject<O extends QueryNearOptions<T> | QueryGroupByNearOptions<T>>(
-    id: string,
-    opts?: O
-  ): QueryReturn<O, T>;
-  nearText<O extends QueryNearOptions<T> | QueryGroupByNearOptions<T>>(
-    query: string | string[],
-    opts?: O
-  ): QueryReturn<O, T>;
-  nearVector<O extends QueryNearOptions<T> | QueryGroupByNearOptions<T>>(
-    vector: number[],
-    opts?: O
-  ): QueryReturn<O, T>;
+  nearObject<O extends QueryNearOptions<T> = undefined>(id: string, opts?: O): QueryReturn<O, T>;
+  nearText<O extends QueryNearOptions<T> = undefined>(query: string | string[], opts?: O): QueryReturn<O, T>;
+  nearVector<O extends QueryNearOptions<T> = undefined>(vector: number[], opts?: O): QueryReturn<O, T>;
 }
 
-export type QueryReturn<
-  O extends QueryNearOptions<T> | QueryGroupByNearOptions<T>,
-  T extends Properties
-> = Promise<O extends QueryGroupByNearOptions<T> ? GroupByReturn<T> : WeaviateReturn<T>>;
+export type QueryNearOptions<T> = QueryBaseNearOptions<T> | QueryGroupByNearOptions<T> | undefined;
+
+export type QueryReturn<O, T> = Promise<
+  O extends QueryGroupByNearOptions<T> ? GroupByReturn<T> : WeaviateReturn<T>
+>;
 
 export default QueryManager.use;

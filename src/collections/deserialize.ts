@@ -144,18 +144,19 @@ export default class Deserialize {
 
   private static parsePropertyValue(value: Value): any {
     if (value.boolValue !== undefined) return value.boolValue;
-    if (value.dateValue) return new Date(value.dateValue);
-    if (value.intValue) return value.intValue;
-    if (value.listValue) return value.listValue.values.map((v) => Deserialize.parsePropertyValue(v));
-    if (value.numberValue) return value.numberValue;
-    if (value.objectValue) return Deserialize.objectProperties(value.objectValue);
-    if (value.stringValue) return value.stringValue;
-    if (value.uuidValue) return value.uuidValue;
-    if (value.blobValue) return value.blobValue;
-    if (value.geoValue) return value.geoValue;
-    if (value.phoneValue) return value.phoneValue;
-    if (value.nullValue) return null;
-    throw new Error('Unknown value type');
+    if (value.dateValue !== undefined) return new Date(value.dateValue);
+    if (value.intValue !== undefined) return value.intValue;
+    if (value.listValue !== undefined)
+      return value.listValue.values.map((v) => Deserialize.parsePropertyValue(v));
+    if (value.numberValue !== undefined) return value.numberValue;
+    if (value.objectValue !== undefined) return Deserialize.objectProperties(value.objectValue);
+    if (value.stringValue !== undefined) return value.stringValue;
+    if (value.uuidValue !== undefined) return value.uuidValue;
+    if (value.blobValue !== undefined) return value.blobValue;
+    if (value.geoValue !== undefined) return value.geoValue;
+    if (value.phoneValue !== undefined) return value.phoneValue;
+    if (value.nullValue !== undefined) return undefined;
+    throw new Error(`Unknown value type: ${JSON.stringify(value, null, 2)}`);
   }
 
   private static objectProperties(properties?: PropertiesGrpc): Properties {

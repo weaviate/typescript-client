@@ -234,22 +234,24 @@ describe('Testing of the filter class with a simple collection', () => {
 
   it('should filter a fetch objects query with a greater than last updated time filter', async () => {
     const now = new Date();
-    await collection.data.update({
-      properties: {
-        text: 'one',
-        int: 1,
-        float: 1.1,
-      },
-      id: ids[0],
-    });
-    const res = await collection.query.fetchObjects({
-      filters: collection.filter.byUpdateTime().greaterThan(now),
-    });
-    expect(res.objects.length).toEqual(1);
-    const obj = res.objects[0];
-    expect(obj.properties.text).toEqual('one');
-    expect(obj.properties.int).toEqual(1);
-    expect(obj.properties.float).toEqual(1.1);
-    expect(obj.uuid).toEqual(ids[0]);
+    const vec = Array.from({ length: 300 }, () => Math.floor(Math.random() * 10));
+    await collection.data
+      .update({
+        id: ids[0],
+        vector: vec,
+      })
+      .then(async () => {
+        const res = await collection.query.fetchObjects({
+          filters: collection.filter.byUpdateTime().greaterOrEqual(now),
+          includeVector: true,
+        });
+        expect(res.objects.length).toEqual(1);
+        const obj = res.objects[0];
+        expect(obj.properties.text).toEqual('one');
+        expect(obj.properties.int).toEqual(1);
+        expect(obj.properties.float).toEqual(1.1);
+        expect(obj.uuid).toEqual(ids[0]);
+        expect(obj.vector).toEqual(vec);
+      });
   });
 });

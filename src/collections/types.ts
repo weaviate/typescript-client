@@ -430,7 +430,7 @@ interface BaseRefProperty<T> {
   targetCollection?: string;
 }
 
-export interface GroupByOptions<T extends Properties> {
+export interface GroupByOptions<T> {
   property: keyof T;
   numberOfGroups: number;
   objectsPerGroup: number;

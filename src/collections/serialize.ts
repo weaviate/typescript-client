@@ -265,6 +265,7 @@ export default class Serialize {
       ...Serialize.common({
         filters: new FilterById().equal(args.id),
         includeVector: args.includeVector,
+        returnMetadata: ['creationTime', 'updateTime', 'isConsistent'],
         returnProperties: args.returnProperties,
         returnReferences: args.returnReferences,
       }),

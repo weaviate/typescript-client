@@ -10,7 +10,7 @@ import {
   QueryBm25Options,
   QueryHybridOptions,
   QueryNearTextOptions,
-  QueryNearOptions,
+  QueryBaseNearOptions,
   QueryNearMediaType,
 } from '../query';
 import {
@@ -35,7 +35,9 @@ export interface GenerateBm25Options<T extends Properties> extends QueryBm25Opti
 export interface GenerateHybridOptions<T extends Properties>
   extends QueryHybridOptions<T>,
     GenerateOptions<T> {}
-export interface GenerateNearOptions<T extends Properties> extends QueryNearOptions<T>, GenerateOptions<T> {}
+export interface GenerateNearOptions<T extends Properties>
+  extends QueryBaseNearOptions<T>,
+    GenerateOptions<T> {}
 export interface GenerateGroupByNearOptions<T extends Properties> extends GenerateNearOptions<T> {
   groupBy: GroupByOptions<T>;
 }

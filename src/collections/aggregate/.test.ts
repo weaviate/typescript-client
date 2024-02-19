@@ -146,101 +146,116 @@ describe('Testing of the collection.aggregate methods', () => {
     expect(result[0].totalCount).toEqual(100);
     expect(result[0].groupedBy.prop).toEqual('text');
     expect(result[0].groupedBy.value).toEqual('test');
+    expect(result[0].properties).toBeUndefined();
   });
 
-  it('should aggregate data without a search and one property metric', async () => {
+  it('should aggregate data without a search and one generic property metric', async () => {
     const result = await collection.aggregate.overAll({
-      returnMetrics: Metrics.aggregate('text').text(['count', 'topOccurrencesOccurs', 'topOccurrencesValue']),
+      returnMetrics: collection.metrics
+        .aggregate('text')
+        .text(['count', 'topOccurrencesOccurs', 'topOccurrencesValue']),
     });
     expect(result.totalCount).toEqual(100);
-    expect(result.properties?.text.count).toEqual(100);
-    expect(result.properties?.text.topOccurrences![0].occurs).toEqual(100);
-    expect(result.properties?.text.topOccurrences![0].value).toEqual('test');
+    expect(result.properties.text.count).toEqual(100);
+    expect(result.properties.text.topOccurrences![0].occurs).toEqual(100);
+    expect(result.properties.text.topOccurrences![0].value).toEqual('test');
+  });
+
+  it('should aggregate data without a search and one non-generic property metric', async () => {
+    const result = await client.collections.get(className).aggregate.overAll({
+      returnMetrics: collection.metrics
+        .aggregate('text')
+        .text(['count', 'topOccurrencesOccurs', 'topOccurrencesValue']),
+    });
+    expect(result.totalCount).toEqual(100);
+    expect(result.properties.text.count).toEqual(100);
+    expect(result.properties.text.topOccurrences![0].occurs).toEqual(100);
+    expect(result.properties.text.topOccurrences![0].value).toEqual('test');
   });
 
   it('should aggregate data without a search and all property metrics', async () => {
     const result = await collection.aggregate.overAll({
       returnMetrics: [
-        Metrics.aggregate('text').text(['count', 'topOccurrencesOccurs', 'topOccurrencesValue']),
-        Metrics.aggregate('texts').text(['count', 'topOccurrencesOccurs', 'topOccurrencesValue']),
-        Metrics.aggregate('int').integer(['count', 'maximum', 'mean', 'median', 'minimum', 'mode', 'sum']),
-        Metrics.aggregate('ints').integer(['count', 'maximum', 'mean', 'median', 'minimum', 'mode', 'sum']),
-        Metrics.aggregate('number').number(['count', 'maximum', 'mean', 'median', 'minimum', 'mode', 'sum']),
-        Metrics.aggregate('numbers').number(['count', 'maximum', 'mean', 'median', 'minimum', 'mode', 'sum']),
-        Metrics.aggregate('date').date(['count', 'maximum', 'median', 'minimum', 'mode']),
-        Metrics.aggregate('dates').date(['count', 'maximum', 'median', 'minimum', 'mode']),
-        Metrics.aggregate('boolean').boolean([
-          'count',
-          'percentageFalse',
-          'percentageTrue',
-          'totalFalse',
-          'totalTrue',
-        ]),
-        Metrics.aggregate('booleans').boolean([
-          'count',
-          'percentageFalse',
-          'percentageTrue',
-          'totalFalse',
-          'totalTrue',
-        ]),
+        collection.metrics.aggregate('text').text(['count', 'topOccurrencesOccurs', 'topOccurrencesValue']),
+        collection.metrics.aggregate('texts').text(['count', 'topOccurrencesOccurs', 'topOccurrencesValue']),
+        collection.metrics
+          .aggregate('int')
+          .integer(['count', 'maximum', 'mean', 'median', 'minimum', 'mode', 'sum']),
+        collection.metrics
+          .aggregate('ints')
+          .integer(['count', 'maximum', 'mean', 'median', 'minimum', 'mode', 'sum']),
+        collection.metrics
+          .aggregate('number')
+          .number(['count', 'maximum', 'mean', 'median', 'minimum', 'mode', 'sum']),
+        collection.metrics
+          .aggregate('numbers')
+          .number(['count', 'maximum', 'mean', 'median', 'minimum', 'mode', 'sum']),
+        collection.metrics.aggregate('date').date(['count', 'maximum', 'median', 'minimum', 'mode']),
+        collection.metrics.aggregate('dates').date(['count', 'maximum', 'median', 'minimum', 'mode']),
+        collection.metrics
+          .aggregate('boolean')
+          .boolean(['count', 'percentageFalse', 'percentageTrue', 'totalFalse', 'totalTrue']),
+        collection.metrics
+          .aggregate('booleans')
+          .boolean(['count', 'percentageFalse', 'percentageTrue', 'totalFalse', 'totalTrue']),
         // Metrics.aggregate('ref').reference(['pointingTo'])
       ],
     });
     expect(result.totalCount).toEqual(100);
-    expect(result.properties?.text.count).toEqual(100);
-    expect(result.properties?.text.topOccurrences![0].occurs).toEqual(100);
-    expect(result.properties?.text.topOccurrences![0].value).toEqual('test');
-    expect(result.properties?.texts.count).toEqual(200);
-    expect(result.properties?.texts.topOccurrences![0].occurs).toEqual(200);
-    expect(result.properties?.texts.topOccurrences![0].value).toEqual('tests');
-    expect(result.properties?.int.count).toEqual(100);
-    expect(result.properties?.int.maximum).toEqual(1);
-    expect(result.properties?.int.mean).toEqual(1);
-    expect(result.properties?.int.median).toEqual(1);
-    expect(result.properties?.int.minimum).toEqual(1);
-    expect(result.properties?.int.mode).toEqual(1);
-    expect(result.properties?.int.sum).toEqual(100);
-    expect(result.properties?.ints.count).toEqual(200);
-    expect(result.properties?.ints.maximum).toEqual(2);
-    expect(result.properties?.ints.mean).toEqual(1.5);
-    expect(result.properties?.ints.median).toEqual(1.5);
-    expect(result.properties?.ints.minimum).toEqual(1);
-    expect(result.properties?.ints.mode).toEqual(1);
-    expect(result.properties?.ints.sum).toEqual(300);
-    expect(result.properties?.number.count).toEqual(100);
-    expect(result.properties?.number.maximum).toEqual(1);
-    expect(result.properties?.number.mean).toEqual(1);
-    expect(result.properties?.number.median).toEqual(1);
-    expect(result.properties?.number.minimum).toEqual(1);
-    expect(result.properties?.number.mode).toEqual(1);
-    expect(result.properties?.number.sum).toEqual(100);
-    expect(result.properties?.numbers.count).toEqual(200);
-    expect(result.properties?.numbers.maximum).toEqual(2);
-    expect(result.properties?.numbers.mean).toEqual(1.5);
-    expect(result.properties?.numbers.median).toEqual(1.5);
-    expect(result.properties?.numbers.minimum).toEqual(1);
-    expect(result.properties?.numbers.mode).toEqual(1);
-    expect(result.properties?.numbers.sum).toEqual(300);
-    expect(result.properties?.date.count).toEqual(100);
-    expect(result.properties?.date.maximum).toEqual(date0);
-    expect(result.properties?.date.median).toEqual(date0);
-    expect(result.properties?.date.minimum).toEqual(date0);
-    expect(result.properties?.date.mode).toEqual(date0);
-    expect(result.properties?.dates.count).toEqual(200);
-    expect(result.properties?.dates.maximum).toEqual(date2);
-    expect(result.properties?.dates.median).toEqual(dateMid);
-    expect(result.properties?.dates.minimum).toEqual(date1);
-    // expect(result.properties?.dates.mode).toEqual(date1); // randomly switches between date1 and date2
-    expect(result.properties?.boolean.count).toEqual(100);
-    expect(result.properties?.boolean.percentageFalse).toEqual(0);
-    expect(result.properties?.boolean.percentageTrue).toEqual(1);
-    expect(result.properties?.boolean.totalFalse).toEqual(0);
-    expect(result.properties?.boolean.totalTrue).toEqual(100);
-    expect(result.properties?.booleans.count).toEqual(200);
-    expect(result.properties?.booleans.percentageFalse).toEqual(0.5);
-    expect(result.properties?.booleans.percentageTrue).toEqual(0.5);
-    expect(result.properties?.booleans.totalFalse).toEqual(100);
-    expect(result.properties?.booleans.totalTrue).toEqual(100);
-    // expect(result.properties?.ref.pointingTo).toEqual(className);
+    expect(result.properties.text.count).toEqual(100);
+    expect(result.properties.text.topOccurrences![0].occurs).toEqual(100);
+    expect(result.properties.text.topOccurrences![0].value).toEqual('test');
+    expect(result.properties.texts.count).toEqual(200);
+    expect(result.properties.texts.topOccurrences![0].occurs).toEqual(200);
+    expect(result.properties.texts.topOccurrences![0].value).toEqual('tests');
+    expect(result.properties.int.count).toEqual(100);
+    expect(result.properties.int.maximum).toEqual(1);
+    expect(result.properties.int.mean).toEqual(1);
+    expect(result.properties.int.median).toEqual(1);
+    expect(result.properties.int.minimum).toEqual(1);
+    expect(result.properties.int.mode).toEqual(1);
+    expect(result.properties.int.sum).toEqual(100);
+    expect(result.properties.ints.count).toEqual(200);
+    expect(result.properties.ints.maximum).toEqual(2);
+    expect(result.properties.ints.mean).toEqual(1.5);
+    expect(result.properties.ints.median).toEqual(1.5);
+    expect(result.properties.ints.minimum).toEqual(1);
+    expect(result.properties.ints.mode).toEqual(1);
+    expect(result.properties.ints.sum).toEqual(300);
+    expect(result.properties.number.count).toEqual(100);
+    expect(result.properties.number.maximum).toEqual(1);
+    expect(result.properties.number.mean).toEqual(1);
+    expect(result.properties.number.median).toEqual(1);
+    expect(result.properties.number.minimum).toEqual(1);
+    expect(result.properties.number.mode).toEqual(1);
+    expect(result.properties.number.sum).toEqual(100);
+    expect(result.properties.numbers.count).toEqual(200);
+    expect(result.properties.numbers.maximum).toEqual(2);
+    expect(result.properties.numbers.mean).toEqual(1.5);
+    expect(result.properties.numbers.median).toEqual(1.5);
+    expect(result.properties.numbers.minimum).toEqual(1);
+    expect(result.properties.numbers.mode).toEqual(1);
+    expect(result.properties.numbers.sum).toEqual(300);
+    expect(result.properties.date.count).toEqual(100);
+    expect(result.properties.date.maximum).toEqual(date0);
+    expect(result.properties.date.median).toEqual(date0);
+    expect(result.properties.date.minimum).toEqual(date0);
+    expect(result.properties.date.mode).toEqual(date0);
+    expect(result.properties.dates.count).toEqual(200);
+    expect(result.properties.dates.maximum).toEqual(date2);
+    expect(result.properties.dates.median).toEqual(dateMid);
+    expect(result.properties.dates.minimum).toEqual(date1);
+    // expect(result.properties.dates.mode).toEqual(date1); // randomly switches between date1 and date2
+    expect(result.properties.boolean.count).toEqual(100);
+    expect(result.properties.boolean.percentageFalse).toEqual(0);
+    expect(result.properties.boolean.percentageTrue).toEqual(1);
+    expect(result.properties.boolean.totalFalse).toEqual(0);
+    expect(result.properties.boolean.totalTrue).toEqual(100);
+    expect(result.properties.booleans.count).toEqual(200);
+    expect(result.properties.booleans.percentageFalse).toEqual(0.5);
+    expect(result.properties.booleans.percentageTrue).toEqual(0.5);
+    expect(result.properties.booleans.totalFalse).toEqual(100);
+    expect(result.properties.booleans.totalTrue).toEqual(100);
+    // expect(result.properties.ref.pointingTo).toEqual(className);
   });
 });

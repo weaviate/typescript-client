@@ -2,7 +2,7 @@ import Connection from '../connection';
 import { ConsistencyLevel } from '../data';
 import { DbVersionSupport } from '../utils/dbVersion';
 
-import aggregate, { Aggregate } from './aggregate';
+import aggregate, { metrics, Aggregate, Metrics } from './aggregate';
 import { backupCollection, BackupCollection } from './backup';
 import config, { Config } from './config';
 import data, { Data } from './data';
@@ -21,6 +21,7 @@ export interface Collection<T extends Properties> {
   data: Data<T>;
   filter: Filter<T>;
   generate: Generate<T>;
+  metrics: Metrics<T>;
   query: Query<T>;
   sort: Sort<T>;
   tenants: Tenants;
@@ -51,6 +52,7 @@ const collection = <T extends Properties>(
     data: data<T>(connection, name, dbVersionSupport, consistencyLevel, tenant),
     filter: filter<T>(),
     generate: generate<T>(connection, name, dbVersionSupport, consistencyLevel, tenant),
+    metrics: metrics<T>(),
     query: queryCollection,
     sort: sort<T>(),
     tenants: tenants(connection, name),
