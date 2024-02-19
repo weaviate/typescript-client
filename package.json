@@ -2,15 +2,16 @@
   "name": "weaviate-client",
   "version": "3.0.0-alpha.7",
   "description": "JS/TS client for Weaviate",
+  "type": "module",
   "exports": {
     ".": {
       "require": "./dist/index.js",
-      "import": "./dist/index.mjs",
+      "import": "./dist/index.cjs",
       "types": "./dist/index.d.ts"
     },
     "./node": {
       "require": "./dist/node/index.js",
-      "import": "./dist/node/index.mjs",
+      "import": "./dist/node/index.c",
       "types": "./dist/node/index.d.ts"
     }
   },
@@ -19,15 +20,15 @@
   },
   "files": [
     "/dist/node/index.js",
-    "/dist/node/index.mjs",
+    "/dist/node/index.cjs",
     "/dist/node/index.d.ts",
     "/dist/index.js",
-    "/dist/index.mjs",
+    "/dist/index.cjs",
     "/dist/index.d.ts"
   ],
   "scripts": {
     "test": "tsc -noEmit -p tsconfig-test.json && jest --useStderr --runInBand --detectOpenHandles",
-    "build": "npm run lint && tsup && sed 's/protobufjs\\/minimal/protobufjs\\/minimal.js/g' dist/node/index.js dist/node/index.mjs",
+    "build": "npm run lint && tsup && sed -i 's/protobufjs\\/minimal/protobufjs\\/minimal.js/g' dist/node/index.js dist/node/index.cjs",
     "prepack": "npm run build",
     "lint": "eslint --ext .ts,.js .",
     "lint:fix": "npm run lint -- --fix",
