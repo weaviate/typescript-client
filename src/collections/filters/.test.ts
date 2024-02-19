@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
-import weaviate from '../..';
+import weaviate from '../../index.node';
 import { Filters } from '.';
 import { CrossReference, Reference } from '../references';
 
 describe('Testing of the filter class with a simple collection', () => {
-  const client = weaviate.next({
+  const client = weaviate.client({
     http: {
       secure: false,
       host: 'localhost',

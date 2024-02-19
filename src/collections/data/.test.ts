@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
-import weaviate from '../..';
+import weaviate from '../../index.node';
 import { v4 } from 'uuid';
 import { DataObject } from '../types';
 import { CrossReference, Reference } from '../references';
@@ -18,7 +18,7 @@ type TestCollectionData = {
 };
 
 describe('Testing of the collection.data methods', () => {
-  const client = weaviate.next({
+  const client = weaviate.client({
     http: {
       secure: false,
       host: 'localhost',

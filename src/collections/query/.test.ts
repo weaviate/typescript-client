@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
-import weaviate from '../..';
+import weaviate from '../../index.node';
 import { CrossReference, Reference } from '../references';
 import { GroupByOptions } from '../types';
 
 describe('Testing of the collection.query methods with a simple collection', () => {
-  const client = weaviate.next({
+  const client = weaviate.client({
     http: {
       secure: false,
       host: 'localhost',
@@ -117,7 +117,7 @@ describe('Testing of the collection.query methods with a simple collection', () 
 });
 
 describe('Testing of the collection.query methods with a collection with a reference property', () => {
-  const client = weaviate.next({
+  const client = weaviate.client({
     http: {
       secure: false,
       host: 'localhost',
@@ -334,7 +334,7 @@ describe('Testing of the collection.query methods with a collection with a refer
   });
 
   describe('Testing of the collection.query methods with a collection with a nested property', () => {
-    const client = weaviate.next({
+    const client = weaviate.client({
       http: {
         secure: false,
         host: 'localhost',
@@ -460,7 +460,7 @@ describe('Testing of the collection.query methods with a collection with a refer
 });
 
 describe('Testing of the groupBy collection.query methods with a simple collection', () => {
-  const client = weaviate.next({
+  const client = weaviate.client({
     http: {
       secure: false,
       host: 'localhost',

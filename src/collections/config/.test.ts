@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import weaviate from '../..';
+import weaviate from '../../index.node';
 import Configure from '../configure';
 
 const fail = (msg: string) => {
@@ -7,7 +7,7 @@ const fail = (msg: string) => {
 };
 
 describe('Testing of the collection.config namespace', () => {
-  const client = weaviate.next({
+  const client = weaviate.client({
     http: {
       secure: false,
       host: 'localhost',

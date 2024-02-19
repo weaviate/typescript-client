@@ -1,5 +1,5 @@
 import { ApiKey } from '.';
-import weaviate from '..';
+import weaviate from '../index.node';
 
 describe('Testing of the connection helper methods', () => {
   const collectionName = 'MyHelperConnectionsTestCollection';

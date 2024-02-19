@@ -7,29 +7,16 @@ import batch, { Batch } from './batch';
 import misc, { Misc } from './misc';
 import c11y, { C11y } from './c11y';
 import { DbVersionProvider, DbVersionSupport } from './utils/dbVersion';
-import backupV3, { Backup as BackupV3 } from './backup';
-import { backup, Backup } from './collections/backup';
-import clusterV3, { Cluster as ClusterV3 } from './cluster';
-import cluster, { Cluster } from './collections/cluster';
+import backup, { Backup } from './backup';
+import cluster, { Cluster } from './cluster';
 import {
   ApiKey,
   AuthAccessTokenCredentials,
   AuthClientCredentials,
   AuthUserPasswordCredentials,
-  AuthCredentials,
   OidcAuthenticator,
 } from './connection/auth';
-import { connectToWCS } from './connection/helpers';
 import MetaGetter from './misc/metaGetter';
-import collections, { Collections } from './collections';
-import Configure from './collections/configure';
-import { Meta } from './openapi/types';
-
-export interface ProtocolParams {
-  secure: boolean;
-  host: string;
-  port: number;
-}
 
 export interface ConnectionParams {
   authClientSecret?: AuthClientCredentials | AuthAccessTokenCredentials | AuthUserPasswordCredentials;
@@ -41,13 +28,6 @@ export interface ConnectionParams {
   grpcSecure?: boolean;
 }
 
-export interface ClientParams {
-  http: ProtocolParams;
-  grpc: ProtocolParams;
-  auth?: AuthCredentials;
-  headers?: HeadersInit;
-}
-
 export interface WeaviateClient {
   graphql: GraphQL;
   schema: Schema;
@@ -56,16 +36,8 @@ export interface WeaviateClient {
   batch: Batch;
   misc: Misc;
   c11y: C11y;
-  backup: BackupV3;
-  cluster: ClusterV3;
-  oidcAuth?: OidcAuthenticator;
-}
-
-export interface WeaviateNextClient {
   backup: Backup;
   cluster: Cluster;
-  collections: Collections;
-  getMeta: () => Promise<Meta>;
   oidcAuth?: OidcAuthenticator;
 }
 
@@ -89,46 +61,10 @@ const app = {
       batch: batch(conn, dbVersionSupport),
       misc: misc(conn, dbVersionProvider),
       c11y: c11y(conn),
-      backup: backupV3(conn),
-      cluster: clusterV3(conn),
-    };
-
-    if (conn.oidcAuth) ifc.oidcAuth = conn.oidcAuth;
-
-    return ifc;
-  },
-  connectToWCS: function (clusterURL: string, options?: ConnectToWCSOptions): Promise<WeaviateNextClient> {
-    return connectToWCS(clusterURL, this.next, options);
-  },
-  next: function (params: ClientParams): WeaviateNextClient {
-    // check if the URL is set
-    if (!params.http.host) throw new Error('Missing `host` parameter');
-
-    // check if headers are set
-    if (!params.headers) params.headers = {};
-
-    const scheme = params.http.secure ? 'https' : 'http';
-    const conn = new Connection({
-      host: params.http.host.startsWith('http')
-        ? params.http.host
-        : `${scheme}://${params.http.host}:${params.http.port}`,
-      scheme: scheme,
-      headers: params.headers,
-      grpcAddress: `${params.grpc.host}:${params.grpc.port}`,
-      grpcSecure: params.grpc.secure,
-      apiKey: params.auth instanceof ApiKey ? params.auth : undefined,
-      authClientSecret: params.auth instanceof ApiKey ? undefined : params.auth,
-    });
-
-    const dbVersionProvider = initDbVersionProvider(conn);
-    const dbVersionSupport = new DbVersionSupport(dbVersionProvider);
-
-    const ifc: WeaviateNextClient = {
       backup: backup(conn),
       cluster: cluster(conn),
-      collections: collections(conn, dbVersionSupport),
-      getMeta: () => new MetaGetter(conn).do(),
     };
+
     if (conn.oidcAuth) ifc.oidcAuth = conn.oidcAuth;
 
     return ifc;
@@ -138,15 +74,9 @@ const app = {
   AuthUserPasswordCredentials,
   AuthAccessTokenCredentials,
   AuthClientCredentials,
-  Configure,
 };
 
-export interface ConnectToWCSOptions {
-  authCredentials?: AuthCredentials;
-  headers?: Record<string, string>;
-}
-
-function initDbVersionProvider(conn: Connection) {
+export function initDbVersionProvider(conn: Connection) {
   const metaGetter = new MetaGetter(conn);
   const versionGetter = () => {
     return metaGetter

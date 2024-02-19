@@ -1,13 +1,12 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import weaviate from '..';
-import Configure from './configure';
+import weaviate from '../index.node';
 
 const fail = (msg: string) => {
   throw new Error(msg);
 };
 
 describe('Testing of the collections.create method', () => {
-  const cluster = weaviate.next({
+  const cluster = weaviate.client({
     http: {
       secure: false,
       host: 'localhost',
@@ -19,7 +18,7 @@ describe('Testing of the collections.create method', () => {
       port: 50051,
     },
   });
-  const contextionary = weaviate.next({
+  const contextionary = weaviate.client({
     http: {
       secure: false,
       host: 'localhost',
@@ -31,7 +30,7 @@ describe('Testing of the collections.create method', () => {
       port: 50051,
     },
   });
-  const openai = weaviate.next({
+  const openai = weaviate.client({
     http: {
       secure: false,
       host: 'localhost',
@@ -123,75 +122,75 @@ describe('Testing of the collections.create method', () => {
       properties: [
         {
           name: 'text',
-          dataType: Configure.DataType.TEXT,
+          dataType: weaviate.Configure.DataType.TEXT,
         },
         {
           name: 'texts',
-          dataType: Configure.DataType.TEXT_ARRAY,
+          dataType: weaviate.Configure.DataType.TEXT_ARRAY,
         },
         {
           name: 'number',
-          dataType: Configure.DataType.NUMBER,
+          dataType: weaviate.Configure.DataType.NUMBER,
         },
         {
           name: 'numbers',
-          dataType: Configure.DataType.NUMBER_ARRAY,
+          dataType: weaviate.Configure.DataType.NUMBER_ARRAY,
         },
         {
           name: 'int',
-          dataType: Configure.DataType.INT,
+          dataType: weaviate.Configure.DataType.INT,
         },
         {
           name: 'ints',
-          dataType: Configure.DataType.INT_ARRAY,
+          dataType: weaviate.Configure.DataType.INT_ARRAY,
         },
         {
           name: 'date',
-          dataType: Configure.DataType.DATE,
+          dataType: weaviate.Configure.DataType.DATE,
         },
         {
           name: 'dates',
-          dataType: Configure.DataType.DATE_ARRAY,
+          dataType: weaviate.Configure.DataType.DATE_ARRAY,
         },
         {
           name: 'boolean',
-          dataType: Configure.DataType.BOOLEAN,
+          dataType: weaviate.Configure.DataType.BOOLEAN,
         },
         {
           name: 'booleans',
-          dataType: Configure.DataType.BOOLEAN_ARRAY,
+          dataType: weaviate.Configure.DataType.BOOLEAN_ARRAY,
         },
         {
           name: 'object',
-          dataType: Configure.DataType.OBJECT,
+          dataType: weaviate.Configure.DataType.OBJECT,
           nestedProperties: [
             {
               name: 'nestedProp',
-              dataType: Configure.DataType.TEXT,
+              dataType: weaviate.Configure.DataType.TEXT,
             },
           ],
         },
         {
           name: 'objects',
-          dataType: Configure.DataType.OBJECT_ARRAY,
+          dataType: weaviate.Configure.DataType.OBJECT_ARRAY,
           nestedProperties: [
             {
               name: 'nestedProp',
-              dataType: Configure.DataType.TEXT,
+              dataType: weaviate.Configure.DataType.TEXT,
             },
           ],
         },
         {
           name: 'blob',
-          dataType: Configure.DataType.BLOB,
+          dataType: weaviate.Configure.DataType.BLOB,
         },
         {
           name: 'geoCoordinates',
-          dataType: Configure.DataType.GEO_COORDINATES,
+          dataType: weaviate.Configure.DataType.GEO_COORDINATES,
         },
         {
           name: 'phoneNumber',
-          dataType: Configure.DataType.PHONE_NUMBER,
+          dataType: weaviate.Configure.DataType.PHONE_NUMBER,
         },
       ],
       multiTenancy: {
@@ -349,7 +348,7 @@ describe('Testing of the collections.create method', () => {
           dataType: 'text',
         },
       ],
-      vectorizer: Configure.Vectorizer.text2VecContextionary(),
+      vectorizer: weaviate.Configure.Vectorizer.text2VecContextionary(),
     });
     expect(response.name).toEqual(className);
     expect(response.properties?.length).toEqual(1);
@@ -398,7 +397,7 @@ describe('Testing of the collections.create method', () => {
           dataType: 'text',
         },
       ],
-      vectorizer: Configure.Vectorizer.text2VecOpenAI(),
+      vectorizer: weaviate.Configure.Vectorizer.text2VecOpenAI(),
     });
     expect(response.name).toEqual(className);
     expect(response.properties?.length).toEqual(1);
@@ -419,7 +418,7 @@ describe('Testing of the collections.create method', () => {
           dataType: 'text',
         },
       ],
-      generative: Configure.Generative.openai(),
+      generative: weaviate.Configure.Generative.openai(),
     });
     expect(response.name).toEqual(className);
     expect(response.properties?.length).toEqual(1);

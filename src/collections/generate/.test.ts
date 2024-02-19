@@ -1,13 +1,13 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
-import weaviate from '../..';
+import weaviate from '../../index.node';
 import { GenerateOptions } from '.';
 import { GroupByOptions } from '../types';
 
 const maybe = process.env.OPENAI_APIKEY ? describe : describe.skip;
 
 maybe('Testing of the collection.generate methods with a simple collection', () => {
-  const client = weaviate.next({
+  const client = weaviate.client({
     http: {
       secure: false,
       host: 'localhost',
@@ -161,7 +161,7 @@ maybe('Testing of the collection.generate methods with a simple collection', () 
 });
 
 maybe('Testing of the groupBy collection.generate methods with a simple collection', () => {
-  const client = weaviate.next({
+  const client = weaviate.client({
     http: {
       secure: false,
       host: 'localhost',

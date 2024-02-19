@@ -1,9 +1,8 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import weaviate from '../..';
-import Configure from '../configure';
+import weaviate from '../../index.node';
 
 describe('Testing of the collection.data methods', () => {
-  const client = weaviate.next({
+  const client = weaviate.client({
     http: {
       secure: false,
       host: 'localhost',
@@ -30,7 +29,7 @@ describe('Testing of the collection.data methods', () => {
     return client.collections
       .create({
         name: className,
-        multiTenancy: Configure.multiTenancy({ enabled: true }),
+        multiTenancy: weaviate.Configure.multiTenancy({ enabled: true }),
       })
       .then(() =>
         collection.tenants.create([

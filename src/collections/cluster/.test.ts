@@ -1,7 +1,7 @@
-import weaviate from '../..';
+import weaviate from '../../index.node';
 
 describe('Testing of the client.cluster methods', () => {
-  const client = weaviate.next({
+  const client = weaviate.client({
     http: {
       secure: false,
       host: 'localhost',
