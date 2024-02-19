@@ -1,6 +1,6 @@
 import { Metadata } from 'nice-grpc';
 
-import { ConsistencyLevel } from '..';
+import { ConsistencyLevel } from '../data';
 
 import { BatchObjectsRequest, BatchObjectsReply, BatchObject } from '../proto/v1/batch';
 import { WeaviateClient } from '../proto/v1/weaviate';

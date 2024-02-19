@@ -1,6 +1,6 @@
-import Connection from '.';
+import Connection, { ConnectionParams } from '.';
 
-import { ConnectionParams, ConsistencyLevel } from '..';
+import { ConsistencyLevel } from '../data';
 
 import { ChannelCredentials, createChannel, createClient, Metadata } from 'nice-grpc';
 

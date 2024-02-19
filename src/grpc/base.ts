@@ -1,4 +1,4 @@
-import { ConsistencyLevel } from '..';
+import { ConsistencyLevel } from '../data';
 
 import { WeaviateClient } from '../proto/v1/weaviate';
 import { ConsistencyLevel as ConsistencyLevelGrpc } from '../proto/v1/base';

@@ -105,5 +105,10 @@ function initDbVersionProvider(conn: GrpcConnection) {
 }
 
 export default app;
-
+export * from './openapi/types';
+export * from './backup';
+export * from './cluster';
 export * from './collections';
+export * from './connection';
+export * from './utils/base64';
+export * from './utils/uuid';

@@ -1,4 +1,4 @@
-import { ConnectionParams } from '..';
+import { ConnectionParams } from '.';
 
 export interface HttpClient {
   patch: (path: string, payload: any, bearerToken?: string) => any;
