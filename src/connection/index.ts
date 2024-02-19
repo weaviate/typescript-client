@@ -8,7 +8,7 @@ import { Variables } from 'graphql-request';
 
 export default class Connection {
   private apiKey?: string;
-  private authEnabled: boolean;
+  protected authEnabled: boolean;
   private gql: GraphQLClient;
   public readonly host: string;
   public readonly http: HttpClient;

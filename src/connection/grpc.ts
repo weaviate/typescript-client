@@ -24,6 +24,9 @@ export default class GrpcConnection extends Connection {
         'gRPC client not initialized, did you forget to set the gRPC address in ConnectionParams?'
       );
     }
+    if (this.authEnabled) {
+      return this.login().then((token) => grpc.search(name, consistencyLevel, tenant, `Bearer ${token}`));
+    }
     return new Promise<Search>((resolve) => resolve(grpc.search(name, consistencyLevel, tenant)));
   };
 
@@ -33,6 +36,9 @@ export default class GrpcConnection extends Connection {
       throw new Error(
         'gRPC client not initialized, did you forget to set the gRPC address in ConnectionParams?'
       );
+    }
+    if (this.authEnabled) {
+      return this.login().then((token) => grpc.batch(name, consistencyLevel, tenant, `Bearer ${token}`));
     }
     return new Promise<Batch>((resolve) => resolve(grpc.batch(name, consistencyLevel, tenant)));
   };
