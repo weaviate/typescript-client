@@ -5,13 +5,13 @@
   "type": "module",
   "exports": {
     ".": {
-      "require": "./dist/index.js",
-      "import": "./dist/index.cjs",
+      "require": "./dist/index.cjs",
+      "import": "./dist/index.mjs",
       "types": "./dist/index.d.ts"
     },
     "./node": {
-      "require": "./dist/node/index.js",
-      "import": "./dist/node/index.c",
+      "require": "./dist/node/index.cjs",
+      "import": "./dist/node/index.mjs",
       "types": "./dist/node/index.d.ts"
     }
   },
@@ -19,16 +19,16 @@
     "node": ">=16.0.0"
   },
   "files": [
-    "/dist/node/index.js",
     "/dist/node/index.cjs",
+    "/dist/node/index.mjs",
     "/dist/node/index.d.ts",
-    "/dist/index.js",
     "/dist/index.cjs",
+    "/dist/index.mjs",
     "/dist/index.d.ts"
   ],
   "scripts": {
     "test": "tsc -noEmit -p tsconfig-test.json && jest --useStderr --runInBand --detectOpenHandles",
-    "build": "npm run lint && tsup && sed -i 's/protobufjs\\/minimal/protobufjs\\/minimal.js/g' dist/node/index.js dist/node/index.cjs",
+    "build": "npm run lint && tsup && sed -i 's/protobufjs\\/minimal/protobufjs\\/minimal.js/g' dist/node/index.mjs dist/node/index.cjs",
     "prepack": "npm run build",
     "lint": "eslint --ext .ts,.js .",
     "lint:fix": "npm run lint -- --fix",
