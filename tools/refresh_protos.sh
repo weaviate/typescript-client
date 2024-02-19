@@ -12,7 +12,7 @@ cd "${0%/*}/.."
     ../weaviate/grpc/proto/v1/*.proto
 
 
-# sed -i ''  's/from v1/from weaviate.proto.v1/g' v1/*.py
-# sed -i ''  's/from v1/from weaviate.proto.v1/g' v1/*.pyi
+sed -i ''  's/import _m0 from/import * as _m0 from/g' src/proto/v1/*.ts
+sed -i ''  's/import _m0 from/import * as _m0 from/g' src/proto/google/protobuf/struct.ts
 
 echo "done"

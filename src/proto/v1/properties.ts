@@ -1,6 +1,6 @@
 /* eslint-disable */
 import Long from "long";
-import _m0 from "protobufjs/minimal";
+import * as _m0 from "protobufjs/minimal";
 import { NullValue, nullValueFromJSON, nullValueToJSON } from "../google/protobuf/struct";
 
 export const protobufPackage = "weaviate.v1";

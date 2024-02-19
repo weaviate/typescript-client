@@ -1,6 +1,6 @@
 /* eslint-disable */
 import Long from "long";
-import _m0 from "protobufjs/minimal";
+import * as _m0 from "protobufjs/minimal";
 import { Struct } from "../google/protobuf/struct";
 import {
   BooleanArrayProperties,
@@ -125,6 +125,7 @@ export interface Hybrid {
   alpha: number;
   fusionType: Hybrid_FusionType;
   vectorBytes: Uint8Array;
+  targetVectors: string[];
 }
 
 export enum Hybrid_FusionType {
@@ -1485,7 +1486,15 @@ export const ObjectPropertiesRequest = {
 };
 
 function createBaseHybrid(): Hybrid {
-  return { query: "", properties: [], vector: [], alpha: 0, fusionType: 0, vectorBytes: new Uint8Array(0) };
+  return {
+    query: "",
+    properties: [],
+    vector: [],
+    alpha: 0,
+    fusionType: 0,
+    vectorBytes: new Uint8Array(0),
+    targetVectors: [],
+  };
 }
 
 export const Hybrid = {
@@ -1509,6 +1518,9 @@ export const Hybrid = {
     }
     if (message.vectorBytes.length !== 0) {
       writer.uint32(50).bytes(message.vectorBytes);
+    }
+    for (const v of message.targetVectors) {
+      writer.uint32(58).string(v!);
     }
     return writer;
   },
@@ -1572,6 +1584,13 @@ export const Hybrid = {
 
           message.vectorBytes = reader.bytes();
           continue;
+        case 7:
+          if (tag !== 58) {
+            break;
+          }
+
+          message.targetVectors.push(reader.string());
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1591,6 +1610,9 @@ export const Hybrid = {
       alpha: isSet(object.alpha) ? globalThis.Number(object.alpha) : 0,
       fusionType: isSet(object.fusionType) ? hybrid_FusionTypeFromJSON(object.fusionType) : 0,
       vectorBytes: isSet(object.vectorBytes) ? bytesFromBase64(object.vectorBytes) : new Uint8Array(0),
+      targetVectors: globalThis.Array.isArray(object?.targetVectors)
+        ? object.targetVectors.map((e: any) => globalThis.String(e))
+        : [],
     };
   },
 
@@ -1614,6 +1636,9 @@ export const Hybrid = {
     if (message.vectorBytes.length !== 0) {
       obj.vectorBytes = base64FromBytes(message.vectorBytes);
     }
+    if (message.targetVectors?.length) {
+      obj.targetVectors = message.targetVectors;
+    }
     return obj;
   },
 
@@ -1628,6 +1653,7 @@ export const Hybrid = {
     message.alpha = object.alpha ?? 0;
     message.fusionType = object.fusionType ?? 0;
     message.vectorBytes = object.vectorBytes ?? new Uint8Array(0);
+    message.targetVectors = object.targetVectors?.map((e) => e) || [];
     return message;
   },
 };

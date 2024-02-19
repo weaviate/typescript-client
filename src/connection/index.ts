@@ -1,10 +1,26 @@
-import { OidcAuthenticator } from './auth';
 import OpenidConfigurationGetter from '../misc/openidConfigurationGetter';
 
 import httpClient, { HttpClient } from './httpClient';
 import gqlClient, { GraphQLClient } from './gqlClient';
-import { ConnectionParams } from '..';
 import { Variables } from 'graphql-request';
+
+import {
+  ApiKey,
+  AuthAccessTokenCredentials,
+  AuthClientCredentials,
+  AuthUserPasswordCredentials,
+  OidcAuthenticator,
+} from './auth';
+
+export interface ConnectionParams {
+  authClientSecret?: AuthClientCredentials | AuthAccessTokenCredentials | AuthUserPasswordCredentials;
+  apiKey?: ApiKey;
+  host: string;
+  scheme?: string;
+  headers?: HeadersInit;
+  grpcAddress?: string;
+  grpcSecure?: boolean;
+}
 
 export default class Connection {
   private apiKey?: string;

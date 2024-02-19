@@ -5,36 +5,33 @@
   "type": "module",
   "exports": {
     ".": {
-      "require": "./dist/index.cjs",
-      "import": "./dist/index.js",
-      "types": "./dist/index.d.ts"
+      "types": {
+        "import": "./index.d.ts",
+        "require": "./index.d.cts"
+      },
+      "import": "./index.js",
+      "require": "./index.cjs"
     },
     "./node": {
-      "require": "./dist/node/index.cjs",
-      "import": "./dist/node/index.js",
-      "types": "./dist/node/index.d.ts"
+      "types": {
+        "import": "./node/index.d.ts",
+        "require": "./node/index.d.cts"
+      },
+      "import": "./node/index.js",
+      "require": "./node/index.cjs"
     }
   },
   "engines": {
     "node": ">=16.0.0"
   },
-  "files": [
-    "/dist/node/index.cjs",
-    "/dist/node/index.js",
-    "/dist/node/index.d.ts",
-    "/dist/index.cjs",
-    "/dist/index.js",
-    "/dist/index.d.ts"
-  ],
   "scripts": {
     "test": "tsc -noEmit -p tsconfig-test.json && jest --useStderr --runInBand --detectOpenHandles",
-    "build": "npm run lint && tsup && sed -i 's/protobufjs\\/minimal/protobufjs\\/minimal.js/g' dist/node/index.js dist/node/index.cjs",
+    "build": "npm run lint && tsup && cp package.json ./dist/package.json",
     "prepack": "npm run build",
     "lint": "eslint --ext .ts,.js .",
     "lint:fix": "npm run lint -- --fix",
     "format": "prettier --write --no-error-on-unmatched-pattern '**/*.{ts,js}' '!dist/**'",
     "format:check": "prettier --check --no-error-on-unmatched-pattern '**/*.{ts,js}' '!dist/**'",
-    "prepare": "husky install",
     "schema": "./tools/refresh_schema.sh",
     "protos": "./tools/refresh_protos.sh"
   },
@@ -51,13 +48,6 @@
     "url": "https://github.com/weaviate/typescript-client/issues"
   },
   "homepage": "https://github.com/weaviate/typescript-client#readme",
-  "dependencies": {
-    "graphql-request": "^5.2.0",
-    "long": "^5.2.3",
-    "nice-grpc": "^2.1.7",
-    "protobufjs": "^7.2.5",
-    "uuid": "^9.0.1"
-  },
   "devDependencies": {
     "@babel/core": "^7.20.12",
     "@babel/preset-typescript": "^7.18.6",
@@ -83,8 +73,13 @@
     "prettier": "^2.8.4",
     "ts-jest": "^29.0.5",
     "ts-proto": "^1.163.0",
-    "tsup": "^6.7.0",
-    "typescript": "^5.3.3"
+    "tsup": "^8.0.2",
+    "typescript": "^5.3.3",
+    "graphql-request": "^6.1.0",
+    "long": "^5.2.3",
+    "nice-grpc": "^2.1.7",
+    "protobufjs": "^7.2.6",
+    "uuid": "^9.0.1"
   },
   "lint-staged": {
     "*.{ts,js}": [

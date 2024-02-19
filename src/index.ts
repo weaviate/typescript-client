@@ -1,4 +1,4 @@
-import Connection from './connection';
+import Connection, { ConnectionParams } from './connection';
 import graphql, { GraphQL } from './graphql';
 import schema, { Schema } from './schema';
 import data, { Data } from './data';
@@ -17,16 +17,6 @@ import {
   OidcAuthenticator,
 } from './connection/auth';
 import MetaGetter from './misc/metaGetter';
-
-export interface ConnectionParams {
-  authClientSecret?: AuthClientCredentials | AuthAccessTokenCredentials | AuthUserPasswordCredentials;
-  apiKey?: ApiKey;
-  host: string;
-  scheme?: string;
-  headers?: HeadersInit;
-  grpcAddress?: string;
-  grpcSecure?: boolean;
-}
 
 export interface WeaviateClient {
   graphql: GraphQL;
@@ -76,7 +66,7 @@ const app = {
   AuthClientCredentials,
 };
 
-export function initDbVersionProvider(conn: Connection) {
+function initDbVersionProvider(conn: Connection) {
   const metaGetter = new MetaGetter(conn);
   const versionGetter = () => {
     return metaGetter

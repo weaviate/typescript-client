@@ -1,5 +1,5 @@
 import GrpcConnection from './connection/grpc';
-import { DbVersionSupport } from './utils/dbVersion';
+import { DbVersionProvider, DbVersionSupport } from './utils/dbVersion';
 import { backup, Backup } from './collections/backup';
 import cluster, { Cluster } from './collections/cluster';
 import {
@@ -16,7 +16,7 @@ import collections, { Collections } from './collections';
 import Configure from './collections/configure';
 import { Meta } from './openapi/types';
 
-import { initDbVersionProvider } from '.';
+import * as protobufjs from 'protobufjs';
 
 export interface ProtocolParams {
   secure: boolean;
@@ -48,6 +48,7 @@ const app = {
     return connectToWCS(clusterURL, this.client, options);
   },
   client: function (params: ClientParams): WeaviateNextClient {
+    protobufjs.configure();
     // check if the URL is set
     if (!params.http.host) throw new Error('Missing `host` parameter');
 
@@ -88,8 +89,21 @@ const app = {
   Configure,
 };
 
+function initDbVersionProvider(conn: GrpcConnection) {
+  const metaGetter = new MetaGetter(conn);
+  const versionGetter = () => {
+    return metaGetter
+      .do()
+      .then((result: any) => result.version)
+      .catch(() => Promise.resolve(''));
+  };
+
+  const dbVersionProvider = new DbVersionProvider(versionGetter);
+  dbVersionProvider.refresh();
+
+  return dbVersionProvider;
+}
+
 export default app;
-export * from './openapi/types';
-export * from './backup';
-export * from './cluster';
+
 export * from './collections';

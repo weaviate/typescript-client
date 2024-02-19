@@ -18,6 +18,8 @@ export default defineConfig([
     platform: 'neutral',
     minify: true,
     dts: true,
+    splitting: true,
+    treeshake: true,
   },
   {
     entry: {
@@ -25,9 +27,8 @@ export default defineConfig([
     },
     format: ['cjs', 'esm'],
     outDir: 'dist/node',
-    clean: true,
-    minify: true,
     dts: true,
-    target: 'node20',
+    target: 'node16',
+    platform: 'node',
   },
 ]);
