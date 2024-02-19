@@ -89,3 +89,7 @@ const app = {
 };
 
 export default app;
+export * from './openapi/types';
+export * from './backup';
+export * from './cluster';
+export * from './collections';

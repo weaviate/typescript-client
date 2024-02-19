@@ -10,6 +10,7 @@ export default defineConfig([
       '!src/connection/grpc.ts',
       '!src/connection/helpers.ts',
       '!src/proto/**/*.ts',
+      '!src/grpc',
     ],
     format: ['cjs', 'esm'],
     outDir: 'dist',

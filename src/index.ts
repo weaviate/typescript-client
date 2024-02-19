@@ -97,7 +97,6 @@ export * from './graphql';
 export * from './schema';
 export * from './data';
 export * from './classifications';
-export * from './collections';
 export * from './batch';
 export * from './misc';
 export * from './c11y';
