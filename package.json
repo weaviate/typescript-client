@@ -4,21 +4,15 @@
   "description": "JS/TS client for Weaviate",
   "type": "module",
   "exports": {
-    ".": {
-      "types": {
-        "import": "./index.d.ts",
-        "require": "./index.d.cts"
-      },
-      "import": "./index.js",
-      "require": "./index.cjs"
-    },
     "./node": {
-      "types": {
-        "import": "./node/index.d.ts",
-        "require": "./node/index.d.cts"
+      "import": {
+        "default": "./dist/node/index.js",
+        "types": "./dist/node/index.d.ts"
       },
-      "import": "./node/index.js",
-      "require": "./node/index.cjs"
+      "require": {
+        "default": "./dist/node/index.cjs",
+        "types": "./dist/node/index.d.cts"
+      }
     }
   },
   "engines": {
