@@ -184,9 +184,21 @@ export default class Deserialize {
     return metadata.id;
   }
 
-  private static vector(metadata?: MetadataResult): number[] | undefined {
-    if (!metadata) return undefined;
-    if (metadata.vector.length > 0) return metadata.vector;
+  private static vectorFromBytes(bytes: Uint8Array): number[] {
+    const buffer = Buffer.from(bytes);
+    const view = new Float32Array(buffer.buffer, buffer.byteOffset, buffer.byteLength / 4); // vector is float32 in weaviate
+    return Array.from(view);
+  }
+
+  private static vector(metadata?: MetadataResult): Record<string, number[]> {
+    if (!metadata) return {};
+    if (metadata.vectorBytes.length === 0 && metadata.vector.length === 0 && metadata.vectors.length === 0)
+      return {};
+    if (metadata.vectorBytes.length > 0)
+      return { default: Deserialize.vectorFromBytes(metadata.vectorBytes) };
+    return Object.fromEntries(
+      metadata.vectors.map((vector) => [vector.name, Deserialize.vectorFromBytes(vector.vectorBytes)])
+    );
   }
 
   public static batchObjects<T extends Properties>(

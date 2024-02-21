@@ -67,7 +67,7 @@ maybe('Testing of the collection.generate methods with a simple collection', () 
         });
       });
     const res = await collection.query.fetchObjectById(id, { includeVector: true });
-    vector = res?.vector!;
+    vector = res?.vector.default!;
   });
 
   describe('using a non-generic collection', () => {
@@ -227,7 +227,7 @@ maybe('Testing of the groupBy collection.generate methods with a simple collecti
         });
       });
     const res = await collection.query.fetchObjectById(id, { includeVector: true });
-    vector = res?.vector!;
+    vector = res?.vector.default!;
   });
 
   // it('should groupBy without search', async () => {

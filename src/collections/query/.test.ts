@@ -55,7 +55,7 @@ describe('Testing of the collection.query methods with a simple collection', () 
         });
       });
     const res = await collection.query.fetchObjectById(id, { includeVector: true });
-    vector = res?.vector!;
+    vector = res?.vector.default!;
   });
 
   it('should fetch an object by its id', async () => {
@@ -312,7 +312,7 @@ describe('Testing of the collection.query methods with a collection with a refer
 
     it('should query with nearVector returning the referenced object', async () => {
       const res = await collection.query.fetchObjectById(id2, { includeVector: true });
-      const ret = await collection.query.nearVector(res?.vector!, {
+      const ret = await collection.query.nearVector(res?.vector.default!, {
         returnProperties: ['testProp'],
         returnReferences: [
           {
@@ -516,7 +516,7 @@ describe('Testing of the groupBy collection.query methods with a simple collecti
         });
       });
     const res = await collection.query.fetchObjectById(id, { includeVector: true });
-    vector = res?.vector!;
+    vector = res?.vector.default!;
   });
 
   // it('should groupBy without search', async () => {

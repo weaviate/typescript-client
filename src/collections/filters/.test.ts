@@ -100,7 +100,7 @@ describe('Testing of the filter class with a simple collection', () => {
         return uuids;
       });
     const res = await collection.query.fetchObjectById(ids[0], { includeVector: true });
-    vector = res?.vector!;
+    vector = res?.vector.default!;
   });
 
   it('should filter a fetch objects query with a single filter and generic collection', async () => {

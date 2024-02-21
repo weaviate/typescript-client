@@ -24,7 +24,7 @@ import {
 import { SearchReply } from '../../proto/v1/search_get';
 
 export interface QueryFetchObjectByIdOptions<T> {
-  includeVector?: boolean;
+  includeVector?: boolean | string[];
   returnProperties?: QueryProperty<T>[];
   returnReferences?: QueryReference<T>[];
 }
@@ -35,7 +35,7 @@ export interface QueryFetchObjectsOptions<T> {
   after?: string;
   filters?: FilterValue;
   sort?: Sorting<T>;
-  includeVector?: boolean;
+  includeVector?: boolean | string[];
   returnMetadata?: MetadataQuery;
   returnProperties?: QueryProperty<T>[];
   returnReferences?: QueryReference<T>[];
@@ -45,7 +45,7 @@ export interface QueryOptions<T> {
   limit?: number;
   autoLimit?: number;
   filters?: FilterValue;
-  includeVector?: boolean;
+  includeVector?: boolean | string[];
   returnMetadata?: MetadataQuery;
   returnProperties?: QueryProperty<T>[];
   returnReferences?: QueryReference<T>[];
@@ -60,11 +60,13 @@ export interface QueryHybridOptions<T> extends QueryOptions<T> {
   vector?: number[];
   queryProperties?: PrimitiveKeys<T>[];
   fusionType?: 'Ranked' | 'RelativeScore';
+  targetVector?: string;
 }
 
 export interface QueryBaseNearOptions<T> extends QueryOptions<T> {
   certainty?: number;
   distance?: number;
+  targetVector?: string;
 }
 export interface QueryGroupByNearOptions<T> extends QueryBaseNearOptions<T> {
   groupBy: GroupByOptions<T>;

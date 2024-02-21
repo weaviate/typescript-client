@@ -306,6 +306,7 @@ export default class Serialize {
         properties: args.queryProperties,
         vector: args.vector,
         fusionType: fusionType(args.fusionType),
+        targetVectors: args.targetVector ? [args.targetVector] : undefined,
       }),
       autocut: args.autoLimit,
     };
@@ -320,6 +321,7 @@ export default class Serialize {
         audio: args.audio,
         certainty: args.certainty,
         distance: args.distance,
+        targetVectors: args.targetVector ? [args.targetVector] : undefined,
       }),
       autocut: args.autoLimit,
     };
@@ -334,6 +336,7 @@ export default class Serialize {
         depth: args.depth,
         certainty: args.certainty,
         distance: args.distance,
+        targetVectors: args.targetVector ? [args.targetVector] : undefined,
       }),
       autocut: args.autoLimit,
     };
@@ -348,6 +351,7 @@ export default class Serialize {
         image: args.image,
         certainty: args.certainty,
         distance: args.distance,
+        targetVectors: args.targetVector ? [args.targetVector] : undefined,
       }),
       autocut: args.autoLimit,
     };
@@ -362,6 +366,7 @@ export default class Serialize {
         imu: args.imu,
         certainty: args.certainty,
         distance: args.distance,
+        targetVectors: args.targetVector ? [args.targetVector] : undefined,
       }),
       autocut: args.autoLimit,
     };
@@ -376,6 +381,7 @@ export default class Serialize {
         id: args.id,
         certainty: args.certainty,
         distance: args.distance,
+        targetVectors: args.targetVector ? [args.targetVector] : undefined,
       }),
       autocut: args.autoLimit,
     };
@@ -390,6 +396,7 @@ export default class Serialize {
         query: typeof args.query === 'string' ? [args.query] : args.query,
         certainty: args.certainty,
         distance: args.distance,
+        targetVectors: args.targetVector ? [args.targetVector] : undefined,
       }),
       autocut: args.autoLimit,
     };
@@ -404,6 +411,7 @@ export default class Serialize {
         thermal: args.thermal,
         certainty: args.certainty,
         distance: args.distance,
+        targetVectors: args.targetVector ? [args.targetVector] : undefined,
       }),
       autocut: args.autoLimit,
     };
@@ -418,6 +426,7 @@ export default class Serialize {
         vector: args.vector,
         certainty: args.certainty,
         distance: args.distance,
+        targetVectors: args.targetVector ? [args.targetVector] : undefined,
       }),
       autocut: args.autoLimit,
     };
@@ -432,6 +441,7 @@ export default class Serialize {
         video: args.video,
         certainty: args.certainty,
         distance: args.distance,
+        targetVectors: args.targetVector ? [args.targetVector] : undefined,
       }),
       autocut: args.autoLimit,
     };
@@ -635,10 +645,14 @@ export default class Serialize {
     };
   };
 
-  private static metadata = (includeVector?: boolean, metadata?: MetadataQuery): MetadataRequest => {
+  private static metadata = (
+    includeVector?: boolean | string[],
+    metadata?: MetadataQuery
+  ): MetadataRequest => {
     const out: any = {
       uuid: true,
-      vector: includeVector === true,
+      vector: typeof includeVector === 'boolean' ? includeVector : false,
+      vectors: Array.isArray(includeVector) ? includeVector : undefined,
     };
     metadata?.forEach((key) => {
       let weaviateKey: string;

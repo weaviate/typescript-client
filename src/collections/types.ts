@@ -376,7 +376,7 @@ export type WeaviateObject<T> = {
   metadata?: MetadataReturn;
   references: ReturnReferences<T> | undefined;
   uuid: string;
-  vector?: number[];
+  vector: Record<string, number[]>;
 };
 
 export type WeaviateReturn<T> = {
