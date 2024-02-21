@@ -3,6 +3,7 @@ export interface NearObjectArgs {
   certainty?: number;
   distance?: number;
   id?: string;
+  targetVectors?: string[];
 }
 
 export default class GraphQLNearObject {
@@ -10,12 +11,14 @@ export default class GraphQLNearObject {
   private certainty?: number;
   private distance?: number;
   private id?: string;
+  private targetVectors?: string[];
 
   constructor(args: NearObjectArgs) {
     this.beacon = args.beacon;
     this.certainty = args.certainty;
     this.distance = args.distance;
     this.id = args.id;
+    this.targetVectors = args.targetVectors;
   }
 
   toString(wrap = true) {
@@ -37,6 +40,10 @@ export default class GraphQLNearObject {
 
     if (this.distance) {
       args = [...args, `distance:${this.distance}`];
+    }
+
+    if (this.targetVectors && this.targetVectors.length > 0) {
+      args = [...args, `targetVectors:${JSON.stringify(this.targetVectors)}`];
     }
 
     if (!wrap) {

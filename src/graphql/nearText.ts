@@ -5,6 +5,7 @@ export interface NearTextArgs {
   distance?: number;
   moveAwayFrom?: Move;
   moveTo?: Move;
+  targetVectors?: string[];
 }
 
 export interface Move {
@@ -25,6 +26,7 @@ export default class GraphQLNearText {
   private distance?: number;
   private moveAwayFrom?: any;
   private moveTo?: any;
+  private targetVectors?: string[];
 
   constructor(args: NearTextArgs) {
     this.autocorrect = args.autocorrect;
@@ -33,6 +35,7 @@ export default class GraphQLNearText {
     this.distance = args.distance;
     this.moveAwayFrom = args.moveAwayFrom;
     this.moveTo = args.moveTo;
+    this.targetVectors = args.targetVectors;
   }
 
   toString(): string {
@@ -46,6 +49,10 @@ export default class GraphQLNearText {
 
     if (this.distance) {
       args = [...args, `distance:${this.distance}`];
+    }
+
+    if (this.targetVectors && this.targetVectors.length > 0) {
+      args = [...args, `targetVectors:${JSON.stringify(this.targetVectors)}`];
     }
 
     if (this.moveTo) {

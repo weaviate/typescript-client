@@ -12,11 +12,23 @@ export default class Updater extends CommandBase {
   private objectsPath: ObjectsPath;
   private properties?: Properties;
   private tenant?: string;
+  private vector?: number[];
+  private vectors?: Record<string, number[]>;
 
   constructor(client: Connection, objectsPath: ObjectsPath) {
     super(client);
     this.objectsPath = objectsPath;
   }
+
+  withVector = (vector: number[]) => {
+    this.vector = vector;
+    return this;
+  };
+
+  withVectors = (vectors: Record<string, number[]>) => {
+    this.vectors = vectors;
+    return this;
+  };
 
   withProperties = (properties: Properties) => {
     this.properties = properties;
@@ -60,6 +72,8 @@ export default class Updater extends CommandBase {
     properties: this.properties,
     class: this.className,
     id: this.id,
+    vector: this.vector,
+    vectors: this.vectors,
   });
 
   validate = () => {

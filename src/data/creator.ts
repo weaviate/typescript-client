@@ -12,6 +12,7 @@ export default class Creator extends CommandBase {
   private objectsPath: ObjectsPath;
   private properties?: Properties;
   private vector?: number[];
+  private vectors?: Record<string, number[]>;
   private tenant?: string;
 
   constructor(client: Connection, objectsPath: ObjectsPath) {
@@ -21,6 +22,11 @@ export default class Creator extends CommandBase {
 
   withVector = (vector: number[]) => {
     this.vector = vector;
+    return this;
+  };
+
+  withVectors = (vectors: Record<string, number[]>) => {
+    this.vectors = vectors;
     return this;
   };
 
@@ -61,6 +67,7 @@ export default class Creator extends CommandBase {
     properties: this.properties,
     class: this.className,
     id: this.id,
+    vectors: this.vectors,
   });
 
   validate = () => {

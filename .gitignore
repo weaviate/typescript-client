@@ -10,3 +10,4 @@ weaviate-data/
 *.tgz
 .npmrc
 .eslintcache
+test.sh
