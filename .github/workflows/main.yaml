@@ -8,7 +8,7 @@ on:
 
 
 env:
-  WEAVIATE_VERSION: preview-introduce-named-vectors-89777d6
+  WEAVIATE_VERSION: preview--f005cb8
 
 jobs:
   checks:
