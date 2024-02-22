@@ -2103,6 +2103,153 @@ describe('where test', () => {
   });
 });
 
+describe('named vectors test', () => {
+  let client: WeaviateClient;
+
+  beforeEach(() => {
+    client = weaviate.client({
+      scheme: 'http',
+      host: 'localhost:8080',
+    });
+  });
+
+  const className = 'NamedVectorTest';
+  const oneUUID = 'abefd256-8574-442b-9293-9205193737e1';
+
+  describe('setup', () => {
+    it(`should create ${className} class`, () => {
+      const namedVectorTest: WeaviateClass = {
+        class: className,
+        properties: [
+          {
+            name: 'title',
+            dataType: ['text'],
+          },
+          {
+            name: 'rating',
+            dataType: ['text'],
+          },
+        ],
+        vectorConfig: {
+          title: {
+            vectorIndexType: 'hnsw',
+            vectorizer: {
+              'text2vec-contextionary': {
+                vectorizeClassName: false,
+                properties: ['title'],
+              },
+            },
+          },
+          rating: {
+            vectorIndexType: 'hnsw',
+            vectorizer: {
+              'text2vec-contextionary': {
+                vectorizeClassName: false,
+                properties: ['rating'],
+              },
+            },
+          },
+        },
+      };
+      return client.schema.classCreator().withClass(namedVectorTest).do();
+    });
+
+    it('should insert NamedVectorTest data', () => {
+      const objects: WeaviateObject[] = [
+        {
+          class: className,
+          properties: {
+            title: 'One',
+            rating: 'Good',
+          },
+          id: oneUUID,
+        },
+        {
+          class: className,
+          properties: {
+            title: 'Two',
+            rating: 'Better',
+          },
+        },
+        {
+          class: className,
+          properties: {
+            title: 'Three',
+            rating: 'Best',
+          },
+        },
+      ];
+      let batch = client.batch.objectsBatcher();
+      objects.forEach((elem) => {
+        batch = batch.withObject(elem);
+      });
+      return batch.do();
+    });
+
+    it('should perform a nearText query on the title vector', () => {
+      return client.graphql
+        .get()
+        .withClassName(className)
+        .withNearText({
+          concepts: ['Two'],
+          targetVectors: ['title'],
+        })
+        .withFields('title')
+        .do()
+        .then((res) => {
+          expect(res.data.Get.NamedVectorTest).toHaveLength(3);
+          expect(res.data.Get.NamedVectorTest[0].title).toBe('Two');
+        });
+    });
+
+    it('should perform a nearObject query on the rating vector', () => {
+      return client.graphql
+        .get()
+        .withClassName(className)
+        .withNearObject({
+          id: oneUUID,
+          targetVectors: ['rating'],
+        })
+        .withFields('rating')
+        .do()
+        .then((res) => {
+          expect(res.data.Get.NamedVectorTest).toHaveLength(3);
+          expect(res.data.Get.NamedVectorTest[0].rating).toBe('Good');
+        });
+    });
+  });
+
+  it('should perform a nearVector query on the title vector', () => {
+    return client.data
+      .getterById()
+      .withClassName(className)
+      .withId(oneUUID)
+      .withVector()
+      .do()
+      .then((res) =>
+        client.graphql
+          .get()
+          .withClassName(className)
+          .withNearVector({
+            vector: res.vectors?.title as number[],
+            targetVectors: ['title'],
+          })
+          .withFields('title')
+          .do()
+      )
+      .then((res) => {
+        expect(res.data.Get.NamedVectorTest).toHaveLength(3);
+        expect(res.data.Get.NamedVectorTest[0].title).toBe('One');
+      });
+  });
+
+  describe('destroy', () => {
+    it('tears down NamedVectorTest class', () => {
+      return client.schema.classDeleter().withClassName(className).do();
+    });
+  });
+});
+
 const setup = async (client: WeaviateClient) => {
   const thing = {
     class: 'Article',

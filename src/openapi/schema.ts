@@ -235,6 +235,10 @@ export interface definitions {
   }[];
   /** @description A Vector in the Contextionary */
   C11yVector: number[];
+  /** @description A Vector object */
+  Vector: number[];
+  /** @description A Multi Vector map of named vectors */
+  Vectors: { [key: string]: definitions['Vector'] };
   /** @description Receive question based on array of classes, properties and values. */
   C11yVectorBasedQuestion: {
     /** @description Vectorized classname. */
@@ -463,6 +467,7 @@ export interface definitions {
   Class: {
     /** @description Name of the class as URI relative to the schema URL. */
     class?: string;
+    vectorConfig?: { [key: string]: definitions['VectorConfig'] };
     /** @description Name of the vector index to use, eg. (HNSW) */
     vectorIndexType?: string;
     /** @description Vector-index config, that is specific to the type of index selected in vectorIndexType */
@@ -500,9 +505,17 @@ export interface definitions {
      * @description Determines tokenization of the property as separate words or whole field. Optional. Applies to text and text[] data types. Allowed values are `word` (default; splits on any non-alphanumerical, lowercases), `lowercase` (splits on white spaces, lowercases), `whitespace` (splits on white spaces), `field` (trims). Not supported for remaining data types
      * @enum {string}
      */
-    tokenization?: 'word' | 'lowercase' | 'whitespace' | 'field';
+    tokenization?: 'word' | 'lowercase' | 'whitespace' | 'field' | 'trigram' | 'gse';
     /** @description The properties of the nested object(s). Applies to object and object[] data types. */
     nestedProperties?: definitions['NestedProperty'][];
+  };
+  VectorConfig: {
+    /** @description Configuration of a specific vectorizer used by this vector */
+    vectorizer?: { [key: string]: unknown };
+    /** @description Name of the vector index to use, eg. (HNSW) */
+    vectorIndexType?: string;
+    /** @description Vector-index config, that is specific to the type of index selected in vectorIndexType */
+    vectorIndexConfig?: { [key: string]: unknown };
   };
   NestedProperty: {
     dataType?: string[];
@@ -522,6 +535,8 @@ export interface definitions {
     name?: string;
     /** @description Status of the shard */
     status?: string;
+    /** @description Size of the vector queue of the shard */
+    vectorQueueSize?: number;
   };
   /** @description The status of a single shard */
   ShardStatus: {
@@ -562,12 +577,39 @@ export interface definitions {
      */
     status?: 'STARTED' | 'TRANSFERRING' | 'TRANSFERRED' | 'SUCCESS' | 'FAILED';
   };
+  /** @description Backup custom configuration */
+  BackupConfig: {
+    /**
+     * @description Desired CPU core utilization ranging from 1%-80%
+     * @default 50
+     */
+    CPUPercentage?: number;
+    /**
+     * @description Weaviate will attempt to come close the specified size, with a minimum of 2MB, default of 128MB, and a maximum of 512MB
+     * @default 128
+     */
+    ChunkSize?: number;
+    /**
+     * @description compression level used by compression algorithm
+     * @default DefaultCompression
+     * @enum {string}
+     */
+    CompressionLevel?: 'DefaultCompression' | 'BestSpeed' | 'BestCompression';
+  };
+  /** @description Backup custom configuration */
+  RestoreConfig: {
+    /**
+     * @description Desired CPU core utilization ranging from 1%-80%
+     * @default 50
+     */
+    CPUPercentage?: number;
+  };
   /** @description Request body for creating a backup of a set of classes */
   BackupCreateRequest: {
     /** @description The ID of the backup. Must be URL-safe and work as a filesystem path, only lowercase, numbers, underscore, minus characters allowed. */
     id?: string;
     /** @description Custom configuration for the backup creation process */
-    config?: { [key: string]: unknown };
+    config?: definitions['BackupConfig'];
     /** @description List of classes to include in the backup creation process */
     include?: string[];
     /** @description List of classes to exclude from the backup creation process */
@@ -595,11 +637,13 @@ export interface definitions {
   /** @description Request body for restoring a backup for a set of classes */
   BackupRestoreRequest: {
     /** @description Custom configuration for the backup restoration process */
-    config?: { [key: string]: unknown };
+    config?: definitions['RestoreConfig'];
     /** @description List of classes to include in the backup restoration process */
     include?: string[];
     /** @description List of classes to exclude from the backup restoration process */
     exclude?: string[];
+    /** @description Allows overriding the node names stored in the backup with different ones. Useful when restoring backups to a different environment. */
+    node_mapping?: { [key: string]: string };
   };
   /** @description The definition of a backup restore response body */
   BackupRestoreResponse: {
@@ -657,6 +701,21 @@ export interface definitions {
      * @description The number of objects in shard.
      */
     objectCount?: number;
+    /**
+     * Format: string
+     * @description The status of the vector indexing process.
+     */
+    vectorIndexingStatus?: unknown;
+    /**
+     * Format: boolean
+     * @description The status of vector compression/quantization.
+     */
+    compressed?: unknown;
+    /**
+     * Format: int64
+     * @description The length of the vector indexing queue.
+     */
+    vectorQueueLength?: number;
   };
   /** @description The definition of a backup node status response body */
   NodeStatus: {
@@ -667,7 +726,7 @@ export interface definitions {
      * @default HEALTHY
      * @enum {string}
      */
-    status?: 'HEALTHY' | 'UNHEALTHY' | 'UNAVAILABLE';
+    status?: 'HEALTHY' | 'UNHEALTHY' | 'UNAVAILABLE' | 'TIMEOUT';
     /** @description The version of Weaviate. */
     version?: string;
     /** @description The gitHash of Weaviate. */
@@ -844,8 +903,10 @@ export interface definitions {
      * @description Timestamp of the last Object update in milliseconds since epoch UTC.
      */
     lastUpdateTimeUnix?: number;
-    /** @description This object's position in the Contextionary vector space. Read-only if using a vectorizer other than 'none'. Writable and required if using 'none' as vectorizer. */
+    /** @description This field returns vectors associated with the Object. C11yVector, Vector or Vectors values are possible. */
     vector?: definitions['C11yVector'];
+    /** @description This field returns vectors associated with the Object. */
+    vectors?: definitions['Vectors'];
     /** @description Name of the Objects tenant. */
     tenant?: string;
     additional?: definitions['AdditionalProperties'];
@@ -1196,6 +1257,11 @@ export interface parameters {
   CommonOrderParameterQuery: string;
   /** @description Class parameter specifies the class from which to query objects */
   CommonClassParameterQuery: string;
+  /**
+   * @description Controls the verbosity of the output, possible values are: "minimal", "verbose". Defaults to "minimal".
+   * @default minimal
+   */
+  CommonOutputVerbosityParameterQuery: string;
 }
 
 export interface operations {
@@ -2327,6 +2393,9 @@ export interface operations {
       path: {
         className: string;
       };
+      query: {
+        tenant?: string;
+      };
     };
     responses: {
       /** Found the status of the shards, returned as body */
@@ -2642,6 +2711,12 @@ export interface operations {
   };
   /** Returns status of Weaviate DB. */
   'nodes.get': {
+    parameters: {
+      query: {
+        /** Controls the verbosity of the output, possible values are: "minimal", "verbose". Defaults to "minimal". */
+        output?: parameters['CommonOutputVerbosityParameterQuery'];
+      };
+    };
     responses: {
       /** Nodes status successfully returned */
       200: {
@@ -2672,6 +2747,10 @@ export interface operations {
     parameters: {
       path: {
         className: string;
+      };
+      query: {
+        /** Controls the verbosity of the output, possible values are: "minimal", "verbose". Defaults to "minimal". */
+        output?: parameters['CommonOutputVerbosityParameterQuery'];
       };
     };
     responses: {
