@@ -4,7 +4,7 @@ import weaviate from '../../index.node';
 
 describe('Testing of the Sort class with a simple collection', () => {
   const client = weaviate.client({
-    http: {
+    rest: {
       secure: false,
       host: 'localhost',
       port: 8080,

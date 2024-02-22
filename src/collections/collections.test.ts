@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import weaviate from '../index.node';
+import { CollectionConfigCreate } from './types';
 
 const fail = (msg: string) => {
   throw new Error(msg);
@@ -7,7 +8,7 @@ const fail = (msg: string) => {
 
 describe('Testing of the collections.create method', () => {
   const cluster = weaviate.client({
-    http: {
+    rest: {
       secure: false,
       host: 'localhost',
       port: 8087,
@@ -19,7 +20,7 @@ describe('Testing of the collections.create method', () => {
     },
   });
   const contextionary = weaviate.client({
-    http: {
+    rest: {
       secure: false,
       host: 'localhost',
       port: 8080,
@@ -31,7 +32,7 @@ describe('Testing of the collections.create method', () => {
     },
   });
   const openai = weaviate.client({
-    http: {
+    rest: {
       secure: false,
       host: 'localhost',
       port: 8086,
@@ -43,8 +44,8 @@ describe('Testing of the collections.create method', () => {
     },
   });
 
-  it('should be able to create a simple collection', async () => {
-    const className = 'TestCollectionSimple';
+  it('should be able to create a simple collection with a generic', async () => {
+    const className = 'TestCollectionSimpleGeneric';
     type TestCollectionSimple = {
       testProp: string;
     };
@@ -57,6 +58,95 @@ describe('Testing of the collections.create method', () => {
         },
       ],
     });
+    expect(response.name).toEqual(className);
+    expect(response.properties?.length).toEqual(1);
+    expect(response.properties[0].name).toEqual('testProp');
+    expect(response.properties[0].dataType).toEqual('text');
+    expect(response.vectorizer).toBeUndefined();
+
+    await contextionary.collections.delete(className);
+  });
+
+  it('should be able to create a simple collection without a generic', async () => {
+    const className = 'TestCollectionSimpleNonGeneric';
+    const response = await contextionary.collections.create({
+      name: className,
+      properties: [
+        {
+          name: 'testProp',
+          dataType: 'text',
+        },
+      ],
+    });
+    expect(response.name).toEqual(className);
+    expect(response.properties?.length).toEqual(1);
+    expect(response.properties[0].name).toEqual('testProp');
+    expect(response.properties[0].dataType).toEqual('text');
+    expect(response.vectorizer).toBeUndefined();
+
+    await contextionary.collections.delete(className);
+  });
+
+  it('should be able to create a simple collection without a generic using a schema var', async () => {
+    const className = 'TestCollectionSimpleNonGenericVar';
+    const schema = {
+      name: className,
+      properties: [
+        {
+          name: 'testProp',
+          dataType: 'text' as const,
+        },
+      ],
+    };
+    const response = await contextionary.collections.create(schema);
+    expect(response.name).toEqual(className);
+    expect(response.properties?.length).toEqual(1);
+    expect(response.properties[0].name).toEqual('testProp');
+    expect(response.properties[0].dataType).toEqual('text');
+    expect(response.vectorizer).toBeUndefined();
+
+    await contextionary.collections.delete(className);
+  });
+
+  it('should be able to create a simple collection with a generic using a schema var with const', async () => {
+    const className = 'TestCollectionSimpleGenericVarConst';
+    type TestCollectionSimple = {
+      testProp: string;
+    };
+    const schema = {
+      name: className,
+      properties: [
+        {
+          name: 'testProp' as const,
+          dataType: 'text' as const,
+        },
+      ],
+    };
+    const response = await contextionary.collections.create<TestCollectionSimple>(schema);
+    expect(response.name).toEqual(className);
+    expect(response.properties?.length).toEqual(1);
+    expect(response.properties[0].name).toEqual('testProp');
+    expect(response.properties[0].dataType).toEqual('text');
+    expect(response.vectorizer).toBeUndefined();
+
+    await contextionary.collections.delete(className);
+  });
+
+  it('should be able to create a simple collection with a generic using a schema var with type', async () => {
+    const className = 'TestCollectionSimpleGenericVarType';
+    type TestCollectionSimple = {
+      testProp: string;
+    };
+    const schema: CollectionConfigCreate<TestCollectionSimple> = {
+      name: className,
+      properties: [
+        {
+          name: 'testProp',
+          dataType: 'text',
+        },
+      ],
+    };
+    const response = await contextionary.collections.create<TestCollectionSimple>(schema);
     expect(response.name).toEqual(className);
     expect(response.properties?.length).toEqual(1);
     expect(response.properties[0].name).toEqual('testProp');
@@ -122,75 +212,75 @@ describe('Testing of the collections.create method', () => {
       properties: [
         {
           name: 'text',
-          dataType: weaviate.Configure.DataType.TEXT,
+          dataType: weaviate.configure.dataType.TEXT,
         },
         {
           name: 'texts',
-          dataType: weaviate.Configure.DataType.TEXT_ARRAY,
+          dataType: weaviate.configure.dataType.TEXT_ARRAY,
         },
         {
           name: 'number',
-          dataType: weaviate.Configure.DataType.NUMBER,
+          dataType: weaviate.configure.dataType.NUMBER,
         },
         {
           name: 'numbers',
-          dataType: weaviate.Configure.DataType.NUMBER_ARRAY,
+          dataType: weaviate.configure.dataType.NUMBER_ARRAY,
         },
         {
           name: 'int',
-          dataType: weaviate.Configure.DataType.INT,
+          dataType: weaviate.configure.dataType.INT,
         },
         {
           name: 'ints',
-          dataType: weaviate.Configure.DataType.INT_ARRAY,
+          dataType: weaviate.configure.dataType.INT_ARRAY,
         },
         {
           name: 'date',
-          dataType: weaviate.Configure.DataType.DATE,
+          dataType: weaviate.configure.dataType.DATE,
         },
         {
           name: 'dates',
-          dataType: weaviate.Configure.DataType.DATE_ARRAY,
+          dataType: weaviate.configure.dataType.DATE_ARRAY,
         },
         {
           name: 'boolean',
-          dataType: weaviate.Configure.DataType.BOOLEAN,
+          dataType: weaviate.configure.dataType.BOOLEAN,
         },
         {
           name: 'booleans',
-          dataType: weaviate.Configure.DataType.BOOLEAN_ARRAY,
+          dataType: weaviate.configure.dataType.BOOLEAN_ARRAY,
         },
         {
           name: 'object',
-          dataType: weaviate.Configure.DataType.OBJECT,
+          dataType: weaviate.configure.dataType.OBJECT,
           nestedProperties: [
             {
               name: 'nestedProp',
-              dataType: weaviate.Configure.DataType.TEXT,
+              dataType: weaviate.configure.dataType.TEXT,
             },
           ],
         },
         {
           name: 'objects',
-          dataType: weaviate.Configure.DataType.OBJECT_ARRAY,
+          dataType: weaviate.configure.dataType.OBJECT_ARRAY,
           nestedProperties: [
             {
               name: 'nestedProp',
-              dataType: weaviate.Configure.DataType.TEXT,
+              dataType: weaviate.configure.dataType.TEXT,
             },
           ],
         },
         {
           name: 'blob',
-          dataType: weaviate.Configure.DataType.BLOB,
+          dataType: weaviate.configure.dataType.BLOB,
         },
         {
           name: 'geoCoordinates',
-          dataType: weaviate.Configure.DataType.GEO_COORDINATES,
+          dataType: weaviate.configure.dataType.GEO_COORDINATES,
         },
         {
           name: 'phoneNumber',
-          dataType: weaviate.Configure.DataType.PHONE_NUMBER,
+          dataType: weaviate.configure.dataType.PHONE_NUMBER,
         },
       ],
       multiTenancy: {
@@ -338,7 +428,7 @@ describe('Testing of the collections.create method', () => {
     await contextionary.collections.delete(className);
   });
 
-  it('should be able to create a collection with the contextionary vectorizer using Configure.Vectorizer', async () => {
+  it('should be able to create a collection with the contextionary vectorizer using configure.vectorizer', async () => {
     const className = 'ThisOneIsATest'; // must include words in contextionary's vocabulary to pass since vectorizeClassName will be true
     const response = await contextionary.collections.create({
       name: className,
@@ -348,7 +438,7 @@ describe('Testing of the collections.create method', () => {
           dataType: 'text',
         },
       ],
-      vectorizer: weaviate.Configure.Vectorizer.text2VecContextionary(),
+      vectorizer: weaviate.configure.vectorizer.text2VecContextionary(),
     });
     expect(response.name).toEqual(className);
     expect(response.properties?.length).toEqual(1);
@@ -387,7 +477,7 @@ describe('Testing of the collections.create method', () => {
     await openai.collections.delete(className);
   });
 
-  it('should be able to create a collection with the openai vectorizer with Configure.Vectorizer', async () => {
+  it('should be able to create a collection with the openai vectorizer with configure.vectorizer', async () => {
     const className = 'TestCollectionOpenAIVectorizerWithConfigureVectorizer';
     const response = await openai.collections.create({
       name: className,
@@ -397,7 +487,7 @@ describe('Testing of the collections.create method', () => {
           dataType: 'text',
         },
       ],
-      vectorizer: weaviate.Configure.Vectorizer.text2VecOpenAI(),
+      vectorizer: weaviate.configure.vectorizer.text2VecOpenAI(),
     });
     expect(response.name).toEqual(className);
     expect(response.properties?.length).toEqual(1);
@@ -408,7 +498,7 @@ describe('Testing of the collections.create method', () => {
     await openai.collections.delete(className);
   });
 
-  it('should be able to create a collection with the openai generative with Configure.Generative', async () => {
+  it('should be able to create a collection with the openai generative with configure.Generative', async () => {
     const className = 'TestCollectionOpenAIGenerativeWithConfigureGenerative';
     const response = await openai.collections.create({
       name: className,
@@ -418,7 +508,7 @@ describe('Testing of the collections.create method', () => {
           dataType: 'text',
         },
       ],
-      generative: weaviate.Configure.Generative.openai(),
+      generative: weaviate.configure.generative.openAI(),
     });
     expect(response.name).toEqual(className);
     expect(response.properties?.length).toEqual(1);

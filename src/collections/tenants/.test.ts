@@ -3,7 +3,7 @@ import weaviate from '../../index.node';
 
 describe('Testing of the collection.data methods', () => {
   const client = weaviate.client({
-    http: {
+    rest: {
       secure: false,
       host: 'localhost',
       port: 8080,
@@ -29,7 +29,7 @@ describe('Testing of the collection.data methods', () => {
     return client.collections
       .create({
         name: className,
-        multiTenancy: weaviate.Configure.multiTenancy({ enabled: true }),
+        multiTenancy: weaviate.configure.multiTenancy({ enabled: true }),
       })
       .then(() =>
         collection.tenants.create([

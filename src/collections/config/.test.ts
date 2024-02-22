@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import weaviate from '../../index.node';
-import Configure from '../configure';
+import configure from '../configure';
 
 const fail = (msg: string) => {
   throw new Error(msg);
@@ -8,7 +8,7 @@ const fail = (msg: string) => {
 
 describe('Testing of the collection.config namespace', () => {
   const client = weaviate.client({
-    http: {
+    rest: {
       secure: false,
       host: 'localhost',
       port: 8080,
@@ -33,7 +33,7 @@ describe('Testing of the collection.config namespace', () => {
           dataType: 'text',
         },
       ],
-      vectorizer: Configure.Vectorizer.none(),
+      vectorizer: configure.vectorizer.none(),
     });
     const collection = client.collections.get<TestCollectionConfigGet>(className);
     const config = await collection.config.get();
@@ -95,7 +95,7 @@ describe('Testing of the collection.config namespace', () => {
           dataType: 'text',
         },
       ],
-      vectorizer: Configure.Vectorizer.none(),
+      vectorizer: configure.vectorizer.none(),
     });
     const collection = client.collections.get<TestCollectionConfigGet>(className);
     const config = await collection.config.get<'hnsw', 'none', 'none', 'text2vec-contextionary'>();

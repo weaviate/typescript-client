@@ -19,7 +19,7 @@ type TestCollectionData = {
 
 describe('Testing of the collection.data methods', () => {
   const client = weaviate.client({
-    http: {
+    rest: {
       secure: false,
       host: 'localhost',
       port: 8080,

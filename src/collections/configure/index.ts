@@ -22,133 +22,115 @@ import {
   VectorIndexConfigHNSWCreate,
 } from '../types';
 
-class Vectorizer {
-  static none = (): ModuleOptions<'none', Record<string, never>> => {
+const vectorizer = {
+  none: (): ModuleOptions<'none', Record<string, never>> => {
     return {
       name: 'none',
       options: {},
     };
-  };
-  static img2VecNeural = (
-    Options?: Img2VecNeuralOptions
-  ): ModuleOptions<'img2vec-neural', Img2VecNeuralOptions> => {
+  },
+  img2VecNeural: (Options?: Img2VecNeuralOptions): ModuleOptions<'img2vec-neural', Img2VecNeuralOptions> => {
     return {
       name: 'img2vec-neural',
       options: Options,
     };
-  };
-
-  static multi2VecBind = (
-    Options?: Multi2VecBindOptions
-  ): ModuleOptions<'multi2vec-bind', Multi2VecBindOptions> => {
+  },
+  multi2VecBind: (Options?: Multi2VecBindOptions): ModuleOptions<'multi2vec-bind', Multi2VecBindOptions> => {
     return {
       name: 'multi2vec-bind',
       options: Options,
     };
-  };
-
-  static multi2VecClip = (
-    Options?: Multi2VecClipOptions
-  ): ModuleOptions<'multi2vec-clip', Multi2VecClipOptions> => {
+  },
+  multi2VecClip: (Options?: Multi2VecClipOptions): ModuleOptions<'multi2vec-clip', Multi2VecClipOptions> => {
     return {
       name: 'multi2vec-clip',
       options: Options,
     };
-  };
-
-  static ref2VecCentroid = (
+  },
+  ref2VecCentroid: (
     Options: Ref2VecCentroidOptions
   ): ModuleOptions<'ref2vec-centroid', Ref2VecCentroidOptions> => {
     return {
       name: 'ref2vec-centroid',
       options: Options,
     };
-  };
-
-  static text2VecCohere = (
+  },
+  text2VecCohere: (
     Options?: Text2VecCohereOptions
   ): ModuleOptions<'text2vec-cohere', Text2VecCohereOptions> => {
     return {
       name: 'text2vec-cohere',
       options: Options,
     };
-  };
-
-  static text2VecContextionary = (
+  },
+  text2VecContextionary: (
     Options?: Text2VecContextionaryOptions
   ): ModuleOptions<'text2vec-contextionary', Text2VecContextionaryOptions> => {
     return {
       name: 'text2vec-contextionary',
       options: Options,
     };
-  };
-
-  static text2VecOpenAI = (
+  },
+  text2VecOpenAI: (
     Options?: Text2VecOpenAIOptions
   ): ModuleOptions<'text2vec-openai', Text2VecOpenAIOptions> => {
     return {
       name: 'text2vec-openai',
       options: Options,
     };
-  };
-}
+  },
+};
 
-class Generative {
-  static azureOpenai = (
+const generative = {
+  azureOpenAI: (
     Options: GenerativeAzureOpenAIOptions
   ): ModuleOptions<'generative-openai', GenerativeAzureOpenAIOptions> => {
     return {
       name: 'generative-openai',
       options: Options,
     };
-  };
-
-  static cohere = (
+  },
+  cohere: (
     Options?: GenerativeCohereOptions
   ): ModuleOptions<'generative-cohere', GenerativeCohereOptions> => {
     return {
       name: 'generative-cohere',
       options: Options,
     };
-  };
-
-  static openai = (
+  },
+  openAI: (
     Options?: GenerativeOpenAIOptions
   ): ModuleOptions<'generative-openai', GenerativeOpenAIOptions> => {
     return {
       name: 'generative-openai',
       options: Options,
     };
-  };
-
-  static palm = (Options: GenerativePaLMOptions): ModuleOptions<'generative-palm', GenerativePaLMOptions> => {
+  },
+  palm: (Options: GenerativePaLMOptions): ModuleOptions<'generative-palm', GenerativePaLMOptions> => {
     return {
       name: 'generative-palm',
       options: Options,
     };
-  };
-}
+  },
+};
 
-class Reranker {
-  static cohere = (
-    Options?: RerankerCohereOptions
-  ): ModuleOptions<'reranker-cohere', RerankerCohereOptions> => {
+const reranker = {
+  cohere: (Options?: RerankerCohereOptions): ModuleOptions<'reranker-cohere', RerankerCohereOptions> => {
     return {
       name: 'reranker-cohere',
       options: Options,
     };
-  };
-
-  static transformers = (): ModuleOptions<'reranker-transformers', Record<string, never>> => {
+  },
+  transformers: (): ModuleOptions<'reranker-transformers', Record<string, never>> => {
     return {
       name: 'reranker-transformers',
       options: {},
     };
-  };
-}
+  },
+};
 
-class VectorIndex {
-  static hnsw = (Options?: {
+const vectorIndex = {
+  hnsw: (Options?: {
     cleanupIntervalSeconds?: number;
     distanceMetric?: VectorDistance;
     dynamicEfFactor?: number;
@@ -190,33 +172,34 @@ class VectorIndex {
       skip: parseWithDefault(Options?.skip, false),
       vectorCacheMaxObjects: parseWithDefault(Options?.vectorCacheMaxObjects, 1000000000000),
     };
-  };
-}
+  },
+};
 
-export default class Configure {
-  static Generative = Generative;
-  static Reranker = Reranker;
-  static Vectorizer = Vectorizer;
-  static VectorIndex = VectorIndex;
-  static DataType: Record<string, DataType> = {
-    INT: 'int',
-    INT_ARRAY: 'int[]',
-    NUMBER: 'number',
-    NUMBER_ARRAY: 'number[]',
-    TEXT: 'text',
-    TEXT_ARRAY: 'text[]',
-    BOOLEAN: 'boolean',
-    BOOLEAN_ARRAY: 'boolean[]',
-    DATE: 'date',
-    DATE_ARRAY: 'date[]',
-    OBJECT: 'object',
-    OBJECT_ARRAY: 'object[]',
-    BLOB: 'blob',
-    GEO_COORDINATES: 'geoCoordinates',
-    PHONE_NUMBER: 'phoneNumber',
-  };
+const dataType: Record<string, DataType> = {
+  INT: 'int',
+  INT_ARRAY: 'int[]',
+  NUMBER: 'number',
+  NUMBER_ARRAY: 'number[]',
+  TEXT: 'text',
+  TEXT_ARRAY: 'text[]',
+  BOOLEAN: 'boolean',
+  BOOLEAN_ARRAY: 'boolean[]',
+  DATE: 'date',
+  DATE_ARRAY: 'date[]',
+  OBJECT: 'object',
+  OBJECT_ARRAY: 'object[]',
+  BLOB: 'blob',
+  GEO_COORDINATES: 'geoCoordinates',
+  PHONE_NUMBER: 'phoneNumber',
+};
 
-  static invertedIndex = (Options?: {
+export default {
+  generative,
+  reranker,
+  vectorizer,
+  vectorIndex,
+  dataType,
+  invertedIndex: (Options?: {
     bm25b?: number;
     bm25k1?: number;
     cleanupIntervalSeconds?: number;
@@ -242,17 +225,14 @@ export default class Configure {
         removals: parseWithDefault(Options?.stopwordsRemovals, []),
       },
     };
-  };
-
-  static multiTenancy = (Options?: { enabled?: boolean }): MultiTenancyConfigCreate => {
+  },
+  multiTenancy: (Options?: { enabled?: boolean }): MultiTenancyConfigCreate => {
     return Options ? { enabled: parseWithDefault(Options.enabled, true) } : { enabled: true };
-  };
-
-  static replication = (Options?: { factor?: number }): ReplicationConfigCreate => {
+  },
+  replication: (Options?: { factor?: number }): ReplicationConfigCreate => {
     return Options ? { factor: parseWithDefault(Options.factor, 1) } : { factor: 1 };
-  };
-
-  static sharding = (Options?: {
+  },
+  sharding: (Options?: {
     virtualPerPhysical?: number;
     desiredCount?: number;
     actualCount?: number;
@@ -269,8 +249,8 @@ export default class Configure {
       strategy: 'hash',
       function: 'murmur3',
     };
-  };
-}
+  },
+};
 
 function parseWithDefault<D>(value: D | undefined, defaultValue: D): D {
   return value !== undefined ? value : defaultValue;

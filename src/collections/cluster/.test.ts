@@ -2,7 +2,7 @@ import weaviate from '../../index.node';
 
 describe('Testing of the client.cluster methods', () => {
   const client = weaviate.client({
-    http: {
+    rest: {
       secure: false,
       host: 'localhost',
       port: 8080,

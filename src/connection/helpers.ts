@@ -49,7 +49,7 @@ export function connectToWCS(
   }
 
   const client = clientMaker({
-    http: {
+    rest: {
       secure: true,
       host: url.hostname,
       port: 443,

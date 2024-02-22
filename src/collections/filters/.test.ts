@@ -6,7 +6,7 @@ import { CrossReference, Reference } from '../references';
 
 describe('Testing of the filter class with a simple collection', () => {
   const client = weaviate.client({
-    http: {
+    rest: {
       secure: false,
       host: 'localhost',
       port: 8080,
@@ -63,8 +63,8 @@ describe('Testing of the filter class with a simple collection', () => {
             targetCollection: className,
           },
         ],
-        invertedIndex: weaviate.Configure.invertedIndex({ indexTimestamps: true }),
-        vectorizer: weaviate.Configure.Vectorizer.text2VecContextionary({ vectorizeClassName: false }),
+        invertedIndex: weaviate.configure.invertedIndex({ indexTimestamps: true }),
+        vectorizer: weaviate.configure.vectorizer.text2VecContextionary({ vectorizeClassName: false }),
       })
       .then(() =>
         collection.data.insertMany([

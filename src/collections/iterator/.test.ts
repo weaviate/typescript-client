@@ -4,7 +4,7 @@ import weaviate from '../../index.node';
 
 describe('Testing of the collection.iterator method with a simple collection', () => {
   const client = weaviate.client({
-    http: {
+    rest: {
       secure: false,
       host: 'localhost',
       port: 8080,
@@ -43,7 +43,7 @@ describe('Testing of the collection.iterator method with a simple collection', (
             dataType: 'text',
           },
         ],
-        vectorizer: weaviate.Configure.Vectorizer.text2VecContextionary({ vectorizeClassName: false }),
+        vectorizer: weaviate.configure.vectorizer.text2VecContextionary({ vectorizeClassName: false }),
       })
       .then(() => {
         return collection.data.insert({

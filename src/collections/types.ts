@@ -18,6 +18,8 @@ export type DataType<T = any> = T extends string
   ? 'date'
   : T extends object
   ? 'object'
+  : T extends object[]
+  ? 'object[]'
   : T extends string[]
   ? 'text[]'
   : T extends number[]
@@ -26,8 +28,6 @@ export type DataType<T = any> = T extends string
   ? 'boolean[]'
   : T extends Date[]
   ? 'date[]'
-  : T extends object[]
-  ? 'object[]'
   : T extends GeoCoordinate
   ? 'geoCoordinates'
   : T extends PhoneNumber
@@ -201,19 +201,25 @@ export type VectorIndicesOptions =
   | VectorIndexConfigHNSWCreate
   | Record<string, any>;
 
-export interface CollectionConfigCreate<T, I, G, R, V> {
+export interface CollectionConfigCreate<
+  TProperties = Properties,
+  Index = 'hnsw',
+  Generative = 'none',
+  Reranker = 'none',
+  Vectorizer = 'none'
+> {
   name: string;
   description?: string;
-  generative?: ModuleOptions<G>;
+  generative?: ModuleOptions<Generative>;
   invertedIndex?: InvertedIndexConfigCreate;
   multiTenancy?: MultiTenancyConfigCreate;
-  properties?: PropertyConfigCreate<T>[];
-  references?: ReferenceConfigCreate<T>[];
+  properties?: PropertyConfigCreate<TProperties>[];
+  references?: ReferenceConfigCreate<TProperties>[];
   replication?: ReplicationConfigCreate;
-  reranker?: ModuleOptions<R>;
+  reranker?: ModuleOptions<Reranker>;
   sharding?: ShardingConfigCreate;
-  vectorIndex?: ModuleOptions<I>;
-  vectorizer?: ModuleOptions<V>;
+  vectorIndex?: ModuleOptions<Index>;
+  vectorizer?: ModuleOptions<Vectorizer>;
 }
 
 export type CollectionConfig<T, I, G, R, V> = {

@@ -145,7 +145,7 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
 
 export interface Collections {
   create<
-    TProperties,
+    TProperties = Properties,
     Index extends VectorIndexType = 'hnsw',
     Generative extends GenerativeSearches = 'none',
     Reranker extends Rerankers = 'none',

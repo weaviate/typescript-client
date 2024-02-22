@@ -13,7 +13,7 @@ import {
 import { connectToWCS } from './connection/helpers';
 import MetaGetter from './misc/metaGetter';
 import collections, { Collections } from './collections';
-import Configure from './collections/configure';
+import configure from './collections/configure';
 import { Meta } from './openapi/types';
 
 import * as protobufjs from 'protobufjs';
@@ -25,7 +25,7 @@ export interface ProtocolParams {
 }
 
 export interface ClientParams {
-  http: ProtocolParams;
+  rest: ProtocolParams;
   grpc: ProtocolParams;
   auth?: AuthCredentials;
   headers?: HeadersInit;
@@ -50,16 +50,16 @@ const app = {
   client: function (params: ClientParams): WeaviateNextClient {
     protobufjs.configure();
     // check if the URL is set
-    if (!params.http.host) throw new Error('Missing `host` parameter');
+    if (!params.rest.host) throw new Error('Missing `host` parameter');
 
     // check if headers are set
     if (!params.headers) params.headers = {};
 
-    const scheme = params.http.secure ? 'https' : 'http';
+    const scheme = params.rest.secure ? 'https' : 'http';
     const conn = new GrpcConnection({
-      host: params.http.host.startsWith('http')
-        ? params.http.host
-        : `${scheme}://${params.http.host}:${params.http.port}`,
+      host: params.rest.host.startsWith('http')
+        ? params.rest.host
+        : `${scheme}://${params.rest.host}:${params.rest.port}`,
       scheme: scheme,
       headers: params.headers,
       grpcAddress: `${params.grpc.host}:${params.grpc.port}`,
@@ -86,7 +86,7 @@ const app = {
   AuthUserPasswordCredentials,
   AuthAccessTokenCredentials,
   AuthClientCredentials,
-  Configure,
+  configure,
 };
 
 function initDbVersionProvider(conn: GrpcConnection) {

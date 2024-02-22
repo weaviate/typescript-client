@@ -8,7 +8,7 @@ const maybe = process.env.OPENAI_APIKEY ? describe : describe.skip;
 
 maybe('Testing of the collection.generate methods with a simple collection', () => {
   const client = weaviate.client({
-    http: {
+    rest: {
       secure: false,
       host: 'localhost',
       port: 8086,
@@ -56,8 +56,8 @@ maybe('Testing of the collection.generate methods with a simple collection', () 
             dataType: 'text',
           },
         ],
-        generative: weaviate.Configure.Generative.openai(),
-        vectorizer: weaviate.Configure.Vectorizer.text2VecOpenAI({ vectorizeClassName: false }),
+        generative: weaviate.configure.generative.openAI(),
+        vectorizer: weaviate.configure.vectorizer.text2VecOpenAI({ vectorizeClassName: false }),
       })
       .then(() => {
         return collection.data.insert({
@@ -162,7 +162,7 @@ maybe('Testing of the collection.generate methods with a simple collection', () 
 
 maybe('Testing of the groupBy collection.generate methods with a simple collection', () => {
   const client = weaviate.client({
-    http: {
+    rest: {
       secure: false,
       host: 'localhost',
       port: 8086,
@@ -216,8 +216,8 @@ maybe('Testing of the groupBy collection.generate methods with a simple collecti
             dataType: 'text',
           },
         ],
-        generative: weaviate.Configure.Generative.openai(),
-        vectorizer: weaviate.Configure.Vectorizer.text2VecOpenAI({ vectorizeClassName: false }),
+        generative: weaviate.configure.generative.openAI(),
+        vectorizer: weaviate.configure.vectorizer.text2VecOpenAI({ vectorizeClassName: false }),
       })
       .then(() => {
         return collection.data.insert({

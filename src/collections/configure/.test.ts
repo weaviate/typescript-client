@@ -1,8 +1,8 @@
-import Configure from '.';
+import configure from '.';
 
-describe('Unit testing of the Configure factory class', () => {
+describe('Unit testing of the configure factory class', () => {
   it('should create the correct InvertedIndexConfig type with defaults', () => {
-    const config = Configure.invertedIndex();
+    const config = configure.invertedIndex();
     expect(config).toEqual({
       bm25: {
         b: 0.75,
@@ -21,7 +21,7 @@ describe('Unit testing of the Configure factory class', () => {
   });
 
   it('should create the correct InvertedIndexConfig type with custom values', () => {
-    const config = Configure.invertedIndex({
+    const config = configure.invertedIndex({
       bm25b: 0.5,
       bm25k1: 1.5,
       cleanupIntervalSeconds: 120,
@@ -50,14 +50,14 @@ describe('Unit testing of the Configure factory class', () => {
   });
 
   it('should create the correct MultiTenancyConfig type with defaults', () => {
-    const config = Configure.multiTenancy();
+    const config = configure.multiTenancy();
     expect(config).toEqual({
       enabled: true,
     });
   });
 
   it('should create the correct MultiTenancyConfig type with custom values', () => {
-    const config = Configure.multiTenancy({
+    const config = configure.multiTenancy({
       enabled: false,
     });
     expect(config).toEqual({
@@ -66,14 +66,14 @@ describe('Unit testing of the Configure factory class', () => {
   });
 
   it('should crete the correct ReplicationConfig type with defaults', () => {
-    const config = Configure.replication();
+    const config = configure.replication();
     expect(config).toEqual({
       factor: 1,
     });
   });
 
   it('should create the correct ReplicationConfig type with custom values', () => {
-    const config = Configure.replication({
+    const config = configure.replication({
       factor: 2,
     });
     expect(config).toEqual({
@@ -82,7 +82,7 @@ describe('Unit testing of the Configure factory class', () => {
   });
 
   it('should create the correct ShardingConfig type with defaults', () => {
-    const config = Configure.sharding();
+    const config = configure.sharding();
     expect(config).toEqual({
       virtualPerPhysical: 128,
       desiredCount: 1,
@@ -96,7 +96,7 @@ describe('Unit testing of the Configure factory class', () => {
   });
 
   it('should create the correct ShardingConfig type with custom values', () => {
-    const config = Configure.sharding({
+    const config = configure.sharding({
       virtualPerPhysical: 256,
       desiredCount: 2,
       actualCount: 2,
@@ -116,7 +116,7 @@ describe('Unit testing of the Configure factory class', () => {
   });
 
   it('should create the correct VectorIndexConfig type with defaults', () => {
-    const config = Configure.VectorIndex.hnsw();
+    const config = configure.vectorIndex.hnsw();
     expect(config).toEqual({
       cleanupIntervalSeconds: 300,
       distance: 'cosine',
@@ -134,7 +134,7 @@ describe('Unit testing of the Configure factory class', () => {
   });
 
   it('should create the correct VectorIndexConfig type with custom values', () => {
-    const config = Configure.VectorIndex.hnsw({
+    const config = configure.vectorIndex.hnsw({
       cleanupIntervalSeconds: 120,
       distanceMetric: 'dot',
       dynamicEfFactor: 16,
