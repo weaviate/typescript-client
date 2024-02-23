@@ -10,7 +10,12 @@ import {
   AuthCredentials,
   OidcAuthenticator,
 } from './connection/auth';
-import { connectToWCS } from './connection/helpers';
+import {
+  connectToLocal,
+  connectToWCS,
+  ConnectToLocalOptions,
+  ConnectToWCSOptions,
+} from './connection/helpers';
 import MetaGetter from './misc/metaGetter';
 import collections, { Collections } from './collections';
 import configure from './collections/configure';
@@ -38,16 +43,14 @@ export interface WeaviateNextClient {
   oidcAuth?: OidcAuthenticator;
 }
 
-export interface ConnectToWCSOptions {
-  authCredentials?: AuthCredentials;
-  headers?: Record<string, string>;
-}
-
 const app = {
+  connectToLocal: function (options?: ConnectToLocalOptions): Promise<WeaviateNextClient> {
+    return connectToLocal(this.client, options);
+  },
   connectToWCS: function (clusterURL: string, options?: ConnectToWCSOptions): Promise<WeaviateNextClient> {
     return connectToWCS(clusterURL, this.client, options);
   },
-  client: function (params: ClientParams): WeaviateNextClient {
+  client: async function (params: ClientParams): Promise<WeaviateNextClient> {
     protobufjs.configure();
     // check if the URL is set
     if (!params.rest.host) throw new Error('Missing `host` parameter');
@@ -56,7 +59,7 @@ const app = {
     if (!params.headers) params.headers = {};
 
     const scheme = params.rest.secure ? 'https' : 'http';
-    const conn = new GrpcConnection({
+    const conn = await GrpcConnection.use({
       host: params.rest.host.startsWith('http')
         ? params.rest.host
         : `${scheme}://${params.rest.host}:${params.rest.port}`,

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import weaviate from '../index.node';
+import weaviate, { WeaviateNextClient } from '../index.node';
 import { CollectionConfigCreate } from './types';
 
 const fail = (msg: string) => {
@@ -7,41 +7,47 @@ const fail = (msg: string) => {
 };
 
 describe('Testing of the collections.create method', () => {
-  const cluster = weaviate.client({
-    rest: {
-      secure: false,
-      host: 'localhost',
-      port: 8087,
-    },
-    grpc: {
-      secure: false,
-      host: 'localhost',
-      port: 50051,
-    },
-  });
-  const contextionary = weaviate.client({
-    rest: {
-      secure: false,
-      host: 'localhost',
-      port: 8080,
-    },
-    grpc: {
-      secure: false,
-      host: 'localhost',
-      port: 50051,
-    },
-  });
-  const openai = weaviate.client({
-    rest: {
-      secure: false,
-      host: 'localhost',
-      port: 8086,
-    },
-    grpc: {
-      secure: false,
-      host: 'localhost',
-      port: 50051,
-    },
+  let cluster: WeaviateNextClient;
+  let contextionary: WeaviateNextClient;
+  let openai: WeaviateNextClient;
+
+  beforeAll(async () => {
+    cluster = await weaviate.client({
+      rest: {
+        secure: false,
+        host: 'localhost',
+        port: 8087,
+      },
+      grpc: {
+        secure: false,
+        host: 'localhost',
+        port: 50051,
+      },
+    });
+    contextionary = await weaviate.client({
+      rest: {
+        secure: false,
+        host: 'localhost',
+        port: 8080,
+      },
+      grpc: {
+        secure: false,
+        host: 'localhost',
+        port: 50051,
+      },
+    });
+    openai = await weaviate.client({
+      rest: {
+        secure: false,
+        host: 'localhost',
+        port: 8086,
+      },
+      grpc: {
+        secure: false,
+        host: 'localhost',
+        port: 50051,
+      },
+    });
   });
 
   it('should be able to create a simple collection with a generic', async () => {

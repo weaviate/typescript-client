@@ -1,22 +1,11 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import weaviate from '../../index.node';
+import weaviate, { WeaviateNextClient } from '../../index.node';
+import { Collection } from '../collection';
 
 describe('Testing of the collection.data methods', () => {
-  const client = weaviate.client({
-    rest: {
-      secure: false,
-      host: 'localhost',
-      port: 8080,
-    },
-    grpc: {
-      secure: false,
-      host: 'localhost',
-      port: 50051,
-    },
-  });
-
+  let client: WeaviateNextClient;
+  let collection: Collection<any>;
   const className = 'TestCollectionTenants';
-  const collection = client.collections.get(className);
 
   afterAll(() => {
     return client.collections.delete(className).catch((err) => {
@@ -25,7 +14,20 @@ describe('Testing of the collection.data methods', () => {
     });
   });
 
-  beforeAll(() => {
+  beforeAll(async () => {
+    client = await weaviate.client({
+      rest: {
+        secure: false,
+        host: 'localhost',
+        port: 8080,
+      },
+      grpc: {
+        secure: false,
+        host: 'localhost',
+        port: 50051,
+      },
+    });
+    collection = client.collections.get(className);
     return client.collections
       .create({
         name: className,

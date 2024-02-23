@@ -1,27 +1,28 @@
-import weaviate from '../../index.node';
+import weaviate, { WeaviateNextClient } from '../../index.node';
 
 describe('Testing of the client.cluster methods', () => {
-  const client = weaviate.client({
-    rest: {
-      secure: false,
-      host: 'localhost',
-      port: 8080,
-    },
-    grpc: {
-      secure: false,
-      host: 'localhost',
-      port: 50051,
-    },
-  });
+  let client: WeaviateNextClient;
 
   const one = 'TestClusterCollectionOne';
   const two = 'TestClusterCollectionTwo';
 
   afterAll(async () => {
-    await client.collections.delete(one);
+    await (await client).collections.delete(one);
   });
 
-  beforeAll(() => {
+  beforeAll(async () => {
+    client = await weaviate.client({
+      rest: {
+        secure: false,
+        host: 'localhost',
+        port: 8080,
+      },
+      grpc: {
+        secure: false,
+        host: 'localhost',
+        port: 50051,
+      },
+    });
     return Promise.all([client.collections.create({ name: one }), client.collections.create({ name: two })]);
   });
 
