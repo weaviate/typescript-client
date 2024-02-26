@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
-import weaviate from '../../index.node';
+import weaviate, { WeaviateNextClient } from '../../index.node';
 import { v4 } from 'uuid';
 import { DataObject } from '../types';
 import { CrossReference, Reference } from '../references';
 import { GeoCoordinate, PhoneNumber } from '../../proto/v1/properties';
+import { Collection } from '../collection';
 
 type TestCollectionData = {
   testProp: string;
@@ -18,21 +19,9 @@ type TestCollectionData = {
 };
 
 describe('Testing of the collection.data methods', () => {
-  const client = weaviate.client({
-    http: {
-      secure: false,
-      host: 'localhost',
-      port: 8080,
-    },
-    grpc: {
-      secure: false,
-      host: 'localhost',
-      port: 50051,
-    },
-  });
-
+  let client: WeaviateNextClient;
+  let collection: Collection<TestCollectionData>;
   const className = 'TestCollectionData';
-  const collection = client.collections.get<TestCollectionData>(className);
 
   const existingID = v4();
   const toBeReplacedID = v4();
@@ -45,7 +34,20 @@ describe('Testing of the collection.data methods', () => {
     });
   });
 
-  beforeAll(() => {
+  beforeAll(async () => {
+    client = await weaviate.client({
+      rest: {
+        secure: false,
+        host: 'localhost',
+        port: 8080,
+      },
+      grpc: {
+        secure: false,
+        host: 'localhost',
+        port: 50051,
+      },
+    });
+    collection = client.collections.get(className);
     return client.collections
       .create({
         name: className,

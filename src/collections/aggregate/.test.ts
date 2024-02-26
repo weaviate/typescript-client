@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
-import weaviate from '../../index.node';
+import weaviate, { WeaviateNextClient } from '../../index.node';
 import { DataObject } from '../types';
 import { CrossReference } from '../references';
+import { Collection } from '../collection';
 
 type TestCollectionAggregate = {
   text: string;
@@ -19,35 +20,36 @@ type TestCollectionAggregate = {
 };
 
 describe('Testing of the collection.aggregate methods', () => {
-  const client = weaviate.client({
-    http: {
-      secure: false,
-      host: 'localhost',
-      port: 8080,
-    },
-    grpc: {
-      secure: false,
-      host: 'localhost',
-      port: 50051,
-    },
-  });
-
+  let client: WeaviateNextClient;
+  let collection: Collection<TestCollectionAggregate>;
   const className = 'TestCollectionAggregate';
-  const collection = client.collections.get<TestCollectionAggregate>(className);
 
   const date0 = '2023-01-01T00:00:00Z';
   const date1 = '2023-01-01T00:00:00Z';
   const date2 = '2023-01-02T00:00:00Z';
   const dateMid = '2023-01-01T12:00:00Z';
 
-  afterAll(() => {
-    return client.collections.delete(className).catch((err) => {
+  afterAll(async () => {
+    return (await client).collections.delete(className).catch((err) => {
       console.error(err);
       throw err;
     });
   });
 
-  beforeAll(() => {
+  beforeAll(async () => {
+    client = await weaviate.client({
+      rest: {
+        secure: false,
+        host: 'localhost',
+        port: 8080,
+      },
+      grpc: {
+        secure: false,
+        host: 'localhost',
+        port: 50051,
+      },
+    });
+    collection = client.collections.get(className);
     return client.collections
       .create({
         name: className,
@@ -116,7 +118,7 @@ describe('Testing of the collection.aggregate methods', () => {
             },
           });
         }
-        const res = await collection.data.insertMany(data);
+        const res = (await collection).data.insertMany(data);
         return res;
       });
     // .then(async (res) => {
@@ -160,7 +162,7 @@ describe('Testing of the collection.aggregate methods', () => {
   });
 
   it('should aggregate data without a search and one non-generic property metric', async () => {
-    const result = await client.collections.get(className).aggregate.overAll({
+    const result = await (await client).collections.get(className).aggregate.overAll({
       returnMetrics: collection.metrics
         .aggregate('text')
         .text(['count', 'topOccurrencesOccurs', 'topOccurrencesValue']),

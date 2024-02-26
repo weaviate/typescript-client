@@ -1,23 +1,13 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
-import weaviate from '../../index.node';
+import weaviate, { WeaviateNextClient } from '../../index.node';
+import { Collection } from '../collection';
 import { CrossReference, Reference } from '../references';
 import { GroupByOptions } from '../types';
 
 describe('Testing of the collection.query methods with a simple collection', () => {
-  const client = weaviate.client({
-    http: {
-      secure: false,
-      host: 'localhost',
-      port: 8080,
-    },
-    grpc: {
-      secure: false,
-      host: 'localhost',
-      port: 50051,
-    },
-  });
-
+  let client: WeaviateNextClient;
+  let collection: Collection<TestCollectionQueryMinimalOptions>;
   const className = 'TestCollectionQueryMinimalOptions';
   let id: string;
   let vector: number[];
@@ -25,8 +15,6 @@ describe('Testing of the collection.query methods with a simple collection', () 
   type TestCollectionQueryMinimalOptions = {
     testProp: string;
   };
-
-  const collection = client.collections.get<TestCollectionQueryMinimalOptions>(className);
 
   afterAll(() => {
     return client.collections.delete(className).catch((err) => {
@@ -36,6 +24,19 @@ describe('Testing of the collection.query methods with a simple collection', () 
   });
 
   beforeAll(async () => {
+    client = await weaviate.client({
+      rest: {
+        secure: false,
+        host: 'localhost',
+        port: 8080,
+      },
+      grpc: {
+        secure: false,
+        host: 'localhost',
+        port: 50051,
+      },
+    });
+    collection = client.collections.get(className);
     id = await client.collections
       .create({
         name: className,
@@ -45,7 +46,7 @@ describe('Testing of the collection.query methods with a simple collection', () 
             dataType: 'text',
           },
         ],
-        vectorizer: weaviate.Configure.Vectorizer.text2VecContextionary({ vectorizeClassName: false }),
+        vectorizer: weaviate.configure.vectorizer.text2VecContextionary({ vectorizeClassName: false }),
       })
       .then(() => {
         return collection.data.insert({
@@ -117,19 +118,8 @@ describe('Testing of the collection.query methods with a simple collection', () 
 });
 
 describe('Testing of the collection.query methods with a collection with a reference property', () => {
-  const client = weaviate.client({
-    http: {
-      secure: false,
-      host: 'localhost',
-      port: 8080,
-    },
-    grpc: {
-      secure: false,
-      host: 'localhost',
-      port: 50051,
-    },
-  });
-
+  let client: WeaviateNextClient;
+  let collection: Collection<TestCollectionQueryWithRefProp>;
   const className = 'TestCollectionQueryWithRefProp';
 
   let id1: string;
@@ -140,8 +130,6 @@ describe('Testing of the collection.query methods with a collection with a refer
     refProp?: CrossReference<TestCollectionQueryWithRefProp>;
   };
 
-  const collection = client.collections.get<TestCollectionQueryWithRefProp>(className);
-
   afterAll(() => {
     return client.collections.delete(className).catch((err) => {
       console.error(err);
@@ -149,7 +137,20 @@ describe('Testing of the collection.query methods with a collection with a refer
     });
   });
 
-  beforeAll(() => {
+  beforeAll(async () => {
+    client = await weaviate.client({
+      rest: {
+        secure: false,
+        host: 'localhost',
+        port: 8080,
+      },
+      grpc: {
+        secure: false,
+        host: 'localhost',
+        port: 50051,
+      },
+    });
+    collection = client.collections.get(className);
     return client.collections
       .create({
         name: className,
@@ -166,7 +167,7 @@ describe('Testing of the collection.query methods with a collection with a refer
             targetCollection: className,
           },
         ],
-        vectorizer: weaviate.Configure.Vectorizer.text2VecContextionary({ vectorizeClassName: false }),
+        vectorizer: weaviate.configure.vectorizer.text2VecContextionary({ vectorizeClassName: false }),
       })
       .then(async () => {
         id1 = await collection.data.insert({
@@ -334,19 +335,8 @@ describe('Testing of the collection.query methods with a collection with a refer
   });
 
   describe('Testing of the collection.query methods with a collection with a nested property', () => {
-    const client = weaviate.client({
-      http: {
-        secure: false,
-        host: 'localhost',
-        port: 8080,
-      },
-      grpc: {
-        secure: false,
-        host: 'localhost',
-        port: 50051,
-      },
-    });
-
+    let client: WeaviateNextClient;
+    let collection: Collection<TestCollectionQueryWithNestedProp>;
     const className = 'TestCollectionQueryWithNestedProp';
 
     let id1: string;
@@ -363,8 +353,6 @@ describe('Testing of the collection.query methods with a collection with a refer
       };
     };
 
-    const collection = client.collections.get<TestCollectionQueryWithNestedProp>(className);
-
     afterAll(() => {
       return client.collections.delete(className).catch((err) => {
         console.error(err);
@@ -372,7 +360,20 @@ describe('Testing of the collection.query methods with a collection with a refer
       });
     });
 
-    beforeAll(() => {
+    beforeAll(async () => {
+      client = await weaviate.client({
+        rest: {
+          secure: false,
+          host: 'localhost',
+          port: 8080,
+        },
+        grpc: {
+          secure: false,
+          host: 'localhost',
+          port: 50051,
+        },
+      });
+      collection = client.collections.get(className);
       return client.collections
         .create({
           name: className,
@@ -408,7 +409,7 @@ describe('Testing of the collection.query methods with a collection with a refer
               ],
             },
           ],
-          vectorizer: weaviate.Configure.Vectorizer.text2VecContextionary({ vectorizeClassName: false }),
+          vectorizer: weaviate.configure.vectorizer.text2VecContextionary({ vectorizeClassName: false }),
         })
         .then(async () => {
           id1 = await collection.data.insert({
@@ -460,19 +461,8 @@ describe('Testing of the collection.query methods with a collection with a refer
 });
 
 describe('Testing of the groupBy collection.query methods with a simple collection', () => {
-  const client = weaviate.client({
-    http: {
-      secure: false,
-      host: 'localhost',
-      port: 8080,
-    },
-    grpc: {
-      secure: false,
-      host: 'localhost',
-      port: 50051,
-    },
-  });
-
+  let client: WeaviateNextClient;
+  let collection: Collection<TestCollectionGroupBySimple>;
   const className = 'TestCollectionGroupBySimple';
   let id: string;
   let vector: number[];
@@ -480,8 +470,6 @@ describe('Testing of the groupBy collection.query methods with a simple collecti
   type TestCollectionGroupBySimple = {
     testProp: string;
   };
-
-  const collection = client.collections.get<TestCollectionGroupBySimple>(className);
 
   const groupByArgs: GroupByOptions<TestCollectionGroupBySimple> = {
     numberOfGroups: 1,
@@ -497,6 +485,19 @@ describe('Testing of the groupBy collection.query methods with a simple collecti
   });
 
   beforeAll(async () => {
+    client = await weaviate.client({
+      rest: {
+        secure: false,
+        host: 'localhost',
+        port: 8080,
+      },
+      grpc: {
+        secure: false,
+        host: 'localhost',
+        port: 50051,
+      },
+    });
+    collection = client.collections.get(className);
     id = await client.collections
       .create({
         name: className,
@@ -506,7 +507,7 @@ describe('Testing of the groupBy collection.query methods with a simple collecti
             dataType: 'text',
           },
         ],
-        vectorizer: weaviate.Configure.Vectorizer.text2VecContextionary({ vectorizeClassName: false }),
+        vectorizer: weaviate.configure.vectorizer.text2VecContextionary({ vectorizeClassName: false }),
       })
       .then(() => {
         return collection.data.insert({

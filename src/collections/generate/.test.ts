@@ -1,28 +1,15 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
-import weaviate from '../../index.node';
+import weaviate, { WeaviateNextClient } from '../../index.node';
 import { GenerateOptions } from '.';
 import { GroupByOptions } from '../types';
+import { Collection } from '../collection';
 
 const maybe = process.env.OPENAI_APIKEY ? describe : describe.skip;
 
 maybe('Testing of the collection.generate methods with a simple collection', () => {
-  const client = weaviate.client({
-    http: {
-      secure: false,
-      host: 'localhost',
-      port: 8086,
-    },
-    grpc: {
-      secure: false,
-      host: 'localhost',
-      port: 50057,
-    },
-    headers: {
-      'X-Openai-Api-Key': process.env.OPENAI_APIKEY!,
-    },
-  });
-
+  let client: WeaviateNextClient;
+  let collection: Collection<TestCollectionGenerateSimple>;
   const className = 'TestCollectionGenerateSimple';
   let id: string;
   let vector: number[];
@@ -30,8 +17,6 @@ maybe('Testing of the collection.generate methods with a simple collection', () 
   type TestCollectionGenerateSimple = {
     testProp: string;
   };
-
-  const collection = client.collections.get<TestCollectionGenerateSimple>(className);
 
   const generateOpts: GenerateOptions<TestCollectionGenerateSimple> = {
     singlePrompt: 'Write a haiku about ducks for {testProp}',
@@ -47,6 +32,22 @@ maybe('Testing of the collection.generate methods with a simple collection', () 
   });
 
   beforeAll(async () => {
+    client = await weaviate.client({
+      rest: {
+        secure: false,
+        host: 'localhost',
+        port: 8086,
+      },
+      grpc: {
+        secure: false,
+        host: 'localhost',
+        port: 50057,
+      },
+      headers: {
+        'X-Openai-Api-Key': process.env.OPENAI_APIKEY!,
+      },
+    });
+    collection = client.collections.get(className);
     id = await client.collections
       .create({
         name: className,
@@ -56,8 +57,8 @@ maybe('Testing of the collection.generate methods with a simple collection', () 
             dataType: 'text',
           },
         ],
-        generative: weaviate.Configure.Generative.openai(),
-        vectorizer: weaviate.Configure.Vectorizer.text2VecOpenAI({ vectorizeClassName: false }),
+        generative: weaviate.configure.generative.openAI(),
+        vectorizer: weaviate.configure.vectorizer.text2VecOpenAI({ vectorizeClassName: false }),
       })
       .then(() => {
         return collection.data.insert({
@@ -161,22 +162,8 @@ maybe('Testing of the collection.generate methods with a simple collection', () 
 });
 
 maybe('Testing of the groupBy collection.generate methods with a simple collection', () => {
-  const client = weaviate.client({
-    http: {
-      secure: false,
-      host: 'localhost',
-      port: 8086,
-    },
-    grpc: {
-      secure: false,
-      host: 'localhost',
-      port: 50057,
-    },
-    headers: {
-      'X-Openai-Api-Key': process.env.OPENAI_APIKEY!,
-    },
-  });
-
+  let client: WeaviateNextClient;
+  let collection: Collection<TestCollectionGenerateGroupBySimple>;
   const className = 'TestCollectionGenerateGroupBySimple';
   let id: string;
   let vector: number[];
@@ -184,8 +171,6 @@ maybe('Testing of the groupBy collection.generate methods with a simple collecti
   type TestCollectionGenerateGroupBySimple = {
     testProp: string;
   };
-
-  const collection = client.collections.get<TestCollectionGenerateGroupBySimple>(className);
 
   const generateOpts: GenerateOptions<TestCollectionGenerateGroupBySimple> = {
     singlePrompt: 'Write a haiku about ducks for {testProp}',
@@ -207,6 +192,22 @@ maybe('Testing of the groupBy collection.generate methods with a simple collecti
   });
 
   beforeAll(async () => {
+    client = await weaviate.client({
+      rest: {
+        secure: false,
+        host: 'localhost',
+        port: 8086,
+      },
+      grpc: {
+        secure: false,
+        host: 'localhost',
+        port: 50057,
+      },
+      headers: {
+        'X-Openai-Api-Key': process.env.OPENAI_APIKEY!,
+      },
+    });
+    collection = client.collections.get(className);
     id = await client.collections
       .create({
         name: className,
@@ -216,8 +217,8 @@ maybe('Testing of the groupBy collection.generate methods with a simple collecti
             dataType: 'text',
           },
         ],
-        generative: weaviate.Configure.Generative.openai(),
-        vectorizer: weaviate.Configure.Vectorizer.text2VecOpenAI({ vectorizeClassName: false }),
+        generative: weaviate.configure.generative.openAI(),
+        vectorizer: weaviate.configure.vectorizer.text2VecOpenAI({ vectorizeClassName: false }),
       })
       .then(() => {
         return collection.data.insert({

@@ -18,8 +18,6 @@ export interface ConnectionParams {
   host: string;
   scheme?: string;
   headers?: HeadersInit;
-  grpcAddress?: string;
-  grpcSecure?: boolean;
 }
 
 export default class Connection {

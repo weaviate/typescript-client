@@ -7,7 +7,7 @@ on:
   pull_request:
 
 env:
-  WEAVIATE_VERSION: 1.23.9
+  WEAVIATE_VERSION: 1.24.0-rc.1
 
 jobs:
   checks:

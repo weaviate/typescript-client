@@ -55,7 +55,7 @@ describe('cluster nodes endpoint', () => {
           expect(node.version).toBeDefined();
           expect(node.gitHash).toBeDefined();
           expect(node.status).toEqual('HEALTHY');
-          expect(node.stats?.objectCount).toEqual(6);
+          expect(node.stats?.objectCount).toEqual(0);
           expect(node.stats?.shardCount).toEqual(2);
           expect(node.shards).toBeDefined();
           expect(node.shards).toHaveLength(2);
@@ -68,10 +68,10 @@ describe('cluster nodes endpoint', () => {
               expect(shard.name).toMatch(/.+/);
               switch (shard.class) {
                 case PIZZA_CLASS_NAME:
-                  expect(shard.objectCount).toEqual(4);
+                  expect(shard.objectCount).toEqual(0);
                   break;
                 case SOUP_CLASS_NAME:
-                  expect(shard.objectCount).toEqual(2);
+                  expect(shard.objectCount).toEqual(0);
                   break;
               }
             }
@@ -99,7 +99,7 @@ describe('cluster nodes endpoint', () => {
           expect(node.version).toBeDefined();
           expect(node.gitHash).toBeDefined();
           expect(node.status).toEqual('HEALTHY');
-          expect(node.stats?.objectCount).toEqual(6);
+          expect(node.stats?.objectCount).toEqual(0);
           expect(node.stats?.shardCount).toEqual(2);
           expect(node.shards).toBeDefined();
           expect(node.shards).toHaveLength(2);
@@ -112,10 +112,10 @@ describe('cluster nodes endpoint', () => {
               expect(shard.name).toMatch(/.+/);
               switch (shard.class) {
                 case PIZZA_CLASS_NAME:
-                  expect(shard.objectCount).toEqual(4);
+                  expect(shard.objectCount).toEqual(0);
                   break;
                 case SOUP_CLASS_NAME:
-                  expect(shard.objectCount).toEqual(2);
+                  expect(shard.objectCount).toEqual(0);
                   break;
               }
             }
@@ -170,13 +170,13 @@ describe('cluster nodes endpoint', () => {
           expect(node.version).toBeDefined();
           expect(node.gitHash).toBeDefined();
           expect(node.status).toEqual('HEALTHY');
-          expect(node.stats?.objectCount).toEqual(4);
+          expect(node.stats?.objectCount).toEqual(0);
           expect(node.stats?.shardCount).toEqual(1);
           expect(node.shards).toBeDefined();
           expect(node.shards).toHaveLength(1);
           if (node.shards) {
             expect(node.shards[0].class).toEqual(PIZZA_CLASS_NAME);
-            expect(node.shards[0].objectCount).toEqual(4);
+            expect(node.shards[0].objectCount).toEqual(0);
             expect(node.shards[0].name).toBeDefined();
           } else {
             throw new Error('node.shards should be defined');

@@ -1,6 +1,7 @@
 export interface NearMediaBase {
   certainty?: number;
   distance?: number;
+  targetVectors?: string[];
 }
 export interface NearMediaArgs extends NearMediaBase {
   media: string;
@@ -39,12 +40,14 @@ export default class GraphQLNearMedia {
   private distance?: number;
   private media: string;
   private type: NearMediaType;
+  private targetVectors?: string[];
 
   constructor(args: NearMediaArgs) {
     this.certainty = args.certainty;
     this.distance = args.distance;
     this.media = args.media;
     this.type = args.type;
+    this.targetVectors = args.targetVectors;
   }
 
   toString(wrap = true) {
@@ -62,6 +65,10 @@ export default class GraphQLNearMedia {
 
     if (this.distance) {
       args = [...args, `distance:${this.distance}`];
+    }
+
+    if (this.targetVectors && this.targetVectors.length > 0) {
+      args = [...args, `targetVectors:${JSON.stringify(this.targetVectors)}`];
     }
 
     if (!wrap) {

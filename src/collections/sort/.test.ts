@@ -1,21 +1,12 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
-import weaviate from '../../index.node';
+import weaviate, { WeaviateNextClient } from '../../index.node';
+import { Collection } from '../collection';
 
 describe('Testing of the Sort class with a simple collection', () => {
-  const client = weaviate.client({
-    http: {
-      secure: false,
-      host: 'localhost',
-      port: 8080,
-    },
-    grpc: {
-      secure: false,
-      host: 'localhost',
-      port: 50051,
-    },
-  });
-
+  let client: WeaviateNextClient;
+  let collection: Collection<TestType>;
+  let collections: (Collection<TestType> | Collection<any>)[];
   const className = 'TestCollectionSortSimple';
   let ids = [
     'd9ebd143-83aa-46c6-80ca-98730debe78c',
@@ -33,9 +24,6 @@ describe('Testing of the Sort class with a simple collection', () => {
     nullable?: string;
   };
 
-  const collection = client.collections.get<TestType>(className);
-  const collections = [collection, client.collections.get(className)];
-
   afterAll(() => {
     return client.collections.delete(className).catch((err) => {
       console.error(err);
@@ -44,6 +32,20 @@ describe('Testing of the Sort class with a simple collection', () => {
   });
 
   beforeAll(async () => {
+    client = await weaviate.client({
+      rest: {
+        secure: false,
+        host: 'localhost',
+        port: 8080,
+      },
+      grpc: {
+        secure: false,
+        host: 'localhost',
+        port: 50051,
+      },
+    });
+    collection = client.collections.get(className);
+    collections = [collection, client.collections.get(className)];
     ids = await client.collections
       .create({
         name: className,

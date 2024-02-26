@@ -1,21 +1,11 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
-import weaviate from '../../index.node';
+import weaviate, { WeaviateNextClient } from '../../index.node';
+import { Collection } from '../collection';
 
 describe('Testing of the collection.iterator method with a simple collection', () => {
-  const client = weaviate.client({
-    http: {
-      secure: false,
-      host: 'localhost',
-      port: 8080,
-    },
-    grpc: {
-      secure: false,
-      host: 'localhost',
-      port: 50051,
-    },
-  });
-
+  let client: WeaviateNextClient;
+  let collection: Collection<TestCollectionIterator>;
   const className = 'TestCollectionIterator';
   let id: string;
   let vector: number[];
@@ -23,8 +13,6 @@ describe('Testing of the collection.iterator method with a simple collection', (
   type TestCollectionIterator = {
     testProp: string;
   };
-
-  const collection = client.collections.get<TestCollectionIterator>(className);
 
   afterAll(() => {
     return client.collections.delete(className).catch((err) => {
@@ -34,6 +22,19 @@ describe('Testing of the collection.iterator method with a simple collection', (
   });
 
   beforeAll(async () => {
+    client = await weaviate.client({
+      rest: {
+        secure: false,
+        host: 'localhost',
+        port: 8080,
+      },
+      grpc: {
+        secure: false,
+        host: 'localhost',
+        port: 50051,
+      },
+    });
+    collection = client.collections.get(className);
     id = await client.collections
       .create({
         name: className,
@@ -43,7 +44,7 @@ describe('Testing of the collection.iterator method with a simple collection', (
             dataType: 'text',
           },
         ],
-        vectorizer: weaviate.Configure.Vectorizer.text2VecContextionary({ vectorizeClassName: false }),
+        vectorizer: weaviate.configure.vectorizer.text2VecContextionary({ vectorizeClassName: false }),
       })
       .then(() => {
         return collection.data.insert({

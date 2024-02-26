@@ -1,23 +1,27 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import weaviate from '../../index.node';
-import Configure from '../configure';
+import weaviate, { WeaviateNextClient } from '../../index.node';
+import configure from '../configure';
 
 const fail = (msg: string) => {
   throw new Error(msg);
 };
 
 describe('Testing of the collection.config namespace', () => {
-  const client = weaviate.client({
-    http: {
-      secure: false,
-      host: 'localhost',
-      port: 8080,
-    },
-    grpc: {
-      secure: false,
-      host: 'localhost',
-      port: 50051,
-    },
+  let client: WeaviateNextClient;
+
+  beforeAll(async () => {
+    client = await weaviate.client({
+      rest: {
+        secure: false,
+        host: 'localhost',
+        port: 8080,
+      },
+      grpc: {
+        secure: false,
+        host: 'localhost',
+        port: 50051,
+      },
+    });
   });
 
   it('should be able get the config of a collection without generics', async () => {
@@ -33,7 +37,7 @@ describe('Testing of the collection.config namespace', () => {
           dataType: 'text',
         },
       ],
-      vectorizer: Configure.Vectorizer.none(),
+      vectorizer: configure.vectorizer.none(),
     });
     const collection = client.collections.get<TestCollectionConfigGet>(className);
     const config = await collection.config.get();
@@ -95,7 +99,7 @@ describe('Testing of the collection.config namespace', () => {
           dataType: 'text',
         },
       ],
-      vectorizer: Configure.Vectorizer.none(),
+      vectorizer: configure.vectorizer.none(),
     });
     const collection = client.collections.get<TestCollectionConfigGet>(className);
     const config = await collection.config.get<'hnsw', 'none', 'none', 'text2vec-contextionary'>();

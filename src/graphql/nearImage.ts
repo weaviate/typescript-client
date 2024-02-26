@@ -2,17 +2,20 @@ import { NearMediaBase } from './nearMedia';
 
 export interface NearImageArgs extends NearMediaBase {
   image?: string;
+  targetVectors?: string[];
 }
 
 export default class GraphQLNearImage {
   private certainty?: number;
   private distance?: number;
   private image?: string;
+  private targetVectors?: string[];
 
   constructor(args: NearImageArgs) {
     this.certainty = args.certainty;
     this.distance = args.distance;
     this.image = args.image;
+    this.targetVectors = args.targetVectors;
   }
 
   toString(wrap = true) {
@@ -35,6 +38,10 @@ export default class GraphQLNearImage {
 
     if (this.distance) {
       args = [...args, `distance:${this.distance}`];
+    }
+
+    if (this.targetVectors && this.targetVectors.length > 0) {
+      args = [...args, `targetVectors:${JSON.stringify(this.targetVectors)}`];
     }
 
     if (!wrap) {
