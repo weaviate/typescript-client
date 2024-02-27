@@ -701,9 +701,9 @@ export default class Serialize {
     return args.groupBy !== undefined;
   };
 
-  public static isGenerateGroupBy = <T extends Properties>(
+  public static isGenerateGroupBy = <T extends Properties, V extends Vectors>(
     args: any
-  ): args is GenerateGroupByNearOptions<T> => {
+  ): args is GenerateGroupByNearOptions<T, V> => {
     if (args === undefined) return false;
     return args.groupBy !== undefined;
   };
