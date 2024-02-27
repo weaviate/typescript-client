@@ -201,25 +201,26 @@ export type VectorIndicesOptions =
   | VectorIndexConfigHNSWCreate
   | Record<string, any>;
 
-export interface CollectionConfigCreate<
-  TProperties = Properties,
-  Index = 'hnsw',
-  Generative = 'none',
-  Reranker = 'none',
-  Vectorizer = 'none'
-> {
+export interface CollectionConfigCreate<TProperties = Properties, TVectors extends Vectors = undefined> {
   name: string;
   description?: string;
-  generative?: ModuleOptions<Generative>;
+  generative?: ModuleOptions<GenerativeSearches>;
   invertedIndex?: InvertedIndexConfigCreate;
   multiTenancy?: MultiTenancyConfigCreate;
   properties?: PropertyConfigCreate<TProperties>[];
   references?: ReferenceConfigCreate<TProperties>[];
   replication?: ReplicationConfigCreate;
-  reranker?: ModuleOptions<Reranker>;
+  reranker?: ModuleOptions<Rerankers>;
   sharding?: ShardingConfigCreate;
-  vectorIndex?: ModuleOptions<Index>;
-  vectorizer?: ModuleOptions<Vectorizer>;
+  vectorIndex?: ModuleOptions<VectorIndexType>;
+  vectorizer?:
+    | ModuleOptions<Vectorizers, VectorizersOptions>
+    | NamedVectorConfig<
+        TVectors extends (infer U)[] ? U : string,
+        VectorIndexType,
+        Vectorizers,
+        VectorizersOptions | undefined
+      >[];
 }
 
 export type CollectionConfig<T, I, G, R, V> = {
@@ -237,6 +238,13 @@ export type CollectionConfig<T, I, G, R, V> = {
   vectorIndexType: I;
   vectorizer: VectorizerConfig<V>;
 };
+
+export interface NamedVectorConfig<N extends string, I extends VectorIndexType, V extends Vectorizers, O> {
+  name: N;
+  vectorConfig: ModuleOptions<V, O>;
+  vectorIndexConfig?: VectorIndexConfigCreate<I>;
+  vectorIndexType: I;
+}
 
 export interface Img2VecNeuralOptions {
   imageFields?: string[];
@@ -377,51 +385,51 @@ export type MetadataReturn = {
   isConsistent?: boolean;
 };
 
-export type WeaviateObject<T> = {
+export type WeaviateObject<T, V> = {
   properties: ReturnProperties<T>;
-  metadata?: MetadataReturn;
+  metadata: MetadataReturn | undefined;
   references: ReturnReferences<T> | undefined;
   uuid: string;
-  vector: Record<string, number[]>;
+  vectors: ReturnVectors<V>;
 };
 
-export type WeaviateReturn<T> = {
-  objects: WeaviateObject<T>[];
+export type WeaviateReturn<T, V> = {
+  objects: WeaviateObject<T, V>[];
 };
 
-export type GenerateObject<T> = WeaviateObject<T> & {
+export type GenerateObject<T, V> = WeaviateObject<T, V> & {
   generated?: string;
 };
 
-export type GenerativeReturn<T> = {
-  objects: GenerateObject<T>[];
+export type GenerativeReturn<T, V> = {
+  objects: GenerateObject<T, V>[];
   generated?: string;
 };
 
-export type GroupByObject<T> = WeaviateObject<T> & {
+export type GroupByObject<T, V> = WeaviateObject<T, V> & {
   belongsToGroup: string;
 };
 
-export type GroupByResult<T> = {
+export type GroupByResult<T, V> = {
   name: string;
   minDistance: number;
   maxDistance: number;
   numberOfObjects: number;
-  objects: WeaviateObject<T>[];
+  objects: WeaviateObject<T, V>[];
 };
 
-export type GenerativeGroupByResult<T> = GroupByResult<T> & {
+export type GenerativeGroupByResult<T, V> = GroupByResult<T, V> & {
   generated?: string;
 };
 
-export type GroupByReturn<T> = {
-  objects: GroupByObject<T>[];
-  groups: Record<string, GroupByResult<T>>;
+export type GroupByReturn<T, V> = {
+  objects: GroupByObject<T, V>[];
+  groups: Record<string, GroupByResult<T, V>>;
 };
 
-export type GenerativeGroupByReturn<T> = {
-  objects: GroupByObject<T>[];
-  groups: Record<string, GenerativeGroupByResult<T>>;
+export type GenerativeGroupByReturn<T, V> = {
+  objects: GroupByObject<T, V>[];
+  groups: Record<string, GenerativeGroupByResult<T, V>>;
   generated?: string;
 };
 
@@ -468,6 +476,7 @@ export interface QueryNested<T> {
 
 export type QueryProperty<T> = PrimitiveKeys<T> | QueryNested<T>;
 export type QueryReference<T> = RefProperty<T> | MultiRefProperty<T>;
+export type QueryVector<T> = VectorKeys<T>;
 export type NonRefProperty<T> = keyof T | QueryNested<T>;
 export type NonPrimitiveProperty<T> = RefProperty<T> | MultiRefProperty<T> | QueryNested<T>;
 
@@ -487,6 +496,20 @@ export type RefKeys<Obj> = {
   [Key in keyof Obj]: Obj[Key] extends CrossReference<any> | undefined ? Key : never;
 }[keyof Obj] &
   string;
+
+export type VectorKeys<Obj> = {
+  [Key in keyof Obj]: Obj[Key] extends Vector ? Key : never;
+}[keyof Obj] &
+  string;
+
+type HasVectorKeys<Obj> = {
+  [K in keyof Obj]: Obj[K] extends Vector ? 'yes' : never;
+}[keyof Obj];
+
+export type Vector = {
+  __type: 'vector';
+};
+export type Vectors = string[] | undefined;
 
 // export type NonRefKeys<Obj> = {
 //   [Key in keyof Obj]: Obj[Key] extends WeaviateField ? Key : never;
@@ -508,7 +531,7 @@ export type ReferenceInputs<Obj> = {
 };
 
 // Helper type to determine if a type is a WeaviateField excluding undefined
-type IsWeaviateField<T> = T extends WeaviateField ? T : never;
+type IsWeaviateField<T> = T extends Vector ? never : T extends WeaviateField ? T : never;
 
 // Modified NonRefKey to differentiate optional from required keys
 export type NonRefKeys<Obj> = {
@@ -527,6 +550,10 @@ export type NonReferenceInputs<Obj> = {
   [Key in keyof Obj as Key extends NonRefKeys<Obj> ? Key : never]: MapPhoneNumberType<Obj[Key]>;
 };
 
+export type VectorInputs<Obj> = {
+  [Key in VectorKeys<Obj>]: number[];
+};
+
 export type MapPhoneNumberType<T> = T extends PhoneNumber ? PhoneNumberInput : T;
 
 export interface ReferenceToMultiTarget {
@@ -540,13 +567,17 @@ export type ReturnProperties<T> = Pick<T, NonRefKeys<T>>;
 
 export type ReturnReferences<T> = Pick<T, RefKeys<T>>;
 
+export type ReturnVectors<V> = V extends string[]
+  ? { [Key in V[number]]: number[] }
+  : Record<string, number[]>;
+
 export interface SortBy {
   property: string;
   ascending?: boolean;
 }
 
-export type Reference<T> = {
-  objects: WeaviateObject<T>[];
+export type Reference<T, V> = {
+  objects: WeaviateObject<T, V>[];
 };
 
 type PrimitiveField =
@@ -568,7 +599,7 @@ type NestedField = NestedProperties | NestedProperties[];
 export type WeaviateField = PrimitiveField | NestedField;
 
 export interface Properties {
-  [k: string]: WeaviateField | CrossReference<Properties> | undefined;
+  [k: string]: WeaviateField | CrossReference<Properties> | Vector | undefined;
 }
 
 export interface NestedProperties {

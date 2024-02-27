@@ -3,7 +3,7 @@
 import weaviate, { WeaviateNextClient } from '../../index.node';
 import { Collection } from '../collection';
 import { CrossReference, Reference } from '../references';
-import { GroupByOptions } from '../types';
+import { GroupByOptions, Vector } from '../types';
 
 describe('Testing of the collection.query methods with a simple collection', () => {
   let client: WeaviateNextClient;
@@ -56,7 +56,7 @@ describe('Testing of the collection.query methods with a simple collection', () 
         });
       });
     const res = await collection.query.fetchObjectById(id, { includeVector: true });
-    vector = res?.vector.default!;
+    vector = res?.vectors.default!;
   });
 
   it('should fetch an object by its id', async () => {
@@ -313,7 +313,7 @@ describe('Testing of the collection.query methods with a collection with a refer
 
     it('should query with nearVector returning the referenced object', async () => {
       const res = await collection.query.fetchObjectById(id2, { includeVector: true });
-      const ret = await collection.query.nearVector(res?.vector.default!, {
+      const ret = await collection.query.nearVector(res?.vectors.default!, {
         returnProperties: ['testProp'],
         returnReferences: [
           {
@@ -458,6 +458,90 @@ describe('Testing of the collection.query methods with a collection with a refer
       expect(ret.objects[1].properties.nestedProp).toBeUndefined();
     });
   });
+
+  describe('Testing of the collection.query methods with a collection with multiple vectors', () => {
+    let client: WeaviateNextClient;
+    let collection: Collection<TestCollectionQueryWithMultiVector, Vectors>;
+    const className = 'TestCollectionQueryWithMultiVector';
+
+    let id1: string;
+    let id2: string;
+
+    type TestCollectionQueryWithMultiVector = {
+      title: string;
+    };
+    type Vectors = ['title'];
+
+    afterAll(() => {
+      return client.collections.delete(className).catch((err) => {
+        console.error(err);
+        throw err;
+      });
+    });
+
+    beforeAll(async () => {
+      client = await weaviate.client({
+        rest: {
+          secure: false,
+          host: 'localhost',
+          port: 8080,
+        },
+        grpc: {
+          secure: false,
+          host: 'localhost',
+          port: 50051,
+        },
+      });
+      collection = client.collections.get(className);
+      return client.collections
+        .create<TestCollectionQueryWithMultiVector, Vectors>({
+          name: className,
+          properties: [
+            {
+              name: 'title',
+              dataType: 'text',
+              vectorizePropertyName: false,
+            },
+          ],
+          vectorizer: [weaviate.configure.namedVectorizer.make('title', 'hnsw', 'text2vec-contextionary')],
+        })
+        .then(async () => {
+          id1 = await collection.data.insert({
+            properties: {
+              title: 'test',
+            },
+          });
+          id2 = await collection.data.insert({
+            properties: {
+              title: 'other',
+            },
+          });
+        });
+    });
+
+    it('should query without searching returning named vector', async () => {
+      const ret = await collection.query.fetchObjects({
+        returnProperties: ['title'],
+        includeVector: ['title'],
+      });
+      ret.objects.sort((a, b) => a.properties.title.localeCompare(b.properties.title));
+      expect(ret.objects.length).toEqual(2);
+      expect(ret.objects[0].properties.title).toEqual('other');
+      expect(ret.objects[0].vectors.title).toBeDefined();
+      expect(ret.objects[1].properties.title).toEqual('test');
+      expect(ret.objects[1].vectors.title).toBeDefined();
+    });
+
+    it('should query with a vector search over the named vector space', async () => {
+      const ret = await collection.query.nearObject(id1, {
+        returnProperties: ['title'],
+        targetVector: 'title',
+      });
+      expect(ret.objects.length).toEqual(2);
+      expect(ret.objects[0].properties.title).toEqual('test');
+      expect(ret.objects[1].properties.title).toEqual('other');
+    });
+  });
 });
 
 describe('Testing of the groupBy collection.query methods with a simple collection', () => {
@@ -517,7 +601,7 @@ describe('Testing of the groupBy collection.query methods with a simple collecti
         });
       });
     const res = await collection.query.fetchObjectById(id, { includeVector: true });
-    vector = res?.vector.default!;
+    vector = res?.vectors.default!;
   });
 
   // it('should groupBy without search', async () => {

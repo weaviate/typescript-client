@@ -22,6 +22,7 @@ import {
   Properties,
   ReferenceInputs,
   Refs,
+  VectorInputs,
 } from '../types';
 import { FilterValue } from '../filters';
 import Deserialize from '../deserialize';
@@ -37,7 +38,7 @@ export interface InsertArgs<T> {
   id?: string;
   properties?: NonReferenceInputs<T>;
   references?: ReferenceInputs<T>;
-  vector?: number[];
+  vectors?: number[] | VectorInputs<T>;
 }
 
 export interface ReferenceArgs<T extends Properties> {

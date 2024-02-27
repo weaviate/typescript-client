@@ -10,7 +10,9 @@ import {
   Multi2VecBindOptions,
   Multi2VecClipOptions,
   MultiTenancyConfigCreate,
+  NamedVectorConfig,
   PQConfigCreate,
+  Properties,
   Ref2VecCentroidOptions,
   ReplicationConfigCreate,
   RerankerCohereOptions,
@@ -19,8 +21,43 @@ import {
   Text2VecContextionaryOptions,
   Text2VecOpenAIOptions,
   VectorDistance,
+  VectorIndexConfigCreate,
   VectorIndexConfigHNSWCreate,
+  VectorIndexType,
+  VectorKeys,
+  VectorizerConfig,
+  Vectorizers,
 } from '../types';
+
+export const namedVectorizer = {
+  make: <N extends string, I extends VectorIndexType, V extends Vectorizers>(
+    name: N,
+    vectorIndexType: I,
+    vectorizer: V,
+    vectorIndexConfig?: VectorIndexConfigCreate<I>,
+    vectorizerConfig?: VectorizerConfig<V>
+  ): NamedVectorConfig<N, I, V, VectorizerConfig<V>> => {
+    return {
+      name,
+      vectorIndexConfig,
+      vectorIndexType,
+      vectorConfig: {
+        name: vectorizer,
+        options: vectorizerConfig,
+      },
+    };
+  },
+};
+
+// export interface NamedVectorizer<T extends Properties> {
+//   make<I extends VectorIndexType, V extends Vectorizers>(
+//     name: VectorKeys<T>,
+//     vectorIndexType: I,
+//     vectorizer: V,
+//     vectorIndexConfig?: VectorIndexConfigCreate<I>,
+//     vectorizerConfig?: VectorizerConfig<V>
+//   ): NamedVectorConfig<I, V, VectorizerConfig<V>>;
+// }
 
 const vectorizer = {
   none: (): ModuleOptions<'none', Record<string, never>> => {
@@ -29,96 +66,96 @@ const vectorizer = {
       options: {},
     };
   },
-  img2VecNeural: (Options?: Img2VecNeuralOptions): ModuleOptions<'img2vec-neural', Img2VecNeuralOptions> => {
+  img2VecNeural: (options?: Img2VecNeuralOptions): ModuleOptions<'img2vec-neural', Img2VecNeuralOptions> => {
     return {
       name: 'img2vec-neural',
-      options: Options,
+      options: options,
     };
   },
-  multi2VecBind: (Options?: Multi2VecBindOptions): ModuleOptions<'multi2vec-bind', Multi2VecBindOptions> => {
+  multi2VecBind: (options?: Multi2VecBindOptions): ModuleOptions<'multi2vec-bind', Multi2VecBindOptions> => {
     return {
       name: 'multi2vec-bind',
-      options: Options,
+      options: options,
     };
   },
-  multi2VecClip: (Options?: Multi2VecClipOptions): ModuleOptions<'multi2vec-clip', Multi2VecClipOptions> => {
+  multi2VecClip: (options?: Multi2VecClipOptions): ModuleOptions<'multi2vec-clip', Multi2VecClipOptions> => {
     return {
       name: 'multi2vec-clip',
-      options: Options,
+      options: options,
     };
   },
   ref2VecCentroid: (
-    Options: Ref2VecCentroidOptions
+    options: Ref2VecCentroidOptions
   ): ModuleOptions<'ref2vec-centroid', Ref2VecCentroidOptions> => {
     return {
       name: 'ref2vec-centroid',
-      options: Options,
+      options: options,
     };
   },
   text2VecCohere: (
-    Options?: Text2VecCohereOptions
+    options?: Text2VecCohereOptions
   ): ModuleOptions<'text2vec-cohere', Text2VecCohereOptions> => {
     return {
       name: 'text2vec-cohere',
-      options: Options,
+      options: options,
     };
   },
   text2VecContextionary: (
-    Options?: Text2VecContextionaryOptions
+    options?: Text2VecContextionaryOptions
   ): ModuleOptions<'text2vec-contextionary', Text2VecContextionaryOptions> => {
     return {
       name: 'text2vec-contextionary',
-      options: Options,
+      options: options,
     };
   },
   text2VecOpenAI: (
-    Options?: Text2VecOpenAIOptions
+    options?: Text2VecOpenAIOptions
   ): ModuleOptions<'text2vec-openai', Text2VecOpenAIOptions> => {
     return {
       name: 'text2vec-openai',
-      options: Options,
+      options: options,
     };
   },
 };
 
 const generative = {
   azureOpenAI: (
-    Options: GenerativeAzureOpenAIOptions
+    options: GenerativeAzureOpenAIOptions
   ): ModuleOptions<'generative-openai', GenerativeAzureOpenAIOptions> => {
     return {
       name: 'generative-openai',
-      options: Options,
+      options: options,
     };
   },
   cohere: (
-    Options?: GenerativeCohereOptions
+    options?: GenerativeCohereOptions
   ): ModuleOptions<'generative-cohere', GenerativeCohereOptions> => {
     return {
       name: 'generative-cohere',
-      options: Options,
+      options: options,
     };
   },
   openAI: (
-    Options?: GenerativeOpenAIOptions
+    options?: GenerativeOpenAIOptions
   ): ModuleOptions<'generative-openai', GenerativeOpenAIOptions> => {
     return {
       name: 'generative-openai',
-      options: Options,
+      options: options,
     };
   },
-  palm: (Options: GenerativePaLMOptions): ModuleOptions<'generative-palm', GenerativePaLMOptions> => {
+  palm: (options: GenerativePaLMOptions): ModuleOptions<'generative-palm', GenerativePaLMOptions> => {
     return {
       name: 'generative-palm',
-      options: Options,
+      options: options,
     };
   },
 };
 
 const reranker = {
-  cohere: (Options?: RerankerCohereOptions): ModuleOptions<'reranker-cohere', RerankerCohereOptions> => {
+  cohere: (options?: RerankerCohereOptions): ModuleOptions<'reranker-cohere', RerankerCohereOptions> => {
     return {
       name: 'reranker-cohere',
-      options: Options,
+      options: options,
     };
   },
   transformers: (): ModuleOptions<'reranker-transformers', Record<string, never>> => {
@@ -130,7 +167,7 @@ const reranker = {
 };
 
 const vectorIndex = {
-  hnsw: (Options?: {
+  hnsw: (options?: {
     cleanupIntervalSeconds?: number;
     distanceMetric?: VectorDistance;
     dynamicEfFactor?: number;
@@ -145,32 +182,32 @@ const vectorIndex = {
     vectorCacheMaxObjects?: number;
   }): VectorIndexConfigHNSWCreate => {
     return {
-      cleanupIntervalSeconds: parseWithDefault(Options?.cleanupIntervalSeconds, 300),
-      distance: parseWithDefault(Options?.distanceMetric, 'cosine'),
-      dynamicEfFactor: parseWithDefault(Options?.dynamicEfFactor, 8),
-      dynamicEfMax: parseWithDefault(Options?.dynamicEfMax, 500),
-      dynamicEfMin: parseWithDefault(Options?.dynamicEfMin, 100),
-      ef: parseWithDefault(Options?.ef, -1),
-      efConstruction: parseWithDefault(Options?.efConstruction, 128),
-      flatSearchCutoff: parseWithDefault(Options?.flatSearchCutoff, 40000),
-      maxConnections: parseWithDefault(Options?.maxConnections, 64),
-      pq: Options?.pq
+      cleanupIntervalSeconds: parseWithDefault(options?.cleanupIntervalSeconds, 300),
+      distance: parseWithDefault(options?.distanceMetric, 'cosine'),
+      dynamicEfFactor: parseWithDefault(options?.dynamicEfFactor, 8),
+      dynamicEfMax: parseWithDefault(options?.dynamicEfMax, 500),
+      dynamicEfMin: parseWithDefault(options?.dynamicEfMin, 100),
+      ef: parseWithDefault(options?.ef, -1),
+      efConstruction: parseWithDefault(options?.efConstruction, 128),
+      flatSearchCutoff: parseWithDefault(options?.flatSearchCutoff, 40000),
+      maxConnections: parseWithDefault(options?.maxConnections, 64),
+      pq: options?.pq
         ? {
-            bitCompression: parseWithDefault(Options.pq.bitCompression, false),
-            centroids: parseWithDefault(Options.pq.centroids, 256),
+            bitCompression: parseWithDefault(options.pq.bitCompression, false),
+            centroids: parseWithDefault(options.pq.centroids, 256),
             enabled: true,
-            encoder: Options.pq.encoder
+            encoder: options.pq.encoder
               ? {
-                  distribution: parseWithDefault(Options.pq.encoder.distribution, 'log_normal'),
-                  type: parseWithDefault(Options?.pq.encoder.type, 'kmeans'),
+                  distribution: parseWithDefault(options.pq.encoder.distribution, 'log_normal'),
+                  type: parseWithDefault(options?.pq.encoder.type, 'kmeans'),
                 }
               : undefined,
-            segments: parseWithDefault(Options?.pq.segments, 0),
-            trainingLimit: parseWithDefault(Options?.pq.trainingLimit, 100000),
+            segments: parseWithDefault(options?.pq.segments, 0),
+            trainingLimit: parseWithDefault(options?.pq.trainingLimit, 100000),
           }
         : undefined,
-      skip: parseWithDefault(Options?.skip, false),
-      vectorCacheMaxObjects: parseWithDefault(Options?.vectorCacheMaxObjects, 1000000000000),
+      skip: parseWithDefault(options?.skip, false),
+      vectorCacheMaxObjects: parseWithDefault(options?.vectorCacheMaxObjects, 1000000000000),
     };
   },
 };
@@ -195,11 +232,12 @@ const dataType: Record<string, DataType> = {
 
 export default {
   generative,
+  namedVectorizer,
   reranker,
   vectorizer,
   vectorIndex,
   dataType,
-  invertedIndex: (Options?: {
+  invertedIndex: (options?: {
     bm25b?: number;
     bm25k1?: number;
     cleanupIntervalSeconds?: number;
@@ -212,27 +250,27 @@ export default {
   }): InvertedIndexConfigCreate => {
     return {
       bm25: {
-        b: parseWithDefault(Options?.bm25b, 0.75),
-        k1: parseWithDefault(Options?.bm25k1, 1.2),
+        b: parseWithDefault(options?.bm25b, 0.75),
+        k1: parseWithDefault(options?.bm25k1, 1.2),
       },
-      cleanupIntervalSeconds: parseWithDefault(Options?.cleanupIntervalSeconds, 60),
-      indexTimestamps: parseWithDefault(Options?.indexTimestamps, false),
-      indexPropertyLength: parseWithDefault(Options?.indexPropertyLength, false),
-      indexNullState: parseWithDefault(Options?.indexNullState, false),
+      cleanupIntervalSeconds: parseWithDefault(options?.cleanupIntervalSeconds, 60),
+      indexTimestamps: parseWithDefault(options?.indexTimestamps, false),
+      indexPropertyLength: parseWithDefault(options?.indexPropertyLength, false),
+      indexNullState: parseWithDefault(options?.indexNullState, false),
       stopwords: {
-        preset: parseWithDefault(Options?.stopwordsPreset, 'en'),
-        additions: parseWithDefault(Options?.stopwordsAdditions, []),
-        removals: parseWithDefault(Options?.stopwordsRemovals, []),
+        preset: parseWithDefault(options?.stopwordsPreset, 'en'),
+        additions: parseWithDefault(options?.stopwordsAdditions, []),
+        removals: parseWithDefault(options?.stopwordsRemovals, []),
       },
     };
   },
-  multiTenancy: (Options?: { enabled?: boolean }): MultiTenancyConfigCreate => {
-    return Options ? { enabled: parseWithDefault(Options.enabled, true) } : { enabled: true };
+  multiTenancy: (options?: { enabled?: boolean }): MultiTenancyConfigCreate => {
+    return options ? { enabled: parseWithDefault(options.enabled, true) } : { enabled: true };
   },
-  replication: (Options?: { factor?: number }): ReplicationConfigCreate => {
-    return Options ? { factor: parseWithDefault(Options.factor, 1) } : { factor: 1 };
+  replication: (options?: { factor?: number }): ReplicationConfigCreate => {
+    return options ? { factor: parseWithDefault(options.factor, 1) } : { factor: 1 };
   },
-  sharding: (Options?: {
+  sharding: (options?: {
     virtualPerPhysical?: number;
     desiredCount?: number;
     actualCount?: number;
@@ -240,11 +278,11 @@ export default {
     actualVirtualCount?: number;
   }): ShardingConfigCreate => {
     return {
-      virtualPerPhysical: parseWithDefault(Options?.virtualPerPhysical, 128),
-      desiredCount: parseWithDefault(Options?.desiredCount, 1),
-      actualCount: parseWithDefault(Options?.actualCount, 1),
-      desiredVirtualCount: parseWithDefault(Options?.desiredVirtualCount, 128),
-      actualVirtualCount: parseWithDefault(Options?.actualVirtualCount, 128),
+      virtualPerPhysical: parseWithDefault(options?.virtualPerPhysical, 128),
+      desiredCount: parseWithDefault(options?.desiredCount, 1),
+      actualCount: parseWithDefault(options?.actualCount, 1),
+      desiredVirtualCount: parseWithDefault(options?.desiredVirtualCount, 128),
+      actualVirtualCount: parseWithDefault(options?.actualVirtualCount, 128),
       key: '_id',
       strategy: 'hash',
       function: 'murmur3',

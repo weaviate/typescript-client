@@ -5,6 +5,7 @@ import { DbVersionSupport } from '../utils/dbVersion';
 import aggregate, { metrics, Aggregate, Metrics } from './aggregate';
 import { backupCollection, BackupCollection } from './backup';
 import config, { Config } from './config';
+// import { namedVectorizer, NamedVectorizer } from './configure';
 import data, { Data } from './data';
 import filter, { Filter } from './filters';
 import generate, { Generate } from './generate';
@@ -12,9 +13,9 @@ import { Iterator } from './iterator';
 import query, { Query } from './query';
 import sort, { Sort } from './sort';
 import tenants, { Tenants } from './tenants';
-import { MetadataQuery, Properties, QueryProperty, QueryReference } from './types';
+import { MetadataQuery, Properties, QueryProperty, QueryReference, Vectors } from './types';
 
-export interface Collection<T extends Properties> {
+export interface Collection<T extends Properties, V extends Vectors = undefined> {
   aggregate: Aggregate<T>;
   backup: BackupCollection;
   config: Config<T>;
@@ -22,12 +23,13 @@ export interface Collection<T extends Properties> {
   filter: Filter<T>;
   generate: Generate<T>;
   metrics: Metrics<T>;
-  query: Query<T>;
+  // namedVectorizer: NamedVectorizer<T>;
+  query: Query<T, V>;
   sort: Sort<T>;
   tenants: Tenants;
   iterator: (opts?: IteratorOptions<T>) => Iterator<T>;
-  withConsistency: (consistencyLevel: ConsistencyLevel) => Collection<T>;
-  withTenant: (tenant: string) => Collection<T>;
+  withConsistency: (consistencyLevel: ConsistencyLevel) => Collection<T, V>;
+  withTenant: (tenant: string) => Collection<T, V>;
 }
 
 export interface IteratorOptions<T extends Properties> {
@@ -37,14 +39,14 @@ export interface IteratorOptions<T extends Properties> {
   returnReferences?: QueryReference<T>[];
 }
 
-const collection = <T extends Properties>(
+const collection = <T extends Properties, V extends Vectors>(
   connection: Connection,
   name: string,
   dbVersionSupport: DbVersionSupport,
   consistencyLevel?: ConsistencyLevel,
   tenant?: string
 ) => {
-  const queryCollection = query<T>(connection, name, dbVersionSupport, consistencyLevel, tenant);
+  const queryCollection = query<T, V>(connection, name, dbVersionSupport, consistencyLevel, tenant);
   return {
     aggregate: aggregate<T>(connection, name, dbVersionSupport, consistencyLevel, tenant),
     backup: backupCollection(connection, name),
@@ -53,6 +55,7 @@ const collection = <T extends Properties>(
     filter: filter<T>(),
     generate: generate<T>(connection, name, dbVersionSupport, consistencyLevel, tenant),
     metrics: metrics<T>(),
+    // namedVectorizer: namedVectorizer<T>(),
     query: queryCollection,
     sort: sort<T>(),
     tenants: tenants(connection, name),
@@ -70,9 +73,9 @@ const collection = <T extends Properties>(
           .then((res) => res.objects)
       ),
     withConsistency: (consistencyLevel: ConsistencyLevel) =>
-      collection<T>(connection, name, dbVersionSupport, consistencyLevel, tenant),
+      collection<T, V>(connection, name, dbVersionSupport, consistencyLevel, tenant),
     withTenant: (tenant: string) =>
-      collection<T>(connection, name, dbVersionSupport, consistencyLevel, tenant),
+      collection<T, V>(connection, name, dbVersionSupport, consistencyLevel, tenant),
   };
 };
 

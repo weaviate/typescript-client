@@ -54,6 +54,7 @@ import {
   GeoCoordinate,
   PhoneNumberInput,
   ReferenceInputs,
+  Vectors,
 } from './types';
 import {
   SearchBm25Args,
@@ -235,7 +236,7 @@ export class DataGuards {
 // Cannot do argument.every((arg) => typeof arg === type) in the above because of type erasure
 
 export default class Serialize {
-  private static common = <T extends Properties>(args?: QueryOptions<T>) => {
+  private static common = <T extends Properties, V extends Vectors>(args?: QueryOptions<T, V>) => {
     return {
       limit: args?.limit,
       filters: args?.filters ? Serialize.filtersGRPC(args.filters) : undefined,
@@ -247,8 +248,8 @@ export default class Serialize {
     };
   };
 
-  public static fetchObjects = <T extends Properties>(
-    args?: QueryFetchObjectsOptions<T>
+  public static fetchObjects = <T extends Properties, V extends Vectors>(
+    args?: QueryFetchObjectsOptions<T, V>
   ): SearchFetchArgs => {
     return {
       ...Serialize.common(args),
@@ -258,8 +259,8 @@ export default class Serialize {
     };
   };
 
-  public static fetchObjectById = <T extends Properties>(
-    args: { id: string } & QueryFetchObjectByIdOptions<T>
+  public static fetchObjectById = <T extends Properties, V extends Vectors>(
+    args: { id: string } & QueryFetchObjectByIdOptions<T, V>
   ): SearchFetchArgs => {
     return {
       ...Serialize.common({
@@ -272,8 +273,8 @@ export default class Serialize {
     };
   };
 
-  public static bm25 = <T extends Properties>(
-    args: { query: string } & QueryBm25Options<T>
+  public static bm25 = <T extends Properties, V extends Vectors>(
+    args: { query: string } & QueryBm25Options<T, V>
   ): SearchBm25Args => {
     return {
       ...Serialize.common(args),
@@ -285,8 +286,8 @@ export default class Serialize {
     };
   };
 
-  public static hybrid = <T extends Properties>(
-    args: { query: string } & QueryHybridOptions<T>
+  public static hybrid = <T extends Properties, V extends Vectors>(
+    args: { query: string } & QueryHybridOptions<T, V>
   ): SearchHybridArgs => {
     const fusionType = (fusionType?: string): Hybrid_FusionType => {
       switch (fusionType) {
@@ -312,8 +313,8 @@ export default class Serialize {
     };
   };
 
-  public static nearAudio = <T extends Properties>(
-    args: { audio: string } & QueryNearOptions<T>
+  public static nearAudio = <T extends Properties, V extends Vectors>(
+    args: { audio: string } & QueryNearOptions<T, V>
   ): SearchNearAudioArgs => {
     return {
       ...Serialize.common(args),
@@ -327,8 +328,8 @@ export default class Serialize {
     };
   };
 
-  public static nearDepth = <T extends Properties>(
-    args: { depth: string } & QueryNearOptions<T>
+  public static nearDepth = <T extends Properties, V extends Vectors>(
+    args: { depth: string } & QueryNearOptions<T, V>
   ): SearchNearDepthArgs => {
     return {
       ...Serialize.common(args),
@@ -342,8 +343,8 @@ export default class Serialize {
     };
   };
 
-  public static nearImage = <T extends Properties>(
-    args: { image: string } & QueryNearOptions<T>
+  public static nearImage = <T extends Properties, V extends Vectors>(
+    args: { image: string } & QueryNearOptions<T, V>
   ): SearchNearImageArgs => {
     return {
       ...Serialize.common(args),
@@ -357,8 +358,8 @@ export default class Serialize {
     };
   };
 
-  public static nearIMU = <T extends Properties>(
-    args: { imu: string } & QueryNearOptions<T>
+  public static nearIMU = <T extends Properties, V extends Vectors>(
+    args: { imu: string } & QueryNearOptions<T, V>
   ): SearchNearIMUArgs => {
     return {
       ...Serialize.common(args),
@@ -372,8 +373,8 @@ export default class Serialize {
     };
   };
 
-  public static nearObject = <T extends Properties>(
-    args: { id: string } & QueryNearOptions<T>
+  public static nearObject = <T extends Properties, V extends Vectors>(
+    args: { id: string } & QueryNearOptions<T, V>
   ): SearchNearObjectArgs => {
     return {
       ...Serialize.common(args),
@@ -387,8 +388,8 @@ export default class Serialize {
     };
   };
 
-  public static nearText = <T extends Properties>(
-    args: { query: string | string[] } & QueryNearOptions<T>
+  public static nearText = <T extends Properties, V extends Vectors>(
+    args: { query: string | string[] } & QueryNearOptions<T, V>
   ): SearchNearTextArgs => {
     return {
       ...Serialize.common(args),
@@ -402,8 +403,8 @@ export default class Serialize {
     };
   };
 
-  public static nearThermal = <T extends Properties>(
-    args: { thermal: string } & QueryNearOptions<T>
+  public static nearThermal = <T extends Properties, V extends Vectors>(
+    args: { thermal: string } & QueryNearOptions<T, V>
   ): SearchNearThermalArgs => {
     return {
       ...Serialize.common(args),
@@ -417,8 +418,8 @@ export default class Serialize {
     };
   };
 
-  public static nearVector = <T extends Properties>(
-    args: { vector: number[] } & QueryNearOptions<T>
+  public static nearVector = <T extends Properties, V extends Vectors>(
+    args: { vector: number[] } & QueryNearOptions<T, V>
   ): SearchNearVectorArgs => {
     return {
       ...Serialize.common(args),
@@ -432,8 +433,8 @@ export default class Serialize {
     };
   };
 
-  public static nearVideo = <T extends Properties>(
-    args: { video: string } & QueryNearOptions<T>
+  public static nearVideo = <T extends Properties, V extends Vectors>(
+    args: { video: string } & QueryNearOptions<T, V>
   ): SearchNearVideoArgs => {
     return {
       ...Serialize.common(args),
@@ -693,7 +694,9 @@ export default class Serialize {
     });
   };
 
-  public static isGroupBy = <T extends Properties>(args: any): args is QueryGroupByNearOptions<T> => {
+  public static isGroupBy = <T extends Properties, V extends Vectors>(
+    args: any
+  ): args is QueryGroupByNearOptions<T, V> => {
     if (args === undefined) return false;
     return args.groupBy !== undefined;
   };

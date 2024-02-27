@@ -55,15 +55,17 @@ describe('Testing of the collections.create method', () => {
     type TestCollectionSimple = {
       testProp: string;
     };
-    const response = await contextionary.collections.create<TestCollectionSimple>({
-      name: className,
-      properties: [
-        {
-          name: 'testProp',
-          dataType: 'text',
-        },
-      ],
-    });
+    const response = await contextionary.collections
+      .create<TestCollectionSimple>({
+        name: className,
+        properties: [
+          {
+            name: 'testProp',
+            dataType: 'text',
+          },
+        ],
+      })
+      .then(() => contextionary.collections.get<TestCollectionSimple>(className).config.get());
     expect(response.name).toEqual(className);
     expect(response.properties?.length).toEqual(1);
     expect(response.properties[0].name).toEqual('testProp');
@@ -75,15 +77,17 @@ describe('Testing of the collections.create method', () => {
 
   it('should be able to create a simple collection without a generic', async () => {
     const className = 'TestCollectionSimpleNonGeneric';
-    const response = await contextionary.collections.create({
-      name: className,
-      properties: [
-        {
-          name: 'testProp',
-          dataType: 'text',
-        },
-      ],
-    });
+    const response = await contextionary.collections
+      .create({
+        name: className,
+        properties: [
+          {
+            name: 'testProp',
+            dataType: 'text',
+          },
+        ],
+      })
+      .then(() => contextionary.collections.get(className).config.get());
     expect(response.name).toEqual(className);
     expect(response.properties?.length).toEqual(1);
     expect(response.properties[0].name).toEqual('testProp');
@@ -104,7 +108,9 @@ describe('Testing of the collections.create method', () => {
         },
       ],
     };
-    const response = await contextionary.collections.create(schema);
+    const response = await contextionary.collections
+      .create(schema)
+      .then(() => contextionary.collections.get(className).config.get());
     expect(response.name).toEqual(className);
     expect(response.properties?.length).toEqual(1);
     expect(response.properties[0].name).toEqual('testProp');
@@ -128,7 +134,9 @@ describe('Testing of the collections.create method', () => {
         },
       ],
     };
-    const response = await contextionary.collections.create<TestCollectionSimple>(schema);
+    const response = await contextionary.collections
+      .create<TestCollectionSimple>(schema)
+      .then(() => contextionary.collections.get<TestCollectionSimple>(className).config.get());
     expect(response.name).toEqual(className);
     expect(response.properties?.length).toEqual(1);
     expect(response.properties[0].name).toEqual('testProp');
@@ -152,7 +160,9 @@ describe('Testing of the collections.create method', () => {
         },
       ],
     };
-    const response = await contextionary.collections.create<TestCollectionSimple>(schema);
+    const response = await contextionary.collections
+      .create<TestCollectionSimple>(schema)
+      .then(() => contextionary.collections.get<TestCollectionSimple>(className).config.get());
     expect(response.name).toEqual(className);
     expect(response.properties?.length).toEqual(1);
     expect(response.properties[0].name).toEqual('testProp');
@@ -169,21 +179,23 @@ describe('Testing of the collections.create method', () => {
         nestedProp: string;
       };
     };
-    const response = await contextionary.collections.create<TestCollectionNested>({
-      name: className,
-      properties: [
-        {
-          name: 'testProp',
-          dataType: 'object',
-          nestedProperties: [
-            {
-              name: 'nestedProp',
-              dataType: 'text',
-            },
-          ],
-        },
-      ],
-    });
+    const response = await contextionary.collections
+      .create<TestCollectionNested>({
+        name: className,
+        properties: [
+          {
+            name: 'testProp',
+            dataType: 'object',
+            nestedProperties: [
+              {
+                name: 'nestedProp',
+                dataType: 'text',
+              },
+            ],
+          },
+        ],
+      })
+      .then(() => contextionary.collections.get<TestCollectionNested>(className).config.get());
     expect(response.name).toEqual(className);
     expect(response.properties.length).toEqual(1);
     expect(response.properties[0].name).toEqual('testProp');
@@ -197,132 +209,134 @@ describe('Testing of the collections.create method', () => {
 
   it('should be able to create a complex collection', async () => {
     const className = 'TestCollectionSimple';
-    const response = await cluster.collections.create({
-      name: className,
-      description: 'A test collection',
-      invertedIndex: {
-        bm25: {
-          b: 0.8,
-          k1: 1.3,
-        },
-        cleanupIntervalSeconds: 10,
-        indexTimestamps: true,
-        indexPropertyLength: true,
-        indexNullState: true,
-        stopwords: {
-          preset: 'en',
-          additions: ['a'],
-          removals: ['the'],
-        },
-      },
-      properties: [
-        {
-          name: 'text',
-          dataType: weaviate.configure.dataType.TEXT,
-        },
-        {
-          name: 'texts',
-          dataType: weaviate.configure.dataType.TEXT_ARRAY,
-        },
-        {
-          name: 'number',
-          dataType: weaviate.configure.dataType.NUMBER,
-        },
-        {
-          name: 'numbers',
-          dataType: weaviate.configure.dataType.NUMBER_ARRAY,
-        },
-        {
-          name: 'int',
-          dataType: weaviate.configure.dataType.INT,
-        },
-        {
-          name: 'ints',
-          dataType: weaviate.configure.dataType.INT_ARRAY,
-        },
-        {
-          name: 'date',
-          dataType: weaviate.configure.dataType.DATE,
-        },
-        {
-          name: 'dates',
-          dataType: weaviate.configure.dataType.DATE_ARRAY,
-        },
-        {
-          name: 'boolean',
-          dataType: weaviate.configure.dataType.BOOLEAN,
-        },
-        {
-          name: 'booleans',
-          dataType: weaviate.configure.dataType.BOOLEAN_ARRAY,
-        },
-        {
-          name: 'object',
-          dataType: weaviate.configure.dataType.OBJECT,
-          nestedProperties: [
-            {
-              name: 'nestedProp',
-              dataType: weaviate.configure.dataType.TEXT,
-            },
-          ],
-        },
-        {
-          name: 'objects',
-          dataType: weaviate.configure.dataType.OBJECT_ARRAY,
-          nestedProperties: [
-            {
-              name: 'nestedProp',
-              dataType: weaviate.configure.dataType.TEXT,
-            },
-          ],
-        },
-        {
-          name: 'blob',
-          dataType: weaviate.configure.dataType.BLOB,
-        },
-        {
-          name: 'geoCoordinates',
-          dataType: weaviate.configure.dataType.GEO_COORDINATES,
-        },
-        {
-          name: 'phoneNumber',
-          dataType: weaviate.configure.dataType.PHONE_NUMBER,
-        },
-      ],
-      multiTenancy: {
-        enabled: true,
-      },
-      replication: {
-        factor: 2,
-      },
-      vectorIndex: {
-        name: 'hnsw',
-        options: {
-          cleanupIntervalSeconds: 10,
-          distance: 'dot',
-          dynamicEfFactor: 6,
-          dynamicEfMax: 100,
-          dynamicEfMin: 10,
-          ef: -2,
-          efConstruction: 100,
-          flatSearchCutoff: 41000,
-          maxConnections: 72,
-          pq: {
-            bitCompression: true,
-            centroids: 128,
-            enabled: true,
-            encoder: {
-              distribution: 'normal',
-              type: 'tile',
-            },
-            segments: 4,
-            trainingLimit: 100001,
+    const response = await cluster.collections
+      .create({
+        name: className,
+        description: 'A test collection',
+        invertedIndex: {
+          bm25: {
+            b: 0.8,
+            k1: 1.3,
           },
-          skip: true,
-          vectorCacheMaxObjects: 100000,
+          cleanupIntervalSeconds: 10,
+          indexTimestamps: true,
+          indexPropertyLength: true,
+          indexNullState: true,
+          stopwords: {
+            preset: 'en',
+            additions: ['a'],
+            removals: ['the'],
+          },
         },
-      },
-    });
+        properties: [
+          {
+            name: 'text',
+            dataType: weaviate.configure.dataType.TEXT,
+          },
+          {
+            name: 'texts',
+            dataType: weaviate.configure.dataType.TEXT_ARRAY,
+          },
+          {
+            name: 'number',
+            dataType: weaviate.configure.dataType.NUMBER,
+          },
+          {
+            name: 'numbers',
+            dataType: weaviate.configure.dataType.NUMBER_ARRAY,
+          },
+          {
+            name: 'int',
+            dataType: weaviate.configure.dataType.INT,
+          },
+          {
+            name: 'ints',
+            dataType: weaviate.configure.dataType.INT_ARRAY,
+          },
+          {
+            name: 'date',
+            dataType: weaviate.configure.dataType.DATE,
+          },
+          {
+            name: 'dates',
+            dataType: weaviate.configure.dataType.DATE_ARRAY,
+          },
+          {
+            name: 'boolean',
+            dataType: weaviate.configure.dataType.BOOLEAN,
+          },
+          {
+            name: 'booleans',
+            dataType: weaviate.configure.dataType.BOOLEAN_ARRAY,
+          },
+          {
+            name: 'object',
+            dataType: weaviate.configure.dataType.OBJECT,
+            nestedProperties: [
+              {
+                name: 'nestedProp',
+                dataType: weaviate.configure.dataType.TEXT,
+              },
+            ],
+          },
+          {
+            name: 'objects',
+            dataType: weaviate.configure.dataType.OBJECT_ARRAY,
+            nestedProperties: [
+              {
+                name: 'nestedProp',
+                dataType: weaviate.configure.dataType.TEXT,
+              },
+            ],
+          },
+          {
+            name: 'blob',
+            dataType: weaviate.configure.dataType.BLOB,
+          },
+          {
+            name: 'geoCoordinates',
+            dataType: weaviate.configure.dataType.GEO_COORDINATES,
+          },
+          {
+            name: 'phoneNumber',
+            dataType: weaviate.configure.dataType.PHONE_NUMBER,
+          },
+        ],
+        multiTenancy: {
+          enabled: true,
+        },
+        replication: {
+          factor: 2,
+        },
+        vectorIndex: {
+          name: 'hnsw',
+          options: {
+            cleanupIntervalSeconds: 10,
+            distance: 'dot',
+            dynamicEfFactor: 6,
+            dynamicEfMax: 100,
+            dynamicEfMin: 10,
+            ef: -2,
+            efConstruction: 100,
+            flatSearchCutoff: 41000,
+            maxConnections: 72,
+            pq: {
+              bitCompression: true,
+              centroids: 128,
+              enabled: true,
+              encoder: {
+                distribution: 'normal',
+                type: 'tile',
+              },
+              segments: 4,
+              trainingLimit: 100001,
+            },
+            skip: true,
+            vectorCacheMaxObjects: 100000,
+          },
+        },
+      })
+      .then(() => cluster.collections.get(className).config.get());
 
     expect(response.name).toEqual(className);
     expect(response.description).toEqual('A test collection');
@@ -408,21 +422,23 @@ describe('Testing of the collections.create method', () => {
 
   it('should be able to create a collection with the contextionary vectorizer', async () => {
     const className = 'TestCollectionContextionaryVectorizer';
-    const response = await contextionary.collections.create({
-      name: className,
-      properties: [
-        {
-          name: 'testProp',
-          dataType: 'text',
+    const response = await contextionary.collections
+      .create({
+        name: className,
+        properties: [
+          {
+            name: 'testProp',
+            dataType: 'text',
+          },
+        ],
+        vectorizer: {
+          name: 'text2vec-contextionary',
+          options: {
+            vectorizeClassName: false,
+          },
         },
-      ],
-      vectorizer: {
-        name: 'text2vec-contextionary',
-        options: {
-          vectorizeClassName: false,
-        },
-      },
-    });
+      })
+      .then(() => contextionary.collections.get(className).config.get());
     expect(response.name).toEqual(className);
     expect(response.properties?.length).toEqual(1);
     expect(response.properties?.[0].name).toEqual('testProp');
@@ -436,16 +452,18 @@ describe('Testing of the collections.create method', () => {
 
   it('should be able to create a collection with the contextionary vectorizer using configure.vectorizer', async () => {
     const className = 'ThisOneIsATest'; // must include words in contextionary's vocabulary to pass since vectorizeClassName will be true
-    const response = await contextionary.collections.create({
-      name: className,
-      properties: [
-        {
-          name: 'testProp',
-          dataType: 'text',
-        },
-      ],
-      vectorizer: weaviate.configure.vectorizer.text2VecContextionary(),
-    });
+    const response = await contextionary.collections
+      .create({
+        name: className,
+        properties: [
+          {
+            name: 'testProp',
+            dataType: 'text',
+          },
+        ],
+        vectorizer: weaviate.configure.vectorizer.text2VecContextionary(),
+      })
+      .then(() => contextionary.collections.get(className).config.get());
     expect(response.name).toEqual(className);
     expect(response.properties?.length).toEqual(1);
     expect(response.properties?.[0].name).toEqual('testProp');
@@ -459,63 +477,69 @@ describe('Testing of the collections.create method', () => {
 
   it('should be able to create a collection with the openai vectorizer', async () => {
     const className = 'TestCollectionOpenAIVectorizer';
-    const response = await openai.collections.create({
-      name: className,
-      properties: [
-        {
-          name: 'testProp',
-          dataType: 'text',
+    const response = await openai.collections
+      .create({
+        name: className,
+        properties: [
+          {
+            name: 'testProp',
+            dataType: 'text',
+          },
+        ],
+        vectorizer: {
+          name: 'text2vec-openai',
+          options: {
+            vectorizeClassName: true,
+          },
         },
-      ],
-      vectorizer: {
-        name: 'text2vec-openai',
-        options: {
-          vectorizeClassName: true,
-        },
-      },
-    });
+      })
+      .then(() => openai.collections.get(className).config.get());
     expect(response.name).toEqual(className);
     expect(response.properties?.length).toEqual(1);
     expect(response.properties?.[0].name).toEqual('testProp');
     expect(response.properties?.[0].dataType).toEqual('text');
-    expect(response.vectorizer.vectorizeClassName).toEqual(true);
+    expect(response.vectorizer?.vectorizeClassName).toEqual(true);
 
     await openai.collections.delete(className);
   });
 
   it('should be able to create a collection with the openai vectorizer with configure.vectorizer', async () => {
     const className = 'TestCollectionOpenAIVectorizerWithConfigureVectorizer';
-    const response = await openai.collections.create({
-      name: className,
-      properties: [
-        {
-          name: 'testProp',
-          dataType: 'text',
-        },
-      ],
-      vectorizer: weaviate.configure.vectorizer.text2VecOpenAI(),
-    });
+    const response = await openai.collections
+      .create({
+        name: className,
+        properties: [
+          {
+            name: 'testProp',
+            dataType: 'text',
+          },
+        ],
+        vectorizer: weaviate.configure.vectorizer.text2VecOpenAI(),
+      })
+      .then(() => openai.collections.get(className).config.get());
     expect(response.name).toEqual(className);
     expect(response.properties?.length).toEqual(1);
     expect(response.properties?.[0].name).toEqual('testProp');
     expect(response.properties?.[0].dataType).toEqual('text');
-    expect(response.vectorizer.vectorizeClassName).toEqual(true);
+    expect(response.vectorizer?.vectorizeClassName).toEqual(true);
 
     await openai.collections.delete(className);
   });
 
   it('should be able to create a collection with the openai generative with configure.Generative', async () => {
     const className = 'TestCollectionOpenAIGenerativeWithConfigureGenerative';
-    const response = await openai.collections.create({
-      name: className,
-      properties: [
-        {
-          name: 'testProp',
-          dataType: 'text',
-        },
-      ],
-      generative: weaviate.configure.generative.openAI(),
-    });
+    const response = await openai.collections
+      .create({
+        name: className,
+        properties: [
+          {
+            name: 'testProp',
+            dataType: 'text',
+          },
+        ],
+        generative: weaviate.configure.generative.openAI(),
+      })
+      .then(() => openai.collections.get(className).config.get());
     expect(response.name).toEqual(className);
     expect(response.properties?.length).toEqual(1);
     expect(response.properties?.[0].name).toEqual('testProp');
