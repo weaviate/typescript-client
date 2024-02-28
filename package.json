@@ -1,6 +1,6 @@
 {
   "name": "weaviate-ts-client",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "TypeScript client for Weaviate",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
