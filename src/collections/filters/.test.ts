@@ -7,7 +7,7 @@ import { Collection } from '../collection';
 
 describe('Testing of the filter class with a simple collection', () => {
   let client: WeaviateNextClient;
-  let collection: Collection<TestType>;
+  let collection: Collection<TestType, 'TestCollectionFilterSimple'>;
 
   const className = 'TestCollectionFilterSimple';
   let ids: string[];

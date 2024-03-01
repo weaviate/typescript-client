@@ -5,7 +5,7 @@ import { Collection } from '../collection';
 
 describe('Testing of the collection.iterator method with a simple collection', () => {
   let client: WeaviateNextClient;
-  let collection: Collection<TestCollectionIterator>;
+  let collection: Collection<TestCollectionIterator, 'TestCollectionIterator'>;
   const className = 'TestCollectionIterator';
   let id: string;
   let vector: number[];
