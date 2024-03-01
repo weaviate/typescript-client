@@ -4,7 +4,7 @@ import { Collection } from '../collection';
 
 describe('Testing of the collection.data methods', () => {
   let client: WeaviateNextClient;
-  let collection: Collection<any>;
+  let collection: Collection<any, 'TestCollectionTenants'>;
   const className = 'TestCollectionTenants';
 
   afterAll(() => {

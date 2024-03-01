@@ -20,7 +20,7 @@ type TestCollectionData = {
 
 describe('Testing of the collection.data methods', () => {
   let client: WeaviateNextClient;
-  let collection: Collection<TestCollectionData>;
+  let collection: Collection<TestCollectionData, 'TestCollectionData'>;
   const className = 'TestCollectionData';
 
   const existingID = v4();

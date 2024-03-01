@@ -5,8 +5,9 @@ import { Collection } from '../collection';
 
 describe('Testing of the Sort class with a simple collection', () => {
   let client: WeaviateNextClient;
-  let collection: Collection<TestType>;
-  let collections: (Collection<TestType> | Collection<any>)[];
+  type Name = 'TestCollectionSortSimple';
+  let collection: Collection<TestType, Name>;
+  let collections: (Collection<TestType, Name> | Collection<any, Name>)[];
   const className = 'TestCollectionSortSimple';
   let ids = [
     'd9ebd143-83aa-46c6-80ca-98730debe78c',

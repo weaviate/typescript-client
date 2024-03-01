@@ -3,11 +3,11 @@
 import weaviate, { WeaviateNextClient } from '../../index.node';
 import { Collection } from '../collection';
 import { CrossReference, Reference } from '../references';
-import { GroupByOptions, Vector } from '../types';
+import { GroupByOptions } from '../types';
 
 describe('Testing of the collection.query methods with a simple collection', () => {
   let client: WeaviateNextClient;
-  let collection: Collection<TestCollectionQueryMinimalOptions>;
+  let collection: Collection<TestCollectionQueryMinimalOptions, 'TestCollectionQueryMinimalOptions'>;
   const className = 'TestCollectionQueryMinimalOptions';
   let id: string;
   let vector: number[];
@@ -119,7 +119,7 @@ describe('Testing of the collection.query methods with a simple collection', () 
 
 describe('Testing of the collection.query methods with a collection with a reference property', () => {
   let client: WeaviateNextClient;
-  let collection: Collection<TestCollectionQueryWithRefProp>;
+  let collection: Collection<TestCollectionQueryWithRefProp, 'TestCollectionQueryWithRefProp'>;
   const className = 'TestCollectionQueryWithRefProp';
 
   let id1: string;
@@ -336,7 +336,7 @@ describe('Testing of the collection.query methods with a collection with a refer
 
   describe('Testing of the collection.query methods with a collection with a nested property', () => {
     let client: WeaviateNextClient;
-    let collection: Collection<TestCollectionQueryWithNestedProp>;
+    let collection: Collection<TestCollectionQueryWithNestedProp, 'TestCollectionQueryWithNestedProp'>;
     const className = 'TestCollectionQueryWithNestedProp';
 
     let id1: string;
@@ -461,7 +461,7 @@ describe('Testing of the collection.query methods with a collection with a refer
 
   describe('Testing of the collection.query methods with a collection with multiple vectors', () => {
     let client: WeaviateNextClient;
-    let collection: Collection<TestCollectionQueryWithMultiVector, Vectors>;
+    let collection: Collection<TestCollectionQueryWithMultiVector, 'TestCollectionQueryWithMultiVector'>;
     const className = 'TestCollectionQueryWithMultiVector';
 
     let id1: string;
@@ -470,7 +470,6 @@ describe('Testing of the collection.query methods with a collection with a refer
     type TestCollectionQueryWithMultiVector = {
       title: string;
     };
-    type Vectors = ['title'];
 
     afterAll(() => {
       return client.collections.delete(className).catch((err) => {
@@ -494,7 +493,7 @@ describe('Testing of the collection.query methods with a collection with a refer
       });
       collection = client.collections.get(className);
       return client.collections
-        .create<TestCollectionQueryWithMultiVector, Vectors>({
+        .create<TestCollectionQueryWithMultiVector>({
           name: className,
           properties: [
             {
@@ -546,7 +545,7 @@ describe('Testing of the collection.query methods with a collection with a refer
 
 describe('Testing of the groupBy collection.query methods with a simple collection', () => {
   let client: WeaviateNextClient;
-  let collection: Collection<TestCollectionGroupBySimple>;
+  let collection: Collection<TestCollectionGroupBySimple, 'TestCollectionGroupBySimple'>;
   const className = 'TestCollectionGroupBySimple';
   let id: string;
   let vector: number[];

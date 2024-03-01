@@ -37,7 +37,7 @@ export class ReferenceManager<T> {
     return this.uuids ? this.uuids.map((uuid) => uuidToBeacon(uuid, this.targetCollection).beacon) : [];
   }
 
-  static fromBeaconStrings<T extends Properties>(beacons: string[]): ReferenceManager<T> {
+  static fromBeaconStrings<T>(beacons: string[]): ReferenceManager<T> {
     let targetCollection = '';
     if (beacons.length > 0) {
       targetCollection = beacons[0].split('/').length > 3 ? beacons[0].split('/')[3] : '';
@@ -57,10 +57,10 @@ export class ReferenceManager<T> {
 }
 
 export class Reference {
-  public static to<TProperties extends Properties>(uuids: string | string[]): ReferenceManager<TProperties> {
+  public static to<TProperties>(uuids: string | string[]): ReferenceManager<TProperties> {
     return new ReferenceManager<TProperties>('', undefined, Array.isArray(uuids) ? uuids : [uuids]);
   }
-  public static toMultiTarget<TProperties extends Properties>(
+  public static toMultiTarget<TProperties>(
     uuids: string | string[],
     targetCollection: string
   ): ReferenceManager<TProperties> {
@@ -72,7 +72,7 @@ export class Reference {
   }
 }
 
-export const referenceFromObjects = <TProperties extends Properties>(
+export const referenceFromObjects = <TProperties>(
   objects: WeaviateObject<TProperties>[]
 ): ReferenceManager<TProperties> => {
   return new ReferenceManager<TProperties>('', objects);

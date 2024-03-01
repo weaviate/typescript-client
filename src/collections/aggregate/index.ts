@@ -6,6 +6,7 @@ import { ConsistencyLevel } from '../../data';
 import { FilterValue } from '../filters';
 
 import { Aggregator } from '../../graphql';
+import { Vectors } from '../types';
 
 type Properties = Record<string, any>;
 
@@ -31,6 +32,7 @@ export interface AggregateNearOptions<T, M> extends AggregateBaseOptions<T, M> {
   certainty?: number;
   distance?: number;
   objectLimit?: number;
+  targetVector?: string;
 }
 
 export interface AggregateGroupByNearOptions<T, M> extends AggregateNearOptions<T, M> {
@@ -119,17 +121,17 @@ export type AggregateMetrics<M> = {
   [K in keyof M]: M[K] extends true ? number : never;
 };
 
-export const metrics = <T extends Properties>() => {
+export const metrics = <T>() => {
   return {
     aggregate: <P extends keyof T & string>(property: P) => new MetricsManager<T, P>(property),
   };
 };
 
-export interface Metrics<T extends Properties> {
+export interface Metrics<T> {
   aggregate: <P extends keyof T & string>(property: P) => MetricsManager<T, P>;
 }
 
-export class MetricsManager<T extends Properties, P extends keyof T & string> {
+export class MetricsManager<T, P extends keyof T & string> {
   private propertyName: P;
 
   constructor(property: P) {
@@ -222,10 +224,7 @@ type KindToAggregateType<K> = K extends 'text'
   ? AggregateReference
   : never;
 
-type AggregateResult<
-  T extends Properties,
-  M extends PropertiesMetrics<keyof T & string> | undefined = undefined
-> = {
+type AggregateResult<T, M extends PropertiesMetrics<keyof T & string> | undefined = undefined> = {
   properties: M extends MetricsInput<keyof T & string>[]
     ? {
         [K in M[number] as K['propertyName']]: KindToAggregateType<K['kind']>;
@@ -243,7 +242,7 @@ type AggregateResult<
 // s.properties
 
 type AggregateGroupByResult<
-  T extends Properties,
+  T,
   M extends PropertiesMetrics<keyof T & string> | undefined = undefined
 > = AggregateResult<T, M> & {
   groupedBy: {
@@ -258,7 +257,7 @@ const isAggregateGroupBy = <T extends Properties, M extends PropertiesMetrics<ke
   return opts?.groupBy !== undefined;
 };
 
-export class AggregateManager<T extends Properties> implements Aggregate<T> {
+export class AggregateManager<T> implements Aggregate<T> {
   connection: Connection;
   groupBy: AggregateGroupBy<T>;
   name: string;
@@ -288,6 +287,7 @@ export class AggregateManager<T extends Properties> implements Aggregate<T> {
           image: image,
           certainty: opts?.certainty,
           distance: opts?.distance,
+          targetVectors: opts?.targetVector ? [opts.targetVector] : undefined,
         });
         if (opts?.objectLimit) {
           builder.withObjectLimit(opts?.objectLimit);
@@ -302,6 +302,7 @@ export class AggregateManager<T extends Properties> implements Aggregate<T> {
           id: id,
           certainty: opts?.certainty,
           distance: opts?.distance,
+          targetVectors: opts?.targetVector ? [opts.targetVector] : undefined,
         });
         if (opts?.objectLimit) {
           builder.withObjectLimit(opts.objectLimit);
@@ -316,6 +317,7 @@ export class AggregateManager<T extends Properties> implements Aggregate<T> {
           concepts: Array.isArray(query) ? query : [query],
           certainty: opts?.certainty,
           distance: opts?.distance,
+          targetVectors: opts?.targetVector ? [opts.targetVector] : undefined,
         });
         if (opts?.objectLimit) {
           builder.withObjectLimit(opts.objectLimit);
@@ -330,6 +332,7 @@ export class AggregateManager<T extends Properties> implements Aggregate<T> {
           vector: vector,
           certainty: opts?.certainty,
           distance: opts?.distance,
+          targetVectors: opts?.targetVector ? [opts.targetVector] : undefined,
         });
         if (opts?.objectLimit) {
           builder.withObjectLimit(opts.objectLimit);
@@ -402,7 +405,7 @@ export class AggregateManager<T extends Properties> implements Aggregate<T> {
     return `${propertyName} { ${body} }`;
   }
 
-  public static use<T extends Properties>(
+  public static use<T>(
     connection: Connection,
     name: string,
     dbVersionSupport: DbVersionSupport,
@@ -420,6 +423,7 @@ export class AggregateManager<T extends Properties> implements Aggregate<T> {
       image: image,
       certainty: opts?.certainty,
       distance: opts?.distance,
+      targetVectors: opts?.targetVector ? [opts.targetVector] : undefined,
     });
     if (opts?.objectLimit) {
       builder.withObjectLimit(opts?.objectLimit);
@@ -435,6 +439,7 @@ export class AggregateManager<T extends Properties> implements Aggregate<T> {
       id: id,
       certainty: opts?.certainty,
       distance: opts?.distance,
+      targetVectors: opts?.targetVector ? [opts.targetVector] : undefined,
     });
     if (opts?.objectLimit) {
       builder.withObjectLimit(opts.objectLimit);
@@ -450,6 +455,7 @@ export class AggregateManager<T extends Properties> implements Aggregate<T> {
       concepts: Array.isArray(query) ? query : [query],
       certainty: opts?.certainty,
       distance: opts?.distance,
+      targetVectors: opts?.targetVector ? [opts.targetVector] : undefined,
     });
     if (opts?.objectLimit) {
       builder.withObjectLimit(opts.objectLimit);
@@ -465,6 +471,7 @@ export class AggregateManager<T extends Properties> implements Aggregate<T> {
       vector: vector,
       certainty: opts?.certainty,
       distance: opts?.distance,
+      targetVectors: opts?.targetVector ? [opts.targetVector] : undefined,
     });
     if (opts?.objectLimit) {
       builder.withObjectLimit(opts.objectLimit);
@@ -510,7 +517,7 @@ export class AggregateManager<T extends Properties> implements Aggregate<T> {
   };
 }
 
-export interface Aggregate<T extends Properties> {
+export interface Aggregate<T> {
   groupBy: AggregateGroupBy<T>;
   nearImage<M extends PropertiesMetrics<keyof T & string>>(
     image: string,
@@ -533,7 +540,7 @@ export interface Aggregate<T extends Properties> {
   ): Promise<AggregateResult<T, M>>;
 }
 
-export interface AggregateGroupBy<T extends Properties> {
+export interface AggregateGroupBy<T> {
   nearImage<M extends PropertiesMetrics<keyof T & string> | undefined = undefined>(
     image: string,
     opts?: AggregateGroupByNearOptions<T, M>

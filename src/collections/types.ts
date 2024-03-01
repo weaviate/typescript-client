@@ -18,8 +18,6 @@ export type DataType<T = any> = T extends string
   ? 'date'
   : T extends object
   ? 'object'
-  : T extends object[]
-  ? 'object[]'
   : T extends string[]
   ? 'text[]'
   : T extends number[]
@@ -28,6 +26,8 @@ export type DataType<T = any> = T extends string
   ? 'boolean[]'
   : T extends Date[]
   ? 'date[]'
+  : T extends object[]
+  ? 'object[]'
   : T extends GeoCoordinate
   ? 'geoCoordinates'
   : T extends PhoneNumber
@@ -56,7 +56,7 @@ export type MultiTenancyConfig = {
 };
 export interface MultiTenancyConfigCreate extends RecursivePartial<MultiTenancyConfig> {}
 
-type NestedPropertyCreate<T, D> = D extends 'object' | 'object[]'
+export type NestedPropertyCreate<T, D> = D extends 'object' | 'object[]'
   ? PropertyConfigCreate<T extends Properties ? T : any>
   : never;
 
@@ -196,67 +196,83 @@ export type VectorIndexConfigFlat = {
 };
 export interface VectorIndexConfigFlatCreate extends RecursivePartial<VectorIndexConfigFlat> {}
 
-export type VectorIndicesOptions =
+export type VectorIndicesConfig =
   | VectorIndexConfigFlatCreate
   | VectorIndexConfigHNSWCreate
   | Record<string, any>;
 
-export interface CollectionConfigCreate<TProperties = Properties, TVectors extends Vectors = undefined> {
-  name: string;
+export interface CollectionConfigCreate<TProperties = Properties, N = string> {
+  name: N;
   description?: string;
-  generative?: ModuleOptions<GenerativeSearches>;
+  generative?: ModuleConfig<GenerativeSearch>;
   invertedIndex?: InvertedIndexConfigCreate;
   multiTenancy?: MultiTenancyConfigCreate;
   properties?: PropertyConfigCreate<TProperties>[];
   references?: ReferenceConfigCreate<TProperties>[];
   replication?: ReplicationConfigCreate;
-  reranker?: ModuleOptions<Rerankers>;
+  reranker?: ModuleConfig<Reranker>;
   sharding?: ShardingConfigCreate;
-  vectorIndex?: ModuleOptions<VectorIndexType>;
+  vectorIndex?: ModuleConfig<VectorIndexType>;
   vectorizer?:
-    | ModuleOptions<Vectorizers, VectorizersOptions>
-    | NamedVectorConfig<
-        TVectors extends (infer U)[] ? U : string,
+    | ModuleConfig<Vectorizer, VectorizerConfig>
+    | NamedVectorConfigCreate<
+        TProperties,
+        string,
         VectorIndexType,
-        Vectorizers,
-        VectorizersOptions | undefined
+        Vectorizer,
+        VectorizerConfig | undefined
       >[];
 }
 
-export type CollectionConfig<T, I, G, R, V> = {
+export type CollectionConfig<T> = {
   name: string;
   description?: string;
-  generative: GenerativeConfig<G>;
+  generative?: GenerativeConfig;
   invertedIndex: InvertedIndexConfig;
   multiTenancy: MultiTenancyConfig;
   properties: PropertyConfig[];
   references: ReferenceConfig[];
   replication: ReplicationConfig;
-  reranker: RerankerConfig<R>;
+  reranker?: RerankerConfig;
   sharding: ShardingConfig;
-  vectorIndex: VectorIndexConfig<I>;
-  vectorIndexType: I;
-  vectorizer: VectorizerConfig<V>;
+  vectorizer: VectorConfig;
 };
 
-export interface NamedVectorConfig<N extends string, I extends VectorIndexType, V extends Vectorizers, O> {
+export interface NamedVectorConfigCreate<
+  T,
+  N extends string,
+  I extends VectorIndexType,
+  V extends Vectorizer,
+  C
+> {
   name: N;
-  vectorConfig: ModuleOptions<V, O>;
+  properties?: PrimitiveKeys<T>[];
+  vectorizer: ModuleConfig<V, C>;
   vectorIndexConfig?: VectorIndexConfigCreate<I>;
   vectorIndexType: I;
 }
 
-export interface Img2VecNeuralOptions {
+export type VectorConfig = Record<
+  string,
+  {
+    properties?: string[];
+    vectorizer: ModuleConfig<Vectorizer, VectorizerConfig>;
+    indexConfig: VectorIndexConfig<VectorIndexType>;
+    indexType: VectorIndexType;
+  }
+>;
+
+export interface Img2VecNeuralConfig {
   imageFields?: string[];
 }
 
-export interface Multi2VecClipOptions {
+export interface Multi2VecClipConfig {
   imageFields?: string[];
   textFields?: string[];
   vectorizeClassName?: boolean;
 }
 
-export interface Multi2VecBindOptions {
+export interface Multi2VecBindConfig {
   audioFields?: string[];
   depthFields?: string[];
   imageFields?: string[];
@@ -267,23 +283,23 @@ export interface Multi2VecBindOptions {
   vectorizeClassName?: boolean;
 }
 
-export interface Ref2VecCentroidOptions {
+export interface Ref2VecCentroidConfig {
   referenceProperties: string[];
   method: 'mean';
 }
 
-export interface Text2VecContextionaryOptions {
+export interface Text2VecContextionaryConfig {
   vectorizeClassName?: boolean;
 }
 
-export interface Text2VecOpenAIOptions {
+export interface Text2VecOpenAIConfig {
   model?: 'ada' | 'babbage' | 'curie' | 'davinci';
   modelVersion?: string;
   type?: 'text' | 'code';
   vectorizeClassName?: boolean;
 }
 
-export interface Text2VecCohereOptions {
+export interface Text2VecCohereConfig {
   model?:
     | 'embed-multilingual-v2.0'
     | 'small'
@@ -296,20 +312,9 @@ export interface Text2VecCohereOptions {
   vectorizeClassName?: boolean;
 }
 
-export interface NoVectorizerOptions {}
+export interface NoVectorizerConfig {}
 
-export type VectorizersOptions =
-  | Img2VecNeuralOptions
-  | Multi2VecClipOptions
-  | Multi2VecBindOptions
-  | Ref2VecCentroidOptions
-  | Text2VecContextionaryOptions
-  | Text2VecCohereOptions
-  | Text2VecOpenAIOptions
-  | NoVectorizerOptions
-  | Record<string, never>;
-
-interface GenerativeOpenAIOptionsBase {
+interface GenerativeOpenAIConfigBase {
   frequencyPenaltyProperty?: number;
   presencePenaltyProperty?: number;
   maxTokensProperty?: number;
@@ -317,16 +322,16 @@ interface GenerativeOpenAIOptionsBase {
   topPProperty?: number;
 }
 
-export interface GenerativeOpenAIOptions extends GenerativeOpenAIOptionsBase {
+export interface GenerativeOpenAIConfig extends GenerativeOpenAIConfigBase {
   model?: string;
 }
 
-export interface GenerativeAzureOpenAIOptions extends GenerativeOpenAIOptionsBase {
+export interface GenerativeAzureOpenAIConfig extends GenerativeOpenAIConfigBase {
   resourceName: string;
   deploymentId: string;
 }
 
-export interface GenerativeCohereOptions {
+export interface GenerativeCohereConfig {
   kProperty?: number;
   model?: string;
   maxTokensProperty?: number;
@@ -335,7 +340,7 @@ export interface GenerativeCohereOptions {
   temperatureProperty?: number;
 }
 
-export interface GenerativePaLMOptions {
+export interface GenerativePaLMConfig {
   apiEndpoint?: string;
   maxOutputTokens?: number;
   modelId?: string;
@@ -345,25 +350,18 @@ export interface GenerativePaLMOptions {
   topP?: number;
 }
 
-export interface ModuleOptions<N, O = Record<string, any>> {
+export interface ModuleConfig<N, C = Record<string, any>> {
   name: N;
-  options?: O;
+  config?: C;
 }
 
-export type GenerativeSearchesOptions =
-  | GenerativeAzureOpenAIOptions
-  | GenerativeOpenAIOptions
-  | GenerativeCohereOptions
-  | GenerativePaLMOptions
-  | Record<string, any>;
+export interface RerankerTransformersConfig {}
 
-export interface RerankerTransformersOptions {}
-
-export interface RerankerCohereOptions {
+export interface RerankerCohereConfig {
   model?: 'rerank-english-v2.0' | 'rerank-multilingual-v2.0' | string;
 }
 
-export type RerankersOptions = RerankerCohereOptions | Record<string, any>;
+export type RerankersConfig = RerankerCohereConfig | Record<string, any>;
 
 export type MetadataQuery = (
   | 'creationTime'
@@ -385,51 +383,51 @@ export type MetadataReturn = {
   isConsistent?: boolean;
 };
 
-export type WeaviateObject<T, V> = {
+export type WeaviateObject<T> = {
   properties: ReturnProperties<T>;
   metadata: MetadataReturn | undefined;
   references: ReturnReferences<T> | undefined;
   uuid: string;
-  vectors: ReturnVectors<V>;
+  vectors: Vectors;
 };
 
-export type WeaviateReturn<T, V> = {
-  objects: WeaviateObject<T, V>[];
+export type WeaviateReturn<T> = {
+  objects: WeaviateObject<T>[];
 };
 
-export type GenerateObject<T, V> = WeaviateObject<T, V> & {
+export type GenerateObject<T> = WeaviateObject<T> & {
   generated?: string;
 };
 
-export type GenerativeReturn<T, V> = {
-  objects: GenerateObject<T, V>[];
+export type GenerativeReturn<T> = {
+  objects: GenerateObject<T>[];
   generated?: string;
 };
 
-export type GroupByObject<T, V> = WeaviateObject<T, V> & {
+export type GroupByObject<T> = WeaviateObject<T> & {
   belongsToGroup: string;
 };
 
-export type GroupByResult<T, V> = {
+export type GroupByResult<T> = {
   name: string;
   minDistance: number;
   maxDistance: number;
   numberOfObjects: number;
-  objects: WeaviateObject<T, V>[];
+  objects: WeaviateObject<T>[];
 };
 
-export type GenerativeGroupByResult<T, V> = GroupByResult<T, V> & {
+export type GenerativeGroupByResult<T> = GroupByResult<T> & {
   generated?: string;
 };
 
-export type GroupByReturn<T, V> = {
-  objects: GroupByObject<T, V>[];
-  groups: Record<string, GroupByResult<T, V>>;
+export type GroupByReturn<T> = {
+  objects: GroupByObject<T>[];
+  groups: Record<string, GroupByResult<T>>;
 };
 
-export type GenerativeGroupByReturn<T, V> = {
-  objects: GroupByObject<T, V>[];
-  groups: Record<string, GenerativeGroupByResult<T, V>>;
+export type GenerativeGroupByReturn<T> = {
+  objects: GroupByObject<T>[];
+  groups: Record<string, GenerativeGroupByResult<T>>;
   generated?: string;
 };
 
@@ -462,13 +460,6 @@ export interface MultiRefProperty<T> extends BaseRefProperty<T> {
   // targetCollection: string;
 }
 
-type A = {
-  a: string;
-  b: {
-    c: string;
-  };
-};
-
 export interface QueryNested<T> {
   name: NestedKeys<T>;
   properties: QueryProperty<ExtractNestedType<T[this['name']]>>[];
@@ -476,7 +467,6 @@ export interface QueryNested<T> {
 
 export type QueryProperty<T> = PrimitiveKeys<T> | QueryNested<T>;
 export type QueryReference<T> = RefProperty<T> | MultiRefProperty<T>;
-export type QueryVector<T> = VectorKeys<T>;
 export type NonRefProperty<T> = keyof T | QueryNested<T>;
 export type NonPrimitiveProperty<T> = RefProperty<T> | MultiRefProperty<T> | QueryNested<T>;
 
@@ -497,19 +487,7 @@ export type RefKeys<Obj> = {
 }[keyof Obj] &
   string;
 
-export type VectorKeys<Obj> = {
-  [Key in keyof Obj]: Obj[Key] extends Vector ? Key : never;
-}[keyof Obj] &
-  string;
-
-type HasVectorKeys<Obj> = {
-  [K in keyof Obj]: Obj[K] extends Vector ? 'yes' : never;
-}[keyof Obj];
-
-export type Vector = {
-  __type: 'vector';
-};
-export type Vectors = string[] | undefined;
+export type Vectors = Record<string, number[]>;
 
 // export type NonRefKeys<Obj> = {
 //   [Key in keyof Obj]: Obj[Key] extends WeaviateField ? Key : never;
@@ -531,7 +509,7 @@ export type ReferenceInputs<Obj> = {
 };
 
 // Helper type to determine if a type is a WeaviateField excluding undefined
-type IsWeaviateField<T> = T extends Vector ? never : T extends WeaviateField ? T : never;
+type IsWeaviateField<T> = T extends WeaviateField ? T : never;
 
 // Modified NonRefKey to differentiate optional from required keys
 export type NonRefKeys<Obj> = {
@@ -548,10 +526,6 @@ export type NonRefKeys<Obj> = {
 // Adjusted NonRefs to correctly map over Obj and preserve optional types
 export type NonReferenceInputs<Obj> = {
   [Key in keyof Obj as Key extends NonRefKeys<Obj> ? Key : never]: MapPhoneNumberType<Obj[Key]>;
-};
-
-export type VectorInputs<Obj> = {
-  [Key in VectorKeys<Obj>]: number[];
 };
 
 export type MapPhoneNumberType<T> = T extends PhoneNumber ? PhoneNumberInput : T;
@@ -576,8 +550,8 @@ export interface SortBy {
   ascending?: boolean;
 }
 
-export type Reference<T, V> = {
-  objects: WeaviateObject<T, V>[];
+export type Reference<T> = {
+  objects: WeaviateObject<T>[];
 };
 
 type PrimitiveField =
@@ -599,7 +573,7 @@ type NestedField = NestedProperties | NestedProperties[];
 export type WeaviateField = PrimitiveField | NestedField;
 
 export interface Properties {
-  [k: string]: WeaviateField | CrossReference<Properties> | Vector | undefined;
+  [k: string]: WeaviateField | CrossReference<Properties> | undefined;
 }
 
 export interface NestedProperties {
@@ -682,16 +656,16 @@ export type BatchReferencesReturn = {
   hasErrors: boolean;
 };
 
-export type GenerativeSearches =
+export type GenerativeSearch =
   | 'generative-openai'
   | 'generative-cohere'
   | 'generative-palm'
   | 'none'
   | string;
 
-export type Rerankers = 'reranker-cohere' | 'reranker-transformers' | 'none' | string;
+export type Reranker = 'reranker-cohere' | 'reranker-transformers' | 'none' | string;
 
-export type Vectorizers =
+export type Vectorizer =
   | 'img2vec-neural'
   | 'multi2vec-clip'
   | 'multi2vec-bind'
@@ -702,41 +676,60 @@ export type Vectorizers =
   | 'none'
   | string;
 
-export type GenerativeConfig<G> = G extends 'generative-openai'
-  ? GenerativeOpenAIOptions
+export type GenerativeConfigType<G> = G extends 'generative-openai'
+  ? GenerativeOpenAIConfig
   : G extends 'generative-cohere'
-  ? GenerativeCohereOptions
+  ? GenerativeCohereConfig
   : G extends 'generative-palm'
-  ? GenerativePaLMOptions
+  ? GenerativePaLMConfig
   : G extends 'none'
   ? undefined
   : Record<string, any> | undefined;
 
-export type VectorizerConfig<V> = V extends 'img2vec-neural'
-  ? Img2VecNeuralOptions
+export type GenerativeConfig =
+  | GenerativeOpenAIConfig
+  | GenerativeCohereConfig
+  | GenerativePaLMConfig
+  | Record<string, any>;
+
+export type VectorizerConfigType<V> = V extends 'img2vec-neural'
+  ? Img2VecNeuralConfig
   : V extends 'multi2vec-clip'
-  ? Multi2VecClipOptions
+  ? Multi2VecClipConfig
   : V extends 'multi2vec-bind'
-  ? Multi2VecBindOptions
+  ? Multi2VecBindConfig
   : V extends 'ref2vec-centroid'
-  ? Ref2VecCentroidOptions
+  ? Ref2VecCentroidConfig
   : V extends 'text2vec-contextionary'
-  ? Text2VecContextionaryOptions
+  ? Text2VecContextionaryConfig
   : V extends 'text2vec-cohere'
-  ? Text2VecCohereOptions
+  ? Text2VecCohereConfig
   : V extends 'text2vec-openai'
-  ? Text2VecOpenAIOptions
+  ? Text2VecOpenAIConfig
   : V extends 'none'
   ? undefined
   : Record<string, any> | undefined;
 
-export type RerankerConfig<R> = R extends 'reranker-cohere'
-  ? RerankerCohereOptions
+export type VectorizerConfig =
+  | Img2VecNeuralConfig
+  | Multi2VecClipConfig
+  | Multi2VecBindConfig
+  | Ref2VecCentroidConfig
+  | Text2VecContextionaryConfig
+  | Text2VecCohereConfig
+  | Text2VecOpenAIConfig
+  | NoVectorizerConfig
+  | Record<string, never>;
+
+export type RerankerConfigType<R> = R extends 'reranker-cohere'
+  ? RerankerCohereConfig
   : R extends 'reranker-transformers'
-  ? RerankerTransformersOptions
+  ? RerankerTransformersConfig
   : R extends 'none'
   ? undefined
   : Record<string, any> | undefined;
+
+export type RerankerConfig = RerankerCohereConfig | RerankerTransformersConfig | Record<string, any>;
 
 export interface PhoneNumberInput {
   number: string;

@@ -226,9 +226,7 @@ export class DataGuards {
     return argument instanceof Array && argument.length === 0;
   };
 
-  static isDataObject = <T extends Properties>(
-    obj: DataObject<T> | NonReferenceInputs<T>
-  ): obj is DataObject<T> => {
+  static isDataObject = <T>(obj: DataObject<T> | NonReferenceInputs<T>): obj is DataObject<T> => {
     return (obj as DataObject<T>).properties !== undefined;
   };
 }
@@ -236,7 +234,7 @@ export class DataGuards {
 // Cannot do argument.every((arg) => typeof arg === type) in the above because of type erasure
 
 export default class Serialize {
-  private static common = <T extends Properties, V extends Vectors>(args?: QueryOptions<T, V>) => {
+  private static common = <T>(args?: QueryOptions<T>) => {
     return {
       limit: args?.limit,
       filters: args?.filters ? Serialize.filtersGRPC(args.filters) : undefined,
@@ -248,9 +246,7 @@ export default class Serialize {
     };
   };
 
-  public static fetchObjects = <T extends Properties, V extends Vectors>(
-    args?: QueryFetchObjectsOptions<T, V>
-  ): SearchFetchArgs => {
+  public static fetchObjects = <T>(args?: QueryFetchObjectsOptions<T>): SearchFetchArgs => {
     return {
       ...Serialize.common(args),
       offset: args?.offset,
@@ -259,8 +255,8 @@ export default class Serialize {
     };
   };
 
-  public static fetchObjectById = <T extends Properties, V extends Vectors>(
-    args: { id: string } & QueryFetchObjectByIdOptions<T, V>
+  public static fetchObjectById = <T>(
+    args: { id: string } & QueryFetchObjectByIdOptions<T>
   ): SearchFetchArgs => {
     return {
       ...Serialize.common({
@@ -273,9 +269,7 @@ export default class Serialize {
     };
   };
 
-  public static bm25 = <T extends Properties, V extends Vectors>(
-    args: { query: string } & QueryBm25Options<T, V>
-  ): SearchBm25Args => {
+  public static bm25 = <T>(args: { query: string } & QueryBm25Options<T>): SearchBm25Args => {
     return {
       ...Serialize.common(args),
       bm25: BM25.fromPartial({
@@ -286,9 +280,7 @@ export default class Serialize {
     };
   };
 
-  public static hybrid = <T extends Properties, V extends Vectors>(
-    args: { query: string } & QueryHybridOptions<T, V>
-  ): SearchHybridArgs => {
+  public static hybrid = <T>(args: { query: string } & QueryHybridOptions<T>): SearchHybridArgs => {
     const fusionType = (fusionType?: string): Hybrid_FusionType => {
       switch (fusionType) {
         case 'Ranked':
@@ -313,9 +305,7 @@ export default class Serialize {
     };
   };
 
-  public static nearAudio = <T extends Properties, V extends Vectors>(
-    args: { audio: string } & QueryNearOptions<T, V>
-  ): SearchNearAudioArgs => {
+  public static nearAudio = <T>(args: { audio: string } & QueryNearOptions<T>): SearchNearAudioArgs => {
     return {
       ...Serialize.common(args),
       nearAudio: NearAudioSearch.fromPartial({
@@ -328,9 +318,7 @@ export default class Serialize {
     };
   };
 
-  public static nearDepth = <T extends Properties, V extends Vectors>(
-    args: { depth: string } & QueryNearOptions<T, V>
-  ): SearchNearDepthArgs => {
+  public static nearDepth = <T>(args: { depth: string } & QueryNearOptions<T>): SearchNearDepthArgs => {
     return {
       ...Serialize.common(args),
       nearDepth: NearDepthSearch.fromPartial({
@@ -343,9 +331,7 @@ export default class Serialize {
     };
   };
 
-  public static nearImage = <T extends Properties, V extends Vectors>(
-    args: { image: string } & QueryNearOptions<T, V>
-  ): SearchNearImageArgs => {
+  public static nearImage = <T>(args: { image: string } & QueryNearOptions<T>): SearchNearImageArgs => {
     return {
       ...Serialize.common(args),
       nearImage: NearImageSearch.fromPartial({
@@ -358,9 +344,7 @@ export default class Serialize {
     };
   };
 
-  public static nearIMU = <T extends Properties, V extends Vectors>(
-    args: { imu: string } & QueryNearOptions<T, V>
-  ): SearchNearIMUArgs => {
+  public static nearIMU = <T>(args: { imu: string } & QueryNearOptions<T>): SearchNearIMUArgs => {
     return {
       ...Serialize.common(args),
       nearIMU: NearIMUSearch.fromPartial({
@@ -373,9 +357,7 @@ export default class Serialize {
     };
   };
 
-  public static nearObject = <T extends Properties, V extends Vectors>(
-    args: { id: string } & QueryNearOptions<T, V>
-  ): SearchNearObjectArgs => {
+  public static nearObject = <T>(args: { id: string } & QueryNearOptions<T>): SearchNearObjectArgs => {
     return {
       ...Serialize.common(args),
       nearObject: NearObject.fromPartial({
@@ -388,8 +370,8 @@ export default class Serialize {
     };
   };
 
-  public static nearText = <T extends Properties, V extends Vectors>(
-    args: { query: string | string[] } & QueryNearOptions<T, V>
+  public static nearText = <T>(
+    args: { query: string | string[] } & QueryNearOptions<T>
   ): SearchNearTextArgs => {
     return {
       ...Serialize.common(args),
@@ -403,9 +385,7 @@ export default class Serialize {
     };
   };
 
-  public static nearThermal = <T extends Properties, V extends Vectors>(
-    args: { thermal: string } & QueryNearOptions<T, V>
-  ): SearchNearThermalArgs => {
+  public static nearThermal = <T>(args: { thermal: string } & QueryNearOptions<T>): SearchNearThermalArgs => {
     return {
       ...Serialize.common(args),
       nearThermal: NearThermalSearch.fromPartial({
@@ -418,9 +398,7 @@ export default class Serialize {
     };
   };
 
-  public static nearVector = <T extends Properties, V extends Vectors>(
-    args: { vector: number[] } & QueryNearOptions<T, V>
-  ): SearchNearVectorArgs => {
+  public static nearVector = <T>(args: { vector: number[] } & QueryNearOptions<T>): SearchNearVectorArgs => {
     return {
       ...Serialize.common(args),
       nearVector: NearVector.fromPartial({
@@ -433,9 +411,7 @@ export default class Serialize {
     };
   };
 
-  public static nearVideo = <T extends Properties, V extends Vectors>(
-    args: { video: string } & QueryNearOptions<T, V>
-  ): SearchNearVideoArgs => {
+  public static nearVideo = <T>(args: { video: string } & QueryNearOptions<T>): SearchNearVideoArgs => {
     return {
       ...Serialize.common(args),
       nearVideo: NearVideoSearch.fromPartial({
@@ -587,7 +563,7 @@ export default class Serialize {
     }
   };
 
-  private static properties = <T extends Properties>(
+  private static properties = <T>(
     properties?: QueryProperty<T>[],
     references?: QueryReference<T>[]
   ): PropertiesRequest => {
@@ -678,7 +654,7 @@ export default class Serialize {
     });
   };
 
-  public static generative = <T extends Properties>(generative?: GenerateOptions<T>): GenerativeSearch => {
+  public static generative = <T>(generative?: GenerateOptions<T>): GenerativeSearch => {
     return GenerativeSearch.fromPartial({
       singleResponsePrompt: generative?.singlePrompt,
       groupedResponseTask: generative?.groupedTask,
@@ -686,7 +662,7 @@ export default class Serialize {
     });
   };
 
-  public static groupBy = <T extends Properties>(groupBy?: GroupByOptions<T>): GroupBy => {
+  public static groupBy = <T>(groupBy?: GroupByOptions<T>): GroupBy => {
     return GroupBy.fromPartial({
       path: groupBy?.property ? [groupBy.property as string] : undefined,
       numberOfGroups: groupBy?.numberOfGroups,
@@ -694,16 +670,12 @@ export default class Serialize {
     });
   };
 
-  public static isGroupBy = <T extends Properties, V extends Vectors>(
-    args: any
-  ): args is QueryGroupByNearOptions<T, V> => {
+  public static isGroupBy = <T>(args: any): args is QueryGroupByNearOptions<T> => {
     if (args === undefined) return false;
     return args.groupBy !== undefined;
   };
 
-  public static isGenerateGroupBy = <T extends Properties, V extends Vectors>(
-    args: any
-  ): args is GenerateGroupByNearOptions<T, V> => {
+  public static isGenerateGroupBy = <T>(args: any): args is GenerateGroupByNearOptions<T> => {
     if (args === undefined) return false;
     return args.groupBy !== undefined;
   };
@@ -850,7 +822,7 @@ export default class Serialize {
     };
   };
 
-  public static batchObjects = <T extends Properties>(
+  public static batchObjects = <T>(
     collection: string,
     objects: (DataObject<T> | NonReferenceInputs<T>)[],
     tenant?: string
@@ -912,7 +884,7 @@ export default class Serialize {
     });
   };
 
-  public static batchObjectsSimple = <T extends Properties>(
+  public static batchObjectsSimple = <T>(
     collection: string,
     objects: DataObject<T>[],
     tenant?: string
