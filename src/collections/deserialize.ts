@@ -16,13 +16,15 @@ import {
   GenerativeGroupByReturn,
   GenerativeGroupByResult,
   DeleteManyReturn,
+  ReturnVectors,
+  Vectors,
 } from './types';
 import { BatchObject as BatchObjectGrpc, BatchObjectsReply } from '../proto/v1/batch';
 import { Properties as PropertiesGrpc, Value } from '../proto/v1/properties';
 import { BatchDeleteReply } from '../proto/v1/batch_delete';
 
 export default class Deserialize {
-  public static query<T extends Properties>(reply: SearchReply): WeaviateReturn<T> {
+  public static query<T>(reply: SearchReply): WeaviateReturn<T> {
     return {
       objects: reply.results.map((result) => {
         return {
@@ -30,13 +32,13 @@ export default class Deserialize {
           properties: Deserialize.properties<T>(result.properties),
           references: Deserialize.references<T>(result.properties),
           uuid: Deserialize.uuid(result.metadata),
-          vector: Deserialize.vector(result.metadata),
+          vectors: Deserialize.vectors(result.metadata),
         };
       }),
     };
   }
 
-  public static generate<T extends Properties>(reply: SearchReply): GenerativeReturn<T> {
+  public static generate<T>(reply: SearchReply): GenerativeReturn<T> {
     return {
       objects: reply.results.map((result) => {
         return {
@@ -45,14 +47,14 @@ export default class Deserialize {
           properties: Deserialize.properties<T>(result.properties),
           references: Deserialize.references<T>(result.properties),
           uuid: Deserialize.uuid(result.metadata),
-          vector: Deserialize.vector(result.metadata),
+          vectors: Deserialize.vectors(result.metadata),
         };
       }),
       generated: reply.generativeGroupedResult,
     };
   }
 
-  public static groupBy<T extends Properties>(reply: SearchReply): GroupByReturn<T> {
+  public static groupBy<T>(reply: SearchReply): GroupByReturn<T> {
     const objects: GroupByObject<T>[] = [];
     const groups: Record<string, GroupByResult<T>> = {};
     reply.groupByResults.forEach((result) => {
@@ -63,7 +65,7 @@ export default class Deserialize {
           properties: Deserialize.properties<T>(object.properties),
           references: Deserialize.references<T>(object.properties),
           uuid: Deserialize.uuid(object.metadata),
-          vector: Deserialize.vector(object.metadata),
+          vectors: Deserialize.vectors(object.metadata),
         };
       });
       groups[result.name] = {
@@ -81,7 +83,7 @@ export default class Deserialize {
     };
   }
 
-  public static generateGroupBy<T extends Properties>(reply: SearchReply): GenerativeGroupByReturn<T> {
+  public static generateGroupBy<T>(reply: SearchReply): GenerativeGroupByReturn<T> {
     const objects: GroupByObject<T>[] = [];
     const groups: Record<string, GenerativeGroupByResult<T>> = {};
     reply.groupByResults.forEach((result) => {
@@ -92,7 +94,7 @@ export default class Deserialize {
           properties: Deserialize.properties<T>(object.properties),
           references: Deserialize.references<T>(object.properties),
           uuid: Deserialize.uuid(object.metadata),
-          vector: Deserialize.vector(object.metadata),
+          vectors: Deserialize.vectors(object.metadata),
         };
       });
       groups[result.name] = {
@@ -112,14 +114,12 @@ export default class Deserialize {
     };
   }
 
-  private static properties<T extends Properties>(properties?: PropertiesResult): ReturnProperties<T> {
+  private static properties<T>(properties?: PropertiesResult): ReturnProperties<T> {
     if (!properties) return {} as ReturnProperties<T>;
     return Deserialize.objectProperties(properties.nonRefProps) as ReturnProperties<T>;
   }
 
-  private static references<T extends Properties>(
-    properties?: PropertiesResult
-  ): ReturnReferences<T> | undefined {
+  private static references<T>(properties?: PropertiesResult): ReturnReferences<T> | undefined {
     if (!properties) return undefined;
     if (properties.refProps.length === 0) return undefined;
     const out: any = {};
@@ -131,7 +131,7 @@ export default class Deserialize {
             properties: Deserialize.properties(property),
             references: Deserialize.references(property),
             uuid: Deserialize.uuid(property.metadata),
-            vector: Deserialize.vector(property.metadata),
+            vectors: Deserialize.vectors(property.metadata),
           };
         })
       );
@@ -179,17 +179,29 @@ export default class Deserialize {
     return out;
   }
 
-  private static uuid(metadata?: MetadataResult): string {
+  private static uuid(metadata?: MetadataResult) {
     if (!metadata || !(metadata.id.length > 0)) throw new Error('No uuid returned from server');
     return metadata.id;
   }
 
-  private static vector(metadata?: MetadataResult): number[] | undefined {
-    if (!metadata) return undefined;
-    if (metadata.vector.length > 0) return metadata.vector;
+  private static vectorFromBytes(bytes: Uint8Array) {
+    const buffer = Buffer.from(bytes);
+    const view = new Float32Array(buffer.buffer, buffer.byteOffset, buffer.byteLength / 4); // vector is float32 in weaviate
+    return Array.from(view);
   }
 
-  public static batchObjects<T extends Properties>(
+  private static vectors(metadata?: MetadataResult): Record<string, number[]> {
+    if (!metadata) return {};
+    if (metadata.vectorBytes.length === 0 && metadata.vector.length === 0 && metadata.vectors.length === 0)
+      return {};
+    if (metadata.vectorBytes.length > 0)
+      return { default: Deserialize.vectorFromBytes(metadata.vectorBytes) };
+    return Object.fromEntries(
+      metadata.vectors.map((vector) => [vector.name, Deserialize.vectorFromBytes(vector.vectorBytes)])
+    );
+  }
+
+  public static batchObjects<T>(
     reply: BatchObjectsReply,
     originalObjs: BatchObject<T>[],
     mappedObjs: BatchObjectGrpc[],
@@ -244,7 +256,7 @@ export default class Deserialize {
     };
   }
 
-  public static propertiesREST<T extends Properties>(properties: Record<string, any>): T {
+  public static propertiesREST<T>(properties: Record<string, any>): T {
     const isRefProp = (value: any): value is Array<{ beacon: string; href: string }> => {
       return (
         Array.isArray(value) &&

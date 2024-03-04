@@ -5,27 +5,14 @@ import { ClassCreator, ClassDeleter, ClassGetter, SchemaGetter } from '../schema
 import {
   CollectionConfig,
   CollectionConfigCreate,
-  GenerativeSearches,
+  ModuleConfig,
+  NamedVectorConfigCreate,
   Properties,
-  ReferenceConfigCreate,
-  ReferenceMultiTargetConfigCreate,
-  ReferenceSingleTargetConfigCreate,
-  Rerankers,
-  VectorIndexType,
-  Vectorizers,
 } from './types';
 import ClassExists from '../schema/classExists';
-import { classToCollection } from './config';
+import { classToCollection, resolveProperty, resolveReference, ReferenceTypeGuards } from './config';
 import { ConsistencyLevel } from '../data';
-
-class ReferenceTypeGuards {
-  static isSingleTarget<T>(ref: ReferenceConfigCreate<T>): ref is ReferenceSingleTargetConfigCreate<T> {
-    return (ref as ReferenceSingleTargetConfigCreate<T>).targetCollection !== undefined;
-  }
-  static isMultiTarget<T>(ref: ReferenceConfigCreate<T>): ref is ReferenceMultiTargetConfigCreate<T> {
-    return (ref as ReferenceMultiTargetConfigCreate<T>).targetCollections !== undefined;
-  }
-}
+import { WeaviateClass } from '../index.node';
 
 export interface IBuilder {
   withConsistencyLevel(consistencyLevel: ConsistencyLevel): this;
@@ -46,67 +33,56 @@ export const addContext = <B extends IBuilder>(
   return builder;
 };
 
+const isLegacyVectorizer = (
+  argument: ModuleConfig<string, any> | NamedVectorConfigCreate<any, string, string, string, any>[]
+): argument is ModuleConfig<string, any> => {
+  return !Array.isArray(argument);
+};
+
 const collections = (connection: Connection, dbVersionSupport: DbVersionSupport) => {
   const listAll = () =>
     new SchemaGetter(connection)
       .do()
-      .then((schema) =>
-        schema.classes ? schema.classes?.map(classToCollection<any, any, any, any, any>) : []
-      );
+      .then((schema) => (schema.classes ? schema.classes.map(classToCollection<any>) : []));
   const deleteCollection = (name: string) => new ClassDeleter(connection).withClassName(name).do();
   return {
-    create: <TProperties, IndexType, GenerativeModule, RerankerModule, VectorizerModule>(
-      config: CollectionConfigCreate<
-        TProperties,
-        IndexType,
-        GenerativeModule,
-        RerankerModule,
-        VectorizerModule
-      >
-    ) => {
+    create: async function <TProperties = any, TName = string>(
+      config: CollectionConfigCreate<TProperties, TName>
+    ) {
       const { name, invertedIndex, multiTenancy, replication, sharding, vectorIndex, ...rest } = config;
-      const vectorizer = config.vectorizer ? config.vectorizer.name : undefined;
 
       const moduleConfig: any = {};
-      if (config.vectorizer?.options) {
-        moduleConfig[config.vectorizer.name] = config.vectorizer.options ? config.vectorizer.options : {};
-      }
       if (config.generative) {
-        moduleConfig[config.generative.name] = config.generative.options ? config.generative.options : {};
+        moduleConfig[config.generative.name] = config.generative.config ? config.generative.config : {};
       }
 
-      const properties: any[] = [];
-      config.properties?.forEach((prop) => {
-        const resolve = (prop: any) => {
-          const { dataType, nestedProperties, skipVectorisation, vectorizePropertyName, ...rest } = prop;
-          const moduleConfig: any = {};
-          if (vectorizer) {
-            moduleConfig[vectorizer] = {
-              skip: skipVectorisation,
-              vectorizePropertyName,
-            };
-          }
-          return {
-            ...rest,
-            dataType: [dataType],
-            nestedProperties: nestedProperties ? nestedProperties.map(resolve) : undefined,
-            moduleConfig,
+      let vectorizer: string | undefined;
+      let vectorsConfig: any | undefined;
+      if (config.vectorizer === undefined) {
+        vectorizer = 'none';
+        vectorsConfig = undefined;
+      } else if (isLegacyVectorizer(config.vectorizer)) {
+        vectorizer = config.vectorizer.name;
+        vectorsConfig = undefined;
+        moduleConfig[vectorizer] = config.vectorizer.config ? config.vectorizer.config : {};
+      } else {
+        vectorizer = undefined;
+        vectorsConfig = {};
+        config.vectorizer.forEach((v) => {
+          const vectorConfig: any = {
+            vectorIndexConfig: v.vectorIndexConfig,
+            vectorIndexType: v.vectorIndexType,
+            vectorizer: {},
           };
-        };
-        properties.push(resolve(prop));
-      });
-      config.references?.forEach((ref) => {
-        let dt: string[] = [];
-        if (ReferenceTypeGuards.isSingleTarget(ref)) {
-          dt = [ref.targetCollection];
-        } else if (ReferenceTypeGuards.isMultiTarget(ref)) {
-          dt = ref.targetCollections;
-        }
-        properties.push({
-          ...ref,
-          dataType: dt,
+          vectorConfig.vectorizer[v.vectorizer.name] = v.vectorizer.config ? v.vectorizer.config : {};
+          vectorsConfig![v.name] = vectorConfig;
         });
-      });
+      }
+
+      const properties = config.properties
+        ? config.properties.map((prop) => resolveProperty<TProperties>(prop, vectorizer))
+        : [];
+      const references = config.references ? config.references.map(resolveReference<TProperties>) : [];
 
       const schema = {
         ...rest,
@@ -115,58 +91,44 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
         invertedIndexConfig: invertedIndex,
         moduleConfig: moduleConfig,
         multiTenancyConfig: multiTenancy,
-        properties: properties,
+        properties: [...properties, ...references],
         replicationConfig: replication,
         shardingConfig: sharding,
-        vectorIndexConfig: vectorIndex ? vectorIndex.options : undefined,
+        vectorConfig: vectorsConfig,
+        vectorIndexConfig: vectorIndex ? vectorIndex.config : undefined,
         vectorIndexType: vectorIndex ? vectorIndex.name : 'hnsw',
       };
-      return new ClassCreator(connection)
-        .withClass(schema)
-        .do()
-        .then(classToCollection<TProperties, IndexType, GenerativeModule, RerankerModule, VectorizerModule>);
+      await new ClassCreator(connection).withClass(schema).do();
+      return collection<TProperties, TName>(connection, name, dbVersionSupport);
     },
+    createFromSchema: (config: WeaviateClass) => new ClassCreator(connection).withClass(config).do(),
     delete: deleteCollection,
-    deleteAll: () =>
-      listAll().then((classes) =>
-        classes ? Promise.all(classes?.map((c) => deleteCollection(c.name))) : Promise.resolve([])
-      ),
+    deleteAll: () => listAll().then((configs) => Promise.all(configs?.map((c) => deleteCollection(c.name)))),
     exists: (name: string) => new ClassExists(connection).withClassName(name).do(),
-    export: <TProperties, IndexType, GenerativeModule, RerankerModule, VectorizerModule>(name: string) =>
+    export: <TProperties>(name: string) =>
       new ClassGetter(connection)
         .withClassName(name)
         .do()
-        .then(classToCollection<TProperties, IndexType, GenerativeModule, RerankerModule, VectorizerModule>),
-    get: <TProperties extends Properties>(name: string) =>
-      collection<TProperties>(connection, name, dbVersionSupport),
+        .then(classToCollection<TProperties>),
+    get: <TProperties extends Properties = any, TName extends string = string>(name: TName) =>
+      collection<TProperties, TName>(connection, name, dbVersionSupport),
     listAll: listAll,
   };
 };
 
 export interface Collections {
-  create<
-    TProperties = Properties,
-    Index extends VectorIndexType = 'hnsw',
-    Generative extends GenerativeSearches = 'none',
-    Reranker extends Rerankers = 'none',
-    Vectorizer extends Vectorizers = 'none'
-  >(
-    class_: CollectionConfigCreate<TProperties, Index, Generative, Reranker, Vectorizer>
-  ): Promise<CollectionConfig<TProperties, Index, Generative, Reranker, Vectorizer>>;
-  delete(class_: string): Promise<void>;
+  create<TProperties = any, TName = string>(
+    config: CollectionConfigCreate<TProperties, TName>
+  ): Promise<Collection<TProperties, TName>>;
+  createFromSchema(config: WeaviateClass): Promise<WeaviateClass>;
+  delete(collection: string): Promise<void>;
   deleteAll(): Promise<void[]>;
   exists(name: string): Promise<boolean>;
-  export<
-    TProperties,
-    Index extends VectorIndexType = string,
-    Generative extends GenerativeSearches = string,
-    Reranker extends Rerankers = string,
-    Vectorizer extends Vectorizers = string
-  >(
-    name: string
-  ): Promise<CollectionConfig<TProperties, Index, Generative, Reranker, Vectorizer>>;
-  get<TProperties extends Properties = any>(name: string): Collection<TProperties>;
-  listAll(): Promise<CollectionConfig<any, any, any, any, any>[]>;
+  export<TProperties>(name: string): Promise<CollectionConfig<TProperties>>;
+  get<TProperties extends Properties = any, TName extends string = string>(
+    name: TName
+  ): Collection<TProperties, TName>;
+  listAll(): Promise<CollectionConfig<any>[]>;
 }
 
 export default collections;

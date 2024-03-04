@@ -13,36 +13,28 @@ import {
   QueryBaseNearOptions,
   QueryNearMediaType,
 } from '../query';
-import { GenerativeReturn, GenerativeGroupByReturn, GroupByOptions, Properties } from '../types';
+import { GenerativeReturn, GenerativeGroupByReturn, GroupByOptions, Properties, Vectors } from '../types';
 import { SearchReply } from '../../proto/v1/search_get';
 
-export interface GenerateOptions<T extends Properties> {
+export interface GenerateOptions<T> {
   singlePrompt?: string;
   groupedTask?: string;
   groupedProperties?: (keyof T)[];
 }
 
-export interface GenerateFetchObjectsOptions<T extends Properties>
-  extends QueryFetchObjectsOptions<T>,
-    GenerateOptions<T> {}
-export interface GenerateBm25Options<T extends Properties> extends QueryBm25Options<T>, GenerateOptions<T> {}
-export interface GenerateHybridOptions<T extends Properties>
-  extends QueryHybridOptions<T>,
-    GenerateOptions<T> {}
-export interface GenerateNearOptions<T extends Properties>
-  extends QueryBaseNearOptions<T>,
-    GenerateOptions<T> {}
-export interface GenerateGroupByNearOptions<T extends Properties> extends GenerateNearOptions<T> {
+export interface GenerateFetchObjectsOptions<T> extends QueryFetchObjectsOptions<T>, GenerateOptions<T> {}
+export interface GenerateBm25Options<T> extends QueryBm25Options<T>, GenerateOptions<T> {}
+export interface GenerateHybridOptions<T> extends QueryHybridOptions<T>, GenerateOptions<T> {}
+export interface GenerateNearOptions<T> extends QueryBaseNearOptions<T>, GenerateOptions<T> {}
+export interface GenerateGroupByNearOptions<T> extends GenerateNearOptions<T> {
   groupBy: GroupByOptions<T>;
 }
-export interface GenerateNearTextOptions<T extends Properties>
-  extends QueryNearTextOptions<T>,
-    GenerateOptions<T> {}
-export interface GenerateGroupByNearTextOptions<T extends Properties> extends GenerateNearTextOptions<T> {
+export interface GenerateNearTextOptions<T> extends QueryNearTextOptions<T>, GenerateOptions<T> {}
+export interface GenerateGroupByNearTextOptions<T> extends GenerateNearTextOptions<T> {
   groupBy: GroupByOptions<T>;
 }
 
-class GenerateManager<T extends Properties> implements Generate<T> {
+class GenerateManager<T> implements Generate<T> {
   connection: Connection;
   name: string;
   dbVersionSupport: DbVersionSupport;
@@ -63,7 +55,7 @@ class GenerateManager<T extends Properties> implements Generate<T> {
     this.tenant = tenant;
   }
 
-  public static use<T extends Properties>(
+  public static use<T>(
     connection: Connection,
     name: string,
     dbVersionSupport: DbVersionSupport,
@@ -244,7 +236,7 @@ class GenerateManager<T extends Properties> implements Generate<T> {
   }
 }
 
-export interface Generate<T extends Properties> {
+export interface Generate<T> {
   fetchObjects: (opts?: GenerateFetchObjectsOptions<T>) => Promise<GenerativeReturn<T>>;
   bm25: (query: string, opts?: GenerateBm25Options<T>) => Promise<GenerativeReturn<T>>;
   hybrid: (query: string, opts?: GenerateHybridOptions<T>) => Promise<GenerativeReturn<T>>;
@@ -272,9 +264,8 @@ export interface Generate<T extends Properties> {
   ): GenerateReturn<O, T>;
 }
 
-export type GenerateReturn<
-  O extends GenerateNearOptions<T> | GenerateGroupByNearOptions<T>,
-  T extends Properties
-> = Promise<O extends GenerateGroupByNearOptions<T> ? GenerativeGroupByReturn<T> : GenerativeReturn<T>>;
+export type GenerateReturn<O extends GenerateNearOptions<T> | GenerateGroupByNearOptions<T>, T> = Promise<
+  O extends GenerateGroupByNearOptions<T> ? GenerativeGroupByReturn<T> : GenerativeReturn<T>
+>;
 
 export default GenerateManager.use;

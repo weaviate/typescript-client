@@ -8,35 +8,40 @@ import {
   WeaviateMultiTenancyConfig,
   WeaviateReplicationConfig,
   WeaviateShardingConfig,
+  WeaviateShardStatus,
   WeaviateVectorIndexConfig,
   WeaviateProperty,
+  WeaviateVectorConfig,
 } from '../../openapi/types';
-import { ClassGetter } from '../../schema';
+import { ClassGetter, PropertyCreator, ShardUpdater, ShardsUpdater } from '../../schema';
+import ShardsGetter from '../../schema/shardsGetter';
 import {
   BQConfig,
   CollectionConfig,
   GenerativeConfig,
-  GenerativeSearches,
   InvertedIndexConfig,
   MultiTenancyConfig,
+  NestedPropertyCreate,
   PQConfig,
   PQEncoderConfig,
   PQEncoderDistribution,
   PQEncoderType,
   Properties,
   PropertyConfig,
+  PropertyConfigCreate,
   ReferenceConfig,
+  ReferenceConfigCreate,
+  ReferenceMultiTargetConfigCreate,
+  ReferenceSingleTargetConfigCreate,
   ReplicationConfig,
   RerankerConfig,
-  Rerankers,
   ShardingConfig,
+  VectorConfig,
   VectorDistance,
   VectorIndexConfig,
   VectorIndexConfigFlat,
   VectorIndexConfigHNSW,
-  VectorIndexType,
   VectorizerConfig,
-  Vectorizers,
 } from '../types';
 
 function populated<T>(v: T | null | undefined): v is T {
@@ -69,30 +74,68 @@ class ConfigGuards {
       removals: v.removals ? v.removals : [],
     };
   }
-  static generative<G>(v?: WeaviateModuleConfig): GenerativeConfig<G> {
-    if (!populated(v)) return undefined as GenerativeConfig<G>;
+  static generative<G>(v?: WeaviateModuleConfig): GenerativeConfig | undefined {
+    if (!populated(v)) return undefined;
     const generativeKey = Object.keys(v).find((k) => k.includes('generative'));
-    if (generativeKey === undefined) return undefined as GenerativeConfig<G>;
+    if (generativeKey === undefined) return undefined;
     if (!generativeKey) throw new Error('Generative config was not returned by Weaviate');
-    return v[generativeKey] as GenerativeConfig<G>;
+    return v[generativeKey] as GenerativeConfig;
   }
-  static reranker<R>(v?: WeaviateModuleConfig): RerankerConfig<R> {
-    if (!populated(v)) return undefined as RerankerConfig<R>;
+  static reranker(v?: WeaviateModuleConfig): RerankerConfig | undefined {
+    if (!populated(v)) return undefined;
     const rerankerKey = Object.keys(v).find((k) => k.includes('reranker'));
-    if (rerankerKey === undefined) return undefined as RerankerConfig<R>;
+    if (rerankerKey === undefined) return undefined;
     if (!rerankerKey) throw new Error('Reranker config was not returned by Weaviate');
-    return v[rerankerKey] as RerankerConfig<R>;
+    return v[rerankerKey] as RerankerConfig;
   }
-  static vectorizer<V>(v?: WeaviateClass): VectorizerConfig<V> {
-    if (!populated(v)) throw new Error('Vectorizers were not returned by Weaviate');
-    if (!populated(v.vectorizer)) throw new Error('Vectorizer was not returned by Weaviate');
-    if (v.vectorizer === 'none') {
-      return undefined as VectorizerConfig<V>;
-    } else {
-      if (!populated(v.moduleConfig))
-        throw new Error('Vectorizer module config was not returned by Weaviate');
-      return v.moduleConfig[v.vectorizer] as VectorizerConfig<V>;
+  private static namedVectors(v: WeaviateVectorConfig): VectorConfig {
+    if (!populated(v)) throw new Error('Vector config was not returned by Weaviate');
+    const out: VectorConfig = {};
+    Object.keys(v).forEach((key) => {
+      const vectorizer = v[key].vectorizer;
+      if (!populated(vectorizer))
+        throw new Error(`Vectorizer was not returned by Weaviate for ${key} named vector`);
+      const vectorizerNames = Object.keys(vectorizer);
+      if (vectorizerNames.length !== 1)
+        throw new Error(
+          `Expected exactly one vectorizer for ${key} named vector, got ${vectorizerNames.length}`
+        );
+      const vectorizerName = vectorizerNames[0];
+      const { properties, ...rest } = vectorizer[vectorizerName] as any;
+      out[key] = {
+        vectorizer: {
+          name: vectorizerName,
+          config: rest,
+        },
+        properties: properties,
+        indexConfig: ConfigGuards.vectorIndex(v[key].vectorIndexConfig, v[key].vectorIndexType),
+        indexType: ConfigGuards.vectorIndexType(v[key].vectorIndexType),
+      };
+    });
+    return out;
+  }
+  static vectorizer(v?: WeaviateClass): VectorConfig {
+    if (!populated(v)) throw new Error('Schema was not returned by Weaviate');
+    if (populated(v.vectorConfig)) {
+      return ConfigGuards.namedVectors(v.vectorConfig);
     }
+    if (!populated(v.vectorizer)) throw new Error('Vectorizer was not returned by Weaviate');
+    return {
+      default: {
+        vectorizer:
+          v.vectorizer === 'none'
+            ? {
+                name: 'none',
+                config: undefined,
+              }
+            : {
+                name: v.vectorizer,
+                config: v.moduleConfig ? (v.moduleConfig[v.vectorizer] as VectorizerConfig) : undefined,
+              },
+        indexConfig: ConfigGuards.vectorIndex(v.vectorIndexConfig, v.vectorIndexType),
+        indexType: ConfigGuards.vectorIndexType(v.vectorIndexType),
+      },
+    };
   }
   static invertedIndex(v?: WeaviateInvertedIndexConfig): InvertedIndexConfig {
     if (v === undefined) throw new Error('Inverted index was not returned by Weaviate');
@@ -237,11 +280,12 @@ class ConfigGuards {
     };
   }
   static vectorIndex<I>(v: WeaviateVectorIndexConfig, t?: string): VectorIndexConfig<I> {
-    if (t === undefined) throw new Error('Vector index type was not returned by Weaviate');
     if (t === 'hnsw') {
       return ConfigGuards.vectorIndexHNSW(v) as VectorIndexConfig<I>;
-    } else {
+    } else if (t === 'flat') {
       return ConfigGuards.vectorIndexFlat(v) as VectorIndexConfig<I>;
+    } else {
+      return v as VectorIndexConfig<I>;
     }
   }
   static vectorIndexType<I>(v?: string): I {
@@ -298,46 +342,131 @@ class ConfigGuards {
   }
 }
 
-export const classToCollection = <T, I, G, R, V>(cls: WeaviateClass): CollectionConfig<T, I, G, R, V> => {
+export const classToCollection = <T>(cls: WeaviateClass): CollectionConfig<T> => {
   return {
     name: ConfigGuards._name(cls.class),
     description: cls.description,
-    generative: ConfigGuards.generative<G>(cls.moduleConfig),
+    generative: ConfigGuards.generative(cls.moduleConfig),
     invertedIndex: ConfigGuards.invertedIndex(cls.invertedIndexConfig),
     multiTenancy: ConfigGuards.multiTenancy(cls.multiTenancyConfig),
     properties: ConfigGuards.properties(cls.properties),
     references: ConfigGuards.references(cls.properties),
     replication: ConfigGuards.replication(cls.replicationConfig),
-    reranker: ConfigGuards.reranker<R>(cls.moduleConfig),
+    reranker: ConfigGuards.reranker(cls.moduleConfig),
     sharding: ConfigGuards.sharding(cls.shardingConfig),
-    vectorIndex: ConfigGuards.vectorIndex<I>(cls.vectorIndexConfig, cls.vectorIndexType),
-    vectorIndexType: ConfigGuards.vectorIndexType<I>(cls.vectorIndexType),
-    vectorizer: ConfigGuards.vectorizer<V>(cls),
+    vectorizer: ConfigGuards.vectorizer(cls),
   };
 };
 
-const config = <T extends Properties>(connection: Connection, name: string): Config<T> => {
+export class ReferenceTypeGuards {
+  static isSingleTarget<T>(ref: ReferenceConfigCreate<T>): ref is ReferenceSingleTargetConfigCreate<T> {
+    return (ref as ReferenceSingleTargetConfigCreate<T>).targetCollection !== undefined;
+  }
+  static isMultiTarget<T>(ref: ReferenceConfigCreate<T>): ref is ReferenceMultiTargetConfigCreate<T> {
+    return (ref as ReferenceMultiTargetConfigCreate<T>).targetCollections !== undefined;
+  }
+}
+
+export const resolveProperty = <T>(prop: any, vectorizer?: string): WeaviateProperty => {
+  const { dataType, nestedProperties, skipVectorisation, vectorizePropertyName, ...rest } = prop;
+  let moduleConfig: any | undefined = {};
+  if (vectorizer) {
+    moduleConfig[vectorizer] = {
+      skip: skipVectorisation,
+      vectorizePropertyName,
+    };
+  } else {
+    moduleConfig = undefined;
+  }
   return {
-    get: <
-      VectorIndex extends VectorIndexType,
-      GenerativeModule extends GenerativeSearches,
-      RerankerModule extends Rerankers,
-      VectorizerModule extends Vectorizers
-    >() =>
+    ...rest,
+    dataType: [dataType],
+    nestedProperties: nestedProperties ? nestedProperties.map(resolveProperty) : undefined,
+    moduleConfig,
+  };
+};
+
+export const resolveReference = <T>(
+  ref: ReferenceSingleTargetConfigCreate<T> | ReferenceMultiTargetConfigCreate<T>
+): WeaviateProperty => {
+  if (ReferenceTypeGuards.isSingleTarget(ref)) {
+    const { targetCollection, ...rest } = ref;
+    return {
+      ...rest,
+      dataType: [targetCollection],
+    };
+  } else {
+    const { targetCollections, ...rest } = ref;
+    return {
+      ...rest,
+      dataType: targetCollections,
+    };
+  }
+};
+
+const config = <T>(connection: Connection, name: string, tenant?: string): Config<T> => {
+  return {
+    addProperty: (property: PropertyConfigCreate<T>) =>
+      new PropertyCreator(connection)
+        .withClassName(name)
+        .withProperty(resolveProperty<T>(property))
+        .do()
+        .then(() => {}),
+    addReference: (reference: ReferenceSingleTargetConfigCreate<T> | ReferenceMultiTargetConfigCreate<T>) =>
+      new PropertyCreator(connection)
+        .withClassName(name)
+        .withProperty(resolveReference<T>(reference))
+        .do()
+        .then(() => {}),
+    get: () =>
       new ClassGetter(connection)
         .withClassName(name)
         .do()
-        .then(classToCollection<T, VectorIndex, GenerativeModule, RerankerModule, VectorizerModule>),
+        .then(classToCollection<T>),
+    getShards: () => {
+      let builder = new ShardsGetter(connection).withClassName(name);
+      if (tenant) {
+        builder = builder.withTenant(tenant);
+      }
+      return builder.do().then((shards) =>
+        shards.map((shard) => {
+          if (shard.name === undefined) throw new Error('Shard name was not returned by Weaviate');
+          if (shard.status === undefined) throw new Error('Shard status was not returned by Weaviate');
+          if (shard.vectorQueueSize === undefined)
+            throw new Error('Shard vector queue size was not returned by Weaviate');
+          return { name: shard.name, status: shard.status, vectorQueueSize: shard.vectorQueueSize };
+        })
+      );
+    },
+    updateShards: async function (status: 'READY' | 'READONLY', names?: string | string[]) {
+      let shardNames: string[];
+      if (names === undefined) {
+        shardNames = await this.getShards().then((shards) => shards.map((s) => s.name));
+      } else if (typeof names === 'string') {
+        shardNames = [names];
+      } else {
+        shardNames = names;
+      }
+      return Promise.all(
+        shardNames.map((shardName) =>
+          new ShardUpdater(connection).withClassName(name).withShardName(shardName).withStatus(status).do()
+        )
+      ).then(() => this.getShards());
+    },
   };
 };
 
 export default config;
 
-export interface Config<T extends Properties> {
-  get: <
-    IndexType extends VectorIndexType = string,
-    GenerativeModule extends GenerativeSearches = string,
-    RerankerModule extends Rerankers = string,
-    VectorizerModule extends Vectorizers = string
-  >() => Promise<CollectionConfig<T, IndexType, GenerativeModule, RerankerModule, VectorizerModule>>;
+export interface Config<T> {
+  addProperty: (property: PropertyConfigCreate<T>) => Promise<void>;
+  addReference: (
+    reference: ReferenceSingleTargetConfigCreate<T> | ReferenceMultiTargetConfigCreate<T>
+  ) => Promise<void>;
+  get: () => Promise<CollectionConfig<T>>;
+  getShards: () => Promise<Required<WeaviateShardStatus>[]>;
+  updateShards: (
+    status: 'READY' | 'READONLY',
+    names?: string | string[]
+  ) => Promise<Required<WeaviateShardStatus>[]>;
 }

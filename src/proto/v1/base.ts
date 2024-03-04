@@ -270,6 +270,13 @@ export interface GeoCoordinatesFilter {
   distance: number;
 }
 
+export interface Vectors {
+  name: string;
+  /** for multi-vec */
+  index: number;
+  vectorBytes: Uint8Array;
+}
+
 function createBaseNumberArrayProperties(): NumberArrayProperties {
   return { values: [], propName: "", valuesBytes: new Uint8Array(0) };
 }
@@ -1919,8 +1926,97 @@ export const GeoCoordinatesFilter = {
   },
 };
 
+function createBaseVectors(): Vectors {
+  return { name: "", index: 0, vectorBytes: new Uint8Array(0) };
+}
+
+export const Vectors = {
+  encode(message: Vectors, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.name !== "") {
+      writer.uint32(10).string(message.name);
+    }
+    if (message.index !== 0) {
+      writer.uint32(16).uint64(message.index);
+    }
+    if (message.vectorBytes.length !== 0) {
+      writer.uint32(26).bytes(message.vectorBytes);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): Vectors {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseVectors();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.name = reader.string();
+          continue;
+        case 2:
+          if (tag !== 16) {
+            break;
+          }
+
+          message.index = longToNumber(reader.uint64() as Long);
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.vectorBytes = reader.bytes();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): Vectors {
+    return {
+      name: isSet(object.name) ? globalThis.String(object.name) : "",
+      index: isSet(object.index) ? globalThis.Number(object.index) : 0,
+      vectorBytes: isSet(object.vectorBytes) ? bytesFromBase64(object.vectorBytes) : new Uint8Array(0),
+    };
+  },
+
+  toJSON(message: Vectors): unknown {
+    const obj: any = {};
+    if (message.name !== "") {
+      obj.name = message.name;
+    }
+    if (message.index !== 0) {
+      obj.index = Math.round(message.index);
+    }
+    if (message.vectorBytes.length !== 0) {
+      obj.vectorBytes = base64FromBytes(message.vectorBytes);
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<Vectors>): Vectors {
+    return Vectors.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<Vectors>): Vectors {
+    const message = createBaseVectors();
+    message.name = object.name ?? "";
+    message.index = object.index ?? 0;
+    message.vectorBytes = object.vectorBytes ?? new Uint8Array(0);
+    return message;
+  },
+};
+
 function bytesFromBase64(b64: string): Uint8Array {
-  if (globalThis.Buffer) {
+  if ((globalThis as any).Buffer) {
     return Uint8Array.from(globalThis.Buffer.from(b64, "base64"));
   } else {
     const bin = globalThis.atob(b64);
@@ -1933,7 +2029,7 @@ function bytesFromBase64(b64: string): Uint8Array {
 }
 
 function base64FromBytes(arr: Uint8Array): string {
-  if (globalThis.Buffer) {
+  if ((globalThis as any).Buffer) {
     return globalThis.Buffer.from(arr).toString("base64");
   } else {
     const bin: string[] = [];

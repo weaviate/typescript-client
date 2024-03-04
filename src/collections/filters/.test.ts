@@ -7,7 +7,7 @@ import { Collection } from '../collection';
 
 describe('Testing of the filter class with a simple collection', () => {
   let client: WeaviateNextClient;
-  let collection: Collection<TestType>;
+  let collection: Collection<TestType, 'TestCollectionFilterSimple'>;
 
   const className = 'TestCollectionFilterSimple';
   let ids: string[];
@@ -103,7 +103,7 @@ describe('Testing of the filter class with a simple collection', () => {
         return uuids;
       });
     const res = await collection.query.fetchObjectById(ids[0], { includeVector: true });
-    vector = res?.vector!;
+    vector = res?.vectors.default!;
   });
 
   it('should filter a fetch objects query with a single filter and generic collection', async () => {
@@ -254,7 +254,7 @@ describe('Testing of the filter class with a simple collection', () => {
         expect(obj.properties.int).toEqual(1);
         expect(obj.properties.float).toEqual(1.1);
         expect(obj.uuid).toEqual(ids[0]);
-        expect(obj.vector).toEqual(vec);
+        expect(obj.vectors.default).toEqual(vec);
       });
   });
 });

@@ -11,6 +11,7 @@ import {
   ObjectArrayProperties,
   ObjectProperties,
   TextArrayProperties,
+  Vectors,
 } from "./base";
 
 export const protobufPackage = "weaviate.v1";
@@ -32,6 +33,8 @@ export interface BatchObject {
   collection: string;
   tenant: string;
   vectorBytes: Uint8Array;
+  /** protolint:disable:next REPEATED_FIELD_NAMES_PLURALIZED */
+  vectors: Vectors[];
 }
 
 export interface BatchObject_Properties {
@@ -147,7 +150,15 @@ export const BatchObjectsRequest = {
 };
 
 function createBaseBatchObject(): BatchObject {
-  return { uuid: "", vector: [], properties: undefined, collection: "", tenant: "", vectorBytes: new Uint8Array(0) };
+  return {
+    uuid: "",
+    vector: [],
+    properties: undefined,
+    collection: "",
+    tenant: "",
+    vectorBytes: new Uint8Array(0),
+    vectors: [],
+  };
 }
 
 export const BatchObject = {
@@ -171,6 +182,9 @@ export const BatchObject = {
     }
     if (message.vectorBytes.length !== 0) {
       writer.uint32(50).bytes(message.vectorBytes);
+    }
+    for (const v of message.vectors) {
+      Vectors.encode(v!, writer.uint32(186).fork()).ldelim();
     }
     return writer;
   },
@@ -234,6 +248,13 @@ export const BatchObject = {
 
           message.vectorBytes = reader.bytes();
           continue;
+        case 23:
+          if (tag !== 186) {
+            break;
+          }
+
+          message.vectors.push(Vectors.decode(reader, reader.uint32()));
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -251,6 +272,7 @@ export const BatchObject = {
       collection: isSet(object.collection) ? globalThis.String(object.collection) : "",
       tenant: isSet(object.tenant) ? globalThis.String(object.tenant) : "",
       vectorBytes: isSet(object.vectorBytes) ? bytesFromBase64(object.vectorBytes) : new Uint8Array(0),
+      vectors: globalThis.Array.isArray(object?.vectors) ? object.vectors.map((e: any) => Vectors.fromJSON(e)) : [],
     };
   },
 
@@ -274,6 +296,9 @@ export const BatchObject = {
     if (message.vectorBytes.length !== 0) {
       obj.vectorBytes = base64FromBytes(message.vectorBytes);
     }
+    if (message.vectors?.length) {
+      obj.vectors = message.vectors.map((e) => Vectors.toJSON(e));
+    }
     return obj;
   },
 
@@ -290,6 +315,7 @@ export const BatchObject = {
     message.collection = object.collection ?? "";
     message.tenant = object.tenant ?? "";
     message.vectorBytes = object.vectorBytes ?? new Uint8Array(0);
+    message.vectors = object.vectors?.map((e) => Vectors.fromPartial(e)) || [];
     return message;
   },
 };
@@ -836,7 +862,7 @@ export const BatchObjectsReply_BatchError = {
 };
 
 function bytesFromBase64(b64: string): Uint8Array {
-  if (globalThis.Buffer) {
+  if ((globalThis as any).Buffer) {
     return Uint8Array.from(globalThis.Buffer.from(b64, "base64"));
   } else {
     const bin = globalThis.atob(b64);
@@ -849,7 +875,7 @@ function bytesFromBase64(b64: string): Uint8Array {
 }
 
 function base64FromBytes(arr: Uint8Array): string {
-  if (globalThis.Buffer) {
+  if ((globalThis as any).Buffer) {
     return globalThis.Buffer.from(arr).toString("base64");
   } else {
     const bin: string[] = [];

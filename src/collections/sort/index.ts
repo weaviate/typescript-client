@@ -32,7 +32,7 @@ export class Sorting<T> {
   }
 }
 
-const sort = <T extends Properties>(): Sort<T> => {
+const sort = <T>(): Sort<T> => {
   return {
     byProperty<T, K extends NonRefKeys<T>>(property: K, ascending = true) {
       return new Sorting<T>().byProperty(property, ascending);
@@ -51,7 +51,7 @@ const sort = <T extends Properties>(): Sort<T> => {
 
 export default sort;
 
-export interface Sort<T extends Properties> {
+export interface Sort<T> {
   byProperty<K extends NonRefKeys<T>>(property: K, ascending?: boolean): Sorting<T>;
   byId(ascending?: boolean): Sorting<T>;
   byCreationTime(ascending?: boolean): Sorting<T>;

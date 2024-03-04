@@ -5,23 +5,23 @@ import { DataObject } from '../types';
 import { CrossReference } from '../references';
 import { Collection } from '../collection';
 
-type TestCollectionAggregate = {
-  text: string;
-  texts: string[];
-  int: number;
-  ints: number[];
-  number: number;
-  numbers: number[];
-  date: string;
-  dates: string[];
-  boolean: boolean;
-  booleans: boolean[];
-  ref?: CrossReference<TestCollectionAggregate>;
-};
-
 describe('Testing of the collection.aggregate methods', () => {
+  type TestCollectionAggregate = {
+    text: string;
+    texts: string[];
+    int: number;
+    ints: number[];
+    number: number;
+    numbers: number[];
+    date: string;
+    dates: string[];
+    boolean: boolean;
+    booleans: boolean[];
+    ref?: CrossReference<TestCollectionAggregate>;
+  };
+
   let client: WeaviateNextClient;
-  let collection: Collection<TestCollectionAggregate>;
+  let collection: Collection<TestCollectionAggregate, 'TestCollectionAggregate'>;
   const className = 'TestCollectionAggregate';
 
   const date0 = '2023-01-01T00:00:00Z';
@@ -257,5 +257,54 @@ describe('Testing of the collection.aggregate methods', () => {
     expect(result.properties.booleans.totalFalse).toEqual(100);
     expect(result.properties.booleans.totalTrue).toEqual(100);
     // expect(result.properties.ref.pointingTo).toEqual(className);
+  });
+});
+
+describe('Testing of the collection.aggregate methods with named vectors', () => {
+  let client: WeaviateNextClient;
+  let collection: Collection<TestCollectionAggregateNamedVectors, 'TestCollectionAggregateNamedVectors'>;
+  const className = 'TestCollectionAggregateNamedVectors';
+  type TestCollectionAggregateNamedVectors = {
+    text: string;
+  };
+
+  afterAll(async () => {
+    return (await client).collections.delete(className).catch((err) => {
+      console.error(err);
+      throw err;
+    });
+  });
+
+  beforeAll(async () => {
+    client = await weaviate.client({
+      rest: {
+        secure: false,
+        host: 'localhost',
+        port: 8080,
+      },
+      grpc: {
+        secure: false,
+        host: 'localhost',
+        port: 50051,
+      },
+    });
+    collection = client.collections.get(className);
+    return client.collections.create<TestCollectionAggregateNamedVectors>({
+      name: className,
+      properties: [
+        {
+          name: 'text',
+          dataType: 'text',
+        },
+      ],
+      vectorizer: [
+        weaviate.configure.namedVectorizer.make('text', 'hnsw', 'text2vec-contextionary', ['text']),
+      ],
+    });
+  });
+
+  it('should aggregate data with a near text search over a named vector', async () => {
+    const result = await collection.aggregate.nearText('test', { certainty: 0.9, targetVector: 'text' });
+    expect(result.totalCount).toEqual(0);
   });
 });

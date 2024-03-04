@@ -13,6 +13,7 @@ import {
   ObjectArrayProperties,
   ObjectProperties,
   TextArrayProperties,
+  Vectors,
 } from "./base";
 import { Properties } from "./properties";
 
@@ -98,6 +99,7 @@ export interface MetadataRequest {
   score: boolean;
   explainScore: boolean;
   isConsistent: boolean;
+  vectors: string[];
 }
 
 export interface PropertiesRequest {
@@ -174,6 +176,7 @@ export interface NearTextSearch {
   distance?: number | undefined;
   moveTo?: NearTextSearch_Move | undefined;
   moveAway?: NearTextSearch_Move | undefined;
+  targetVectors: string[];
 }
 
 export interface NearTextSearch_Move {
@@ -186,36 +189,42 @@ export interface NearImageSearch {
   image: string;
   certainty?: number | undefined;
   distance?: number | undefined;
+  targetVectors: string[];
 }
 
 export interface NearAudioSearch {
   audio: string;
   certainty?: number | undefined;
   distance?: number | undefined;
+  targetVectors: string[];
 }
 
 export interface NearVideoSearch {
   video: string;
   certainty?: number | undefined;
   distance?: number | undefined;
+  targetVectors: string[];
 }
 
 export interface NearDepthSearch {
   depth: string;
   certainty?: number | undefined;
   distance?: number | undefined;
+  targetVectors: string[];
 }
 
 export interface NearThermalSearch {
   thermal: string;
   certainty?: number | undefined;
   distance?: number | undefined;
+  targetVectors: string[];
 }
 
 export interface NearIMUSearch {
   imu: string;
   certainty?: number | undefined;
   distance?: number | undefined;
+  targetVectors: string[];
 }
 
 export interface BM25 {
@@ -240,12 +249,14 @@ export interface NearVector {
   certainty?: number | undefined;
   distance?: number | undefined;
   vectorBytes: Uint8Array;
+  targetVectors: string[];
 }
 
 export interface NearObject {
   id: string;
   certainty?: number | undefined;
   distance?: number | undefined;
+  targetVectors: string[];
 }
 
 export interface Rerank {
@@ -311,6 +322,7 @@ export interface MetadataResult {
   idAsBytes: Uint8Array;
   rerankScore: number;
   rerankScorePresent: boolean;
+  vectors: Vectors[];
 }
 
 export interface PropertiesResult {
@@ -1102,6 +1114,7 @@ function createBaseMetadataRequest(): MetadataRequest {
     score: false,
     explainScore: false,
     isConsistent: false,
+    vectors: [],
   };
 }
 
@@ -1133,6 +1146,9 @@ export const MetadataRequest = {
     }
     if (message.isConsistent === true) {
       writer.uint32(72).bool(message.isConsistent);
+    }
+    for (const v of message.vectors) {
+      writer.uint32(82).string(v!);
     }
     return writer;
   },
@@ -1207,6 +1223,13 @@ export const MetadataRequest = {
 
           message.isConsistent = reader.bool();
           continue;
+        case 10:
+          if (tag !== 82) {
+            break;
+          }
+
+          message.vectors.push(reader.string());
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1227,6 +1250,7 @@ export const MetadataRequest = {
       score: isSet(object.score) ? globalThis.Boolean(object.score) : false,
       explainScore: isSet(object.explainScore) ? globalThis.Boolean(object.explainScore) : false,
       isConsistent: isSet(object.isConsistent) ? globalThis.Boolean(object.isConsistent) : false,
+      vectors: globalThis.Array.isArray(object?.vectors) ? object.vectors.map((e: any) => globalThis.String(e)) : [],
     };
   },
 
@@ -1259,6 +1283,9 @@ export const MetadataRequest = {
     if (message.isConsistent === true) {
       obj.isConsistent = message.isConsistent;
     }
+    if (message.vectors?.length) {
+      obj.vectors = message.vectors;
+    }
     return obj;
   },
 
@@ -1276,6 +1303,7 @@ export const MetadataRequest = {
     message.score = object.score ?? false;
     message.explainScore = object.explainScore ?? false;
     message.isConsistent = object.isConsistent ?? false;
+    message.vectors = object.vectors?.map((e) => e) || [];
     return message;
   },
 };
@@ -1659,7 +1687,14 @@ export const Hybrid = {
 };
 
 function createBaseNearTextSearch(): NearTextSearch {
-  return { query: [], certainty: undefined, distance: undefined, moveTo: undefined, moveAway: undefined };
+  return {
+    query: [],
+    certainty: undefined,
+    distance: undefined,
+    moveTo: undefined,
+    moveAway: undefined,
+    targetVectors: [],
+  };
 }
 
 export const NearTextSearch = {
@@ -1678,6 +1713,9 @@ export const NearTextSearch = {
     }
     if (message.moveAway !== undefined) {
       NearTextSearch_Move.encode(message.moveAway, writer.uint32(42).fork()).ldelim();
+    }
+    for (const v of message.targetVectors) {
+      writer.uint32(50).string(v!);
     }
     return writer;
   },
@@ -1724,6 +1762,13 @@ export const NearTextSearch = {
 
           message.moveAway = NearTextSearch_Move.decode(reader, reader.uint32());
           continue;
+        case 6:
+          if (tag !== 50) {
+            break;
+          }
+
+          message.targetVectors.push(reader.string());
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1740,6 +1785,9 @@ export const NearTextSearch = {
       distance: isSet(object.distance) ? globalThis.Number(object.distance) : undefined,
       moveTo: isSet(object.moveTo) ? NearTextSearch_Move.fromJSON(object.moveTo) : undefined,
       moveAway: isSet(object.moveAway) ? NearTextSearch_Move.fromJSON(object.moveAway) : undefined,
+      targetVectors: globalThis.Array.isArray(object?.targetVectors)
+        ? object.targetVectors.map((e: any) => globalThis.String(e))
+        : [],
     };
   },
 
@@ -1760,6 +1808,9 @@ export const NearTextSearch = {
     if (message.moveAway !== undefined) {
       obj.moveAway = NearTextSearch_Move.toJSON(message.moveAway);
     }
+    if (message.targetVectors?.length) {
+      obj.targetVectors = message.targetVectors;
+    }
     return obj;
   },
 
@@ -1777,6 +1828,7 @@ export const NearTextSearch = {
     message.moveAway = (object.moveAway !== undefined && object.moveAway !== null)
       ? NearTextSearch_Move.fromPartial(object.moveAway)
       : undefined;
+    message.targetVectors = object.targetVectors?.map((e) => e) || [];
     return message;
   },
 };
@@ -1871,7 +1923,7 @@ export const NearTextSearch_Move = {
 };
 
 function createBaseNearImageSearch(): NearImageSearch {
-  return { image: "", certainty: undefined, distance: undefined };
+  return { image: "", certainty: undefined, distance: undefined, targetVectors: [] };
 }
 
 export const NearImageSearch = {
@@ -1884,6 +1936,9 @@ export const NearImageSearch = {
     }
     if (message.distance !== undefined) {
       writer.uint32(25).double(message.distance);
+    }
+    for (const v of message.targetVectors) {
+      writer.uint32(34).string(v!);
     }
     return writer;
   },
@@ -1916,6 +1971,13 @@ export const NearImageSearch = {
 
           message.distance = reader.double();
           continue;
+        case 4:
+          if (tag !== 34) {
+            break;
+          }
+
+          message.targetVectors.push(reader.string());
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1930,6 +1992,9 @@ export const NearImageSearch = {
       image: isSet(object.image) ? globalThis.String(object.image) : "",
       certainty: isSet(object.certainty) ? globalThis.Number(object.certainty) : undefined,
       distance: isSet(object.distance) ? globalThis.Number(object.distance) : undefined,
+      targetVectors: globalThis.Array.isArray(object?.targetVectors)
+        ? object.targetVectors.map((e: any) => globalThis.String(e))
+        : [],
     };
   },
 
@@ -1944,6 +2009,9 @@ export const NearImageSearch = {
     if (message.distance !== undefined) {
       obj.distance = message.distance;
     }
+    if (message.targetVectors?.length) {
+      obj.targetVectors = message.targetVectors;
+    }
     return obj;
   },
 
@@ -1955,12 +2023,13 @@ export const NearImageSearch = {
     message.image = object.image ?? "";
     message.certainty = object.certainty ?? undefined;
     message.distance = object.distance ?? undefined;
+    message.targetVectors = object.targetVectors?.map((e) => e) || [];
     return message;
   },
 };
 
 function createBaseNearAudioSearch(): NearAudioSearch {
-  return { audio: "", certainty: undefined, distance: undefined };
+  return { audio: "", certainty: undefined, distance: undefined, targetVectors: [] };
 }
 
 export const NearAudioSearch = {
@@ -1973,6 +2042,9 @@ export const NearAudioSearch = {
     }
     if (message.distance !== undefined) {
       writer.uint32(25).double(message.distance);
+    }
+    for (const v of message.targetVectors) {
+      writer.uint32(34).string(v!);
     }
     return writer;
   },
@@ -2005,6 +2077,13 @@ export const NearAudioSearch = {
 
           message.distance = reader.double();
           continue;
+        case 4:
+          if (tag !== 34) {
+            break;
+          }
+
+          message.targetVectors.push(reader.string());
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -2019,6 +2098,9 @@ export const NearAudioSearch = {
       audio: isSet(object.audio) ? globalThis.String(object.audio) : "",
       certainty: isSet(object.certainty) ? globalThis.Number(object.certainty) : undefined,
       distance: isSet(object.distance) ? globalThis.Number(object.distance) : undefined,
+      targetVectors: globalThis.Array.isArray(object?.targetVectors)
+        ? object.targetVectors.map((e: any) => globalThis.String(e))
+        : [],
     };
   },
 
@@ -2033,6 +2115,9 @@ export const NearAudioSearch = {
     if (message.distance !== undefined) {
       obj.distance = message.distance;
     }
+    if (message.targetVectors?.length) {
+      obj.targetVectors = message.targetVectors;
+    }
     return obj;
   },
 
@@ -2044,12 +2129,13 @@ export const NearAudioSearch = {
     message.audio = object.audio ?? "";
     message.certainty = object.certainty ?? undefined;
     message.distance = object.distance ?? undefined;
+    message.targetVectors = object.targetVectors?.map((e) => e) || [];
     return message;
   },
 };
 
 function createBaseNearVideoSearch(): NearVideoSearch {
-  return { video: "", certainty: undefined, distance: undefined };
+  return { video: "", certainty: undefined, distance: undefined, targetVectors: [] };
 }
 
 export const NearVideoSearch = {
@@ -2062,6 +2148,9 @@ export const NearVideoSearch = {
     }
     if (message.distance !== undefined) {
       writer.uint32(25).double(message.distance);
+    }
+    for (const v of message.targetVectors) {
+      writer.uint32(34).string(v!);
     }
     return writer;
   },
@@ -2094,6 +2183,13 @@ export const NearVideoSearch = {
 
           message.distance = reader.double();
           continue;
+        case 4:
+          if (tag !== 34) {
+            break;
+          }
+
+          message.targetVectors.push(reader.string());
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -2108,6 +2204,9 @@ export const NearVideoSearch = {
       video: isSet(object.video) ? globalThis.String(object.video) : "",
       certainty: isSet(object.certainty) ? globalThis.Number(object.certainty) : undefined,
       distance: isSet(object.distance) ? globalThis.Number(object.distance) : undefined,
+      targetVectors: globalThis.Array.isArray(object?.targetVectors)
+        ? object.targetVectors.map((e: any) => globalThis.String(e))
+        : [],
     };
   },
 
@@ -2122,6 +2221,9 @@ export const NearVideoSearch = {
     if (message.distance !== undefined) {
       obj.distance = message.distance;
     }
+    if (message.targetVectors?.length) {
+      obj.targetVectors = message.targetVectors;
+    }
     return obj;
   },
 
@@ -2133,12 +2235,13 @@ export const NearVideoSearch = {
     message.video = object.video ?? "";
     message.certainty = object.certainty ?? undefined;
     message.distance = object.distance ?? undefined;
+    message.targetVectors = object.targetVectors?.map((e) => e) || [];
     return message;
   },
 };
 
 function createBaseNearDepthSearch(): NearDepthSearch {
-  return { depth: "", certainty: undefined, distance: undefined };
+  return { depth: "", certainty: undefined, distance: undefined, targetVectors: [] };
 }
 
 export const NearDepthSearch = {
@@ -2151,6 +2254,9 @@ export const NearDepthSearch = {
     }
     if (message.distance !== undefined) {
       writer.uint32(25).double(message.distance);
+    }
+    for (const v of message.targetVectors) {
+      writer.uint32(34).string(v!);
     }
     return writer;
   },
@@ -2183,6 +2289,13 @@ export const NearDepthSearch = {
 
           message.distance = reader.double();
           continue;
+        case 4:
+          if (tag !== 34) {
+            break;
+          }
+
+          message.targetVectors.push(reader.string());
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -2197,6 +2310,9 @@ export const NearDepthSearch = {
       depth: isSet(object.depth) ? globalThis.String(object.depth) : "",
       certainty: isSet(object.certainty) ? globalThis.Number(object.certainty) : undefined,
       distance: isSet(object.distance) ? globalThis.Number(object.distance) : undefined,
+      targetVectors: globalThis.Array.isArray(object?.targetVectors)
+        ? object.targetVectors.map((e: any) => globalThis.String(e))
+        : [],
     };
   },
 
@@ -2211,6 +2327,9 @@ export const NearDepthSearch = {
     if (message.distance !== undefined) {
       obj.distance = message.distance;
     }
+    if (message.targetVectors?.length) {
+      obj.targetVectors = message.targetVectors;
+    }
     return obj;
   },
 
@@ -2222,12 +2341,13 @@ export const NearDepthSearch = {
     message.depth = object.depth ?? "";
     message.certainty = object.certainty ?? undefined;
     message.distance = object.distance ?? undefined;
+    message.targetVectors = object.targetVectors?.map((e) => e) || [];
     return message;
   },
 };
 
 function createBaseNearThermalSearch(): NearThermalSearch {
-  return { thermal: "", certainty: undefined, distance: undefined };
+  return { thermal: "", certainty: undefined, distance: undefined, targetVectors: [] };
 }
 
 export const NearThermalSearch = {
@@ -2240,6 +2360,9 @@ export const NearThermalSearch = {
     }
     if (message.distance !== undefined) {
       writer.uint32(25).double(message.distance);
+    }
+    for (const v of message.targetVectors) {
+      writer.uint32(34).string(v!);
     }
     return writer;
   },
@@ -2272,6 +2395,13 @@ export const NearThermalSearch = {
 
           message.distance = reader.double();
           continue;
+        case 4:
+          if (tag !== 34) {
+            break;
+          }
+
+          message.targetVectors.push(reader.string());
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -2286,6 +2416,9 @@ export const NearThermalSearch = {
       thermal: isSet(object.thermal) ? globalThis.String(object.thermal) : "",
       certainty: isSet(object.certainty) ? globalThis.Number(object.certainty) : undefined,
       distance: isSet(object.distance) ? globalThis.Number(object.distance) : undefined,
+      targetVectors: globalThis.Array.isArray(object?.targetVectors)
+        ? object.targetVectors.map((e: any) => globalThis.String(e))
+        : [],
     };
   },
 
@@ -2300,6 +2433,9 @@ export const NearThermalSearch = {
     if (message.distance !== undefined) {
       obj.distance = message.distance;
     }
+    if (message.targetVectors?.length) {
+      obj.targetVectors = message.targetVectors;
+    }
     return obj;
   },
 
@@ -2311,12 +2447,13 @@ export const NearThermalSearch = {
     message.thermal = object.thermal ?? "";
     message.certainty = object.certainty ?? undefined;
     message.distance = object.distance ?? undefined;
+    message.targetVectors = object.targetVectors?.map((e) => e) || [];
     return message;
   },
 };
 
 function createBaseNearIMUSearch(): NearIMUSearch {
-  return { imu: "", certainty: undefined, distance: undefined };
+  return { imu: "", certainty: undefined, distance: undefined, targetVectors: [] };
 }
 
 export const NearIMUSearch = {
@@ -2329,6 +2466,9 @@ export const NearIMUSearch = {
     }
     if (message.distance !== undefined) {
       writer.uint32(25).double(message.distance);
+    }
+    for (const v of message.targetVectors) {
+      writer.uint32(34).string(v!);
     }
     return writer;
   },
@@ -2361,6 +2501,13 @@ export const NearIMUSearch = {
 
           message.distance = reader.double();
           continue;
+        case 4:
+          if (tag !== 34) {
+            break;
+          }
+
+          message.targetVectors.push(reader.string());
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -2375,6 +2522,9 @@ export const NearIMUSearch = {
       imu: isSet(object.imu) ? globalThis.String(object.imu) : "",
       certainty: isSet(object.certainty) ? globalThis.Number(object.certainty) : undefined,
       distance: isSet(object.distance) ? globalThis.Number(object.distance) : undefined,
+      targetVectors: globalThis.Array.isArray(object?.targetVectors)
+        ? object.targetVectors.map((e: any) => globalThis.String(e))
+        : [],
     };
   },
 
@@ -2389,6 +2539,9 @@ export const NearIMUSearch = {
     if (message.distance !== undefined) {
       obj.distance = message.distance;
     }
+    if (message.targetVectors?.length) {
+      obj.targetVectors = message.targetVectors;
+    }
     return obj;
   },
 
@@ -2400,6 +2553,7 @@ export const NearIMUSearch = {
     message.imu = object.imu ?? "";
     message.certainty = object.certainty ?? undefined;
     message.distance = object.distance ?? undefined;
+    message.targetVectors = object.targetVectors?.map((e) => e) || [];
     return message;
   },
 };
@@ -2589,7 +2743,7 @@ export const RefPropertiesRequest = {
 };
 
 function createBaseNearVector(): NearVector {
-  return { vector: [], certainty: undefined, distance: undefined, vectorBytes: new Uint8Array(0) };
+  return { vector: [], certainty: undefined, distance: undefined, vectorBytes: new Uint8Array(0), targetVectors: [] };
 }
 
 export const NearVector = {
@@ -2607,6 +2761,9 @@ export const NearVector = {
     }
     if (message.vectorBytes.length !== 0) {
       writer.uint32(34).bytes(message.vectorBytes);
+    }
+    for (const v of message.targetVectors) {
+      writer.uint32(42).string(v!);
     }
     return writer;
   },
@@ -2656,6 +2813,13 @@ export const NearVector = {
 
           message.vectorBytes = reader.bytes();
           continue;
+        case 5:
+          if (tag !== 42) {
+            break;
+          }
+
+          message.targetVectors.push(reader.string());
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -2671,6 +2835,9 @@ export const NearVector = {
       certainty: isSet(object.certainty) ? globalThis.Number(object.certainty) : undefined,
       distance: isSet(object.distance) ? globalThis.Number(object.distance) : undefined,
       vectorBytes: isSet(object.vectorBytes) ? bytesFromBase64(object.vectorBytes) : new Uint8Array(0),
+      targetVectors: globalThis.Array.isArray(object?.targetVectors)
+        ? object.targetVectors.map((e: any) => globalThis.String(e))
+        : [],
     };
   },
 
@@ -2688,6 +2855,9 @@ export const NearVector = {
     if (message.vectorBytes.length !== 0) {
       obj.vectorBytes = base64FromBytes(message.vectorBytes);
     }
+    if (message.targetVectors?.length) {
+      obj.targetVectors = message.targetVectors;
+    }
     return obj;
   },
 
@@ -2700,12 +2870,13 @@ export const NearVector = {
     message.certainty = object.certainty ?? undefined;
     message.distance = object.distance ?? undefined;
     message.vectorBytes = object.vectorBytes ?? new Uint8Array(0);
+    message.targetVectors = object.targetVectors?.map((e) => e) || [];
     return message;
   },
 };
 
 function createBaseNearObject(): NearObject {
-  return { id: "", certainty: undefined, distance: undefined };
+  return { id: "", certainty: undefined, distance: undefined, targetVectors: [] };
 }
 
 export const NearObject = {
@@ -2718,6 +2889,9 @@ export const NearObject = {
     }
     if (message.distance !== undefined) {
       writer.uint32(25).double(message.distance);
+    }
+    for (const v of message.targetVectors) {
+      writer.uint32(34).string(v!);
     }
     return writer;
   },
@@ -2750,6 +2924,13 @@ export const NearObject = {
 
           message.distance = reader.double();
           continue;
+        case 4:
+          if (tag !== 34) {
+            break;
+          }
+
+          message.targetVectors.push(reader.string());
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -2764,6 +2945,9 @@ export const NearObject = {
       id: isSet(object.id) ? globalThis.String(object.id) : "",
       certainty: isSet(object.certainty) ? globalThis.Number(object.certainty) : undefined,
       distance: isSet(object.distance) ? globalThis.Number(object.distance) : undefined,
+      targetVectors: globalThis.Array.isArray(object?.targetVectors)
+        ? object.targetVectors.map((e: any) => globalThis.String(e))
+        : [],
     };
   },
 
@@ -2778,6 +2962,9 @@ export const NearObject = {
     if (message.distance !== undefined) {
       obj.distance = message.distance;
     }
+    if (message.targetVectors?.length) {
+      obj.targetVectors = message.targetVectors;
+    }
     return obj;
   },
 
@@ -2789,6 +2976,7 @@ export const NearObject = {
     message.id = object.id ?? "";
     message.certainty = object.certainty ?? undefined;
     message.distance = object.distance ?? undefined;
+    message.targetVectors = object.targetVectors?.map((e) => e) || [];
     return message;
   },
 };
@@ -3356,6 +3544,7 @@ function createBaseMetadataResult(): MetadataResult {
     idAsBytes: new Uint8Array(0),
     rerankScore: 0,
     rerankScorePresent: false,
+    vectors: [],
   };
 }
 
@@ -3428,6 +3617,9 @@ export const MetadataResult = {
     }
     if (message.rerankScorePresent === true) {
       writer.uint32(176).bool(message.rerankScorePresent);
+    }
+    for (const v of message.vectors) {
+      Vectors.encode(v!, writer.uint32(186).fork()).ldelim();
     }
     return writer;
   },
@@ -3603,6 +3795,13 @@ export const MetadataResult = {
 
           message.rerankScorePresent = reader.bool();
           continue;
+        case 23:
+          if (tag !== 186) {
+            break;
+          }
+
+          message.vectors.push(Vectors.decode(reader, reader.uint32()));
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -3640,6 +3839,7 @@ export const MetadataResult = {
       idAsBytes: isSet(object.idAsBytes) ? bytesFromBase64(object.idAsBytes) : new Uint8Array(0),
       rerankScore: isSet(object.rerankScore) ? globalThis.Number(object.rerankScore) : 0,
       rerankScorePresent: isSet(object.rerankScorePresent) ? globalThis.Boolean(object.rerankScorePresent) : false,
+      vectors: globalThis.Array.isArray(object?.vectors) ? object.vectors.map((e: any) => Vectors.fromJSON(e)) : [],
     };
   },
 
@@ -3711,6 +3911,9 @@ export const MetadataResult = {
     if (message.rerankScorePresent === true) {
       obj.rerankScorePresent = message.rerankScorePresent;
     }
+    if (message.vectors?.length) {
+      obj.vectors = message.vectors.map((e) => Vectors.toJSON(e));
+    }
     return obj;
   },
 
@@ -3741,6 +3944,7 @@ export const MetadataResult = {
     message.idAsBytes = object.idAsBytes ?? new Uint8Array(0);
     message.rerankScore = object.rerankScore ?? 0;
     message.rerankScorePresent = object.rerankScorePresent ?? false;
+    message.vectors = object.vectors?.map((e) => Vectors.fromPartial(e)) || [];
     return message;
   },
 };
@@ -4080,7 +4284,7 @@ export const RefPropertiesResult = {
 };
 
 function bytesFromBase64(b64: string): Uint8Array {
-  if (globalThis.Buffer) {
+  if ((globalThis as any).Buffer) {
     return Uint8Array.from(globalThis.Buffer.from(b64, "base64"));
   } else {
     const bin = globalThis.atob(b64);
@@ -4093,7 +4297,7 @@ function bytesFromBase64(b64: string): Uint8Array {
 }
 
 function base64FromBytes(arr: Uint8Array): string {
-  if (globalThis.Buffer) {
+  if ((globalThis as any).Buffer) {
     return globalThis.Buffer.from(arr).toString("base64");
   } else {
     const bin: string[] = [];

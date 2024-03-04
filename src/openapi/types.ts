@@ -3,10 +3,7 @@ import { definitions } from './schema';
 type Override<T1, T2> = Omit<T1, keyof T2> & T2;
 type DefaultProperties = { [key: string]: unknown };
 
-export type WeaviateObject<T extends Record<string, any> = DefaultProperties> = Override<
-  definitions['Object'],
-  { properties?: T }
->;
+export type WeaviateObject<T = DefaultProperties> = Override<definitions['Object'], { properties?: T }>;
 export type WeaviateObjectsList = definitions['ObjectsListResponse'];
 export type WeaviateObjectsGet = definitions['ObjectsGetResponse'];
 export type Reference = definitions['SingleRef'];
@@ -46,13 +43,15 @@ export type ShardStatusList = definitions['ShardStatusList'];
 export type Tenant = definitions['Tenant'];
 export type SchemaClusterStatus = definitions['SchemaClusterStatus'];
 export type WeaviateModuleConfig = WeaviateClass['moduleConfig'];
-export type WeaviateInvertedIndexConfig = definitions['InvertedIndexConfig'];
+export type WeaviateInvertedIndexConfig = WeaviateClass['invertedIndexConfig'];
 export type WeaviateBM25Config = definitions['BM25Config'];
 export type WeaviateStopwordConfig = definitions['StopwordConfig'];
-export type WeaviateMultiTenancyConfig = definitions['MultiTenancyConfig'];
-export type WeaviateReplicationConfig = definitions['ReplicationConfig'];
+export type WeaviateMultiTenancyConfig = WeaviateClass['multiTenancyConfig'];
+export type WeaviateReplicationConfig = WeaviateClass['replicationConfig'];
 export type WeaviateShardingConfig = WeaviateClass['shardingConfig'];
+export type WeaviateShardStatus = definitions['ShardStatusGetResponse'];
 export type WeaviateVectorIndexConfig = WeaviateClass['vectorIndexConfig'];
+export type WeaviateVectorConfig = WeaviateClass['vectorConfig'];
 // Nodes
 export type NodesStatusResponse = definitions['NodesStatusResponse'];
 export type NodeStats = definitions['NodeStats'];

@@ -97,7 +97,7 @@ export type FilterValueType = PrimitiveFilterValueType | PrimitiveListFilterValu
 export type PrimitiveFilterValueType = number | string | boolean | Date;
 export type PrimitiveListFilterValueType = number[] | string[] | boolean[] | Date[];
 
-const filter = <T extends Properties>(): Filter<T> => {
+const filter = <T>(): Filter<T> => {
   return {
     byProperty: <K extends NonRefKeys<T> & string>(name: K, length = false) => {
       return new FilterByProperty<T[K]>(name, length);
@@ -129,7 +129,7 @@ const filter = <T extends Properties>(): Filter<T> => {
 
 export default filter;
 
-export interface Filter<T extends Properties> {
+export interface Filter<T> {
   byProperty: <K extends NonRefKeys<T> & string>(name: K, length?: boolean) => FilterByProperty<T[K]>;
   byRef: <K extends RefKeys<T> & string>(linkOn: K) => FilterByRef<ExtractCrossReferenceType<T[K]>>;
   byRefMultiTarget: <K extends RefKeys<T> & string>(

@@ -24,7 +24,7 @@ import {
 import { SearchReply } from '../../proto/v1/search_get';
 
 export interface QueryFetchObjectByIdOptions<T> {
-  includeVector?: boolean;
+  includeVector?: boolean | string[];
   returnProperties?: QueryProperty<T>[];
   returnReferences?: QueryReference<T>[];
 }
@@ -35,7 +35,7 @@ export interface QueryFetchObjectsOptions<T> {
   after?: string;
   filters?: FilterValue;
   sort?: Sorting<T>;
-  includeVector?: boolean;
+  includeVector?: boolean | string[];
   returnMetadata?: MetadataQuery;
   returnProperties?: QueryProperty<T>[];
   returnReferences?: QueryReference<T>[];
@@ -45,7 +45,7 @@ export interface QueryOptions<T> {
   limit?: number;
   autoLimit?: number;
   filters?: FilterValue;
-  includeVector?: boolean;
+  includeVector?: boolean | string[];
   returnMetadata?: MetadataQuery;
   returnProperties?: QueryProperty<T>[];
   returnReferences?: QueryReference<T>[];
@@ -60,11 +60,13 @@ export interface QueryHybridOptions<T> extends QueryOptions<T> {
   vector?: number[];
   queryProperties?: PrimitiveKeys<T>[];
   fusionType?: 'Ranked' | 'RelativeScore';
+  targetVector?: string;
 }
 
 export interface QueryBaseNearOptions<T> extends QueryOptions<T> {
   certainty?: number;
   distance?: number;
+  targetVector?: string;
 }
 export interface QueryGroupByNearOptions<T> extends QueryBaseNearOptions<T> {
   groupBy: GroupByOptions<T>;
@@ -83,7 +85,7 @@ export interface QueryNearTextOptions<T> extends QueryBaseNearOptions<T> {
 
 export type QueryNearMediaType = 'audio' | 'depth' | 'image' | 'imu' | 'thermal' | 'video';
 
-class QueryManager<T extends Properties> implements Query<T> {
+class QueryManager<T> implements Query<T> {
   connection: Connection;
   name: string;
   dbVersionSupport: DbVersionSupport;
@@ -104,7 +106,7 @@ class QueryManager<T extends Properties> implements Query<T> {
     this.tenant = tenant;
   }
 
-  public static use<T extends Properties>(
+  public static use<T>(
     connection: Connection,
     name: string,
     dbVersionSupport: DbVersionSupport,
@@ -248,22 +250,22 @@ class QueryManager<T extends Properties> implements Query<T> {
   }
 }
 
-export interface Query<T extends Properties> {
+export interface Query<T> {
   fetchObjectById: (id: string, opts?: QueryFetchObjectByIdOptions<T>) => Promise<WeaviateObject<T> | null>;
 
   fetchObjects: (opts?: QueryFetchObjectsOptions<T>) => Promise<WeaviateReturn<T>>;
   bm25: (query: string, opts?: QueryBm25Options<T>) => Promise<WeaviateReturn<T>>;
   hybrid: (query: string, opts?: QueryHybridOptions<T>) => Promise<WeaviateReturn<T>>;
 
-  nearImage<O extends QueryNearOptions<T> = undefined>(image: string | Blob, opts?: O): QueryReturn<O, T>;
-  nearMedia<O extends QueryNearOptions<T> = undefined>(
+  nearImage<O extends QueryNearOptions<T>>(image: string | Blob, opts?: O): QueryReturn<O, T>;
+  nearMedia<O extends QueryNearOptions<T>>(
     media: string | Blob,
     type: QueryNearMediaType,
     opts?: O
   ): QueryReturn<O, T>;
-  nearObject<O extends QueryNearOptions<T> = undefined>(id: string, opts?: O): QueryReturn<O, T>;
-  nearText<O extends QueryNearOptions<T> = undefined>(query: string | string[], opts?: O): QueryReturn<O, T>;
-  nearVector<O extends QueryNearOptions<T> = undefined>(vector: number[], opts?: O): QueryReturn<O, T>;
+  nearObject<O extends QueryNearOptions<T>>(id: string, opts?: O): QueryReturn<O, T>;
+  nearText<O extends QueryNearOptions<T>>(query: string | string[], opts?: O): QueryReturn<O, T>;
+  nearVector<O extends QueryNearOptions<T>>(vector: number[], opts?: O): QueryReturn<O, T>;
 }
 
 export type QueryNearOptions<T> = QueryBaseNearOptions<T> | QueryGroupByNearOptions<T> | undefined;

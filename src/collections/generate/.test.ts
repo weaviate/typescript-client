@@ -9,7 +9,7 @@ const maybe = process.env.OPENAI_APIKEY ? describe : describe.skip;
 
 maybe('Testing of the collection.generate methods with a simple collection', () => {
   let client: WeaviateNextClient;
-  let collection: Collection<TestCollectionGenerateSimple>;
+  let collection: Collection<TestCollectionGenerateSimple, 'TestCollectionGenerateSimple'>;
   const className = 'TestCollectionGenerateSimple';
   let id: string;
   let vector: number[];
@@ -68,7 +68,7 @@ maybe('Testing of the collection.generate methods with a simple collection', () 
         });
       });
     const res = await collection.query.fetchObjectById(id, { includeVector: true });
-    vector = res?.vector!;
+    vector = res?.vectors.default!;
   });
 
   describe('using a non-generic collection', () => {
@@ -163,7 +163,7 @@ maybe('Testing of the collection.generate methods with a simple collection', () 
 
 maybe('Testing of the groupBy collection.generate methods with a simple collection', () => {
   let client: WeaviateNextClient;
-  let collection: Collection<TestCollectionGenerateGroupBySimple>;
+  let collection: Collection<TestCollectionGenerateGroupBySimple, 'TestCollectionGenerateGroupBySimple'>;
   const className = 'TestCollectionGenerateGroupBySimple';
   let id: string;
   let vector: number[];
@@ -228,7 +228,7 @@ maybe('Testing of the groupBy collection.generate methods with a simple collecti
         });
       });
     const res = await collection.query.fetchObjectById(id, { includeVector: true });
-    vector = res?.vector!;
+    vector = res?.vectors.default!;
   });
 
   // it('should groupBy without search', async () => {

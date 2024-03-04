@@ -1,136 +1,174 @@
 import {
   DataType,
-  GenerativeAzureOpenAIOptions,
-  GenerativeCohereOptions,
-  GenerativeOpenAIOptions,
-  GenerativePaLMOptions,
-  Img2VecNeuralOptions,
+  GenerativeAzureOpenAIConfig,
+  GenerativeCohereConfig,
+  GenerativeOpenAIConfig,
+  GenerativePaLMConfig,
+  Img2VecNeuralConfig,
   InvertedIndexConfigCreate,
-  ModuleOptions,
-  Multi2VecBindOptions,
-  Multi2VecClipOptions,
+  ModuleConfig,
+  Multi2VecBindConfig,
+  Multi2VecClipConfig,
   MultiTenancyConfigCreate,
+  NamedVectorConfigCreate,
+  NonRefKeys,
   PQConfigCreate,
-  Ref2VecCentroidOptions,
+  PrimitiveKeys,
+  Properties,
+  Ref2VecCentroidConfig,
   ReplicationConfigCreate,
-  RerankerCohereOptions,
+  RerankerCohereConfig,
   ShardingConfigCreate,
-  Text2VecCohereOptions,
-  Text2VecContextionaryOptions,
-  Text2VecOpenAIOptions,
+  Text2VecCohereConfig,
+  Text2VecContextionaryConfig,
+  Text2VecOpenAIConfig,
   VectorDistance,
+  VectorIndexConfigCreate,
   VectorIndexConfigHNSWCreate,
+  VectorIndexType,
+  VectorizerConfigType,
+  Vectorizer,
 } from '../types';
 
+export const namedVectorizer = {
+  make: <
+    N extends string,
+    I extends VectorIndexType,
+    V extends Vectorizer,
+    C extends VectorizerConfigType<V>,
+    T
+  >(
+    name: N,
+    vectorIndexType: I,
+    vectorizer: V,
+    properties?: PrimitiveKeys<T>[],
+    vectorIndexConfig?: VectorIndexConfigCreate<I>,
+    vectorizerConfig?: C
+  ): NamedVectorConfigCreate<T, N, I, V, C> => {
+    return {
+      name,
+      properties,
+      vectorIndexConfig,
+      vectorIndexType,
+      vectorizer: {
+        name: vectorizer,
+        config: vectorizerConfig,
+      },
+    };
+  },
+};
+
+// export interface NamedVectorizer<T extends Properties> {
+//   make<I extends VectorIndexType, V extends Vectorizers>(
+//     name: VectorKeys<T>,
+//     vectorIndexType: I,
+//     vectorizer: V,
+//     vectorIndexconfig?: VectorIndexConfigCreate<I>,
+//     vectorizerconfig?: VectorizerConfig<V>
+//   ): NamedVectorConfig<I, V, VectorizerConfig<V>>;
+// }
+
 const vectorizer = {
-  none: (): ModuleOptions<'none', Record<string, never>> => {
+  none: (): ModuleConfig<'none', Record<string, never>> => {
     return {
       name: 'none',
-      options: {},
+      config: {},
     };
   },
-  img2VecNeural: (Options?: Img2VecNeuralOptions): ModuleOptions<'img2vec-neural', Img2VecNeuralOptions> => {
+  img2VecNeural: (config?: Img2VecNeuralConfig): ModuleConfig<'img2vec-neural', Img2VecNeuralConfig> => {
     return {
       name: 'img2vec-neural',
-      options: Options,
+      config: config,
     };
   },
-  multi2VecBind: (Options?: Multi2VecBindOptions): ModuleOptions<'multi2vec-bind', Multi2VecBindOptions> => {
+  multi2VecBind: (config?: Multi2VecBindConfig): ModuleConfig<'multi2vec-bind', Multi2VecBindConfig> => {
     return {
       name: 'multi2vec-bind',
-      options: Options,
+      config: config,
     };
   },
-  multi2VecClip: (Options?: Multi2VecClipOptions): ModuleOptions<'multi2vec-clip', Multi2VecClipOptions> => {
+  multi2VecClip: (config?: Multi2VecClipConfig): ModuleConfig<'multi2vec-clip', Multi2VecClipConfig> => {
     return {
       name: 'multi2vec-clip',
-      options: Options,
+      config: config,
     };
   },
   ref2VecCentroid: (
-    Options: Ref2VecCentroidOptions
-  ): ModuleOptions<'ref2vec-centroid', Ref2VecCentroidOptions> => {
+    config: Ref2VecCentroidConfig
+  ): ModuleConfig<'ref2vec-centroid', Ref2VecCentroidConfig> => {
     return {
       name: 'ref2vec-centroid',
-      options: Options,
+      config: config,
     };
   },
-  text2VecCohere: (
-    Options?: Text2VecCohereOptions
-  ): ModuleOptions<'text2vec-cohere', Text2VecCohereOptions> => {
+  text2VecCohere: (config?: Text2VecCohereConfig): ModuleConfig<'text2vec-cohere', Text2VecCohereConfig> => {
     return {
       name: 'text2vec-cohere',
-      options: Options,
+      config: config,
     };
   },
   text2VecContextionary: (
-    Options?: Text2VecContextionaryOptions
-  ): ModuleOptions<'text2vec-contextionary', Text2VecContextionaryOptions> => {
+    config?: Text2VecContextionaryConfig
+  ): ModuleConfig<'text2vec-contextionary', Text2VecContextionaryConfig> => {
     return {
       name: 'text2vec-contextionary',
-      options: Options,
+      config: config,
     };
   },
-  text2VecOpenAI: (
-    Options?: Text2VecOpenAIOptions
-  ): ModuleOptions<'text2vec-openai', Text2VecOpenAIOptions> => {
+  text2VecOpenAI: (config?: Text2VecOpenAIConfig): ModuleConfig<'text2vec-openai', Text2VecOpenAIConfig> => {
     return {
       name: 'text2vec-openai',
-      options: Options,
+      config: config,
     };
   },
 };
 
 const generative = {
   azureOpenAI: (
-    Options: GenerativeAzureOpenAIOptions
-  ): ModuleOptions<'generative-openai', GenerativeAzureOpenAIOptions> => {
+    config: GenerativeAzureOpenAIConfig
+  ): ModuleConfig<'generative-openai', GenerativeAzureOpenAIConfig> => {
     return {
       name: 'generative-openai',
-      options: Options,
+      config: config,
     };
   },
-  cohere: (
-    Options?: GenerativeCohereOptions
-  ): ModuleOptions<'generative-cohere', GenerativeCohereOptions> => {
+  cohere: (config?: GenerativeCohereConfig): ModuleConfig<'generative-cohere', GenerativeCohereConfig> => {
     return {
       name: 'generative-cohere',
-      options: Options,
+      config: config,
     };
   },
-  openAI: (
-    Options?: GenerativeOpenAIOptions
-  ): ModuleOptions<'generative-openai', GenerativeOpenAIOptions> => {
+  openAI: (config?: GenerativeOpenAIConfig): ModuleConfig<'generative-openai', GenerativeOpenAIConfig> => {
     return {
       name: 'generative-openai',
-      options: Options,
+      config: config,
     };
   },
-  palm: (Options: GenerativePaLMOptions): ModuleOptions<'generative-palm', GenerativePaLMOptions> => {
+  palm: (config: GenerativePaLMConfig): ModuleConfig<'generative-palm', GenerativePaLMConfig> => {
     return {
       name: 'generative-palm',
-      options: Options,
+      config: config,
     };
   },
 };
 
 const reranker = {
-  cohere: (Options?: RerankerCohereOptions): ModuleOptions<'reranker-cohere', RerankerCohereOptions> => {
+  cohere: (config?: RerankerCohereConfig): ModuleConfig<'reranker-cohere', RerankerCohereConfig> => {
     return {
       name: 'reranker-cohere',
-      options: Options,
+      config: config,
     };
   },
-  transformers: (): ModuleOptions<'reranker-transformers', Record<string, never>> => {
+  transformers: (): ModuleConfig<'reranker-transformers', Record<string, never>> => {
     return {
       name: 'reranker-transformers',
-      options: {},
+      config: {},
     };
   },
 };
 
 const vectorIndex = {
-  hnsw: (Options?: {
+  hnsw: (config?: {
     cleanupIntervalSeconds?: number;
     distanceMetric?: VectorDistance;
     dynamicEfFactor?: number;
@@ -145,32 +183,32 @@ const vectorIndex = {
     vectorCacheMaxObjects?: number;
   }): VectorIndexConfigHNSWCreate => {
     return {
-      cleanupIntervalSeconds: parseWithDefault(Options?.cleanupIntervalSeconds, 300),
-      distance: parseWithDefault(Options?.distanceMetric, 'cosine'),
-      dynamicEfFactor: parseWithDefault(Options?.dynamicEfFactor, 8),
-      dynamicEfMax: parseWithDefault(Options?.dynamicEfMax, 500),
-      dynamicEfMin: parseWithDefault(Options?.dynamicEfMin, 100),
-      ef: parseWithDefault(Options?.ef, -1),
-      efConstruction: parseWithDefault(Options?.efConstruction, 128),
-      flatSearchCutoff: parseWithDefault(Options?.flatSearchCutoff, 40000),
-      maxConnections: parseWithDefault(Options?.maxConnections, 64),
-      pq: Options?.pq
+      cleanupIntervalSeconds: parseWithDefault(config?.cleanupIntervalSeconds, 300),
+      distance: parseWithDefault(config?.distanceMetric, 'cosine'),
+      dynamicEfFactor: parseWithDefault(config?.dynamicEfFactor, 8),
+      dynamicEfMax: parseWithDefault(config?.dynamicEfMax, 500),
+      dynamicEfMin: parseWithDefault(config?.dynamicEfMin, 100),
+      ef: parseWithDefault(config?.ef, -1),
+      efConstruction: parseWithDefault(config?.efConstruction, 128),
+      flatSearchCutoff: parseWithDefault(config?.flatSearchCutoff, 40000),
+      maxConnections: parseWithDefault(config?.maxConnections, 64),
+      pq: config?.pq
         ? {
-            bitCompression: parseWithDefault(Options.pq.bitCompression, false),
-            centroids: parseWithDefault(Options.pq.centroids, 256),
+            bitCompression: parseWithDefault(config.pq.bitCompression, false),
+            centroids: parseWithDefault(config.pq.centroids, 256),
             enabled: true,
-            encoder: Options.pq.encoder
+            encoder: config.pq.encoder
               ? {
-                  distribution: parseWithDefault(Options.pq.encoder.distribution, 'log_normal'),
-                  type: parseWithDefault(Options?.pq.encoder.type, 'kmeans'),
+                  distribution: parseWithDefault(config.pq.encoder.distribution, 'log_normal'),
+                  type: parseWithDefault(config?.pq.encoder.type, 'kmeans'),
                 }
               : undefined,
-            segments: parseWithDefault(Options?.pq.segments, 0),
-            trainingLimit: parseWithDefault(Options?.pq.trainingLimit, 100000),
+            segments: parseWithDefault(config?.pq.segments, 0),
+            trainingLimit: parseWithDefault(config?.pq.trainingLimit, 100000),
           }
         : undefined,
-      skip: parseWithDefault(Options?.skip, false),
-      vectorCacheMaxObjects: parseWithDefault(Options?.vectorCacheMaxObjects, 1000000000000),
+      skip: parseWithDefault(config?.skip, false),
+      vectorCacheMaxObjects: parseWithDefault(config?.vectorCacheMaxObjects, 1000000000000),
     };
   },
 };
@@ -195,11 +233,12 @@ const dataType: Record<string, DataType> = {
 
 export default {
   generative,
+  namedVectorizer,
   reranker,
   vectorizer,
   vectorIndex,
   dataType,
-  invertedIndex: (Options?: {
+  invertedIndex: (config?: {
     bm25b?: number;
     bm25k1?: number;
     cleanupIntervalSeconds?: number;
@@ -212,27 +251,27 @@ export default {
   }): InvertedIndexConfigCreate => {
     return {
       bm25: {
-        b: parseWithDefault(Options?.bm25b, 0.75),
-        k1: parseWithDefault(Options?.bm25k1, 1.2),
+        b: parseWithDefault(config?.bm25b, 0.75),
+        k1: parseWithDefault(config?.bm25k1, 1.2),
       },
-      cleanupIntervalSeconds: parseWithDefault(Options?.cleanupIntervalSeconds, 60),
-      indexTimestamps: parseWithDefault(Options?.indexTimestamps, false),
-      indexPropertyLength: parseWithDefault(Options?.indexPropertyLength, false),
-      indexNullState: parseWithDefault(Options?.indexNullState, false),
+      cleanupIntervalSeconds: parseWithDefault(config?.cleanupIntervalSeconds, 60),
+      indexTimestamps: parseWithDefault(config?.indexTimestamps, false),
+      indexPropertyLength: parseWithDefault(config?.indexPropertyLength, false),
+      indexNullState: parseWithDefault(config?.indexNullState, false),
       stopwords: {
-        preset: parseWithDefault(Options?.stopwordsPreset, 'en'),
-        additions: parseWithDefault(Options?.stopwordsAdditions, []),
-        removals: parseWithDefault(Options?.stopwordsRemovals, []),
+        preset: parseWithDefault(config?.stopwordsPreset, 'en'),
+        additions: parseWithDefault(config?.stopwordsAdditions, []),
+        removals: parseWithDefault(config?.stopwordsRemovals, []),
       },
     };
   },
-  multiTenancy: (Options?: { enabled?: boolean }): MultiTenancyConfigCreate => {
-    return Options ? { enabled: parseWithDefault(Options.enabled, true) } : { enabled: true };
+  multiTenancy: (config?: { enabled?: boolean }): MultiTenancyConfigCreate => {
+    return config ? { enabled: parseWithDefault(config.enabled, true) } : { enabled: true };
   },
-  replication: (Options?: { factor?: number }): ReplicationConfigCreate => {
-    return Options ? { factor: parseWithDefault(Options.factor, 1) } : { factor: 1 };
+  replication: (config?: { factor?: number }): ReplicationConfigCreate => {
+    return config ? { factor: parseWithDefault(config.factor, 1) } : { factor: 1 };
   },
-  sharding: (Options?: {
+  sharding: (config?: {
     virtualPerPhysical?: number;
     desiredCount?: number;
     actualCount?: number;
@@ -240,11 +279,11 @@ export default {
     actualVirtualCount?: number;
   }): ShardingConfigCreate => {
     return {
-      virtualPerPhysical: parseWithDefault(Options?.virtualPerPhysical, 128),
-      desiredCount: parseWithDefault(Options?.desiredCount, 1),
-      actualCount: parseWithDefault(Options?.actualCount, 1),
-      desiredVirtualCount: parseWithDefault(Options?.desiredVirtualCount, 128),
-      actualVirtualCount: parseWithDefault(Options?.actualVirtualCount, 128),
+      virtualPerPhysical: parseWithDefault(config?.virtualPerPhysical, 128),
+      desiredCount: parseWithDefault(config?.desiredCount, 1),
+      actualCount: parseWithDefault(config?.actualCount, 1),
+      desiredVirtualCount: parseWithDefault(config?.desiredVirtualCount, 128),
+      actualVirtualCount: parseWithDefault(config?.actualVirtualCount, 128),
       key: '_id',
       strategy: 'hash',
       function: 'murmur3',

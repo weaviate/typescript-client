@@ -1,11 +1,6 @@
 import Connection from '../../connection/grpc';
 
-import {
-  WeaviateObject,
-  BatchDeleteResponse,
-  BatchReference,
-  BatchReferenceResponse,
-} from '../../openapi/types';
+import { WeaviateObject, BatchReference, BatchReferenceResponse } from '../../openapi/types';
 import { buildObjectsPath, buildRefsPath } from '../../batch/path';
 import { ObjectsPath, ReferencesPath } from '../../data/path';
 import { DbVersionSupport } from '../../utils/dbVersion';
@@ -21,7 +16,7 @@ import {
   NonReferenceInputs,
   Properties,
   ReferenceInputs,
-  Refs,
+  Vectors,
 } from '../types';
 import { FilterValue } from '../filters';
 import Deserialize from '../deserialize';
@@ -37,16 +32,16 @@ export interface InsertArgs<T> {
   id?: string;
   properties?: NonReferenceInputs<T>;
   references?: ReferenceInputs<T>;
-  vector?: number[];
+  vectors?: number[] | Vectors;
 }
 
-export interface ReferenceArgs<T extends Properties> {
+export interface ReferenceArgs<T> {
   fromUuid: string;
   fromProperty: string;
   to: ReferenceManager<T>;
 }
 
-export interface ReferenceManyArgs<T extends Properties> {
+export interface ReferenceManyArgs<T> {
   refs: ReferenceArgs<T>[];
 }
 
@@ -58,7 +53,7 @@ export interface ReplaceArgs<T> {
 
 export interface UpdateArgs<T> extends ReplaceArgs<T> {}
 
-export interface Data<T extends Properties> {
+export interface Data<T> {
   delete: (id: string) => Promise<boolean>;
   deleteMany: <V extends boolean = false>(
     where: FilterValue,
@@ -84,7 +79,7 @@ export type BatchDeleteResult = {
   successful: number;
 };
 
-const data = <T extends Properties>(
+const data = <T>(
   connection: Connection,
   name: string,
   dbVersionSupport: DbVersionSupport,
