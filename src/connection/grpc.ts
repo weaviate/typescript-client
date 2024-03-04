@@ -3,7 +3,6 @@ import Connection, { ConnectionParams } from '.';
 import { ConsistencyLevel } from '../data';
 
 import { ChannelCredentials, createChannel, createClient, Metadata } from 'nice-grpc';
-import { createUnaryMethod } from 'nice-grpc/src/client/createUnaryMethod';
 
 import { WeaviateDefinition, WeaviateClient } from '../proto/v1/weaviate';
 import {
