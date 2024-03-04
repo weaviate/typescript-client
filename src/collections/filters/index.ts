@@ -205,7 +205,7 @@ class FilterByProperty<V> extends FilterBase {
     super(length ? `len(${property})` : property, target);
   }
 
-  public isNone(value: boolean): FilterValue<boolean> {
+  public isNull(value: boolean): FilterValue<boolean> {
     return {
       operator: 'IsNull',
       target: this.targetPath(),
@@ -286,28 +286,28 @@ class FilterByProperty<V> extends FilterBase {
   }
 }
 
-class FilterByRef<V> {
+class FilterByRef<T> {
   private target: TargetRefs;
 
   constructor(target: TargetRefs) {
     this.target = target;
   }
 
-  public byRef<T, K extends RefKeys<T> & string>(linkOn: K) {
+  public byRef<K extends RefKeys<T> & string>(linkOn: K) {
     this.target.target = { type_: 'single', linkOn: linkOn };
     return new FilterByRef<ExtractCrossReferenceType<T[K]>>(this.target);
   }
 
-  public byRefMultiTarget<T, K extends RefKeys<T> & string>(linkOn: K, targetCollection: string) {
+  public byRefMultiTarget<K extends RefKeys<T> & string>(linkOn: K, targetCollection: string) {
     this.target.target = { type_: 'multi', linkOn: linkOn, targetCollection: targetCollection };
     return new FilterByRef<ExtractCrossReferenceType<T[K]>>(this.target);
   }
 
-  public byProperty<K extends NonRefKeys<V> & string>(name: K, length = false) {
-    return new FilterByProperty<V[K]>(name, length, this.target);
+  public byProperty<K extends NonRefKeys<T> & string>(name: K, length = false) {
+    return new FilterByProperty<T[K]>(name, length, this.target);
   }
 
-  public byRefCount<K extends RefKeys<V> & string>(linkOn: K) {
+  public byRefCount<K extends RefKeys<T> & string>(linkOn: K) {
     return new FilterByCount(linkOn, this.target);
   }
 

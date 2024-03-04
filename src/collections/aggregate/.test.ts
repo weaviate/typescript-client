@@ -4,6 +4,7 @@ import weaviate, { WeaviateNextClient } from '../../index.node';
 import { DataObject } from '../types';
 import { CrossReference } from '../references';
 import { Collection } from '../collection';
+import filter from '../filters';
 
 describe('Testing of the collection.aggregate methods', () => {
   type TestCollectionAggregate = {

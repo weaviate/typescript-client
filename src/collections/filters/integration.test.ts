@@ -257,4 +257,34 @@ describe('Testing of the filter class with a simple collection', () => {
         expect(obj.vectors.default).toEqual(vec);
       });
   });
+
+  it('should filter an aggregate query with a single filter', async () => {
+    const res = await collection.aggregate.overAll({
+      filters: collection.filter.byProperty('text').equal('one'),
+      returnMetrics: collection.metrics.aggregate('text').text(['count']),
+    });
+    expect(res.properties.text.count).toEqual(2);
+  });
+
+  it('should filter an aggregate query with an AND filter', async () => {
+    const res = await collection.aggregate.overAll({
+      filters: Filters.and(
+        collection.filter.byProperty('text').equal('one'),
+        collection.filter.byProperty('int').equal(1)
+      ),
+      returnMetrics: collection.metrics.aggregate('text').text(['count']),
+    });
+    expect(res.properties.text.count).toEqual(1);
+  });
+
+  it('should filter an aggregate query with an OR filter', async () => {
+    const res = await collection.aggregate.overAll({
+      filters: Filters.or(
+        collection.filter.byProperty('text').equal('one'),
+        collection.filter.byProperty('int').equal(2)
+      ),
+      returnMetrics: collection.metrics.aggregate('text').text(['count']),
+    });
+    expect(res.properties.text.count).toEqual(3);
+  });
 });

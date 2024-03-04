@@ -6,7 +6,7 @@ import { ConsistencyLevel } from '../../data';
 import { FilterValue } from '../filters';
 
 import { Aggregator } from '../../graphql';
-import { Vectors } from '../types';
+import Serialize from '../serialize';
 
 type Properties = Record<string, any>;
 
@@ -376,9 +376,9 @@ export class AggregateManager<T> implements Aggregate<T> {
     if (fields !== '') {
       builder = builder.withFields(fields);
     }
-    // if (filters) {
-    //   builder = builder.withWhere(Serialize.filtersREST(filters));
-    // }
+    if (filters) {
+      builder = builder.withWhere(Serialize.filtersREST(filters));
+    }
     return builder;
   }
 

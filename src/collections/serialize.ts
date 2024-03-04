@@ -54,7 +54,6 @@ import {
   GeoCoordinate,
   PhoneNumberInput,
   ReferenceInputs,
-  Vectors,
 } from './types';
 import {
   SearchBm25Args,
@@ -90,6 +89,7 @@ import {
   TextArrayProperties,
   Filters as FiltersGRPC,
   Filters_Operator,
+  FilterTarget,
 } from '../proto/v1/base';
 import { ReferenceManager, uuidToBeacon } from './references';
 
@@ -116,6 +116,12 @@ const isMultiTargetRef = <T extends Properties, P extends QueryReference<T>>(
 ): argument is MultiRefProperty<T> => {
   return argument.targetCollection != undefined;
 };
+
+type FilterTargetType =
+  | FilterTarget['property']
+  | FilterTarget['singleTarget']
+  | FilterTarget['multiTarget']
+  | FilterTarget['count'];
 
 class FilterGuards {
   static isFilters = <T extends FilterValueType>(
@@ -458,26 +464,40 @@ export default class Serialize {
     }
   };
 
-  public static filtersREST = <T extends FilterValueType>(filters: FilterValue): WhereFilter => {
-    const resolveFilters = (filters: FilterValue): WhereFilter[] => {
-      const out: WhereFilter[] = [];
-      filters.filters?.forEach((val) => {
-        if (FilterGuards.isFilters(val)) {
-          out.push(Serialize.filtersREST(val));
-        }
-      });
-      return out;
-    };
+  private static filterTargetToREST = (target: FilterTarget): string[] => {
+    if (target.property) {
+      return [target.property];
+    } else if (target.singleTarget) {
+      throw new Error(
+        'Cannot use Filter.byRef() in the aggregate API currently. Instead use Filter.byRefMultiTarget() and specify the target collection explicitly.'
+      );
+    } else if (target.multiTarget) {
+      if (target.multiTarget.target === undefined) {
+        throw new Error(`target of multiTarget filter was unexpectedly undefined: ${target}`);
+      }
+      return [
+        target.multiTarget.on,
+        target.multiTarget.targetCollection,
+        ...Serialize.filterTargetToREST(target.multiTarget.target),
+      ];
+    } else {
+      return [];
+    }
+  };
+
+  public static filtersREST = (filters: FilterValue): WhereFilter => {
     const { value } = filters;
     if (filters.operator === 'And' || filters.operator === 'Or') {
       return {
-        // path: filters.path,
         operator: filters.operator,
-        operands: resolveFilters(filters),
+        operands: filters.filters?.map(Serialize.filtersREST),
       };
     } else {
+      if (filters.target === undefined) {
+        throw new Error(`target of filter was unexpectedly undefined: ${filters}`);
+      }
       const out = {
-        path: [filters.target?.property as string],
+        path: Serialize.filterTargetToREST(filters.target),
         operator: filters.operator,
       };
       if (FilterGuards.isText(value)) {
