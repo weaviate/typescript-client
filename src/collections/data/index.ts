@@ -1,11 +1,11 @@
 import Connection from '../../connection/grpc';
 
 import { WeaviateObject, BatchReference, BatchReferenceResponse } from '../../openapi/types';
-import { buildObjectsPath, buildRefsPath } from '../../batch/path';
+import { buildRefsPath } from '../../batch/path';
 import { ObjectsPath, ReferencesPath } from '../../data/path';
 import { DbVersionSupport } from '../../utils/dbVersion';
-import { Checker, ConsistencyLevel, Creator } from '../../data';
-import { ReferenceManager, uuidToBeacon } from '../references';
+import { Checker, ConsistencyLevel } from '../../data';
+import { ReferenceManager, referenceToBeacons } from '../references';
 import Serialize, { DataGuards } from '../serialize';
 import {
   BatchObjectsReturn,
@@ -15,6 +15,7 @@ import {
   ErrorReference,
   NonReferenceInputs,
   Properties,
+  ReferenceInput,
   ReferenceInputs,
   Vectors,
 } from '../types';
@@ -38,7 +39,7 @@ export interface InsertArgs<T> {
 export interface ReferenceArgs<T> {
   fromUuid: string;
   fromProperty: string;
-  to: ReferenceManager<T>;
+  to: ReferenceInput<T>;
 }
 
 export interface ReferenceManyArgs<T> {
@@ -148,7 +149,7 @@ const data = <T>(
       referencesPath
         .build(args.fromUuid, name, args.fromProperty, consistencyLevel, tenant)
         .then((path) =>
-          Promise.all(args.to.toBeaconObjs().map((beacon) => connection.postEmpty(path, beacon)))
+          Promise.all(referenceToBeacons(args.to).map((beacon) => connection.postEmpty(path, beacon)))
         )
         .then(() => {})
         .catch((err) => {
@@ -160,10 +161,10 @@ const data = <T>(
       );
       const references: BatchReference[] = [];
       args.refs.forEach((ref) => {
-        ref.to.toBeaconStrings().forEach((beaconStr) => {
+        referenceToBeacons(ref.to).forEach((beacon) => {
           references.push({
             from: `weaviate://localhost/${name}/${ref.fromUuid}/${ref.fromProperty}`,
-            to: beaconStr,
+            to: beacon.beacon,
             tenant: tenant,
           });
         });
@@ -195,7 +196,7 @@ const data = <T>(
       referencesPath
         .build(args.fromUuid, name, args.fromProperty, consistencyLevel, tenant)
         .then((path) =>
-          Promise.all(args.to.toBeaconObjs().map((beacon) => connection.delete(path, beacon, false)))
+          Promise.all(referenceToBeacons(args.to).map((beacon) => connection.delete(path, beacon, false)))
         )
         .then(() => {})
         .catch((err) => {
@@ -204,7 +205,7 @@ const data = <T>(
     referenceReplace: <P extends Properties>(args: ReferenceArgs<P>): Promise<void> =>
       referencesPath
         .build(args.fromUuid, name, args.fromProperty, consistencyLevel, tenant)
-        .then((path) => connection.put(path, args.to.toBeaconObjs(), false)),
+        .then((path) => connection.put(path, referenceToBeacons(args.to), false)),
     replace: (args: ReplaceArgs<T>): Promise<void> =>
       objectsPath.buildUpdate(args.id, name, consistencyLevel).then((path) =>
         connection.put(path, {

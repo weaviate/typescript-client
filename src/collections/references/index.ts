@@ -1,4 +1,4 @@
-import { Properties, WeaviateObject } from '../types';
+import { Properties, ReferenceInput, ReferenceToMultiTarget, WeaviateObject } from '../types';
 
 interface ReferenceToArgs {
   uuids: string | string[];
@@ -57,10 +57,12 @@ export class ReferenceManager<T> {
 }
 
 export class Reference {
-  public static to<TProperties>(uuids: string | string[]): ReferenceManager<TProperties> {
+  public static to<TProperties extends Properties = Properties>(
+    uuids: string | string[]
+  ): ReferenceManager<TProperties> {
     return new ReferenceManager<TProperties>('', undefined, Array.isArray(uuids) ? uuids : [uuids]);
   }
-  public static toMultiTarget<TProperties>(
+  public static toMultiTarget<TProperties extends Properties = Properties>(
     uuids: string | string[],
     targetCollection: string
   ): ReferenceManager<TProperties> {
@@ -79,3 +81,36 @@ export const referenceFromObjects = <TProperties>(
 };
 
 export type CrossReference<TProperties extends Properties> = ReferenceManager<TProperties>;
+
+export class ReferenceGuards {
+  public static isReferenceManager<T>(arg: ReferenceInput<T>): arg is ReferenceManager<T> {
+    return arg instanceof ReferenceManager;
+  }
+
+  public static isUuid<T>(arg: ReferenceInput<T>): arg is string {
+    return typeof arg === 'string';
+  }
+
+  public static isUuids<T>(arg: ReferenceInput<T>): arg is string[] {
+    return Array.isArray(arg);
+  }
+
+  public static isMultiTarget<T>(arg: ReferenceInput<T>): arg is ReferenceToMultiTarget {
+    return (arg as ReferenceToMultiTarget).targetCollection !== undefined;
+  }
+}
+
+export const referenceToBeacons = <T>(ref: ReferenceInput<T>): Beacon[] => {
+  if (ReferenceGuards.isReferenceManager(ref)) {
+    return ref.toBeaconObjs();
+  } else if (ReferenceGuards.isUuid(ref)) {
+    return [uuidToBeacon(ref)];
+  } else if (ReferenceGuards.isUuids(ref)) {
+    return ref.map((uuid) => uuidToBeacon(uuid));
+  } else if (ReferenceGuards.isMultiTarget(ref)) {
+    return typeof ref.uuids === 'string'
+      ? [uuidToBeacon(ref.uuids, ref.targetCollection)]
+      : ref.uuids.map((uuid) => uuidToBeacon(uuid, ref.targetCollection));
+  }
+  return [];
+};

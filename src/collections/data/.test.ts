@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
 import weaviate, { WeaviateNextClient } from '../../index.node';
 import { v4 } from 'uuid';
-import { DataObject } from '../types';
+import { DataObject, WeaviateObject } from '../types';
 import { CrossReference, Reference } from '../references';
 import { GeoCoordinate, PhoneNumber } from '../../proto/v1/properties';
 import { Collection } from '../collection';
@@ -152,7 +152,7 @@ describe('Testing of the collection.data methods', () => {
     const obj = await collection.query.fetchObjectById(toBeReplacedID);
     expect(obj?.properties.testProp).toEqual('REPLACE ME');
     expect(obj?.properties.testProp2).toEqual(1);
-    await collection.data
+    return await collection.data
       .replace({
         id: toBeReplacedID,
         properties: {
@@ -170,7 +170,7 @@ describe('Testing of the collection.data methods', () => {
     const obj = await collection.query.fetchObjectById(toBeUpdatedID);
     expect(obj?.properties.testProp).toEqual('UPDATE ME');
     expect(obj?.properties.testProp2).toEqual(1);
-    await collection.data
+    return collection.data
       .update({
         id: toBeUpdatedID,
         properties: {
@@ -184,7 +184,7 @@ describe('Testing of the collection.data methods', () => {
       });
   });
 
-  it('should be able to insert many (10) objects at once', async () => {
+  it('should be able to insert many (10) objects at once', () => {
     const objects: DataObject<TestCollectionData>[] = [];
     for (let j = 0; j < 10; j++) {
       objects.push({
@@ -193,7 +193,7 @@ describe('Testing of the collection.data methods', () => {
         },
       });
     }
-    await collection.data.insertMany(objects).then(async (insert) => {
+    return collection.data.insertMany(objects).then(async (insert) => {
       expect(insert.hasErrors).toBeFalsy();
       expect(insert.allResponses.length).toEqual(10);
       expect(Object.values(insert.errors).length).toEqual(0);
@@ -208,7 +208,7 @@ describe('Testing of the collection.data methods', () => {
     });
   });
 
-  it('should be able to insert many (100) objects at once', async () => {
+  it('should be able to insert many (100) objects at once', () => {
     const objects: DataObject<TestCollectionData>[] = [];
     for (let j = 0; j < 100; j++) {
       objects.push({
@@ -217,7 +217,7 @@ describe('Testing of the collection.data methods', () => {
         },
       });
     }
-    const insert = await collection.data.insertMany(objects).then(async (insert) => {
+    return collection.data.insertMany(objects).then(async (insert) => {
       expect(insert.hasErrors).toBeFalsy();
       expect(insert.allResponses.length).toEqual(100);
       expect(Object.values(insert.errors).length).toEqual(0);
@@ -232,14 +232,14 @@ describe('Testing of the collection.data methods', () => {
     });
   });
 
-  it('should be able to insert many (1000) objects at once', async () => {
+  it('should be able to insert many (1000) objects at once', () => {
     const objects: any[] = [];
     for (let j = 0; j < 1000; j++) {
       objects.push({
         testProp: 'testInsertMany1000',
       });
     }
-    const insert = await collection.data.insertMany(objects).then(async (insert) => {
+    return collection.data.insertMany(objects).then(async (insert) => {
       expect(insert.hasErrors).toBeFalsy();
       expect(insert.allResponses.length).toEqual(1000);
       expect(Object.values(insert.errors).length).toEqual(0);
@@ -254,62 +254,118 @@ describe('Testing of the collection.data methods', () => {
     });
   });
 
-  it('should be able to insert a reference between two objects', async () => {
-    await collection.data
-      .referenceAdd({
+  it('should be able to insert a reference between two objects', () => {
+    return Promise.all([
+      collection.data.referenceAdd({
         fromProperty: 'ref',
         fromUuid: existingID,
-        to: Reference.to(existingID),
-      })
-      .then(async () => {
-        const obj = await collection.query.fetchObjectById(existingID, {
+        to: Reference.to(existingID), // add using Reference.to syntax
+      }),
+      collection.data.referenceAdd({
+        fromProperty: 'ref',
+        fromUuid: existingID,
+        to: toBeUpdatedID, // add using string syntax
+      }),
+      collection.data.referenceAdd({
+        fromProperty: 'ref',
+        fromUuid: existingID,
+        to: [toBeReplacedID], // add using string array syntax
+      }),
+    ])
+      .then(() =>
+        collection.query.fetchObjectById(existingID, {
           returnReferences: [{ linkOn: 'ref' }],
-        });
+        })
+      )
+      .then((obj) => {
+        const ids = obj?.references?.ref?.objects.map((o) => o.uuid);
         expect(obj).not.toBeNull();
-        expect(obj?.references?.ref?.objects[0].uuid).toEqual(existingID);
+        expect(ids).toContain(existingID);
+        expect(ids).toContain(toBeUpdatedID);
+        expect(ids).toContain(toBeReplacedID);
       });
   });
 
-  it('should be able to replace a reference between two objects', async () => {
-    await collection.data
-      .referenceReplace({
+  it('should be able to replace a reference between two objects', () => {
+    const replaceOne = () =>
+      collection.data.referenceReplace({
         fromProperty: 'ref',
         fromUuid: toBeReplacedID,
-        to: Reference.to(existingID),
-      })
-      .then(async () => {
-        const obj = await collection.query.fetchObjectById(toBeReplacedID, {
-          returnReferences: [{ linkOn: 'ref' }],
-        });
-        expect(obj).not.toBeNull();
-        expect(obj?.references?.ref?.objects[0].uuid).toEqual(existingID);
+        to: Reference.to(existingID), // replace using Reference.to syntax
       });
+    const replaceTwo = () =>
+      collection.data.referenceReplace({
+        fromProperty: 'ref',
+        fromUuid: toBeReplacedID,
+        to: toBeUpdatedID, // replace using string syntax
+      });
+    const replaceThree = () =>
+      collection.data.referenceReplace({
+        fromProperty: 'ref',
+        fromUuid: toBeReplacedID,
+        to: [toBeReplacedID], // replace using string array syntax
+      });
+    const get = () =>
+      collection.query.fetchObjectById(toBeReplacedID, {
+        returnReferences: [{ linkOn: 'ref' }],
+      });
+    const assert = (obj: WeaviateObject<TestCollectionData> | null, id: string) => {
+      expect(obj).not.toBeNull();
+      expect(obj?.references?.ref?.objects[0].uuid).toEqual(id);
+    };
+    return replaceOne()
+      .then(get)
+      .then((obj) => assert(obj, existingID))
+      .then(replaceTwo)
+      .then(get)
+      .then((obj) => assert(obj, toBeUpdatedID))
+      .then(replaceThree)
+      .then(get)
+      .then((obj) => assert(obj, toBeReplacedID));
   });
 
   it('should be able to delete a reference between two objects', async () => {
-    await collection.data
-      .referenceDelete({
+    return Promise.all([
+      collection.data.referenceDelete({
         fromProperty: 'ref',
         fromUuid: toBeUpdatedID,
-        to: Reference.to(toBeReplacedID),
-      })
-      .then(async () => {
-        const obj = await collection.query.fetchObjectById(toBeUpdatedID, {
+        to: Reference.to(existingID),
+      }),
+      collection.data.referenceDelete({
+        fromProperty: 'ref',
+        fromUuid: toBeUpdatedID,
+        to: toBeUpdatedID,
+      }),
+      collection.data.referenceDelete({
+        fromProperty: 'ref',
+        fromUuid: toBeUpdatedID,
+        to: [toBeReplacedID],
+      }),
+    ])
+      .then(async () =>
+        collection.query.fetchObjectById(toBeUpdatedID, {
           returnReferences: [{ linkOn: 'ref' }],
-        });
+        })
+      )
+      .then((obj) => {
         expect(obj).not.toBeNull();
         expect(obj?.references?.ref?.objects).toEqual([]);
       });
   });
 
   it('should be able to add many references in batch', async () => {
-    await collection.data
+    return await collection.data
       .referenceAddMany({
         refs: [
           {
             fromProperty: 'ref',
             fromUuid: existingID,
-            to: Reference.to([toBeReplacedID, toBeUpdatedID]),
+            to: Reference.to([toBeReplacedID]),
+          },
+          {
+            fromProperty: 'ref',
+            fromUuid: existingID,
+            to: [toBeUpdatedID],
           },
           // {
           //   fromProperty: 'ref',

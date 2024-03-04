@@ -1,7 +1,10 @@
-module.exports = {
+import { JestConfigWithTsJest } from 'ts-jest';
+
+const config: JestConfigWithTsJest = {
   clearMocks: false,
   collectCoverage: false,
   coverageDirectory: 'coverage',
+  coveragePathIgnorePatterns: ['/node_modules/', '/dist/', '/src/proto'],
   coverageProvider: 'v8',
   preset: 'ts-jest',
   testEnvironment: 'node',
@@ -16,3 +19,5 @@ module.exports = {
     ],
   },
 };
+
+export default config;

@@ -502,10 +502,10 @@ export type Refs<Obj> = {
   [Key in RefKeys<Obj>]: Obj[Key];
 };
 
-export type ReferenceInput = string | string[] | ReferenceToMultiTarget;
+export type ReferenceInput<T> = string | string[] | ReferenceToMultiTarget | ReferenceManager<T>;
 
 export type ReferenceInputs<Obj> = {
-  [Key in RefKeys<Obj>]: ReferenceInput | ReferenceManager<ExtractCrossReferenceType<Obj[Key]>>;
+  [Key in RefKeys<Obj>]: ReferenceInput<ExtractCrossReferenceType<Obj[Key]>>;
 };
 
 // Helper type to determine if a type is a WeaviateField excluding undefined
