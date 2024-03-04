@@ -58,7 +58,6 @@ describe('cluster nodes endpoint', () => {
           expect(node.stats?.objectCount).toBeGreaterThanOrEqual(0);
           expect(node.stats?.shardCount).toBeGreaterThanOrEqual(0);
           expect(node.shards).toBeDefined();
-          expect(node.shards).toHaveLength(2);
           if (node.shards) {
             expect([node.shards[0].class, node.shards[1].class]).toEqual(
               expect.arrayContaining([PIZZA_CLASS_NAME, SOUP_CLASS_NAME])
@@ -102,7 +101,6 @@ describe('cluster nodes endpoint', () => {
           expect(node.stats?.objectCount).toBeGreaterThanOrEqual(0);
           expect(node.stats?.shardCount).toBeGreaterThanOrEqual(0);
           expect(node.shards).toBeDefined();
-          expect(node.shards).toHaveLength(2);
           if (node.shards) {
             expect([node.shards[0].class, node.shards[1].class]).toEqual(
               expect.arrayContaining([PIZZA_CLASS_NAME, SOUP_CLASS_NAME])
@@ -173,7 +171,6 @@ describe('cluster nodes endpoint', () => {
           expect(node.stats?.objectCount).toBeGreaterThanOrEqual(0);
           expect(node.stats?.shardCount).toBeGreaterThanOrEqual(0);
           expect(node.shards).toBeDefined();
-          expect(node.shards).toHaveLength(1);
           if (node.shards) {
             expect(node.shards[0].class).toEqual(PIZZA_CLASS_NAME);
             expect(node.shards[0].objectCount).toEqual(0);

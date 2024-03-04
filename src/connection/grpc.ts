@@ -84,8 +84,10 @@ export const grpcClient = (config: GrpcConnectionParams): GrpcClient => {
         consistencyLevel,
         tenant
       ),
-    // health: () => channel.createCall('/grpc.health.v1.Health/Check', 1, null, null, null).sendMessageWithContext,
-    health: () => health.check({}).then((res) => res.status === HealthCheckResponse_ServingStatus.SERVING),
+    health: () =>
+      health
+        .check({ service: '/grpc.health.v1.Health/Check' })
+        .then((res) => res.status === HealthCheckResponse_ServingStatus.SERVING),
     search: (name: string, consistencyLevel?: ConsistencyLevel, tenant?: string, bearerToken?: string) =>
       Searcher.use(
         client,
