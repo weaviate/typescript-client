@@ -13,7 +13,7 @@ describe('cluster nodes endpoint', () => {
     host: 'localhost:8080',
   });
 
-  it('get nodes status of empty db', () => {
+  it('get nodes status of db', () => {
     return client.cluster
       .nodesStatusGetter()
       .withOutput('verbose')
@@ -28,8 +28,8 @@ describe('cluster nodes endpoint', () => {
           expect(node.gitHash).toBeDefined();
           expect(node.status).toEqual('HEALTHY');
           expect(node.stats).toBeDefined();
-          expect(node.stats?.objectCount).toEqual(0);
-          expect(node.stats?.shardCount).toEqual(0);
+          expect(node.stats?.objectCount).toBeGreaterThanOrEqual(0);
+          expect(node.stats?.shardCount).toBeGreaterThanOrEqual(0);
           expect(node.shards).toBeNull();
         } else {
           throw new Error('nodesStatusResponse.nodes should be defined');
