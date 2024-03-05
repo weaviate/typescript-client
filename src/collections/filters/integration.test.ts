@@ -4,6 +4,7 @@ import weaviate, { WeaviateNextClient } from '../../index.node';
 import { Filters } from '.';
 import { CrossReference, Reference } from '../references';
 import { Collection } from '../collection';
+import { GeoCoordinate } from '../types';
 
 describe('Testing of the filter class with a simple collection', () => {
   let client: WeaviateNextClient;
@@ -286,5 +287,76 @@ describe('Testing of the filter class with a simple collection', () => {
       returnMetrics: collection.metrics.aggregate('text').text(['count']),
     });
     expect(res.properties.text.count).toEqual(3);
+  });
+});
+
+describe('Testing of the filter class with complex data type', () => {
+  let client: WeaviateNextClient;
+  let collection: Collection<TestCollectionFilterComplex, 'TestCollectionFilterComplex'>;
+
+  const className = 'TestCollectionFilterComplex';
+  type TestCollectionFilterComplex = {
+    location: GeoCoordinate;
+  };
+
+  beforeAll(async () => {
+    client = await weaviate.client({
+      rest: {
+        secure: false,
+        host: 'localhost',
+        port: 8080,
+      },
+      grpc: {
+        secure: false,
+        host: 'localhost',
+        port: 50051,
+      },
+    });
+    collection = client.collections.get(className);
+    await client.collections
+      .create<TestCollectionFilterComplex>({
+        name: className,
+        properties: [
+          {
+            name: 'location',
+            dataType: 'geoCoordinates',
+          },
+        ],
+        vectorizer: weaviate.configure.vectorizer.none(),
+      })
+      .then(() =>
+        collection.data.insertMany([
+          {
+            location: {
+              latitude: 52.52,
+              longitude: 13.405,
+            },
+          },
+          {
+            location: {
+              latitude: 53.55,
+              longitude: 10.0,
+            },
+          },
+        ])
+      );
+  });
+
+  afterAll(() => {
+    return client.collections.delete(className).catch((err) => {
+      console.error(err);
+      throw err;
+    });
+  });
+
+  it('should filter a fetch objects query with a geo filter', async () => {
+    const res = await collection.query.fetchObjects({
+      filters: collection.filter.byProperty('location').withinGeoRange({
+        latitude: 52.52,
+        longitude: 13.405,
+        distance: 1,
+      }),
+    });
+    expect(res.objects.length).toEqual(1);
   });
 });

@@ -16,8 +16,6 @@ export type DataType<T = any> = T extends string
   ? 'boolean'
   : T extends Date
   ? 'date'
-  : T extends object
-  ? 'object'
   : T extends string[]
   ? 'text[]'
   : T extends number[]
@@ -26,12 +24,14 @@ export type DataType<T = any> = T extends string
   ? 'boolean[]'
   : T extends Date[]
   ? 'date[]'
-  : T extends object[]
-  ? 'object[]'
   : T extends GeoCoordinate
   ? 'geoCoordinates'
   : T extends PhoneNumber
   ? 'phoneNumber'
+  : T extends object
+  ? 'object'
+  : T extends object[]
+  ? 'object[]'
   : never;
 
 export type InvertedIndexConfig = {

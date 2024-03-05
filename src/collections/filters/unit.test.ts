@@ -120,6 +120,25 @@ describe('Unit testing of filters', () => {
         value: 'John',
       });
     });
+
+    it('should create a geo range filter', () => {
+      const f = filter.byProperty<any>('location').withinGeoRange({
+        latitude: 1,
+        longitude: 2,
+        distance: 3,
+      });
+      expect(f).toEqual({
+        operator: 'WithinGeoRange',
+        target: {
+          property: 'location',
+        },
+        value: {
+          latitude: 1,
+          longitude: 2,
+          distance: 3,
+        },
+      });
+    });
   });
 
   describe('for reference counts', () => {
@@ -218,76 +237,76 @@ describe('Unit testing of filters', () => {
         value: true,
       });
     });
-  });
 
-  it('should create an ID filter', () => {
-    const f = filter.byRef('self').byId().equal('123');
-    expect(f).toEqual({
-      operator: 'Equal',
-      target: {
-        singleTarget: {
-          on: 'self',
-          target: {
-            property: '_id',
+    it('should create an ID filter', () => {
+      const f = filter.byRef('self').byId().equal('123');
+      expect(f).toEqual({
+        operator: 'Equal',
+        target: {
+          singleTarget: {
+            on: 'self',
+            target: {
+              property: '_id',
+            },
           },
         },
-      },
-      value: '123',
+        value: '123',
+      });
     });
-  });
 
-  it('should create a creation time filter', () => {
-    const now = new Date();
-    const f = filter.byRef('self').byCreationTime().equal(now);
-    expect(f).toEqual({
-      operator: 'Equal',
-      target: {
-        singleTarget: {
-          on: 'self',
-          target: {
-            property: '_creationTimeUnix',
+    it('should create a creation time filter', () => {
+      const now = new Date();
+      const f = filter.byRef('self').byCreationTime().equal(now);
+      expect(f).toEqual({
+        operator: 'Equal',
+        target: {
+          singleTarget: {
+            on: 'self',
+            target: {
+              property: '_creationTimeUnix',
+            },
           },
         },
-      },
-      value: now.toISOString(),
+        value: now.toISOString(),
+      });
     });
-  });
 
-  it('should create a update time filter', () => {
-    const now = new Date();
-    const f = filter.byRef('self').byUpdateTime().equal(now);
-    expect(f).toEqual({
-      operator: 'Equal',
-      target: {
-        singleTarget: {
-          on: 'self',
-          target: {
-            property: '_lastUpdateTimeUnix',
+    it('should create a update time filter', () => {
+      const now = new Date();
+      const f = filter.byRef('self').byUpdateTime().equal(now);
+      expect(f).toEqual({
+        operator: 'Equal',
+        target: {
+          singleTarget: {
+            on: 'self',
+            target: {
+              property: '_lastUpdateTimeUnix',
+            },
           },
         },
-      },
-      value: now.toISOString(),
+        value: now.toISOString(),
+      });
     });
-  });
 
-  it('should create a nested reference filter', () => {
-    const f = filter.byRef('self').byRef('self').byProperty('name').isNull(true);
-    expect(f).toEqual({
-      operator: 'IsNull',
-      target: {
-        singleTarget: {
-          on: 'self',
-          target: {
-            singleTarget: {
-              on: 'self',
-              target: {
-                property: 'name',
+    it('should create a nested reference filter', () => {
+      const f = filter.byRef('self').byRef('self').byProperty('name').isNull(true);
+      expect(f).toEqual({
+        operator: 'IsNull',
+        target: {
+          singleTarget: {
+            on: 'self',
+            target: {
+              singleTarget: {
+                on: 'self',
+                target: {
+                  property: 'name',
+                },
               },
             },
           },
         },
-      },
-      value: true,
+        value: true,
+      });
     });
   });
 
@@ -308,107 +327,107 @@ describe('Unit testing of filters', () => {
         value: true,
       });
     });
-  });
 
-  it('should create an ID filter', () => {
-    const f = filter.byRefMultiTarget('self', 'Person').byId().equal('123');
-    expect(f).toEqual({
-      operator: 'Equal',
-      target: {
-        multiTarget: {
-          on: 'self',
-          targetCollection: 'Person',
-          target: {
-            property: '_id',
+    it('should create an ID filter', () => {
+      const f = filter.byRefMultiTarget('self', 'Person').byId().equal('123');
+      expect(f).toEqual({
+        operator: 'Equal',
+        target: {
+          multiTarget: {
+            on: 'self',
+            targetCollection: 'Person',
+            target: {
+              property: '_id',
+            },
           },
         },
-      },
-      value: '123',
+        value: '123',
+      });
     });
-  });
 
-  it('should create a creation time filter', () => {
-    const now = new Date();
-    const f = filter.byRefMultiTarget('self', 'Person').byCreationTime().equal(now);
-    expect(f).toEqual({
-      operator: 'Equal',
-      target: {
-        multiTarget: {
-          on: 'self',
-          targetCollection: 'Person',
-          target: {
-            property: '_creationTimeUnix',
+    it('should create a creation time filter', () => {
+      const now = new Date();
+      const f = filter.byRefMultiTarget('self', 'Person').byCreationTime().equal(now);
+      expect(f).toEqual({
+        operator: 'Equal',
+        target: {
+          multiTarget: {
+            on: 'self',
+            targetCollection: 'Person',
+            target: {
+              property: '_creationTimeUnix',
+            },
           },
         },
-      },
-      value: now.toISOString(),
+        value: now.toISOString(),
+      });
     });
-  });
 
-  it('should create a update time filter', () => {
-    const now = new Date();
-    const f = filter.byRefMultiTarget('self', 'Person').byUpdateTime().equal(now);
-    expect(f).toEqual({
-      operator: 'Equal',
-      target: {
-        multiTarget: {
-          on: 'self',
-          targetCollection: 'Person',
-          target: {
-            property: '_lastUpdateTimeUnix',
+    it('should create a update time filter', () => {
+      const now = new Date();
+      const f = filter.byRefMultiTarget('self', 'Person').byUpdateTime().equal(now);
+      expect(f).toEqual({
+        operator: 'Equal',
+        target: {
+          multiTarget: {
+            on: 'self',
+            targetCollection: 'Person',
+            target: {
+              property: '_lastUpdateTimeUnix',
+            },
           },
         },
-      },
-      value: now.toISOString(),
+        value: now.toISOString(),
+      });
     });
-  });
 
-  it('should create a nested single target reference filter', () => {
-    const f = filter.byRefMultiTarget('self', 'Person').byRef('self').byProperty('name').isNull(true);
-    expect(f).toEqual({
-      operator: 'IsNull',
-      target: {
-        multiTarget: {
-          on: 'self',
-          targetCollection: 'Person',
-          target: {
-            singleTarget: {
-              on: 'self',
-              target: {
-                property: 'name',
+    it('should create a nested single target reference filter', () => {
+      const f = filter.byRefMultiTarget('self', 'Person').byRef('self').byProperty('name').isNull(true);
+      expect(f).toEqual({
+        operator: 'IsNull',
+        target: {
+          multiTarget: {
+            on: 'self',
+            targetCollection: 'Person',
+            target: {
+              singleTarget: {
+                on: 'self',
+                target: {
+                  property: 'name',
+                },
               },
             },
           },
         },
-      },
-      value: true,
+        value: true,
+      });
     });
-  });
 
-  it('should create a nested multi target reference filter', () => {
-    const f = filter
-      .byRefMultiTarget('self', 'Person')
-      .byRefMultiTarget('self', 'Person')
-      .byProperty('name')
-      .isNull(true);
-    expect(f).toEqual({
-      operator: 'IsNull',
-      target: {
-        multiTarget: {
-          on: 'self',
-          targetCollection: 'Person',
-          target: {
-            multiTarget: {
-              on: 'self',
-              targetCollection: 'Person',
-              target: {
-                property: 'name',
+    it('should create a nested multi target reference filter', () => {
+      const f = filter
+        .byRefMultiTarget('self', 'Person')
+        .byRefMultiTarget('self', 'Person')
+        .byProperty('name')
+        .isNull(true);
+      expect(f).toEqual({
+        operator: 'IsNull',
+        target: {
+          multiTarget: {
+            on: 'self',
+            targetCollection: 'Person',
+            target: {
+              multiTarget: {
+                on: 'self',
+                targetCollection: 'Person',
+                target: {
+                  property: 'name',
+                },
               },
             },
           },
         },
-      },
-      value: true,
+        value: true,
+      });
     });
   });
 
@@ -596,13 +615,119 @@ describe('Unit testing of filters', () => {
   });
 
   describe('for the REST schema', () => {
-    it('should map a property filter', () => {
+    const anyFilter = maker<any>();
+    it('should map a text property filter', () => {
       const f = filter.byProperty('name').equal('John');
       const s = Serialize.filtersREST(f);
       expect(s).toEqual({
         operator: 'Equal',
         path: ['name'],
         valueText: 'John',
+      });
+    });
+
+    it('should map an int property filter', () => {
+      const f = filter.byProperty('age').equal(18);
+      const s = Serialize.filtersREST(f);
+      expect(s).toEqual({
+        operator: 'Equal',
+        path: ['age'],
+        valueInt: 18,
+      });
+    });
+
+    it('should map a boolean property filter', () => {
+      const f = anyFilter.byProperty('isAdult').equal(true);
+      const s = Serialize.filtersREST(f);
+      expect(s).toEqual({
+        operator: 'Equal',
+        path: ['isAdult'],
+        valueBoolean: true,
+      });
+    });
+
+    it('should map a float property filter', () => {
+      const f = anyFilter.byProperty('age').equal(18.5);
+      const s = Serialize.filtersREST(f);
+      expect(s).toEqual({
+        operator: 'Equal',
+        path: ['age'],
+        valueNumber: 18.5,
+      });
+    });
+
+    it('should map a date property filter', () => {
+      const now = new Date();
+      const f = anyFilter.byProperty('date').equal(now);
+      const s = Serialize.filtersREST(f);
+      expect(s).toEqual({
+        operator: 'Equal',
+        path: ['date'],
+        valueDate: now.toISOString(),
+      });
+    });
+
+    it('should map an int array property filter', () => {
+      const f = anyFilter.byProperty('ages').equal([18, 19]);
+      const s = Serialize.filtersREST(f);
+      expect(s).toEqual({
+        operator: 'Equal',
+        path: ['ages'],
+        valueIntArray: [18, 19],
+      });
+    });
+
+    it('should map a boolean array property filter', () => {
+      const f = anyFilter.byProperty('bools').equal([true, false]);
+      const s = Serialize.filtersREST(f);
+      expect(s).toEqual({
+        operator: 'Equal',
+        path: ['bools'],
+        valueBooleanArray: [true, false],
+      });
+    });
+
+    it('should map a float array property filter', () => {
+      const f = anyFilter.byProperty('ages').equal([18.5, 19.5]);
+      const s = Serialize.filtersREST(f);
+      expect(s).toEqual({
+        operator: 'Equal',
+        path: ['ages'],
+        valueNumberArray: [18.5, 19.5],
+      });
+    });
+
+    it('should map a date array property filter', () => {
+      const now1 = new Date();
+      const now2 = new Date();
+      const f = anyFilter.byProperty('dates').equal([now1, now2]);
+      const s = Serialize.filtersREST(f);
+      expect(s).toEqual({
+        operator: 'Equal',
+        path: ['dates'],
+        valueDateArray: [now1.toISOString(), now2.toISOString()],
+      });
+    });
+
+    it('should map a geo range property filter', () => {
+      const f = anyFilter.byProperty('location').withinGeoRange({
+        latitude: 1,
+        longitude: 2,
+        distance: 3,
+      });
+      const s = Serialize.filtersREST(f);
+      expect(s).toEqual({
+        operator: 'WithinGeoRange',
+        path: ['location'],
+        valueGeoRange: {
+          geoCoordinates: {
+            latitude: 1,
+            longitude: 2,
+          },
+          distance: {
+            max: 3,
+          },
+        },
       });
     });
 

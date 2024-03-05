@@ -15,6 +15,7 @@ export type Operator =
   | 'LessThanEqual'
   | 'Like'
   | 'IsNull'
+  | 'WithinGeoRange'
   | 'ContainsAny'
   | 'ContainsAll'
   | 'And'
@@ -92,9 +93,15 @@ export class Filters {
   }
 }
 
+export type GeoRangeFilter = {
+  latitude: number;
+  longitude: number;
+  distance: number;
+};
+
 export type FilterValueType = PrimitiveFilterValueType | PrimitiveListFilterValueType;
 
-export type PrimitiveFilterValueType = number | string | boolean | Date;
+export type PrimitiveFilterValueType = number | string | boolean | Date | GeoRangeFilter;
 export type PrimitiveListFilterValueType = number[] | string[] | boolean[] | Date[];
 
 const filter = <T>(): Filter<T> => {
@@ -280,6 +287,14 @@ class FilterByProperty<V> extends FilterBase {
   public like(value: string): FilterValue<string> {
     return {
       operator: 'Like',
+      target: this.targetPath(),
+      value: value,
+    };
+  }
+
+  public withinGeoRange<U extends GeoRangeFilter>(value: U): FilterValue<U> {
+    return {
+      operator: 'WithinGeoRange',
       target: this.targetPath(),
       value: value,
     };

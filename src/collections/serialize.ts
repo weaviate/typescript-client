@@ -34,21 +34,18 @@ import {
   PrimitiveFilterValueType,
   PrimitiveListFilterValueType,
   FilterById,
+  GeoRangeFilter,
 } from './filters';
 import {
   BatchObject,
   DataObject,
   MetadataQuery,
-  MultiRefProperty,
   QueryReference,
   QueryNested,
   QueryProperty,
   SortBy,
-  Properties,
   WeaviateField,
   NestedProperties,
-  PrimitiveKeys,
-  ResolvedNestedProperty,
   GroupByOptions,
   NonReferenceInputs,
   GeoCoordinate,
@@ -93,38 +90,8 @@ import {
 } from '../proto/v1/base';
 import { ReferenceManager, uuidToBeacon } from './references';
 
-const isNested = <T extends Properties, P extends ResolvedNestedProperty<T>>(
-  argument: PrimitiveKeys<T> | P
-): argument is P => {
-  return typeof argument !== 'string';
-};
-
-// const isNotNested = <T extends Properties, P extends NonPrimitiveProperty<T>>(
-//   argument: P | QueryNested<T>
-// ): argument is P => {
-//   return argument.type !== 'nested';
-// };
-
-// const isNotRef = <T extends Properties, P extends NonPrimitiveProperty<T>>(
-//   argument: P | RefProperty<T> | MultiRefProperty<T>
-// ): argument is P => {
-//   return argument.type !== 'ref' && argument.type !== 'multi-ref';
-// };
-
-const isMultiTargetRef = <T extends Properties, P extends QueryReference<T>>(
-  argument: P | MultiRefProperty<T>
-): argument is MultiRefProperty<T> => {
-  return argument.targetCollection != undefined;
-};
-
-type FilterTargetType =
-  | FilterTarget['property']
-  | FilterTarget['singleTarget']
-  | FilterTarget['multiTarget']
-  | FilterTarget['count'];
-
 class FilterGuards {
-  static isFilters = <T extends FilterValueType>(
+  static isFilters = (
     argument?: Filters | PrimitiveFilterValueType | PrimitiveListFilterValueType
   ): argument is Filters => {
     return argument instanceof Filters;
@@ -168,6 +135,11 @@ class FilterGuards {
 
   static isDateArray = (argument?: FilterValueType): argument is Date[] => {
     return argument instanceof Array && argument[0] instanceof Date;
+  };
+
+  static isGeoRange = (argument?: FilterValueType): argument is GeoRangeFilter => {
+    const arg = argument as GeoRangeFilter;
+    return arg.latitude !== undefined && arg.longitude !== undefined && arg.distance !== undefined;
   };
 }
 
@@ -460,6 +432,7 @@ export default class Serialize {
           valueNumberArray: FilterGuards.isFloatArray(value) ? { values: value } : undefined,
           valueBoolean: FilterGuards.isBoolean(value) ? value : undefined,
           valueBooleanArray: FilterGuards.isBooleanArray(value) ? { values: value } : undefined,
+          valueGeo: FilterGuards.isGeoRange(value) ? value : undefined,
         });
     }
   };
@@ -543,12 +516,25 @@ export default class Serialize {
       } else if (FilterGuards.isDate(value)) {
         return {
           ...out,
-          valueDate: value.toString(),
+          valueDate: value.toISOString(),
         };
       } else if (FilterGuards.isDateArray(value)) {
         return {
           ...out,
-          valueDateArray: value.map((v) => v.toString()),
+          valueDateArray: value.map((v) => v.toISOString()),
+        };
+      } else if (FilterGuards.isGeoRange(value)) {
+        return {
+          ...out,
+          valueGeoRange: {
+            geoCoordinates: {
+              latitude: value.latitude,
+              longitude: value.longitude,
+            },
+            distance: {
+              max: value.distance,
+            },
+          },
         };
       } else {
         throw new Error('Invalid filter value type');
