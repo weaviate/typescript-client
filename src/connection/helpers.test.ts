@@ -18,4 +18,16 @@ describe('Testing of the connection helper methods', () => {
         throw new Error('it should not have errord: ' + e);
       });
   });
+
+  it('should connect to a local cluster', () => {
+    weaviate
+      .connectToLocal()
+      .then((client) => client.getMeta())
+      .then((res: any) => {
+        expect(res.version).toBeDefined();
+      })
+      .catch((e: any) => {
+        throw new Error('it should not have errord: ' + e);
+      });
+  });
 });
