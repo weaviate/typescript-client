@@ -3,7 +3,7 @@
 import weaviate, { WeaviateNextClient } from '../../index.node';
 import { v4 } from 'uuid';
 import { DataObject, WeaviateObject } from '../types';
-import { CrossReference, Reference } from '../references';
+import { CrossReference, CrossReferences, Reference } from '../references';
 import { GeoCoordinate, PhoneNumber } from '../../proto/v1/properties';
 import { Collection } from '../collection';
 
@@ -18,7 +18,7 @@ type TestCollectionData = {
   };
 };
 
-describe('Testing of the collection.data methods', () => {
+describe('Testing of the collection.data methods with a single target reference', () => {
   let client: WeaviateNextClient;
   let collection: Collection<TestCollectionData, 'TestCollectionData'>;
   const className = 'TestCollectionData';
@@ -216,7 +216,7 @@ describe('Testing of the collection.data methods', () => {
           testProp: 'testInsertMany100',
         },
         references: {
-          ref: j % 2 ? existingID : [existingID], // test both array and single reference
+          ref: existingID,
         },
       });
     }
@@ -444,5 +444,101 @@ describe('Testing of the collection.data methods', () => {
   it('should be able to verify that an object exists', async () => {
     const exists = await collection.data.exists(existingID);
     expect(exists).toBeTruthy();
+  });
+});
+
+describe('Testing of the collection.data methods with a multi target reference', () => {
+  let client: WeaviateNextClient;
+  let collectionOne: Collection<TestCollectionDataMultiOne, 'TestCollectionDataMultiOne'>;
+  let collectionTwo: Collection<TestCollectionDataMultiTwo, 'TestCollectionDataMultiTwo'>;
+
+  const classNameOne = 'TestCollectionDataMultiOne';
+  const classNameTwo = 'TestCollectionDataMultiTwo';
+
+  type TestCollectionDataMultiOne = {
+    one: string;
+  };
+  type TestCollectionDataMultiTwo = {
+    two: string;
+    refs: CrossReferences<[TestCollectionDataMultiOne, TestCollectionDataMultiTwo]>;
+  };
+
+  let oneId: string;
+  let twoId: string;
+
+  beforeAll(async () => {
+    client = await weaviate.client({
+      rest: {
+        secure: false,
+        host: 'localhost',
+        port: 8080,
+      },
+      grpc: {
+        secure: false,
+        host: 'localhost',
+        port: 50051,
+      },
+    });
+    collectionOne = client.collections.get(classNameOne);
+    collectionTwo = client.collections.get(classNameTwo);
+    oneId = await client.collections
+      .create({
+        name: classNameOne,
+        properties: [
+          {
+            name: 'one',
+            dataType: 'text',
+            tokenization: 'field',
+          },
+        ],
+      })
+      .then(() => collectionOne.data.insert({ one: 'one' }));
+    twoId = await client.collections
+      .create({
+        name: classNameTwo,
+        properties: [
+          {
+            name: 'two',
+            dataType: 'text',
+            tokenization: 'field',
+          },
+        ],
+        references: [
+          {
+            name: 'refs',
+            targetCollections: [classNameOne, classNameTwo],
+          },
+        ],
+      })
+      .then(() => collectionTwo.data.insert({ two: 'two' }));
+  });
+
+  it('should be able to insert an object with a multi target reference', async () => {
+    const id = await collectionTwo.data.insert({
+      properties: { two: 'multi1' },
+      references: {
+        refs: [
+          Reference.toMultiTarget(oneId, classNameOne),
+          { targetCollection: classNameTwo, uuids: twoId },
+        ],
+      },
+    });
+    await collectionTwo.data.insertMany([
+      {
+        properties: { two: 'multi2' },
+        references: {
+          refs: [
+            Reference.toMultiTarget([twoId], classNameTwo),
+            { targetCollection: classNameOne, uuids: [oneId] },
+          ],
+        },
+      },
+    ]);
+    await collectionTwo.query
+      .fetchObjectById(id, { returnReferences: [{ linkOn: 'refs', targetCollection: classNameOne }] })
+      .then((obj) => expect(obj!.references!.refs.objects[0].uuid).toEqual(oneId));
+    await collectionTwo.query
+      .fetchObjectById(id, { returnReferences: [{ linkOn: 'refs', targetCollection: classNameTwo }] })
+      .then((obj) => expect(obj!.references!.refs.objects[0].uuid).toEqual(twoId));
   });
 });

@@ -75,12 +75,18 @@ export class Reference {
 }
 
 export const referenceFromObjects = <TProperties>(
-  objects: WeaviateObject<TProperties>[]
+  objects: WeaviateObject<TProperties>[],
+  targetCollection: string,
+  uuids: string[]
 ): ReferenceManager<TProperties> => {
-  return new ReferenceManager<TProperties>('', objects);
+  return new ReferenceManager<TProperties>(targetCollection, objects, uuids);
 };
 
 export type CrossReference<TProperties extends Properties> = ReferenceManager<TProperties>;
+
+export type CrossReferences<TProperties extends Properties[]> = ReferenceManager<UnionOf<TProperties>>;
+
+type UnionOf<T> = T extends (infer U)[] ? U : never;
 
 export class ReferenceGuards {
   public static isReferenceManager<T>(arg: ReferenceInput<T>): arg is ReferenceManager<T> {

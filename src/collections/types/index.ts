@@ -502,7 +502,11 @@ export type Refs<Obj> = {
   [Key in RefKeys<Obj>]: Obj[Key];
 };
 
-export type ReferenceInput<T> = string | string[] | ReferenceToMultiTarget | ReferenceManager<T>;
+export type ReferenceInput<T> =
+  | string
+  | ReferenceToMultiTarget
+  | ReferenceManager<T>
+  | (string | ReferenceToMultiTarget | ReferenceManager<T>)[];
 
 export type ReferenceInputs<Obj> = {
   [Key in RefKeys<Obj>]: ReferenceInput<ExtractCrossReferenceType<Obj[Key]>>;

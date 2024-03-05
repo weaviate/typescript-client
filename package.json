@@ -19,7 +19,8 @@
     "node": ">=16.0.0"
   },
   "scripts": {
-    "test": "tsc -noEmit -p tsconfig-test.json && jest --no-cache --coverage --useStderr --runInBand --detectOpenHandles",
+    "test": "tsc -noEmit -p tsconfig-test.json && jest --no-cache --useStderr --runInBand --detectOpenHandles",
+    "test:coverage": "tsc -noEmit -p tsconfig-test.json && jest --no-cache --coverage --useStderr --runInBand --detectOpenHandles",
     "test:unit": "tsc -noEmit -p tsconfig-test.json && jest --no-cache --useStderr --runInBand --detectOpenHandles src/collections/**/unit.test.ts",
     "build": "npm run lint && tsup",
     "prepack": "npm run build",

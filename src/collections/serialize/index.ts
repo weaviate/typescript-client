@@ -88,7 +88,7 @@ import {
   Filters_Operator,
   FilterTarget,
 } from '../../proto/v1/base';
-import { ReferenceManager, uuidToBeacon } from '../references';
+import { Beacon, ReferenceManager, uuidToBeacon } from '../references';
 
 class FilterGuards {
   static isFilters = (
@@ -205,7 +205,12 @@ export class DataGuards {
   };
 
   static isDataObject = <T>(obj: DataObject<T> | NonReferenceInputs<T>): obj is DataObject<T> => {
-    return (obj as DataObject<T>).properties !== undefined;
+    return (
+      (obj as DataObject<T>).id !== undefined ||
+      (obj as DataObject<T>).properties !== undefined ||
+      (obj as DataObject<T>).references !== undefined ||
+      (obj as DataObject<T>).vector !== undefined
+    );
   };
 }
 
@@ -715,7 +720,19 @@ export default class Serialize {
       } else if (typeof value === 'string') {
         parsedProperties[key] = [uuidToBeacon(value)];
       } else if (Array.isArray(value)) {
-        parsedProperties[key] = value.map((uuid) => uuidToBeacon(uuid));
+        let out: Beacon[] = [];
+        value.forEach((v) => {
+          if (v instanceof ReferenceManager) {
+            out = out.concat(v.toBeaconObjs());
+          } else if (typeof v === 'string') {
+            out.push(uuidToBeacon(v));
+          } else if (typeof v.uuids === 'string') {
+            out.push(uuidToBeacon(v.uuids, v.targetCollection));
+          } else {
+            out = out.concat(v.uuids.map((uuid) => uuidToBeacon(uuid, v.targetCollection)));
+          }
+        });
+        parsedProperties[key] = out;
       } else {
         parsedProperties[key] =
           typeof value.uuids === 'string'

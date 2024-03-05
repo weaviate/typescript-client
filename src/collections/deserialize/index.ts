@@ -119,19 +119,25 @@ export default class Deserialize {
 
   private static references<T>(properties?: PropertiesResult): ReturnReferences<T> | undefined {
     if (!properties) return undefined;
-    if (properties.refProps.length === 0) return undefined;
+    if (properties.refProps.length === 0)
+      return properties.refPropsRequested ? ({} as ReturnReferences<T>) : undefined;
     const out: any = {};
     properties.refProps.forEach((property) => {
+      const uuids: string[] = [];
       out[property.propName] = referenceFromObjects(
         property.properties.map((property) => {
+          const uuid = Deserialize.uuid(property.metadata);
+          uuids.push(uuid);
           return {
             metadata: Deserialize.metadata(property.metadata),
             properties: Deserialize.properties(property),
             references: Deserialize.references(property),
-            uuid: Deserialize.uuid(property.metadata),
+            uuid: uuid,
             vectors: Deserialize.vectors(property.metadata),
           };
-        })
+        }),
+        property.properties.length > 0 ? property.properties[0].targetCollection : '',
+        uuids
       );
     });
     return out as ReturnReferences<T>;

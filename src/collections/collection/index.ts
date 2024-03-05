@@ -23,7 +23,6 @@ export interface Collection<T, N> {
   generate: Generate<T>;
   metrics: Metrics<T>;
   name: N;
-  // namedVectorizer: NamedVectorizer<T>;
   query: Query<T>;
   sort: Sort<T>;
   tenants: Tenants;
@@ -56,7 +55,6 @@ const collection = <T, N>(
     generate: generate<T>(connection, name as string, dbVersionSupport, consistencyLevel, tenant),
     metrics: metrics<T>(),
     name: name,
-    // namedVectorizer: namedVectorizer<T>(),
     query: queryCollection,
     sort: sort<T>(),
     tenants: tenants(connection, name as string),
