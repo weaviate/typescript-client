@@ -21,8 +21,6 @@ import collections, { Collections } from './collections';
 import configure from './collections/configure';
 import { Meta } from './openapi/types';
 
-import * as protobufjs from 'protobufjs';
-
 export interface ProtocolParams {
   secure: boolean;
   host: string;
@@ -51,7 +49,6 @@ const app = {
     return connectToWCS(clusterURL, this.client, options);
   },
   client: async function (params: ClientParams): Promise<WeaviateNextClient> {
-    protobufjs.configure();
     // check if the URL is set
     if (!params.rest.host) throw new Error('Missing `host` parameter');
 
