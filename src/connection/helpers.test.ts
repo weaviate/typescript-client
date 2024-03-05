@@ -6,7 +6,7 @@ const WCS_KEY = 'cy4ua772mBlMdfw3YnclqAWzFhQt0RLIN0sl';
 
 describe('Testing of the connection helper methods', () => {
   it('should connect to a WCS cluster', () => {
-    weaviate
+    return weaviate
       .connectToWCS(WCS_URL, {
         authCredentials: new ApiKey(WCS_KEY),
       })
@@ -20,7 +20,7 @@ describe('Testing of the connection helper methods', () => {
   });
 
   it('should connect to a local cluster', () => {
-    weaviate
+    return weaviate
       .connectToLocal()
       .then((client) => client.getMeta())
       .then((res: any) => {

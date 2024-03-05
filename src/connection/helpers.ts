@@ -76,7 +76,7 @@ export function connectToLocal(
     grpc: {
       secure: options?.grpcSecure || false,
       host: options?.grpcHost || 'localhost',
-      port: options?.grpcPort || 8081,
+      port: options?.grpcPort || 50051,
     },
     auth: options?.authCredentials,
     headers: options?.headers,
