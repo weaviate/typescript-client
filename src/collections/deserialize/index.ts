@@ -1,5 +1,5 @@
-import { MetadataResult, PropertiesResult, SearchReply } from '../proto/v1/search_get';
-import { referenceFromObjects } from './references';
+import { MetadataResult, PropertiesResult, SearchReply } from '../../proto/v1/search_get';
+import { referenceFromObjects } from '../references';
 import {
   BatchObjectsReturn,
   MetadataReturn,
@@ -16,12 +16,10 @@ import {
   GenerativeGroupByReturn,
   GenerativeGroupByResult,
   DeleteManyReturn,
-  ReturnVectors,
-  Vectors,
-} from './types';
-import { BatchObject as BatchObjectGrpc, BatchObjectsReply } from '../proto/v1/batch';
-import { Properties as PropertiesGrpc, Value } from '../proto/v1/properties';
-import { BatchDeleteReply } from '../proto/v1/batch_delete';
+} from '../types';
+import { BatchObject as BatchObjectGrpc, BatchObjectsReply } from '../../proto/v1/batch';
+import { Properties as PropertiesGrpc, Value } from '../../proto/v1/properties';
+import { BatchDeleteReply } from '../../proto/v1/batch_delete';
 
 export default class Deserialize {
   public static query<T>(reply: SearchReply): WeaviateReturn<T> {

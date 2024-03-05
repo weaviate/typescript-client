@@ -152,7 +152,7 @@ describe('Testing of the collection.data methods', () => {
     const obj = await collection.query.fetchObjectById(toBeReplacedID);
     expect(obj?.properties.testProp).toEqual('REPLACE ME');
     expect(obj?.properties.testProp2).toEqual(1);
-    return await collection.data
+    return collection.data
       .replace({
         id: toBeReplacedID,
         properties: {
@@ -214,6 +214,9 @@ describe('Testing of the collection.data methods', () => {
       objects.push({
         properties: {
           testProp: 'testInsertMany100',
+        },
+        references: {
+          ref: j % 2 ? existingID : [existingID], // test both array and single reference
         },
       });
     }
@@ -324,7 +327,7 @@ describe('Testing of the collection.data methods', () => {
       .then((obj) => assert(obj, toBeReplacedID));
   });
 
-  it('should be able to delete a reference between two objects', async () => {
+  it('should be able to delete a reference between two objects', () => {
     return Promise.all([
       collection.data.referenceDelete({
         fromProperty: 'ref',
@@ -342,7 +345,7 @@ describe('Testing of the collection.data methods', () => {
         to: [toBeReplacedID],
       }),
     ])
-      .then(async () =>
+      .then(() =>
         collection.query.fetchObjectById(toBeUpdatedID, {
           returnReferences: [{ linkOn: 'ref' }],
         })
@@ -353,8 +356,8 @@ describe('Testing of the collection.data methods', () => {
       });
   });
 
-  it('should be able to add many references in batch', async () => {
-    return await collection.data
+  it('should be able to add many references in batch', () => {
+    return collection.data
       .referenceAddMany({
         refs: [
           {

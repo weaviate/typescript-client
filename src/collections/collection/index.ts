@@ -1,19 +1,18 @@
-import Connection from '../connection/grpc';
-import { ConsistencyLevel } from '../data';
-import { DbVersionSupport } from '../utils/dbVersion';
+import Connection from '../../connection/grpc';
+import { ConsistencyLevel } from '../../data';
+import { DbVersionSupport } from '../../utils/dbVersion';
 
-import aggregate, { metrics, Aggregate, Metrics } from './aggregate';
-import { backupCollection, BackupCollection } from './backup';
-import config, { Config } from './config';
-// import { namedVectorizer, NamedVectorizer } from './configure';
-import data, { Data } from './data';
-import filter, { Filter } from './filters';
-import generate, { Generate } from './generate';
-import { Iterator } from './iterator';
-import query, { Query } from './query';
-import sort, { Sort } from './sort';
-import tenants, { Tenants } from './tenants';
-import { MetadataQuery, Properties, QueryProperty, QueryReference } from './types';
+import aggregate, { metrics, Aggregate, Metrics } from '../aggregate';
+import { backupCollection, BackupCollection } from '../backup';
+import config, { Config } from '../config';
+import data, { Data } from '../data';
+import filter, { Filter } from '../filters';
+import generate, { Generate } from '../generate';
+import { Iterator } from '../iterator';
+import query, { Query } from '../query';
+import sort, { Sort } from '../sort';
+import tenants, { Tenants } from '../tenants';
+import { MetadataQuery, Properties, QueryProperty, QueryReference } from '../types';
 
 export interface Collection<T, N> {
   aggregate: Aggregate<T>;

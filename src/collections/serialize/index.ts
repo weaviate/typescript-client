@@ -1,11 +1,11 @@
 import { v4 as uuidv4 } from 'uuid';
-import { WhereFilter } from '../openapi/types';
+import { WhereFilter } from '../../openapi/types';
 import {
   BatchObject as BatchObjectGrpc,
   BatchObject_MultiTargetRefProps,
   BatchObject_Properties,
   BatchObject_SingleTargetRefProps,
-} from '../proto/v1/batch';
+} from '../../proto/v1/batch';
 import {
   PropertiesRequest,
   ObjectPropertiesRequest,
@@ -25,7 +25,7 @@ import {
   NearThermalSearch,
   NearDepthSearch,
   NearIMUSearch,
-} from '../proto/v1/search_get';
+} from '../../proto/v1/search_get';
 
 import {
   Filters,
@@ -35,7 +35,7 @@ import {
   PrimitiveListFilterValueType,
   FilterById,
   GeoRangeFilter,
-} from './filters';
+} from '../filters';
 import {
   BatchObject,
   DataObject,
@@ -51,7 +51,7 @@ import {
   GeoCoordinate,
   PhoneNumberInput,
   ReferenceInputs,
-} from './types';
+} from '../types';
 import {
   SearchBm25Args,
   SearchFetchArgs,
@@ -65,7 +65,7 @@ import {
   SearchNearThermalArgs,
   SearchNearVectorArgs,
   SearchNearVideoArgs,
-} from '../grpc/searcher';
+} from '../../grpc/searcher';
 import {
   QueryBm25Options,
   QueryFetchObjectByIdOptions,
@@ -74,8 +74,8 @@ import {
   QueryNearOptions,
   QueryOptions,
   QueryGroupByNearOptions,
-} from './query';
-import { GenerateGroupByNearOptions, GenerateOptions } from './generate';
+} from '../query';
+import { GenerateGroupByNearOptions, GenerateOptions } from '../generate';
 import {
   BooleanArrayProperties,
   IntArrayProperties,
@@ -87,8 +87,8 @@ import {
   Filters as FiltersGRPC,
   Filters_Operator,
   FilterTarget,
-} from '../proto/v1/base';
-import { ReferenceManager, uuidToBeacon } from './references';
+} from '../../proto/v1/base';
+import { ReferenceManager, uuidToBeacon } from '../references';
 
 class FilterGuards {
   static isFilters = (
@@ -888,36 +888,5 @@ export default class Serialize {
     return waitFor().then(() => {
       return { batch: batch, mapped: objs };
     });
-  };
-
-  public static batchObjectsSimple = <T>(
-    collection: string,
-    objects: DataObject<T>[],
-    tenant?: string
-  ): {
-    batch: BatchObject<T>[];
-    mapped: BatchObjectGrpc[];
-  } => {
-    const objs: BatchObjectGrpc[] = [];
-    const batch: BatchObject<T>[] = [];
-
-    for (const object of objects) {
-      objs.push(
-        BatchObjectGrpc.fromPartial({
-          collection: collection,
-          properties: Serialize.batchProperties(object.properties),
-          tenant: tenant,
-          uuid: object.id ? object.id : uuidv4(),
-          vector: object.vector,
-        })
-      );
-
-      batch.push({
-        ...object,
-        collection: collection,
-        tenant: tenant,
-      });
-    }
-    return { batch, mapped: objs };
   };
 }

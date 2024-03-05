@@ -1,8 +1,8 @@
-export { GeoCoordinate, PhoneNumber } from '../proto/v1/properties';
-import { GeoCoordinate, PhoneNumber } from '../proto/v1/properties';
+export { GeoCoordinate, PhoneNumber } from '../../proto/v1/properties';
+import { GeoCoordinate, PhoneNumber } from '../../proto/v1/properties';
 
-import { BatchReference } from '../openapi/types';
-import { CrossReference, ReferenceManager } from './references';
+import { BatchReference } from '../../openapi/types';
+import { CrossReference, ReferenceManager } from '../references';
 
 type RecursivePartial<T> = {
   [P in keyof T]?: RecursivePartial<T[P]>;
