@@ -47,6 +47,12 @@
     "url": "https://github.com/weaviate/typescript-client/issues"
   },
   "homepage": "https://github.com/weaviate/typescript-client#readme",
+  "dependencies": {
+    "graphql-request": "^6.1.0",
+    "long": "^5.2.3",
+    "nice-grpc": "^2.1.7",
+    "uuid": "^9.0.1"
+  },
   "devDependencies": {
     "@babel/core": "^7.20.12",
     "@babel/preset-typescript": "^7.18.6",
