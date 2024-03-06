@@ -1,4 +1,4 @@
-import GrpcConnection from './connection/grpc';
+import { ConnectionGRPC } from './connection';
 import { DbVersionProvider, DbVersionSupport } from './utils/dbVersion';
 import { backup, Backup } from './collections/backup';
 import cluster, { Cluster } from './collections/cluster';
@@ -56,7 +56,7 @@ const app = {
     if (!params.headers) params.headers = {};
 
     const scheme = params.rest.secure ? 'https' : 'http';
-    const conn = await GrpcConnection.use({
+    const conn = await ConnectionGRPC.use({
       host: params.rest.host.startsWith('http')
         ? params.rest.host
         : `${scheme}://${params.rest.host}:${params.rest.port}`,
@@ -89,7 +89,7 @@ const app = {
   configure,
 };
 
-function initDbVersionProvider(conn: GrpcConnection) {
+function initDbVersionProvider(conn: ConnectionGRPC) {
   const metaGetter = new MetaGetter(conn);
   const versionGetter = () => {
     return metaGetter

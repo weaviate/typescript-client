@@ -1,4 +1,4 @@
-import Connection, { ConnectionParams } from '.';
+import ConnectionGQL, { ConnectionParams } from '.';
 
 import { ConsistencyLevel } from '../data';
 
@@ -19,7 +19,9 @@ export interface GrpcConnectionParams extends ConnectionParams {
   grpcSecure: boolean;
 }
 
-export default class GrpcConnection extends Connection {
+// Must extend from ConnectionGQL so that it can be passed to all the builder methods,
+// which are tightly coupled to ConnectionGQL
+export default class ConnectionGRPC extends ConnectionGQL {
   private grpc: GrpcClient;
 
   private constructor(params: GrpcConnectionParams) {
@@ -28,7 +30,7 @@ export default class GrpcConnection extends Connection {
   }
 
   static use = async (params: GrpcConnectionParams) => {
-    const connection = new GrpcConnection(params);
+    const connection = new ConnectionGRPC(params);
     await connection.connect();
     return connection;
   };

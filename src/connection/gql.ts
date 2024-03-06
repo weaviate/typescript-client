@@ -1,5 +1,26 @@
 import { GraphQLClient as Client, Variables } from 'graphql-request';
-import { ConnectionParams } from '.';
+import ConnectionREST, { ConnectionParams } from './http';
+
+export default class ConnectionGQL extends ConnectionREST {
+  private gql: GraphQLClient;
+
+  constructor(params: ConnectionParams) {
+    super(params);
+    this.gql = gqlClient(params);
+  }
+
+  query = <V extends Variables, T = any>(query: any, variables?: V) => {
+    if (this.authEnabled) {
+      return this.login().then((token) => {
+        const headers = { Authorization: `Bearer ${token}` };
+        return this.gql.query<V, T>(query, variables, headers);
+      });
+    }
+    return this.gql.query<V, T>(query, variables);
+  };
+}
+
+export * from './auth';
 
 export type TQuery = any;
 export interface GraphQLClient {
@@ -30,5 +51,3 @@ export const gqlClient = (config: ConnectionParams): GraphQLClient => {
     },
   };
 };
-
-export default gqlClient;

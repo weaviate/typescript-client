@@ -1,4 +1,4 @@
-import Connection, { ConnectionParams } from './connection';
+import { ConnectionGQL, ConnectionParams } from './connection';
 import graphql, { GraphQL } from './graphql';
 import schema, { Schema } from './schema';
 import data, { Data } from './data';
@@ -39,7 +39,7 @@ const app = {
     // check if headers are set
     if (!params.headers) params.headers = {};
 
-    const conn = new Connection(params);
+    const conn = new ConnectionGQL(params);
     const dbVersionProvider = initDbVersionProvider(conn);
     const dbVersionSupport = new DbVersionSupport(dbVersionProvider);
 
@@ -66,7 +66,7 @@ const app = {
   AuthClientCredentials,
 };
 
-function initDbVersionProvider(conn: Connection) {
+function initDbVersionProvider(conn: ConnectionGQL) {
   const metaGetter = new MetaGetter(conn);
   const versionGetter = () => {
     return metaGetter
