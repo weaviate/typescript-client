@@ -1,5 +1,7 @@
-export { GeoCoordinate, PhoneNumber } from '../../proto/v1/properties';
-import { GeoCoordinate, PhoneNumber } from '../../proto/v1/properties';
+import {
+  GeoCoordinate as GeoCoordinateGRPC,
+  PhoneNumber as PhoneNumberGRPC,
+} from '../../proto/v1/properties';
 
 import { BatchReference } from '../../openapi/types';
 import { CrossReference, ReferenceManager } from '../references';
@@ -434,6 +436,7 @@ export type GenerativeGroupByReturn<T> = {
 interface BaseRefProperty<T> {
   // linkOn: keyof T & string; // https://github.com/microsoft/TypeScript/issues/56239
   linkOn: RefKeys<T>;
+  includeVector?: boolean | string[];
   returnMetadata?: MetadataQuery;
   returnProperties?: QueryProperty<T>[];
   returnReferences?: QueryReference<
@@ -549,14 +552,18 @@ export type ReturnVectors<V> = V extends string[]
   ? { [Key in V[number]]: number[] }
   : Record<string, number[]>;
 
-export interface SortBy {
+export type SortBy = {
   property: string;
   ascending?: boolean;
-}
+};
 
 export type Reference<T> = {
   objects: WeaviateObject<T>[];
 };
+
+export type GeoCoordinate = Required<GeoCoordinateGRPC>;
+
+export type PhoneNumber = Required<PhoneNumberGRPC>;
 
 type PrimitiveField =
   | string
@@ -570,6 +577,7 @@ type PrimitiveField =
   | Blob
   | GeoCoordinate
   | PhoneNumber
+  | PhoneNumberInput
   | null;
 
 type NestedField = NestedProperties | NestedProperties[];
@@ -735,7 +743,7 @@ export type RerankerConfigType<R> = R extends 'reranker-cohere'
 
 export type RerankerConfig = RerankerCohereConfig | RerankerTransformersConfig | Record<string, any>;
 
-export interface PhoneNumberInput {
+export type PhoneNumberInput = {
   number: string;
   defaultCountry?: string;
-}
+};

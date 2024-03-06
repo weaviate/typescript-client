@@ -25,6 +25,7 @@ import {
   NearThermalSearch,
   NearDepthSearch,
   NearIMUSearch,
+  NearTextSearch_Move,
 } from '../../proto/v1/search_get';
 
 import {
@@ -73,9 +74,9 @@ import {
   QueryHybridOptions,
   QueryNearOptions,
   QueryOptions,
-  QueryGroupByNearOptions,
+  QueryNearTextOptions,
 } from '../query';
-import { GenerateGroupByNearOptions, GenerateOptions } from '../generate';
+import { GenerateOptions } from '../generate';
 import {
   BooleanArrayProperties,
   IntArrayProperties,
@@ -102,7 +103,7 @@ class FilterGuards {
   };
 
   static isTextArray = (argument?: FilterValueType): argument is string[] => {
-    return argument instanceof Array && typeof argument[0] === 'string';
+    return argument instanceof Array && argument.every((arg) => typeof arg === 'string');
   };
 
   static isInt = (argument?: FilterValueType): argument is number => {
@@ -110,7 +111,9 @@ class FilterGuards {
   };
 
   static isIntArray = (argument?: FilterValueType): argument is number[] => {
-    return argument instanceof Array && Number.isInteger(argument[0]);
+    return (
+      argument instanceof Array && argument.every((arg) => typeof arg === 'number' && Number.isInteger(arg))
+    );
   };
 
   static isFloat = (argument?: FilterValueType): argument is number => {
@@ -118,7 +121,9 @@ class FilterGuards {
   };
 
   static isFloatArray = (argument?: FilterValueType): argument is number[] => {
-    return argument instanceof Array && typeof argument[0] === 'number';
+    return (
+      argument instanceof Array && argument.every((arg) => typeof arg === 'number' && !Number.isInteger(arg))
+    );
   };
 
   static isBoolean = (argument?: FilterValueType): argument is boolean => {
@@ -126,7 +131,7 @@ class FilterGuards {
   };
 
   static isBooleanArray = (argument?: FilterValueType): argument is boolean[] => {
-    return argument instanceof Array && typeof argument[0] === 'boolean';
+    return argument instanceof Array && argument.every((arg) => typeof arg === 'boolean');
   };
 
   static isDate = (argument?: FilterValueType): argument is Date => {
@@ -134,7 +139,7 @@ class FilterGuards {
   };
 
   static isDateArray = (argument?: FilterValueType): argument is Date[] => {
-    return argument instanceof Array && argument[0] instanceof Date;
+    return argument instanceof Array && argument.every((arg) => arg instanceof Date);
   };
 
   static isGeoRange = (argument?: FilterValueType): argument is GeoRangeFilter => {
@@ -149,23 +154,33 @@ export class DataGuards {
   };
 
   static isTextArray = (argument?: WeaviateField): argument is string[] => {
-    return argument instanceof Array && typeof argument[0] === 'string';
+    return argument instanceof Array && argument.length > 0 && argument.every(DataGuards.isText);
   };
 
   static isInt = (argument?: WeaviateField): argument is number => {
-    return typeof argument === 'number' && Number.isInteger(argument);
+    return (
+      typeof argument === 'number' &&
+      Number.isInteger(argument) &&
+      !Number.isNaN(argument) &&
+      Number.isFinite(argument)
+    );
   };
 
   static isIntArray = (argument?: WeaviateField): argument is number[] => {
-    return argument instanceof Array && Number.isInteger(argument[0]);
+    return argument instanceof Array && argument.length > 0 && argument.every(DataGuards.isInt);
   };
 
   static isFloat = (argument?: WeaviateField): argument is number => {
-    return typeof argument === 'number';
+    return (
+      typeof argument === 'number' &&
+      !Number.isInteger(argument) &&
+      !Number.isNaN(argument) &&
+      Number.isFinite(argument)
+    );
   };
 
   static isFloatArray = (argument?: WeaviateField): argument is number[] => {
-    return argument instanceof Array && typeof argument[0] === 'number';
+    return argument instanceof Array && argument.length > 0 && argument.every(DataGuards.isFloat);
   };
 
   static isBoolean = (argument?: WeaviateField): argument is boolean => {
@@ -173,7 +188,7 @@ export class DataGuards {
   };
 
   static isBooleanArray = (argument?: WeaviateField): argument is boolean[] => {
-    return argument instanceof Array && typeof argument[0] === 'boolean';
+    return argument instanceof Array && argument.length > 0 && argument.every(DataGuards.isBoolean);
   };
 
   static isDate = (argument?: WeaviateField): argument is Date => {
@@ -181,23 +196,33 @@ export class DataGuards {
   };
 
   static isDateArray = (argument?: WeaviateField): argument is Date[] => {
-    return argument instanceof Array && argument[0] instanceof Date;
+    return argument instanceof Array && argument.length > 0 && argument.every(DataGuards.isDate);
   };
 
-  static isGeoCoordinate = <T>(argument?: GeoCoordinate | T): argument is GeoCoordinate => {
-    return argument instanceof Object && argument.latitude !== undefined && argument.longitude !== undefined;
+  static isGeoCoordinate = (argument?: WeaviateField): argument is GeoCoordinate => {
+    return (
+      argument instanceof Object &&
+      (argument as GeoCoordinate).latitude !== undefined &&
+      (argument as GeoCoordinate).longitude !== undefined
+    );
   };
 
-  static isPhoneNumber = <T>(argument?: PhoneNumberInput | T): argument is PhoneNumberInput => {
-    return argument instanceof Object && argument.number !== undefined;
+  static isPhoneNumber = (argument?: WeaviateField): argument is PhoneNumberInput => {
+    return argument instanceof Object && (argument as PhoneNumberInput).number !== undefined;
   };
 
   static isNested = (argument?: WeaviateField): argument is NestedProperties => {
-    return typeof argument === 'object';
+    return (
+      argument instanceof Object &&
+      !(argument instanceof Array) &&
+      !DataGuards.isDate(argument) &&
+      !DataGuards.isGeoCoordinate(argument) &&
+      !DataGuards.isPhoneNumber(argument)
+    );
   };
 
   static isNestedArray = (argument?: WeaviateField): argument is NestedProperties[] => {
-    return argument instanceof Array && typeof argument[0] === 'object';
+    return argument instanceof Array && argument.length > 0 && argument.every(DataGuards.isNested);
   };
 
   static isEmptyArray = (argument?: WeaviateField): argument is [] => {
@@ -280,7 +305,7 @@ export default class Serialize {
         query: args.query,
         alpha: args.alpha ? args.alpha : 0.5,
         properties: args.queryProperties,
-        vector: args.vector,
+        vectorBytes: args.vector ? Serialize.vectorToBytes(args.vector) : undefined,
         fusionType: fusionType(args.fusionType),
         targetVectors: args.targetVector ? [args.targetVector] : undefined,
       }),
@@ -354,7 +379,7 @@ export default class Serialize {
   };
 
   public static nearText = <T>(
-    args: { query: string | string[] } & QueryNearOptions<T>
+    args: { query: string | string[] } & QueryNearTextOptions<T>
   ): SearchNearTextArgs => {
     return {
       ...Serialize.common(args),
@@ -363,6 +388,20 @@ export default class Serialize {
         certainty: args.certainty,
         distance: args.distance,
         targetVectors: args.targetVector ? [args.targetVector] : undefined,
+        moveAway: args.moveAway
+          ? NearTextSearch_Move.fromPartial({
+              concepts: args.moveAway.concepts,
+              force: args.moveAway.force,
+              uuids: args.moveAway.objects,
+            })
+          : undefined,
+        moveTo: args.moveTo
+          ? NearTextSearch_Move.fromPartial({
+              concepts: args.moveTo.concepts,
+              force: args.moveTo.force,
+              uuids: args.moveTo.objects,
+            })
+          : undefined,
       }),
       autocut: args.autoLimit,
     };
@@ -381,11 +420,15 @@ export default class Serialize {
     };
   };
 
+  private static vectorToBytes = (vector: number[]): Uint8Array => {
+    return new Uint8Array(new Float32Array(vector).buffer);
+  };
+
   public static nearVector = <T>(args: { vector: number[] } & QueryNearOptions<T>): SearchNearVectorArgs => {
     return {
       ...Serialize.common(args),
       nearVector: NearVector.fromPartial({
-        vector: args.vector,
+        vectorBytes: args.vector ? Serialize.vectorToBytes(args.vector) : undefined,
         certainty: args.certainty,
         distance: args.distance,
         targetVectors: args.targetVector ? [args.targetVector] : undefined,
@@ -602,16 +645,10 @@ export default class Serialize {
       returnAllNonrefProperties: nonRefProperties === undefined,
       refProperties: refProperties
         ? refProperties.map((property) => {
-            const metadata: any = { uuid: true };
-            if (property.returnMetadata) {
-              property.returnMetadata.forEach((key) => {
-                metadata[key] = true;
-              });
-            }
             return {
               referenceProperty: property.linkOn,
               properties: Serialize.properties(property.returnProperties),
-              metadata: metadata,
+              metadata: Serialize.metadata(property.includeVector, property.returnMetadata),
               targetCollection: property.targetCollection ? property.targetCollection : '',
             };
           })
@@ -653,7 +690,7 @@ export default class Serialize {
       }
       out[weaviateKey] = true;
     });
-    return out;
+    return MetadataRequest.fromPartial(out);
   };
 
   private static sortBy = (sort: SortBy[]): SortByGrpc[] => {
@@ -681,12 +718,7 @@ export default class Serialize {
     });
   };
 
-  public static isGroupBy = <T>(args: any): args is QueryGroupByNearOptions<T> => {
-    if (args === undefined) return false;
-    return args.groupBy !== undefined;
-  };
-
-  public static isGenerateGroupBy = <T>(args: any): args is GenerateGroupByNearOptions<T> => {
+  public static isGroupBy = <T>(args: any): args is T => {
     if (args === undefined) return false;
     return args.groupBy !== undefined;
   };
@@ -786,7 +818,7 @@ export default class Serialize {
           floatArray.push({
             propName: key,
             values: [],
-            valuesBytes: new Uint8Array(new Float64Array(value).buffer),
+            valuesBytes: Serialize.vectorToBytes(value),
           });
         } else if (DataGuards.isDate(value)) {
           nonRefProperties[key] = value.toISOString();

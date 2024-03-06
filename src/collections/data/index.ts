@@ -24,35 +24,44 @@ import Deserialize from '../deserialize';
 
 import { addContext } from '..';
 
-export interface DeleteManyOptions<V> {
+export type DeleteManyOptions<V> = {
   verbose?: V;
   dryRun?: boolean;
-}
+};
 
-export interface InsertArgs<T> {
+export type InsertArgs<T> = {
   id?: string;
   properties?: NonReferenceInputs<T>;
   references?: ReferenceInputs<T>;
   vectors?: number[] | Vectors;
-}
+};
 
-export interface ReferenceArgs<T> {
+export type ReferenceArgs<T> = {
   fromUuid: string;
   fromProperty: string;
   to: ReferenceInput<T>;
-}
+};
 
-export interface ReferenceManyArgs<T> {
+export type ReferenceManyArgs<T> = {
   refs: ReferenceArgs<T>[];
-}
+};
 
-export interface ReplaceArgs<T> {
+export type ReplaceArgs<T> = {
   id: string;
   properties?: T;
   vector?: number[];
-}
+};
 
-export interface UpdateArgs<T> extends ReplaceArgs<T> {}
+export type UpdateArgs<T> = ReplaceArgs<T>;
+
+export type InsertObject<T> = InsertArgs<T>;
+
+export type BatchDeleteResult = {
+  failed: number;
+  matches: number;
+  objects?: Record<string, any>[];
+  successful: number;
+};
 
 export interface Data<T> {
   delete: (id: string) => Promise<boolean>;
@@ -70,15 +79,6 @@ export interface Data<T> {
   replace: (args: ReplaceArgs<T>) => Promise<void>;
   update: (args: UpdateArgs<T>) => Promise<void>;
 }
-
-export type InsertObject<T> = InsertArgs<T>;
-
-export type BatchDeleteResult = {
-  failed: number;
-  matches: number;
-  objects?: Record<string, any>[];
-  successful: number;
-};
 
 const data = <T>(
   connection: Connection,

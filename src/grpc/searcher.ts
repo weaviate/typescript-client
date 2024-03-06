@@ -26,7 +26,7 @@ import { Metadata } from 'nice-grpc';
 
 import Base from './base';
 
-export interface SearchFetchArgs {
+export type SearchFetchArgs = {
   limit?: number;
   offset?: number;
   after?: string;
@@ -36,9 +36,9 @@ export interface SearchFetchArgs {
   properties?: PropertiesRequest;
   generative?: GenerativeSearch;
   groupBy?: GroupBy;
-}
+};
 
-interface BaseSearchArgs {
+type BaseSearchArgs = {
   limit?: number;
   autocut?: number;
   filters?: Filters;
@@ -46,51 +46,51 @@ interface BaseSearchArgs {
   properties?: PropertiesRequest;
   generative?: GenerativeSearch;
   groupBy?: GroupBy;
-}
+};
 
-export interface SearchBm25Args extends BaseSearchArgs {
+export type SearchBm25Args = BaseSearchArgs & {
   bm25: BM25;
-}
+};
 
-export interface SearchHybridArgs extends BaseSearchArgs {
+export type SearchHybridArgs = BaseSearchArgs & {
   hybrid: Hybrid;
-}
+};
 
-export interface SearchNearAudioArgs extends BaseSearchArgs {
+export type SearchNearAudioArgs = BaseSearchArgs & {
   nearAudio: NearAudioSearch;
-}
+};
 
-export interface SearchNearDepthArgs extends BaseSearchArgs {
+export type SearchNearDepthArgs = BaseSearchArgs & {
   nearDepth: NearDepthSearch;
-}
+};
 
-export interface SearchNearImageArgs extends BaseSearchArgs {
+export type SearchNearImageArgs = BaseSearchArgs & {
   nearImage: NearImageSearch;
-}
+};
 
-export interface SearchNearIMUArgs extends BaseSearchArgs {
+export type SearchNearIMUArgs = BaseSearchArgs & {
   nearIMU: NearIMUSearch;
-}
+};
 
-export interface SearchNearObjectArgs extends BaseSearchArgs {
+export type SearchNearObjectArgs = BaseSearchArgs & {
   nearObject: NearObject;
-}
+};
 
-export interface SearchNearTextArgs extends BaseSearchArgs {
+export type SearchNearTextArgs = BaseSearchArgs & {
   nearText: NearTextSearch;
-}
+};
 
-export interface SearchNearThermalArgs extends BaseSearchArgs {
+export type SearchNearThermalArgs = BaseSearchArgs & {
   nearThermal: NearThermalSearch;
-}
+};
 
-export interface SearchNearVectorArgs extends BaseSearchArgs {
+export type SearchNearVectorArgs = BaseSearchArgs & {
   nearVector: NearVector;
-}
+};
 
-export interface SearchNearVideoArgs extends BaseSearchArgs {
+export type SearchNearVideoArgs = BaseSearchArgs & {
   nearVideo: NearVideoSearch;
-}
+};
 
 export interface Search {
   withFetch: (args: SearchFetchArgs) => Promise<SearchReply>;

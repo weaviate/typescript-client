@@ -21,7 +21,6 @@
   "scripts": {
     "test": "tsc -noEmit -p tsconfig-test.json && jest --no-cache --useStderr --runInBand --detectOpenHandles",
     "test:coverage": "tsc -noEmit -p tsconfig-test.json && jest --no-cache --coverage --useStderr --runInBand --detectOpenHandles",
-    "test:unit": "tsc -noEmit -p tsconfig-test.json && jest --no-cache --useStderr --runInBand --detectOpenHandles src/collections/**/unit.test.ts",
     "build": "npm run build:node",
     "build:web": "npm run lint && tsup",
     "build:node": "npm run lint && tsc && tsup && prettier --write --no-error-on-unmatched-pattern '**/dist/**/*.{ts,js}'",
