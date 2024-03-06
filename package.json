@@ -6,12 +6,12 @@
   "exports": {
     "./node": {
       "import": {
-        "default": "./dist/node/index.js",
-        "types": "./dist/node/index.d.ts"
+        "types": "./dist/node/index.d.ts",
+        "default": "./dist/node/index.js"
       },
       "require": {
-        "default": "./dist/node/index.cjs",
-        "types": "./dist/node/index.d.cts"
+        "types": "./dist/node/index.d.cts",
+        "default": "./dist/node/index.cjs"
       }
     }
   },
