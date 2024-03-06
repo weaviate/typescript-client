@@ -1,4 +1,3 @@
-import { ApiKey } from '.';
 import weaviate from '../index.node';
 
 const WCS_URL = 'https://piblpmmdsiknacjnm1ltla.c1.europe-west3.gcp.weaviate.cloud';
@@ -8,7 +7,7 @@ describe('Testing of the connection helper methods', () => {
   it('should connect to a WCS cluster', () => {
     return weaviate
       .connectToWCS(WCS_URL, {
-        authCredentials: new ApiKey(WCS_KEY),
+        authCredentials: new weaviate.ApiKey(WCS_KEY),
       })
       .then((client) => client.getMeta())
       .then((res: any) => {
