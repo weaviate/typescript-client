@@ -1,4 +1,5 @@
-import ConnectionGQL, { ConnectionParams } from '.';
+import ConnectionGQL from './gql';
+import { ConnectionParams } from './http';
 
 import { ConsistencyLevel } from '../data';
 
