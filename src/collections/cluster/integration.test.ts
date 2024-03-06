@@ -1,4 +1,4 @@
-import weaviate, { WeaviateNextClient } from '../../index.node';
+import weaviate, { WeaviateNextClient } from '../..';
 
 describe('Testing of the client.cluster methods', () => {
   let client: WeaviateNextClient;

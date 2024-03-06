@@ -1,4 +1,4 @@
-import weaviate, { WeaviateClient } from '..';
+import weaviate, { WeaviateClient } from '../v2';
 import Connection from '../connection';
 import { Classification } from '../openapi/types';
 

@@ -6,7 +6,7 @@ import {
 } from './auth';
 import Connection from '.';
 
-import weaviate from '..';
+import weaviate from '../v2';
 
 describe('connection', () => {
   it('makes a logged-in request when client host param has trailing slashes', () => {

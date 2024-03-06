@@ -1,4 +1,4 @@
-import weaviate from '..';
+import weaviate from '../v2';
 import { Classification } from '../openapi/types';
 
 const targetDessertId = '9f399d3e-45a4-44f4-b0fd-fa291abfb211';

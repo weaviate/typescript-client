@@ -8,7 +8,7 @@ import weaviate, {
   Tenant,
   ReferenceCreator,
   WhereFilter,
-} from '..';
+} from '../v2';
 import { FusionType } from './hybrid';
 
 describe('the graphql journey', () => {

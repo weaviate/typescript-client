@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import weaviate, { WeaviateNextClient } from '../../index.node';
+import weaviate, { WeaviateNextClient } from '../..';
 import { Collection } from '../collection';
 
 describe('Testing of the collection.data methods', () => {

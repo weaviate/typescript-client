@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
-import weaviate, { WeaviateNextClient } from '../../index.node';
+import weaviate, { WeaviateNextClient } from '../..';
 import { DataObject } from '../types';
 import { CrossReference } from '../references';
 import { Collection } from '../collection';

@@ -1,4 +1,4 @@
-import weaviate from '..';
+import weaviate from '../v2';
 
 describe('misc endpoints', () => {
   const client = weaviate.client({

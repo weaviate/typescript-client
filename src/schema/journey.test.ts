@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import weaviate, { WeaviateClient } from '..';
+import weaviate, { WeaviateClient } from '../v2';
 import {
   WeaviateClass,
   Property,

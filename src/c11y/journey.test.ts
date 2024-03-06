@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import weaviate from '..';
+import weaviate from '../v2';
 import { C11yWordsResponse, C11yExtension } from '../openapi/types';
 
 describe('c11y endpoints', () => {

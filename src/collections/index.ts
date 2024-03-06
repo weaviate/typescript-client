@@ -12,7 +12,7 @@ import {
 import ClassExists from '../schema/classExists';
 import { classToCollection, resolveProperty, resolveReference, ReferenceTypeGuards } from './config';
 import { ConsistencyLevel } from '../data';
-import { WeaviateClass } from '../index.node';
+import { WeaviateClass } from '..';
 
 export interface IBuilder {
   withConsistencyLevel(consistencyLevel: ConsistencyLevel): this;

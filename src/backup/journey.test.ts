@@ -1,5 +1,5 @@
 import { Backend } from '.';
-import weaviate, { WeaviateClient } from '..';
+import weaviate, { WeaviateClient } from '../v2';
 import {
   BackupCreateResponse,
   BackupCreateStatusResponse,

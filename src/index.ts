@@ -1,60 +1,82 @@
-import { ConnectionGQL, ConnectionParams } from './connection';
-import graphql, { GraphQL } from './graphql';
-import schema, { Schema } from './schema';
-import data, { Data } from './data';
-import classifications, { Classifications } from './classifications';
-import batch, { Batch } from './batch';
-import misc, { Misc } from './misc';
-import c11y, { C11y } from './c11y';
+import { ConnectionGRPC } from './connection';
 import { DbVersionProvider, DbVersionSupport } from './utils/dbVersion';
-import backup, { Backup } from './backup';
-import cluster, { Cluster } from './cluster';
+import { backup, Backup } from './collections/backup';
+import cluster, { Cluster } from './collections/cluster';
 import {
   ApiKey,
   AuthAccessTokenCredentials,
   AuthClientCredentials,
   AuthUserPasswordCredentials,
+  AuthCredentials,
   OidcAuthenticator,
 } from './connection/auth';
+import {
+  connectToLocal,
+  connectToWCS,
+  ConnectToLocalOptions,
+  ConnectToWCSOptions,
+} from './connection/helpers';
 import MetaGetter from './misc/metaGetter';
+import collections, { Collections } from './collections';
+import configure from './collections/configure';
+import { Meta } from './openapi/types';
 
-export interface WeaviateClient {
-  graphql: GraphQL;
-  schema: Schema;
-  data: Data;
-  classifications: Classifications;
-  batch: Batch;
-  misc: Misc;
-  c11y: C11y;
+export interface ProtocolParams {
+  secure: boolean;
+  host: string;
+  port: number;
+}
+
+export interface ClientParams {
+  rest: ProtocolParams;
+  grpc: ProtocolParams;
+  auth?: AuthCredentials;
+  headers?: HeadersInit;
+}
+export interface WeaviateNextClient {
   backup: Backup;
   cluster: Cluster;
+  collections: Collections;
+  getMeta: () => Promise<Meta>;
   oidcAuth?: OidcAuthenticator;
 }
 
 const app = {
-  client: function (params: ConnectionParams): WeaviateClient {
+  connectToLocal: function (options?: ConnectToLocalOptions): Promise<WeaviateNextClient> {
+    return connectToLocal(this.client, options);
+  },
+  connectToWCS: function (clusterURL: string, options?: ConnectToWCSOptions): Promise<WeaviateNextClient> {
+    return connectToWCS(clusterURL, this.client, options);
+  },
+  client: async function (params: ClientParams): Promise<WeaviateNextClient> {
     // check if the URL is set
-    if (!params.host) throw new Error('Missing `host` parameter');
+    if (!params.rest.host) throw new Error('Missing `host` parameter');
 
     // check if headers are set
     if (!params.headers) params.headers = {};
 
-    const conn = new ConnectionGQL(params);
+    const scheme = params.rest.secure ? 'https' : 'http';
+    const conn = await ConnectionGRPC.use({
+      host: params.rest.host.startsWith('http')
+        ? params.rest.host
+        : `${scheme}://${params.rest.host}:${params.rest.port}`,
+      scheme: scheme,
+      headers: params.headers,
+      grpcAddress: `${params.grpc.host}:${params.grpc.port}`,
+      grpcSecure: params.grpc.secure,
+      apiKey: params.auth instanceof ApiKey ? params.auth : undefined,
+      authClientSecret: params.auth instanceof ApiKey ? undefined : params.auth,
+    });
+
     const dbVersionProvider = initDbVersionProvider(conn);
     const dbVersionSupport = new DbVersionSupport(dbVersionProvider);
 
-    const ifc: WeaviateClient = {
-      graphql: graphql(conn),
-      schema: schema(conn),
-      data: data(conn, dbVersionSupport),
-      classifications: classifications(conn),
-      batch: batch(conn, dbVersionSupport),
-      misc: misc(conn, dbVersionProvider),
-      c11y: c11y(conn),
+    const ifc: WeaviateNextClient = {
       backup: backup(conn),
       cluster: cluster(conn),
+      collections: collections(conn, dbVersionSupport),
+      getMeta: () => new MetaGetter(conn).do(),
     };
-
     if (conn.oidcAuth) ifc.oidcAuth = conn.oidcAuth;
 
     return ifc;
@@ -64,9 +86,10 @@ const app = {
   AuthUserPasswordCredentials,
   AuthAccessTokenCredentials,
   AuthClientCredentials,
+  configure,
 };
 
-function initDbVersionProvider(conn: ConnectionGQL) {
+function initDbVersionProvider(conn: ConnectionGRPC) {
   const metaGetter = new MetaGetter(conn);
   const versionGetter = () => {
     return metaGetter
@@ -83,15 +106,9 @@ function initDbVersionProvider(conn: ConnectionGQL) {
 
 export default app;
 export * from './openapi/types';
-export * from './graphql';
-export * from './schema';
-export * from './data';
-export * from './classifications';
-export * from './batch';
-export * from './misc';
-export * from './c11y';
 export * from './backup';
 export * from './cluster';
+export * from './collections';
 export * from './connection';
-export * from './utils/uuid';
 export * from './utils/base64';
+export * from './utils/uuid';

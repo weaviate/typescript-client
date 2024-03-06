@@ -1,4 +1,4 @@
-import { ClientParams, WeaviateNextClient } from '../index.node';
+import { ClientParams, WeaviateNextClient } from '..';
 import {
   ApiKey,
   AuthAccessTokenCredentials,

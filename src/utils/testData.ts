@@ -1,4 +1,4 @@
-import { WeaviateClient } from '..';
+import { WeaviateClient } from '../v2';
 import { WeaviateObject, Property } from '../openapi/types';
 
 export const PIZZA_CLASS_NAME = 'Pizza';

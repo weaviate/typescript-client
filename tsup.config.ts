@@ -23,9 +23,9 @@ export default defineConfig([
   // },
   {
     entry: {
-      index: 'src/index.node.ts',
+      index: 'src/index.ts',
     },
-    format: ['cjs', 'esm'],
+    format: ['cjs'],
     outDir: 'dist/node',
     dts: true,
     target: 'node16',
