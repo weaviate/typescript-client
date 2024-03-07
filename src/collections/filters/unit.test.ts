@@ -667,6 +667,16 @@ describe('Unit testing of filters', () => {
       });
     });
 
+    it('should map a text array property filter', () => {
+      const f = anyFilter.byProperty('names').equal(['John', 'Doe']);
+      const s = Serialize.filtersREST(f);
+      expect(s).toEqual({
+        operator: 'Equal',
+        path: ['names'],
+        valueTextArray: ['John', 'Doe'],
+      });
+    });
+
     it('should map an int array property filter', () => {
       const f = anyFilter.byProperty('ages').equal([18, 19]);
       const s = Serialize.filtersREST(f);

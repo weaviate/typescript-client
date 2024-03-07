@@ -14,6 +14,7 @@ import {
   SearchNearVideoArgs,
 } from '../../grpc/searcher';
 import { Filters, Filters_Operator } from '../../proto/v1/base';
+import { BatchObject as BatchObjectGRPC, BatchObject_Properties } from '../../proto/v1/batch';
 import {
   BM25,
   GenerativeSearch,
@@ -34,9 +35,9 @@ import {
   PropertiesRequest,
 } from '../../proto/v1/search_get';
 import filter from '../filters';
-import { GenerateGroupByNearOptions } from '../generate';
-import sort, { Sorting } from '../sort';
-import { WeaviateField } from '../types';
+import { Reference } from '../references';
+import sort from '../sort';
+import { BatchObjects, WeaviateField } from '../types';
 
 describe('Unit testing of Serialize', () => {
   it('should parse args for fetchObjects', () => {
@@ -327,6 +328,150 @@ describe('Unit testing of Serialize', () => {
     const isNotGroupBy = Serialize.isGroupBy({});
     expect(isGroupBy).toEqual(true);
     expect(isNotGroupBy).toEqual(false);
+  });
+
+  it('should parse args for restProperties', () => {
+    const args = Serialize.restProperties(
+      {
+        name: 'John',
+        age: 30,
+        height: 1.8,
+        isHappy: true,
+        birthday: new Date(),
+        namedays: [new Date(), new Date()],
+        location: {
+          latitude: 1,
+          longitude: 1,
+        },
+        phoneNumber: {
+          number: '+44 1234 567890',
+        },
+        clothing: [
+          {
+            type: 'shirt',
+            color: 'blue',
+            whenMade: new Date(),
+          },
+          {
+            type: 'pants',
+            color: 'black',
+            whenMade: new Date(),
+          },
+        ],
+        mindset: {
+          hopeful: true,
+          optimistic: true,
+        },
+      },
+      {
+        str: '1',
+        strs: ['2', '3'],
+        typeStr: {
+          targetCollection: 'A',
+          uuids: '4',
+        },
+        typesStr: [
+          {
+            targetCollection: 'B',
+            uuids: '5',
+          },
+          {
+            targetCollection: 'C',
+            uuids: '6',
+          },
+        ],
+        typeStrs: {
+          targetCollection: 'D',
+          uuids: ['7', '8'],
+        },
+        typesStrs: [
+          {
+            targetCollection: 'E',
+            uuids: ['9', '10'],
+          },
+          {
+            targetCollection: 'F',
+            uuids: ['11', '12'],
+          },
+        ],
+        mngrStrSngl: Reference.to('13'),
+        mngrsStrSngl: [Reference.to('14'), Reference.to('15')],
+        mngrStrMlt: Reference.toMultiTarget('16', 'G'),
+        mngrsStrMlt: [Reference.toMultiTarget(['17', '18'], 'H'), Reference.toMultiTarget(['19', '20'], 'I')],
+        mngrStrsSngl: Reference.to(['21', '22']),
+        mngrsStrsSngl: [Reference.to(['23', '24']), Reference.to(['25', '26'])],
+        mngrStrsMlt: Reference.toMultiTarget(['27', '28'], 'J'),
+        mngrsStrsMlt: [
+          Reference.toMultiTarget(['29', '30'], 'K'),
+          Reference.toMultiTarget(['31', '32'], 'L'),
+        ],
+      }
+    );
+    expect(args).toEqual({
+      name: 'John',
+      age: 30,
+      height: 1.8,
+      isHappy: true,
+      birthday: expect.any(String),
+      namedays: [expect.any(String), expect.any(String)],
+      location: {
+        latitude: 1,
+        longitude: 1,
+      },
+      phoneNumber: {
+        input: '+44 1234 567890',
+      },
+      clothing: [
+        {
+          type: 'shirt',
+          color: 'blue',
+          whenMade: expect.any(String),
+        },
+        {
+          type: 'pants',
+          color: 'black',
+          whenMade: expect.any(String),
+        },
+      ],
+      mindset: {
+        hopeful: true,
+        optimistic: true,
+      },
+      str: [{ beacon: 'weaviate://localhost/1' }],
+      strs: [{ beacon: 'weaviate://localhost/2' }, { beacon: 'weaviate://localhost/3' }],
+      typeStr: [{ beacon: 'weaviate://localhost/A/4' }],
+      typesStr: [{ beacon: 'weaviate://localhost/B/5' }, { beacon: 'weaviate://localhost/C/6' }],
+      typeStrs: [{ beacon: 'weaviate://localhost/D/7' }, { beacon: 'weaviate://localhost/D/8' }],
+      typesStrs: [
+        { beacon: 'weaviate://localhost/E/9' },
+        { beacon: 'weaviate://localhost/E/10' },
+        { beacon: 'weaviate://localhost/F/11' },
+        { beacon: 'weaviate://localhost/F/12' },
+      ],
+      mngrStrSngl: [{ beacon: 'weaviate://localhost/13' }],
+      mngrsStrSngl: [{ beacon: 'weaviate://localhost/14' }, { beacon: 'weaviate://localhost/15' }],
+      mngrStrMlt: [{ beacon: 'weaviate://localhost/G/16' }],
+      mngrsStrMlt: [
+        { beacon: 'weaviate://localhost/H/17' },
+        { beacon: 'weaviate://localhost/H/18' },
+        { beacon: 'weaviate://localhost/I/19' },
+        { beacon: 'weaviate://localhost/I/20' },
+      ],
+      mngrStrsSngl: [{ beacon: 'weaviate://localhost/21' }, { beacon: 'weaviate://localhost/22' }],
+      mngrsStrsSngl: [
+        { beacon: 'weaviate://localhost/23' },
+        { beacon: 'weaviate://localhost/24' },
+        { beacon: 'weaviate://localhost/25' },
+        { beacon: 'weaviate://localhost/26' },
+      ],
+      mngrStrsMlt: [{ beacon: 'weaviate://localhost/J/27' }, { beacon: 'weaviate://localhost/J/28' }],
+      mngrsStrsMlt: [
+        { beacon: 'weaviate://localhost/K/29' },
+        { beacon: 'weaviate://localhost/K/30' },
+        { beacon: 'weaviate://localhost/L/31' },
+        { beacon: 'weaviate://localhost/L/32' },
+      ],
+    });
   });
 });
 

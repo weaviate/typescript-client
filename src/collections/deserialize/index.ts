@@ -17,7 +17,7 @@ import {
   GenerativeGroupByResult,
   DeleteManyReturn,
 } from '../types';
-import { BatchObject as BatchObjectGrpc, BatchObjectsReply } from '../../proto/v1/batch';
+import { BatchObject as BatchObjectGRPC, BatchObjectsReply } from '../../proto/v1/batch';
 import { Properties as PropertiesGrpc, Value } from '../../proto/v1/properties';
 import { BatchDeleteReply } from '../../proto/v1/batch_delete';
 
@@ -208,7 +208,7 @@ export default class Deserialize {
   public static batchObjects<T>(
     reply: BatchObjectsReply,
     originalObjs: BatchObject<T>[],
-    mappedObjs: BatchObjectGrpc[],
+    mappedObjs: BatchObjectGRPC[],
     elapsed: number
   ): BatchObjectsReturn<T> {
     const allResponses = [];
@@ -225,7 +225,7 @@ export default class Deserialize {
         const error: ErrorObject<T> = {
           message: batchErrors[index],
           object: object,
-          originalUuid: object.uuid,
+          originalUuid: object.id,
         };
         errors[index] = error;
         allResponses[index] = error;

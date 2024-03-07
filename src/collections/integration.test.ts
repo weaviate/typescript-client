@@ -1,6 +1,12 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import weaviate, { WeaviateNextClient } from '..';
-import { CollectionConfigCreate, Text2VecContextionaryConfig, Text2VecOpenAIConfig } from './types';
+import {
+  CollectionConfigCreate,
+  GeoCoordinate,
+  PhoneNumber,
+  Text2VecContextionaryConfig,
+  Text2VecOpenAIConfig,
+} from './types';
 
 const fail = (msg: string) => {
   throw new Error(msg);
@@ -217,6 +223,110 @@ describe('Testing of the collections.create method', () => {
     expect(response.vectorizer.default.vectorizer.name).toEqual('none');
 
     await contextionary.collections.delete(className);
+  });
+
+  it('should be able to create a collection with generic properties', () => {
+    const className = 'TestCollectionGenericProperties';
+
+    type TestCollectionGenericProperties = {
+      text: string;
+      texts: string[];
+      number: number;
+      numbers: number[];
+      int: number;
+      ints: number[];
+      date: Date;
+      dates: Date[];
+      boolean: boolean;
+      booleans: boolean[];
+      object: {
+        nestedProp: string;
+      };
+      objects: {
+        nestedProp: string;
+      }[];
+      blob: string;
+      geoCoordinates: GeoCoordinate;
+      phoneNumber: PhoneNumber;
+    };
+
+    cluster.collections.create<TestCollectionGenericProperties, 'TestCollectionGenericProperties'>({
+      name: className,
+      properties: [
+        {
+          name: 'text',
+          dataType: 'text',
+        },
+        {
+          name: 'texts',
+          dataType: 'text[]',
+        },
+        {
+          name: 'number',
+          dataType: 'number',
+        },
+        {
+          name: 'numbers',
+          dataType: 'number[]',
+        },
+        {
+          name: 'int',
+          dataType: 'int',
+        },
+        {
+          name: 'ints',
+          dataType: 'int[]',
+        },
+        {
+          name: 'date',
+          dataType: 'date',
+        },
+        {
+          name: 'dates',
+          dataType: 'date[]',
+        },
+        {
+          name: 'boolean',
+          dataType: 'boolean',
+        },
+        {
+          name: 'booleans',
+          dataType: 'boolean[]',
+        },
+        {
+          name: 'object',
+          dataType: 'object',
+          nestedProperties: [
+            {
+              name: 'nestedProp',
+              dataType: 'text',
+            },
+          ],
+        },
+        {
+          name: 'objects',
+          dataType: 'object[]',
+          nestedProperties: [
+            {
+              name: 'nestedProp',
+              dataType: 'text',
+            },
+          ],
+        },
+        {
+          name: 'blob',
+          dataType: 'blob',
+        },
+        {
+          name: 'geoCoordinates',
+          dataType: 'geoCoordinates',
+        },
+        {
+          name: 'phoneNumber',
+          dataType: 'phoneNumber',
+        },
+      ],
+    });
   });
 
   it('should be able to create a complex collection', async () => {

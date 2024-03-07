@@ -2,13 +2,14 @@
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
 import weaviate, { WeaviateNextClient } from '../..';
 import { v4 } from 'uuid';
-import { DataObject, WeaviateObject } from '../types';
+import { DataObject, PropertyConfigCreate, WeaviateObject } from '../types';
 import { CrossReference, CrossReferences, Reference } from '../references';
 import { GeoCoordinate, PhoneNumber } from '../../proto/v1/properties';
 import { Collection } from '../collection';
 
 type TestCollectionData = {
   testProp: string;
+  testProps?: string[];
   testProp2?: number;
   ref?: CrossReference<TestCollectionData>;
   geo?: GeoCoordinate;
@@ -190,6 +191,7 @@ describe('Testing of the collection.data methods with a single target reference'
       objects.push({
         properties: {
           testProp: 'testInsertMany10',
+          testProps: [], // test empty array
         },
       });
     }
@@ -205,6 +207,7 @@ describe('Testing of the collection.data methods with a single target reference'
       expect(query.objects.filter((obj) => obj.properties.testProp === 'testInsertMany10').length).toEqual(
         10
       );
+      expect(query.objects.filter((obj) => obj.properties.testProps?.length === 0).length).toEqual(10);
     });
   });
 
@@ -540,5 +543,226 @@ describe('Testing of the collection.data methods with a multi target reference',
     await collectionTwo.query
       .fetchObjectById(id, { returnReferences: [{ linkOn: 'refs', targetCollection: classNameTwo }] })
       .then((obj) => expect(obj!.references!.refs.objects[0].uuid).toEqual(twoId));
+  });
+});
+
+describe('Testing of the collection.data.insertMany method with all possible types', () => {
+  let client: WeaviateNextClient;
+  let collection: Collection<TestCollectionData, 'TestCollectionData'>;
+  const className = 'TestCollectionData';
+  let id: string;
+
+  type Primitives = {
+    text?: string;
+    textArr?: string[];
+    int?: number;
+    intArr?: number[];
+    number?: number;
+    numberArr?: number[];
+    bool?: boolean;
+    boolArr?: boolean[];
+    date?: Date;
+    dateArr?: Date[];
+  };
+
+  type A = Primitives;
+
+  type B = {
+    child: A;
+  };
+
+  type TestCollectionData = Primitives & {
+    self?: CrossReference<TestCollectionData>;
+    geo?: GeoCoordinate;
+    phone?: PhoneNumber;
+    child?: A;
+    children?: B[];
+  };
+
+  beforeAll(async () => {
+    client = await weaviate.client({
+      rest: {
+        secure: false,
+        host: 'localhost',
+        port: 8080,
+      },
+      grpc: {
+        secure: false,
+        host: 'localhost',
+        port: 50051,
+      },
+    });
+    const primitives = [
+      {
+        name: 'text' as const,
+        dataType: 'text' as const,
+      },
+      {
+        name: 'textArr' as const,
+        dataType: 'text[]' as const,
+      },
+      {
+        name: 'int' as const,
+        dataType: 'int' as const,
+      },
+      {
+        name: 'intArr' as const,
+        dataType: 'int[]' as const,
+      },
+      {
+        name: 'number' as const,
+        dataType: 'number' as const,
+      },
+      {
+        name: 'numberArr' as const,
+        dataType: 'number[]' as const,
+      },
+      {
+        name: 'bool' as const,
+        dataType: 'boolean' as const,
+      },
+      {
+        name: 'boolArr' as const,
+        dataType: 'boolean[]' as const,
+      },
+      {
+        name: 'date' as const,
+        dataType: 'date' as const,
+      },
+      {
+        name: 'dateArr' as const,
+        dataType: 'date[]' as const,
+      },
+    ];
+    collection = await client.collections.create<TestCollectionData, 'TestCollectionData'>({
+      name: className,
+      properties: [
+        ...primitives,
+        {
+          name: 'geo' as const,
+          dataType: 'geoCoordinates' as const,
+        },
+        {
+          name: 'phone' as const,
+          dataType: 'phoneNumber' as const,
+        },
+        {
+          name: 'child',
+          dataType: 'object',
+          nestedProperties: primitives,
+        },
+        {
+          name: 'children',
+          dataType: 'object[]',
+          nestedProperties: primitives,
+        },
+      ],
+      references: [
+        {
+          name: 'self',
+          targetCollection: className,
+        },
+      ],
+    });
+    id = await collection.data.insert();
+  });
+
+  it.only('should insert many objects with all possible types', async () => {
+    const date1 = new Date();
+    const date2 = new Date();
+    const primitives = {
+      text: 'text',
+      textArr: ['textArr'],
+      int: 1,
+      intArr: [1],
+      number: 1.1,
+      numberArr: [1.1],
+      bool: true,
+      boolArr: [true],
+      date: date1,
+      dateArr: [date2],
+    };
+    const objects: DataObject<TestCollectionData>[] = [
+      {
+        properties: {
+          ...primitives,
+          geo: {
+            latitude: 1,
+            longitude: 1,
+          },
+          phone: {
+            number: '+441612345000',
+          },
+          child: primitives,
+          children: [{ child: primitives }],
+        },
+        references: {
+          self: id,
+        },
+      },
+    ];
+    const insert = await collection.data.insertMany(objects);
+    if (insert.hasErrors) console.error(JSON.stringify(insert.errors));
+    expect(insert.hasErrors).toBeFalsy();
+    expect(insert.allResponses.length).toEqual(1);
+    expect(Object.values(insert.errors).length).toEqual(0);
+    expect(Object.values(insert.uuids).length).toEqual(1);
+    const obj = await collection.query.fetchObjectById(insert.uuids[0], {
+      returnReferences: [{ linkOn: 'self' }],
+    });
+    expect(obj?.properties).toEqual({
+      text: 'text',
+      textArr: ['textArr'],
+      int: 1,
+      intArr: [1],
+      number: 1.1,
+      numberArr: [1.1],
+      bool: true,
+      boolArr: [true],
+      date: date1,
+      dateArr: [date2],
+      geo: {
+        latitude: 1,
+        longitude: 1,
+      },
+      phone: {
+        countryCode: 44,
+        defaultCountry: '',
+        input: '+441612345000',
+        internationalFormatted: '+44 161 234 5000',
+        national: 1612345000,
+        nationalFormatted: '0161 234 5000',
+        valid: true,
+      },
+      child: {
+        text: 'text',
+        textArr: ['textArr'],
+        int: 1,
+        intArr: [1],
+        number: 1.1,
+        numberArr: [1.1],
+        bool: true,
+        boolArr: [true],
+        date: date1,
+        dateArr: [date2],
+      },
+      children: [
+        {
+          child: {
+            text: 'text',
+            textArr: ['textArr'],
+            int: 1,
+            intArr: [1],
+            number: 1.1,
+            numberArr: [1.1],
+            bool: true,
+            boolArr: [true],
+            date: date1,
+            dateArr: [date2],
+          },
+        },
+      ],
+    });
+    expect(obj?.references?.self?.objects[0].uuid).toEqual(id);
   });
 });

@@ -70,7 +70,7 @@ export interface Data<T> {
     opts?: DeleteManyOptions<V>
   ) => Promise<DeleteManyReturn<V>>;
   exists: (id: string) => Promise<boolean>;
-  insert: (args: InsertArgs<T> | NonReferenceInputs<T>) => Promise<string>;
+  insert: (args?: InsertArgs<T> | NonReferenceInputs<T>) => Promise<string>;
   insertMany: (objects: (DataObject<T> | NonReferenceInputs<T>)[]) => Promise<BatchObjectsReturn<T>>;
   referenceAdd: <P extends Properties>(args: ReferenceArgs<P>) => Promise<void>;
   referenceAddMany: <P extends Properties>(args: ReferenceManyArgs<P>) => Promise<BatchReferencesReturn>;
@@ -90,11 +90,14 @@ const data = <T>(
   const objectsPath = new ObjectsPath(dbVersionSupport);
   const referencesPath = new ReferencesPath(dbVersionSupport);
 
-  const parseObject = (object: any): WeaviateObject<T> => {
+  const parseObject = (object?: any): WeaviateObject<T> => {
+    if (!object) {
+      return {} as WeaviateObject<T>;
+    }
     return {
       id: object.id,
       properties: object.properties
-        ? Serialize.restProperties(object.properties, object.references)
+        ? (Serialize.restProperties(object.properties, object.references) as T)
         : undefined,
       vector: object.vector,
     };
@@ -126,14 +129,16 @@ const data = <T>(
         consistencyLevel,
         tenant
       ).do(),
-    insert: (args: InsertArgs<T> | NonReferenceInputs<T>): Promise<string> =>
+    insert: (args?: InsertArgs<T> | NonReferenceInputs<T>): Promise<string> =>
       objectsPath
         .buildCreate(consistencyLevel)
         .then((path) =>
           connection.postReturn<WeaviateObject<T>, Required<WeaviateObject<T>>>(path, {
             class: name,
             tenant: tenant,
-            ...parseObject(DataGuards.isDataObject(args) ? args : ({ properties: args } as InsertObject<T>)),
+            ...parseObject(
+              args ? (DataGuards.isDataObject(args) ? args : ({ properties: args } as InsertObject<T>)) : args
+            ),
           })
         )
         .then((obj) => obj.id),

@@ -1,3 +1,4 @@
+import { BatchObject as BatchObjectGRPC } from '../../proto/v1/batch';
 import {
   GeoCoordinate as GeoCoordinateGRPC,
   PhoneNumber as PhoneNumberGRPC,
@@ -10,6 +11,8 @@ type RecursivePartial<T> = {
   [P in keyof T]?: RecursivePartial<T[P]>;
 };
 
+// The order of type resolution is important here since object can be inferred as all other types
+// hence it should be the last type in the union
 export type DataType<T = any> = T extends string
   ? 'text' | 'blob'
   : T extends number
@@ -30,10 +33,10 @@ export type DataType<T = any> = T extends string
   ? 'geoCoordinates'
   : T extends PhoneNumber
   ? 'phoneNumber'
-  : T extends object
-  ? 'object'
   : T extends object[]
   ? 'object[]'
+  : T extends object
+  ? 'object'
   : never;
 
 export type InvertedIndexConfig = {
@@ -59,7 +62,7 @@ export type MultiTenancyConfig = {
 export interface MultiTenancyConfigCreate extends RecursivePartial<MultiTenancyConfig> {}
 
 export type NestedPropertyCreate<T, D> = D extends 'object' | 'object[]'
-  ? PropertyConfigCreate<T extends Properties ? T : any>
+  ? PropertyConfigCreate<T extends Properties | undefined ? T : any>
   : never;
 
 export interface PropertyConfigCreate<T> {
@@ -457,33 +460,39 @@ export interface RefProperty<T> extends BaseRefProperty<T> {
 
 export type ExtractCrossReferenceType<T> = T extends CrossReference<infer U> ? U : never;
 
-type ExtractNestedType<T> = T extends NestedProperties | NestedProperties[] ? T : never;
+type ExtractNestedType<T> = T extends (infer U)[]
+  ? U extends NestedProperties
+    ? U
+    : never
+  : T extends NestedProperties
+  ? T
+  : never;
 
 export interface MultiRefProperty<T> extends BaseRefProperty<T> {
   // targetCollection: string;
 }
 
-export interface QueryNested<T> {
-  name: NestedKeys<T>;
-  properties: QueryProperty<ExtractNestedType<T[this['name']]>>[];
-}
+export type QueryNested<T> = {
+  [K in NestedKeys<T>]: {
+    name: K;
+    properties: QueryProperty<ExtractNestedType<T[K]>>[];
+  };
+}[NestedKeys<T>];
 
 export type QueryProperty<T> = PrimitiveKeys<T> | QueryNested<T>;
 export type QueryReference<T> = RefProperty<T> | MultiRefProperty<T>;
 export type NonRefProperty<T> = keyof T | QueryNested<T>;
 export type NonPrimitiveProperty<T> = RefProperty<T> | MultiRefProperty<T> | QueryNested<T>;
 
-export type ResolvedNestedProperty<T> = QueryNested<ExtractNestedType<T>>;
-
 export type PrimitiveKeys<Obj> = {
   [Key in keyof Obj]: Obj[Key] extends PrimitiveField | undefined ? Key : never;
 }[keyof Obj] &
   string;
 
-export type NestedKeys<Obj> = {
-  [Key in keyof Obj]: Obj[Key] extends PrimitiveField ? never : Key;
-}[keyof Obj] &
-  string;
+// export type NestedKeys<Obj> = {
+//   [Key in keyof Obj]: Obj[Key] extends NestedProperties | NestedProperties[] ? Key : never;
+// }[keyof Obj] &
+//   string;
 
 export type RefKeys<Obj> = {
   [Key in keyof Obj]: Obj[Key] extends CrossReference<any> | undefined ? Key : never;
@@ -518,6 +527,8 @@ export type ReferenceInputs<Obj> = {
 // Helper type to determine if a type is a WeaviateField excluding undefined
 type IsWeaviateField<T> = T extends WeaviateField ? T : never;
 
+type IsNestedField<T> = T extends NestedProperties | NestedProperties[] ? T : never;
+
 // Modified NonRefKey to differentiate optional from required keys
 export type NonRefKeys<Obj> = {
   [Key in keyof Obj]-?: undefined extends Obj[Key]
@@ -525,6 +536,17 @@ export type NonRefKeys<Obj> = {
       ? never
       : Key
     : IsWeaviateField<Obj[Key]> extends never
+    ? never
+    : Key;
+}[keyof Obj] &
+  string;
+
+export type NestedKeys<Obj> = {
+  [Key in keyof Obj]-?: undefined extends Obj[Key]
+    ? IsNestedField<Exclude<Obj[Key], undefined>> extends never
+      ? never
+      : Key
+    : IsNestedField<Obj[Key]> extends never
     ? never
     : Key;
 }[keyof Obj] &
@@ -652,9 +674,14 @@ export type BatchObject<T> = {
   collection: string;
   properties?: NonReferenceInputs<T>;
   references?: ReferenceInputs<T>;
-  uuid?: string;
+  id?: string;
   vector?: number[];
   tenant?: string;
+};
+
+export type BatchObjects<T> = {
+  batch: BatchObject<T>[];
+  mapped: BatchObjectGRPC[];
 };
 
 export type ErrorReference = {

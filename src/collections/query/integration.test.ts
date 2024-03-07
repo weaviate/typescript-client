@@ -336,19 +336,22 @@ describe('Testing of the collection.query methods with a collection with a refer
 
   describe('Testing of the collection.query methods with a collection with a nested property', () => {
     let client: WeaviateNextClient;
-    let collection: Collection<TestCollectionQueryWithNestedProp, 'TestCollectionQueryWithNestedProp'>;
-    const className = 'TestCollectionQueryWithNestedProp';
+    let collection: Collection<TestCollectionQueryWithNestedProps, 'TestCollectionQueryWithNestedProps'>;
+    const className = 'TestCollectionQueryWithNestedProps';
 
     let id1: string;
     let id2: string;
 
-    type TestCollectionQueryWithNestedProp = {
+    type TestCollectionQueryWithNestedProps = {
       testProp: string;
       nestedProp?: {
         one: string;
         two: string;
         again?: {
           three: string;
+        };
+        onceMore?: {
+          four: string;
         };
       };
     };
@@ -375,7 +378,7 @@ describe('Testing of the collection.query methods with a collection with a refer
       });
       collection = client.collections.get(className);
       return client.collections
-        .create({
+        .create<TestCollectionQueryWithNestedProps>({
           name: className,
           properties: [
             {
@@ -406,6 +409,16 @@ describe('Testing of the collection.query methods with a collection with a refer
                     },
                   ],
                 },
+                {
+                  name: 'onceMore',
+                  dataType: 'object',
+                  nestedProperties: [
+                    {
+                      name: 'four',
+                      dataType: 'text',
+                    },
+                  ],
+                },
               ],
             },
           ],
@@ -426,13 +439,16 @@ describe('Testing of the collection.query methods with a collection with a refer
                 again: {
                   three: 'test',
                 },
+                onceMore: {
+                  four: 'test',
+                },
               },
             },
           });
         });
     });
 
-    it('should query without searching returning the referenced object', async () => {
+    it('should query without searching returning the nested object', async () => {
       const ret = await collection.query.fetchObjects({
         returnProperties: [
           'testProp',
@@ -444,6 +460,10 @@ describe('Testing of the collection.query methods with a collection with a refer
                 name: 'again',
                 properties: ['three'],
               },
+              {
+                name: 'onceMore',
+                properties: ['four'],
+              },
             ],
           },
         ],
@@ -454,6 +474,7 @@ describe('Testing of the collection.query methods with a collection with a refer
       expect(ret.objects[0].properties.nestedProp?.one).toEqual('test');
       expect(ret.objects[0].properties.nestedProp?.two).toBeUndefined();
       expect(ret.objects[0].properties.nestedProp?.again?.three).toEqual('test');
+      expect(ret.objects[0].properties.nestedProp?.onceMore?.four).toEqual('test');
       expect(ret.objects[1].properties.testProp).toEqual('test');
       expect(ret.objects[1].properties.nestedProp).toBeUndefined();
     });
