@@ -3,6 +3,7 @@ export interface HybridArgs {
   query: string;
   vector?: number[];
   properties?: string[];
+  targetVectors?: string[];
   fusionType?: FusionType;
 }
 
@@ -16,6 +17,7 @@ export default class GraphQLHybrid {
   private query: string;
   private vector?: number[];
   private properties?: string[];
+  private targetVectors?: string[];
   private fusionType?: FusionType;
 
   constructor(args: HybridArgs) {
@@ -23,6 +25,7 @@ export default class GraphQLHybrid {
     this.query = args.query;
     this.vector = args.vector;
     this.properties = args.properties;
+    this.targetVectors = args.targetVectors;
     this.fusionType = args.fusionType;
   }
 
@@ -38,8 +41,11 @@ export default class GraphQLHybrid {
     }
 
     if (this.properties && this.properties.length > 0) {
-      const props = this.properties.join('","');
-      args = [...args, `properties:["${props}"]`];
+      args = [...args, `properties:${JSON.stringify(this.properties)}`];
+    }
+
+    if (this.targetVectors && this.targetVectors.length > 0) {
+      args = [...args, `targetVectors:${JSON.stringify(this.targetVectors)}`];
     }
 
     if (this.fusionType !== undefined) {

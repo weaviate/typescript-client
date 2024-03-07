@@ -2243,6 +2243,22 @@ describe('named vectors test', () => {
       });
   });
 
+  it('should perform a hybrid query on the rating vector', () => {
+    return client.graphql
+      .get()
+      .withClassName(className)
+      .withHybrid({
+        query: 'Best',
+        targetVectors: ['rating'],
+      })
+      .withFields('rating')
+      .do()
+      .then((res) => {
+        expect(res.data.Get.NamedVectorTest).toHaveLength(1);
+        expect(res.data.Get.NamedVectorTest[0].rating).toBe('Best');
+      });
+  });
+
   describe('destroy', () => {
     it('tears down NamedVectorTest class', () => {
       return client.schema.classDeleter().withClassName(className).do();
