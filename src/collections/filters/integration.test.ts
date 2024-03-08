@@ -10,7 +10,7 @@ describe('Testing of the filter class with a simple collection', () => {
   let client: WeaviateNextClient;
   let collection: Collection<TestType, 'TestCollectionFilterSimple'>;
 
-  const className = 'TestCollectionFilterSimple';
+  const collectionName = 'TestCollectionFilterSimple';
   let ids: string[];
   let vector: number[];
 
@@ -24,7 +24,7 @@ describe('Testing of the filter class with a simple collection', () => {
   const startTime = new Date();
 
   afterAll(() => {
-    return client.collections.delete(className).catch((err) => {
+    return client.collections.delete(collectionName).catch((err) => {
       console.error(err);
       throw err;
     });
@@ -43,10 +43,10 @@ describe('Testing of the filter class with a simple collection', () => {
         port: 50051,
       },
     });
-    collection = client.collections.get(className);
+    collection = client.collections.get(collectionName);
     ids = await client.collections
       .create({
-        name: className,
+        name: collectionName,
         properties: [
           {
             name: 'text',
@@ -64,7 +64,7 @@ describe('Testing of the filter class with a simple collection', () => {
         references: [
           {
             name: 'self',
-            targetCollection: className,
+            targetCollection: collectionName,
           },
         ],
         invertedIndex: weaviate.configure.invertedIndex({ indexTimestamps: true }),
@@ -120,8 +120,8 @@ describe('Testing of the filter class with a simple collection', () => {
   });
 
   it('should filter a fetch objects query with a single filter and non-generic collection', async () => {
-    const res = await client.collections.get(className).query.fetchObjects({
-      filters: client.collections.get(className).filter.byProperty('text').equal('two'),
+    const res = await client.collections.get(collectionName).query.fetchObjects({
+      filters: client.collections.get(collectionName).filter.byProperty('text').equal('two'),
     });
     expect(res.objects.length).toEqual(1);
     const obj = res.objects[0];
@@ -294,7 +294,7 @@ describe('Testing of the filter class with complex data type', () => {
   let client: WeaviateNextClient;
   let collection: Collection<TestCollectionFilterComplex, 'TestCollectionFilterComplex'>;
 
-  const className = 'TestCollectionFilterComplex';
+  const collectionName = 'TestCollectionFilterComplex';
   type TestCollectionFilterComplex = {
     location: GeoCoordinate;
   };
@@ -312,10 +312,10 @@ describe('Testing of the filter class with complex data type', () => {
         port: 50051,
       },
     });
-    collection = client.collections.get(className);
+    collection = client.collections.get(collectionName);
     await client.collections
       .create<TestCollectionFilterComplex>({
-        name: className,
+        name: collectionName,
         properties: [
           {
             name: 'location',
@@ -343,7 +343,7 @@ describe('Testing of the filter class with complex data type', () => {
   });
 
   afterAll(() => {
-    return client.collections.delete(className).catch((err) => {
+    return client.collections.delete(collectionName).catch((err) => {
       console.error(err);
       throw err;
     });

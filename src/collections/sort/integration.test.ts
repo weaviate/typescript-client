@@ -8,7 +8,7 @@ describe('Testing of the Sort class with a simple collection', () => {
   type Name = 'TestCollectionSortSimple';
   let collection: Collection<TestType, Name>;
   let collections: (Collection<TestType, Name> | Collection<any, Name>)[];
-  const className = 'TestCollectionSortSimple';
+  const collectionName = 'TestCollectionSortSimple';
   let ids = [
     'd9ebd143-83aa-46c6-80ca-98730debe78c',
     'd9ebd143-83aa-46c6-80ca-98730debe78d',
@@ -26,7 +26,7 @@ describe('Testing of the Sort class with a simple collection', () => {
   };
 
   afterAll(() => {
-    return client.collections.delete(className).catch((err) => {
+    return client.collections.delete(collectionName).catch((err) => {
       console.error(err);
       throw err;
     });
@@ -45,11 +45,11 @@ describe('Testing of the Sort class with a simple collection', () => {
         port: 50051,
       },
     });
-    collection = client.collections.get(className);
-    collections = [collection, client.collections.get(className)];
+    collection = client.collections.get(collectionName);
+    collections = [collection, client.collections.get(collectionName)];
     ids = await client.collections
       .create({
-        name: className,
+        name: collectionName,
         properties: [
           {
             name: 'text',

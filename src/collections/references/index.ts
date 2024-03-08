@@ -37,20 +37,6 @@ export class ReferenceManager<T> {
     return this.uuids ? this.uuids.map((uuid) => uuidToBeacon(uuid, this.targetCollection).beacon) : [];
   }
 
-  static fromBeaconStrings<T>(beacons: string[]): ReferenceManager<T> {
-    let targetCollection = '';
-    if (beacons.length > 0) {
-      targetCollection = beacons[0].split('/').length > 3 ? beacons[0].split('/')[3] : '';
-    }
-    return new ReferenceManager<T>(
-      targetCollection,
-      undefined,
-      beacons.map((beacon) => {
-        return beacon.split('/').pop() as string;
-      })
-    );
-  }
-
   public isMultiTarget(): boolean {
     return this.targetCollection !== '';
   }

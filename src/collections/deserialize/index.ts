@@ -259,24 +259,4 @@ export default class Deserialize {
         : (undefined as any),
     };
   }
-
-  public static propertiesREST<T>(properties: Record<string, any>): T {
-    const isRefProp = (value: any): value is Array<{ beacon: string; href: string }> => {
-      return (
-        Array.isArray(value) &&
-        value.every((v) => Object.keys(v).every((k) => k === 'beacon' || k === 'href'))
-      );
-    };
-    const out: Properties = {};
-    Object.entries(properties).forEach(([key, value]) => {
-      if (isRefProp(value)) {
-        // out[key] =
-        //   value.length > 0 ? ReferenceManager.fromBeaconStrings(value.map((v) => v.beacon)) : null;
-        out[key] = null;
-      } else {
-        out[key] = value;
-      }
-    });
-    return out as T;
-  }
 }

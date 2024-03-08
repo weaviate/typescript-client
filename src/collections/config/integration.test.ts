@@ -25,12 +25,12 @@ describe('Testing of the collection.config namespace', () => {
   });
 
   it('should be able get the config of a collection without generics', async () => {
-    const className = 'TestCollectionConfigGetWithGenerics';
+    const collectionName = 'TestCollectionConfigGetWithGenerics';
     type TestCollectionConfigGet = {
       testProp: string;
     };
     await client.collections.create<TestCollectionConfigGet>({
-      name: className,
+      name: collectionName,
       properties: [
         {
           name: 'testProp',
@@ -39,10 +39,10 @@ describe('Testing of the collection.config namespace', () => {
       ],
       vectorizer: configure.vectorizer.none(),
     });
-    const collection = client.collections.get<TestCollectionConfigGet>(className);
+    const collection = client.collections.get<TestCollectionConfigGet>(collectionName);
     const config = await collection.config.get();
 
-    expect(config.name).toEqual(className);
+    expect(config.name).toEqual(collectionName);
     expect(config.properties).toEqual([
       {
         name: 'testProp',
@@ -87,12 +87,12 @@ describe('Testing of the collection.config namespace', () => {
   });
 
   it('should be able get the config of a collection with generics', async () => {
-    const className = 'TestCollectionConfigGetWithoutGenerics';
+    const collectionName = 'TestCollectionConfigGetWithoutGenerics';
     type TestCollectionConfigGet = {
       testProp: string;
     };
     await client.collections.create<TestCollectionConfigGet>({
-      name: className,
+      name: collectionName,
       properties: [
         {
           name: 'testProp',
@@ -101,10 +101,10 @@ describe('Testing of the collection.config namespace', () => {
       ],
       vectorizer: configure.vectorizer.none(),
     });
-    const collection = client.collections.get<TestCollectionConfigGet>(className);
+    const collection = client.collections.get<TestCollectionConfigGet>(collectionName);
     const config = await collection.config.get();
 
-    expect(config.name).toEqual(className);
+    expect(config.name).toEqual(collectionName);
     expect(config.properties).toEqual([
       {
         name: 'testProp',
@@ -149,9 +149,9 @@ describe('Testing of the collection.config namespace', () => {
   });
 
   it('should be able to add a property to a collection', async () => {
-    const className = 'TestCollectionConfigAddProperty';
+    const collectionName = 'TestCollectionConfigAddProperty';
     const collection = await client.collections.create({
-      name: className,
+      name: collectionName,
       vectorizer: configure.vectorizer.none(),
     });
     const config = await collection.config
@@ -176,9 +176,9 @@ describe('Testing of the collection.config namespace', () => {
   });
 
   it('should be able to add a reference to a collection', async () => {
-    const className = 'TestCollectionConfigAddReference' as const;
+    const collectionName = 'TestCollectionConfigAddReference' as const;
     const collection = await client.collections.create({
-      name: className,
+      name: collectionName,
       vectorizer: configure.vectorizer.none(),
     });
     const config = await collection.config
@@ -190,7 +190,7 @@ describe('Testing of the collection.config namespace', () => {
     expect(config.references).toEqual([
       {
         name: 'testProp',
-        targetCollections: [className],
+        targetCollections: [collectionName],
         description: undefined,
       },
     ]);

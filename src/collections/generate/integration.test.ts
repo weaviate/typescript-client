@@ -10,7 +10,7 @@ const maybe = process.env.OPENAI_APIKEY ? describe : describe.skip;
 maybe('Testing of the collection.generate methods with a simple collection', () => {
   let client: WeaviateNextClient;
   let collection: Collection<TestCollectionGenerateSimple, 'TestCollectionGenerateSimple'>;
-  const className = 'TestCollectionGenerateSimple';
+  const collectionName = 'TestCollectionGenerateSimple';
   let id: string;
   let vector: number[];
 
@@ -25,7 +25,7 @@ maybe('Testing of the collection.generate methods with a simple collection', () 
   };
 
   afterAll(() => {
-    return client.collections.delete(className).catch((err) => {
+    return client.collections.delete(collectionName).catch((err) => {
       console.error(err);
       throw err;
     });
@@ -47,10 +47,10 @@ maybe('Testing of the collection.generate methods with a simple collection', () 
         'X-Openai-Api-Key': process.env.OPENAI_APIKEY!,
       },
     });
-    collection = client.collections.get(className);
+    collection = client.collections.get(collectionName);
     id = await client.collections
       .create({
-        name: className,
+        name: collectionName,
         properties: [
           {
             name: 'testProp',
@@ -73,7 +73,7 @@ maybe('Testing of the collection.generate methods with a simple collection', () 
 
   describe('using a non-generic collection', () => {
     it('should generate without search', async () => {
-      const ret = await client.collections.get(className).generate.fetchObjects(generateOpts);
+      const ret = await client.collections.get(collectionName).generate.fetchObjects(generateOpts);
       expect(ret.objects.length).toEqual(1);
       expect(ret.generated).toBeDefined();
       expect(ret.objects[0].properties.testProp).toEqual('test');
@@ -164,7 +164,7 @@ maybe('Testing of the collection.generate methods with a simple collection', () 
 maybe('Testing of the groupBy collection.generate methods with a simple collection', () => {
   let client: WeaviateNextClient;
   let collection: Collection<TestCollectionGenerateGroupBySimple, 'TestCollectionGenerateGroupBySimple'>;
-  const className = 'TestCollectionGenerateGroupBySimple';
+  const collectionName = 'TestCollectionGenerateGroupBySimple';
   let id: string;
   let vector: number[];
 
@@ -185,7 +185,7 @@ maybe('Testing of the groupBy collection.generate methods with a simple collecti
   };
 
   afterAll(() => {
-    return client.collections.delete(className).catch((err) => {
+    return client.collections.delete(collectionName).catch((err) => {
       console.error(err);
       throw err;
     });
@@ -207,10 +207,10 @@ maybe('Testing of the groupBy collection.generate methods with a simple collecti
         'X-Openai-Api-Key': process.env.OPENAI_APIKEY!,
       },
     });
-    collection = client.collections.get(className);
+    collection = client.collections.get(collectionName);
     id = await client.collections
       .create({
-        name: className,
+        name: collectionName,
         properties: [
           {
             name: 'testProp',

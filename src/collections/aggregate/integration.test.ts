@@ -23,7 +23,7 @@ describe('Testing of the collection.aggregate methods', () => {
 
   let client: WeaviateNextClient;
   let collection: Collection<TestCollectionAggregate, 'TestCollectionAggregate'>;
-  const className = 'TestCollectionAggregate';
+  const collectionName = 'TestCollectionAggregate';
 
   const date0 = '2023-01-01T00:00:00Z';
   const date1 = '2023-01-01T00:00:00Z';
@@ -31,7 +31,7 @@ describe('Testing of the collection.aggregate methods', () => {
   const dateMid = '2023-01-01T12:00:00Z';
 
   afterAll(async () => {
-    return (await client).collections.delete(className).catch((err) => {
+    return (await client).collections.delete(collectionName).catch((err) => {
       console.error(err);
       throw err;
     });
@@ -50,10 +50,10 @@ describe('Testing of the collection.aggregate methods', () => {
         port: 50051,
       },
     });
-    collection = client.collections.get(className);
+    collection = client.collections.get(collectionName);
     return client.collections
       .create({
-        name: className,
+        name: collectionName,
         properties: [
           {
             name: 'text',
@@ -97,7 +97,7 @@ describe('Testing of the collection.aggregate methods', () => {
           },
           // {
           //   name: 'ref',
-          //   dataType: [className],
+          //   dataType: [collectionName],
           // },
         ],
       })
@@ -163,7 +163,7 @@ describe('Testing of the collection.aggregate methods', () => {
   });
 
   it('should aggregate data without a search and one non-generic property metric', async () => {
-    const result = await (await client).collections.get(className).aggregate.overAll({
+    const result = await (await client).collections.get(collectionName).aggregate.overAll({
       returnMetrics: collection.metrics
         .aggregate('text')
         .text(['count', 'topOccurrencesOccurs', 'topOccurrencesValue']),
@@ -257,20 +257,20 @@ describe('Testing of the collection.aggregate methods', () => {
     expect(result.properties.booleans.percentageTrue).toEqual(0.5);
     expect(result.properties.booleans.totalFalse).toEqual(100);
     expect(result.properties.booleans.totalTrue).toEqual(100);
-    // expect(result.properties.ref.pointingTo).toEqual(className);
+    // expect(result.properties.ref.pointingTo).toEqual(collectionName);
   });
 });
 
 describe('Testing of the collection.aggregate methods with named vectors', () => {
   let client: WeaviateNextClient;
   let collection: Collection<TestCollectionAggregateNamedVectors, 'TestCollectionAggregateNamedVectors'>;
-  const className = 'TestCollectionAggregateNamedVectors';
+  const collectionName = 'TestCollectionAggregateNamedVectors';
   type TestCollectionAggregateNamedVectors = {
     text: string;
   };
 
   afterAll(async () => {
-    return (await client).collections.delete(className).catch((err) => {
+    return (await client).collections.delete(collectionName).catch((err) => {
       console.error(err);
       throw err;
     });
@@ -289,9 +289,9 @@ describe('Testing of the collection.aggregate methods with named vectors', () =>
         port: 50051,
       },
     });
-    collection = client.collections.get(className);
+    collection = client.collections.get(collectionName);
     return client.collections.create<TestCollectionAggregateNamedVectors>({
-      name: className,
+      name: collectionName,
       properties: [
         {
           name: 'text',
@@ -299,7 +299,7 @@ describe('Testing of the collection.aggregate methods with named vectors', () =>
         },
       ],
       vectorizer: [
-        weaviate.configure.namedVectorizer.make('text', 'hnsw', 'text2vec-contextionary', ['text']),
+        weaviate.configure.namedVectorizer.text2VecContextionary('text', 'hnsw', { properties: ['text'] }),
       ],
     });
   });

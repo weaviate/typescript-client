@@ -4,7 +4,7 @@ import {
   FilterReferenceMultiTarget,
   FilterReferenceSingleTarget,
 } from '../../proto/v1/base';
-import { ExtractCrossReferenceType, NonRefKeys, Properties, RefKeys } from '../types';
+import { ExtractCrossReferenceType, NonRefKeys, RefKeys } from '../types/internal';
 
 export type Operator =
   | 'Equal'

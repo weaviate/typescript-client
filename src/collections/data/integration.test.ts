@@ -6,6 +6,7 @@ import { DataObject, PropertyConfigCreate, WeaviateObject } from '../types';
 import { CrossReference, CrossReferences, Reference } from '../references';
 import { GeoCoordinate, PhoneNumber } from '../../proto/v1/properties';
 import { Collection } from '../collection';
+import { Data } from '.';
 
 type TestCollectionData = {
   testProp: string;
@@ -22,14 +23,16 @@ type TestCollectionData = {
 describe('Testing of the collection.data methods with a single target reference', () => {
   let client: WeaviateNextClient;
   let collection: Collection<TestCollectionData, 'TestCollectionData'>;
-  const className = 'TestCollectionData';
+  const collectionName = 'TestCollectionData';
 
   const existingID = v4();
   const toBeReplacedID = v4();
   const toBeUpdatedID = v4();
+  const toBeDeletedID = v4();
+  const nonExistingID = v4();
 
   afterAll(() => {
-    return client.collections.delete(className).catch((err) => {
+    return client.collections.delete(collectionName).catch((err) => {
       console.error(err);
       throw err;
     });
@@ -48,10 +51,10 @@ describe('Testing of the collection.data methods with a single target reference'
         port: 50051,
       },
     });
-    collection = client.collections.get(className);
+    collection = client.collections.get(collectionName);
     return client.collections
       .create({
-        name: className,
+        name: collectionName,
         properties: [
           {
             name: 'testProp',
@@ -70,7 +73,7 @@ describe('Testing of the collection.data methods with a single target reference'
         references: [
           {
             name: 'ref',
-            targetCollection: className,
+            targetCollection: collectionName,
           },
         ],
       })
@@ -99,6 +102,12 @@ describe('Testing of the collection.data methods with a single target reference'
               testProp2: 1,
             },
             id: toBeUpdatedID,
+          },
+          {
+            properties: {
+              testProp: 'Gon get delet',
+            },
+            id: toBeDeletedID,
           },
         ]);
       })
@@ -138,6 +147,13 @@ describe('Testing of the collection.data methods with a single target reference'
       id: id,
     });
     expect(insert).toEqual(id);
+  });
+
+  it('should be able to delete an object by id', async () => {
+    const result = await collection.data.delete(toBeDeletedID);
+    expect(result).toBeTruthy();
+    const obj = await collection.query.fetchObjectById(toBeDeletedID);
+    expect(obj).toBeNull();
   });
 
   it('should be able to delete many objects with a filter', async () => {
@@ -361,26 +377,24 @@ describe('Testing of the collection.data methods with a single target reference'
 
   it('should be able to add many references in batch', () => {
     return collection.data
-      .referenceAddMany({
-        refs: [
-          {
-            fromProperty: 'ref',
-            fromUuid: existingID,
-            to: Reference.to([toBeReplacedID]),
-          },
-          {
-            fromProperty: 'ref',
-            fromUuid: existingID,
-            to: [toBeUpdatedID],
-          },
-          // {
-          //   fromProperty: 'ref',
-          //   fromUuid: toBeUpdatedID,
-          //   reference: Reference.to({ uuids: existingID }),
-          // },
-          // currently causes bug in Weaviate due to first deleting last reference in above test and then adding new one
-        ],
-      })
+      .referenceAddMany([
+        {
+          fromProperty: 'ref',
+          fromUuid: existingID,
+          to: Reference.to([toBeReplacedID]),
+        },
+        {
+          fromProperty: 'ref',
+          fromUuid: existingID,
+          to: [toBeUpdatedID],
+        },
+        // {
+        //   fromProperty: 'ref',
+        //   fromUuid: toBeUpdatedID,
+        //   reference: Reference.to({ uuids: existingID }),
+        // },
+        // currently causes bug in Weaviate due to first deleting last reference in above test and then adding new one
+      ])
       .then(async (res) => {
         if (res.hasErrors) console.error(res.errors);
         expect(res.hasErrors).toEqual(false);
@@ -394,8 +408,26 @@ describe('Testing of the collection.data methods with a single target reference'
         //   id: toBeUpdatedID
         // });
         // expect(obj2.properties.ref?.objects).toEqual([]);
-        // expect(obj2.properties.ref?.targetCollection).toEqual(className);
+        // expect(obj2.properties.ref?.targetCollection).toEqual(collectionName);
         // expect(obj2.properties.ref?.uuids?.includes(existingID)).toEqual(true);
+      });
+  });
+
+  it.skip('should return appropriate errors from add many references in batch', () => {
+    // skipped because Weaviate doesn't error if the to UUID doesn't exist
+    // it does in referenceAdd, but not in referenceAddMany, due to the /batch implementation
+    // difference on the server, needs fixing
+    return collection.data
+      .referenceAddMany([
+        {
+          fromProperty: 'ref',
+          fromUuid: existingID,
+          to: Reference.to([nonExistingID]),
+        },
+      ])
+      .then((res) => {
+        expect(res.hasErrors).toEqual(true);
+        expect(Object.keys(res.errors).length).toEqual(1);
       });
   });
 
@@ -549,7 +581,7 @@ describe('Testing of the collection.data methods with a multi target reference',
 describe('Testing of the collection.data.insertMany method with all possible types', () => {
   let client: WeaviateNextClient;
   let collection: Collection<TestCollectionData, 'TestCollectionData'>;
-  const className = 'TestCollectionData';
+  const collectionName = 'TestCollectionData';
   let id: string;
 
   type Primitives = {
@@ -635,7 +667,7 @@ describe('Testing of the collection.data.insertMany method with all possible typ
       },
     ];
     collection = await client.collections.create<TestCollectionData, 'TestCollectionData'>({
-      name: className,
+      name: collectionName,
       properties: [
         ...primitives,
         {
@@ -660,14 +692,14 @@ describe('Testing of the collection.data.insertMany method with all possible typ
       references: [
         {
           name: 'self',
-          targetCollection: className,
+          targetCollection: collectionName,
         },
       ],
     });
     id = await collection.data.insert();
   });
 
-  it.only('should insert many objects with all possible types', async () => {
+  it('should insert many objects with all possible types', async () => {
     const date1 = new Date();
     const date2 = new Date();
     const primitives = {

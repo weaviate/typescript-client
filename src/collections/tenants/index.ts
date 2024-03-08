@@ -7,8 +7,10 @@ export type Tenant = {
 };
 
 const tenants = (connection: Connection, name: string): Tenants => {
+  const parseTenants = (tenants: Tenant | Tenant[]) => (Array.isArray(tenants) ? tenants : [tenants]);
   return {
-    create: (tenants: Tenant[]) => new TenantsCreator(connection, name, tenants).do() as Promise<Tenant[]>,
+    create: (tenants: Tenant | Tenant[]) =>
+      new TenantsCreator(connection, name, parseTenants(tenants)).do() as Promise<Tenant[]>,
     get: () =>
       new TenantsGetter(connection, name).do().then((tenants) => {
         const result: Record<string, Tenant> = {};
@@ -18,21 +20,22 @@ const tenants = (connection: Connection, name: string): Tenants => {
         });
         return result;
       }),
-    remove: (tenants: Tenant[]) =>
+    remove: (tenants: Tenant | Tenant[]) =>
       new TenantsDeleter(
         connection,
         name,
-        tenants.map((t) => t.name)
+        parseTenants(tenants).map((t) => t.name)
       ).do(),
-    update: (tenants: Tenant[]) => new TenantsUpdater(connection, name, tenants).do() as Promise<Tenant[]>,
+    update: (tenants: Tenant | Tenant[]) =>
+      new TenantsUpdater(connection, name, parseTenants(tenants)).do() as Promise<Tenant[]>,
   };
 };
 
 export default tenants;
 
 export interface Tenants {
-  create: (tenants: Tenant[]) => Promise<Tenant[]>;
+  create: (tenants: Tenant | Tenant[]) => Promise<Tenant[]>;
   get: () => Promise<Record<string, Tenant>>;
-  remove: (tenants: Tenant[]) => Promise<void>;
-  update: (tenants: Tenant[]) => Promise<Tenant[]>;
+  remove: (tenants: Tenant | Tenant[]) => Promise<void>;
+  update: (tenants: Tenant | Tenant[]) => Promise<Tenant[]>;
 }

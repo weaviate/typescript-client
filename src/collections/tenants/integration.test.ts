@@ -5,10 +5,10 @@ import { Collection } from '../collection';
 describe('Testing of the collection.data methods', () => {
   let client: WeaviateNextClient;
   let collection: Collection<any, 'TestCollectionTenants'>;
-  const className = 'TestCollectionTenants';
+  const collectionName = 'TestCollectionTenants';
 
   afterAll(() => {
-    return client.collections.delete(className).catch((err) => {
+    return client.collections.delete(collectionName).catch((err) => {
       console.error(err);
       throw err;
     });
@@ -27,10 +27,10 @@ describe('Testing of the collection.data methods', () => {
         port: 50051,
       },
     });
-    collection = client.collections.get(className);
+    collection = client.collections.get(collectionName);
     return client.collections
       .create({
-        name: className,
+        name: collectionName,
         multiTenancy: weaviate.configure.multiTenancy({ enabled: true }),
       })
       .then(() =>

@@ -17,9 +17,9 @@ import {
   QueryReference,
   WeaviateReturn,
   GroupByReturn,
-  PrimitiveKeys,
   GroupByOptions,
 } from '../types';
+import { PrimitiveKeys } from '../types/internal';
 import { SearchReply } from '../../proto/v1/search_get';
 
 export type QueryFetchObjectByIdOptions<T> = {

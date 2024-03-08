@@ -4,13 +4,23 @@ import collection, { Collection } from './collection';
 import { ClassCreator, ClassDeleter, ClassGetter, SchemaGetter } from '../schema';
 import {
   CollectionConfig,
-  CollectionConfigCreate,
+  GenerativeSearch,
+  InvertedIndexConfigCreate,
   ModuleConfig,
-  NamedVectorConfigCreate,
+  MultiTenancyConfigCreate,
   Properties,
+  PropertyConfigCreate,
+  ReferenceConfigCreate,
+  ReplicationConfigCreate,
+  Reranker,
+  ShardingConfigCreate,
+  VectorIndexType,
+  Vectorizer,
+  VectorizerConfig,
+  NamedVectorConfigCreate,
 } from './types';
 import ClassExists from '../schema/classExists';
-import { classToCollection, resolveProperty, resolveReference, ReferenceTypeGuards } from './config';
+import { classToCollection, resolveProperty, resolveReference } from './config';
 import { ConsistencyLevel } from '../data';
 import { WeaviateClass } from '..';
 
@@ -18,6 +28,29 @@ export interface IBuilder {
   withConsistencyLevel(consistencyLevel: ConsistencyLevel): this;
   withTenant(tenant: string): this;
 }
+
+export type CollectionConfigCreate<TProperties = Properties, N = string> = {
+  name: N;
+  description?: string;
+  generative?: ModuleConfig<GenerativeSearch>;
+  invertedIndex?: InvertedIndexConfigCreate;
+  multiTenancy?: MultiTenancyConfigCreate;
+  properties?: PropertyConfigCreate<TProperties>[];
+  references?: ReferenceConfigCreate<TProperties>[];
+  replication?: ReplicationConfigCreate;
+  reranker?: ModuleConfig<Reranker>;
+  sharding?: ShardingConfigCreate;
+  vectorIndex?: ModuleConfig<VectorIndexType>;
+  vectorizer?:
+    | ModuleConfig<Vectorizer, VectorizerConfig>
+    | NamedVectorConfigCreate<
+        TProperties,
+        string,
+        VectorIndexType,
+        Vectorizer,
+        VectorizerConfig | undefined
+      >[];
+};
 
 export const addContext = <B extends IBuilder>(
   builder: B,

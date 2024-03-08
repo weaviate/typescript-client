@@ -5,7 +5,7 @@ import { buildRefsPath } from '../../batch/path';
 import { ObjectsPath, ReferencesPath } from '../../data/path';
 import { DbVersionSupport } from '../../utils/dbVersion';
 import { Checker, ConsistencyLevel } from '../../data';
-import { ReferenceManager, referenceToBeacons } from '../references';
+import { referenceToBeacons } from '../references';
 import Serialize, { DataGuards } from '../serialize';
 import {
   BatchObjectsReturn,
@@ -42,10 +42,6 @@ export type ReferenceArgs<T> = {
   to: ReferenceInput<T>;
 };
 
-export type ReferenceManyArgs<T> = {
-  refs: ReferenceArgs<T>[];
-};
-
 export type ReplaceArgs<T> = {
   id: string;
   properties?: T;
@@ -73,7 +69,7 @@ export interface Data<T> {
   insert: (args?: InsertArgs<T> | NonReferenceInputs<T>) => Promise<string>;
   insertMany: (objects: (DataObject<T> | NonReferenceInputs<T>)[]) => Promise<BatchObjectsReturn<T>>;
   referenceAdd: <P extends Properties>(args: ReferenceArgs<P>) => Promise<void>;
-  referenceAddMany: <P extends Properties>(args: ReferenceManyArgs<P>) => Promise<BatchReferencesReturn>;
+  referenceAddMany: <P extends Properties>(refs: ReferenceArgs<P>[]) => Promise<BatchReferencesReturn>;
   referenceDelete: <P extends Properties>(args: ReferenceArgs<P>) => Promise<void>;
   referenceReplace: <P extends Properties>(args: ReferenceArgs<P>) => Promise<void>;
   replace: (args: ReplaceArgs<T>) => Promise<void>;
@@ -156,16 +152,13 @@ const data = <T>(
         .then((path) =>
           Promise.all(referenceToBeacons(args.to).map((beacon) => connection.postEmpty(path, beacon)))
         )
-        .then(() => {})
-        .catch((err) => {
-          throw err;
-        }),
-    referenceAddMany: <P extends Properties>(args: ReferenceManyArgs<P>): Promise<BatchReferencesReturn> => {
+        .then(() => {}),
+    referenceAddMany: <P extends Properties>(refs: ReferenceArgs<P>[]): Promise<BatchReferencesReturn> => {
       const path = buildRefsPath(
         new URLSearchParams(consistencyLevel ? { consistency_level: consistencyLevel } : {})
       );
       const references: BatchReference[] = [];
-      args.refs.forEach((ref) => {
+      refs.forEach((ref) => {
         referenceToBeacons(ref.to).forEach((beacon) => {
           references.push({
             from: `weaviate://localhost/${name}/${ref.fromUuid}/${ref.fromProperty}`,
@@ -203,10 +196,7 @@ const data = <T>(
         .then((path) =>
           Promise.all(referenceToBeacons(args.to).map((beacon) => connection.delete(path, beacon, false)))
         )
-        .then(() => {})
-        .catch((err) => {
-          throw err;
-        }),
+        .then(() => {}),
     referenceReplace: <P extends Properties>(args: ReferenceArgs<P>): Promise<void> =>
       referencesPath
         .build(args.fromUuid, name, args.fromProperty, consistencyLevel, tenant)

@@ -6,7 +6,7 @@ import { Collection } from '../collection';
 describe('Testing of the collection.iterator method with a simple collection', () => {
   let client: WeaviateNextClient;
   let collection: Collection<TestCollectionIterator, 'TestCollectionIterator'>;
-  const className = 'TestCollectionIterator';
+  const collectionName = 'TestCollectionIterator';
   let id: string;
   let vector: number[];
 
@@ -15,7 +15,7 @@ describe('Testing of the collection.iterator method with a simple collection', (
   };
 
   afterAll(() => {
-    return client.collections.delete(className).catch((err) => {
+    return client.collections.delete(collectionName).catch((err) => {
       console.error(err);
       throw err;
     });
@@ -34,10 +34,10 @@ describe('Testing of the collection.iterator method with a simple collection', (
         port: 50051,
       },
     });
-    collection = client.collections.get(className);
+    collection = client.collections.get(collectionName);
     id = await client.collections
       .create({
-        name: className,
+        name: collectionName,
         properties: [
           {
             name: 'testProp',

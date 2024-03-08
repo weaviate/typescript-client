@@ -52,9 +52,7 @@ import {
   NonReferenceInputs,
   GeoCoordinate,
   PhoneNumberInput,
-  ReferenceInputs,
   ReferenceInput,
-  ReferenceToMultiTarget,
 } from '../types';
 import {
   SearchBm25Args,
@@ -510,6 +508,8 @@ export default class Serialize {
         target.multiTarget.targetCollection,
         ...Serialize.filterTargetToREST(target.multiTarget.target),
       ];
+    } else if (target.count) {
+      return [target.count.on];
     } else {
       return [];
     }

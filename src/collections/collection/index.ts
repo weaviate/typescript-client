@@ -11,8 +11,8 @@ import generate, { Generate } from '../generate';
 import { Iterator } from '../iterator';
 import query, { Query } from '../query';
 import sort, { Sort } from '../sort';
-import tenants, { Tenants } from '../tenants';
-import { MetadataQuery, Properties, QueryProperty, QueryReference } from '../types';
+import tenants, { Tenant, Tenants } from '../tenants';
+import { MetadataQuery, QueryProperty, QueryReference } from '../types';
 
 export interface Collection<T, N> {
   aggregate: Aggregate<T>;
@@ -28,7 +28,7 @@ export interface Collection<T, N> {
   tenants: Tenants;
   iterator: (opts?: IteratorOptions<T>) => Iterator<T>;
   withConsistency: (consistencyLevel: ConsistencyLevel) => Collection<T, N>;
-  withTenant: (tenant: string) => Collection<T, N>;
+  withTenant: (tenant: string | Tenant) => Collection<T, N>;
 }
 
 export interface IteratorOptions<T> {
@@ -43,16 +43,22 @@ const collection = <T, N>(
   name: N,
   dbVersionSupport: DbVersionSupport,
   consistencyLevel?: ConsistencyLevel,
-  tenant?: string
+  tenant?: Tenant
 ) => {
-  const queryCollection = query<T>(connection, name as string, dbVersionSupport, consistencyLevel, tenant);
+  const queryCollection = query<T>(
+    connection,
+    name as string,
+    dbVersionSupport,
+    consistencyLevel,
+    tenant?.name
+  );
   return {
-    aggregate: aggregate<T>(connection, name as string, dbVersionSupport, consistencyLevel, tenant),
+    aggregate: aggregate<T>(connection, name as string, dbVersionSupport, consistencyLevel, tenant?.name),
     backup: backupCollection(connection, name as string),
-    config: config<T>(connection, name as string, tenant),
-    data: data<T>(connection, name as string, dbVersionSupport, consistencyLevel, tenant),
+    config: config<T>(connection, name as string, tenant?.name),
+    data: data<T>(connection, name as string, dbVersionSupport, consistencyLevel, tenant?.name),
     filter: filter<T>(),
-    generate: generate<T>(connection, name as string, dbVersionSupport, consistencyLevel, tenant),
+    generate: generate<T>(connection, name as string, dbVersionSupport, consistencyLevel, tenant?.name),
     metrics: metrics<T>(),
     name: name,
     query: queryCollection,
@@ -73,8 +79,14 @@ const collection = <T, N>(
       ),
     withConsistency: (consistencyLevel: ConsistencyLevel) =>
       collection<T, N>(connection, name, dbVersionSupport, consistencyLevel, tenant),
-    withTenant: (tenant: string) =>
-      collection<T, N>(connection, name, dbVersionSupport, consistencyLevel, tenant),
+    withTenant: (tenant: string | Tenant) =>
+      collection<T, N>(
+        connection,
+        name,
+        dbVersionSupport,
+        consistencyLevel,
+        typeof tenant === 'string' ? { name: tenant } : tenant
+      ),
   };
 };
 

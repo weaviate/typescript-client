@@ -1,13 +1,13 @@
 import { ConsistencyLevel } from '../data';
 
 import { WeaviateClient } from '../proto/v1/weaviate';
-import { ConsistencyLevel as ConsistencyLevelGrpc } from '../proto/v1/base';
+import { ConsistencyLevel as ConsistencyLevelGRPC } from '../proto/v1/base';
 import { Metadata } from 'nice-grpc';
 
 export default class Base {
   protected connection: WeaviateClient;
   protected name: string;
-  protected consistencyLevel?: ConsistencyLevelGrpc;
+  protected consistencyLevel?: ConsistencyLevelGRPC;
   protected tenant?: string;
   protected metadata?: Metadata;
 
@@ -25,16 +25,16 @@ export default class Base {
     this.metadata = metadata;
   }
 
-  private mapConsistencyLevel(consistencyLevel?: ConsistencyLevel): ConsistencyLevelGrpc {
+  private mapConsistencyLevel(consistencyLevel?: ConsistencyLevel): ConsistencyLevelGRPC {
     switch (consistencyLevel) {
       case 'ALL':
-        return ConsistencyLevelGrpc.CONSISTENCY_LEVEL_ALL;
+        return ConsistencyLevelGRPC.CONSISTENCY_LEVEL_ALL;
       case 'QUORUM':
-        return ConsistencyLevelGrpc.CONSISTENCY_LEVEL_QUORUM;
+        return ConsistencyLevelGRPC.CONSISTENCY_LEVEL_QUORUM;
       case 'ONE':
-        return ConsistencyLevelGrpc.CONSISTENCY_LEVEL_ONE;
+        return ConsistencyLevelGRPC.CONSISTENCY_LEVEL_ONE;
       default:
-        return ConsistencyLevelGrpc.CONSISTENCY_LEVEL_UNSPECIFIED;
+        return ConsistencyLevelGRPC.CONSISTENCY_LEVEL_UNSPECIFIED;
     }
   }
 }

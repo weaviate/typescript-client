@@ -8,7 +8,7 @@ import { GroupByOptions } from '../types';
 describe('Testing of the collection.query methods with a simple collection', () => {
   let client: WeaviateNextClient;
   let collection: Collection<TestCollectionQueryMinimalOptions, 'TestCollectionQueryMinimalOptions'>;
-  const className = 'TestCollectionQueryMinimalOptions';
+  const collectionName = 'TestCollectionQueryMinimalOptions';
   let id: string;
   let vector: number[];
 
@@ -17,7 +17,7 @@ describe('Testing of the collection.query methods with a simple collection', () 
   };
 
   afterAll(() => {
-    return client.collections.delete(className).catch((err) => {
+    return client.collections.delete(collectionName).catch((err) => {
       console.error(err);
       throw err;
     });
@@ -36,10 +36,10 @@ describe('Testing of the collection.query methods with a simple collection', () 
         port: 50051,
       },
     });
-    collection = client.collections.get(className);
+    collection = client.collections.get(collectionName);
     id = await client.collections
       .create({
-        name: className,
+        name: collectionName,
         properties: [
           {
             name: 'testProp',
@@ -120,7 +120,7 @@ describe('Testing of the collection.query methods with a simple collection', () 
 describe('Testing of the collection.query methods with a collection with a reference property', () => {
   let client: WeaviateNextClient;
   let collection: Collection<TestCollectionQueryWithRefProp, 'TestCollectionQueryWithRefProp'>;
-  const className = 'TestCollectionQueryWithRefProp';
+  const collectionName = 'TestCollectionQueryWithRefProp';
 
   let id1: string;
   let id2: string;
@@ -131,7 +131,7 @@ describe('Testing of the collection.query methods with a collection with a refer
   };
 
   afterAll(() => {
-    return client.collections.delete(className).catch((err) => {
+    return client.collections.delete(collectionName).catch((err) => {
       console.error(err);
       throw err;
     });
@@ -150,10 +150,10 @@ describe('Testing of the collection.query methods with a collection with a refer
         port: 50051,
       },
     });
-    collection = client.collections.get(className);
+    collection = client.collections.get(collectionName);
     return client.collections
       .create({
-        name: className,
+        name: collectionName,
         properties: [
           {
             name: 'testProp',
@@ -164,7 +164,7 @@ describe('Testing of the collection.query methods with a collection with a refer
         references: [
           {
             name: 'refProp',
-            targetCollection: className,
+            targetCollection: collectionName,
           },
         ],
         vectorizer: weaviate.configure.vectorizer.text2VecContextionary({ vectorizeClassName: false }),
@@ -188,7 +188,7 @@ describe('Testing of the collection.query methods with a collection with a refer
 
   describe('using a non-generic collection', () => {
     it('should query without searching returning the referenced object', async () => {
-      const ret = await client.collections.get(className).query.fetchObjects({
+      const ret = await client.collections.get(collectionName).query.fetchObjects({
         returnProperties: ['testProp'],
         returnReferences: [
           {
@@ -337,7 +337,7 @@ describe('Testing of the collection.query methods with a collection with a refer
   describe('Testing of the collection.query methods with a collection with a nested property', () => {
     let client: WeaviateNextClient;
     let collection: Collection<TestCollectionQueryWithNestedProps, 'TestCollectionQueryWithNestedProps'>;
-    const className = 'TestCollectionQueryWithNestedProps';
+    const collectionName = 'TestCollectionQueryWithNestedProps';
 
     let id1: string;
     let id2: string;
@@ -357,7 +357,7 @@ describe('Testing of the collection.query methods with a collection with a refer
     };
 
     afterAll(() => {
-      return client.collections.delete(className).catch((err) => {
+      return client.collections.delete(collectionName).catch((err) => {
         console.error(err);
         throw err;
       });
@@ -376,10 +376,10 @@ describe('Testing of the collection.query methods with a collection with a refer
           port: 50051,
         },
       });
-      collection = client.collections.get(className);
+      collection = client.collections.get(collectionName);
       return client.collections
         .create<TestCollectionQueryWithNestedProps>({
-          name: className,
+          name: collectionName,
           properties: [
             {
               name: 'testProp',
@@ -483,7 +483,7 @@ describe('Testing of the collection.query methods with a collection with a refer
   describe('Testing of the collection.query methods with a collection with multiple vectors', () => {
     let client: WeaviateNextClient;
     let collection: Collection<TestCollectionQueryWithMultiVector, 'TestCollectionQueryWithMultiVector'>;
-    const className = 'TestCollectionQueryWithMultiVector';
+    const collectionName = 'TestCollectionQueryWithMultiVector';
 
     let id1: string;
     let id2: string;
@@ -493,7 +493,7 @@ describe('Testing of the collection.query methods with a collection with a refer
     };
 
     afterAll(() => {
-      return client.collections.delete(className).catch((err) => {
+      return client.collections.delete(collectionName).catch((err) => {
         console.error(err);
         throw err;
       });
@@ -512,10 +512,10 @@ describe('Testing of the collection.query methods with a collection with a refer
           port: 50051,
         },
       });
-      collection = client.collections.get(className);
+      collection = client.collections.get(collectionName);
       return client.collections
         .create<TestCollectionQueryWithMultiVector>({
-          name: className,
+          name: collectionName,
           properties: [
             {
               name: 'title',
@@ -523,7 +523,7 @@ describe('Testing of the collection.query methods with a collection with a refer
               vectorizePropertyName: false,
             },
           ],
-          vectorizer: [weaviate.configure.namedVectorizer.make('title', 'hnsw', 'text2vec-contextionary')],
+          vectorizer: [weaviate.configure.namedVectorizer.text2VecContextionary('title', 'hnsw')],
         })
         .then(async () => {
           id1 = await collection.data.insert({
@@ -567,7 +567,7 @@ describe('Testing of the collection.query methods with a collection with a refer
 describe('Testing of the groupBy collection.query methods with a simple collection', () => {
   let client: WeaviateNextClient;
   let collection: Collection<TestCollectionGroupBySimple, 'TestCollectionGroupBySimple'>;
-  const className = 'TestCollectionGroupBySimple';
+  const collectionName = 'TestCollectionGroupBySimple';
   let id: string;
   let vector: number[];
 
@@ -582,7 +582,7 @@ describe('Testing of the groupBy collection.query methods with a simple collecti
   };
 
   afterAll(() => {
-    return client.collections.delete(className).catch((err) => {
+    return client.collections.delete(collectionName).catch((err) => {
       console.error(err);
       throw err;
     });
@@ -601,10 +601,10 @@ describe('Testing of the groupBy collection.query methods with a simple collecti
         port: 50051,
       },
     });
-    collection = client.collections.get(className);
+    collection = client.collections.get(collectionName);
     id = await client.collections
       .create({
-        name: className,
+        name: collectionName,
         properties: [
           {
             name: 'testProp',
@@ -709,5 +709,150 @@ describe('Testing of the groupBy collection.query methods with a simple collecti
     expect(ret.objects[0].properties.testProp).toEqual('test');
     expect(ret.objects[0].uuid).toEqual(id);
     expect(ret.objects[0].belongsToGroup).toEqual('test');
+  });
+});
+
+describe('Testing of the collection.query methods with a multi-tenancy collection', () => {
+  let client: WeaviateNextClient;
+  let collection: Collection<TestCollectionMultiTenancy, 'TestCollectionMultiTenancy'>;
+  const collectionName = 'TestCollectionMultiTenancy';
+  let id1: string;
+  let id2: string;
+
+  const tenantOne = { name: 'one' };
+  const tenantTwo = { name: 'two' };
+
+  type TestCollectionMultiTenancy = {
+    testProp: string;
+  };
+
+  afterAll(() => {
+    return client.collections.delete(collectionName).catch((err) => {
+      console.error(err);
+      throw err;
+    });
+  });
+
+  beforeAll(async () => {
+    client = await weaviate.connectToLocal();
+    collection = client.collections.get(collectionName);
+    [id1, id2] = await client.collections
+      .create<TestCollectionMultiTenancy>({
+        name: collectionName,
+        properties: [
+          {
+            name: 'testProp',
+            dataType: 'text',
+          },
+        ],
+        multiTenancy: weaviate.configure.multiTenancy({ enabled: true }),
+        vectorizer: weaviate.configure.vectorizer.text2VecContextionary({ vectorizeClassName: false }),
+      })
+      .then(async (col) => {
+        await col.tenants.create([tenantOne, tenantTwo]);
+        return col;
+      })
+      .then((col) =>
+        Promise.all([
+          col.withTenant(tenantOne).data.insert({
+            properties: {
+              testProp: 'one',
+            },
+          }),
+          col.withTenant(tenantTwo).data.insert({
+            properties: {
+              testProp: 'two',
+            },
+          }),
+        ])
+      );
+  });
+
+  it('should find the objects in their tenants by ID', async () => {
+    const obj1 = await collection.withTenant(tenantOne).query.fetchObjectById(id1);
+    const obj2 = await collection.withTenant(tenantTwo).query.fetchObjectById(id2);
+    expect(obj1?.properties.testProp).toEqual('one');
+    expect(obj1?.uuid).toEqual(id1);
+    expect(obj2?.properties.testProp).toEqual('two');
+    expect(obj2?.uuid).toEqual(id2);
+  });
+
+  it('should return null if searching in the wrong tenant', async () => {
+    const obj1 = await collection.withTenant(tenantTwo).query.fetchObjectById(id1);
+    const obj2 = await collection.withTenant(tenantOne).query.fetchObjectById(id2);
+    expect(obj1).toBeNull();
+    expect(obj2).toBeNull();
+  });
+
+  it('should find the objects in their tenants by fetch', async () => {
+    const obj1 = await collection.withTenant(tenantOne).query.fetchObjects();
+    const obj2 = await collection.withTenant(tenantTwo).query.fetchObjects();
+    expect(obj1.objects.length).toEqual(1);
+    expect(obj1.objects[0].properties.testProp).toEqual('one');
+    expect(obj1.objects[0].uuid).toEqual(id1);
+    expect(obj2.objects.length).toEqual(1);
+    expect(obj2.objects[0].properties.testProp).toEqual('two');
+    expect(obj2.objects[0].uuid).toEqual(id2);
+  });
+
+  it('should find the objects in their tenants by bm25', async () => {
+    const obj1 = await collection.withTenant(tenantOne).query.bm25('one');
+    const obj2 = await collection.withTenant(tenantTwo).query.bm25('two');
+    expect(obj1.objects.length).toEqual(1);
+    expect(obj1.objects[0].properties.testProp).toEqual('one');
+    expect(obj1.objects[0].uuid).toEqual(id1);
+    expect(obj2.objects.length).toEqual(1);
+    expect(obj2.objects[0].properties.testProp).toEqual('two');
+    expect(obj2.objects[0].uuid).toEqual(id2);
+  });
+
+  it('should find the objects in their tenants by hybrid', async () => {
+    const obj1 = await collection.withTenant(tenantOne).query.hybrid('one');
+    const obj2 = await collection.withTenant(tenantTwo).query.hybrid('two');
+    expect(obj1.objects.length).toEqual(1);
+    expect(obj1.objects[0].properties.testProp).toEqual('one');
+    expect(obj1.objects[0].uuid).toEqual(id1);
+    expect(obj2.objects.length).toEqual(1);
+    expect(obj2.objects[0].properties.testProp).toEqual('two');
+    expect(obj2.objects[0].uuid).toEqual(id2);
+  });
+
+  it('should find the objects in their tenants by nearObject', async () => {
+    const obj1 = await collection.withTenant(tenantOne).query.nearObject(id1);
+    const obj2 = await collection.withTenant(tenantTwo).query.nearObject(id2);
+    expect(obj1.objects.length).toEqual(1);
+    expect(obj1.objects[0].properties.testProp).toEqual('one');
+    expect(obj1.objects[0].uuid).toEqual(id1);
+    expect(obj2.objects.length).toEqual(1);
+    expect(obj2.objects[0].properties.testProp).toEqual('two');
+    expect(obj2.objects[0].uuid).toEqual(id2);
+  });
+
+  it('should find the objects in their tenants by nearText', async () => {
+    const obj1 = await collection.withTenant(tenantOne).query.nearText(['one']);
+    const obj2 = await collection.withTenant(tenantTwo).query.nearText(['two']);
+    expect(obj1.objects.length).toEqual(1);
+    expect(obj1.objects[0].properties.testProp).toEqual('one');
+    expect(obj1.objects[0].uuid).toEqual(id1);
+    expect(obj2.objects.length).toEqual(1);
+    expect(obj2.objects[0].properties.testProp).toEqual('two');
+    expect(obj2.objects[0].uuid).toEqual(id2);
+  });
+
+  it('should find the objects in their tenants by nearVector', async () => {
+    const { vectors: vecs1 } = (await collection
+      .withTenant(tenantOne)
+      .query.fetchObjectById(id1, { includeVector: true }))!;
+    const { vectors: vecs2 } = (await collection
+      .withTenant(tenantTwo)
+      .query.fetchObjectById(id2, { includeVector: true }))!;
+    const obj1 = await collection.withTenant(tenantOne).query.nearVector(vecs1.default);
+    const obj2 = await collection.withTenant(tenantTwo).query.nearVector(vecs2.default);
+    expect(obj1.objects.length).toEqual(1);
+    expect(obj1.objects[0].properties.testProp).toEqual('one');
+    expect(obj1.objects[0].uuid).toEqual(id1);
+    expect(obj2.objects.length).toEqual(1);
+    expect(obj2.objects[0].properties.testProp).toEqual('two');
+    expect(obj2.objects[0].uuid).toEqual(id2);
   });
 });
