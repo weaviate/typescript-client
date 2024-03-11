@@ -3,9 +3,11 @@ import weaviate, { WeaviateNextClient } from '..';
 import {
   CollectionConfigCreate,
   GeoCoordinate,
+  PQConfig,
   PhoneNumber,
   Text2VecContextionaryConfig,
   Text2VecOpenAIConfig,
+  VectorIndexConfigHNSW,
 } from './types';
 
 const fail = (msg: string) => {
@@ -430,6 +432,7 @@ describe('Testing of the collections.create method', () => {
         replication: {
           factor: 2,
         },
+        vectorizer: weaviate.configure.vectorizer.none(),
         vectorIndex: {
           name: 'hnsw',
           config: {
@@ -442,16 +445,16 @@ describe('Testing of the collections.create method', () => {
             efConstruction: 100,
             flatSearchCutoff: 41000,
             maxConnections: 72,
-            pq: {
+            quantizer: {
               bitCompression: true,
               centroids: 128,
-              enabled: true,
               encoder: {
                 distribution: 'normal',
                 type: 'tile',
               },
               segments: 4,
               trainingLimit: 100001,
+              type: 'pq',
             },
             skip: true,
             vectorCacheMaxObjects: 100000,
@@ -515,24 +518,25 @@ describe('Testing of the collections.create method', () => {
 
     expect(response.replication.factor).toEqual(2);
 
-    expect(response.vectorizer.default.indexConfig.cleanupIntervalSeconds).toEqual(10);
-    expect(response.vectorizer.default.indexConfig.distance).toEqual('dot');
-    expect(response.vectorizer.default.indexConfig.dynamicEfFactor).toEqual(6);
-    expect(response.vectorizer.default.indexConfig.dynamicEfMax).toEqual(100);
-    expect(response.vectorizer.default.indexConfig.dynamicEfMin).toEqual(10);
-    expect(response.vectorizer.default.indexConfig.ef).toEqual(-2);
-    expect(response.vectorizer.default.indexConfig.efConstruction).toEqual(100);
-    expect(response.vectorizer.default.indexConfig.flatSearchCutoff).toEqual(41000);
-    expect(response.vectorizer.default.indexConfig.maxConnections).toEqual(72);
-    expect(response.vectorizer.default.indexConfig.pq.bitCompression).toEqual(true);
-    expect(response.vectorizer.default.indexConfig.pq.centroids).toEqual(128);
-    expect(response.vectorizer.default.indexConfig.pq.enabled).toEqual(true);
-    expect(response.vectorizer.default.indexConfig.pq.encoder.distribution).toEqual('normal');
-    // expect((response.vectorIndexConfig?.pq as any).encoder.type).toEqual('tile'); // potential weaviate bug, this returns as PQEncoderType.KMEANS
-    expect(response.vectorizer.default.indexConfig.pq.segments).toEqual(4);
-    expect(response.vectorizer.default.indexConfig.pq.trainingLimit).toEqual(100001);
-    expect(response.vectorizer.default.indexConfig.skip).toEqual(true);
-    expect(response.vectorizer.default.indexConfig.vectorCacheMaxObjects).toEqual(100000);
+    const indexConfig = response.vectorizer.default.indexConfig as VectorIndexConfigHNSW;
+    const quantizer = indexConfig.quantizer as PQConfig;
+    expect(indexConfig.cleanupIntervalSeconds).toEqual(10);
+    expect(indexConfig.distance).toEqual('dot');
+    expect(indexConfig.dynamicEfFactor).toEqual(6);
+    expect(indexConfig.dynamicEfMax).toEqual(100);
+    expect(indexConfig.dynamicEfMin).toEqual(10);
+    expect(indexConfig.ef).toEqual(-2);
+    expect(indexConfig.efConstruction).toEqual(100);
+    expect(indexConfig.flatSearchCutoff).toEqual(41000);
+    expect(indexConfig.maxConnections).toEqual(72);
+    expect(quantizer.bitCompression).toEqual(true);
+    expect(quantizer.centroids).toEqual(128);
+    expect(quantizer.encoder.distribution).toEqual('normal');
+    // expect(quantizer.encoder.type).toEqual('tile'); // potential weaviate bug, this returns as PQEncoderType.KMEANS
+    expect(quantizer.segments).toEqual(4);
+    expect(quantizer.trainingLimit).toEqual(100001);
+    expect(indexConfig.skip).toEqual(true);
+    expect(indexConfig.vectorCacheMaxObjects).toEqual(100000);
 
     expect(response.vectorizer.default.indexType).toEqual('hnsw');
 
@@ -593,6 +597,7 @@ describe('Testing of the collections.create method', () => {
     expect(response.properties?.[0].name).toEqual('testProp');
     expect(response.properties?.[0].dataType).toEqual('text');
     expect(response.vectorizer.default.indexConfig).toBeDefined();
+    expect(response.vectorizer.default.indexConfig.quantizer).toBeUndefined();
     expect(response.vectorizer.default.indexType).toEqual('hnsw');
     expect(response.vectorizer.default.vectorizer.name).toEqual('text2vec-contextionary');
     expect(
@@ -626,6 +631,7 @@ describe('Testing of the collections.create method', () => {
     expect(response.properties?.[0].name).toEqual('testProp');
     expect(response.properties?.[0].dataType).toEqual('text');
     expect(response.vectorizer.default.indexConfig).toBeDefined();
+    expect(response.vectorizer.default.indexConfig.quantizer).toBeUndefined();
     expect(response.vectorizer.default.indexType).toEqual('hnsw');
     expect(response.vectorizer.default.vectorizer.name).toEqual('text2vec-openai');
     expect(
@@ -654,6 +660,7 @@ describe('Testing of the collections.create method', () => {
     expect(response.properties?.[0].name).toEqual('testProp');
     expect(response.properties?.[0].dataType).toEqual('text');
     expect(response.vectorizer.default.indexConfig).toBeDefined();
+    expect(response.vectorizer.default.indexConfig.quantizer).toBeUndefined();
     expect(response.vectorizer.default.indexType).toEqual('hnsw');
     expect(response.vectorizer.default.vectorizer.name).toEqual('text2vec-openai');
     expect(

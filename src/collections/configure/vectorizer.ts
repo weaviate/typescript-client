@@ -1,49 +1,28 @@
-import { VectorIndexConfigCreate } from './vectorIndex';
+import { NamedVectorConfigCreate, NamedVectorizerOptionsCreate, VectorIndexConfigCreateType } from './types';
 import {
   Img2VecNeuralConfig,
   ModuleConfig,
   Multi2VecBindConfig,
   Multi2VecClipConfig,
-  NoVectorizerConfig,
   Ref2VecCentroidConfig,
   Text2VecCohereConfig,
   Text2VecContextionaryConfig,
   Text2VecOpenAIConfig,
   VectorIndexType,
-  Vectorizer,
 } from '../config/types';
-import { PrimitiveKeys } from '../types/internal';
-
-export type NamedVectorizerOptionsCreate<C, I, T> = {
-  properties?: PrimitiveKeys<T>[];
-  vectorizerConfig?: C;
-  vectorIndexConfig?: VectorIndexConfigCreate<I>;
-};
-
-export interface NamedVectorConfigCreate<
-  T,
-  N extends string,
-  I extends VectorIndexType,
-  V extends Vectorizer,
-  C
-> {
-  name: N;
-  properties?: PrimitiveKeys<T>[];
-  vectorizer: ModuleConfig<V, C>;
-  vectorIndexConfig?: VectorIndexConfigCreate<I>;
-  vectorIndexType: I;
-}
 
 export const namedVectorizer = {
   none: <N extends string, I extends VectorIndexType, T>(
     name: N,
     vectorIndexType: I,
-    vectorIndexConfig?: VectorIndexConfigCreate<I>
-  ): NamedVectorConfigCreate<T, N, I, 'none', NoVectorizerConfig> => {
+    vectorIndexConfig?: VectorIndexConfigCreateType<I>
+  ): NamedVectorConfigCreate<T, N> => {
     return {
-      name,
-      vectorIndexConfig,
-      vectorIndexType,
+      vectorName: name,
+      vectorIndex: {
+        name: vectorIndexType,
+        config: vectorIndexConfig,
+      },
       vectorizer: vectorizer.none(),
     };
   },
@@ -51,12 +30,14 @@ export const namedVectorizer = {
     name: N,
     vectorIndexType: I,
     options?: NamedVectorizerOptionsCreate<Img2VecNeuralConfig, I, T>
-  ): NamedVectorConfigCreate<T, N, I, 'img2vec-neural', Img2VecNeuralConfig> => {
+  ): NamedVectorConfigCreate<T, N> => {
     return {
-      name,
+      vectorName: name,
       properties: options?.properties,
-      vectorIndexConfig: options?.vectorIndexConfig,
-      vectorIndexType,
+      vectorIndex: {
+        name: vectorIndexType,
+        config: options?.vectorIndexConfig,
+      },
       vectorizer: vectorizer.img2VecNeural(options?.vectorizerConfig),
     };
   },
@@ -64,12 +45,14 @@ export const namedVectorizer = {
     name: N,
     vectorIndexType: I,
     options?: NamedVectorizerOptionsCreate<Multi2VecBindConfig, I, T>
-  ): NamedVectorConfigCreate<T, N, I, 'multi2vec-bind', Multi2VecBindConfig> => {
+  ): NamedVectorConfigCreate<T, N> => {
     return {
-      name,
+      vectorName: name,
       properties: options?.properties,
-      vectorIndexConfig: options?.vectorIndexConfig,
-      vectorIndexType,
+      vectorIndex: {
+        name: vectorIndexType,
+        config: options?.vectorIndexConfig,
+      },
       vectorizer: vectorizer.multi2VecBind(options?.vectorizerConfig),
     };
   },
@@ -77,12 +60,14 @@ export const namedVectorizer = {
     name: N,
     vectorIndexType: I,
     options?: NamedVectorizerOptionsCreate<Multi2VecClipConfig, I, T>
-  ): NamedVectorConfigCreate<T, N, I, 'multi2vec-clip', Multi2VecClipConfig> => {
+  ): NamedVectorConfigCreate<T, N> => {
     return {
-      name,
+      vectorName: name,
       properties: options?.properties,
-      vectorIndexConfig: options?.vectorIndexConfig,
-      vectorIndexType,
+      vectorIndex: {
+        name: vectorIndexType,
+        config: options?.vectorIndexConfig,
+      },
       vectorizer: vectorizer.multi2VecClip(options?.vectorizerConfig),
     };
   },
@@ -91,12 +76,14 @@ export const namedVectorizer = {
     vectorIndexType: I,
     vectorizerConfig: Ref2VecCentroidConfig,
     options?: NamedVectorizerOptionsCreate<never, I, T>
-  ): NamedVectorConfigCreate<T, N, I, 'ref2vec-centroid', Ref2VecCentroidConfig> => {
+  ): NamedVectorConfigCreate<T, N> => {
     return {
-      name,
+      vectorName: name,
       properties: options?.properties,
-      vectorIndexConfig: options?.vectorIndexConfig,
-      vectorIndexType,
+      vectorIndex: {
+        name: vectorIndexType,
+        config: options?.vectorIndexConfig,
+      },
       vectorizer: vectorizer.ref2VecCentroid(vectorizerConfig),
     };
   },
@@ -104,12 +91,14 @@ export const namedVectorizer = {
     name: N,
     vectorIndexType: I,
     options?: NamedVectorizerOptionsCreate<Text2VecCohereConfig, I, T>
-  ): NamedVectorConfigCreate<T, N, I, 'text2vec-cohere', Text2VecCohereConfig> => {
+  ): NamedVectorConfigCreate<T, N> => {
     return {
-      name,
+      vectorName: name,
       properties: options?.properties,
-      vectorIndexConfig: options?.vectorIndexConfig,
-      vectorIndexType,
+      vectorIndex: {
+        name: vectorIndexType,
+        config: options?.vectorIndexConfig,
+      },
       vectorizer: vectorizer.text2VecCohere(options?.vectorizerConfig),
     };
   },
@@ -117,12 +106,14 @@ export const namedVectorizer = {
     name: N,
     vectorIndexType: I,
     options?: NamedVectorizerOptionsCreate<Text2VecContextionaryConfig, I, T>
-  ): NamedVectorConfigCreate<T, N, I, 'text2vec-contextionary', Text2VecContextionaryConfig> => {
+  ): NamedVectorConfigCreate<T, N> => {
     return {
-      name,
+      vectorName: name,
       properties: options?.properties,
-      vectorIndexConfig: options?.vectorIndexConfig,
-      vectorIndexType,
+      vectorIndex: {
+        name: vectorIndexType,
+        config: options?.vectorIndexConfig,
+      },
       vectorizer: vectorizer.text2VecContextionary(options?.vectorizerConfig),
     };
   },
@@ -130,12 +121,14 @@ export const namedVectorizer = {
     name: N,
     vectorIndexType: I,
     options?: NamedVectorizerOptionsCreate<Text2VecOpenAIConfig, I, T>
-  ): NamedVectorConfigCreate<T, N, I, 'text2vec-openai', Text2VecOpenAIConfig> => {
+  ): NamedVectorConfigCreate<T, N> => {
     return {
-      name,
+      vectorName: name,
       properties: options?.properties,
-      vectorIndexConfig: options?.vectorIndexConfig,
-      vectorIndexType,
+      vectorIndex: {
+        name: vectorIndexType,
+        config: options?.vectorIndexConfig,
+      },
       vectorizer: vectorizer.text2VecOpenAI(options?.vectorizerConfig),
     };
   },

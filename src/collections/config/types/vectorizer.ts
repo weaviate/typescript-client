@@ -1,12 +1,13 @@
 import { ModuleConfig } from '.';
-import { VectorIndexConfig, VectorIndexType } from './vectorIndex';
+import { VectorIndexConfigFlat, VectorIndexConfigHNSW, VectorIndexType } from './vectorIndex';
 
 export type VectorConfig = Record<
   string,
   {
     properties?: string[];
     vectorizer: ModuleConfig<Vectorizer, VectorizerConfig>;
-    indexConfig: VectorIndexConfig<VectorIndexType>;
+    // indexConfig: VectorIndexConfig<VectorIndexType>;
+    indexConfig: VectorIndexConfigHNSW | VectorIndexConfigFlat;
     indexType: VectorIndexType;
   }
 >;

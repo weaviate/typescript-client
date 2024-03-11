@@ -41,6 +41,7 @@ import {
   VectorIndexConfig,
   VectorIndexConfigFlat,
   VectorIndexConfigHNSW,
+  VectorIndexConfigType,
   VectorizerConfig,
 } from '../types';
 
@@ -85,7 +86,6 @@ class ConfigGuards {
     if (!populated(v)) return undefined;
     const rerankerKey = Object.keys(v).find((k) => k.includes('reranker'));
     if (rerankerKey === undefined) return undefined;
-    if (!rerankerKey) throw new Error('Reranker config was not returned by Weaviate');
     return v[rerankerKey] as RerankerConfig;
   }
   private static namedVectors(v: WeaviateVectorConfig): VectorConfig {
@@ -198,11 +198,12 @@ class ConfigGuards {
       distribution: v.distribution,
     };
   }
-  static pq(v?: Record<string, unknown>): PQConfig {
+  static pq(v?: Record<string, unknown>): PQConfig | undefined {
     if (v === undefined) throw new Error('PQ was not returned by Weaviate');
+    if (!exists<boolean>(v.enabled)) throw new Error('PQ enabled was not returned by Weaviate');
+    if (v.enabled === false) return undefined;
     if (!exists<boolean>(v.bitCompression))
       throw new Error('PQ bit compression was not returned by Weaviate');
-    if (!exists<boolean>(v.enabled)) throw new Error('PQ enabled was not returned by Weaviate');
     if (!exists<number>(v.segments)) throw new Error('PQ segments was not returned by Weaviate');
     if (!exists<number>(v.trainingLimit)) throw new Error('PQ training limit was not returned by Weaviate');
     if (!exists<number>(v.centroids)) throw new Error('PQ centroids was not returned by Weaviate');
@@ -210,11 +211,11 @@ class ConfigGuards {
       throw new Error('PQ encoder was not returned by Weaviate');
     return {
       bitCompression: v.bitCompression,
-      enabled: v.enabled,
       segments: v.segments,
       centroids: v.centroids,
       trainingLimit: v.trainingLimit,
       encoder: ConfigGuards.pqEncoder(v.encoder),
+      type: 'pq',
     };
   }
   static vectorIndexHNSW(v: WeaviateVectorIndexConfig): VectorIndexConfigHNSW {
@@ -239,8 +240,14 @@ class ConfigGuards {
     if (!exists<boolean>(v.skip)) throw new Error('Vector index skip was not returned by Weaviate');
     if (!exists<number>(v.vectorCacheMaxObjects))
       throw new Error('Vector index vector cache max objects was not returned by Weaviate');
-    if (!exists<Record<string, unknown>>(v.pq))
-      throw new Error('Vector index pq was not returned by Weaviate');
+    let quantizer: PQConfig | BQConfig | undefined;
+    if (exists<Record<string, any>>(v.pq) && v.pq.enabled === true) {
+      quantizer = ConfigGuards.pq(v.pq);
+    } else if (exists<Record<string, any>>(v.bq) && v.bq.enabled === true) {
+      quantizer = ConfigGuards.bq(v.bq);
+    } else {
+      quantizer = undefined;
+    }
     return {
       cleanupIntervalSeconds: v.cleanupIntervalSeconds,
       distance: v.distance,
@@ -251,18 +258,21 @@ class ConfigGuards {
       efConstruction: v.efConstruction,
       flatSearchCutoff: v.flatSearchCutoff,
       maxConnections: v.maxConnections,
-      pq: ConfigGuards.pq(v.pq),
+      quantizer: quantizer,
       skip: v.skip,
       vectorCacheMaxObjects: v.vectorCacheMaxObjects,
     };
   }
-  static bq(v?: Record<string, unknown>): BQConfig {
+  static bq(v?: Record<string, unknown>): BQConfig | undefined {
     if (v === undefined) throw new Error('BQ was not returned by Weaviate');
-    if (!exists<boolean>(v.cache)) throw new Error('BQ cache was not returned by Weaviate');
-    if (!exists<number>(v.rescoreLimit)) throw new Error('BQ rescore limit was not returned by Weaviate');
+    if (!exists<boolean>(v.enabled)) throw new Error('BQ enabled was not returned by Weaviate');
+    if (v.enabled === false) return undefined;
+    const cache = v.cache === undefined ? false : (v.cache as boolean);
+    const rescoreLimit = v.rescoreLimit === undefined ? 1000 : (v.rescoreLimit as number);
     return {
-      cache: v.cache,
-      rescoreLimit: v.rescoreLimit,
+      cache,
+      rescoreLimit,
+      type: 'bq',
     };
   }
   static vectorIndexFlat(v: WeaviateVectorIndexConfig): VectorIndexConfigFlat {
@@ -276,16 +286,16 @@ class ConfigGuards {
     return {
       vectorCacheMaxObjects: v.vectorCacheMaxObjects,
       distance: v.distance,
-      bq: ConfigGuards.bq(v.bq),
+      quantizer: ConfigGuards.bq(v.bq),
     };
   }
-  static vectorIndex<I>(v: WeaviateVectorIndexConfig, t?: string): VectorIndexConfig<I> {
+  static vectorIndex<I>(v: WeaviateVectorIndexConfig, t?: string): VectorIndexConfigType<I> {
     if (t === 'hnsw') {
-      return ConfigGuards.vectorIndexHNSW(v) as VectorIndexConfig<I>;
+      return ConfigGuards.vectorIndexHNSW(v) as VectorIndexConfigType<I>;
     } else if (t === 'flat') {
-      return ConfigGuards.vectorIndexFlat(v) as VectorIndexConfig<I>;
+      return ConfigGuards.vectorIndexFlat(v) as VectorIndexConfigType<I>;
     } else {
-      return v as VectorIndexConfig<I>;
+      return v as VectorIndexConfigType<I>;
     }
   }
   static vectorIndexType<I>(v?: string): I {

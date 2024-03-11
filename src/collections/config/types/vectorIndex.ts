@@ -8,7 +8,7 @@ export type VectorIndexConfigHNSW = {
   ef: number;
   flatSearchCutoff: number;
   maxConnections: number;
-  pq: PQConfig;
+  quantizer: PQConfig | BQConfig | undefined;
   skip: boolean;
   vectorCacheMaxObjects: number;
 };
@@ -16,10 +16,10 @@ export type VectorIndexConfigHNSW = {
 export type VectorIndexConfigFlat = {
   distance: VectorDistance;
   vectorCacheMaxObjects: number;
-  bq: BQConfig;
+  quantizer: BQConfig | undefined;
 };
 
-export type VectorIndexConfig<I> = I extends 'hnsw'
+export type VectorIndexConfigType<I> = I extends 'hnsw'
   ? VectorIndexConfigHNSW
   : I extends 'flat'
   ? VectorIndexConfigFlat
@@ -30,15 +30,16 @@ export type VectorIndexConfig<I> = I extends 'hnsw'
 export type BQConfig = {
   cache: boolean;
   rescoreLimit: number;
+  type: 'bq';
 };
 
 export type PQConfig = {
   bitCompression: boolean;
   centroids: number;
-  enabled: boolean;
   encoder: PQEncoderConfig;
   segments: number;
   trainingLimit: number;
+  type: 'pq';
 };
 
 export type PQEncoderConfig = {
@@ -49,6 +50,8 @@ export type PQEncoderConfig = {
 export type VectorDistance = 'cosine' | 'dot' | 'l2-squared' | 'hamming';
 
 export type PQEncoderType = 'kmeans' | 'tile';
-export type PQEncoderDistribution = 'log_normal' | 'normal';
+export type PQEncoderDistribution = 'log-normal' | 'normal';
 
 export type VectorIndexType = 'hnsw' | 'flat' | string;
+
+export type VectorIndexConfig = VectorIndexConfigHNSW | VectorIndexConfigFlat;

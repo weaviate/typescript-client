@@ -100,6 +100,7 @@ describe('Testing of the collection.aggregate methods', () => {
           //   dataType: [collectionName],
           // },
         ],
+        vectorizer: weaviate.configure.vectorizer.text2VecContextionary({ vectorizeClassName: false }),
       })
       .then(async () => {
         const data: DataObject<TestCollectionAggregate>[] = [];
@@ -143,6 +144,15 @@ describe('Testing of the collection.aggregate methods', () => {
 
   it('should aggregate grouped by data without a search and no property metrics', async () => {
     const result = await collection.aggregate.groupBy.overAll({ groupBy: 'text' });
+    expect(result.length).toEqual(1);
+    expect(result[0].totalCount).toEqual(100);
+    expect(result[0].groupedBy.prop).toEqual('text');
+    expect(result[0].groupedBy.value).toEqual('test');
+    expect(result[0].properties).toBeUndefined();
+  });
+
+  it('should aggregate grouped by data with a near text search and no property metrics', async () => {
+    const result = await collection.aggregate.groupBy.nearText('test', { groupBy: 'text', certainty: 0.1 });
     expect(result.length).toEqual(1);
     expect(result[0].totalCount).toEqual(100);
     expect(result[0].groupedBy.prop).toEqual('text');

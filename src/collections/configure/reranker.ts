@@ -1,6 +1,6 @@
 import { ModuleConfig, RerankerCohereConfig } from '../config/types';
 
-export const reranker = {
+export default {
   cohere: (config?: RerankerCohereConfig): ModuleConfig<'reranker-cohere', RerankerCohereConfig> => {
     return {
       name: 'reranker-cohere',

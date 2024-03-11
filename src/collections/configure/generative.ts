@@ -6,7 +6,7 @@ import {
   ModuleConfig,
 } from '../config/types';
 
-export const generative = {
+export default {
   azureOpenAI: (
     config: GenerativeAzureOpenAIConfig
   ): ModuleConfig<'generative-openai', GenerativeAzureOpenAIConfig> => {

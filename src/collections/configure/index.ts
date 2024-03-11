@@ -1,3 +1,5 @@
+export { QuantizerGuards } from './parsing';
+
 import {
   DataType,
   InvertedIndexConfigCreate,
@@ -6,10 +8,12 @@ import {
   ShardingConfigCreate,
 } from '../types';
 
-import { generative } from './generative';
-import { reranker } from './reranker';
-import { vectorIndex } from './vectorIndex';
+import generative from './generative';
+import reranker from './reranker';
+import vectorIndex from './vectorIndex';
 import { namedVectorizer, vectorizer } from './vectorizer';
+
+import { parseWithDefault } from './parsing';
 
 const dataType: Record<string, DataType> = {
   INT: 'int',
@@ -88,7 +92,3 @@ export default {
     };
   },
 };
-
-export function parseWithDefault<D>(value: D | undefined, defaultValue: D): D {
-  return value !== undefined ? value : defaultValue;
-}

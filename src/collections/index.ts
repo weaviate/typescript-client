@@ -18,11 +18,13 @@ import {
   Vectorizer,
   VectorizerConfig,
   NamedVectorConfigCreate,
+  VectorIndexConfigCreate,
 } from './types';
 import ClassExists from '../schema/classExists';
 import { classToCollection, resolveProperty, resolveReference } from './config';
 import { ConsistencyLevel } from '../data';
 import { WeaviateClass } from '..';
+import { QuantizerGuards } from './configure';
 
 export interface IBuilder {
   withConsistencyLevel(consistencyLevel: ConsistencyLevel): this;
@@ -40,16 +42,8 @@ export type CollectionConfigCreate<TProperties = Properties, N = string> = {
   replication?: ReplicationConfigCreate;
   reranker?: ModuleConfig<Reranker>;
   sharding?: ShardingConfigCreate;
-  vectorIndex?: ModuleConfig<VectorIndexType>;
-  vectorizer?:
-    | ModuleConfig<Vectorizer, VectorizerConfig>
-    | NamedVectorConfigCreate<
-        TProperties,
-        string,
-        VectorIndexType,
-        Vectorizer,
-        VectorizerConfig | undefined
-      >[];
+  vectorIndex?: ModuleConfig<VectorIndexType, VectorIndexConfigCreate>;
+  vectorizer?: ModuleConfig<Vectorizer, VectorizerConfig> | NamedVectorConfigCreate<TProperties, string>[];
 };
 
 export const addContext = <B extends IBuilder>(
@@ -66,8 +60,34 @@ export const addContext = <B extends IBuilder>(
   return builder;
 };
 
+const parseVectorIndexConfig = (config?: VectorIndexConfigCreate) => {
+  if (config === undefined) return undefined;
+  const { quantizer, ...conf } = config;
+  if (quantizer === undefined) return conf;
+  if (QuantizerGuards.isBQ(quantizer)) {
+    const { type, ...quant } = quantizer;
+    return {
+      ...conf,
+      bq: {
+        ...quant,
+        enabled: true,
+      },
+    };
+  }
+  if (QuantizerGuards.isPQ(quantizer)) {
+    const { type, ...quant } = quantizer;
+    return {
+      ...conf,
+      pq: {
+        ...quant,
+        enabled: true,
+      },
+    };
+  }
+};
+
 const isLegacyVectorizer = (
-  argument: ModuleConfig<string, any> | NamedVectorConfigCreate<any, string, string, string, any>[]
+  argument: ModuleConfig<string, any> | NamedVectorConfigCreate<any, string>[]
 ): argument is ModuleConfig<string, any> => {
   return !Array.isArray(argument);
 };
@@ -103,12 +123,15 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
         vectorsConfig = {};
         config.vectorizer.forEach((v) => {
           const vectorConfig: any = {
-            vectorIndexConfig: v.vectorIndexConfig,
-            vectorIndexType: v.vectorIndexType,
+            vectorIndexConfig: parseVectorIndexConfig(v.vectorIndex.config),
+            vectorIndexType: v.vectorIndex.name,
             vectorizer: {},
           };
-          vectorConfig.vectorizer[v.vectorizer.name] = v.vectorizer.config ? v.vectorizer.config : {};
-          vectorsConfig![v.name] = vectorConfig;
+          vectorConfig.vectorizer[v.vectorizer.name] = {
+            properties: v.properties,
+            ...(v.vectorizer.config ? v.vectorizer.config : {}),
+          };
+          vectorsConfig![v.vectorName] = vectorConfig;
         });
       }
 
@@ -128,7 +151,7 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
         replicationConfig: replication,
         shardingConfig: sharding,
         vectorConfig: vectorsConfig,
-        vectorIndexConfig: vectorIndex ? vectorIndex.config : undefined,
+        vectorIndexConfig: vectorIndex ? parseVectorIndexConfig(vectorIndex.config) : undefined,
         vectorIndexType: vectorIndex ? vectorIndex.name : 'hnsw',
       };
       await new ClassCreator(connection).withClass(schema).do();
