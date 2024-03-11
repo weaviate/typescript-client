@@ -1,3 +1,5 @@
+import { Agent } from 'http';
+
 import OpenidConfigurationGetter from '../misc/openidConfigurationGetter';
 
 import {
@@ -8,13 +10,21 @@ import {
   OidcAuthenticator,
 } from './auth';
 
-export interface ConnectionParams {
+export type ProxiesParams = {
+  http?: string;
+  https?: string;
+  grpc?: string;
+};
+
+export type ConnectionParams = {
   authClientSecret?: AuthClientCredentials | AuthAccessTokenCredentials | AuthUserPasswordCredentials;
   apiKey?: ApiKey;
   host: string;
   scheme?: string;
   headers?: HeadersInit;
-}
+  http1Agent?: Agent;
+  grpcProxyUrl?: string;
+};
 
 export default class ConnectionREST {
   private apiKey?: string;
@@ -26,7 +36,7 @@ export default class ConnectionREST {
   constructor(params: ConnectionParams) {
     params = this.sanitizeParams(params);
     this.host = params.host;
-    this.http = restClient(params);
+    this.http = httpClient(params);
     this.authEnabled = this.parseAuthParams(params);
   }
 
@@ -168,7 +178,7 @@ export interface HttpClient {
   externalGet: (externalUrl: string) => Promise<any>;
 }
 
-export const restClient = (config: ConnectionParams): HttpClient => {
+export const httpClient = (config: ConnectionParams): HttpClient => {
   const version = '/v1';
   const baseUri = `${config.host}${version}`;
   const url = makeUrl(baseUri);
@@ -187,6 +197,7 @@ export const restClient = (config: ConnectionParams): HttpClient => {
           'content-type': 'application/json',
         },
         body: JSON.stringify(payload),
+        agent: config.http1Agent,
       };
       addAuthHeaderIfNeeded(request, bearerToken);
       return fetch(url(path), request).then(checkStatus<T>(expectReturnContent));
@@ -204,6 +215,7 @@ export const restClient = (config: ConnectionParams): HttpClient => {
           'content-type': 'application/json',
         },
         body: JSON.stringify(payload),
+        agent: config.http1Agent,
       };
       addAuthHeaderIfNeeded(request, bearerToken);
       return fetch(url(path), request).then(checkStatus<T>(expectReturnContent));
@@ -216,6 +228,7 @@ export const restClient = (config: ConnectionParams): HttpClient => {
           'content-type': 'application/json',
         },
         body: JSON.stringify(payload),
+        agent: config.http1Agent,
       };
       addAuthHeaderIfNeeded(request, bearerToken);
       return fetch(url(path), request).then(checkStatus<T>(false));
@@ -228,6 +241,7 @@ export const restClient = (config: ConnectionParams): HttpClient => {
           'content-type': 'application/json',
         },
         body: payload ? JSON.stringify(payload) : undefined,
+        agent: config.http1Agent,
       };
       addAuthHeaderIfNeeded(request, bearerToken);
       return fetch(url(path), request).then(checkStatus<undefined>(expectReturnContent));
@@ -240,6 +254,7 @@ export const restClient = (config: ConnectionParams): HttpClient => {
           'content-type': 'application/json',
         },
         body: payload ? JSON.stringify(payload) : undefined,
+        agent: config.http1Agent,
       };
       addAuthHeaderIfNeeded(request, bearerToken);
       return fetch(url(path), request).then(handleHeadResponse<undefined>(false));
@@ -250,6 +265,7 @@ export const restClient = (config: ConnectionParams): HttpClient => {
         headers: {
           ...config.headers,
         },
+        agent: config.http1Agent,
       };
       addAuthHeaderIfNeeded(request, bearerToken);
       return fetch(url(path), request).then(checkStatus<T>(expectReturnContent));
@@ -261,6 +277,7 @@ export const restClient = (config: ConnectionParams): HttpClient => {
         headers: {
           ...config.headers,
         },
+        agent: config.http1Agent,
       };
       addAuthHeaderIfNeeded(request, bearerToken);
       return fetch(url(path), request);

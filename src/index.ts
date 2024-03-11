@@ -16,23 +16,29 @@ import {
   ConnectToLocalOptions,
   ConnectToWCSOptions,
 } from './connection/helpers';
+import { ProxiesParams } from './connection/http';
 import MetaGetter from './misc/metaGetter';
 import collections, { Collections } from './collections';
 import configure from './collections/configure';
 import { Meta } from './openapi/types';
 
-export interface ProtocolParams {
+import { setGlobalDispatcher, ProxyAgent } from 'undici';
+import { Agent as HttpAgent } from 'http';
+import { Agent as HttpsAgent } from 'https';
+
+export type ProtocolParams = {
   secure: boolean;
   host: string;
   port: number;
-}
+};
 
-export interface ClientParams {
+export type ClientParams = {
   rest: ProtocolParams;
   grpc: ProtocolParams;
   auth?: AuthCredentials;
   headers?: HeadersInit;
-}
+  proxies?: ProxiesParams;
+};
 export interface WeaviateNextClient {
   backup: Backup;
   cluster: Cluster;
@@ -56,6 +62,20 @@ const app = {
     if (!params.headers) params.headers = {};
 
     const scheme = params.rest.secure ? 'https' : 'http';
+    const agent = params.rest.secure
+      ? new HttpsAgent({ keepAlive: true })
+      : new HttpAgent({ keepAlive: true });
+
+    const proxyUrl = params.proxies?.http || params.proxies?.https;
+    // https://stackoverflow.com/a/76503362/14998213
+    // https://github.com/nodejs/node/issues/42814
+    // https://github.com/nodejs/node/issues/43187
+    // Cleaner solution not available until Node 20 is minimum version
+    if (proxyUrl) {
+      process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+      setGlobalDispatcher(new ProxyAgent({ uri: new URL(proxyUrl).toString() }));
+    }
+
     const conn = await ConnectionGRPC.use({
       host: params.rest.host.startsWith('http')
         ? params.rest.host
@@ -66,6 +86,8 @@ const app = {
       grpcSecure: params.grpc.secure,
       apiKey: params.auth instanceof ApiKey ? params.auth : undefined,
       authClientSecret: params.auth instanceof ApiKey ? undefined : params.auth,
+      http1Agent: agent,
+      grpcProxyUrl: params.proxies?.grpc,
     });
 
     const dbVersionProvider = initDbVersionProvider(conn);

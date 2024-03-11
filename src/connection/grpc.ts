@@ -3,7 +3,7 @@ import { ConnectionParams } from './http';
 
 import { ConsistencyLevel } from '../data';
 
-import { ChannelCredentials, createChannel, createClient, Metadata } from 'nice-grpc';
+import { ChannelCredentials, ChannelOptions, createChannel, createClient, Metadata } from 'nice-grpc';
 
 import { WeaviateDefinition, WeaviateClient } from '../proto/v1/weaviate';
 import {
@@ -19,6 +19,8 @@ export interface GrpcConnectionParams extends ConnectionParams {
   grpcAddress: string;
   grpcSecure: boolean;
 }
+
+const MAX_GRPC_MESSAGE_LENGTH = 104858000; // 10mb, needs to be synchronized with GRPC server
 
 // Must extend from ConnectionGQL so that it can be passed to all the builder methods,
 // which are tightly coupled to ConnectionGQL
@@ -72,9 +74,17 @@ export interface GrpcClient {
 }
 
 export const grpcClient = (config: GrpcConnectionParams): GrpcClient => {
+  const channelOptions: ChannelOptions = {
+    'grpc.max_send_message_length': MAX_GRPC_MESSAGE_LENGTH,
+    'grpc.max_receive_message_length': MAX_GRPC_MESSAGE_LENGTH,
+  };
+  if (config.grpcProxyUrl) {
+    channelOptions['grpc.http_proxy'] = config.grpcProxyUrl;
+  }
   const channel = createChannel(
     config.grpcAddress,
-    config.grpcSecure ? ChannelCredentials.createSsl() : ChannelCredentials.createInsecure()
+    config.grpcSecure ? ChannelCredentials.createSsl() : ChannelCredentials.createInsecure(),
+    channelOptions
   );
   const client: WeaviateClient = createClient(WeaviateDefinition, channel);
   const health: HealthClient = createClient(HealthDefinition, channel);

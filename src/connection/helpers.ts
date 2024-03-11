@@ -1,11 +1,6 @@
 import { ClientParams, WeaviateNextClient } from '..';
-import {
-  ApiKey,
-  AuthAccessTokenCredentials,
-  AuthClientCredentials,
-  AuthCredentials,
-  AuthUserPasswordCredentials,
-} from './auth';
+import { AuthCredentials } from './auth';
+import { ProxiesParams } from './http';
 
 export interface ConnectToWCSOptions {
   authCredentials?: AuthCredentials;
@@ -21,6 +16,7 @@ export interface ConnectToLocalOptions {
   grpcSecure?: boolean;
   authCredentials?: AuthCredentials;
   headers?: Record<string, string>;
+  proxies?: ProxiesParams;
 }
 
 export function connectToWCS(
