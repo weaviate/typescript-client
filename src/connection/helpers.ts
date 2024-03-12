@@ -1,11 +1,6 @@
 import { ClientParams, WeaviateNextClient } from '..';
-import {
-  ApiKey,
-  AuthAccessTokenCredentials,
-  AuthClientCredentials,
-  AuthCredentials,
-  AuthUserPasswordCredentials,
-} from './auth';
+import { AuthCredentials } from './auth';
+import { ProxiesParams } from './http';
 
 export interface ConnectToWCSOptions {
   authCredentials?: AuthCredentials;
@@ -14,6 +9,7 @@ export interface ConnectToWCSOptions {
 
 export interface ConnectToLocalOptions {
   httpHost?: string;
+  httpPath?: string;
   httpPort?: number;
   httpSecure?: boolean;
   grpcHost?: string;
@@ -21,6 +17,7 @@ export interface ConnectToLocalOptions {
   grpcSecure?: boolean;
   authCredentials?: AuthCredentials;
   headers?: Record<string, string>;
+  proxies?: ProxiesParams;
 }
 
 export function connectToWCS(
@@ -71,6 +68,7 @@ export function connectToLocal(
     rest: {
       secure: options?.httpSecure || false,
       host: options?.httpHost || 'localhost',
+      path: options?.httpPath || '',
       port: options?.httpPort || 8080,
     },
     grpc: {
@@ -80,5 +78,6 @@ export function connectToLocal(
     },
     auth: options?.authCredentials,
     headers: options?.headers,
+    proxies: options?.proxies,
   });
 }
