@@ -666,7 +666,7 @@ describe('Testing of the collection.data.insertMany method with all possible typ
         dataType: 'date[]' as const,
       },
     ];
-    collection = await client.collections.create<TestCollectionData, 'TestCollectionData'>({
+    collection = await client.collections.create({
       name: collectionName,
       properties: [
         ...primitives,
@@ -686,7 +686,13 @@ describe('Testing of the collection.data.insertMany method with all possible typ
         {
           name: 'children',
           dataType: 'object[]',
-          nestedProperties: primitives,
+          nestedProperties: [
+            {
+              name: 'child',
+              dataType: 'object',
+              nestedProperties: primitives,
+            },
+          ],
         },
       ],
       references: [

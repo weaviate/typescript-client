@@ -19,6 +19,7 @@ import {
   VectorizerConfig,
   NamedVectorConfigCreate,
   VectorIndexConfigCreate,
+  PhoneNumber,
 } from './types';
 import ClassExists from '../schema/classExists';
 import { classToCollection, resolveProperty, resolveReference } from './config';

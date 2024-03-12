@@ -18,35 +18,38 @@ import {
   GeoCoordinate as GeoCoordinateGRPC,
   PhoneNumber as PhoneNumberGRPC,
 } from '../../proto/v1/properties';
+import { NestedPropertyCreate, PropertyConfigCreate } from '../configure/types';
 
 import { CrossReference } from '../references';
 
 // The order of type resolution is important here since object can be inferred as all other types
 // hence it should be the last type in the union
-export type DataType<T = any> = T extends string
-  ? 'text' | 'blob'
-  : T extends number
-  ? 'number' | 'int'
-  : T extends boolean
-  ? 'boolean'
-  : T extends Date
-  ? 'date'
-  : T extends string[]
-  ? 'text[]'
-  : T extends number[]
-  ? 'number[]' | 'int[]'
-  : T extends boolean[]
-  ? 'boolean[]'
-  : T extends Date[]
-  ? 'date[]'
-  : T extends GeoCoordinate
-  ? 'geoCoordinates'
-  : T extends PhoneNumber
-  ? 'phoneNumber'
-  : T extends object[]
-  ? 'object[]'
-  : T extends object
-  ? 'object'
+export type DataType<T = any> = T extends infer U | undefined
+  ? U extends string
+    ? 'text' | 'blob'
+    : U extends number
+    ? 'number' | 'int'
+    : U extends boolean
+    ? 'boolean'
+    : U extends Date
+    ? 'date'
+    : U extends string[]
+    ? 'text[]'
+    : U extends number[]
+    ? 'number[]' | 'int[]'
+    : U extends boolean[]
+    ? 'boolean[]'
+    : U extends Date[]
+    ? 'date[]'
+    : U extends GeoCoordinate
+    ? 'geoCoordinates'
+    : U extends PhoneNumber
+    ? 'phoneNumber'
+    : U extends object[]
+    ? 'object[]'
+    : U extends object
+    ? 'object'
+    : never
   : never;
 
 export type GeoCoordinate = Required<GeoCoordinateGRPC>;
