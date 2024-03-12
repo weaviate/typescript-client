@@ -6,12 +6,10 @@ services:
       - --host
       - 0.0.0.0
       - --port
-      - '8080'
+      - '8020'
       - --scheme
       - http
       - --write-timeout=600s
-    ports:
-      - 8075:8080
     image: semitechnologies/weaviate:${WEAVIATE_VERSION}
     restart: on-failure:0
     environment:
@@ -27,20 +25,29 @@ services:
       CLUSTER_HOSTNAME: "node1"
       AUTOSCHEMA_ENABLED: 'false'
       DISABLE_TELEMETRY: 'true'
+      GRPC_PORT: 8021
   contextionary:
     environment:
       OCCURRENCE_WEIGHT_LINEAR_FACTOR: 0.75
       EXTENSIONS_STORAGE_MODE: weaviate
-      EXTENSIONS_STORAGE_ORIGIN: http://weaviate-proxy:8080
+      EXTENSIONS_STORAGE_ORIGIN: http://weaviate-proxy:8020
       NEIGHBOR_OCCURRENCE_IGNORE_PERCENTILE: 5
       ENABLE_COMPOUND_SPLITTING: 'false'
     image: semitechnologies/contextionary:en0.16.0-v1.2.0
     ports:
       - 9999:9999
-  proxy:
+  proxy-http:
     image: envoyproxy/envoy:v1.29-latest
+    command: envoy --config-path /etc/envoy/http.yaml --log-level debug
     ports:
       - 10000:10000
+    volumes:
+      - ./proxy:/etc/envoy
+  proxy-grpc:
+    image: envoyproxy/envoy:v1.29-latest
+    command: envoy --config-path /etc/envoy/grpc.yaml --log-level debug
+    ports:
+      - 10001:10000
     volumes:
       - ./proxy:/etc/envoy
 ...

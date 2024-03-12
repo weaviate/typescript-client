@@ -1,5 +1,4 @@
 import { Agent } from 'http';
-
 import OpenidConfigurationGetter from '../misc/openidConfigurationGetter';
 
 import {
@@ -10,9 +9,15 @@ import {
   OidcAuthenticator,
 } from './auth';
 
+/**
+ * You can only specify the gRPC proxy URL at this point in time. This is because ProxiesParams should be used to define tunnelling proxies
+ * and Weaviate does not support tunnelling proxies over HTTP/1.1 at this time.
+ *
+ * To use a forwarding proxy you should instead specify its URL as if it were the Weaviate instance itself.
+ */
 export type ProxiesParams = {
-  http?: string;
-  https?: string;
+  // http?: string;
+  // https?: string;
   grpc?: string;
 };
 
@@ -22,8 +27,9 @@ export type ConnectionParams = {
   host: string;
   scheme?: string;
   headers?: HeadersInit;
-  http1Agent?: Agent;
+  // http1Agent?: Agent;
   grpcProxyUrl?: string;
+  agent?: Agent;
 };
 
 export default class ConnectionREST {
@@ -197,7 +203,7 @@ export const httpClient = (config: ConnectionParams): HttpClient => {
           'content-type': 'application/json',
         },
         body: JSON.stringify(payload),
-        agent: config.http1Agent,
+        agent: config.agent,
       };
       addAuthHeaderIfNeeded(request, bearerToken);
       return fetch(url(path), request).then(checkStatus<T>(expectReturnContent));
@@ -215,7 +221,7 @@ export const httpClient = (config: ConnectionParams): HttpClient => {
           'content-type': 'application/json',
         },
         body: JSON.stringify(payload),
-        agent: config.http1Agent,
+        agent: config.agent,
       };
       addAuthHeaderIfNeeded(request, bearerToken);
       return fetch(url(path), request).then(checkStatus<T>(expectReturnContent));
@@ -228,7 +234,7 @@ export const httpClient = (config: ConnectionParams): HttpClient => {
           'content-type': 'application/json',
         },
         body: JSON.stringify(payload),
-        agent: config.http1Agent,
+        agent: config.agent,
       };
       addAuthHeaderIfNeeded(request, bearerToken);
       return fetch(url(path), request).then(checkStatus<T>(false));
@@ -241,7 +247,7 @@ export const httpClient = (config: ConnectionParams): HttpClient => {
           'content-type': 'application/json',
         },
         body: payload ? JSON.stringify(payload) : undefined,
-        agent: config.http1Agent,
+        agent: config.agent,
       };
       addAuthHeaderIfNeeded(request, bearerToken);
       return fetch(url(path), request).then(checkStatus<undefined>(expectReturnContent));
@@ -254,7 +260,7 @@ export const httpClient = (config: ConnectionParams): HttpClient => {
           'content-type': 'application/json',
         },
         body: payload ? JSON.stringify(payload) : undefined,
-        agent: config.http1Agent,
+        agent: config.agent,
       };
       addAuthHeaderIfNeeded(request, bearerToken);
       return fetch(url(path), request).then(handleHeadResponse<undefined>(false));
@@ -265,7 +271,7 @@ export const httpClient = (config: ConnectionParams): HttpClient => {
         headers: {
           ...config.headers,
         },
-        agent: config.http1Agent,
+        agent: config.agent,
       };
       addAuthHeaderIfNeeded(request, bearerToken);
       return fetch(url(path), request).then(checkStatus<T>(expectReturnContent));
@@ -277,7 +283,7 @@ export const httpClient = (config: ConnectionParams): HttpClient => {
         headers: {
           ...config.headers,
         },
-        agent: config.http1Agent,
+        agent: config.agent,
       };
       addAuthHeaderIfNeeded(request, bearerToken);
       return fetch(url(path), request);

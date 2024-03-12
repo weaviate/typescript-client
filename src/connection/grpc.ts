@@ -3,7 +3,8 @@ import { ConnectionParams } from './http';
 
 import { ConsistencyLevel } from '../data';
 
-import { ChannelCredentials, ChannelOptions, createChannel, createClient, Metadata } from 'nice-grpc';
+import { ChannelCredentials, ChannelOptions, createChannel, createClientFactory, Metadata } from 'nice-grpc';
+import { deadlineMiddleware } from 'nice-grpc-client-middleware-deadline';
 
 import { WeaviateDefinition, WeaviateClient } from '../proto/v1/weaviate';
 import {
@@ -19,6 +20,8 @@ export interface GrpcConnectionParams extends ConnectionParams {
   grpcAddress: string;
   grpcSecure: boolean;
 }
+
+const clientFactory = createClientFactory().use(deadlineMiddleware);
 
 const MAX_GRPC_MESSAGE_LENGTH = 104858000; // 10mb, needs to be synchronized with GRPC server
 
@@ -79,15 +82,18 @@ export const grpcClient = (config: GrpcConnectionParams): GrpcClient => {
     'grpc.max_receive_message_length': MAX_GRPC_MESSAGE_LENGTH,
   };
   if (config.grpcProxyUrl) {
-    channelOptions['grpc.http_proxy'] = config.grpcProxyUrl;
+    // grpc.http_proxy is not used by grpc.js under-the-hood
+    // only uses the env var and whether http_proxy is enabled
+    process.env.grpc_proxy = config.grpcProxyUrl;
+    channelOptions['grpc.enabled_http_proxy'] = true;
   }
   const channel = createChannel(
     config.grpcAddress,
     config.grpcSecure ? ChannelCredentials.createSsl() : ChannelCredentials.createInsecure(),
     channelOptions
   );
-  const client: WeaviateClient = createClient(WeaviateDefinition, channel);
-  const health: HealthClient = createClient(HealthDefinition, channel);
+  const client = clientFactory.create(WeaviateDefinition, channel);
+  const health = clientFactory.create(HealthDefinition, channel);
   return {
     batch: (name: string, consistencyLevel?: ConsistencyLevel, tenant?: string, bearerToken?: string) =>
       Batcher.use(

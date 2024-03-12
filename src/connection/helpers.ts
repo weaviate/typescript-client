@@ -9,6 +9,7 @@ export interface ConnectToWCSOptions {
 
 export interface ConnectToLocalOptions {
   httpHost?: string;
+  httpPath?: string;
   httpPort?: number;
   httpSecure?: boolean;
   grpcHost?: string;
@@ -67,6 +68,7 @@ export function connectToLocal(
     rest: {
       secure: options?.httpSecure || false,
       host: options?.httpHost || 'localhost',
+      path: options?.httpPath || '',
       port: options?.httpPort || 8080,
     },
     grpc: {
@@ -76,5 +78,6 @@ export function connectToLocal(
     },
     auth: options?.authCredentials,
     headers: options?.headers,
+    proxies: options?.proxies,
   });
 }

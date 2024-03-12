@@ -34,7 +34,7 @@ static_resources:
               - match:
                   connect_matcher: {}
                 route:
-                  cluster: weaviate-proxy
+                  cluster: weaviate-grpc
                   upgrade_configs:
                   - upgrade_type: CONNECT
                     connect_config:
@@ -48,20 +48,19 @@ static_resources:
           upgrade_configs:
           - upgrade_type: CONNECT
   clusters:
-  - name: weaviate-proxy
+  - name: weaviate-grpc
     type: STRICT_DNS
-    connect_timeout: 5s
     typed_extension_protocol_options:
       envoy.extensions.upstreams.http.v3.HttpProtocolOptions:
         "@type": type.googleapis.com/envoy.extensions.upstreams.http.v3.HttpProtocolOptions
         explicit_http_config:
           http2_protocol_options: {}
     load_assignment:
-      cluster_name: weaviate-proxy
+      cluster_name: weaviate-grpc
       endpoints:
       - lb_endpoints:
         - endpoint:
             address:
               socket_address:
                 address: weaviate-proxy
-                port_value: 50051
+                port_value: 8021

@@ -22,23 +22,57 @@ import collections, { Collections } from './collections';
 import configure from './collections/configure';
 import { Meta } from './openapi/types';
 
-import { setGlobalDispatcher, ProxyAgent } from 'undici';
 import { Agent as HttpAgent } from 'http';
 import { Agent as HttpsAgent } from 'https';
 
 export type ProtocolParams = {
-  secure: boolean;
+  /**
+   * The host to connect to. E.g., `localhost` or `example.com`.
+   */
   host: string;
+  /**
+   * The port to connect to. E.g., `8080` or `80`.
+   */
   port: number;
+  /**
+   * Whether to use a secure connection (https).
+   */
+  secure: boolean;
+  /**
+   * An optional path in the case that you are using a forwarding proxy.
+   *
+   * E.g., http://localhost:8080/weaviate
+   */
+  path?: string;
 };
 
 export type ClientParams = {
+  /**
+   * The connection parameters for the REST and GraphQL APIs (http/1.1).
+   */
   rest: ProtocolParams;
+  /**
+   * The connection paramaters for the gRPC API (http/2).
+   */
   grpc: ProtocolParams;
+  /**
+   * The credentials used to authenticate with Weaviate.
+   *
+   * Can be any of `AuthUserPasswordCredentials`, `AuthAccessTokenCredentials`, `AuthClientCredentials`, and `ApiKey`.
+   */
   auth?: AuthCredentials;
+  /**
+   * Additional headers that should be passed to Weaviate in the underlying requests. E.g., X-OpenAI-Api-Key
+   */
   headers?: HeadersInit;
+  /**
+   * The connection parameters for any tunnelling proxies that should be used.
+   *
+   * Note, if your proxy is a forwarding proxy then supply its configuration as if it were the Weaviate server itself using `rest` and `grpc`.
+   */
   proxies?: ProxiesParams;
 };
+
 export interface WeaviateNextClient {
   backup: Backup;
   cluster: Cluster;
@@ -66,28 +100,18 @@ const app = {
       ? new HttpsAgent({ keepAlive: true })
       : new HttpAgent({ keepAlive: true });
 
-    const proxyUrl = params.proxies?.http || params.proxies?.https;
-    // https://stackoverflow.com/a/76503362/14998213
-    // https://github.com/nodejs/node/issues/42814
-    // https://github.com/nodejs/node/issues/43187
-    // Cleaner solution not available until Node 20 is minimum version
-    if (proxyUrl) {
-      process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
-      setGlobalDispatcher(new ProxyAgent({ uri: new URL(proxyUrl).toString() }));
-    }
-
     const conn = await ConnectionGRPC.use({
       host: params.rest.host.startsWith('http')
-        ? params.rest.host
-        : `${scheme}://${params.rest.host}:${params.rest.port}`,
+        ? `${params.rest.host}${params.rest.path || ''}`
+        : `${scheme}://${params.rest.host}:${params.rest.port}${params.rest.path || ''}`,
       scheme: scheme,
       headers: params.headers,
       grpcAddress: `${params.grpc.host}:${params.grpc.port}`,
       grpcSecure: params.grpc.secure,
+      grpcProxyUrl: params.proxies?.grpc,
       apiKey: params.auth instanceof ApiKey ? params.auth : undefined,
       authClientSecret: params.auth instanceof ApiKey ? undefined : params.auth,
-      http1Agent: agent,
-      grpcProxyUrl: params.proxies?.grpc,
+      agent,
     });
 
     const dbVersionProvider = initDbVersionProvider(conn);
