@@ -38,14 +38,14 @@ services:
       - 9999:9999
   proxy-http:
     image: envoyproxy/envoy:v1.29-latest
-    command: envoy --config-path /etc/envoy/http.yaml --log-level debug
+    command: envoy --config-path /etc/envoy/http.yaml
     ports:
       - 10000:10000
     volumes:
       - ./proxy:/etc/envoy
   proxy-grpc:
     image: envoyproxy/envoy:v1.29-latest
-    command: envoy --config-path /etc/envoy/grpc.yaml --log-level debug
+    command: envoy --config-path /etc/envoy/grpc.yaml
     ports:
       - 10001:10000
     volumes:
