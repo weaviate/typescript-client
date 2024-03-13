@@ -25,12 +25,12 @@ const makeNamedVectorizer = <
   I extends VectorIndexType,
   V extends Vectorizer,
   C extends VectorizerConfig,
-  T
+  P
 >(
   name: N,
   vectorIndexType: I,
   vectorizerFactory: (config?: C) => ModuleConfig<V, C>,
-  options?: NamedVectorizerOptionsCreate<C, I, T>
+  options?: NamedVectorizerOptionsCreate<C, I, P>
 ) => {
   return {
     vectorName: name,
@@ -93,11 +93,11 @@ export const namedVectorizer = {
     options?: NamedVectorizerOptionsCreate<Text2VecCohereConfig, I, T>
   ): NamedVectorConfigCreate<T, N, I, 'text2vec-cohere'> =>
     makeNamedVectorizer(name, vectorIndexType, vectorizer.text2VecCohere, options),
-  text2VecContextionary: <N extends string, I extends VectorIndexType, T>(
+  text2VecContextionary: <N extends string, I extends VectorIndexType, P>(
     name: N,
     vectorIndexType: I,
-    options?: NamedVectorizerOptionsCreate<Text2VecContextionaryConfig, I, T>
-  ): NamedVectorConfigCreate<T, N, I, 'text2vec-contextionary'> =>
+    options?: NamedVectorizerOptionsCreate<Text2VecContextionaryConfig, I, P>
+  ): NamedVectorConfigCreate<P, N, I, 'text2vec-contextionary'> =>
     makeNamedVectorizer(name, vectorIndexType, vectorizer.text2VecContextionary, options),
   text2VecGPT4All: <N extends string, I extends VectorIndexType, T>(
     name: N,

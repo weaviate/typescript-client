@@ -136,10 +136,16 @@ describe('Testing of the collection.config namespace', () => {
         {
           name: 'title',
           dataType: 'text',
+          vectorizePropertyName: false,
+        },
+        {
+          name: 'age',
+          dataType: 'int',
         },
       ],
       vectorizer: [
         weaviate.configure.namedVectorizer.text2VecContextionary('title', 'hnsw', { properties: ['title'] }),
+        weaviate.configure.namedVectorizer.text2VecContextionary('age', 'hnsw', { properties: ['age'] }),
       ],
     });
     const collection = client.collections.get(collectionName);
@@ -148,6 +154,12 @@ describe('Testing of the collection.config namespace', () => {
     expect(config.name).toEqual(collectionName);
     expect(config.generative).toBeUndefined();
     expect(config.reranker).toBeUndefined();
+    expect(config.properties[0].vectorizerConfig?.['text2vec-contextionary'].vectorizePropertyName).toEqual(
+      false
+    );
+    expect(config.properties[1].vectorizerConfig?.['text2vec-contextionary'].vectorizePropertyName).toEqual(
+      true
+    );
     expect(config.vectorizer.title.indexConfig).toBeDefined();
     expect(config.vectorizer.title.indexType).toEqual('hnsw');
     expect(config.vectorizer.title.properties).toEqual(['title']);

@@ -12,6 +12,7 @@ import {
   WeaviateVectorIndexConfig,
   WeaviateProperty,
   WeaviateVectorConfig,
+  WeaviateNestedProperty,
 } from '../../openapi/types';
 import { ClassGetter, PropertyCreator, ShardUpdater, ShardsUpdater } from '../../schema';
 import ShardsGetter from '../../schema/shardsGetter';
@@ -21,29 +22,30 @@ import {
   GenerativeConfig,
   InvertedIndexConfig,
   MultiTenancyConfig,
-  NestedPropertyCreate,
   PQConfig,
   PQEncoderConfig,
   PQEncoderDistribution,
   PQEncoderType,
-  Properties,
   PropertyConfig,
-  PropertyConfigCreate,
+  PropertyVectorizerConfig,
   ReferenceConfig,
-  ReferenceConfigCreate,
-  ReferenceMultiTargetConfigCreate,
-  ReferenceSingleTargetConfigCreate,
   ReplicationConfig,
   RerankerConfig,
   ShardingConfig,
   VectorConfig,
   VectorDistance,
-  VectorIndexConfig,
   VectorIndexConfigFlat,
   VectorIndexConfigHNSW,
   VectorIndexConfigType,
   VectorizerConfig,
-} from '../types';
+} from './types';
+import {
+  NestedPropertyConfigCreate,
+  PropertyConfigCreate,
+  ReferenceConfigCreate,
+  ReferenceMultiTargetConfigCreate,
+  ReferenceSingleTargetConfigCreate,
+} from '../configure/types';
 
 function populated<T>(v: T | null | undefined): v is T {
   return v !== undefined && v !== null;
@@ -320,10 +322,10 @@ class ConfigGuards {
           indexFilterable: prop.indexFilterable ? prop.indexFilterable : false,
           indexInverted: prop.indexInverted ? prop.indexInverted : false,
           indexSearchable: prop.indexSearchable ? prop.indexSearchable : false,
-          moduleConfig: prop.moduleConfig
+          vectorizerConfig: prop.moduleConfig
             ? 'none' in prop.moduleConfig
               ? undefined
-              : prop.moduleConfig
+              : (prop.moduleConfig as PropertyVectorizerConfig)
             : undefined,
           nestedProperties: prop.nestedProperties
             ? ConfigGuards.properties(prop.nestedProperties)
@@ -377,22 +379,34 @@ export class ReferenceTypeGuards {
   }
 }
 
-export const resolveProperty = <T>(prop: any, vectorizer?: string): WeaviateProperty => {
+export const resolveProperty = <T>(
+  prop: PropertyConfigCreate<T>,
+  vectorizers?: string[]
+): WeaviateProperty => {
   const { dataType, nestedProperties, skipVectorisation, vectorizePropertyName, ...rest } = prop;
-  let moduleConfig: any | undefined = {};
-  if (vectorizer) {
+  const moduleConfig: any = {};
+  vectorizers?.forEach((vectorizer) => {
     moduleConfig[vectorizer] = {
-      skip: skipVectorisation,
-      vectorizePropertyName,
+      skip: skipVectorisation === undefined ? false : skipVectorisation,
+      vectorizePropertyName: vectorizePropertyName === undefined ? true : vectorizePropertyName,
     };
-  } else {
-    moduleConfig = undefined;
-  }
+  });
   return {
     ...rest,
     dataType: [dataType],
-    nestedProperties: nestedProperties ? nestedProperties.map(resolveProperty) : undefined,
-    moduleConfig,
+    nestedProperties: nestedProperties
+      ? nestedProperties.map((prop) => resolveNestedProperty(prop))
+      : undefined,
+    moduleConfig: Object.keys(moduleConfig).length > 0 ? moduleConfig : undefined,
+  };
+};
+
+const resolveNestedProperty = <T, D>(prop: NestedPropertyConfigCreate<T, D>): WeaviateNestedProperty => {
+  const { dataType, nestedProperties, ...rest } = prop;
+  return {
+    ...rest,
+    dataType: [dataType],
+    nestedProperties: nestedProperties ? nestedProperties.map(resolveNestedProperty) : undefined,
   };
 };
 
@@ -419,7 +433,7 @@ const config = <T>(connection: Connection, name: string, tenant?: string): Confi
     addProperty: (property: PropertyConfigCreate<T>) =>
       new PropertyCreator(connection)
         .withClassName(name)
-        .withProperty(resolveProperty<T>(property))
+        .withProperty(resolveProperty<T>(property, []))
         .do()
         .then(() => {}),
     addReference: (reference: ReferenceSingleTargetConfigCreate<T> | ReferenceMultiTargetConfigCreate<T>) =>

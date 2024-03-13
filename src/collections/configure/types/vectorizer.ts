@@ -1,27 +1,20 @@
-import { VectorIndexConfigCreate, VectorIndexConfigCreateType } from './vectorIndex';
-import {
-  ModuleConfig,
-  VectorIndexType,
-  Vectorizer,
-  VectorizerConfig,
-  VectorizerConfigType,
-} from '../../config/types';
-import { PrimitiveKeys } from '../../types/internal';
+import { VectorIndexConfigCreateType } from './vectorIndex';
+import { ModuleConfig, VectorIndexType, Vectorizer, VectorizerConfigType } from '../../config/types';
 
-export type NamedVectorizerOptionsCreate<C, I, T> = {
-  properties?: PrimitiveKeys<T>[];
+export type NamedVectorizerOptionsCreate<C, I, P> = {
+  properties?: P;
   vectorizerConfig?: C;
   vectorIndexConfig?: VectorIndexConfigCreateType<I>;
 };
 
 export interface NamedVectorConfigCreate<
-  T,
+  P,
   N extends string,
   I extends VectorIndexType,
   V extends Vectorizer
 > {
   vectorName: N;
-  properties?: PrimitiveKeys<T>[];
+  properties?: P;
   vectorizer: ModuleConfig<V, VectorizerConfigType<V>>;
   vectorIndex: ModuleConfig<I, VectorIndexConfigCreateType<I>>;
 }

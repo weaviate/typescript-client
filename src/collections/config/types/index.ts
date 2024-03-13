@@ -36,10 +36,13 @@ export type ReplicationConfig = {
   factor: number;
 };
 
-type PropertyVectorizerConfig = {
-  skip: boolean;
-  vectorizePropertyName: boolean;
-};
+export type PropertyVectorizerConfig = Record<
+  string,
+  {
+    skip: boolean;
+    vectorizePropertyName: boolean;
+  }
+>;
 
 export type PropertyConfig = {
   name: string;

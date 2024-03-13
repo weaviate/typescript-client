@@ -38,6 +38,7 @@ export type WhereFilter = definitions['WhereFilter'];
 export type WeaviateSchema = definitions['Schema'];
 export type WeaviateClass = definitions['Class'];
 export type WeaviateProperty = definitions['Property'];
+export type WeaviateNestedProperty = definitions['NestedProperty'];
 export type ShardStatus = definitions['ShardStatus'];
 export type ShardStatusList = definitions['ShardStatusList'];
 export type Tenant = definitions['Tenant'];

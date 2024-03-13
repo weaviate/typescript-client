@@ -18,7 +18,6 @@ import {
   GeoCoordinate as GeoCoordinateGRPC,
   PhoneNumber as PhoneNumberGRPC,
 } from '../../proto/v1/properties';
-import { NestedPropertyCreate, PropertyConfigCreate } from '../configure/types';
 
 import { CrossReference } from '../references';
 

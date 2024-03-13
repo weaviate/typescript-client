@@ -26,6 +26,7 @@ import { classToCollection, resolveProperty, resolveReference } from './config';
 import { ConsistencyLevel } from '../data';
 import { WeaviateClass } from '..';
 import { QuantizerGuards } from './configure';
+import { PrimitiveKeys } from './types/internal';
 
 export interface IBuilder {
   withConsistencyLevel(consistencyLevel: ConsistencyLevel): this;
@@ -46,7 +47,7 @@ export type CollectionConfigCreate<TProperties = Properties, N = string> = {
   vectorIndex?: ModuleConfig<VectorIndexType, VectorIndexConfigCreate>;
   vectorizer?:
     | ModuleConfig<Vectorizer, VectorizerConfig>
-    | NamedVectorConfigCreate<TProperties, string, VectorIndexType, Vectorizer>[];
+    | NamedVectorConfigCreate<PrimitiveKeys<TProperties>[], string, VectorIndexType, Vectorizer>[];
 };
 
 export const addContext = <B extends IBuilder>(
@@ -112,17 +113,19 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
         moduleConfig[config.generative.name] = config.generative.config ? config.generative.config : {};
       }
 
-      let vectorizer: string | undefined;
+      let defaultVectorizer: string | undefined;
+      let vectorizers: string[] = [];
       let vectorsConfig: any | undefined;
       if (config.vectorizer === undefined) {
-        vectorizer = 'none';
+        defaultVectorizer = 'none';
         vectorsConfig = undefined;
       } else if (isLegacyVectorizer(config.vectorizer)) {
-        vectorizer = config.vectorizer.name;
+        defaultVectorizer = config.vectorizer.name;
+        vectorizers = [config.vectorizer.name];
         vectorsConfig = undefined;
-        moduleConfig[vectorizer] = config.vectorizer.config ? config.vectorizer.config : {};
+        moduleConfig[defaultVectorizer] = config.vectorizer.config ? config.vectorizer.config : {};
       } else {
-        vectorizer = undefined;
+        defaultVectorizer = undefined;
         vectorsConfig = {};
         config.vectorizer.forEach((v) => {
           const vectorConfig: any = {
@@ -130,6 +133,7 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
             vectorIndexType: v.vectorIndex.name,
             vectorizer: {},
           };
+          vectorizers = [...vectorizers, v.vectorizer.name];
           vectorConfig.vectorizer[v.vectorizer.name] = {
             properties: v.properties,
             ...(v.vectorizer.config ? v.vectorizer.config : {}),
@@ -139,14 +143,14 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
       }
 
       const properties = config.properties
-        ? config.properties.map((prop) => resolveProperty<TProperties>(prop, vectorizer))
+        ? config.properties.map((prop) => resolveProperty<TProperties>(prop, vectorizers))
         : [];
       const references = config.references ? config.references.map(resolveReference<TProperties>) : [];
 
       const schema = {
         ...rest,
         class: name,
-        vectorizer: vectorizer || 'none',
+        vectorizer: defaultVectorizer,
         invertedIndexConfig: invertedIndex,
         moduleConfig: moduleConfig,
         multiTenancyConfig: multiTenancy,
