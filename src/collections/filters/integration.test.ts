@@ -1,13 +1,13 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
-import weaviate, { WeaviateNextClient } from '../..';
+import weaviate, { WeaviateClient } from '../..';
 import { Filters } from '.';
 import { CrossReference, Reference } from '../references';
 import { Collection } from '../collection';
 import { GeoCoordinate } from '../types';
 
 describe('Testing of the filter class with a simple collection', () => {
-  let client: WeaviateNextClient;
+  let client: WeaviateClient;
   let collection: Collection<TestType, 'TestCollectionFilterSimple'>;
 
   const collectionName = 'TestCollectionFilterSimple';
@@ -291,7 +291,7 @@ describe('Testing of the filter class with a simple collection', () => {
 });
 
 describe('Testing of the filter class with complex data type', () => {
-  let client: WeaviateNextClient;
+  let client: WeaviateClient;
   let collection: Collection<TestCollectionFilterComplex, 'TestCollectionFilterComplex'>;
 
   const collectionName = 'TestCollectionFilterComplex';

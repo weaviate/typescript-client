@@ -73,7 +73,7 @@ export type ClientParams = {
   proxies?: ProxiesParams;
 };
 
-export interface WeaviateNextClient {
+export interface WeaviateClient {
   backup: Backup;
   cluster: Cluster;
   collections: Collections;
@@ -82,13 +82,13 @@ export interface WeaviateNextClient {
 }
 
 const app = {
-  connectToLocal: function (options?: ConnectToLocalOptions): Promise<WeaviateNextClient> {
+  connectToLocal: function (options?: ConnectToLocalOptions): Promise<WeaviateClient> {
     return connectToLocal(this.client, options);
   },
-  connectToWCS: function (clusterURL: string, options?: ConnectToWCSOptions): Promise<WeaviateNextClient> {
+  connectToWCS: function (clusterURL: string, options?: ConnectToWCSOptions): Promise<WeaviateClient> {
     return connectToWCS(clusterURL, this.client, options);
   },
-  client: async function (params: ClientParams): Promise<WeaviateNextClient> {
+  client: async function (params: ClientParams): Promise<WeaviateClient> {
     // check if the URL is set
     if (!params.rest.host) throw new Error('Missing `host` parameter');
 
@@ -117,7 +117,7 @@ const app = {
     const dbVersionProvider = initDbVersionProvider(conn);
     const dbVersionSupport = new DbVersionSupport(dbVersionProvider);
 
-    const ifc: WeaviateNextClient = {
+    const ifc: WeaviateClient = {
       backup: backup(conn),
       cluster: cluster(conn),
       collections: collections(conn, dbVersionSupport),

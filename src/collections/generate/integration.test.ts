@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
-import weaviate, { WeaviateNextClient } from '../..';
+import weaviate, { WeaviateClient } from '../..';
 import { GenerateOptions } from '.';
 import { GroupByOptions } from '../types';
 import { Collection } from '../collection';
@@ -8,7 +8,7 @@ import { Collection } from '../collection';
 const maybe = process.env.OPENAI_APIKEY ? describe : describe.skip;
 
 maybe('Testing of the collection.generate methods with a simple collection', () => {
-  let client: WeaviateNextClient;
+  let client: WeaviateClient;
   let collection: Collection<TestCollectionGenerateSimple, 'TestCollectionGenerateSimple'>;
   const collectionName = 'TestCollectionGenerateSimple';
   let id: string;
@@ -151,7 +151,7 @@ maybe('Testing of the collection.generate methods with a simple collection', () 
 });
 
 maybe('Testing of the groupBy collection.generate methods with a simple collection', () => {
-  let client: WeaviateNextClient;
+  let client: WeaviateClient;
   let collection: Collection<TestCollectionGenerateGroupBySimple, 'TestCollectionGenerateGroupBySimple'>;
   const collectionName = 'TestCollectionGenerateGroupBySimple';
   let id: string;

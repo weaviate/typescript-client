@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import weaviate, { WeaviateNextClient } from '../..';
+import weaviate, { WeaviateClient } from '../..';
 import { PropertyConfig, VectorIndexConfigHNSW } from './types';
 
 const fail = (msg: string) => {
@@ -7,7 +7,7 @@ const fail = (msg: string) => {
 };
 
 describe('Testing of the collection.config namespace', () => {
-  let client: WeaviateNextClient;
+  let client: WeaviateClient;
 
   beforeAll(async () => {
     client = await weaviate.client({

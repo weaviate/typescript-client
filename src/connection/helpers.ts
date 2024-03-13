@@ -1,4 +1,4 @@
-import { ClientParams, WeaviateNextClient } from '..';
+import { ClientParams, WeaviateClient } from '..';
 import { AuthCredentials } from './auth';
 import { ProxiesParams } from './http';
 
@@ -22,9 +22,9 @@ export interface ConnectToLocalOptions {
 
 export function connectToWCS(
   clusterURL: string,
-  clientMaker: (params: ClientParams) => Promise<WeaviateNextClient>,
+  clientMaker: (params: ClientParams) => Promise<WeaviateClient>,
   options?: ConnectToWCSOptions
-): Promise<WeaviateNextClient> {
+): Promise<WeaviateClient> {
   // check if the URL is set
   if (!clusterURL) throw new Error('Missing `clusterURL` parameter');
 
@@ -61,9 +61,9 @@ export function connectToWCS(
 }
 
 export function connectToLocal(
-  clientMaker: (params: ClientParams) => Promise<WeaviateNextClient>,
+  clientMaker: (params: ClientParams) => Promise<WeaviateClient>,
   options?: ConnectToLocalOptions
-): Promise<WeaviateNextClient> {
+): Promise<WeaviateClient> {
   return clientMaker({
     rest: {
       secure: options?.httpSecure || false,

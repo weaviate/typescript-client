@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import weaviate, { WeaviateNextClient } from '..';
+import weaviate, { WeaviateClient } from '..';
 import {
   CollectionConfigCreate,
   GeoCoordinate,
@@ -15,9 +15,9 @@ const fail = (msg: string) => {
 };
 
 describe('Testing of the collections.create method', () => {
-  let cluster: WeaviateNextClient;
-  let contextionary: WeaviateNextClient;
-  let openai: WeaviateNextClient;
+  let cluster: WeaviateClient;
+  let contextionary: WeaviateClient;
+  let openai: WeaviateClient;
 
   beforeAll(async () => {
     cluster = await weaviate.client({

@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import weaviate, { WeaviateNextClient } from '../..';
+import weaviate, { WeaviateClient } from '../..';
 import { Collection } from '../collection';
 
 describe('Testing of the collection.data methods', () => {
-  let client: WeaviateNextClient;
+  let client: WeaviateClient;
   let collection: Collection<any, 'TestCollectionTenants'>;
   const collectionName = 'TestCollectionTenants';
 

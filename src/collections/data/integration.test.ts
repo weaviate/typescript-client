@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
-import weaviate, { WeaviateNextClient } from '../..';
+import weaviate, { WeaviateClient } from '../..';
 import { v4 } from 'uuid';
 import { DataObject, PropertyConfigCreate, WeaviateObject } from '../types';
 import { CrossReference, CrossReferences, Reference } from '../references';
@@ -21,7 +21,7 @@ type TestCollectionData = {
 };
 
 describe('Testing of the collection.data methods with a single target reference', () => {
-  let client: WeaviateNextClient;
+  let client: WeaviateClient;
   let collection: Collection<TestCollectionData, 'TestCollectionData'>;
   const collectionName = 'TestCollectionData';
 
@@ -483,7 +483,7 @@ describe('Testing of the collection.data methods with a single target reference'
 });
 
 describe('Testing of the collection.data methods with a multi target reference', () => {
-  let client: WeaviateNextClient;
+  let client: WeaviateClient;
   let collectionOne: Collection<TestCollectionDataMultiOne, 'TestCollectionDataMultiOne'>;
   let collectionTwo: Collection<TestCollectionDataMultiTwo, 'TestCollectionDataMultiTwo'>;
 
@@ -579,7 +579,7 @@ describe('Testing of the collection.data methods with a multi target reference',
 });
 
 describe('Testing of the collection.data.insertMany method with all possible types', () => {
-  let client: WeaviateNextClient;
+  let client: WeaviateClient;
   let collection: Collection<TestCollectionData, 'TestCollectionData'>;
   const collectionName = 'TestCollectionData';
   let id: string;

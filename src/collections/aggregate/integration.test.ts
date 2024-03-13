@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
-import weaviate, { WeaviateNextClient } from '../..';
+import weaviate, { WeaviateClient } from '../..';
 import { DataObject } from '../types';
 import { CrossReference } from '../references';
 import { Collection } from '../collection';
@@ -21,7 +21,7 @@ describe('Testing of the collection.aggregate methods', () => {
     ref?: CrossReference<TestCollectionAggregate>;
   };
 
-  let client: WeaviateNextClient;
+  let client: WeaviateClient;
   let collection: Collection<TestCollectionAggregate, 'TestCollectionAggregate'>;
   const collectionName = 'TestCollectionAggregate';
 
@@ -272,7 +272,7 @@ describe('Testing of the collection.aggregate methods', () => {
 });
 
 describe('Testing of the collection.aggregate methods with named vectors', () => {
-  let client: WeaviateNextClient;
+  let client: WeaviateClient;
   let collection: Collection<TestCollectionAggregateNamedVectors, 'TestCollectionAggregateNamedVectors'>;
   const collectionName = 'TestCollectionAggregateNamedVectors';
   type TestCollectionAggregateNamedVectors = {

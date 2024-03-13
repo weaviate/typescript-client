@@ -1,7 +1,7 @@
-import weaviate, { WeaviateNextClient } from '../..';
+import weaviate, { WeaviateClient } from '../..';
 
 describe('Testing of the client.cluster methods', () => {
-  let client: WeaviateNextClient;
+  let client: WeaviateClient;
 
   const one = 'TestClusterCollectionOne';
   const two = 'TestClusterCollectionTwo';

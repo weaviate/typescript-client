@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
-import weaviate, { WeaviateNextClient } from '../..';
+import weaviate, { WeaviateClient } from '../..';
 import { Collection } from '../collection';
 
 describe('Testing of the collection.iterator method with a simple collection', () => {
-  let client: WeaviateNextClient;
+  let client: WeaviateClient;
   let collection: Collection<TestCollectionIterator, 'TestCollectionIterator'>;
   const collectionName = 'TestCollectionIterator';
   let id: string;

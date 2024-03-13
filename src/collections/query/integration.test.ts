@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
-import weaviate, { WeaviateNextClient } from '../..';
+import weaviate, { WeaviateClient } from '../..';
 import { Collection } from '../collection';
 import { CrossReference, Reference } from '../references';
 import { GroupByOptions } from '../types';
 
 describe('Testing of the collection.query methods with a simple collection', () => {
-  let client: WeaviateNextClient;
+  let client: WeaviateClient;
   let collection: Collection<TestCollectionQueryMinimalOptions, 'TestCollectionQueryMinimalOptions'>;
   const collectionName = 'TestCollectionQueryMinimalOptions';
   let id: string;
@@ -118,7 +118,7 @@ describe('Testing of the collection.query methods with a simple collection', () 
 });
 
 describe('Testing of the collection.query methods with a collection with a reference property', () => {
-  let client: WeaviateNextClient;
+  let client: WeaviateClient;
   let collection: Collection<TestCollectionQueryWithRefProp, 'TestCollectionQueryWithRefProp'>;
   const collectionName = 'TestCollectionQueryWithRefProp';
 
@@ -335,7 +335,7 @@ describe('Testing of the collection.query methods with a collection with a refer
   });
 
   describe('Testing of the collection.query methods with a collection with a nested property', () => {
-    let client: WeaviateNextClient;
+    let client: WeaviateClient;
     let collection: Collection<TestCollectionQueryWithNestedProps, 'TestCollectionQueryWithNestedProps'>;
     const collectionName = 'TestCollectionQueryWithNestedProps';
 
@@ -481,7 +481,7 @@ describe('Testing of the collection.query methods with a collection with a refer
   });
 
   describe('Testing of the collection.query methods with a collection with multiple vectors', () => {
-    let client: WeaviateNextClient;
+    let client: WeaviateClient;
     let collection: Collection<TestCollectionQueryWithMultiVector, 'TestCollectionQueryWithMultiVector'>;
     const collectionName = 'TestCollectionQueryWithMultiVector';
 
@@ -565,7 +565,7 @@ describe('Testing of the collection.query methods with a collection with a refer
 });
 
 describe('Testing of the groupBy collection.query methods with a simple collection', () => {
-  let client: WeaviateNextClient;
+  let client: WeaviateClient;
   let collection: Collection<TestCollectionGroupBySimple, 'TestCollectionGroupBySimple'>;
   const collectionName = 'TestCollectionGroupBySimple';
   let id: string;
@@ -713,7 +713,7 @@ describe('Testing of the groupBy collection.query methods with a simple collecti
 });
 
 describe('Testing of the collection.query methods with a multi-tenancy collection', () => {
-  let client: WeaviateNextClient;
+  let client: WeaviateClient;
   let collection: Collection<TestCollectionMultiTenancy, 'TestCollectionMultiTenancy'>;
   const collectionName = 'TestCollectionMultiTenancy';
   let id1: string;
