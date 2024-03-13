@@ -44,7 +44,9 @@ export type CollectionConfigCreate<TProperties = Properties, N = string> = {
   reranker?: ModuleConfig<Reranker>;
   sharding?: ShardingConfigCreate;
   vectorIndex?: ModuleConfig<VectorIndexType, VectorIndexConfigCreate>;
-  vectorizer?: ModuleConfig<Vectorizer, VectorizerConfig> | NamedVectorConfigCreate<TProperties, string>[];
+  vectorizer?:
+    | ModuleConfig<Vectorizer, VectorizerConfig>
+    | NamedVectorConfigCreate<TProperties, string, VectorIndexType, Vectorizer>[];
 };
 
 export const addContext = <B extends IBuilder>(
@@ -88,7 +90,7 @@ const parseVectorIndexConfig = (config?: VectorIndexConfigCreate) => {
 };
 
 const isLegacyVectorizer = (
-  argument: ModuleConfig<string, any> | NamedVectorConfigCreate<any, string>[]
+  argument: ModuleConfig<string, any> | NamedVectorConfigCreate<any, string, VectorIndexType, Vectorizer>[]
 ): argument is ModuleConfig<string, any> => {
   return !Array.isArray(argument);
 };

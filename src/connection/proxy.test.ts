@@ -27,9 +27,7 @@ describe('Testing of the client connecting to a proxied Weaviate instance', () =
         await collection.data.insert();
         return collection;
       })
-      .then(async (collection) => {
-        const res = await collection.query.fetchObjects();
-        expect(res.objects).toHaveLength(1);
-      });
+      .then((collection) => collection.query.fetchObjects())
+      .then((res) => expect(res.objects).toHaveLength(1));
   });
 });

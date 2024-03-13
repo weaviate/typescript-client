@@ -6,7 +6,6 @@ export type VectorConfig = Record<
   {
     properties?: string[];
     vectorizer: ModuleConfig<Vectorizer, VectorizerConfig>;
-    // indexConfig: VectorIndexConfig<VectorIndexType>;
     indexConfig: VectorIndexConfigHNSW | VectorIndexConfigFlat;
     indexType: VectorIndexType;
   }
@@ -17,9 +16,15 @@ export type Vectorizer =
   | 'multi2vec-clip'
   | 'multi2vec-bind'
   | 'ref2vec-centroid'
-  | 'text2vec-contextionary'
+  | 'text2vec-aws'
   | 'text2vec-cohere'
+  | 'text2vec-contextionary'
+  | 'text2vec-gpt4all'
+  | 'text2vec-huggingface'
+  | 'text2vec-jina'
   | 'text2vec-openai'
+  | 'text2vec-palm'
+  | 'text2vec-transformers'
   | 'none'
   | string;
 
@@ -49,27 +54,70 @@ export type Ref2VecCentroidConfig = {
   method: 'mean';
 };
 
+export type Text2VecAWSConfig = {
+  endpoint?: string;
+  model?: string;
+  region: string;
+  service: string;
+  vectorizerClassName: boolean;
+};
+
+export type Text2VecAzureOpenAIConfig = {
+  baseURL?: string;
+  deploymentID: string;
+  resourceName: string;
+  vectorizerClassName: string;
+};
+
+export type Text2VecCohereConfig = {
+  baseURL?: string;
+  model?: string;
+  truncate?: string;
+  vectorizeClassName?: boolean;
+};
+
 export type Text2VecContextionaryConfig = {
   vectorizeClassName?: boolean;
 };
 
-export type Text2VecOpenAIConfig = {
-  model?: 'ada' | 'babbage' | 'curie' | 'davinci';
-  modelVersion?: string;
-  type?: 'text' | 'code';
+export type Text2VecGPT4AllConfig = {
   vectorizeClassName?: boolean;
 };
 
-export type Text2VecCohereConfig = {
-  model?:
-    | 'embed-multilingual-v2.0'
-    | 'small'
-    | 'medium'
-    | 'large'
-    | 'multilingual-22-12'
-    | 'embed-english-v2.0'
-    | 'embed-english-light-v2.0';
-  truncate?: 'RIGHT' | 'NONE';
+export type Text2VecHuggingFaceConfig = {
+  endpointURL?: string;
+  model?: string;
+  passageModel?: string;
+  queryModel?: string;
+  waitForModel?: boolean;
+  useCache?: boolean;
+  useGPU?: boolean;
+  vectorizeClassName?: boolean;
+};
+
+export type Text2VecJinaConfig = {
+  model?: string;
+  vectorizeClassName?: boolean;
+};
+
+export type Text2VecOpenAIConfig = {
+  baseURL?: string;
+  dimensions?: number;
+  model?: string;
+  modelVersion?: string;
+  type?: string;
+  vectorizeClassName?: boolean;
+};
+
+export type Text2VecPalmConfig = {
+  projectID: string;
+  apiEndpoint?: string;
+  modelID?: string;
+  vectorizeClassName?: boolean;
+};
+
+export type Text2VecTransformersConfig = {
+  poolingStrategy?: string;
   vectorizeClassName?: boolean;
 };
 

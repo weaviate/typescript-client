@@ -6,32 +6,24 @@ import { ConsistencyLevel } from '../../data';
 import Deserialize from '../deserialize';
 import Serialize from '../serialize';
 import {
-  QueryFetchObjectsOptions,
-  QueryBm25Options,
-  QueryHybridOptions,
-  QueryBaseNearTextOptions,
-  QueryBaseNearOptions,
-  QueryNearMediaType,
+  FetchObjectsOptions,
+  Bm25Options,
+  HybridOptions,
+  BaseNearTextOptions,
+  BaseNearOptions,
+  NearMediaType,
+  NearOptions,
+  NearTextOptions,
+  GroupByNearOptions,
+  GroupByNearTextOptions,
 } from '../query';
-import { GenerativeReturn, GenerativeGroupByReturn, GroupByOptions, Properties, Vectors } from '../types';
+import { GenerativeReturn, GenerativeGroupByReturn } from '../types';
 import { SearchReply } from '../../proto/v1/search_get';
 
 export type GenerateOptions<T> = {
   singlePrompt?: string;
   groupedTask?: string;
   groupedProperties?: (keyof T)[];
-};
-
-export type GenerateFetchObjectsOptions<T> = QueryFetchObjectsOptions<T> & GenerateOptions<T>;
-export type GenerateBm25Options<T> = QueryBm25Options<T> & GenerateOptions<T>;
-export type GenerateHybridOptions<T> = QueryHybridOptions<T> & GenerateOptions<T>;
-export type GenerateNearOptions<T> = QueryBaseNearOptions<T> & GenerateOptions<T>;
-export type GenerateGroupByNearOptions<T> = GenerateNearOptions<T> & {
-  groupBy: GroupByOptions<T>;
-};
-export type GenerateNearTextOptions<T> = QueryBaseNearTextOptions<T> & GenerateOptions<T>;
-export type GenerateGroupByNearTextOptions<T> = GenerateNearTextOptions<T> & {
-  groupBy: GroupByOptions<T>;
 };
 
 class GenerateManager<T> implements Generate<T> {
@@ -65,173 +57,242 @@ class GenerateManager<T> implements Generate<T> {
     return new GenerateManager<T>(connection, name, dbVersionSupport, consistencyLevel, tenant);
   }
 
-  public fetchObjects(opts?: GenerateFetchObjectsOptions<T>): Promise<GenerativeReturn<T>> {
+  public fetchObjects(
+    generate: GenerateOptions<T>,
+    opts?: FetchObjectsOptions<T>
+  ): Promise<GenerativeReturn<T>> {
     return this.connection.search(this.name).then((search) =>
       search
         .withFetch({
           ...Serialize.fetchObjects(opts),
-          generative: Serialize.generative(opts),
+          generative: Serialize.generative(generate),
         })
         .then(Deserialize.generate<T>)
     );
   }
 
-  public bm25(query: string, opts?: GenerateBm25Options<T>): Promise<GenerativeReturn<T>> {
+  public bm25(
+    query: string,
+    generate: GenerateOptions<T>,
+    opts?: Bm25Options<T>
+  ): Promise<GenerativeReturn<T>> {
     return this.connection.search(this.name).then((search) =>
       search
         .withBm25({
           ...Serialize.bm25({ query, ...opts }),
-          generative: Serialize.generative(opts),
+          generative: Serialize.generative(generate),
         })
         .then(Deserialize.generate<T>)
     );
   }
 
-  public hybrid(query: string, opts?: GenerateHybridOptions<T>): Promise<GenerativeReturn<T>> {
+  public hybrid(
+    query: string,
+    generate: GenerateOptions<T>,
+    opts?: HybridOptions<T>
+  ): Promise<GenerativeReturn<T>> {
     return this.connection.search(this.name).then((search) =>
       search
         .withHybrid({
           ...Serialize.hybrid({ query, ...opts }),
-          generative: Serialize.generative(opts),
+          generative: Serialize.generative(generate),
         })
         .then(Deserialize.generate<T>)
     );
   }
 
-  public nearImage<O extends GenerateNearOptions<T> | GenerateGroupByNearOptions<T>>(
+  public nearImage(image: string, generate: GenerateOptions<T>): Promise<GenerativeReturn<T>>;
+  public nearImage(
     image: string,
-    opts?: O
-  ): GenerateReturn<O, T> {
-    return this.connection.search(this.name).then(
-      (search) =>
-        search
-          .withNearImage({
-            ...Serialize.nearImage({ image, ...opts }),
-            generative: Serialize.generative(opts),
-            groupBy: Serialize.isGroupBy<GenerateGroupByNearOptions<T>>(opts)
-              ? Serialize.groupBy(opts.groupBy)
-              : undefined,
-          })
-          .then((reply) =>
-            Serialize.isGroupBy<GenerateGroupByNearOptions<T>>(opts)
-              ? Deserialize.generateGroupBy<T>(reply)
-              : Deserialize.generate<T>(reply)
-          ) as GenerateReturn<O, T>
+    generate: GenerateOptions<T>,
+    opts: BaseNearOptions<T>
+  ): Promise<GenerativeReturn<T>>;
+  public nearImage(
+    image: string,
+    generate: GenerateOptions<T>,
+    opts: GroupByNearOptions<T>
+  ): Promise<GenerativeGroupByReturn<T>>;
+  public nearImage(image: string, generate: GenerateOptions<T>, opts?: NearOptions<T>): GenerateReturn<T> {
+    return this.connection.search(this.name).then((search) =>
+      search
+        .withNearImage({
+          ...Serialize.nearImage({ image, ...(opts ? opts : {}) }),
+          generative: Serialize.generative(generate),
+          groupBy: Serialize.isGroupBy<GroupByNearOptions<T>>(opts)
+            ? Serialize.groupBy(opts.groupBy)
+            : undefined,
+        })
+        .then((reply) =>
+          Serialize.isGroupBy<GroupByNearOptions<T>>(opts)
+            ? Deserialize.generateGroupBy<T>(reply)
+            : Deserialize.generate<T>(reply)
+        )
     );
   }
 
-  public nearObject<O extends GenerateNearOptions<T> | GenerateGroupByNearOptions<T>>(
+  public nearObject(id: string, generate: GenerateOptions<T>): Promise<GenerativeReturn<T>>;
+  public nearObject(
     id: string,
-    opts?: O
-  ): GenerateReturn<O, T> {
-    return this.connection.search(this.name).then(
-      (search) =>
-        search
-          .withNearObject({
-            ...Serialize.nearObject({ id, ...opts }),
-            generative: Serialize.generative(opts),
-            groupBy: Serialize.isGroupBy<GenerateGroupByNearOptions<T>>(opts)
-              ? Serialize.groupBy(opts.groupBy)
-              : undefined,
-          })
-          .then((reply) =>
-            Serialize.isGroupBy<GenerateGroupByNearOptions<T>>(opts)
-              ? Deserialize.generateGroupBy<T>(reply)
-              : Deserialize.generate<T>(reply)
-          ) as GenerateReturn<O, T>
+    generate: GenerateOptions<T>,
+    opts: BaseNearOptions<T>
+  ): Promise<GenerativeReturn<T>>;
+  public nearObject(
+    id: string,
+    generate: GenerateOptions<T>,
+    opts: GroupByNearOptions<T>
+  ): Promise<GenerativeGroupByReturn<T>>;
+  public nearObject(id: string, generate: GenerateOptions<T>, opts?: NearOptions<T>): GenerateReturn<T> {
+    return this.connection.search(this.name).then((search) =>
+      search
+        .withNearObject({
+          ...Serialize.nearObject({ id, ...(opts ? opts : {}) }),
+          generative: Serialize.generative(generate),
+          groupBy: Serialize.isGroupBy<GroupByNearOptions<T>>(opts)
+            ? Serialize.groupBy(opts.groupBy)
+            : undefined,
+        })
+        .then((reply) =>
+          Serialize.isGroupBy<GroupByNearOptions<T>>(opts)
+            ? Deserialize.generateGroupBy<T>(reply)
+            : Deserialize.generate<T>(reply)
+        )
     );
   }
 
-  public nearText<O extends GenerateNearTextOptions<T> | GenerateGroupByNearTextOptions<T>>(
+  public nearText(query: string | string[], generate: GenerateOptions<T>): Promise<GenerativeReturn<T>>;
+  public nearText(
     query: string | string[],
-    opts?: O
-  ): GenerateReturn<O, T> {
-    return this.connection.search(this.name).then(
-      (search) =>
-        search
-          .withNearText({
-            ...Serialize.nearText({ query, ...opts }),
-            generative: Serialize.generative(opts),
-            groupBy: Serialize.isGroupBy<GenerateGroupByNearOptions<T>>(opts)
-              ? Serialize.groupBy(opts.groupBy)
-              : undefined,
-          })
-          .then((reply) =>
-            Serialize.isGroupBy<GenerateGroupByNearOptions<T>>(opts)
-              ? Deserialize.generateGroupBy<T>(reply)
-              : Deserialize.generate<T>(reply)
-          ) as GenerateReturn<O, T>
+    generate: GenerateOptions<T>,
+    opts: BaseNearTextOptions<T>
+  ): Promise<GenerativeReturn<T>>;
+  public nearText(
+    query: string | string[],
+    generate: GenerateOptions<T>,
+    opts: GroupByNearTextOptions<T>
+  ): Promise<GenerativeGroupByReturn<T>>;
+  public nearText(
+    query: string | string[],
+    generate: GenerateOptions<T>,
+    opts?: NearOptions<T>
+  ): GenerateReturn<T> {
+    return this.connection.search(this.name).then((search) =>
+      search
+        .withNearText({
+          ...Serialize.nearText({ query, ...(opts ? opts : {}) }),
+          generative: Serialize.generative(generate),
+          groupBy: Serialize.isGroupBy<GroupByNearOptions<T>>(opts)
+            ? Serialize.groupBy(opts.groupBy)
+            : undefined,
+        })
+        .then((reply) =>
+          Serialize.isGroupBy<GroupByNearOptions<T>>(opts)
+            ? Deserialize.generateGroupBy<T>(reply)
+            : Deserialize.generate<T>(reply)
+        )
     );
   }
 
-  public nearVector<O extends GenerateNearOptions<T> | GenerateGroupByNearOptions<T>>(
+  public nearVector(vector: number[], generate: GenerateOptions<T>): Promise<GenerativeReturn<T>>;
+  public nearVector(
     vector: number[],
-    opts?: O
-  ): GenerateReturn<O, T> {
-    return this.connection.search(this.name).then(
-      (search) =>
-        search
-          .withNearVector({
-            ...Serialize.nearVector({ vector, ...opts }),
-            generative: Serialize.generative(opts),
-            groupBy: Serialize.isGroupBy<GenerateGroupByNearOptions<T>>(opts)
-              ? Serialize.groupBy(opts.groupBy)
-              : undefined,
-          })
-          .then((reply) =>
-            Serialize.isGroupBy<GenerateGroupByNearOptions<T>>(opts)
-              ? Deserialize.generateGroupBy<T>(reply)
-              : Deserialize.generate<T>(reply)
-          ) as GenerateReturn<O, T>
+    generate: GenerateOptions<T>,
+    opts: BaseNearOptions<T>
+  ): Promise<GenerativeReturn<T>>;
+  public nearVector(
+    vector: number[],
+    generate: GenerateOptions<T>,
+    opts: GroupByNearOptions<T>
+  ): Promise<GenerativeGroupByReturn<T>>;
+  public nearVector(
+    vector: number[],
+    generate: GenerateOptions<T>,
+    opts?: NearOptions<T>
+  ): GenerateReturn<T> {
+    return this.connection.search(this.name).then((search) =>
+      search
+        .withNearVector({
+          ...Serialize.nearVector({ vector, ...(opts ? opts : {}) }),
+          generative: Serialize.generative(generate),
+          groupBy: Serialize.isGroupBy<GroupByNearOptions<T>>(opts)
+            ? Serialize.groupBy(opts.groupBy)
+            : undefined,
+        })
+        .then((reply) =>
+          Serialize.isGroupBy<GroupByNearOptions<T>>(opts)
+            ? Deserialize.generateGroupBy<T>(reply)
+            : Deserialize.generate<T>(reply)
+        )
     );
   }
 
-  public nearMedia<O extends GenerateNearOptions<T> | GenerateGroupByNearOptions<T>>(
+  public nearMedia(
     media: string,
-    type: QueryNearMediaType,
-    opts?: O
-  ): GenerateReturn<O, T> {
+    type: NearMediaType,
+    generate: GenerateOptions<T>
+  ): Promise<GenerativeReturn<T>>;
+  public nearMedia(
+    media: string,
+    type: NearMediaType,
+    generate: GenerateOptions<T>,
+    opts: BaseNearOptions<T>
+  ): Promise<GenerativeReturn<T>>;
+  public nearMedia(
+    media: string,
+    type: NearMediaType,
+    generate: GenerateOptions<T>,
+    opts: GroupByNearOptions<T>
+  ): Promise<GenerativeGroupByReturn<T>>;
+  public nearMedia(
+    media: string,
+    type: NearMediaType,
+    generate: GenerateOptions<T>,
+    opts?: NearOptions<T>
+  ): GenerateReturn<T> {
     return this.connection.search(this.name).then((search) => {
       let reply: Promise<SearchReply>;
-      const generative = Serialize.generative(opts);
-      const groupBy = Serialize.isGroupBy<GenerateGroupByNearOptions<T>>(opts)
+      const generative = Serialize.generative(generate);
+      const groupBy = Serialize.isGroupBy<GroupByNearOptions<T>>(opts)
         ? Serialize.groupBy(opts.groupBy)
         : undefined;
       switch (type) {
         case 'audio':
           reply = search.withNearAudio({
-            ...Serialize.nearAudio({ audio: media, ...opts }),
+            ...Serialize.nearAudio({ audio: media, ...(opts ? opts : {}) }),
             generative,
             groupBy,
           });
           break;
         case 'depth':
           reply = search.withNearDepth({
-            ...Serialize.nearDepth({ depth: media, ...opts }),
+            ...Serialize.nearDepth({ depth: media, ...(opts ? opts : {}) }),
             generative,
             groupBy,
           });
           break;
         case 'image':
           reply = search.withNearImage({
-            ...Serialize.nearImage({ image: media, ...opts }),
+            ...Serialize.nearImage({ image: media, ...(opts ? opts : {}) }),
             generative,
             groupBy,
           });
           break;
         case 'imu':
-          reply = search.withNearIMU({ ...Serialize.nearIMU({ imu: media, ...opts }), generative, groupBy });
+          reply = search.withNearIMU({
+            ...Serialize.nearIMU({ imu: media, ...(opts ? opts : {}) }),
+            generative,
+            groupBy,
+          });
           break;
         case 'thermal':
           reply = search.withNearThermal({
-            ...Serialize.nearThermal({ thermal: media, ...opts }),
+            ...Serialize.nearThermal({ thermal: media, ...(opts ? opts : {}) }),
             generative,
             groupBy,
           });
           break;
         case 'video':
           reply = search.withNearVideo({
-            ...Serialize.nearVideo({ video: media, ...opts }),
+            ...Serialize.nearVideo({ video: media, ...(opts ? opts : {}) }),
             generative,
             groupBy,
           });
@@ -241,41 +302,97 @@ class GenerateManager<T> implements Generate<T> {
       }
       return reply.then((reply) =>
         groupBy ? Deserialize.generateGroupBy<T>(reply) : Deserialize.generate<T>(reply)
-      ) as GenerateReturn<O, T>;
+      );
     });
   }
 }
 
 export interface Generate<T> {
-  fetchObjects: (opts?: GenerateFetchObjectsOptions<T>) => Promise<GenerativeReturn<T>>;
-  bm25: (query: string, opts?: GenerateBm25Options<T>) => Promise<GenerativeReturn<T>>;
-  hybrid: (query: string, opts?: GenerateHybridOptions<T>) => Promise<GenerativeReturn<T>>;
+  fetchObjects: (generate: GenerateOptions<T>, opts?: FetchObjectsOptions<T>) => Promise<GenerativeReturn<T>>;
+  bm25: (query: string, generate: GenerateOptions<T>, opts?: Bm25Options<T>) => Promise<GenerativeReturn<T>>;
+  hybrid: (
+    query: string,
+    generate: GenerateOptions<T>,
+    opts?: HybridOptions<T>
+  ) => Promise<GenerativeReturn<T>>;
 
-  nearImage<O extends GenerateNearOptions<T> | GenerateGroupByNearOptions<T>>(
+  nearImage(image: string, generate: GenerateOptions<T>): Promise<GenerativeReturn<T>>;
+  nearImage(
     image: string,
-    opts?: O
-  ): GenerateReturn<O, T>;
-  nearMedia<O extends GenerateNearOptions<T> | GenerateGroupByNearOptions<T>>(
+    generate: GenerateOptions<T>,
+    opts: BaseNearOptions<T>
+  ): Promise<GenerativeReturn<T>>;
+  nearImage(
+    image: string,
+    generate: GenerateOptions<T>,
+    opts: GroupByNearOptions<T>
+  ): Promise<GenerativeGroupByReturn<T>>;
+  nearImage(image: string, generate: GenerateOptions<T>, opts?: NearOptions<T>): GenerateReturn<T>;
+
+  nearMedia(media: string, type: NearMediaType, generate: GenerateOptions<T>): Promise<GenerativeReturn<T>>;
+  nearMedia(
     media: string,
-    type: QueryNearMediaType,
-    opts?: O
-  ): GenerateReturn<O, T>;
-  nearObject<O extends GenerateNearOptions<T> | GenerateGroupByNearOptions<T>>(
+    type: NearMediaType,
+    generate: GenerateOptions<T>,
+    opts: BaseNearOptions<T>
+  ): Promise<GenerativeReturn<T>>;
+  nearMedia(
+    media: string,
+    type: NearMediaType,
+    generate: GenerateOptions<T>,
+    opts: GroupByNearOptions<T>
+  ): Promise<GenerativeGroupByReturn<T>>;
+  nearMedia(
+    media: string,
+    type: NearMediaType,
+    generate: GenerateOptions<T>,
+    opts?: NearOptions<T>
+  ): GenerateReturn<T>;
+
+  nearObject(id: string, generate: GenerateOptions<T>): Promise<GenerativeReturn<T>>;
+  nearObject(
     id: string,
-    opts?: O
-  ): GenerateReturn<O, T>;
-  nearText<O extends GenerateNearTextOptions<T> | GenerateGroupByNearTextOptions<T>>(
+    generate: GenerateOptions<T>,
+    opts: BaseNearOptions<T>
+  ): Promise<GenerativeReturn<T>>;
+  nearObject(
+    id: string,
+    generate: GenerateOptions<T>,
+    opts: GroupByNearOptions<T>
+  ): Promise<GenerativeGroupByReturn<T>>;
+  nearObject(id: string, generate: GenerateOptions<T>, opts?: NearOptions<T>): GenerateReturn<T>;
+
+  nearText(query: string | string[], generate: GenerateOptions<T>): Promise<GenerativeReturn<T>>;
+  nearText(
     query: string | string[],
-    opts?: O
-  ): GenerateReturn<O, T>;
-  nearVector<O extends GenerateNearOptions<T> | GenerateGroupByNearOptions<T>>(
+    generate: GenerateOptions<T>,
+    opts: BaseNearTextOptions<T>
+  ): Promise<GenerativeReturn<T>>;
+  nearText(
+    query: string | string[],
+    generate: GenerateOptions<T>,
+    opts: GroupByNearTextOptions<T>
+  ): Promise<GenerativeGroupByReturn<T>>;
+  nearText(
+    query: string | string[],
+    generate: GenerateOptions<T>,
+    opts?: NearTextOptions<T>
+  ): GenerateReturn<T>;
+
+  nearVector(vector: number[], generate: GenerateOptions<T>): Promise<GenerativeReturn<T>>;
+  nearVector(
     vector: number[],
-    opts?: O
-  ): GenerateReturn<O, T>;
+    generate: GenerateOptions<T>,
+    opts: BaseNearOptions<T>
+  ): Promise<GenerativeReturn<T>>;
+  nearVector(
+    vector: number[],
+    generate: GenerateOptions<T>,
+    opts: GroupByNearOptions<T>
+  ): Promise<GenerativeGroupByReturn<T>>;
+  nearVector(vector: number[], generate: GenerateOptions<T>, opts?: NearOptions<T>): GenerateReturn<T>;
 }
 
-export type GenerateReturn<O extends GenerateNearOptions<T> | GenerateGroupByNearOptions<T>, T> = Promise<
-  O extends GenerateGroupByNearOptions<T> ? GenerativeGroupByReturn<T> : GenerativeReturn<T>
->;
+export type GenerateReturn<T> = Promise<GenerativeReturn<T>> | Promise<GenerativeGroupByReturn<T>>;
 
 export default GenerateManager.use;

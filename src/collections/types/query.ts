@@ -59,11 +59,11 @@ export type GroupByReturn<T> = {
   groups: Record<string, GroupByResult<T>>;
 };
 
-export interface GroupByOptions<T> {
+export type GroupByOptions<T> = {
   property: keyof T;
   numberOfGroups: number;
   objectsPerGroup: number;
-}
+};
 
 interface BaseRefProperty<T> {
   // linkOn: keyof T & string; // https://github.com/microsoft/TypeScript/issues/56239

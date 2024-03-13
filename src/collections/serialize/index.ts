@@ -69,13 +69,13 @@ import {
   SearchNearVideoArgs,
 } from '../../grpc/searcher';
 import {
-  QueryBm25Options,
-  QueryFetchObjectByIdOptions,
-  QueryFetchObjectsOptions,
-  QueryHybridOptions,
-  QueryNearOptions,
+  Bm25Options,
+  FetchObjectByIdOptions,
+  FetchObjectsOptions,
+  HybridOptions,
+  NearOptions,
   QueryOptions,
-  QueryNearTextOptions,
+  NearTextOptions,
 } from '../query';
 import { GenerateOptions } from '../generate';
 import {
@@ -261,7 +261,7 @@ export default class Serialize {
     };
   };
 
-  public static fetchObjects = <T>(args?: QueryFetchObjectsOptions<T>): SearchFetchArgs => {
+  public static fetchObjects = <T>(args?: FetchObjectsOptions<T>): SearchFetchArgs => {
     return {
       ...Serialize.common(args),
       offset: args?.offset,
@@ -270,9 +270,7 @@ export default class Serialize {
     };
   };
 
-  public static fetchObjectById = <T>(
-    args: { id: string } & QueryFetchObjectByIdOptions<T>
-  ): SearchFetchArgs => {
+  public static fetchObjectById = <T>(args: { id: string } & FetchObjectByIdOptions<T>): SearchFetchArgs => {
     return {
       ...Serialize.common({
         filters: new FilterById().equal(args.id),
@@ -284,7 +282,7 @@ export default class Serialize {
     };
   };
 
-  public static bm25 = <T>(args: { query: string } & QueryBm25Options<T>): SearchBm25Args => {
+  public static bm25 = <T>(args: { query: string } & Bm25Options<T>): SearchBm25Args => {
     return {
       ...Serialize.common(args),
       bm25: BM25.fromPartial({
@@ -295,7 +293,7 @@ export default class Serialize {
     };
   };
 
-  public static hybrid = <T>(args: { query: string } & QueryHybridOptions<T>): SearchHybridArgs => {
+  public static hybrid = <T>(args: { query: string } & HybridOptions<T>): SearchHybridArgs => {
     const fusionType = (fusionType?: string): Hybrid_FusionType => {
       switch (fusionType) {
         case 'Ranked':
@@ -320,7 +318,7 @@ export default class Serialize {
     };
   };
 
-  public static nearAudio = <T>(args: { audio: string } & QueryNearOptions<T>): SearchNearAudioArgs => {
+  public static nearAudio = <T>(args: { audio: string } & NearOptions<T>): SearchNearAudioArgs => {
     return {
       ...Serialize.common(args),
       nearAudio: NearAudioSearch.fromPartial({
@@ -333,7 +331,7 @@ export default class Serialize {
     };
   };
 
-  public static nearDepth = <T>(args: { depth: string } & QueryNearOptions<T>): SearchNearDepthArgs => {
+  public static nearDepth = <T>(args: { depth: string } & NearOptions<T>): SearchNearDepthArgs => {
     return {
       ...Serialize.common(args),
       nearDepth: NearDepthSearch.fromPartial({
@@ -346,7 +344,7 @@ export default class Serialize {
     };
   };
 
-  public static nearImage = <T>(args: { image: string } & QueryNearOptions<T>): SearchNearImageArgs => {
+  public static nearImage = <T>(args: { image: string } & NearOptions<T>): SearchNearImageArgs => {
     return {
       ...Serialize.common(args),
       nearImage: NearImageSearch.fromPartial({
@@ -359,7 +357,7 @@ export default class Serialize {
     };
   };
 
-  public static nearIMU = <T>(args: { imu: string } & QueryNearOptions<T>): SearchNearIMUArgs => {
+  public static nearIMU = <T>(args: { imu: string } & NearOptions<T>): SearchNearIMUArgs => {
     return {
       ...Serialize.common(args),
       nearIMU: NearIMUSearch.fromPartial({
@@ -372,7 +370,7 @@ export default class Serialize {
     };
   };
 
-  public static nearObject = <T>(args: { id: string } & QueryNearOptions<T>): SearchNearObjectArgs => {
+  public static nearObject = <T>(args: { id: string } & NearOptions<T>): SearchNearObjectArgs => {
     return {
       ...Serialize.common(args),
       nearObject: NearObject.fromPartial({
@@ -386,7 +384,7 @@ export default class Serialize {
   };
 
   public static nearText = <T>(
-    args: { query: string | string[] } & QueryNearTextOptions<T>
+    args: { query: string | string[] } & NearTextOptions<T>
   ): SearchNearTextArgs => {
     return {
       ...Serialize.common(args),
@@ -414,7 +412,7 @@ export default class Serialize {
     };
   };
 
-  public static nearThermal = <T>(args: { thermal: string } & QueryNearOptions<T>): SearchNearThermalArgs => {
+  public static nearThermal = <T>(args: { thermal: string } & NearOptions<T>): SearchNearThermalArgs => {
     return {
       ...Serialize.common(args),
       nearThermal: NearThermalSearch.fromPartial({
@@ -431,7 +429,7 @@ export default class Serialize {
     return new Uint8Array(new Float32Array(vector).buffer);
   };
 
-  public static nearVector = <T>(args: { vector: number[] } & QueryNearOptions<T>): SearchNearVectorArgs => {
+  public static nearVector = <T>(args: { vector: number[] } & NearOptions<T>): SearchNearVectorArgs => {
     return {
       ...Serialize.common(args),
       nearVector: NearVector.fromPartial({
@@ -444,7 +442,7 @@ export default class Serialize {
     };
   };
 
-  public static nearVideo = <T>(args: { video: string } & QueryNearOptions<T>): SearchNearVideoArgs => {
+  public static nearVideo = <T>(args: { video: string } & NearOptions<T>): SearchNearVideoArgs => {
     return {
       ...Serialize.common(args),
       nearVideo: NearVideoSearch.fromPartial({

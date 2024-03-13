@@ -93,9 +93,8 @@ maybe('Testing of the collection.generate methods with a simple collection', () 
     });
 
     it('should generate without search specifying return properties', async () => {
-      const ret = await collection.generate.fetchObjects({
+      const ret = await collection.generate.fetchObjects(generateOpts, {
         returnProperties: ['testProp'],
-        ...generateOpts,
       });
       expect(ret.objects.length).toEqual(1);
       expect(ret.generated).toBeDefined();
@@ -105,9 +104,7 @@ maybe('Testing of the collection.generate methods with a simple collection', () 
     });
 
     it('should generate with bm25', async () => {
-      const ret = await collection.generate.bm25('test', {
-        ...generateOpts,
-      });
+      const ret = await collection.generate.bm25('test', generateOpts);
       expect(ret.objects.length).toEqual(1);
       expect(ret.generated).toBeDefined();
       expect(ret.objects[0].properties.testProp).toEqual('test');
@@ -116,9 +113,7 @@ maybe('Testing of the collection.generate methods with a simple collection', () 
     });
 
     it('should generate with hybrid', async () => {
-      const ret = await collection.generate.hybrid('test', {
-        ...generateOpts,
-      });
+      const ret = await collection.generate.hybrid('test', generateOpts);
       expect(ret.objects.length).toEqual(1);
       expect(ret.generated).toBeDefined();
       expect(ret.objects[0].properties.testProp).toEqual('test');
@@ -127,9 +122,7 @@ maybe('Testing of the collection.generate methods with a simple collection', () 
     });
 
     it('should generate with nearObject', async () => {
-      const ret = await collection.generate.nearObject(id, {
-        ...generateOpts,
-      });
+      const ret = await collection.generate.nearObject(id, generateOpts);
       expect(ret.objects.length).toEqual(1);
       expect(ret.generated).toBeDefined();
       expect(ret.objects[0].properties.testProp).toEqual('test');
@@ -138,9 +131,7 @@ maybe('Testing of the collection.generate methods with a simple collection', () 
     });
 
     it('should generate with nearText', async () => {
-      const ret = await collection.generate.nearText(['test'], {
-        ...generateOpts,
-      });
+      const ret = await collection.generate.nearText(['test'], generateOpts);
       expect(ret.objects.length).toEqual(1);
       expect(ret.generated).toBeDefined();
       expect(ret.objects[0].properties.testProp).toEqual('test');
@@ -149,9 +140,7 @@ maybe('Testing of the collection.generate methods with a simple collection', () 
     });
 
     it('should generate with nearVector', async () => {
-      const ret = await collection.generate.nearVector(vector, {
-        ...generateOpts,
-      });
+      const ret = await collection.generate.nearVector(vector, generateOpts);
       expect(ret.objects.length).toEqual(1);
       expect(ret.generated).toBeDefined();
       expect(ret.objects[0].properties.testProp).toEqual('test');
@@ -283,9 +272,8 @@ maybe('Testing of the groupBy collection.generate methods with a simple collecti
   // });
 
   it('should groupBy with nearObject', async () => {
-    const ret = await collection.generate.nearObject(id, {
+    const ret = await collection.generate.nearObject(id, generateOpts, {
       groupBy: groupByArgs,
-      ...generateOpts,
     });
     expect(ret.objects.length).toEqual(1);
     expect(ret.groups).toBeDefined();
@@ -298,9 +286,8 @@ maybe('Testing of the groupBy collection.generate methods with a simple collecti
   });
 
   it('should groupBy with nearText', async () => {
-    const ret = await collection.generate.nearText(['test'], {
+    const ret = await collection.generate.nearText(['test'], generateOpts, {
       groupBy: groupByArgs,
-      ...generateOpts,
     });
     expect(ret.objects.length).toEqual(1);
     expect(ret.groups).toBeDefined();
@@ -313,9 +300,8 @@ maybe('Testing of the groupBy collection.generate methods with a simple collecti
   });
 
   it('should groupBy with nearVector', async () => {
-    const ret = await collection.generate.nearVector(vector, {
+    const ret = await collection.generate.nearVector(vector, generateOpts, {
       groupBy: groupByArgs,
-      ...generateOpts,
     });
     expect(ret.objects.length).toEqual(1);
     expect(ret.groups).toBeDefined();
