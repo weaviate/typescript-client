@@ -309,7 +309,10 @@ describe('Testing of the collection.aggregate methods with named vectors', () =>
         },
       ],
       vectorizer: [
-        weaviate.configure.namedVectorizer.text2VecContextionary('text', 'hnsw', { properties: ['text'] }),
+        weaviate.configure.namedVectorizer('text', {
+          properties: ['text'],
+          vectorizerConfig: weaviate.configure.vectorizer.text2VecContextionary(),
+        }),
       ],
     });
   });

@@ -5,7 +5,7 @@ export type VectorConfig = Record<
   string,
   {
     properties?: string[];
-    vectorizer: ModuleConfig<Vectorizer, VectorizerConfig>;
+    vectorizer: ModuleConfig<Vectorizer, VectorizerConfig> | ModuleConfig<string, any>;
     indexConfig: VectorIndexConfigHNSW | VectorIndexConfigFlat;
     indexType: VectorIndexType;
   }
@@ -15,6 +15,7 @@ export type Vectorizer =
   | 'img2vec-neural'
   | 'multi2vec-clip'
   | 'multi2vec-bind'
+  | 'multi2vec-palm'
   | 'ref2vec-centroid'
   | 'text2vec-aws'
   | 'text2vec-cohere'
@@ -25,8 +26,8 @@ export type Vectorizer =
   | 'text2vec-openai'
   | 'text2vec-palm'
   | 'text2vec-transformers'
-  | 'none'
-  | string;
+  | 'text2vec-voyageai'
+  | 'none';
 
 export type Img2VecNeuralConfig = {
   imageFields?: string[];
@@ -49,6 +50,14 @@ export type Multi2VecBindConfig = {
   vectorizeClassName?: boolean;
 };
 
+export type Multi2VecPalmConfig = {
+  projectID: string;
+  location?: string;
+  modelID?: string;
+  dimensions?: number;
+  vectorizeClassName?: boolean;
+};
+
 export type Ref2VecCentroidConfig = {
   referenceProperties: string[];
   method: 'mean';
@@ -59,20 +68,20 @@ export type Text2VecAWSConfig = {
   model?: string;
   region: string;
   service: string;
-  vectorizerClassName: boolean;
+  vectorizeClassName?: boolean;
 };
 
 export type Text2VecAzureOpenAIConfig = {
   baseURL?: string;
   deploymentID: string;
   resourceName: string;
-  vectorizerClassName: string;
+  vectorizeClassName?: boolean;
 };
 
 export type Text2VecCohereConfig = {
   baseURL?: string;
   model?: string;
-  truncate?: string;
+  truncate?: boolean;
   vectorizeClassName?: boolean;
 };
 
@@ -89,9 +98,9 @@ export type Text2VecHuggingFaceConfig = {
   model?: string;
   passageModel?: string;
   queryModel?: string;
-  waitForModel?: boolean;
   useCache?: boolean;
   useGPU?: boolean;
+  waitForModel?: boolean;
   vectorizeClassName?: boolean;
 };
 
@@ -110,14 +119,21 @@ export type Text2VecOpenAIConfig = {
 };
 
 export type Text2VecPalmConfig = {
-  projectID: string;
   apiEndpoint?: string;
   modelID?: string;
+  projectID: string;
   vectorizeClassName?: boolean;
 };
 
 export type Text2VecTransformersConfig = {
   poolingStrategy?: string;
+  vectorizeClassName?: boolean;
+};
+
+export type Text2VecVoyageConfig = {
+  baseURL?: string;
+  model?: string;
+  truncate?: boolean;
   vectorizeClassName?: boolean;
 };
 
@@ -129,25 +145,49 @@ export type VectorizerConfigType<V> = V extends 'img2vec-neural'
   ? Multi2VecClipConfig
   : V extends 'multi2vec-bind'
   ? Multi2VecBindConfig
+  : V extends 'multi2vec-palm'
+  ? Multi2VecPalmConfig
   : V extends 'ref2vec-centroid'
   ? Ref2VecCentroidConfig
+  : V extends 'text2vec-aws'
+  ? Text2VecAWSConfig
   : V extends 'text2vec-contextionary'
   ? Text2VecContextionaryConfig
   : V extends 'text2vec-cohere'
   ? Text2VecCohereConfig
+  : V extends 'text2vec-gpt4all'
+  ? Text2VecGPT4AllConfig
+  : V extends 'text2vec-huggingface'
+  ? Text2VecHuggingFaceConfig
+  : V extends 'text2vec-jina'
+  ? Text2VecJinaConfig
   : V extends 'text2vec-openai'
   ? Text2VecOpenAIConfig
+  : V extends 'text2vec-palm'
+  ? Text2VecPalmConfig
+  : V extends 'text2vec-transformers'
+  ? Text2VecTransformersConfig
+  : V extends 'text2vec-voyageai'
+  ? Text2VecVoyageConfig
   : V extends 'none'
   ? undefined
-  : Record<string, any> | undefined;
+  : never;
 
 export type VectorizerConfig =
   | Img2VecNeuralConfig
   | Multi2VecClipConfig
   | Multi2VecBindConfig
+  | Multi2VecPalmConfig
   | Ref2VecCentroidConfig
+  | Text2VecAWSConfig
+  | Text2VecAzureOpenAIConfig
   | Text2VecContextionaryConfig
   | Text2VecCohereConfig
+  | Text2VecGPT4AllConfig
+  | Text2VecHuggingFaceConfig
+  | Text2VecJinaConfig
   | Text2VecOpenAIConfig
-  | NoVectorizerConfig
-  | Record<string, never>;
+  | Text2VecPalmConfig
+  | Text2VecTransformersConfig
+  | Text2VecVoyageConfig
+  | NoVectorizerConfig;

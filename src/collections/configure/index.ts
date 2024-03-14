@@ -4,16 +4,22 @@ import {
   DataType,
   InvertedIndexConfigCreate,
   MultiTenancyConfigCreate,
+  NamedVectorConfigCreate,
+  NamedVectorizerOptions,
+  Properties,
   ReplicationConfigCreate,
   ShardingConfigCreate,
+  VectorIndexType,
+  Vectorizer,
 } from '../types';
 
 import generative from './generative';
 import reranker from './reranker';
 import vectorIndex from './vectorIndex';
-import { namedVectorizer, vectorizer } from './vectorizer';
+import { vectorizer } from './vectorizer';
 
 import { parseWithDefault } from './parsing';
+import { PrimitiveKeys } from '../types/internal';
 
 const dataType: Record<string, DataType> = {
   INT: 'int',
@@ -35,7 +41,6 @@ const dataType: Record<string, DataType> = {
 
 export default {
   generative,
-  namedVectorizer,
   reranker,
   vectorizer,
   vectorIndex,
@@ -69,6 +74,17 @@ export default {
   },
   multiTenancy: (config?: { enabled?: boolean }): MultiTenancyConfigCreate => {
     return config ? { enabled: parseWithDefault(config.enabled, true) } : { enabled: true };
+  },
+  namedVectorizer: <T, N extends string, I extends VectorIndexType = 'hnsw', V extends Vectorizer = 'none'>(
+    name: N,
+    options?: NamedVectorizerOptions<PrimitiveKeys<T>[], I, V>
+  ): NamedVectorConfigCreate<PrimitiveKeys<T>[], N, I, V> => {
+    return {
+      vectorName: name,
+      properties: options?.properties,
+      vectorIndex: options?.vectorIndexConfig ? options.vectorIndexConfig : { name: 'hnsw' as I },
+      vectorizer: options?.vectorizerConfig ? options.vectorizerConfig : { name: 'none' as V },
+    };
   },
   replication: (config?: { factor?: number }): ReplicationConfigCreate => {
     return config ? { factor: parseWithDefault(config.factor, 1) } : { factor: 1 };

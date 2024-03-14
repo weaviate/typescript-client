@@ -158,8 +158,12 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
         replicationConfig: replication,
         shardingConfig: sharding,
         vectorConfig: vectorsConfig,
-        vectorIndexConfig: vectorIndex ? parseVectorIndexConfig(vectorIndex.config) : undefined,
-        vectorIndexType: vectorIndex ? vectorIndex.name : 'hnsw',
+        vectorIndexConfig: vectorsConfig
+          ? undefined
+          : vectorIndex
+          ? parseVectorIndexConfig(vectorIndex.config)
+          : undefined,
+        vectorIndexType: vectorsConfig ? undefined : vectorIndex ? vectorIndex.name : 'hnsw',
       };
       await new ClassCreator(connection).withClass(schema).do();
       return collection<TProperties, TName>(connection, name, dbVersionSupport);

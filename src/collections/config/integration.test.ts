@@ -144,8 +144,14 @@ describe('Testing of the collection.config namespace', () => {
         },
       ],
       vectorizer: [
-        weaviate.configure.namedVectorizer.text2VecContextionary('title', 'hnsw', { properties: ['title'] }),
-        weaviate.configure.namedVectorizer.text2VecContextionary('age', 'hnsw', { properties: ['age'] }),
+        weaviate.configure.namedVectorizer('title', {
+          properties: ['title'],
+          vectorizerConfig: weaviate.configure.vectorizer.text2VecContextionary(),
+        }),
+        weaviate.configure.namedVectorizer('age', {
+          properties: ['age'],
+          vectorizerConfig: weaviate.configure.vectorizer.text2VecContextionary(),
+        }),
       ],
     });
     const collection = client.collections.get(collectionName);

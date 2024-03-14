@@ -1,5 +1,24 @@
 import configure from '.';
-import { ModuleConfig } from '../types';
+import {
+  Img2VecNeuralConfig,
+  ModuleConfig,
+  Multi2VecBindConfig,
+  Multi2VecClipConfig,
+  Multi2VecPalmConfig,
+  NamedVectorConfigCreate,
+  Properties,
+  Text2VecAWSConfig,
+  Text2VecAzureOpenAIConfig,
+  Text2VecCohereConfig,
+  Text2VecContextionaryConfig,
+  Text2VecGPT4AllConfig,
+  Text2VecHuggingFaceConfig,
+  Text2VecJinaConfig,
+  Text2VecOpenAIConfig,
+  Text2VecPalmConfig,
+  Text2VecTransformersConfig,
+  Text2VecVoyageConfig,
+} from '../types';
 import {
   InvertedIndexConfigCreate,
   MultiTenancyConfigCreate,
@@ -219,6 +238,467 @@ describe('Unit testing of the configure factory class', () => {
           vectorCacheMaxObjects: 1000000000000,
         },
       });
+    });
+  });
+});
+
+describe('Unit testing of the vectorizer factory class', () => {
+  it('should create the correct Img2VecNeuralConfig type with defaults', () => {
+    const config = configure.vectorizer.img2VecNeural();
+    expect(config).toEqual<ModuleConfig<'img2vec-neural', Img2VecNeuralConfig>>({
+      name: 'img2vec-neural',
+    });
+  });
+
+  it('should create the correct Img2VecNeuralConfig type with custom values', () => {
+    const config = configure.vectorizer.img2VecNeural({
+      imageFields: ['field1', 'field2'],
+    });
+    expect(config).toEqual<ModuleConfig<'img2vec-neural', Img2VecNeuralConfig>>({
+      name: 'img2vec-neural',
+      config: {
+        imageFields: ['field1', 'field2'],
+      },
+    });
+  });
+
+  it('should create the correct Multi2VecClipConfig type with defaults', () => {
+    const config = configure.vectorizer.multi2VecClip();
+    expect(config).toEqual<ModuleConfig<'multi2vec-clip', Img2VecNeuralConfig>>({
+      name: 'multi2vec-clip',
+    });
+  });
+
+  it('should create the correct Multi2VecClipConfig type with custom values', () => {
+    const config = configure.vectorizer.multi2VecClip({
+      imageFields: ['field1', 'field2'],
+      textFields: ['field3', 'field4'],
+      vectorizeClassName: true,
+    });
+    expect(config).toEqual<ModuleConfig<'multi2vec-clip', Multi2VecClipConfig>>({
+      name: 'multi2vec-clip',
+      config: {
+        imageFields: ['field1', 'field2'],
+        textFields: ['field3', 'field4'],
+        vectorizeClassName: true,
+      },
+    });
+  });
+
+  it('should create the correct Multi2VecBindConfig type with defaults', () => {
+    const config = configure.vectorizer.multi2VecBind();
+    expect(config).toEqual<ModuleConfig<'multi2vec-bind', Multi2VecBindConfig>>({
+      name: 'multi2vec-bind',
+    });
+  });
+
+  it('should create the correct Multi2VecBindConfig type with custom values', () => {
+    const config = configure.vectorizer.multi2VecBind({
+      audioFields: ['field1', 'field2'],
+      depthFields: ['field3', 'field4'],
+      imageFields: ['field5', 'field6'],
+      IMUFields: ['field7', 'field8'],
+      textFields: ['field9', 'field10'],
+      thermalFields: ['field11', 'field12'],
+      videoFields: ['field13', 'field14'],
+      vectorizeClassName: true,
+    });
+    expect(config).toEqual<ModuleConfig<'multi2vec-bind', Multi2VecBindConfig>>({
+      name: 'multi2vec-bind',
+      config: {
+        audioFields: ['field1', 'field2'],
+        depthFields: ['field3', 'field4'],
+        imageFields: ['field5', 'field6'],
+        IMUFields: ['field7', 'field8'],
+        textFields: ['field9', 'field10'],
+        thermalFields: ['field11', 'field12'],
+        videoFields: ['field13', 'field14'],
+        vectorizeClassName: true,
+      },
+    });
+  });
+
+  it('should create the correct Multi2VecPalmConfig type with defaults', () => {
+    const config = configure.vectorizer.multi2VecPalm({
+      projectID: 'project-id',
+    });
+    expect(config).toEqual<ModuleConfig<'multi2vec-palm', Multi2VecPalmConfig>>({
+      name: 'multi2vec-palm',
+      config: {
+        projectID: 'project-id',
+      },
+    });
+  });
+
+  it('should create the correct Multi2VecPalmConfig type with custom values', () => {
+    const config = configure.vectorizer.multi2VecPalm({
+      projectID: 'project-id',
+      location: 'location',
+      modelID: 'model-id',
+      dimensions: 256,
+      vectorizeClassName: true,
+    });
+    expect(config).toEqual<ModuleConfig<'multi2vec-palm', Multi2VecPalmConfig>>({
+      name: 'multi2vec-palm',
+      config: {
+        projectID: 'project-id',
+        location: 'location',
+        modelID: 'model-id',
+        dimensions: 256,
+        vectorizeClassName: true,
+      },
+    });
+  });
+
+  it('should create the correct Text2VecAWSConfig type with defaults', () => {
+    const config = configure.vectorizer.text2VecAWS({
+      region: 'region',
+      service: 'service',
+    });
+    expect(config).toEqual<ModuleConfig<'text2vec-aws', Text2VecAWSConfig>>({
+      name: 'text2vec-aws',
+      config: {
+        region: 'region',
+        service: 'service',
+      },
+    });
+  });
+
+  it('should create the correct Text2VecAWSConfig type with custom values', () => {
+    const config = configure.vectorizer.text2VecAWS({
+      endpoint: 'endpoint',
+      model: 'model',
+      region: 'region',
+      service: 'service',
+      vectorizeClassName: true,
+    });
+    expect(config).toEqual<ModuleConfig<'text2vec-aws', Text2VecAWSConfig>>({
+      name: 'text2vec-aws',
+      config: {
+        endpoint: 'endpoint',
+        model: 'model',
+        region: 'region',
+        service: 'service',
+        vectorizeClassName: true,
+      },
+    });
+  });
+
+  it('should create the correct Text2VecAzureOpenAIConfig type with defaults', () => {
+    const config = configure.vectorizer.text2VecAzureOpenAI({
+      deploymentID: 'deployment-id',
+      resourceName: 'resource-name',
+    });
+    expect(config).toEqual<ModuleConfig<'text2vec-openai', Text2VecAzureOpenAIConfig>>({
+      name: 'text2vec-openai',
+      config: {
+        deploymentID: 'deployment-id',
+        resourceName: 'resource-name',
+      },
+    });
+  });
+
+  it('should create the correct Text2VecAzureOpenAIConfig type with custom values', () => {
+    const config = configure.vectorizer.text2VecAzureOpenAI({
+      baseURL: 'base-url',
+      deploymentID: 'deployment-id',
+      resourceName: 'resource-name',
+      vectorizeClassName: true,
+    });
+    expect(config).toEqual<ModuleConfig<'text2vec-openai', Text2VecAzureOpenAIConfig>>({
+      name: 'text2vec-openai',
+      config: {
+        baseURL: 'base-url',
+        deploymentID: 'deployment-id',
+        resourceName: 'resource-name',
+        vectorizeClassName: true,
+      },
+    });
+  });
+
+  it('should create the correct Text2VecCohereConfig type with defaults', () => {
+    const config = configure.vectorizer.text2VecCohere();
+    expect(config).toEqual<ModuleConfig<'text2vec-cohere', Text2VecCohereConfig>>({
+      name: 'text2vec-cohere',
+    });
+  });
+
+  it('should create the correct Text2VecCohereConfig type with custom values', () => {
+    const config = configure.vectorizer.text2VecCohere({
+      baseURL: 'base-url',
+      model: 'model',
+      truncate: true,
+      vectorizeClassName: true,
+    });
+    expect(config).toEqual<ModuleConfig<'text2vec-cohere', Text2VecCohereConfig>>({
+      name: 'text2vec-cohere',
+      config: {
+        baseURL: 'base-url',
+        model: 'model',
+        truncate: true,
+        vectorizeClassName: true,
+      },
+    });
+  });
+
+  it('should create the correct Text2VecContextionaryConfig type with defaults', () => {
+    const config = configure.vectorizer.text2VecContextionary();
+    expect(config).toEqual<ModuleConfig<'text2vec-contextionary', Text2VecContextionaryConfig>>({
+      name: 'text2vec-contextionary',
+    });
+  });
+
+  it('should create the correct Text2VecContextionaryConfig type with custom values', () => {
+    const config = configure.vectorizer.text2VecContextionary({
+      vectorizeClassName: true,
+    });
+    expect(config).toEqual<ModuleConfig<'text2vec-contextionary', Text2VecContextionaryConfig>>({
+      name: 'text2vec-contextionary',
+      config: {
+        vectorizeClassName: true,
+      },
+    });
+  });
+
+  it('should create the correct Text2VecGPT4AllConfig type with defaults', () => {
+    const config = configure.vectorizer.text2VecGPT4All();
+    expect(config).toEqual<ModuleConfig<'text2vec-gpt4all', Text2VecGPT4AllConfig>>({
+      name: 'text2vec-gpt4all',
+    });
+  });
+
+  it('should create the correct Text2VecGPT4AllConfig type with custom values', () => {
+    const config = configure.vectorizer.text2VecGPT4All({
+      vectorizeClassName: true,
+    });
+    expect(config).toEqual<ModuleConfig<'text2vec-gpt4all', Text2VecGPT4AllConfig>>({
+      name: 'text2vec-gpt4all',
+      config: {
+        vectorizeClassName: true,
+      },
+    });
+  });
+
+  it('should create the correct Text2VecHuggingFaceConfig type with defaults', () => {
+    const config = configure.vectorizer.text2VecHuggingFace();
+    expect(config).toEqual<ModuleConfig<'text2vec-huggingface', Text2VecHuggingFaceConfig>>({
+      name: 'text2vec-huggingface',
+    });
+  });
+
+  it('should create the correct Text2VecHuggingFaceConfig type with custom values', () => {
+    const config = configure.vectorizer.text2VecHuggingFace({
+      endpointURL: 'endpoint-url',
+      model: 'model',
+      passageModel: 'passage-model',
+      queryModel: 'query-model',
+      useCache: true,
+      useGPU: true,
+      waitForModel: true,
+      vectorizeClassName: true,
+    });
+    expect(config).toEqual<ModuleConfig<'text2vec-huggingface', Text2VecHuggingFaceConfig>>({
+      name: 'text2vec-huggingface',
+      config: {
+        endpointURL: 'endpoint-url',
+        model: 'model',
+        passageModel: 'passage-model',
+        queryModel: 'query-model',
+        useCache: true,
+        useGPU: true,
+        waitForModel: true,
+        vectorizeClassName: true,
+      },
+    });
+  });
+
+  it('should create the correct Text2VecJinaConfig type with defaults', () => {
+    const config = configure.vectorizer.text2VecJina();
+    expect(config).toEqual<ModuleConfig<'text2vec-jina', Text2VecJinaConfig>>({
+      name: 'text2vec-jina',
+    });
+  });
+
+  it('should create the correct Text2VecJinaConfig type with custom values', () => {
+    const config = configure.vectorizer.text2VecJina({
+      model: 'model',
+      vectorizeClassName: true,
+    });
+    expect(config).toEqual<ModuleConfig<'text2vec-jina', Text2VecJinaConfig>>({
+      name: 'text2vec-jina',
+      config: {
+        model: 'model',
+        vectorizeClassName: true,
+      },
+    });
+  });
+
+  it('should create the correct Text2VecOpenAIConfig type with defaults', () => {
+    const config = configure.vectorizer.text2VecOpenAI();
+    expect(config).toEqual<ModuleConfig<'text2vec-openai', Text2VecOpenAIConfig>>({
+      name: 'text2vec-openai',
+    });
+  });
+
+  it('should create the correct Text2VecOpenAIConfig type with custom values', () => {
+    const config = configure.vectorizer.text2VecOpenAI({
+      baseURL: 'base-url',
+      dimensions: 256,
+      model: 'model',
+      modelVersion: 'model-version',
+      type: 'type',
+      vectorizeClassName: true,
+    });
+    expect(config).toEqual<ModuleConfig<'text2vec-openai', Text2VecOpenAIConfig>>({
+      name: 'text2vec-openai',
+      config: {
+        baseURL: 'base-url',
+        dimensions: 256,
+        model: 'model',
+        modelVersion: 'model-version',
+        type: 'type',
+        vectorizeClassName: true,
+      },
+    });
+  });
+
+  it('should create the correct Text2VecPalmConfig type with defaults', () => {
+    const config = configure.vectorizer.text2VecPalm({
+      projectID: 'project-id',
+    });
+    expect(config).toEqual<ModuleConfig<'text2vec-palm', Text2VecPalmConfig>>({
+      name: 'text2vec-palm',
+      config: {
+        projectID: 'project-id',
+      },
+    });
+  });
+
+  it('should create the correct Text2VecPalmConfig type with custom values', () => {
+    const config = configure.vectorizer.text2VecPalm({
+      apiEndpoint: 'api-endpoint',
+      modelID: 'model-id',
+      projectID: 'project-id',
+      vectorizeClassName: true,
+    });
+    expect(config).toEqual<ModuleConfig<'text2vec-palm', Text2VecPalmConfig>>({
+      name: 'text2vec-palm',
+      config: {
+        apiEndpoint: 'api-endpoint',
+        modelID: 'model-id',
+        projectID: 'project-id',
+        vectorizeClassName: true,
+      },
+    });
+  });
+
+  it('should create the correct Text2VecTransformersConfig type with defaults', () => {
+    const config = configure.vectorizer.text2VecTransformers();
+    expect(config).toEqual<ModuleConfig<'text2vec-transformers', Text2VecTransformersConfig>>({
+      name: 'text2vec-transformers',
+    });
+  });
+
+  it('should create the correct Text2VecTransformersConfig type with custom values', () => {
+    const config = configure.vectorizer.text2VecTransformers({
+      poolingStrategy: 'pooling-strategy',
+      vectorizeClassName: true,
+    });
+    expect(config).toEqual<ModuleConfig<'text2vec-transformers', Text2VecTransformersConfig>>({
+      name: 'text2vec-transformers',
+      config: {
+        poolingStrategy: 'pooling-strategy',
+        vectorizeClassName: true,
+      },
+    });
+  });
+
+  it('should create the correct Text2VecVoyageConfig type with defaults', () => {
+    const config = configure.vectorizer.text2VecVoyage();
+    expect(config).toEqual<ModuleConfig<'text2vec-voyageai', Text2VecVoyageConfig>>({
+      name: 'text2vec-voyageai',
+    });
+  });
+
+  it('should create the correct Text2VecVoyageConfig type with custom values', () => {
+    const config = configure.vectorizer.text2VecVoyage({
+      baseURL: 'base-url',
+      model: 'model',
+      truncate: true,
+      vectorizeClassName: true,
+    });
+    expect(config).toEqual<ModuleConfig<'text2vec-voyageai', Text2VecVoyageConfig>>({
+      name: 'text2vec-voyageai',
+      config: {
+        baseURL: 'base-url',
+        model: 'model',
+        truncate: true,
+        vectorizeClassName: true,
+      },
+    });
+  });
+});
+
+describe('Unit testing of the namedVectorizer factory class', () => {
+  it('should create a NamedVectorConfigCreate type with no vectorizer and a default vector index', () => {
+    const config = configure.namedVectorizer('vector');
+    expect(config).toEqual<NamedVectorConfigCreate<Properties, 'vector', 'hnsw', 'none'>>({
+      vectorName: 'vector',
+      vectorIndex: {
+        name: 'hnsw',
+      },
+      vectorizer: {
+        name: 'none',
+      },
+    });
+  });
+
+  it('should create a NamedVectorConfigCreate type with no vectorizer and a custom vector index', () => {
+    const config = configure.namedVectorizer('vector', { vectorIndexConfig: configure.vectorIndex.flat() });
+    expect(config).toEqual<NamedVectorConfigCreate<Properties, 'vector', 'flat', 'none'>>({
+      vectorName: 'vector',
+      vectorIndex: {
+        name: 'flat',
+        config: {
+          distance: 'cosine',
+          quantizer: undefined,
+          vectorCacheMaxObjects: 1000000000000,
+        },
+      },
+      vectorizer: {
+        name: 'none',
+      },
+    });
+  });
+
+  it('should create a NamedVectorConfigCreate type with a vectorizer and a vector index', () => {
+    const config = configure.namedVectorizer('vector', {
+      vectorIndexConfig: configure.vectorIndex.hnsw({
+        efConstruction: 256,
+      }),
+      vectorizerConfig: configure.vectorizer.img2VecNeural(),
+    });
+    expect(config).toEqual<NamedVectorConfigCreate<Properties, 'vector', 'hnsw', 'img2vec-neural'>>({
+      vectorName: 'vector',
+      vectorIndex: {
+        name: 'hnsw',
+        config: {
+          cleanupIntervalSeconds: 300,
+          distance: 'cosine',
+          dynamicEfFactor: 8,
+          dynamicEfMax: 500,
+          dynamicEfMin: 100,
+          ef: -1,
+          efConstruction: 256,
+          flatSearchCutoff: 40000,
+          maxConnections: 64,
+          skip: false,
+          vectorCacheMaxObjects: 1000000000000,
+        },
+      },
+      vectorizer: {
+        name: 'img2vec-neural',
+      },
     });
   });
 });

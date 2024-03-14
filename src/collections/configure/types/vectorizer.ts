@@ -1,20 +1,15 @@
 import { VectorIndexConfigCreateType } from './vectorIndex';
 import { ModuleConfig, VectorIndexType, Vectorizer, VectorizerConfigType } from '../../config/types';
 
-export type NamedVectorizerOptionsCreate<C, I, P> = {
+export type NamedVectorizerOptions<P, I, V> = {
   properties?: P;
-  vectorizerConfig?: C;
-  vectorIndexConfig?: VectorIndexConfigCreateType<I>;
+  vectorIndexConfig?: ModuleConfig<I, VectorIndexConfigCreateType<I>>;
+  vectorizerConfig?: ModuleConfig<V, VectorizerConfigType<V>>;
 };
 
-export interface NamedVectorConfigCreate<
-  P,
-  N extends string,
-  I extends VectorIndexType,
-  V extends Vectorizer
-> {
+export type NamedVectorConfigCreate<P, N extends string, I extends VectorIndexType, V extends Vectorizer> = {
   vectorName: N;
   properties?: P;
-  vectorizer: ModuleConfig<V, VectorizerConfigType<V>>;
+  vectorizer: ModuleConfig<V, VectorizerConfigType<V> | undefined>;
   vectorIndex: ModuleConfig<I, VectorIndexConfigCreateType<I>>;
-}
+};
