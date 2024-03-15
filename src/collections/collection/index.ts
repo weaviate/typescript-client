@@ -14,7 +14,7 @@ import sort, { Sort } from '../sort';
 import tenants, { Tenant, Tenants } from '../tenants';
 import { MetadataQuery, QueryProperty, QueryReference } from '../types';
 
-export interface Collection<T, N> {
+export interface Collection<T = any, N = string> {
   aggregate: Aggregate<T>;
   backup: BackupCollection;
   config: Config<T>;
