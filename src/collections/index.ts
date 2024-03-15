@@ -24,7 +24,7 @@ import {
 import ClassExists from '../schema/classExists';
 import { classToCollection, resolveProperty, resolveReference } from './config';
 import { ConsistencyLevel } from '../data';
-import { WeaviateClass } from '..';
+import { WeaviateClass } from '../openapi/types';
 import { QuantizerGuards } from './configure';
 import { PrimitiveKeys } from './types/internal';
 
@@ -199,3 +199,18 @@ export interface Collections {
 }
 
 export default collections;
+export * from './aggregate';
+export * from './backup';
+export * from './cluster';
+export * from './collection';
+export * from './config';
+export * from './configure';
+export * from './data';
+export * from './filters';
+export * from './generate';
+export * from './iterator';
+export * from './query';
+export * from './references';
+export * from './sort';
+export * from './tenants';
+export * from './types';
