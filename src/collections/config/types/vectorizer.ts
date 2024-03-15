@@ -51,9 +51,9 @@ export type Multi2VecBindConfig = {
 };
 
 export type Multi2VecPalmConfig = {
-  projectID: string;
+  projectId: string;
   location?: string;
-  modelID?: string;
+  modelId?: string;
   dimensions?: number;
   vectorizeClassName?: boolean;
 };
@@ -120,8 +120,8 @@ export type Text2VecOpenAIConfig = {
 
 export type Text2VecPalmConfig = {
   apiEndpoint?: string;
-  modelID?: string;
-  projectID: string;
+  modelId?: string;
+  projectId: string;
   vectorizeClassName?: boolean;
 };
 

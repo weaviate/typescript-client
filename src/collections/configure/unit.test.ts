@@ -320,30 +320,30 @@ describe('Unit testing of the vectorizer factory class', () => {
 
   it('should create the correct Multi2VecPalmConfig type with defaults', () => {
     const config = configure.vectorizer.multi2VecPalm({
-      projectID: 'project-id',
+      projectId: 'project-id',
     });
     expect(config).toEqual<ModuleConfig<'multi2vec-palm', Multi2VecPalmConfig>>({
       name: 'multi2vec-palm',
       config: {
-        projectID: 'project-id',
+        projectId: 'project-id',
       },
     });
   });
 
   it('should create the correct Multi2VecPalmConfig type with custom values', () => {
     const config = configure.vectorizer.multi2VecPalm({
-      projectID: 'project-id',
+      projectId: 'project-id',
       location: 'location',
-      modelID: 'model-id',
+      modelId: 'model-id',
       dimensions: 256,
       vectorizeClassName: true,
     });
     expect(config).toEqual<ModuleConfig<'multi2vec-palm', Multi2VecPalmConfig>>({
       name: 'multi2vec-palm',
       config: {
-        projectID: 'project-id',
+        projectId: 'project-id',
         location: 'location',
-        modelID: 'model-id',
+        modelId: 'model-id',
         dimensions: 256,
         vectorizeClassName: true,
       },
@@ -564,12 +564,12 @@ describe('Unit testing of the vectorizer factory class', () => {
 
   it('should create the correct Text2VecPalmConfig type with defaults', () => {
     const config = configure.vectorizer.text2VecPalm({
-      projectID: 'project-id',
+      projectId: 'project-id',
     });
     expect(config).toEqual<ModuleConfig<'text2vec-palm', Text2VecPalmConfig>>({
       name: 'text2vec-palm',
       config: {
-        projectID: 'project-id',
+        projectId: 'project-id',
       },
     });
   });
@@ -577,16 +577,16 @@ describe('Unit testing of the vectorizer factory class', () => {
   it('should create the correct Text2VecPalmConfig type with custom values', () => {
     const config = configure.vectorizer.text2VecPalm({
       apiEndpoint: 'api-endpoint',
-      modelID: 'model-id',
-      projectID: 'project-id',
+      modelId: 'model-id',
+      projectId: 'project-id',
       vectorizeClassName: true,
     });
     expect(config).toEqual<ModuleConfig<'text2vec-palm', Text2VecPalmConfig>>({
       name: 'text2vec-palm',
       config: {
         apiEndpoint: 'api-endpoint',
-        modelID: 'model-id',
-        projectID: 'project-id',
+        modelId: 'model-id',
+        projectId: 'project-id',
         vectorizeClassName: true,
       },
     });

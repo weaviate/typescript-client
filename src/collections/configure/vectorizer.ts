@@ -44,7 +44,7 @@ export const vectorizer = {
     makeVectorizer('text2vec-huggingface', config),
   text2VecJina: (config?: Text2VecJinaConfig | undefined) => makeVectorizer('text2vec-jina', config),
   text2VecOpenAI: (config?: Text2VecOpenAIConfig | undefined) => makeVectorizer('text2vec-openai', config),
-  text2VecPalm: (config?: Text2VecPalmConfig | undefined) => makeVectorizer('text2vec-palm', config),
+  text2VecPalm: (config: Text2VecPalmConfig) => makeVectorizer('text2vec-palm', config),
   text2VecTransformers: (config?: Text2VecTransformersConfig | undefined) =>
     makeVectorizer('text2vec-transformers', config),
   text2VecVoyage: (config?: Text2VecVoyageConfig | undefined) => makeVectorizer('text2vec-voyageai', config),

@@ -39,6 +39,7 @@ export type NestedPropertyConfigCreate<T, D> = D extends 'object' | 'object[]'
 type RequiresNested<T> = T extends 'object' | 'object[]' ? true : false;
 
 type PropertyConfigCreateBase = {
+  description?: string;
   indexInverted?: boolean;
   indexFilterable?: boolean;
   indexSearchable?: boolean;
@@ -48,6 +49,7 @@ type PropertyConfigCreateBase = {
 };
 
 type NestedPropertyConfigCreateBase = {
+  description?: string;
   indexInverted?: boolean;
   indexFilterable?: boolean;
   indexSearchable?: boolean;
