@@ -40,6 +40,7 @@ export type SearchFetchArgs = {
 
 type BaseSearchArgs = {
   limit?: number;
+  offset?: number;
   autocut?: number;
   filters?: Filters;
   metadata?: MetadataRequest;

@@ -42,6 +42,7 @@ export type FetchObjectsOptions<T> = {
 
 export type QueryOptions<T> = {
   limit?: number;
+  offset?: number;
   autoLimit?: number;
   filters?: FilterValue;
   includeVector?: boolean | string[];

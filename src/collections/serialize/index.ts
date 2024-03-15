@@ -252,6 +252,7 @@ export default class Serialize {
   private static common = <T>(args?: QueryOptions<T>) => {
     return {
       limit: args?.limit,
+      offset: args?.offset,
       filters: args?.filters ? Serialize.filtersGRPC(args.filters) : undefined,
       properties:
         args?.returnProperties || args?.returnReferences
@@ -264,7 +265,6 @@ export default class Serialize {
   public static fetchObjects = <T>(args?: FetchObjectsOptions<T>): SearchFetchArgs => {
     return {
       ...Serialize.common(args),
-      offset: args?.offset,
       after: args?.after,
       sortBy: args?.sort ? Serialize.sortBy(args.sort.get()) : undefined,
     };
