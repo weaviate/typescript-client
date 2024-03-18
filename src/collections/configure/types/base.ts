@@ -16,19 +16,32 @@ export type InvertedIndexConfigCreate = RecursivePartial<InvertedIndexConfig>;
 
 export type MultiTenancyConfigCreate = RecursivePartial<MultiTenancyConfig>;
 
-type NestedPropertyCreate<T> = {
-  [K in NonRefKeys<T>]: RequiresNested<DataType<T[K]>> extends true
-    ? {
-        name: K;
-        dataType: DataType<T[K]>;
-        nestedProperties: NestedPropertyConfigCreate<T[K], DataType<T[K]>>[];
-      } & NestedPropertyConfigCreateBase
-    : {
-        name: K;
-        dataType: DataType<T[K]>;
-        nestedProperties?: NestedPropertyConfigCreate<T[K], DataType<T[K]>>[];
-      } & NestedPropertyConfigCreateBase;
-}[NonRefKeys<T>];
+type NestedPropertyCreate<T = undefined> = T extends undefined
+  ? {
+      name: string;
+      dataType: DataType;
+      description?: string;
+      nestedProperties?: NestedPropertyConfigCreate<T, DataType>[];
+      indexInverted?: boolean;
+      indexFilterable?: boolean;
+      indexSearchable?: boolean;
+      skipVectorisation?: boolean;
+      tokenization?: WeaviateNestedProperty['tokenization'];
+      vectorizePropertyName?: boolean;
+    }
+  : {
+      [K in NonRefKeys<T>]: RequiresNested<DataType<T[K]>> extends true
+        ? {
+            name: K;
+            dataType: DataType<T[K]>;
+            nestedProperties: NestedPropertyConfigCreate<T[K], DataType<T[K]>>[];
+          } & NestedPropertyConfigCreateBase
+        : {
+            name: K;
+            dataType: DataType<T[K]>;
+            nestedProperties?: NestedPropertyConfigCreate<T[K], DataType<T[K]>>[];
+          } & NestedPropertyConfigCreateBase;
+    }[NonRefKeys<T>];
 
 export type NestedPropertyConfigCreate<T, D> = D extends 'object' | 'object[]'
   ? T extends (infer U)[]
@@ -56,19 +69,32 @@ type NestedPropertyConfigCreateBase = {
   tokenization?: WeaviateNestedProperty['tokenization'];
 };
 
-export type PropertyConfigCreate<T> = {
-  [K in NonRefKeys<T>]: RequiresNested<DataType<T[K]>> extends true
-    ? {
-        name: K;
-        dataType: DataType<T[K]>;
-        nestedProperties: NestedPropertyConfigCreate<T[K], DataType<T[K]>>[];
-      } & PropertyConfigCreateBase
-    : {
-        name: K;
-        dataType: DataType<T[K]>;
-        nestedProperties?: NestedPropertyConfigCreate<T[K], DataType<T[K]>>[];
-      } & PropertyConfigCreateBase;
-}[NonRefKeys<T>];
+export type PropertyConfigCreate<T> = T extends undefined
+  ? {
+      name: string;
+      dataType: DataType;
+      description?: string;
+      nestedProperties?: NestedPropertyConfigCreate<T, DataType>[];
+      indexInverted?: boolean;
+      indexFilterable?: boolean;
+      indexSearchable?: boolean;
+      skipVectorisation?: boolean;
+      tokenization?: WeaviateProperty['tokenization'];
+      vectorizePropertyName?: boolean;
+    }
+  : {
+      [K in NonRefKeys<T>]: RequiresNested<DataType<T[K]>> extends true
+        ? {
+            name: K;
+            dataType: DataType<T[K]>;
+            nestedProperties: NestedPropertyConfigCreate<T[K], DataType<T[K]>>[];
+          } & PropertyConfigCreateBase
+        : {
+            name: K;
+            dataType: DataType<T[K]>;
+            nestedProperties?: NestedPropertyConfigCreate<T[K], DataType<T[K]>>[];
+          } & PropertyConfigCreateBase;
+    }[NonRefKeys<T>];
 
 type ReferenceConfigBaseCreate<T> = {
   name: T extends Properties ? RefKeys<T> : string;

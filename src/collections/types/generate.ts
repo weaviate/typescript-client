@@ -1,8 +1,12 @@
-import { GroupByObject, GroupByResult, WeaviateObject } from './query';
+import { GroupByObject, GroupByResult, WeaviateObjectType, WeaviateNonGenericObject } from './query';
 
-export type GenerateObject<T> = WeaviateObject<T> & {
-  generated?: string;
-};
+export type GenerateObject<T> = T extends Record<string, any>
+  ? WeaviateObjectType<T> & {
+      generated?: string;
+    }
+  : WeaviateNonGenericObject & {
+      generated?: string;
+    };
 
 export type GenerativeReturn<T> = {
   objects: GenerateObject<T>[];

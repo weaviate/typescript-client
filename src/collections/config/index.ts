@@ -401,7 +401,7 @@ export const resolveProperty = <T>(
   };
 };
 
-const resolveNestedProperty = <T, D>(prop: NestedPropertyConfigCreate<T, D>): WeaviateNestedProperty => {
+const resolveNestedProperty = <T, D>(prop: any): WeaviateNestedProperty => {
   const { dataType, nestedProperties, ...rest } = prop;
   return {
     ...rest,
@@ -430,16 +430,18 @@ export const resolveReference = <T>(
 
 const config = <T>(connection: Connection, name: string, tenant?: string): Config<T> => {
   return {
-    addProperty: (property: PropertyConfigCreate<T>) =>
+    addProperty: (property: PropertyConfigCreate<any>) =>
       new PropertyCreator(connection)
         .withClassName(name)
-        .withProperty(resolveProperty<T>(property, []))
+        .withProperty(resolveProperty<any>(property, []))
         .do()
         .then(() => {}),
-    addReference: (reference: ReferenceSingleTargetConfigCreate<T> | ReferenceMultiTargetConfigCreate<T>) =>
+    addReference: (
+      reference: ReferenceSingleTargetConfigCreate<any> | ReferenceMultiTargetConfigCreate<any>
+    ) =>
       new PropertyCreator(connection)
         .withClassName(name)
-        .withProperty(resolveReference<T>(reference))
+        .withProperty(resolveReference<any>(reference))
         .do()
         .then(() => {}),
     get: () =>
@@ -483,7 +485,7 @@ const config = <T>(connection: Connection, name: string, tenant?: string): Confi
 export default config;
 
 export interface Config<T> {
-  addProperty: (property: PropertyConfigCreate<T>) => Promise<void>;
+  addProperty: (property: PropertyConfigCreate<any>) => Promise<void>;
   addReference: (
     reference: ReferenceSingleTargetConfigCreate<T> | ReferenceMultiTargetConfigCreate<T>
   ) => Promise<void>;

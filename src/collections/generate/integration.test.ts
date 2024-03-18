@@ -73,7 +73,11 @@ maybe('Testing of the collection.generate methods with a simple collection', () 
 
   describe('using a non-generic collection', () => {
     it('should generate without search', async () => {
-      const ret = await client.collections.get(collectionName).generate.fetchObjects(generateOpts);
+      const ret = await client.collections.get(collectionName).generate.fetchObjects({
+        singlePrompt: 'Write a haiku about ducks for {testProp}',
+        groupedTask: 'What is the value of testProp here?',
+        groupedProperties: ['testProp'],
+      });
       expect(ret.objects.length).toEqual(1);
       expect(ret.generated).toBeDefined();
       expect(ret.objects[0].properties.testProp).toEqual('test');

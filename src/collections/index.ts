@@ -33,7 +33,7 @@ export interface IBuilder {
   withTenant(tenant: string): this;
 }
 
-export type CollectionConfigCreate<TProperties = Properties, N = string> = {
+export type CollectionConfigCreate<TProperties = undefined, N = string> = {
   name: N;
   description?: string;
   generative?: ModuleConfig<GenerativeSearch>;
@@ -103,7 +103,7 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
       .then((schema) => (schema.classes ? schema.classes.map(classToCollection<any>) : []));
   const deleteCollection = (name: string) => new ClassDeleter(connection).withClassName(name).do();
   return {
-    create: async function <TProperties = any, TName = string>(
+    create: async function <TProperties = undefined, TName = string>(
       config: CollectionConfigCreate<TProperties, TName>
     ) {
       const { name, invertedIndex, multiTenancy, replication, sharding, vectorIndex, ...rest } = config;
@@ -177,14 +177,15 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
         .withClassName(name)
         .do()
         .then(classToCollection<TProperties>),
-    get: <TProperties extends Properties = any, TName extends string = string>(name: TName) =>
-      collection<TProperties, TName>(connection, name, dbVersionSupport),
+    get: <TProperties extends Properties | undefined = undefined, TName extends string = string>(
+      name: TName
+    ) => collection<TProperties, TName>(connection, name, dbVersionSupport),
     listAll: listAll,
   };
 };
 
 export interface Collections {
-  create<TProperties = any, TName = string>(
+  create<TProperties extends Properties | undefined = undefined, TName = string>(
     config: CollectionConfigCreate<TProperties, TName>
   ): Promise<Collection<TProperties, TName>>;
   createFromSchema(config: WeaviateClass): Promise<WeaviateClass>;
@@ -192,7 +193,7 @@ export interface Collections {
   deleteAll(): Promise<void[]>;
   exists(name: string): Promise<boolean>;
   export<TProperties>(name: string): Promise<CollectionConfig<TProperties>>;
-  get<TProperties extends Properties = any, TName extends string = string>(
+  get<TProperties extends Properties | undefined = undefined, TName extends string = string>(
     name: TName
   ): Collection<TProperties, TName>;
   listAll(): Promise<CollectionConfig<any>[]>;

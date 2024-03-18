@@ -41,7 +41,6 @@ import {
   BatchObject,
   BatchObjects,
   DataObject,
-  MetadataQuery,
   QueryReference,
   QueryNested,
   QueryProperty,
@@ -53,6 +52,7 @@ import {
   GeoCoordinate,
   PhoneNumberInput,
   ReferenceInput,
+  QueryMetadata,
 } from '../types';
 import {
   SearchBm25Args,
@@ -654,7 +654,7 @@ export default class Serialize {
         ? refProperties.map((property) => {
             return {
               referenceProperty: property.linkOn,
-              properties: Serialize.queryProperties(property.returnProperties),
+              properties: Serialize.queryProperties(property.returnProperties as any),
               metadata: Serialize.metadata(property.includeVector, property.returnMetadata),
               targetCollection: property.targetCollection ? property.targetCollection : '',
             };
@@ -679,7 +679,7 @@ export default class Serialize {
 
   private static metadata = (
     includeVector?: boolean | string[],
-    metadata?: MetadataQuery
+    metadata?: QueryMetadata
   ): MetadataRequest => {
     const out: any = {
       uuid: true,

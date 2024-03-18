@@ -11,7 +11,7 @@ import Deserialize from '../deserialize';
 import Serialize from '../serialize';
 import { Sorting } from '../sort';
 import {
-  MetadataQuery,
+  QueryMetadata,
   WeaviateObject,
   QueryProperty,
   QueryReference,
@@ -35,7 +35,7 @@ export type FetchObjectsOptions<T> = {
   filters?: FilterValue;
   sort?: Sorting<T>;
   includeVector?: boolean | string[];
-  returnMetadata?: MetadataQuery;
+  returnMetadata?: QueryMetadata;
   returnProperties?: QueryProperty<T>[];
   returnReferences?: QueryReference<T>[];
 };
@@ -46,7 +46,7 @@ export type QueryOptions<T> = {
   autoLimit?: number;
   filters?: FilterValue;
   includeVector?: boolean | string[];
-  returnMetadata?: MetadataQuery;
+  returnMetadata?: QueryMetadata;
   returnProperties?: QueryProperty<T>[];
   returnReferences?: QueryReference<T>[];
 };

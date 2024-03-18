@@ -23,7 +23,7 @@ import { SearchReply } from '../../proto/v1/search_get';
 export type GenerateOptions<T> = {
   singlePrompt?: string;
   groupedTask?: string;
-  groupedProperties?: (keyof T)[];
+  groupedProperties?: T extends undefined ? string[] : (keyof T)[];
 };
 
 class GenerateManager<T> implements Generate<T> {

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
-import weaviate, { WeaviateClient } from '../..';
+import weaviate, { AggregateText, WeaviateClient } from '../..';
 import { DataObject } from '../types';
 import { CrossReference } from '../references';
 import { Collection } from '../collection';
@@ -180,8 +180,8 @@ describe('Testing of the collection.aggregate methods', () => {
     });
     expect(result.totalCount).toEqual(100);
     expect(result.properties.text.count).toEqual(100);
-    expect(result.properties.text.topOccurrences![0].occurs).toEqual(100);
-    expect(result.properties.text.topOccurrences![0].value).toEqual('test');
+    expect((result.properties.text as AggregateText).topOccurrences![0].occurs).toEqual(100);
+    expect((result.properties.text as AggregateText).topOccurrences![0].value).toEqual('test');
   });
 
   it('should aggregate data without a search and all property metrics', async () => {

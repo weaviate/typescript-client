@@ -74,8 +74,10 @@ export type NestedField = NestedProperties | NestedProperties[];
 
 export type WeaviateField = PrimitiveField | NestedField;
 
+export type Property = WeaviateField | CrossReference<Properties> | undefined;
+
 export interface Properties {
-  [k: string]: WeaviateField | CrossReference<Properties> | undefined;
+  [k: string]: Property;
 }
 
 export interface NestedProperties {

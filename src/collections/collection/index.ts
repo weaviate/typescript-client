@@ -12,14 +12,14 @@ import { Iterator } from '../iterator';
 import query, { Query } from '../query';
 import sort, { Sort } from '../sort';
 import tenants, { Tenant, Tenants } from '../tenants';
-import { MetadataQuery, QueryProperty, QueryReference } from '../types';
+import { QueryMetadata, QueryProperty, QueryReference } from '../types';
 
-export interface Collection<T = any, N = string> {
+export interface Collection<T = undefined, N = string> {
   aggregate: Aggregate<T>;
   backup: BackupCollection;
   config: Config<T>;
   data: Data<T>;
-  filter: Filter<T>;
+  filter: Filter<T extends undefined ? any : T>;
   generate: Generate<T>;
   metrics: Metrics<T>;
   name: N;
@@ -33,7 +33,7 @@ export interface Collection<T = any, N = string> {
 
 export interface IteratorOptions<T> {
   includeVector?: boolean | string[];
-  returnMetadata?: MetadataQuery;
+  returnMetadata?: QueryMetadata;
   returnProperties?: QueryProperty<T>[];
   returnReferences?: QueryReference<T>[];
 }
@@ -57,7 +57,7 @@ const collection = <T, N>(
     backup: backupCollection(connection, name as string),
     config: config<T>(connection, name as string, tenant?.name),
     data: data<T>(connection, name as string, dbVersionSupport, consistencyLevel, tenant?.name),
-    filter: filter<T>(),
+    filter: filter<T extends undefined ? any : T>(),
     generate: generate<T>(connection, name as string, dbVersionSupport, consistencyLevel, tenant?.name),
     metrics: metrics<T>(),
     name: name,

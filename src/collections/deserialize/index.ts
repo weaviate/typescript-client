@@ -2,7 +2,7 @@ import { MetadataResult, PropertiesResult, SearchReply } from '../../proto/v1/se
 import { referenceFromObjects } from '../references';
 import {
   BatchObjectsReturn,
-  MetadataReturn,
+  ReturnMetadata,
   Properties,
   GenerativeReturn,
   WeaviateReturn,
@@ -27,11 +27,11 @@ export default class Deserialize {
       objects: reply.results.map((result) => {
         return {
           metadata: Deserialize.metadata(result.metadata),
-          properties: Deserialize.properties<T>(result.properties),
-          references: Deserialize.references<T>(result.properties),
+          properties: Deserialize.properties(result.properties),
+          references: Deserialize.references(result.properties),
           uuid: Deserialize.uuid(result.metadata),
           vectors: Deserialize.vectors(result.metadata),
-        };
+        } as any;
       }),
     };
   }
@@ -42,11 +42,11 @@ export default class Deserialize {
         return {
           generated: result.metadata?.generativePresent ? result.metadata?.generative : undefined,
           metadata: Deserialize.metadata(result.metadata),
-          properties: Deserialize.properties<T>(result.properties),
-          references: Deserialize.references<T>(result.properties),
+          properties: Deserialize.properties(result.properties),
+          references: Deserialize.references(result.properties),
           uuid: Deserialize.uuid(result.metadata),
           vectors: Deserialize.vectors(result.metadata),
-        };
+        } as any;
       }),
       generated: reply.generativeGroupedResult,
     };
@@ -60,11 +60,11 @@ export default class Deserialize {
         return {
           belongsToGroup: result.name,
           metadata: Deserialize.metadata(object.metadata),
-          properties: Deserialize.properties<T>(object.properties),
-          references: Deserialize.references<T>(object.properties),
+          properties: Deserialize.properties(object.properties),
+          references: Deserialize.references(object.properties),
           uuid: Deserialize.uuid(object.metadata),
           vectors: Deserialize.vectors(object.metadata),
-        };
+        } as any;
       });
       groups[result.name] = {
         maxDistance: result.maxDistance,
@@ -89,11 +89,11 @@ export default class Deserialize {
         return {
           belongsToGroup: result.name,
           metadata: Deserialize.metadata(object.metadata),
-          properties: Deserialize.properties<T>(object.properties),
-          references: Deserialize.references<T>(object.properties),
+          properties: Deserialize.properties(object.properties),
+          references: Deserialize.references(object.properties),
           uuid: Deserialize.uuid(object.metadata),
           vectors: Deserialize.vectors(object.metadata),
-        };
+        } as any;
       });
       groups[result.name] = {
         maxDistance: result.maxDistance,
@@ -112,15 +112,14 @@ export default class Deserialize {
     };
   }
 
-  private static properties<T>(properties?: PropertiesResult): ReturnProperties<T> {
-    if (!properties) return {} as ReturnProperties<T>;
-    return Deserialize.objectProperties(properties.nonRefProps) as ReturnProperties<T>;
+  private static properties(properties?: PropertiesResult) {
+    if (!properties) return {};
+    return Deserialize.objectProperties(properties.nonRefProps);
   }
 
-  private static references<T>(properties?: PropertiesResult): ReturnReferences<T> | undefined {
+  private static references(properties?: PropertiesResult) {
     if (!properties) return undefined;
-    if (properties.refProps.length === 0)
-      return properties.refPropsRequested ? ({} as ReturnReferences<T>) : undefined;
+    if (properties.refProps.length === 0) return properties.refPropsRequested ? {} : undefined;
     const out: any = {};
     properties.refProps.forEach((property) => {
       const uuids: string[] = [];
@@ -140,7 +139,7 @@ export default class Deserialize {
         uuids
       );
     });
-    return out as ReturnReferences<T>;
+    return out;
   }
 
   private static parsePropertyValue(value: Value): any {
@@ -170,11 +169,11 @@ export default class Deserialize {
     return out;
   }
 
-  private static metadata(metadata?: MetadataResult): MetadataReturn | undefined {
-    const out: MetadataReturn = {};
+  private static metadata(metadata?: MetadataResult): ReturnMetadata | undefined {
+    const out: ReturnMetadata = {};
     if (!metadata) return undefined;
-    if (metadata.creationTimeUnixPresent) out.creationTime = metadata.creationTimeUnix;
-    if (metadata.lastUpdateTimeUnixPresent) out.updateTime = metadata.lastUpdateTimeUnix;
+    if (metadata.creationTimeUnixPresent) out.creationTime = new Date(metadata.creationTimeUnix);
+    if (metadata.lastUpdateTimeUnixPresent) out.updateTime = new Date(metadata.lastUpdateTimeUnix);
     if (metadata.distancePresent) out.distance = metadata.distance;
     if (metadata.certaintyPresent) out.certainty = metadata.certainty;
     if (metadata.scorePresent) out.score = metadata.score;

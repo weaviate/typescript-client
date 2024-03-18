@@ -347,8 +347,8 @@ describe('Testing of the Sort class with a simple collection', () => {
             returnMetadata: ['creationTime'],
           })
           .then((res) =>
-            expect(res.objects.map((o) => o.metadata?.creationTime)).toEqual(
-              res.objects.map((o) => o.metadata?.creationTime!).sort((a, b) => a - b)
+            expect(res.objects.map((o) => o.metadata?.creationTime?.getTime()!)).toEqual(
+              res.objects.map((o) => o.metadata?.creationTime?.getTime()!).sort((a, b) => a - b)
             )
           )
       )
@@ -364,8 +364,8 @@ describe('Testing of the Sort class with a simple collection', () => {
             returnMetadata: ['creationTime'],
           })
           .then((res) =>
-            expect(res.objects.map((o) => o.metadata?.updateTime)).toEqual(
-              res.objects.map((o) => o.metadata?.updateTime!).sort((a, b) => b - a)
+            expect(res.objects.map((o) => o.metadata?.updateTime?.getTime()!)).toEqual(
+              res.objects.map((o) => o.metadata?.updateTime?.getTime()!).sort((a, b) => b - a)
             )
           )
       )
@@ -381,8 +381,8 @@ describe('Testing of the Sort class with a simple collection', () => {
             returnMetadata: ['updateTime'],
           })
           .then((res) =>
-            expect(res.objects.map((o) => o.metadata?.updateTime)).toEqual(
-              res.objects.map((o) => o.metadata?.updateTime!).sort((a, b) => a - b)
+            expect(res.objects.map((o) => o.metadata?.updateTime?.getTime()!)).toEqual(
+              res.objects.map((o) => o.metadata?.updateTime?.getTime()!).sort((a, b) => a - b)
             )
           )
       )
@@ -398,8 +398,8 @@ describe('Testing of the Sort class with a simple collection', () => {
             returnMetadata: ['updateTime'],
           })
           .then((res) =>
-            expect(res.objects.map((o) => o.metadata?.updateTime)).toEqual(
-              res.objects.map((o) => o.metadata?.updateTime!).sort((a, b) => b - a)
+            expect(res.objects.map((o) => o.metadata?.updateTime?.getTime()!)).toEqual(
+              res.objects.map((o) => o.metadata?.updateTime?.getTime()!).sort((a, b) => b - a)
             )
           )
       )

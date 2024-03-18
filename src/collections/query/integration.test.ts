@@ -203,7 +203,9 @@ describe('Testing of the collection.query methods with a collection with a refer
           },
         ],
       });
-      ret.objects.sort((a, b) => a.properties.testProp.localeCompare(b.properties.testProp));
+      ret.objects.sort((a, b) =>
+        (a.properties.testProp as string).localeCompare(b.properties.testProp as string)
+      );
       expect(ret.objects.length).toEqual(2);
       expect(ret.objects[0].properties.testProp).toEqual('other');
       expect(ret.objects[0].references?.refProp?.objects[0].properties?.testProp).toEqual('test');

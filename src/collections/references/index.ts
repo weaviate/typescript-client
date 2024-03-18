@@ -1,4 +1,10 @@
-import { Properties, ReferenceInput, ReferenceToMultiTarget, WeaviateObject } from '../types';
+import {
+  Properties,
+  ReferenceInput,
+  ReferenceToMultiTarget,
+  WeaviateNonGenericObject,
+  WeaviateObject,
+} from '../types';
 
 interface ReferenceToArgs {
   uuids: string | string[];
@@ -61,7 +67,7 @@ export class Reference {
 }
 
 export const referenceFromObjects = <TProperties>(
-  objects: WeaviateObject<TProperties>[],
+  objects: any[],
   targetCollection: string,
   uuids: string[]
 ): ReferenceManager<TProperties> => {
@@ -69,6 +75,10 @@ export const referenceFromObjects = <TProperties>(
 };
 
 export type CrossReference<TProperties extends Properties> = ReferenceManager<TProperties>;
+
+export type CrossReferenceDefault = {
+  objects: WeaviateNonGenericObject[];
+};
 
 export type CrossReferences<TProperties extends Properties[]> = ReferenceManager<UnionOf<TProperties>>;
 
