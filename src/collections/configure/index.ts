@@ -1,12 +1,10 @@
 export { QuantizerGuards } from './parsing';
 
 import {
-  DataType,
   InvertedIndexConfigCreate,
   MultiTenancyConfigCreate,
   NamedVectorConfigCreate,
   NamedVectorizerOptions,
-  Properties,
   ReplicationConfigCreate,
   ShardingConfigCreate,
   VectorIndexType,
@@ -21,22 +19,31 @@ import { vectorizer } from './vectorizer';
 import { parseWithDefault } from './parsing';
 import { PrimitiveKeys } from '../types/internal';
 
-const dataType: Record<string, DataType> = {
-  INT: 'int',
-  INT_ARRAY: 'int[]',
-  NUMBER: 'number',
-  NUMBER_ARRAY: 'number[]',
-  TEXT: 'text',
-  TEXT_ARRAY: 'text[]',
-  BOOLEAN: 'boolean',
-  BOOLEAN_ARRAY: 'boolean[]',
-  DATE: 'date',
-  DATE_ARRAY: 'date[]',
-  OBJECT: 'object',
-  OBJECT_ARRAY: 'object[]',
-  BLOB: 'blob',
-  GEO_COORDINATES: 'geoCoordinates',
-  PHONE_NUMBER: 'phoneNumber',
+const dataType = {
+  INT: 'int' as const,
+  INT_ARRAY: 'int[]' as const,
+  NUMBER: 'number' as const,
+  NUMBER_ARRAY: 'number[]' as const,
+  TEXT: 'text' as const,
+  TEXT_ARRAY: 'text[]' as const,
+  BOOLEAN: 'boolean' as const,
+  BOOLEAN_ARRAY: 'boolean[]' as const,
+  DATE: 'date' as const,
+  DATE_ARRAY: 'date[]' as const,
+  OBJECT: 'object' as const,
+  OBJECT_ARRAY: 'object[]' as const,
+  BLOB: 'blob' as const,
+  GEO_COORDINATES: 'geoCoordinates' as const,
+  PHONE_NUMBER: 'phoneNumber' as const,
+};
+
+const tokenization = {
+  WORD: 'word' as const,
+  LOWERCASE: 'lowercase' as const,
+  WHITESPACE: 'whitespace' as const,
+  FIELD: 'field' as const,
+  TRIGRAM: 'trigram' as const,
+  GSE: 'gse' as const,
 };
 
 export default {
@@ -45,6 +52,7 @@ export default {
   vectorizer,
   vectorIndex,
   dataType,
+  tokenization,
   invertedIndex: (config?: {
     bm25b?: number;
     bm25k1?: number;
