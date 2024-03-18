@@ -24,6 +24,7 @@ import { Meta } from './openapi/types';
 
 import { Agent as HttpAgent } from 'http';
 import { Agent as HttpsAgent } from 'https';
+import { LiveChecker, OpenidConfigurationGetter, ReadyChecker } from './misc';
 
 export type ProtocolParams = {
   /**
@@ -77,8 +78,12 @@ export interface WeaviateClient {
   backup: Backup;
   cluster: Cluster;
   collections: Collections;
-  getMeta: () => Promise<Meta>;
   oidcAuth?: OidcAuthenticator;
+
+  getMeta: () => Promise<Meta>;
+  isLive: () => Promise<boolean>;
+  isReady: () => Promise<boolean>;
+  getOpenIDConfig?: () => Promise<any>;
 }
 
 const app = {
@@ -122,6 +127,9 @@ const app = {
       cluster: cluster(conn),
       collections: collections(conn, dbVersionSupport),
       getMeta: () => new MetaGetter(conn).do(),
+      getOpenIDConfig: () => new OpenidConfigurationGetter(conn.http).do(),
+      isLive: () => new LiveChecker(conn, dbVersionProvider).do(),
+      isReady: () => new ReadyChecker(conn, dbVersionProvider).do(),
     };
     if (conn.oidcAuth) ifc.oidcAuth = conn.oidcAuth;
 
