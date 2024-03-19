@@ -3,10 +3,10 @@ import {
   MultiTenancyConfig,
   ReplicationConfig,
   ShardingConfig,
-} from '../../config/types';
-import { Properties, DataType } from '../../types';
-import { NonRefKeys, RefKeys } from '../../types/internal';
-import { WeaviateNestedProperty, WeaviateProperty } from '../../../openapi/types';
+} from '../../config/types/index.js';
+import { Properties, DataType } from '../../types/index.js';
+import { NonRefKeys, RefKeys } from '../../types/internal.js';
+import { WeaviateNestedProperty, WeaviateProperty } from '../../../openapi/types.js';
 
 export type RecursivePartial<T> = {
   [P in keyof T]?: RecursivePartial<T[P]>;

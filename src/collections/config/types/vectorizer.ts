@@ -1,5 +1,5 @@
-import { ModuleConfig } from '.';
-import { VectorIndexConfigFlat, VectorIndexConfigHNSW, VectorIndexType } from './vectorIndex';
+import { ModuleConfig } from './index.js';
+import { VectorIndexConfigFlat, VectorIndexConfigHNSW, VectorIndexType } from './vectorIndex.js';
 
 export type VectorConfig = Record<
   string,

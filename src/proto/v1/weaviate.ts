@@ -1,8 +1,8 @@
 /* eslint-disable */
 import type { CallContext, CallOptions } from "nice-grpc-common";
-import { BatchObjectsReply, BatchObjectsRequest } from "./batch";
-import { BatchDeleteReply, BatchDeleteRequest } from "./batch_delete";
-import { SearchReply, SearchRequest } from "./search_get";
+import { BatchObjectsReply, BatchObjectsRequest } from "./batch.js";
+import { BatchDeleteReply, BatchDeleteRequest } from "./batch_delete.js";
+import { SearchReply, SearchRequest } from "./search_get.js";
 
 export const protobufPackage = "weaviate.v1";
 

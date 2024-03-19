@@ -12,3 +12,4 @@ weaviate-data/
 .eslintcache
 test.sh
 scratch/
+docs/

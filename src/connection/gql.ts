@@ -1,5 +1,5 @@
 import { GraphQLClient as Client, Variables } from 'graphql-request';
-import ConnectionREST, { ConnectionParams } from './http';
+import ConnectionREST, { ConnectionParams } from './http.js';
 
 export default class ConnectionGQL extends ConnectionREST {
   private gql: GraphQLClient;
@@ -20,7 +20,7 @@ export default class ConnectionGQL extends ConnectionREST {
   };
 }
 
-export * from './auth';
+export * from './auth.js';
 
 export type TQuery = any;
 export interface GraphQLClient {

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import weaviate, { WeaviateClient } from '../v2';
+import weaviate, { WeaviateClient } from '../v2/index.js';
 import {
   WeaviateObject,
   WeaviateObjectsList,
@@ -7,7 +7,7 @@ import {
   Properties,
   WeaviateClass,
   Tenant,
-} from '../openapi/types';
+} from '../openapi/types.js';
 
 const thingClassName = 'DataJourneyTestThing';
 const refSourceClassName = 'DataJourneyTestRefSource';

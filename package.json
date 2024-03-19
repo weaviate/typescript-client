@@ -2,16 +2,17 @@
   "name": "weaviate-client",
   "version": "3.0.0-beta.16",
   "description": "JS/TS client for Weaviate",
+  "main": "dist/node/cjs/index.js",
   "type": "module",
   "exports": {
-    "./node": {
-      "import": {
-        "types": "./dist/node/index.d.ts",
-        "default": "./dist/node/index.js"
+    ".": {
+      "types": {
+        "require": "./dist/node/cjs/index.d.ts",
+        "default": "./dist/node/esm/index.d.ts"
       },
-      "require": {
-        "types": "./dist/node/index.d.cts",
-        "default": "./dist/node/index.cjs"
+      "default": {
+        "require": "./dist/node/cjs/index.js",
+        "default": "./dist/node/esm/index.js"
       }
     }
   },
@@ -21,9 +22,11 @@
   "scripts": {
     "test": "tsc -noEmit -p tsconfig-test.json && jest --no-cache --useStderr --runInBand --detectOpenHandles",
     "test:coverage": "tsc -noEmit -p tsconfig-test.json && jest --no-cache --coverage --useStderr --runInBand --detectOpenHandles",
-    "build": "npm run build:node",
-    "build:web": "npm run lint && tsup",
-    "build:node": "npm run lint && tsc && tsup && prettier --write --no-error-on-unmatched-pattern '**/dist/**/*.{ts,js}'",
+    "build": "npm run build:node && cp -r ./src ./dist/src",
+    "build:web": "tsup",
+    "build:cjs": "tsc --module commonjs --outDir dist/node/cjs && touch dist/node/cjs/package.json && echo '{\"type\": \"commonjs\"}' > dist/node/cjs/package.json",
+    "build:esm": "tsc --module esnext --outDir dist/node/esm && touch dist/node/esm/package.json && echo '{\"type\": \"module\"}' > dist/node/esm/package.json",
+    "build:node": "npm run lint && npm run build:cjs && npm run build:esm && prettier --write --no-error-on-unmatched-pattern '**/dist/**/*.{ts,js}'",
     "prepack": "npm run build",
     "lint": "eslint --ext .ts,.js .",
     "lint:fix": "npm run lint -- --fix",
@@ -31,7 +34,8 @@
     "format:check": "prettier --check --no-error-on-unmatched-pattern '**/*.{ts,js}' '!dist/**'",
     "format:dist": "prettier --write --no-error-on-unmatched-pattern '**/dist/**/*.{ts,js}'",
     "schema": "./tools/refresh_schema.sh",
-    "protos": "./tools/refresh_protos.sh"
+    "protos": "./tools/refresh_protos.sh",
+    "docs": "typedoc --out docs/ src/"
   },
   "repository": {
     "type": "git",
@@ -85,7 +89,8 @@
     "ts-node": "^10.9.2",
     "ts-proto": "^1.163.0",
     "tsup": "^8.0.2",
-    "typescript": "^5.3.3",
+    "typedoc": "^0.25.12",
+    "typescript": "4.9.5",
     "uuid": "^9.0.1"
   },
   "lint-staged": {

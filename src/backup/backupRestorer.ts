@@ -3,12 +3,16 @@ import {
   validateBackupId,
   validateExcludeClassNames,
   validateIncludeClassNames,
-} from './validation';
-import Connection from '../connection';
-import BackupRestoreStatusGetter from './backupRestoreStatusGetter';
-import { CommandBase } from '../validation/commandBase';
-import { BackupRestoreRequest, BackupRestoreResponse, BackupRestoreStatusResponse } from '../openapi/types';
-import { Backend } from '.';
+} from './validation.js';
+import Connection from '../connection/index.js';
+import BackupRestoreStatusGetter from './backupRestoreStatusGetter.js';
+import { CommandBase } from '../validation/commandBase.js';
+import {
+  BackupRestoreRequest,
+  BackupRestoreResponse,
+  BackupRestoreStatusResponse,
+} from '../openapi/types.js';
+import { Backend } from './index.js';
 
 const WAIT_INTERVAL = 1000;
 

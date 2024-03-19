@@ -1,4 +1,4 @@
-import Raw from './raw';
+import Raw from './raw.js';
 
 test('a simple raw query', () => {
   const mockClient: any = {

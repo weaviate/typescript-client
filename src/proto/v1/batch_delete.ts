@@ -1,7 +1,7 @@
 /* eslint-disable */
 import Long from "long";
-import * as _m0 from "protobufjs/minimal";
-import { ConsistencyLevel, consistencyLevelFromJSON, consistencyLevelToJSON, Filters } from "./base";
+import _m0 from "protobufjs/minimal.js";
+import { ConsistencyLevel, consistencyLevelFromJSON, consistencyLevelToJSON, Filters } from "./base.js";
 
 export const protobufPackage = "weaviate.v1";
 

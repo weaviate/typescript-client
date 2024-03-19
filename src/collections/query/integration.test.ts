@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
-import weaviate, { WeaviateClient } from '../..';
-import { Collection } from '../collection';
-import { CrossReference, Reference } from '../references';
-import { GroupByOptions } from '../types';
+import weaviate, { WeaviateClient } from '../../index.js';
+import { Collection } from '../collection/index.js';
+import { CrossReference, Reference } from '../references/index.js';
+import { GroupByOptions } from '../types/index.js';
 
 describe('Testing of the collection.query methods with a simple collection', () => {
   let client: WeaviateClient;

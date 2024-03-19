@@ -1,11 +1,11 @@
-import { testServer } from '../../test/server';
+import { testServer } from '../../test/server.js';
 import {
   AuthClientCredentials,
   AuthUserPasswordCredentials,
   AuthAccessTokenCredentials,
   ApiKey,
-} from './auth';
-import Connection from '.';
+} from './auth.js';
+import Connection from './index.js';
 
 describe('mock server auth tests', () => {
   const server = testServer();

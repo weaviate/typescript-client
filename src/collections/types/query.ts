@@ -1,5 +1,5 @@
-import { Properties, Property, WeaviateField } from '.';
-import { CrossReference, CrossReferenceDefault, CrossReferences } from '../references';
+import { Properties, Property, WeaviateField } from '../index.js';
+import { CrossReference, CrossReferenceDefault, CrossReferences } from '../references/index.js';
 import {
   ExtractCrossReferenceType,
   NonRefKeys,
@@ -7,7 +7,7 @@ import {
   QueryProperty,
   QueryReference,
   QueryNestedDefault,
-} from './internal';
+} from './internal.js';
 
 // export type MetadataQuery = (
 //   | 'creationTime'

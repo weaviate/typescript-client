@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import weaviate, { WeaviateClient } from '../..';
-import { PropertyConfig, VectorIndexConfigHNSW } from './types';
+import weaviate, { WeaviateClient } from '../../index.js';
+import { PropertyConfig, VectorIndexConfigHNSW } from './types/index.js';
 
 const fail = (msg: string) => {
   throw new Error(msg);
@@ -25,7 +25,7 @@ describe('Testing of the collection.config namespace', () => {
   });
 
   it('should be able get the config of a collection without generics', async () => {
-    const collectionName = 'TestCollectionConfigGetWithGenerics';
+    const collectionName = 'TestCollectionConfigGetWithGenerics.js';
     type TestCollectionConfigGet = {
       testProp: string;
     };
@@ -77,7 +77,7 @@ describe('Testing of the collection.config namespace', () => {
   });
 
   it('should be able get the config of a collection with generics', async () => {
-    const collectionName = 'TestCollectionConfigGetWithoutGenerics';
+    const collectionName = 'TestCollectionConfigGetWithoutGenerics.js';
     type TestCollectionConfigGet = {
       testProp: string;
     };
@@ -129,7 +129,7 @@ describe('Testing of the collection.config namespace', () => {
   });
 
   it('should be able to get a collection with named vectors', async () => {
-    const collectionName = 'TestCollectionConfigGetNamedVectors';
+    const collectionName = 'TestCollectionConfigGetNamedVectors.js';
     await client.collections.create({
       name: collectionName,
       properties: [
@@ -173,7 +173,7 @@ describe('Testing of the collection.config namespace', () => {
   });
 
   it('should be able to get the config of a collection with HNSW+PQ', async () => {
-    const collectionName = 'TestCollectionConfigGetHNSWPlusPQ';
+    const collectionName = 'TestCollectionConfigGetHNSWPlusPQ.js';
     await client.collections.create({
       name: collectionName,
       vectorIndex: weaviate.configure.vectorIndex.hnsw({
@@ -194,7 +194,7 @@ describe('Testing of the collection.config namespace', () => {
   });
 
   it('should be able to get the config of a collection with HNSW+BQ', async () => {
-    const collectionName = 'TestCollectionConfigGetHNSWPlusBQ';
+    const collectionName = 'TestCollectionConfigGetHNSWPlusBQ.js';
     await client.collections.create({
       name: collectionName,
       vectorIndex: weaviate.configure.vectorIndex.hnsw({
@@ -215,7 +215,7 @@ describe('Testing of the collection.config namespace', () => {
   });
 
   it('should be able to get the config of a collection with flat+BQ', async () => {
-    const collectionName = 'TestCollectionConfigGetFlatPlusBQ';
+    const collectionName = 'TestCollectionConfigGetFlatPlusBQ.js';
     await client.collections.create({
       name: collectionName,
       vectorIndex: weaviate.configure.vectorIndex.flat({
@@ -236,7 +236,7 @@ describe('Testing of the collection.config namespace', () => {
   });
 
   it('should be able to add a property to a collection', async () => {
-    const collectionName = 'TestCollectionConfigAddProperty';
+    const collectionName = 'TestCollectionConfigAddProperty.js';
     const collection = await client.collections.create({
       name: collectionName,
       vectorizer: weaviate.configure.vectorizer.none(),

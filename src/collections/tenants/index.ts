@@ -1,5 +1,5 @@
-import Connection from '../../connection';
-import { TenantsCreator, TenantsDeleter, TenantsGetter, TenantsUpdater } from '../../schema';
+import Connection from '../../connection/index.js';
+import { TenantsCreator, TenantsDeleter, TenantsGetter, TenantsUpdater } from '../../schema/index.js';
 
 export type Tenant = {
   name: string;

@@ -4,7 +4,7 @@ import {
   ReferenceToMultiTarget,
   WeaviateNonGenericObject,
   WeaviateObject,
-} from '../types';
+} from '../types/index.js';
 
 interface ReferenceToArgs {
   uuids: string | string[];
@@ -44,7 +44,7 @@ export class ReferenceManager<T> {
   }
 
   public isMultiTarget(): boolean {
-    return this.targetCollection !== '';
+    return this.targetCollection !== '.js';
   }
 }
 

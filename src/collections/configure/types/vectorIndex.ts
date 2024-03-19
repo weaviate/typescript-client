@@ -1,5 +1,10 @@
-import { BQConfig, PQConfig, VectorIndexConfigFlat, VectorIndexConfigHNSW } from '../../config/types';
-import { RecursivePartial } from './base';
+import {
+  BQConfig,
+  PQConfig,
+  VectorIndexConfigFlat,
+  VectorIndexConfigHNSW,
+} from '../../config/types/index.js';
+import { RecursivePartial } from './base.js';
 
 type QuantizerRecursivePartial<T> = {
   [P in keyof T]: P extends 'type' ? T[P] : RecursivePartial<T[P]> | undefined;

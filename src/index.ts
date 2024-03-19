@@ -1,7 +1,7 @@
-import { ConnectionGRPC } from './connection';
-import { DbVersionProvider, DbVersionSupport } from './utils/dbVersion';
-import { backup, Backup } from './collections/backup';
-import cluster, { Cluster } from './collections/cluster';
+import { ConnectionGRPC } from './connection/index.js';
+import { DbVersionProvider, DbVersionSupport } from './utils/dbVersion.js';
+import { backup, Backup } from './collections/backup/client.js';
+import cluster, { Cluster } from './collections/cluster/index.js';
 import {
   ApiKey,
   AuthAccessTokenCredentials,
@@ -9,22 +9,22 @@ import {
   AuthUserPasswordCredentials,
   AuthCredentials,
   OidcAuthenticator,
-} from './connection/auth';
+} from './connection/auth.js';
 import {
   connectToLocal,
   connectToWCS,
   ConnectToLocalOptions,
   ConnectToWCSOptions,
-} from './connection/helpers';
-import { ProxiesParams } from './connection/http';
-import MetaGetter from './misc/metaGetter';
-import collections, { Collections } from './collections';
-import configure from './collections/configure';
-import { Meta } from './openapi/types';
+} from './connection/helpers.js';
+import { ProxiesParams } from './connection/http.js';
+import MetaGetter from './misc/metaGetter.js';
+import collections, { Collections } from './collections/index.js';
+import configure from './collections/configure/index.js';
+import { Meta } from './openapi/types.js';
 
 import { Agent as HttpAgent } from 'http';
 import { Agent as HttpsAgent } from 'https';
-import { LiveChecker, OpenidConfigurationGetter, ReadyChecker } from './misc';
+import { LiveChecker, OpenidConfigurationGetter, ReadyChecker } from './misc/index.js';
 
 export type ProtocolParams = {
   /**
@@ -159,7 +159,7 @@ function initDbVersionProvider(conn: ConnectionGRPC) {
 }
 
 export default app;
-export * from './collections';
-export * from './connection';
-export * from './utils/base64';
-export * from './utils/uuid';
+export * from './collections/index.js';
+export * from './connection/index.js';
+export * from './utils/base64.js';
+export * from './utils/uuid.js';

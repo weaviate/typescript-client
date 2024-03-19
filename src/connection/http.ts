@@ -1,5 +1,5 @@
 import { Agent } from 'http';
-import OpenidConfigurationGetter from '../misc/openidConfigurationGetter';
+import OpenidConfigurationGetter from '../misc/openidConfigurationGetter.js';
 
 import {
   ApiKey,
@@ -7,7 +7,7 @@ import {
   AuthClientCredentials,
   AuthUserPasswordCredentials,
   OidcAuthenticator,
-} from './auth';
+} from './auth.js';
 
 /**
  * You can only specify the gRPC proxy URL at this point in time. This is because ProxiesParams should be used to define tunnelling proxies
@@ -165,7 +165,7 @@ export default class ConnectionREST {
   };
 }
 
-export * from './auth';
+export * from './auth.js';
 
 export interface HttpClient {
   patch: (path: string, payload: any, bearerToken?: string) => any;

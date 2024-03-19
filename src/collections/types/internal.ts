@@ -1,4 +1,4 @@
-import { CrossReference, ReferenceManager } from '../references';
+import { CrossReference, ReferenceManager } from '../references/index.js';
 import {
   NestedProperties,
   PrimitiveField,
@@ -9,7 +9,7 @@ import {
   WeaviateField,
   Properties,
   RefPropertyDefault,
-} from '.';
+} from '../index.js';
 
 export type ExtractCrossReferenceType<T> = T extends CrossReference<infer U> ? U : never;
 

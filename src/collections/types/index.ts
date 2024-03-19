@@ -1,9 +1,9 @@
-export * from '../config/types';
-export * from '../configure/types';
-export * from './batch';
-export * from './data';
-export * from './generate';
-export * from './query';
+export * from '../config/types/index.js';
+export * from '../configure/types/index.js';
+export * from './batch.js';
+export * from './data.js';
+export * from './generate.js';
+export * from './query.js';
 export type {
   QueryNested,
   QueryProperty,
@@ -11,15 +11,15 @@ export type {
   ReferenceInput,
   ReferenceInputs,
   NonReferenceInputs,
-} from './internal';
-export type { CollectionConfigCreate } from '..';
+} from './internal.js';
+export type { CollectionConfigCreate } from '../index.js';
 
 import {
   GeoCoordinate as GeoCoordinateGRPC,
   PhoneNumber as PhoneNumberGRPC,
-} from '../../proto/v1/properties';
+} from '../../proto/v1/properties.js';
 
-import { CrossReference } from '../references';
+import { CrossReference } from '../references/index.js';
 
 // The order of type resolution is important here since object can be inferred as all other types
 // hence it should be the last type in the union

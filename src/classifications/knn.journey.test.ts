@@ -1,11 +1,10 @@
-import weaviate, { WeaviateClient } from '../v2';
-import Connection from '../connection';
-import { Classification } from '../openapi/types';
+import weaviate, { WeaviateClient } from '../v2/index.js';
+import { Classification } from '../openapi/types.js';
 
-const targetDessertId = 'cd54852a-209d-423b-bf1c-884468215237';
-const targetSavoryId = 'e5da0127-327e-4184-85b8-7b9d1af4a850';
-const unclassifiedOneId = '8bde517e-01a7-47c9-8db6-d09a2e8d3db7';
-const unclassifiedTwoId = '39a04208-b6b6-4df4-9aba-caed9e0df2c3';
+const targetDessertId = 'cd54852a-209d-423b-bf1c-884468215237.js';
+const targetSavoryId = 'e5da0127-327e-4184-85b8-7b9d1af4a850.js';
+const unclassifiedOneId = '8bde517e-01a7-47c9-8db6-d09a2e8d3db7.js';
+const unclassifiedTwoId = '39a04208-b6b6-4df4-9aba-caed9e0df2c3.js';
 
 describe('a classification journey', () => {
   describe('knn - manually polling the status', () => {

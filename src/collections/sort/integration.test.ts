@@ -1,14 +1,14 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
-import weaviate, { WeaviateClient } from '../..';
-import { Collection } from '../collection';
+import weaviate, { WeaviateClient } from '../../index.js';
+import { Collection } from '../collection/index.js';
 
 describe('Testing of the Sort class with a simple collection', () => {
   let client: WeaviateClient;
-  type Name = 'TestCollectionSortSimple';
+  type Name = 'TestCollectionSortSimple.js';
   let collection: Collection<TestType, Name>;
   let collections: (Collection<TestType, Name> | Collection<any, Name>)[];
-  const collectionName = 'TestCollectionSortSimple';
+  const collectionName = 'TestCollectionSortSimple.js';
   let ids = [
     'd9ebd143-83aa-46c6-80ca-98730debe78c',
     'd9ebd143-83aa-46c6-80ca-98730debe78d',

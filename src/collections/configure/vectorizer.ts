@@ -18,7 +18,7 @@ import {
   Text2VecVoyageConfig,
   Vectorizer,
   VectorizerConfig,
-} from '../config/types';
+} from '../config/types/index.js';
 
 const makeVectorizer = <N extends Vectorizer, C extends VectorizerConfig>(
   name: N,

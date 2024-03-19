@@ -1,4 +1,4 @@
-import Serialize, { DataGuards } from '.';
+import Serialize, { DataGuards } from './index.js';
 import {
   SearchBm25Args,
   SearchFetchArgs,
@@ -12,9 +12,9 @@ import {
   SearchNearThermalArgs,
   SearchNearVectorArgs,
   SearchNearVideoArgs,
-} from '../../grpc/searcher';
-import { Filters, Filters_Operator } from '../../proto/v1/base';
-import { BatchObject as BatchObjectGRPC, BatchObject_Properties } from '../../proto/v1/batch';
+} from '../../grpc/searcher.js';
+import { Filters, Filters_Operator } from '../../proto/v1/base.js';
+import { BatchObject as BatchObjectGRPC, BatchObject_Properties } from '../../proto/v1/batch.js';
 import {
   BM25,
   GenerativeSearch,
@@ -33,11 +33,11 @@ import {
   NearVector,
   NearVideoSearch,
   PropertiesRequest,
-} from '../../proto/v1/search_get';
-import filter from '../filters';
-import { Reference } from '../references';
-import sort from '../sort';
-import { BatchObjects, WeaviateField } from '../types';
+} from '../../proto/v1/search_get.js';
+import filter from '../filters/index.js';
+import { Reference } from '../references/index.js';
+import sort from '../sort/index.js';
+import { BatchObjects, WeaviateField } from '../types/index.js';
 
 describe('Unit testing of Serialize', () => {
   it('should parse args for fetchObjects', () => {
@@ -507,7 +507,7 @@ describe('Unit testing of DataGuards', () => {
     (...args: any[]): any =>
       !f(...args);
   it('should check isText', () => {
-    const pred = (v: any) => v === 'text';
+    const pred = (v: any) => v === 'text.js';
     values
       .filter(pred)
       .map(DataGuards.isText)
@@ -519,7 +519,7 @@ describe('Unit testing of DataGuards', () => {
   });
 
   it('should check isTextArray', () => {
-    const pred = (v: any) => Array.isArray(v) && v[0] === 'text';
+    const pred = (v: any) => Array.isArray(v) && v[0] === 'text.js';
     values
       .filter(pred)
       .map(DataGuards.isTextArray)
@@ -651,7 +651,7 @@ describe('Unit testing of DataGuards', () => {
   });
 
   it('should check isNested', () => {
-    const pred = (v: any) => v.prop === 'hi';
+    const pred = (v: any) => v.prop === 'hi.js';
     values
       .filter(pred)
       .map(DataGuards.isNested)
@@ -663,7 +663,7 @@ describe('Unit testing of DataGuards', () => {
   });
 
   it('should check isNestedArray', () => {
-    const pred = (v: any) => Array.isArray(v) && v[0]?.prop === 'hi';
+    const pred = (v: any) => Array.isArray(v) && v[0]?.prop === 'hi.js';
     values
       .filter(pred)
       .map(DataGuards.isNestedArray)

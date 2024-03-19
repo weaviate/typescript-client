@@ -1,12 +1,12 @@
-import Connection from '../../connection';
+import Connection from '../../connection/index.js';
 
-import { DbVersionSupport } from '../../utils/dbVersion';
-import { ConsistencyLevel } from '../../data';
+import { DbVersionSupport } from '../../utils/dbVersion.js';
+import { ConsistencyLevel } from '../../data/index.js';
 
-import { FilterValue } from '../filters';
+import { FilterValue } from '../filters/index.js';
 
-import { Aggregator } from '../../graphql';
-import Serialize from '../serialize';
+import { Aggregator } from '../../graphql/index.js';
+import Serialize from '../serialize/index.js';
 
 interface AggregateBaseOptions<T, M> {
   filters?: FilterValue;

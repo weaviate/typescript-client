@@ -1,6 +1,6 @@
-import Connection from '../connection';
-import { NodesStatusResponse } from '../openapi/types';
-import { CommandBase } from '../validation/commandBase';
+import Connection from '../connection/index.js';
+import { NodesStatusResponse } from '../openapi/types.js';
+import { CommandBase } from '../validation/commandBase.js';
 
 export default class NodesStatusGetter extends CommandBase {
   private className?: string;
@@ -25,7 +25,7 @@ export default class NodesStatusGetter extends CommandBase {
   }
 
   do = (): Promise<NodesStatusResponse> => {
-    let path = '/nodes';
+    let path = '/nodes.js';
     if (this.className) {
       path = `${path}/${this.className}`;
     }

@@ -1,10 +1,10 @@
-import weaviate, { WeaviateClient } from '../..';
+import weaviate, { WeaviateClient } from '../../index.js';
 
 describe('Testing of the client.cluster methods', () => {
   let client: WeaviateClient;
 
-  const one = 'TestClusterCollectionOne';
-  const two = 'TestClusterCollectionTwo';
+  const one = 'TestClusterCollectionOne.js';
+  const two = 'TestClusterCollectionTwo.js';
 
   afterAll(async () => {
     await (await client).collections.delete(one);

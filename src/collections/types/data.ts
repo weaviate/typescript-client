@@ -1,4 +1,4 @@
-import { NonReferenceInputs, ReferenceInputs } from './internal';
+import { NonReferenceInputs, ReferenceInputs } from './internal.js';
 
 export type DataObject<T> = {
   id?: string;

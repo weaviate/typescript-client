@@ -1,10 +1,10 @@
-import Connection from '../../connection/grpc';
+import Connection from '../../connection/grpc.js';
 
-import { DbVersionSupport } from '../../utils/dbVersion';
-import { ConsistencyLevel } from '../../data';
+import { DbVersionSupport } from '../../utils/dbVersion.js';
+import { ConsistencyLevel } from '../../data/index.js';
 
-import Deserialize from '../deserialize';
-import Serialize from '../serialize';
+import Deserialize from '../deserialize/index.js';
+import Serialize from '../serialize/index.js';
 import {
   FetchObjectsOptions,
   Bm25Options,
@@ -16,9 +16,9 @@ import {
   NearTextOptions,
   GroupByNearOptions,
   GroupByNearTextOptions,
-} from '../query';
-import { GenerativeReturn, GenerativeGroupByReturn } from '../types';
-import { SearchReply } from '../../proto/v1/search_get';
+} from '../query/index.js';
+import { GenerativeReturn, GenerativeGroupByReturn } from '../types/index.js';
+import { SearchReply } from '../../proto/v1/search_get.js';
 
 export type GenerateOptions<T> = {
   singlePrompt?: string;

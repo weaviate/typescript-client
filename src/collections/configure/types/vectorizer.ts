@@ -1,5 +1,5 @@
-import { VectorIndexConfigCreateType } from './vectorIndex';
-import { ModuleConfig, VectorIndexType, Vectorizer, VectorizerConfigType } from '../../config/types';
+import { VectorIndexConfigCreateType } from './vectorIndex.js';
+import { ModuleConfig, VectorIndexType, Vectorizer, VectorizerConfigType } from '../../config/types/index.js';
 
 export type NamedVectorizerOptions<P, I, V> = {
   properties?: P;

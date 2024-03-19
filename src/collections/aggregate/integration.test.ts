@@ -1,10 +1,9 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
-import weaviate, { AggregateText, WeaviateClient } from '../..';
-import { DataObject } from '../types';
-import { CrossReference } from '../references';
-import { Collection } from '../collection';
-import filter from '../filters';
+import weaviate, { AggregateText, WeaviateClient } from '../../index.js';
+import { DataObject } from '../types/index.js';
+import { CrossReference } from '../references/index.js';
+import { Collection } from '../collection/index.js';
 
 describe('Testing of the collection.aggregate methods', () => {
   type TestCollectionAggregate = {
@@ -25,10 +24,10 @@ describe('Testing of the collection.aggregate methods', () => {
   let collection: Collection<TestCollectionAggregate, 'TestCollectionAggregate'>;
   const collectionName = 'TestCollectionAggregate';
 
-  const date0 = '2023-01-01T00:00:00Z';
-  const date1 = '2023-01-01T00:00:00Z';
-  const date2 = '2023-01-02T00:00:00Z';
-  const dateMid = '2023-01-01T12:00:00Z';
+  const date0 = '2023-01-01T00:00:00Z.js';
+  const date1 = '2023-01-01T00:00:00Z.js';
+  const date2 = '2023-01-02T00:00:00Z.js';
+  const dateMid = '2023-01-01T12:00:00Z.js';
 
   afterAll(async () => {
     return (await client).collections.delete(collectionName).catch((err) => {

@@ -1,3 +1,3 @@
-export * from './base';
-export * from './vectorIndex';
-export * from './vectorizer';
+export * from './base.js';
+export * from './vectorIndex.js';
+export * from './vectorizer.js';

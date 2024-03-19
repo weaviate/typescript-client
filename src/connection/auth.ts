@@ -1,4 +1,4 @@
-import { HttpClient } from './http';
+import { HttpClient } from './http.js';
 
 export type AuthCredentials =
   | AuthUserPasswordCredentials

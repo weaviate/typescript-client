@@ -1,10 +1,10 @@
 export function buildObjectsPath(queryParams: any): string {
-  const path = '/batch/objects';
+  const path = '/batch/objects.js';
   return buildPath(path, queryParams);
 }
 
 export function buildRefsPath(queryParams: any): string {
-  const path = '/batch/references';
+  const path = '/batch/references.js';
   return buildPath(path, queryParams);
 }
 

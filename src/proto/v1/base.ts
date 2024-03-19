@@ -1,7 +1,7 @@
 /* eslint-disable */
 import Long from "long";
-import * as _m0 from "protobufjs/minimal";
-import { Struct } from "../google/protobuf/struct";
+import _m0 from "protobufjs/minimal.js";
+import { Struct } from "../google/protobuf/struct.js";
 
 export const protobufPackage = "weaviate.v1";
 

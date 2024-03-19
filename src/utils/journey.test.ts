@@ -1,4 +1,4 @@
-import { DbVersionProvider, DbVersionSupport } from './dbVersion';
+import { DbVersionProvider, DbVersionSupport } from './dbVersion.js';
 
 const EMPTY_VERSION = '';
 const VERSION_1 = '1.2.3';

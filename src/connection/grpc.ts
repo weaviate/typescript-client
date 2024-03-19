@@ -1,20 +1,16 @@
-import ConnectionGQL from './gql';
-import { ConnectionParams } from './http';
+import ConnectionGQL from './gql.js';
+import { ConnectionParams } from './http.js';
 
-import { ConsistencyLevel } from '../data';
+import { ConsistencyLevel } from '../data/index.js';
 
 import { ChannelCredentials, ChannelOptions, createChannel, createClientFactory, Metadata } from 'nice-grpc';
 import { deadlineMiddleware } from 'nice-grpc-client-middleware-deadline';
 
-import { WeaviateDefinition, WeaviateClient } from '../proto/v1/weaviate';
-import {
-  HealthDefinition,
-  HealthClient,
-  HealthCheckResponse_ServingStatus,
-} from '../proto/google/health/v1/health';
+import { WeaviateDefinition } from '../proto/v1/weaviate.js';
+import { HealthDefinition, HealthCheckResponse_ServingStatus } from '../proto/google/health/v1/health.js';
 
-import Batcher, { Batch } from '../grpc/batcher';
-import Searcher, { Search } from '../grpc/searcher';
+import Batcher, { Batch } from '../grpc/batcher.js';
+import Searcher, { Search } from '../grpc/searcher.js';
 
 export interface GrpcConnectionParams extends ConnectionParams {
   grpcAddress: string;

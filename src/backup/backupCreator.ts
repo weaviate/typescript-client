@@ -3,12 +3,12 @@ import {
   validateBackupId,
   validateExcludeClassNames,
   validateIncludeClassNames,
-} from './validation';
-import BackupCreateStatusGetter from './backupCreateStatusGetter';
-import Connection from '../connection';
-import { CommandBase } from '../validation/commandBase';
-import { BackupCreateRequest, BackupCreateResponse, BackupCreateStatusResponse } from '../openapi/types';
-import { Backend } from '.';
+} from './validation.js';
+import BackupCreateStatusGetter from './backupCreateStatusGetter.js';
+import Connection from '../connection/index.js';
+import { CommandBase } from '../validation/commandBase.js';
+import { BackupCreateRequest, BackupCreateResponse, BackupCreateStatusResponse } from '../openapi/types.js';
+import { Backend } from './index.js';
 
 const WAIT_INTERVAL = 1000;
 

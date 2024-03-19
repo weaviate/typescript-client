@@ -1,11 +1,11 @@
-import { Backend } from '.';
-import weaviate, { WeaviateClient } from '../v2';
+import { Backend } from './index.js';
+import weaviate, { WeaviateClient } from '../v2/index.js';
 import {
   BackupCreateResponse,
   BackupCreateStatusResponse,
   BackupRestoreResponse,
   BackupRestoreStatusResponse,
-} from '../openapi/types';
+} from '../openapi/types.js';
 
 const {
   createTestFoodSchemaAndData,
@@ -14,7 +14,7 @@ const {
   SOUP_CLASS_NAME,
 } = require('../utils/testData');
 
-const DOCKER_COMPOSE_BACKUPS_DIR = '/tmp/backups';
+const DOCKER_COMPOSE_BACKUPS_DIR = '/tmp/backups.js';
 
 describe('create and restore backup with waiting', () => {
   const BACKEND: Backend = 'filesystem';

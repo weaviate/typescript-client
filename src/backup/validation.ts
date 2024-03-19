@@ -1,4 +1,4 @@
-import { isValidStringProperty } from '../validation/string';
+import { isValidStringProperty } from '../validation/string.js';
 
 export function validateIncludeClassNames(classNames?: string[]) {
   if (Array.isArray(classNames)) {

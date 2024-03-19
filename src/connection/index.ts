@@ -1,9 +1,8 @@
-import ConnectionGQL from './gql';
-import ConnectionGRPC from './grpc';
-import ConnectionREST from './http';
+import ConnectionGQL from './gql.js';
+import ConnectionGRPC from './grpc.js';
+import ConnectionREST from './http.js';
 
 export default ConnectionGQL;
 
-export type { ConnectionParams } from './http';
+export type { ConnectionParams } from './http.js';
 export { ConnectionGQL, ConnectionGRPC, ConnectionREST };
-export { connectToLocal, connectToWCS } from './helpers';

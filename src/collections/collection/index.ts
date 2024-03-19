@@ -1,18 +1,18 @@
-import Connection from '../../connection/grpc';
-import { ConsistencyLevel } from '../../data';
-import { DbVersionSupport } from '../../utils/dbVersion';
+import Connection from '../../connection/grpc.js';
+import { ConsistencyLevel } from '../../data/index.js';
+import { DbVersionSupport } from '../../utils/dbVersion.js';
 
-import aggregate, { metrics, Aggregate, Metrics } from '../aggregate';
-import { backupCollection, BackupCollection } from '../backup';
-import config, { Config } from '../config';
-import data, { Data } from '../data';
-import filter, { Filter } from '../filters';
-import generate, { Generate } from '../generate';
-import { Iterator } from '../iterator';
-import query, { Query } from '../query';
-import sort, { Sort } from '../sort';
-import tenants, { Tenant, Tenants } from '../tenants';
-import { QueryMetadata, QueryProperty, QueryReference } from '../types';
+import aggregate, { metrics, Aggregate, Metrics } from '../aggregate/index.js';
+import { backupCollection, BackupCollection } from '../backup/collection.js';
+import config, { Config } from '../config/index.js';
+import data, { Data } from '../data/index.js';
+import filter, { Filter } from '../filters/index.js';
+import generate, { Generate } from '../generate/index.js';
+import { Iterator } from '../iterator/index.js';
+import query, { Query } from '../query/index.js';
+import sort, { Sort } from '../sort/index.js';
+import tenants, { Tenant, Tenants } from '../tenants/index.js';
+import { QueryMetadata, QueryProperty, QueryReference } from '../types/index.js';
 
 export interface Collection<T = undefined, N = string> {
   aggregate: Aggregate<T>;

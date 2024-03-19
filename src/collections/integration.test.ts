@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import weaviate, { WeaviateClient } from '..';
+import weaviate, { WeaviateClient } from '../index.js';
 import {
   CollectionConfigCreate,
   GeoCoordinate,
@@ -8,7 +8,7 @@ import {
   Text2VecContextionaryConfig,
   Text2VecOpenAIConfig,
   VectorIndexConfigHNSW,
-} from './types';
+} from './types/index.js';
 
 const fail = (msg: string) => {
   throw new Error(msg);
@@ -59,7 +59,7 @@ describe('Testing of the collections.create method', () => {
   });
 
   it('should be able to create a simple collection with a generic', async () => {
-    const collectionName = 'TestCollectionSimpleGeneric';
+    const collectionName = 'TestCollectionSimpleGeneric.js';
     type TestCollectionSimple = {
       testProp: string;
     };
@@ -86,7 +86,7 @@ describe('Testing of the collections.create method', () => {
   });
 
   it('should be able to create a simple collection without a generic', async () => {
-    const collectionName = 'TestCollectionSimpleNonGeneric';
+    const collectionName = 'TestCollectionSimpleNonGeneric.js';
     const response = await contextionary.collections
       .create({
         name: collectionName,
@@ -110,7 +110,7 @@ describe('Testing of the collections.create method', () => {
   });
 
   it('should be able to create a simple collection without a generic using a schema var', async () => {
-    const collectionName = 'TestCollectionSimpleNonGenericVar';
+    const collectionName = 'TestCollectionSimpleNonGenericVar.js';
     const schema = {
       name: collectionName,
       properties: [
@@ -135,7 +135,7 @@ describe('Testing of the collections.create method', () => {
   });
 
   it('should be able to create a simple collection with a generic using a schema var with const', async () => {
-    const collectionName = 'TestCollectionSimpleGenericVarConst';
+    const collectionName = 'TestCollectionSimpleGenericVarConst.js';
     type TestCollectionSimple = {
       testProp: string;
     };
@@ -163,7 +163,7 @@ describe('Testing of the collections.create method', () => {
   });
 
   it('should be able to create a simple collection with a generic using a schema var with type', async () => {
-    const collectionName = 'TestCollectionSimpleGenericVarType';
+    const collectionName = 'TestCollectionSimpleGenericVarType.js';
     type TestCollectionSimple = {
       testProp: string;
     };
@@ -191,7 +191,7 @@ describe('Testing of the collections.create method', () => {
   });
 
   it('should be able to create a nested collection', async () => {
-    const collectionName = 'TestCollectionNested';
+    const collectionName = 'TestCollectionNested.js';
     type TestCollectionNested = {
       testProp: {
         nestedProp: string;
@@ -332,7 +332,7 @@ describe('Testing of the collections.create method', () => {
   });
 
   it('should be able to create a complex collection', async () => {
-    const collectionName = 'TestCollectionSimple';
+    const collectionName = 'TestCollectionSimple.js';
     const response = await cluster.collections
       .create({
         name: collectionName,
@@ -546,7 +546,7 @@ describe('Testing of the collections.create method', () => {
   });
 
   it('should be able to create a collection with the contextionary vectorizer', async () => {
-    const collectionName = 'TestCollectionContextionaryVectorizer';
+    const collectionName = 'TestCollectionContextionaryVectorizer.js';
     const response = await contextionary.collections
       .create({
         name: collectionName,
@@ -579,7 +579,7 @@ describe('Testing of the collections.create method', () => {
   });
 
   it('should be able to create a collection with the contextionary vectorizer using configure.vectorizer', async () => {
-    const collectionName = 'ThisOneIsATest'; // must include words in contextionary's vocabulary to pass since vectorizeClassName will be true
+    const collectionName = 'ThisOneIsATest.js'; // must include words in contextionary's vocabulary to pass since vectorizeClassName will be true
     const response = await contextionary.collections
       .create({
         name: collectionName,
@@ -608,7 +608,7 @@ describe('Testing of the collections.create method', () => {
   });
 
   it('should be able to create a collection with the openai vectorizer', async () => {
-    const collectionName = 'TestCollectionOpenAIVectorizer';
+    const collectionName = 'TestCollectionOpenAIVectorizer.js';
     const response = await openai.collections
       .create({
         name: collectionName,
@@ -642,7 +642,7 @@ describe('Testing of the collections.create method', () => {
   });
 
   it('should be able to create a collection with the openai vectorizer with configure.vectorizer', async () => {
-    const collectionName = 'TestCollectionOpenAIVectorizerWithConfigureVectorizer';
+    const collectionName = 'TestCollectionOpenAIVectorizerWithConfigureVectorizer.js';
     const response = await openai.collections
       .create({
         name: collectionName,
@@ -671,7 +671,7 @@ describe('Testing of the collections.create method', () => {
   });
 
   it('should be able to create a collection with the openai generative with configure.Generative', async () => {
-    const collectionName = 'TestCollectionOpenAIGenerativeWithConfigureGenerative';
+    const collectionName = 'TestCollectionOpenAIGenerativeWithConfigureGenerative.js';
     const response = await openai.collections
       .create({
         name: collectionName,

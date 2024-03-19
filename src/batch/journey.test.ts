@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import weaviate, { WeaviateClient } from '../v2';
+import weaviate, { WeaviateClient } from '../v2/index.js';
 import {
   BatchReference,
   BatchReferenceResponse,
@@ -7,10 +7,10 @@ import {
   BatchDeleteResponse,
   Tenant,
   WeaviateClass,
-} from '../openapi/types';
+} from '../openapi/types.js';
 
-const thingClassName = 'BatchJourneyTestThing';
-const otherThingClassName = 'BatchJourneyTestOtherThing';
+const thingClassName = 'BatchJourneyTestThing.js';
+const otherThingClassName = 'BatchJourneyTestOtherThing.js';
 
 const thingIds = [
   'c25365bd-276b-4d88-9d8f-9e924701aa89',
@@ -506,7 +506,7 @@ describe('multi tenancy', () => {
     host: 'localhost:8080',
   });
 
-  const passageClassName = 'Passage';
+  const passageClassName = 'Passage.js';
   const passage: WeaviateClass = {
     class: passageClassName,
     properties: [

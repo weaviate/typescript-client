@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import weaviate, { WeaviateClient } from '../..';
-import { Collection } from '../collection';
+import weaviate, { WeaviateClient } from '../../index.js';
+import { Collection } from '../collection/index.js';
 
 describe('Testing of the collection.data methods', () => {
   let client: WeaviateClient;

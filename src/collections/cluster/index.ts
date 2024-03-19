@@ -1,6 +1,6 @@
-import { NodesStatusGetter } from '../../cluster';
-import Connection from '../../connection';
-import { BatchStats, NodeStats, NodeShardStatus } from '../../openapi/types';
+import { NodesStatusGetter } from '../../cluster/index.js';
+import Connection from '../../connection/index.js';
+import { BatchStats, NodeStats, NodeShardStatus } from '../../openapi/types.js';
 
 type Output = 'minimal' | 'verbose';
 

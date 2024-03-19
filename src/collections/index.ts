@@ -1,7 +1,7 @@
-import Connection from '../connection/grpc';
-import { DbVersionSupport } from '../utils/dbVersion';
-import collection, { Collection } from './collection';
-import { ClassCreator, ClassDeleter, ClassGetter, SchemaGetter } from '../schema';
+import Connection from '../connection/grpc.js';
+import { DbVersionSupport } from '../utils/dbVersion.js';
+import collection, { Collection } from './collection/index.js';
+import { ClassCreator, ClassDeleter, ClassGetter, SchemaGetter } from '../schema/index.js';
 import {
   CollectionConfig,
   GenerativeSearch,
@@ -19,19 +19,12 @@ import {
   VectorizerConfig,
   NamedVectorConfigCreate,
   VectorIndexConfigCreate,
-  PhoneNumber,
-} from './types';
-import ClassExists from '../schema/classExists';
-import { classToCollection, resolveProperty, resolveReference } from './config';
-import { ConsistencyLevel } from '../data';
-import { WeaviateClass } from '../openapi/types';
-import { QuantizerGuards } from './configure';
-import { PrimitiveKeys } from './types/internal';
-
-export interface IBuilder {
-  withConsistencyLevel(consistencyLevel: ConsistencyLevel): this;
-  withTenant(tenant: string): this;
-}
+} from './types/index.js';
+import ClassExists from '../schema/classExists.js';
+import { classToCollection, resolveProperty, resolveReference } from './config/utils.js';
+import { WeaviateClass } from '../openapi/types.js';
+import { QuantizerGuards } from './configure/index.js';
+import { PrimitiveKeys } from './types/internal.js';
 
 export type CollectionConfigCreate<TProperties = undefined, N = string> = {
   name: N;
@@ -48,20 +41,6 @@ export type CollectionConfigCreate<TProperties = undefined, N = string> = {
   vectorizer?:
     | ModuleConfig<Vectorizer, VectorizerConfig>
     | NamedVectorConfigCreate<PrimitiveKeys<TProperties>[], string, VectorIndexType, Vectorizer>[];
-};
-
-export const addContext = <B extends IBuilder>(
-  builder: B,
-  consistencyLevel?: ConsistencyLevel,
-  tenant?: string
-): B => {
-  if (consistencyLevel) {
-    builder = builder.withConsistencyLevel(consistencyLevel);
-  }
-  if (tenant) {
-    builder = builder.withTenant(tenant);
-  }
-  return builder;
 };
 
 const parseVectorIndexConfig = (config?: VectorIndexConfigCreate) => {
@@ -117,7 +96,7 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
       let vectorizers: string[] = [];
       let vectorsConfig: any | undefined;
       if (config.vectorizer === undefined) {
-        defaultVectorizer = 'none';
+        defaultVectorizer = 'none.js';
         vectorsConfig = undefined;
       } else if (isLegacyVectorizer(config.vectorizer)) {
         defaultVectorizer = config.vectorizer.name;
@@ -200,18 +179,18 @@ export interface Collections {
 }
 
 export default collections;
-export * from './aggregate';
-export * from './backup';
-export * from './cluster';
-export * from './collection';
-export * from './config';
-export * from './configure';
-export * from './data';
-export * from './filters';
-export * from './generate';
-export * from './iterator';
-export * from './query';
-export * from './references';
-export * from './sort';
-export * from './tenants';
-export * from './types';
+export * from './aggregate/index.js';
+export * from './backup/index.js';
+export * from './cluster/index.js';
+export * from './collection/index.js';
+export * from './config/index.js';
+export * from './configure/index.js';
+export * from './data/index.js';
+export * from './filters/index.js';
+export * from './generate/index.js';
+export * from './iterator/index.js';
+export * from './query/index.js';
+export * from './references/index.js';
+export * from './sort/index.js';
+export * from './tenants/index.js';
+export * from './types/index.js';

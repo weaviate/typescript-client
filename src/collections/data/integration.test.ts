@@ -1,12 +1,11 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
-import weaviate, { WeaviateClient } from '../..';
+import weaviate, { WeaviateClient } from '../../index.js';
 import { v4 } from 'uuid';
-import { DataObject, PropertyConfigCreate, WeaviateObject } from '../types';
-import { CrossReference, CrossReferences, Reference } from '../references';
-import { GeoCoordinate, PhoneNumber } from '../../proto/v1/properties';
-import { Collection } from '../collection';
-import { Data } from '.';
+import { DataObject, WeaviateObject } from '../types/index.js';
+import { CrossReference, CrossReferences, Reference } from '../references/index.js';
+import { GeoCoordinate, PhoneNumber } from '../../proto/v1/properties.js';
+import { Collection } from '../collection/index.js';
 
 type TestCollectionData = {
   testProp: string;
