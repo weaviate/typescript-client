@@ -6,7 +6,7 @@ import { ConsistencyLevel } from '../../data/index.js';
 import { FilterValue } from '../filters/index.js';
 
 import { Aggregator } from '../../graphql/index.js';
-import Serialize from '../serialize/index.js';
+import { Serialize } from '../serialize/index.js';
 
 interface AggregateBaseOptions<T, M> {
   filters?: FilterValue;
