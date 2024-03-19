@@ -1,4 +1,4 @@
-import Serialize, { DataGuards } from './index.js';
+import { DataGuards, Serialize } from './index.js';
 import {
   SearchBm25Args,
   SearchFetchArgs,
