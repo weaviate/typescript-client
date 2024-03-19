@@ -1,10 +1,10 @@
 import weaviate from '../v2/index.js';
 import { Classification } from '../openapi/types.js';
 
-const targetDessertId = '9f399d3e-45a4-44f4-b0fd-fa291abfb211.js';
-const targetSavoryId = 'b7a64fbd-7c22-44ac-afbb-8d1432b8061b.js';
-const unclassifiedOneId = '89024ad4-3434-4daa-bfde-a5c6fc4b7f33.js';
-const unclassifiedTwoId = 'afed0b20-bc9a-44c0-84af-09bb6214b3b7.js';
+const targetDessertId = '9f399d3e-45a4-44f4-b0fd-fa291abfb211';
+const targetSavoryId = 'b7a64fbd-7c22-44ac-afbb-8d1432b8061b';
+const unclassifiedOneId = '89024ad4-3434-4daa-bfde-a5c6fc4b7f33';
+const unclassifiedTwoId = 'afed0b20-bc9a-44c0-84af-09bb6214b3b7';
 
 describe('a classification journey', () => {
   // this journey test is more minimal compared to the kNN one, as a lot of

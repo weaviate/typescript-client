@@ -2,7 +2,7 @@ import { isValidStringProperty } from '../validation/string.js';
 import { DbVersionSupport } from './dbVersion.js';
 import { isValidWeaviateVersion } from '../validation/version.js';
 
-const beaconPathPrefix = 'weaviate://localhost.js';
+const beaconPathPrefix = 'weaviate://localhost';
 
 export class BeaconPath {
   private dbVersionSupport: DbVersionSupport;

@@ -96,7 +96,7 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
       let vectorizers: string[] = [];
       let vectorsConfig: any | undefined;
       if (config.vectorizer === undefined) {
-        defaultVectorizer = 'none.js';
+        defaultVectorizer = 'none';
         vectorsConfig = undefined;
       } else if (isLegacyVectorizer(config.vectorizer)) {
         defaultVectorizer = config.vectorizer.name;

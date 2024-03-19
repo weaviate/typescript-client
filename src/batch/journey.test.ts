@@ -9,8 +9,8 @@ import {
   WeaviateClass,
 } from '../openapi/types.js';
 
-const thingClassName = 'BatchJourneyTestThing.js';
-const otherThingClassName = 'BatchJourneyTestOtherThing.js';
+const thingClassName = 'BatchJourneyTestThing';
+const otherThingClassName = 'BatchJourneyTestOtherThing';
 
 const thingIds = [
   'c25365bd-276b-4d88-9d8f-9e924701aa89',
@@ -506,7 +506,7 @@ describe('multi tenancy', () => {
     host: 'localhost:8080',
   });
 
-  const passageClassName = 'Passage.js';
+  const passageClassName = 'Passage';
   const passage: WeaviateClass = {
     class: passageClassName,
     properties: [

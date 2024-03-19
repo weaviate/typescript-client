@@ -3,8 +3,8 @@ import weaviate, { WeaviateClient } from '../../index.js';
 describe('Testing of the client.cluster methods', () => {
   let client: WeaviateClient;
 
-  const one = 'TestClusterCollectionOne.js';
-  const two = 'TestClusterCollectionTwo.js';
+  const one = 'TestClusterCollectionOne';
+  const two = 'TestClusterCollectionTwo';
 
   afterAll(async () => {
     await (await client).collections.delete(one);

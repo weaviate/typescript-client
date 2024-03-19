@@ -20,8 +20,8 @@
     "node": ">=18.0.0"
   },
   "scripts": {
-    "test": "tsc -noEmit -p tsconfig-test.json && jest --no-cache --useStderr --runInBand --detectOpenHandles",
-    "test:coverage": "tsc -noEmit -p tsconfig-test.json && jest --no-cache --coverage --useStderr --runInBand --detectOpenHandles",
+    "test": "jest --no-cache --useStderr --runInBand --detectOpenHandles",
+    "test:coverage": "npm run test -- --coverage",
     "build": "npm run build:node && cp -r ./src ./dist/src",
     "build:web": "tsup",
     "build:cjs": "tsc --module commonjs --outDir dist/node/cjs && touch dist/node/cjs/package.json && echo '{\"type\": \"commonjs\"}' > dist/node/cjs/package.json",

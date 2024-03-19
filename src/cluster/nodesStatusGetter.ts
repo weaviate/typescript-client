@@ -25,7 +25,7 @@ export default class NodesStatusGetter extends CommandBase {
   }
 
   do = (): Promise<NodesStatusResponse> => {
-    let path = '/nodes.js';
+    let path = '/nodes';
     if (this.className) {
       path = `${path}/${this.className}`;
     }

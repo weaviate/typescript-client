@@ -24,10 +24,10 @@ describe('Testing of the collection.aggregate methods', () => {
   let collection: Collection<TestCollectionAggregate, 'TestCollectionAggregate'>;
   const collectionName = 'TestCollectionAggregate';
 
-  const date0 = '2023-01-01T00:00:00Z.js';
-  const date1 = '2023-01-01T00:00:00Z.js';
-  const date2 = '2023-01-02T00:00:00Z.js';
-  const dateMid = '2023-01-01T12:00:00Z.js';
+  const date0 = '2023-01-01T00:00:00Z';
+  const date1 = '2023-01-01T00:00:00Z';
+  const date2 = '2023-01-02T00:00:00Z';
+  const dateMid = '2023-01-01T12:00:00Z';
 
   afterAll(async () => {
     return (await client).collections.delete(collectionName).catch((err) => {

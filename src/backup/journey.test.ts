@@ -14,7 +14,7 @@ const {
   SOUP_CLASS_NAME,
 } = require('../utils/testData');
 
-const DOCKER_COMPOSE_BACKUPS_DIR = '/tmp/backups.js';
+const DOCKER_COMPOSE_BACKUPS_DIR = '/tmp/backups';
 
 describe('create and restore backup with waiting', () => {
   const BACKEND: Backend = 'filesystem';

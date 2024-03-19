@@ -22,7 +22,7 @@ export function testServer() {
   let lastRequest: any = null;
   const app = new Application();
 
-  app.use(bodyParser());
+  app.use((bodyParser as any)());
   app.use((ctx, next) => {
     lastRequest = ctx.request;
     return next();
