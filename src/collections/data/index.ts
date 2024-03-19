@@ -6,7 +6,7 @@ import { ObjectsPath, ReferencesPath } from '../../data/path.js';
 import { DbVersionSupport } from '../../utils/dbVersion.js';
 import { Checker, ConsistencyLevel } from '../../data/index.js';
 import { referenceToBeacons } from '../references/index.js';
-import Serialize, { DataGuards } from '../serialize/index.js';
+import { DataGuards, Serialize } from '../serialize/index.js';
 import {
   BatchObjectsReturn,
   BatchReferencesReturn,
@@ -20,7 +20,7 @@ import {
   Vectors,
 } from '../types/index.js';
 import { FilterValue } from '../filters/index.js';
-import Deserialize from '../deserialize/index.js';
+import { Deserialize } from '../deserialize/index.js';
 
 export type DeleteManyOptions<V> = {
   verbose?: V;

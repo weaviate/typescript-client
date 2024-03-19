@@ -51,8 +51,8 @@ describe('Testing of the collection.data methods with a single target reference'
       },
     });
     collection = client.collections.get(collectionName);
-    return client.collections
-      .create({
+    await client.collections
+      .create<undefined>({
         name: collectionName,
         properties: [
           {
@@ -76,7 +76,13 @@ describe('Testing of the collection.data methods with a single target reference'
           },
         ],
       })
-      .then(() => {
+      .then(async (collection) => {
+        await collection.data.insert({
+          properties: {
+            testProp: 'Gon get delet',
+          },
+          id: toBeDeletedID,
+        });
         return collection.data.insertMany([
           { properties: { testProp: 'DELETE ME' } },
           { properties: { testProp: 'DELETE ME' } },
@@ -101,12 +107,6 @@ describe('Testing of the collection.data methods with a single target reference'
               testProp2: 1,
             },
             id: toBeUpdatedID,
-          },
-          {
-            properties: {
-              testProp: 'Gon get delet',
-            },
-            id: toBeDeletedID,
           },
         ]);
       })
