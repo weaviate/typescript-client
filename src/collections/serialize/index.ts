@@ -90,7 +90,7 @@ import {
   Filters_Operator,
   FilterTarget,
 } from '../../proto/v1/base.js';
-import { Beacon, ReferenceGuards, ReferenceManager, uuidToBeacon } from '../references/index.js';
+import { Beacon, ReferenceGuards, uuidToBeacon } from '../references/index.js';
 
 class FilterGuards {
   static isFilters = (
@@ -280,9 +280,7 @@ export class DataGuards {
   };
 }
 
-// Cannot do argument.every((arg) => typeof arg === type) in the above because of type erasure
-
-export default class Serialize {
+export class Serialize {
   private static common = <T>(args?: QueryOptions<T>) => {
     return {
       limit: args?.limit,

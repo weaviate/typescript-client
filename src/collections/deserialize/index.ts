@@ -19,7 +19,7 @@ import { BatchObject as BatchObjectGRPC, BatchObjectsReply } from '../../proto/v
 import { Properties as PropertiesGrpc, Value } from '../../proto/v1/properties.js';
 import { BatchDeleteReply } from '../../proto/v1/batch_delete.js';
 
-export default class Deserialize {
+export class Deserialize {
   public static query<T>(reply: SearchReply): WeaviateReturn<T> {
     return {
       objects: reply.results.map((result) => {

@@ -3,8 +3,8 @@ import Connection from '../../connection/grpc.js';
 import { DbVersionSupport } from '../../utils/dbVersion.js';
 import { ConsistencyLevel } from '../../data/index.js';
 
-import Deserialize from '../deserialize/index.js';
-import Serialize from '../serialize/index.js';
+import { Deserialize } from '../deserialize/index.js';
+import { Serialize } from '../serialize/index.js';
 import {
   FetchObjectsOptions,
   Bm25Options,
@@ -67,7 +67,7 @@ class GenerateManager<T> implements Generate<T> {
           ...Serialize.fetchObjects(opts),
           generative: Serialize.generative(generate),
         })
-        .then(Deserialize.generate<T>)
+        .then((reply) => Deserialize.generate<T>(reply))
     );
   }
 
@@ -82,7 +82,7 @@ class GenerateManager<T> implements Generate<T> {
           ...Serialize.bm25({ query, ...opts }),
           generative: Serialize.generative(generate),
         })
-        .then(Deserialize.generate<T>)
+        .then((reply) => Deserialize.generate<T>(reply))
     );
   }
 
@@ -97,7 +97,7 @@ class GenerateManager<T> implements Generate<T> {
           ...Serialize.hybrid({ query, ...opts }),
           generative: Serialize.generative(generate),
         })
-        .then(Deserialize.generate<T>)
+        .then((reply) => Deserialize.generate<T>(reply))
     );
   }
 
