@@ -4,7 +4,7 @@ import {
   GenerativeOpenAIConfig,
   GenerativePaLMConfig,
   ModuleConfig,
-} from '../config/types';
+} from '../config/types/index.js';
 
 export default {
   azureOpenAI: (

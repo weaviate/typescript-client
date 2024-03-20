@@ -1,12 +1,11 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
-import weaviate, { WeaviateClient } from '../..';
+import weaviate, { WeaviateClient } from '../../index.js';
 import { v4 } from 'uuid';
-import { DataObject, PropertyConfigCreate, WeaviateObject } from '../types';
-import { CrossReference, CrossReferences, Reference } from '../references';
-import { GeoCoordinate, PhoneNumber } from '../../proto/v1/properties';
-import { Collection } from '../collection';
-import { Data } from '.';
+import { DataObject, WeaviateObject } from '../types/index.js';
+import { CrossReference, CrossReferences, Reference } from '../references/index.js';
+import { GeoCoordinate, PhoneNumber } from '../../proto/v1/properties.js';
+import { Collection } from '../collection/index.js';
 
 type TestCollectionData = {
   testProp: string;
@@ -52,8 +51,8 @@ describe('Testing of the collection.data methods with a single target reference'
       },
     });
     collection = client.collections.get(collectionName);
-    return client.collections
-      .create({
+    await client.collections
+      .create<undefined>({
         name: collectionName,
         properties: [
           {
@@ -77,7 +76,13 @@ describe('Testing of the collection.data methods with a single target reference'
           },
         ],
       })
-      .then(() => {
+      .then(async (collection) => {
+        await collection.data.insert({
+          properties: {
+            testProp: 'Gon get delet',
+          },
+          id: toBeDeletedID,
+        });
         return collection.data.insertMany([
           { properties: { testProp: 'DELETE ME' } },
           { properties: { testProp: 'DELETE ME' } },
@@ -102,12 +107,6 @@ describe('Testing of the collection.data methods with a single target reference'
               testProp2: 1,
             },
             id: toBeUpdatedID,
-          },
-          {
-            properties: {
-              testProp: 'Gon get delet',
-            },
-            id: toBeDeletedID,
           },
         ]);
       })

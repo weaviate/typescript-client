@@ -1,26 +1,21 @@
 {
   "compilerOptions": {
-    "target": "es2020",
+    "target": "ES6",
     "strict": true,
     "preserveConstEnums": true,
-    "noEmit": false,
     "alwaysStrict": true,
     "noImplicitAny": true,
     "noImplicitThis": true,
     "strictFunctionTypes": true,
-    "allowJs": true,
-    "checkJs": false,
-    "sourceMap": false,
-    "module": "es2020",
-    "moduleResolution": "node",
-    "esModuleInterop": true,
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "isolatedModules": true,
+    "esModuleInterop": true,
     "outDir": "./dist/node",
     "declaration": true,
     "rootDir": "./src",
-    "types": ["node"]
+    "types": ["node", "uuid", "jest"]
   },
   "include": ["./src/**/*"],
   "exclude": ["**/*.test.ts"]

@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
-import weaviate, { WeaviateClient } from '../..';
-import { Collection } from '../collection';
-import { CrossReference, Reference } from '../references';
-import { GroupByOptions } from '../types';
+import weaviate, { WeaviateClient } from '../../index.js';
+import { Collection } from '../collection/index.js';
+import { CrossReference, Reference } from '../references/index.js';
+import { GroupByOptions } from '../types/index.js';
 
 describe('Testing of the collection.query methods with a simple collection', () => {
   let client: WeaviateClient;
@@ -860,5 +860,135 @@ describe('Testing of the collection.query methods with a multi-tenancy collectio
     expect(obj2.objects.length).toEqual(1);
     expect(obj2.objects[0].properties.testProp).toEqual('two');
     expect(obj2.objects[0].uuid).toEqual(id2);
+  });
+});
+
+const maybe = process.env.OPENAI_APIKEY ? describe : describe.skip;
+
+maybe('Testing of collection.query using rerank functionality', () => {
+  let client: WeaviateClient;
+  let collection: Collection;
+  const collectionName = 'TestCollectionRerank';
+  let id1: string;
+  let id2: string;
+
+  afterAll(() => {
+    return client.collections.delete(collectionName).catch((err) => {
+      console.error(err);
+      throw err;
+    });
+  });
+
+  beforeAll(async () => {
+    client = await weaviate.connectToLocal({
+      httpPort: 8079,
+      grpcPort: 50050,
+      headers: {
+        'X-OpenAI-Api-Key': process.env.OPENAI_APIKEY as string,
+      },
+    });
+    collection = client.collections.get(collectionName);
+    [id1, id2] = await client.collections
+      .create({
+        name: collectionName,
+        properties: [
+          {
+            name: 'text',
+            dataType: 'text',
+          },
+        ],
+        reranker: weaviate.configure.reranker.transformers(),
+        vectorizer: weaviate.configure.vectorizer.text2VecOpenAI(),
+      })
+      .then(() =>
+        Promise.all([
+          collection.data.insert({
+            properties: {
+              text: 'This is a test',
+            },
+          }),
+          collection.data.insert({
+            properties: {
+              text: 'This is another test',
+            },
+          }),
+        ])
+      );
+  });
+
+  it('should rerank the results in a bm25 query', async () => {
+    const ret = await collection.query.bm25('test', {
+      rerank: {
+        property: 'text',
+        query: 'another',
+      },
+    });
+    const objects = ret.objects;
+    expect(objects.length).toEqual(2);
+    expect(objects[0].metadata?.rerankScore).toBeDefined();
+    expect(objects[0].properties.text).toEqual('This is another test');
+    expect(objects[0].metadata?.rerankScore).toBeDefined();
+    expect(objects[1].properties.text).toEqual('This is a test');
+  });
+
+  it('should rerank the results in a hybrid query', async () => {
+    const ret = await collection.query.hybrid('test', {
+      rerank: {
+        property: 'text',
+        query: 'another',
+      },
+    });
+    const objects = ret.objects;
+    expect(objects.length).toEqual(2);
+    expect(objects[0].metadata?.rerankScore).toBeDefined();
+    expect(objects[0].properties.text).toEqual('This is another test');
+    expect(objects[0].metadata?.rerankScore).toBeDefined();
+    expect(objects[1].properties.text).toEqual('This is a test');
+  });
+
+  it('should rerank the results in a nearObject query', async () => {
+    const ret = await collection.query.nearObject(id1, {
+      rerank: {
+        property: 'text',
+        query: 'another',
+      },
+    });
+    const objects = ret.objects;
+    expect(objects.length).toEqual(2);
+    expect(objects[0].metadata?.rerankScore).toBeDefined();
+    expect(objects[0].properties.text).toEqual('This is another test');
+    expect(objects[0].metadata?.rerankScore).toBeDefined();
+    expect(objects[1].properties.text).toEqual('This is a test');
+  });
+
+  it('should rerank the results in a nearText query', async () => {
+    const ret = await collection.query.nearText('text', {
+      rerank: {
+        property: 'text',
+        query: 'another',
+      },
+    });
+    const objects = ret.objects;
+    expect(objects.length).toEqual(2);
+    expect(objects[0].metadata?.rerankScore).toBeDefined();
+    expect(objects[0].properties.text).toEqual('This is another test');
+    expect(objects[0].metadata?.rerankScore).toBeDefined();
+    expect(objects[1].properties.text).toEqual('This is a test');
+  });
+
+  it('should rerank the results in a nearObject query', async () => {
+    const obj = await collection.query.fetchObjectById(id1, { includeVector: true });
+    const ret = await collection.query.nearVector(obj?.vectors.default!, {
+      rerank: {
+        property: 'text',
+        query: 'another',
+      },
+    });
+    const objects = ret.objects;
+    expect(objects.length).toEqual(2);
+    expect(objects[0].metadata?.rerankScore).toBeDefined();
+    expect(objects[0].properties.text).toEqual('This is another test');
+    expect(objects[0].metadata?.rerankScore).toBeDefined();
+    expect(objects[1].properties.text).toEqual('This is a test');
   });
 });

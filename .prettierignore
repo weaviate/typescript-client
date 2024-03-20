@@ -1,1 +1,3 @@
 src/proto/**/*.ts
+src/dist/**/*
+src/docs/**/*

@@ -1,11 +1,11 @@
 import { v4 as uuidv4 } from 'uuid';
-import { WhereFilter } from '../../openapi/types';
+import { WhereFilter } from '../../openapi/types.js';
 import {
   BatchObject as BatchObjectGRPC,
   BatchObject_MultiTargetRefProps,
   BatchObject_Properties,
   BatchObject_SingleTargetRefProps,
-} from '../../proto/v1/batch';
+} from '../../proto/v1/batch.js';
 import {
   PropertiesRequest,
   ObjectPropertiesRequest,
@@ -26,7 +26,8 @@ import {
   NearDepthSearch,
   NearIMUSearch,
   NearTextSearch_Move,
-} from '../../proto/v1/search_get';
+  Rerank,
+} from '../../proto/v1/search_get.js';
 
 import {
   Filters,
@@ -36,7 +37,7 @@ import {
   PrimitiveListFilterValueType,
   FilterById,
   GeoRangeFilter,
-} from '../filters';
+} from '../filters/index.js';
 import {
   BatchObject,
   BatchObjects,
@@ -53,7 +54,8 @@ import {
   PhoneNumberInput,
   ReferenceInput,
   QueryMetadata,
-} from '../types';
+  RerankOptions,
+} from '../types/index.js';
 import {
   SearchBm25Args,
   SearchFetchArgs,
@@ -67,7 +69,7 @@ import {
   SearchNearThermalArgs,
   SearchNearVectorArgs,
   SearchNearVideoArgs,
-} from '../../grpc/searcher';
+} from '../../grpc/searcher.js';
 import {
   Bm25Options,
   FetchObjectByIdOptions,
@@ -76,8 +78,8 @@ import {
   NearOptions,
   QueryOptions,
   NearTextOptions,
-} from '../query';
-import { GenerateOptions } from '../generate';
+} from '../query/index.js';
+import { GenerateOptions } from '../generate/index.js';
 import {
   BooleanArrayProperties,
   IntArrayProperties,
@@ -89,8 +91,8 @@ import {
   Filters as FiltersGRPC,
   Filters_Operator,
   FilterTarget,
-} from '../../proto/v1/base';
-import { Beacon, ReferenceGuards, ReferenceManager, uuidToBeacon } from '../references';
+} from '../../proto/v1/base.js';
+import { Beacon, ReferenceGuards, uuidToBeacon } from '../references/index.js';
 
 class FilterGuards {
   static isFilters = (
@@ -104,7 +106,10 @@ class FilterGuards {
   };
 
   static isTextArray = (argument?: FilterValueType): argument is string[] => {
-    return argument instanceof Array && argument.every((arg) => typeof arg === 'string');
+    return (
+      argument instanceof Array &&
+      (argument as Array<FilterValueType>).every((arg) => typeof arg === 'string')
+    );
   };
 
   static isInt = (argument?: FilterValueType): argument is number => {
@@ -113,7 +118,8 @@ class FilterGuards {
 
   static isIntArray = (argument?: FilterValueType): argument is number[] => {
     return (
-      argument instanceof Array && argument.every((arg) => typeof arg === 'number' && Number.isInteger(arg))
+      argument instanceof Array &&
+      (argument as Array<FilterValueType>).every((arg) => typeof arg === 'number' && Number.isInteger(arg))
     );
   };
 
@@ -123,7 +129,8 @@ class FilterGuards {
 
   static isFloatArray = (argument?: FilterValueType): argument is number[] => {
     return (
-      argument instanceof Array && argument.every((arg) => typeof arg === 'number' && !Number.isInteger(arg))
+      argument instanceof Array &&
+      (argument as Array<FilterValueType>).every((arg) => typeof arg === 'number' && !Number.isInteger(arg))
     );
   };
 
@@ -132,7 +139,10 @@ class FilterGuards {
   };
 
   static isBooleanArray = (argument?: FilterValueType): argument is boolean[] => {
-    return argument instanceof Array && argument.every((arg) => typeof arg === 'boolean');
+    return (
+      argument instanceof Array &&
+      (argument as Array<FilterValueType>).every((arg) => typeof arg === 'boolean')
+    );
   };
 
   static isDate = (argument?: FilterValueType): argument is Date => {
@@ -140,7 +150,9 @@ class FilterGuards {
   };
 
   static isDateArray = (argument?: FilterValueType): argument is Date[] => {
-    return argument instanceof Array && argument.every((arg) => arg instanceof Date);
+    return (
+      argument instanceof Array && (argument as Array<FilterValueType>).every((arg) => arg instanceof Date)
+    );
   };
 
   static isGeoRange = (argument?: FilterValueType): argument is GeoRangeFilter => {
@@ -155,7 +167,11 @@ export class DataGuards {
   };
 
   static isTextArray = (argument?: WeaviateField): argument is string[] => {
-    return argument instanceof Array && argument.length > 0 && argument.every(DataGuards.isText);
+    return (
+      argument instanceof Array &&
+      argument.length > 0 &&
+      (argument as Array<FilterValueType>).every(DataGuards.isText)
+    );
   };
 
   static isInt = (argument?: WeaviateField): argument is number => {
@@ -168,7 +184,11 @@ export class DataGuards {
   };
 
   static isIntArray = (argument?: WeaviateField): argument is number[] => {
-    return argument instanceof Array && argument.length > 0 && argument.every(DataGuards.isInt);
+    return (
+      argument instanceof Array &&
+      argument.length > 0 &&
+      (argument as Array<FilterValueType>).every(DataGuards.isInt)
+    );
   };
 
   static isFloat = (argument?: WeaviateField): argument is number => {
@@ -181,7 +201,11 @@ export class DataGuards {
   };
 
   static isFloatArray = (argument?: WeaviateField): argument is number[] => {
-    return argument instanceof Array && argument.length > 0 && argument.every(DataGuards.isFloat);
+    return (
+      argument instanceof Array &&
+      argument.length > 0 &&
+      (argument as Array<FilterValueType>).every(DataGuards.isFloat)
+    );
   };
 
   static isBoolean = (argument?: WeaviateField): argument is boolean => {
@@ -189,7 +213,11 @@ export class DataGuards {
   };
 
   static isBooleanArray = (argument?: WeaviateField): argument is boolean[] => {
-    return argument instanceof Array && argument.length > 0 && argument.every(DataGuards.isBoolean);
+    return (
+      argument instanceof Array &&
+      argument.length > 0 &&
+      (argument as Array<FilterValueType>).every(DataGuards.isBoolean)
+    );
   };
 
   static isDate = (argument?: WeaviateField): argument is Date => {
@@ -197,7 +225,11 @@ export class DataGuards {
   };
 
   static isDateArray = (argument?: WeaviateField): argument is Date[] => {
-    return argument instanceof Array && argument.length > 0 && argument.every(DataGuards.isDate);
+    return (
+      argument instanceof Array &&
+      argument.length > 0 &&
+      (argument as Array<FilterValueType>).every(DataGuards.isDate)
+    );
   };
 
   static isGeoCoordinate = (argument?: WeaviateField): argument is GeoCoordinate => {
@@ -229,7 +261,11 @@ export class DataGuards {
   };
 
   static isNestedArray = (argument?: WeaviateField): argument is NestedProperties[] => {
-    return argument instanceof Array && argument.length > 0 && argument.every(DataGuards.isNested);
+    return (
+      argument instanceof Array &&
+      argument.length > 0 &&
+      (argument as Array<FilterValueType>).every(DataGuards.isNested)
+    );
   };
 
   static isEmptyArray = (argument?: WeaviateField): argument is [] => {
@@ -246,14 +282,13 @@ export class DataGuards {
   };
 }
 
-// Cannot do argument.every((arg) => typeof arg === type) in the above because of type erasure
-
-export default class Serialize {
+export class Serialize {
   private static common = <T>(args?: QueryOptions<T>) => {
     return {
       limit: args?.limit,
       offset: args?.offset,
       filters: args?.filters ? Serialize.filtersGRPC(args.filters) : undefined,
+      rerank: args?.rerank ? Serialize.rerank(args.rerank) : undefined,
       properties:
         args?.returnProperties || args?.returnReferences
           ? Serialize.queryProperties(args.returnProperties, args.returnReferences)
@@ -706,6 +741,13 @@ export default class Serialize {
         ascending: !!sort.ascending,
         path: [sort.property],
       };
+    });
+  };
+
+  public static rerank = <T>(rerank: RerankOptions<T>): Rerank => {
+    return Rerank.fromPartial({
+      property: rerank.property as string,
+      query: rerank.query,
     });
   };
 

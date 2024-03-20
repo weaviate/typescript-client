@@ -1,6 +1,6 @@
-import { ClientParams, WeaviateClient } from '..';
-import { AuthCredentials } from './auth';
-import { ProxiesParams } from './http';
+import { ClientParams, WeaviateClient } from '../index.js';
+import { AuthCredentials } from './auth.js';
+import { ProxiesParams } from './http.js';
 
 export interface ConnectToWCSOptions {
   authCredentials?: AuthCredentials;
@@ -30,9 +30,6 @@ export function connectToWCS(
 
   if (!clusterURL.startsWith('http')) {
     clusterURL = `https://${clusterURL}`;
-  }
-  if (!URL.canParse(clusterURL)) {
-    throw new Error(`Invalid clusterURL: ${clusterURL}`);
   }
   const url = new URL(clusterURL);
 

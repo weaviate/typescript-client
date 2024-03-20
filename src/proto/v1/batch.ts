@@ -1,6 +1,6 @@
 /* eslint-disable */
-import * as _m0 from "protobufjs/minimal";
-import { Struct } from "../google/protobuf/struct";
+import _m0 from "protobufjs/minimal.js";
+import { Struct } from "../google/protobuf/struct.js";
 import {
   BooleanArrayProperties,
   ConsistencyLevel,
@@ -12,7 +12,7 @@ import {
   ObjectProperties,
   TextArrayProperties,
   Vectors,
-} from "./base";
+} from "./base.js";
 
 export const protobufPackage = "weaviate.v1";
 

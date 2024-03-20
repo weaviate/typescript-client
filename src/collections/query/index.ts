@@ -1,15 +1,15 @@
-import Connection from '../../connection/grpc';
+import Connection from '../../connection/grpc.js';
 
-import { toBase64FromBlob } from '../../utils/base64';
+import { toBase64FromBlob } from '../../utils/base64.js';
 
-import { ObjectsPath } from '../../data/path';
-import { DbVersionSupport } from '../../utils/dbVersion';
-import { ConsistencyLevel } from '../../data';
+import { ObjectsPath } from '../../data/path.js';
+import { DbVersionSupport } from '../../utils/dbVersion.js';
+import { ConsistencyLevel } from '../../data/index.js';
 
-import { FilterValue } from '../filters';
-import Deserialize from '../deserialize';
-import Serialize from '../serialize';
-import { Sorting } from '../sort';
+import { FilterValue } from '../filters/index.js';
+import { Deserialize } from '../deserialize/index.js';
+import { Serialize } from '../serialize/index.js';
+import { Sorting } from '../sort/index.js';
 import {
   QueryMetadata,
   WeaviateObject,
@@ -18,13 +18,26 @@ import {
   WeaviateReturn,
   GroupByReturn,
   GroupByOptions,
-} from '../types';
-import { PrimitiveKeys } from '../types/internal';
-import { SearchReply } from '../../proto/v1/search_get';
+  RerankOptions,
+} from '../types/index.js';
+import { PrimitiveKeys } from '../types/internal.js';
+import { SearchReply } from '../../proto/v1/search_get.js';
 
+/** Options available in the `query.fetchObjectById` method */
 export type FetchObjectByIdOptions<T> = {
+  /**
+   * Whether to include the vector of the object in the response.
+   * If using named vectors, pass an array of strings to include only specific vectors.
+   */
   includeVector?: boolean | string[];
+  /**
+   * Which properties of the object to return. Can be primitive, in which case specify their names, or nested, in which case
+   * use the QueryNested<T> type. If not specified, all properties are returned.
+   */
   returnProperties?: QueryProperty<T>[];
+  /**
+   * Which references of the object to return. If not specified, no references are returned.
+   */
   returnReferences?: QueryReference<T>[];
 };
 
@@ -45,6 +58,7 @@ export type QueryOptions<T> = {
   offset?: number;
   autoLimit?: number;
   filters?: FilterValue;
+  rerank?: RerankOptions<T>;
   includeVector?: boolean | string[];
   returnMetadata?: QueryMetadata;
   returnProperties?: QueryProperty<T>[];
@@ -124,8 +138,8 @@ class QueryManager<T> implements Query<T> {
     return this.connection.search(this.name, this.consistencyLevel, this.tenant).then((search) =>
       search
         .withFetch(Serialize.fetchObjectById({ id, ...opts }))
-        .then(Deserialize.query<T>)
-        .then((res) => (res.objects.length === 1 ? res.objects[0] : null))
+        .then((reply) => Deserialize.generate<T>(reply))
+        .then((ret) => (ret.objects.length === 1 ? ret.objects[0] : null))
     );
   }
 
@@ -133,21 +147,21 @@ class QueryManager<T> implements Query<T> {
     return this.connection
       .search(this.name, this.consistencyLevel, this.tenant)
       .then((search) => search.withFetch(Serialize.fetchObjects(opts)))
-      .then(Deserialize.query<T>);
+      .then((reply) => Deserialize.generate<T>(reply));
   }
 
   public bm25(query: string, opts?: Bm25Options<T>): Promise<WeaviateReturn<T>> {
     return this.connection
       .search(this.name, this.consistencyLevel, this.tenant)
       .then((search) => search.withBm25(Serialize.bm25({ query, ...opts })))
-      .then(Deserialize.query<T>);
+      .then((reply) => Deserialize.generate<T>(reply));
   }
 
   public hybrid(query: string, opts?: HybridOptions<T>): Promise<WeaviateReturn<T>> {
     return this.connection
       .search(this.name, this.consistencyLevel, this.tenant)
       .then((search) => search.withHybrid(Serialize.hybrid({ query, ...opts })))
-      .then(Deserialize.query<T>);
+      .then((reply) => Deserialize.generate<T>(reply));
   }
 
   public nearImage(image: string | Blob): Promise<WeaviateReturn<T>>;
@@ -167,7 +181,9 @@ class QueryManager<T> implements Query<T> {
           })
         );
       })
-      .then(Serialize.isGroupBy(opts) ? Deserialize.groupBy<T> : Deserialize.query<T>);
+      .then((reply) =>
+        Serialize.isGroupBy(opts) ? Deserialize.groupBy<T>(reply) : Deserialize.query<T>(reply)
+      );
   }
 
   public nearMedia(media: string | Blob, type: NearMediaType): Promise<WeaviateReturn<T>>;
@@ -219,7 +235,9 @@ class QueryManager<T> implements Query<T> {
         default:
           throw new Error(`Invalid media type: ${type}`);
       }
-      return reply.then(Serialize.isGroupBy(opts) ? Deserialize.groupBy<T> : Deserialize.query<T>);
+      return reply.then((reply) =>
+        Serialize.isGroupBy(opts) ? Deserialize.groupBy<T>(reply) : Deserialize.query<T>(reply)
+      );
     });
   }
 
@@ -237,7 +255,9 @@ class QueryManager<T> implements Query<T> {
             : undefined,
         })
       )
-      .then(Serialize.isGroupBy(opts) ? Deserialize.groupBy<T> : Deserialize.query<T>) as QueryReturn<T>;
+      .then((reply) =>
+        Serialize.isGroupBy(opts) ? Deserialize.groupBy<T>(reply) : Deserialize.query<T>(reply)
+      );
   }
 
   public nearText(query: string | string[]): Promise<WeaviateReturn<T>>;
@@ -254,7 +274,9 @@ class QueryManager<T> implements Query<T> {
             : undefined,
         })
       )
-      .then(Serialize.isGroupBy(opts) ? Deserialize.groupBy<T> : Deserialize.query<T>);
+      .then((reply) =>
+        Serialize.isGroupBy(opts) ? Deserialize.groupBy<T>(reply) : Deserialize.query<T>(reply)
+      );
   }
 
   public nearVector(vector: number[]): Promise<WeaviateReturn<T>>;
@@ -271,11 +293,20 @@ class QueryManager<T> implements Query<T> {
             : undefined,
         })
       )
-      .then(Serialize.isGroupBy(opts) ? Deserialize.groupBy<T> : Deserialize.query<T>);
+      .then((reply) =>
+        Serialize.isGroupBy(opts) ? Deserialize.groupBy<T>(reply) : Deserialize.query<T>(reply)
+      );
   }
 }
 
 export interface Query<T> {
+  /**
+   * Retrieve an object from the server by its UUID.
+   *
+   * @param {string} id - The UUID of the object to retrieve.
+   * @param {FetchObjectByIdOptions} [opts] - The available options for fetching the object.
+   * @returns {Promise<WeaviateObject<T> | null>} - The object with the given UUID, or null if it does not exist.
+   */
   fetchObjectById: (id: string, opts?: FetchObjectByIdOptions<T>) => Promise<WeaviateObject<T> | null>;
 
   fetchObjects: (opts?: FetchObjectsOptions<T>) => Promise<WeaviateReturn<T>>;
@@ -306,9 +337,35 @@ export interface Query<T> {
   nearText(query: string | string[], opts: GroupByNearTextOptions<T>): Promise<GroupByReturn<T>>;
   nearText(query: string | string[], opts?: NearTextOptions<T>): QueryReturn<T>;
 
+  /**
+   * @overload
+   * @param {number[]} vector - The vector to search for.
+   * @returns {Promise<WeaviateReturn<T>>} - The objects found by the search.
+   */
   nearVector(vector: number[]): Promise<WeaviateReturn<T>>;
+  /**
+   * @overload
+   * @param {number[]} vector - The vector to search for.
+   * @param {BaseNearOptions<T>} opts - The available options for the search excluding the `groupBy` param.
+   * @returns {Promise<WeaviateReturn<T>>} - The objects found by the search.
+   */
   nearVector(vector: number[], opts: BaseNearOptions<T>): Promise<WeaviateReturn<T>>;
+  /**
+   * @overload
+   * @param {number[]} vector - The vector to search for.
+   * @param {GroupByNearOptions<T>} opts - The available options for the search including the `groupBy` param.
+   * @returns {Promise<GroupByReturn<T>>} - The grouped objects found by the search.
+   */
   nearVector(vector: number[], opts: GroupByNearOptions<T>): Promise<GroupByReturn<T>>;
+  /**
+   * Search for objects by vector in this collection using and vector-based similarity search.
+   *
+   * See the [docs](https://weaviate.io/developers/weaviate/search/similarity) for a more detailed explanation.
+   *
+   * @param {number[]} vector - The vector to search for.
+   * @param {BaseNearOptions<T> | GroupByNearOptions<T> | undefined} [opts] - The available options for the search.
+   * @returns {Promise<WeaviateReturn<T> | GroupByReturn<T>>} - The objects found by the search.
+   */
   nearVector(vector: number[], opts?: NearOptions<T>): QueryReturn<T>;
 }
 

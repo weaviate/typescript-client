@@ -3,10 +3,10 @@ import {
   PQConfigCreate,
   VectorIndexConfigFlatCreate,
   VectorIndexConfigHNSWCreate,
-} from './types';
-import { ModuleConfig, PQEncoderDistribution, PQEncoderType, VectorDistance } from '../config/types';
+} from './types/index.js';
+import { ModuleConfig, PQEncoderDistribution, PQEncoderType, VectorDistance } from '../config/types/index.js';
 
-import { parseWithDefault, parseQuantizer } from './parsing';
+import { parseWithDefault, parseQuantizer } from './parsing.js';
 
 export default {
   flat: (config?: {

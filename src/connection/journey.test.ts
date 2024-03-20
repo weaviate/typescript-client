@@ -3,10 +3,10 @@ import {
   AuthAccessTokenCredentials,
   AuthClientCredentials,
   AuthUserPasswordCredentials,
-} from './auth';
-import Connection from '.';
+} from './auth.js';
+import Connection from './index.js';
 
-import weaviate from '../v2';
+import weaviate from '../v2/index.js';
 
 describe('connection', () => {
   it('makes a logged-in request when client host param has trailing slashes', () => {

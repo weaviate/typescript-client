@@ -1,5 +1,5 @@
-import { Properties, Property, WeaviateField } from '.';
-import { CrossReference, CrossReferenceDefault, CrossReferences } from '../references';
+import { Properties, WeaviateField } from '../index.js';
+import { CrossReferenceDefault } from '../references/index.js';
 import {
   ExtractCrossReferenceType,
   NonRefKeys,
@@ -7,7 +7,7 @@ import {
   QueryProperty,
   QueryReference,
   QueryNestedDefault,
-} from './internal';
+} from './internal.js';
 
 // export type MetadataQuery = (
 //   | 'creationTime'
@@ -26,6 +26,7 @@ type Metadata = {
   certainty: number;
   score: number;
   explainScore: string;
+  rerankScore: number;
   isConsistent: boolean;
 };
 
@@ -95,6 +96,16 @@ export type GroupByOptions<T> = {
   numberOfGroups: number;
   objectsPerGroup: number;
 };
+
+export type RerankOptions<T> = T extends undefined
+  ? {
+      property: string;
+      query: string;
+    }
+  : {
+      property: keyof T;
+      query?: string;
+    };
 
 interface BaseRefProperty<T extends Properties> {
   // linkOn: keyof T & string; // https://github.com/microsoft/TypeScript/issues/56239

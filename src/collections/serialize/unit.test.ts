@@ -1,4 +1,4 @@
-import Serialize, { DataGuards } from '.';
+import { DataGuards, Serialize } from './index.js';
 import {
   SearchBm25Args,
   SearchFetchArgs,
@@ -12,9 +12,8 @@ import {
   SearchNearThermalArgs,
   SearchNearVectorArgs,
   SearchNearVideoArgs,
-} from '../../grpc/searcher';
-import { Filters, Filters_Operator } from '../../proto/v1/base';
-import { BatchObject as BatchObjectGRPC, BatchObject_Properties } from '../../proto/v1/batch';
+} from '../../grpc/searcher.js';
+import { Filters, Filters_Operator } from '../../proto/v1/base.js';
 import {
   BM25,
   GenerativeSearch,
@@ -33,11 +32,11 @@ import {
   NearVector,
   NearVideoSearch,
   PropertiesRequest,
-} from '../../proto/v1/search_get';
-import filter from '../filters';
-import { Reference } from '../references';
-import sort from '../sort';
-import { BatchObjects, WeaviateField } from '../types';
+} from '../../proto/v1/search_get.js';
+import filter from '../filters/index.js';
+import { Reference } from '../references/index.js';
+import sort from '../sort/index.js';
+import { WeaviateField } from '../types/index.js';
 
 describe('Unit testing of Serialize', () => {
   it('should parse args for fetchObjects', () => {

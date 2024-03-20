@@ -1,7 +1,7 @@
-import { Backend, BackupStatus } from '../../backup';
-import Connection from '../../connection';
-import { BackupCreateResponse, BackupRestoreStatusResponse } from '../../openapi/types';
-import { BackupStatusArgs, backup } from './client';
+import { Backend, BackupStatus } from '../../backup/index.js';
+import Connection from '../../connection/index.js';
+import { BackupCreateResponse, BackupRestoreStatusResponse } from '../../openapi/types.js';
+import { BackupStatusArgs, backup } from './client.js';
 
 export interface BackupCollectionArgs {
   backupId: string;

@@ -1,4 +1,4 @@
-import weaviate from '..';
+import weaviate from '../index.js';
 
 describe('Testing of the client connecting to a proxied Weaviate instance', () => {
   // Skip because Envoy Proxy in CI is too flaky with strange error:

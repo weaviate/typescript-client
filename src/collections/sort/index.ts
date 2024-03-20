@@ -1,5 +1,5 @@
-import { SortBy } from '../types';
-import { NonRefKeys } from '../types/internal';
+import { SortBy } from '../types/index.js';
+import { NonRefKeys } from '../types/internal.js';
 
 export class Sorting<T> {
   private sorts: SortBy[];

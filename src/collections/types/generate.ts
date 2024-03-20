@@ -1,4 +1,4 @@
-import { GroupByObject, GroupByResult, WeaviateObjectType, WeaviateNonGenericObject } from './query';
+import { GroupByObject, GroupByResult, WeaviateObjectType, WeaviateNonGenericObject } from './query.js';
 
 export type GenerateObject<T> = T extends Record<string, any>
   ? WeaviateObjectType<T> & {

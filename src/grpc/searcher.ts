@@ -1,7 +1,7 @@
-import { ConsistencyLevel } from '../data';
+import { ConsistencyLevel } from '../data/index.js';
 
-import { WeaviateClient } from '../proto/v1/weaviate';
-import { Filters } from '../proto/v1/base';
+import { WeaviateClient } from '../proto/v1/weaviate.js';
+import { Filters } from '../proto/v1/base.js';
 import {
   BM25,
   GenerativeSearch,
@@ -18,13 +18,14 @@ import {
   NearVector,
   NearVideoSearch,
   PropertiesRequest,
+  Rerank,
   SearchReply,
   SearchRequest,
   SortBy,
-} from '../proto/v1/search_get';
+} from '../proto/v1/search_get.js';
 import { Metadata } from 'nice-grpc';
 
-import Base from './base';
+import Base from './base.js';
 
 export type SearchFetchArgs = {
   limit?: number;
@@ -43,6 +44,7 @@ type BaseSearchArgs = {
   offset?: number;
   autocut?: number;
   filters?: Filters;
+  rerank?: Rerank;
   metadata?: MetadataRequest;
   properties?: PropertiesRequest;
   generative?: GenerativeSearch;

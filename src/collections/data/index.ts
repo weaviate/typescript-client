@@ -1,12 +1,12 @@
-import Connection from '../../connection/grpc';
+import Connection from '../../connection/grpc.js';
 
-import { WeaviateObject, BatchReference, BatchReferenceResponse } from '../../openapi/types';
-import { buildRefsPath } from '../../batch/path';
-import { ObjectsPath, ReferencesPath } from '../../data/path';
-import { DbVersionSupport } from '../../utils/dbVersion';
-import { Checker, ConsistencyLevel } from '../../data';
-import { referenceToBeacons } from '../references';
-import Serialize, { DataGuards } from '../serialize';
+import { WeaviateObject, BatchReference, BatchReferenceResponse } from '../../openapi/types.js';
+import { buildRefsPath } from '../../batch/path.js';
+import { ObjectsPath, ReferencesPath } from '../../data/path.js';
+import { DbVersionSupport } from '../../utils/dbVersion.js';
+import { Checker, ConsistencyLevel } from '../../data/index.js';
+import { referenceToBeacons } from '../references/index.js';
+import { DataGuards, Serialize } from '../serialize/index.js';
 import {
   BatchObjectsReturn,
   BatchReferencesReturn,
@@ -18,11 +18,9 @@ import {
   ReferenceInput,
   ReferenceInputs,
   Vectors,
-} from '../types';
-import { FilterValue } from '../filters';
-import Deserialize from '../deserialize';
-
-import { addContext } from '..';
+} from '../types/index.js';
+import { FilterValue } from '../filters/index.js';
+import { Deserialize } from '../deserialize/index.js';
 
 export type DeleteManyOptions<V> = {
   verbose?: V;
@@ -75,6 +73,25 @@ export interface Data<T> {
   replace: (args: ReplaceArgs<T>) => Promise<void>;
   update: (args: UpdateArgs<T>) => Promise<void>;
 }
+
+interface IBuilder {
+  withConsistencyLevel(consistencyLevel: ConsistencyLevel): this;
+  withTenant(tenant: string): this;
+}
+
+const addContext = <B extends IBuilder>(
+  builder: B,
+  consistencyLevel?: ConsistencyLevel,
+  tenant?: string
+): B => {
+  if (consistencyLevel) {
+    builder = builder.withConsistencyLevel(consistencyLevel);
+  }
+  if (tenant) {
+    builder = builder.withTenant(tenant);
+  }
+  return builder;
+};
 
 const data = <T>(
   connection: Connection,

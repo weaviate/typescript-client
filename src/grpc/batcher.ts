@@ -1,13 +1,13 @@
 import { Metadata } from 'nice-grpc';
 
-import { ConsistencyLevel } from '../data';
+import { ConsistencyLevel } from '../data/index.js';
 
-import { BatchObjectsRequest, BatchObjectsReply, BatchObject } from '../proto/v1/batch';
-import { WeaviateClient } from '../proto/v1/weaviate';
+import { BatchObjectsRequest, BatchObjectsReply, BatchObject } from '../proto/v1/batch.js';
+import { WeaviateClient } from '../proto/v1/weaviate.js';
 
-import Base from './base';
-import { BatchDeleteReply, BatchDeleteRequest } from '../proto/v1/batch_delete';
-import { Filters } from '../proto/v1/base';
+import Base from './base.js';
+import { BatchDeleteReply, BatchDeleteRequest } from '../proto/v1/batch_delete.js';
+import { Filters } from '../proto/v1/base.js';
 
 export interface Batch {
   withDelete: (args: BatchDeleteArgs) => Promise<BatchDeleteReply>;

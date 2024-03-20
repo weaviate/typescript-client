@@ -1,9 +1,9 @@
-import { BeaconPath } from '../utils/beaconPath';
-import { ReferencesPath } from './path';
-import Connection from '../connection';
-import { CommandBase } from '../validation/commandBase';
-import { Reference } from '../openapi/types';
-import { ConsistencyLevel } from './replication';
+import { BeaconPath } from '../utils/beaconPath.js';
+import { ReferencesPath } from './path.js';
+import Connection from '../connection/index.js';
+import { CommandBase } from '../validation/commandBase.js';
+import { Reference } from '../openapi/types.js';
+import { ConsistencyLevel } from './replication.js';
 
 export default class ReferenceCreator extends CommandBase {
   private beaconPath: BeaconPath;

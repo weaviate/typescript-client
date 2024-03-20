@@ -1,6 +1,6 @@
-import Connection from '../connection';
-import { NodesStatusResponse } from '../openapi/types';
-import { CommandBase } from '../validation/commandBase';
+import Connection from '../connection/index.js';
+import { NodesStatusResponse } from '../openapi/types.js';
+import { CommandBase } from '../validation/commandBase.js';
 
 export default class NodesStatusGetter extends CommandBase {
   private className?: string;

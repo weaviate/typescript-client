@@ -1,4 +1,4 @@
-import { PQConfigCreate, BQConfigCreate } from './types';
+import { PQConfigCreate, BQConfigCreate } from './types/index.js';
 
 export class QuantizerGuards {
   static isPQ(config: BQConfigCreate | PQConfigCreate): config is PQConfigCreate {

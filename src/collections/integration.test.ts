@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import weaviate, { WeaviateClient } from '..';
+import weaviate, { WeaviateClient } from '../index';
 import {
   CollectionConfigCreate,
   GeoCoordinate,
@@ -8,7 +8,7 @@ import {
   Text2VecContextionaryConfig,
   Text2VecOpenAIConfig,
   VectorIndexConfigHNSW,
-} from './types';
+} from './types/index';
 
 const fail = (msg: string) => {
   throw new Error(msg);

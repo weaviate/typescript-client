@@ -1,10 +1,9 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
-import weaviate, { AggregateText, WeaviateClient } from '../..';
-import { DataObject } from '../types';
-import { CrossReference } from '../references';
-import { Collection } from '../collection';
-import filter from '../filters';
+import weaviate, { AggregateText, WeaviateClient } from '../../index.js';
+import { DataObject } from '../types/index.js';
+import { CrossReference } from '../references/index.js';
+import { Collection } from '../collection/index.js';
 
 describe('Testing of the collection.aggregate methods', () => {
   type TestCollectionAggregate = {

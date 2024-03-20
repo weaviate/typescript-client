@@ -1,7 +1,7 @@
-import { ConsistencyLevel } from '../data';
+import { ConsistencyLevel } from '../data/index.js';
 
-import { WeaviateClient } from '../proto/v1/weaviate';
-import { ConsistencyLevel as ConsistencyLevelGRPC } from '../proto/v1/base';
+import { WeaviateClient } from '../proto/v1/weaviate.js';
+import { ConsistencyLevel as ConsistencyLevelGRPC } from '../proto/v1/base.js';
 import { Metadata } from 'nice-grpc';
 
 export default class Base {

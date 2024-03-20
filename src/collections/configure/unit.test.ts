@@ -1,4 +1,4 @@
-import configure from '.';
+import configure from './index.js';
 import {
   Img2VecNeuralConfig,
   ModuleConfig,
@@ -18,7 +18,7 @@ import {
   Text2VecPalmConfig,
   Text2VecTransformersConfig,
   Text2VecVoyageConfig,
-} from '../types';
+} from '../types/index.js';
 import {
   InvertedIndexConfigCreate,
   MultiTenancyConfigCreate,
@@ -26,7 +26,7 @@ import {
   ShardingConfigCreate,
   VectorIndexConfigFlatCreate,
   VectorIndexConfigHNSWCreate,
-} from './types';
+} from './types/index.js';
 
 describe('Unit testing of the configure factory class', () => {
   it('should create the correct InvertedIndexConfig type with defaults', () => {

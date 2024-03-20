@@ -1,4 +1,4 @@
-import { buildObjectsPath, buildRefsPath } from './path';
+import { buildObjectsPath, buildRefsPath } from './path.js';
 
 describe('paths', () => {
   it('builds batch objects without params', () => {

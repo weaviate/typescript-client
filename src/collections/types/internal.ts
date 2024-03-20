@@ -1,4 +1,4 @@
-import { CrossReference, ReferenceManager } from '../references';
+import { CrossReference, ReferenceManager } from '../references/index.js';
 import {
   NestedProperties,
   PrimitiveField,
@@ -9,7 +9,7 @@ import {
   WeaviateField,
   Properties,
   RefPropertyDefault,
-} from '.';
+} from '../index.js';
 
 export type ExtractCrossReferenceType<T> = T extends CrossReference<infer U> ? U : never;
 
@@ -48,11 +48,13 @@ export type ReferenceInput<T> =
   | ReferenceManager<T>
   | (string | ReferenceToMultiTarget | ReferenceManager<T>)[];
 
-export type ReferenceInputs<Obj> = {
-  [Key in keyof Obj as Key extends RefKeys<Obj> ? Key : never]: ReferenceInput<
-    ExtractCrossReferenceType<Obj[Key]>
-  >;
-};
+export type ReferenceInputs<Obj> = Obj extends undefined
+  ? Record<string, ReferenceInput<undefined>>
+  : {
+      [Key in keyof Obj as Key extends RefKeys<Obj> ? Key : never]: ReferenceInput<
+        ExtractCrossReferenceType<Obj[Key]>
+      >;
+    };
 
 type IsPrimitiveField<T> = T extends PrimitiveField ? T : never;
 
@@ -115,8 +117,10 @@ export type NestedKeys<Obj> = {
   string;
 
 // Adjusted NonRefs to correctly map over Obj and preserve optional types
-export type NonReferenceInputs<Obj> = {
-  [Key in keyof Obj as Key extends NonRefKeys<Obj> ? Key : never]: MapPhoneNumberType<Obj[Key]>;
-};
+export type NonReferenceInputs<Obj> = Obj extends undefined
+  ? Record<string, WeaviateField>
+  : {
+      [Key in keyof Obj as Key extends NonRefKeys<Obj> ? Key : never]: MapPhoneNumberType<Obj[Key]>;
+    };
 
 export type MapPhoneNumberType<T> = T extends PhoneNumber ? PhoneNumberInput : T;

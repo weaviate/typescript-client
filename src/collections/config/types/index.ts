@@ -1,11 +1,11 @@
-export * from './generative';
-export * from './reranker';
-export * from './vectorIndex';
-export * from './vectorizer';
+export * from './generative.js';
+export * from './reranker.js';
+export * from './vectorIndex.js';
+export * from './vectorizer.js';
 
-import { GenerativeConfig } from './generative';
-import { RerankerConfig } from './reranker';
-import { VectorConfig } from './vectorizer';
+import { GenerativeConfig } from './generative.js';
+import { RerankerConfig } from './reranker.js';
+import { VectorConfig } from './vectorizer.js';
 
 export type ModuleConfig<N, C = Record<string, any>> = {
   name: N;

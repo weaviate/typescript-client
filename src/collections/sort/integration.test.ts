@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
-import weaviate, { WeaviateClient } from '../..';
-import { Collection } from '../collection';
+import weaviate, { WeaviateClient } from '../../index.js';
+import { Collection } from '../collection/index.js';
 
 describe('Testing of the Sort class with a simple collection', () => {
   let client: WeaviateClient;

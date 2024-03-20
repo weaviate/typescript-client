@@ -8,8 +8,8 @@ import weaviate, {
   Tenant,
   ReferenceCreator,
   WhereFilter,
-} from '../v2';
-import { FusionType } from './hybrid';
+} from '../v2/index.js';
+import { FusionType } from './hybrid.js';
 
 describe('the graphql journey', () => {
   let client: WeaviateClient;

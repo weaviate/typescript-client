@@ -1,6 +1,6 @@
-import { NonReferenceInputs, ReferenceInputs } from '.';
-import { BatchObject as BatchObjectGRPC } from '../../proto/v1/batch';
-import { BatchReference } from '../../openapi/types';
+import { NonReferenceInputs, ReferenceInputs } from '../index.js';
+import { BatchObject as BatchObjectGRPC } from '../../proto/v1/batch.js';
+import { BatchReference } from '../../openapi/types.js';
 
 export type BatchObjectsReturn<T> = {
   allResponses: (string | ErrorObject<T>)[];

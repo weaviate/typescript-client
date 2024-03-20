@@ -1,10 +1,10 @@
-import { isValidStringProperty } from '../validation/string';
-import { buildObjectsPath } from './path';
-import Connection from '../connection';
-import { CommandBase } from '../validation/commandBase';
-import { BatchDelete, BatchDeleteResponse, WhereFilter } from '../openapi/types';
-import { ConsistencyLevel } from '../data/replication';
-import { DeleteOutput } from '.';
+import { isValidStringProperty } from '../validation/string.js';
+import { buildObjectsPath } from './path.js';
+import Connection from '../connection/index.js';
+import { CommandBase } from '../validation/commandBase.js';
+import { BatchDelete, BatchDeleteResponse, WhereFilter } from '../openapi/types.js';
+import { ConsistencyLevel } from '../data/replication.js';
+import { DeleteOutput } from './index.js';
 
 export default class ObjectsBatchDeleter extends CommandBase {
   private className?: string;

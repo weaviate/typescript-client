@@ -1,4 +1,4 @@
-export { QuantizerGuards } from './parsing';
+export { QuantizerGuards } from './parsing.js';
 
 import {
   InvertedIndexConfigCreate,
@@ -9,15 +9,15 @@ import {
   ShardingConfigCreate,
   VectorIndexType,
   Vectorizer,
-} from '../types';
+} from '../types/index.js';
 
-import generative from './generative';
-import reranker from './reranker';
-import vectorIndex from './vectorIndex';
-import { vectorizer } from './vectorizer';
+import generative from './generative.js';
+import reranker from './reranker.js';
+import vectorIndex from './vectorIndex.js';
+import { vectorizer } from './vectorizer.js';
 
-import { parseWithDefault } from './parsing';
-import { PrimitiveKeys } from '../types/internal';
+import { parseWithDefault } from './parsing.js';
+import { PrimitiveKeys } from '../types/internal.js';
 
 const dataType = {
   INT: 'int' as const,
@@ -46,6 +46,13 @@ const tokenization = {
   GSE: 'gse' as const,
 };
 
+const vectorDistances = {
+  COSINE: 'cosine' as const,
+  DOT: 'dot' as const,
+  HAMMING: 'hamming' as const,
+  L2_SQUARED: 'l2-squared' as const,
+};
+
 export default {
   generative,
   reranker,
@@ -53,6 +60,7 @@ export default {
   vectorIndex,
   dataType,
   tokenization,
+  vectorDistances,
   invertedIndex: (config?: {
     bm25b?: number;
     bm25k1?: number;

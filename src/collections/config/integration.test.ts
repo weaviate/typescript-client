@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import weaviate, { WeaviateClient } from '../..';
-import { PropertyConfig, VectorIndexConfigHNSW } from './types';
+import weaviate, { WeaviateClient } from '../../index.js';
+import { PropertyConfig, VectorIndexConfigHNSW } from './types/index.js';
 
 const fail = (msg: string) => {
   throw new Error(msg);

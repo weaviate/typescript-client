@@ -1,4 +1,4 @@
-import { ModuleConfig, RerankerCohereConfig } from '../config/types';
+import { ModuleConfig, RerankerCohereConfig } from '../config/types/index.js';
 
 export default {
   cohere: (config?: RerankerCohereConfig): ModuleConfig<'reranker-cohere', RerankerCohereConfig> => {

@@ -1,6 +1,6 @@
-import Connection from '../connection';
-import { CommandBase } from '../validation/commandBase';
-import { WeaviateSchema } from '../openapi/types';
+import Connection from '../connection/index.js';
+import { CommandBase } from '../validation/commandBase.js';
+import { WeaviateSchema } from '../openapi/types.js';
 
 export default class SchemaGetter extends CommandBase {
   constructor(client: Connection) {
