@@ -26,6 +26,7 @@ import {
   NearDepthSearch,
   NearIMUSearch,
   NearTextSearch_Move,
+  Rerank,
 } from '../../proto/v1/search_get.js';
 
 import {
@@ -53,6 +54,7 @@ import {
   PhoneNumberInput,
   ReferenceInput,
   QueryMetadata,
+  RerankOptions,
 } from '../types/index.js';
 import {
   SearchBm25Args,
@@ -286,6 +288,7 @@ export class Serialize {
       limit: args?.limit,
       offset: args?.offset,
       filters: args?.filters ? Serialize.filtersGRPC(args.filters) : undefined,
+      rerank: args?.rerank ? Serialize.rerank(args.rerank) : undefined,
       properties:
         args?.returnProperties || args?.returnReferences
           ? Serialize.queryProperties(args.returnProperties, args.returnReferences)
@@ -738,6 +741,13 @@ export class Serialize {
         ascending: !!sort.ascending,
         path: [sort.property],
       };
+    });
+  };
+
+  public static rerank = <T>(rerank: RerankOptions<T>): Rerank => {
+    return Rerank.fromPartial({
+      property: rerank.property as string,
+      query: rerank.query,
     });
   };
 

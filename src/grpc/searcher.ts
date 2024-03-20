@@ -18,6 +18,7 @@ import {
   NearVector,
   NearVideoSearch,
   PropertiesRequest,
+  Rerank,
   SearchReply,
   SearchRequest,
   SortBy,
@@ -43,6 +44,7 @@ type BaseSearchArgs = {
   offset?: number;
   autocut?: number;
   filters?: Filters;
+  rerank?: Rerank;
   metadata?: MetadataRequest;
   properties?: PropertiesRequest;
   generative?: GenerativeSearch;

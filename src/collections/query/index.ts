@@ -18,6 +18,7 @@ import {
   WeaviateReturn,
   GroupByReturn,
   GroupByOptions,
+  RerankOptions,
 } from '../types/index.js';
 import { PrimitiveKeys } from '../types/internal.js';
 import { SearchReply } from '../../proto/v1/search_get.js';
@@ -57,6 +58,7 @@ export type QueryOptions<T> = {
   offset?: number;
   autoLimit?: number;
   filters?: FilterValue;
+  rerank?: RerankOptions<T>;
   includeVector?: boolean | string[];
   returnMetadata?: QueryMetadata;
   returnProperties?: QueryProperty<T>[];
