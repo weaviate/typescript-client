@@ -863,7 +863,9 @@ describe('Testing of the collection.query methods with a multi-tenancy collectio
   });
 });
 
-describe('Testing of collection.query using rerank functionality', () => {
+const maybe = process.env.OPENAI_APIKEY ? describe : describe.skip;
+
+maybe('Testing of collection.query using rerank functionality', () => {
   let client: WeaviateClient;
   let collection: Collection;
   const collectionName = 'TestCollectionRerank';
