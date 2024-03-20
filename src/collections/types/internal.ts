@@ -1,4 +1,5 @@
-import { CrossReference, ReferenceManager } from '../references/index.js';
+import { CrossReference } from '../references/index.js';
+import { ReferenceManager } from '../references/classes.js';
 import {
   NestedProperties,
   PrimitiveField,

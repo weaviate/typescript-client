@@ -242,7 +242,7 @@ describe('Testing of the filter class with a simple collection', () => {
     await collection.data
       .update({
         id: ids[0],
-        vector: vec,
+        vectors: vec,
       })
       .then(async () => {
         const res = await collection.query.fetchObjects({

@@ -29,15 +29,14 @@ import {
   Rerank,
 } from '../../proto/v1/search_get.js';
 
+import { Filters, FilterValue } from '../filters/index.js';
+import { FilterId } from '../filters/classes.js';
 import {
-  Filters,
   FilterValueType,
-  FilterValue,
   PrimitiveFilterValueType,
   PrimitiveListFilterValueType,
-  FilterById,
   GeoRangeFilter,
-} from '../filters/index.js';
+} from '../filters/types.js';
 import {
   BatchObject,
   BatchObjects,
@@ -76,9 +75,9 @@ import {
   FetchObjectsOptions,
   HybridOptions,
   NearOptions,
-  QueryOptions,
+  SearchOptions,
   NearTextOptions,
-} from '../query/index.js';
+} from '../query/types.js';
 import { GenerateOptions } from '../generate/index.js';
 import {
   BooleanArrayProperties,
@@ -92,7 +91,9 @@ import {
   Filters_Operator,
   FilterTarget,
 } from '../../proto/v1/base.js';
-import { Beacon, ReferenceGuards, uuidToBeacon } from '../references/index.js';
+import { Beacon } from '../references/index.js';
+import { ReferenceGuards } from '../references/classes.js';
+import { uuidToBeacon } from '../references/utils.js';
 
 class FilterGuards {
   static isFilters = (
@@ -283,7 +284,7 @@ export class DataGuards {
 }
 
 export class Serialize {
-  private static common = <T>(args?: QueryOptions<T>) => {
+  private static common = <T>(args?: SearchOptions<T>) => {
     return {
       limit: args?.limit,
       offset: args?.offset,
@@ -301,14 +302,14 @@ export class Serialize {
     return {
       ...Serialize.common(args),
       after: args?.after,
-      sortBy: args?.sort ? Serialize.sortBy(args.sort.get()) : undefined,
+      sortBy: args?.sort ? Serialize.sortBy(args.sort.sorts) : undefined,
     };
   };
 
   public static fetchObjectById = <T>(args: { id: string } & FetchObjectByIdOptions<T>): SearchFetchArgs => {
     return {
       ...Serialize.common({
-        filters: new FilterById().equal(args.id),
+        filters: new FilterId().equal(args.id),
         includeVector: args.includeVector,
         returnMetadata: ['creationTime', 'updateTime', 'isConsistent'],
         returnProperties: args.returnProperties,

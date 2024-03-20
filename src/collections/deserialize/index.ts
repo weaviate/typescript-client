@@ -1,5 +1,5 @@
 import { MetadataResult, PropertiesResult, SearchReply } from '../../proto/v1/search_get.js';
-import { referenceFromObjects } from '../references/index.js';
+import { referenceFromObjects } from '../references/utils.js';
 import {
   BatchObjectsReturn,
   ReturnMetadata,

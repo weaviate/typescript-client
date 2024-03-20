@@ -87,9 +87,22 @@ export interface WeaviateClient {
 }
 
 const app = {
+  /**
+   * Connect to a personally-deployed Weaviate instance.
+   *
+   * @param {ConnectToLocalOptions} [options] Options for the connection.
+   * @returns {Promise<WeaviateClient>} A Promise that resolves to a client connected to your local Weaviate instance.
+   */
   connectToLocal: function (options?: ConnectToLocalOptions): Promise<WeaviateClient> {
     return connectToLocal(this.client, options);
   },
+  /**
+   * Connect to your own Weaviate Cloud Service (WCS) instance.
+   *
+   * @param {string} clusterURL The URL of your WCS instance. E.g., `https://example.weaviate.network`.
+   * @param {ConnectToWCSOptions} [options] Additional options for the connection.
+   * @returns {Promise<WeaviateClient>} A Promise that resolves to a client connected to your WCS instance.
+   */
   connectToWCS: function (clusterURL: string, options?: ConnectToWCSOptions): Promise<WeaviateClient> {
     return connectToWCS(clusterURL, this.client, options);
   },

@@ -8,34 +8,34 @@ import { FilterValue } from '../filters/index.js';
 import { Aggregator } from '../../graphql/index.js';
 import { Serialize } from '../serialize/index.js';
 
-interface AggregateBaseOptions<T, M> {
+type AggregateBaseOptions<T, M> = {
   filters?: FilterValue;
   returnMetrics?: M;
-}
+};
 
-interface AggregateGroupByOptions<T, M> extends AggregateOptions<T, M> {
+type AggregateGroupByOptions<T, M> = AggregateOptions<T, M> & {
   groupBy: (keyof T & string) | GroupByAggregate<T>;
-}
+};
 
-interface GroupByAggregate<T> {
+type GroupByAggregate<T> = {
   property: keyof T & string;
   limit?: number;
-}
+};
 
-interface AggregateOptions<T, M> extends AggregateBaseOptions<T, M> {}
+type AggregateOptions<T, M> = AggregateBaseOptions<T, M>;
 
-export interface AggregateBaseOverAllOptions<T, M> extends AggregateBaseOptions<T, M> {}
+export type AggregateBaseOverAllOptions<T, M> = AggregateBaseOptions<T, M>;
 
-export interface AggregateNearOptions<T, M> extends AggregateBaseOptions<T, M> {
+export type AggregateNearOptions<T, M> = AggregateBaseOptions<T, M> & {
   certainty?: number;
   distance?: number;
   objectLimit?: number;
   targetVector?: string;
-}
+};
 
-export interface AggregateGroupByNearOptions<T, M> extends AggregateNearOptions<T, M> {
+export type AggregateGroupByNearOptions<T, M> = AggregateNearOptions<T, M> & {
   groupBy: (keyof T & string) | GroupByAggregate<T>;
-}
+};
 
 export type AggregateBoolean = {
   count?: number;
@@ -115,6 +115,7 @@ type MetricsText<N extends string> = MetricsBase<N, 'text'> & {
     occurs?: boolean;
     value?: boolean;
   };
+  minOccurrences?: number;
 };
 
 export type AggregateMetrics<M> = {
@@ -128,6 +129,14 @@ export const metrics = <T>() => {
 };
 
 export interface Metrics<T> {
+  /**
+   * Define the metrics to be returned based on a property when aggregating over a collection.
+
+    Use this `aggregate` method to define the name to the property to be aggregated on.
+    Then use the `text`, `integer`, `number`, `boolean`, `date_`, or `reference` methods to define the metrics to be returned.
+
+    See [the docs](https://weaviate.io/developers/weaviate/search/aggregate) for more details!
+   */
   aggregate: <P extends keyof T & string>(property: P) => MetricsManager<T, P>;
 }
 
@@ -146,9 +155,20 @@ export class MetricsManager<T, P extends keyof T & string> {
     return out as Option<A>;
   }
 
+  /**
+   * Define the metrics to be returned for a BOOL or BOOL_ARRAY property when aggregating over a collection.
+   *
+   * If none of the arguments are provided then all metrics will be returned.
+   *
+   * @param {('count' | 'percentageFalse' | 'percentageTrue' | 'totalFalse' | 'totalTrue')[]} metrics The metrics to return.
+   * @returns {MetricsBoolean<P>} The metrics for the property.
+   */
   public boolean(
-    metrics: ('count' | 'percentageFalse' | 'percentageTrue' | 'totalFalse' | 'totalTrue')[]
+    metrics?: ('count' | 'percentageFalse' | 'percentageTrue' | 'totalFalse' | 'totalTrue')[]
   ): MetricsBoolean<P> {
+    if (metrics === undefined || metrics.length === 0) {
+      metrics = ['count', 'percentageFalse', 'percentageTrue', 'totalFalse', 'totalTrue'];
+    }
     return {
       ...this.map(metrics),
       kind: 'boolean',
@@ -156,7 +176,18 @@ export class MetricsManager<T, P extends keyof T & string> {
     };
   }
 
-  public date(metrics: ('count' | 'maximum' | 'median' | 'minimum' | 'mode')[]): MetricsDate<P> {
+  /**
+   * Define the metrics to be returned for a DATE or DATE_ARRAY property when aggregating over a collection.
+   *
+   * If none of the arguments are provided then all metrics will be returned.
+   *
+   * @param {('count' | 'maximum' | 'median' | 'minimum' | 'mode')[]} metrics The metrics to return.
+   * @returns {MetricsDate<P>} The metrics for the property.
+   */
+  public date(metrics?: ('count' | 'maximum' | 'median' | 'minimum' | 'mode')[]): MetricsDate<P> {
+    if (metrics === undefined || metrics.length === 0) {
+      metrics = ['count', 'maximum', 'median', 'minimum', 'mode'];
+    }
     return {
       ...this.map(metrics),
       kind: 'date',
@@ -164,9 +195,20 @@ export class MetricsManager<T, P extends keyof T & string> {
     };
   }
 
+  /**
+   * Define the metrics to be returned for an INT or INT_ARRAY property when aggregating over a collection.
+   *
+   * If none of the arguments are provided then all metrics will be returned.
+   *
+   * @param {('count' | 'maximum' | 'mean' | 'median' | 'minimum' | 'mode' | 'sum')[]} metrics The metrics to return.
+   * @returns {MetricsInteger<P>} The metrics for the property.
+   */
   public integer(
-    metrics: ('count' | 'maximum' | 'mean' | 'median' | 'minimum' | 'mode' | 'sum')[]
+    metrics?: ('count' | 'maximum' | 'mean' | 'median' | 'minimum' | 'mode' | 'sum')[]
   ): MetricsInteger<P> {
+    if (metrics === undefined || metrics.length === 0) {
+      metrics = ['count', 'maximum', 'mean', 'median', 'minimum', 'mode', 'sum'];
+    }
     return {
       ...this.map(metrics),
       kind: 'integer',
@@ -174,9 +216,20 @@ export class MetricsManager<T, P extends keyof T & string> {
     };
   }
 
+  /**
+   * Define the metrics to be returned for a NUMBER or NUMBER_ARRAY property when aggregating over a collection.
+   *
+   * If none of the arguments are provided then all metrics will be returned.
+   *
+   * @param {('count' | 'maximum' | 'mean' | 'median' | 'minimum' | 'mode' | 'sum')[]} metrics The metrics to return.
+   * @returns {MetricsNumber<P>} The metrics for the property.
+   */
   public number(
-    metrics: ('count' | 'maximum' | 'mean' | 'median' | 'minimum' | 'mode' | 'sum')[]
+    metrics?: ('count' | 'maximum' | 'mean' | 'median' | 'minimum' | 'mode' | 'sum')[]
   ): MetricsNumber<P> {
+    if (metrics === undefined || metrics.length === 0) {
+      metrics = ['count', 'maximum', 'mean', 'median', 'minimum', 'mode', 'sum'];
+    }
     return {
       ...this.map(metrics),
       kind: 'number',
@@ -192,7 +245,22 @@ export class MetricsManager<T, P extends keyof T & string> {
   //   };
   // }
 
-  public text(metrics: ('count' | 'topOccurrencesOccurs' | 'topOccurrencesValue')[]): MetricsText<P> {
+  /**
+   * Define the metrics to be returned for a TEXT or TEXT_ARRAY property when aggregating over a collection.
+   *
+   * If none of the arguments are provided then all metrics will be returned.
+   *
+   * @param {('count' | 'topOccurrencesOccurs' | 'topOccurrencesValue')[]} metrics The metrics to return.
+   * @param {number} [minOccurrences] The how many top occurrences to return.
+   * @returns {MetricsText<P>} The metrics for the property.
+   */
+  public text(
+    metrics?: ('count' | 'topOccurrencesOccurs' | 'topOccurrencesValue')[],
+    minOccurrences?: number
+  ): MetricsText<P> {
+    if (metrics === undefined || metrics.length === 0) {
+      metrics = ['count', 'topOccurrencesOccurs', 'topOccurrencesValue'];
+    }
     return {
       count: metrics.includes('count'),
       topOccurrences:
@@ -202,6 +270,7 @@ export class MetricsManager<T, P extends keyof T & string> {
               value: metrics.includes('topOccurrencesValue'),
             }
           : undefined,
+      minOccurrences,
       kind: 'text',
       propertyName: this.propertyName,
     };
@@ -378,17 +447,21 @@ export class AggregateManager<T> implements Aggregate<T> {
     let body = '';
     const { kind, propertyName, ...rest } = metrics;
     switch (kind) {
-      case 'text':
-        body = Object.entries(rest)
+      case 'text': {
+        const { minOccurrences, ...restText } = rest as MetricsText<string>;
+        body = Object.entries(restText)
           .map(([key, value]) => {
             if (value) {
               return value instanceof Object
-                ? `topOccurrences { ${value.occurs ? 'occurs' : ''} ${value.value ? 'value' : ''} }`
+                ? `topOccurrences${minOccurrences ? `(limit: ${minOccurrences})` : ''} { ${
+                    value.occurs ? 'occurs' : ''
+                  } ${value.value ? 'value' : ''} }`
                 : key;
             }
           })
           .join(' ');
         break;
+      }
       default:
         body = Object.entries(rest)
           .map(([key, value]) => (value ? key : ''))
@@ -510,43 +583,144 @@ export class AggregateManager<T> implements Aggregate<T> {
 }
 
 export interface Aggregate<T> {
+  /** This namespace contains methods perform a group by search while aggregating metrics. */
   groupBy: AggregateGroupBy<T>;
+  /**
+   * Aggregate metrics over the objects returned by a near image vector search on this collection.
+   *
+   * At least one of `certainty`, `distance`, or `object_limit` must be specified here for the vector search.
+   *
+   * This method requires a vectorizer capable of handling base64-encoded images, e.g. `img2vec-neural`, `multi2vec-clip`, and `multi2vec-bind`.
+   *
+   * @param {string} image The base64-encoded image to search for.
+   * @param {AggregateNearOptions<T, M>} [opts] The options for the request.
+   * @returns {Promise<AggregateResult<T, M>[]>} The aggregated metrics for the objects returned by the vector search.
+   */
   nearImage<M extends PropertiesMetrics<T>>(
     image: string,
     opts?: AggregateNearOptions<T, M>
   ): Promise<AggregateResult<T, M>>;
+  /**
+   * Aggregate metrics over the objects returned by a near object search on this collection.
+   *
+   * At least one of `certainty`, `distance`, or `object_limit` must be specified here for the vector search.
+   *
+   * This method requires that the objects in the collection have associated vectors.
+   *
+   * @param {string} id The ID of the object to search for.
+   * @param {AggregateNearOptions<T, M>} [opts] The options for the request.
+   * @returns {Promise<AggregateResult<T, M>[]>} The aggregated metrics for the objects returned by the vector search.
+   */
   nearObject<M extends PropertiesMetrics<T>>(
     id: string,
     opts?: AggregateNearOptions<T, M>
   ): Promise<AggregateResult<T, M>>;
+  /**
+   * Aggregate metrics over the objects returned by a near vector search on this collection.
+   *
+   * At least one of `certainty`, `distance`, or `object_limit` must be specified here for the vector search.
+   *
+   * This method requires that the objects in the collection have associated vectors.
+   *
+   * @param {number[]} vector The vector to search for.
+   * @param {AggregateNearOptions<T, M>} [opts] The options for the request.
+   * @returns {Promise<AggregateResult<T, M>[]>} The aggregated metrics for the objects returned by the vector search.
+   */
   nearText<M extends PropertiesMetrics<T>>(
     query: string | string[],
     opts?: AggregateNearOptions<T, M>
   ): Promise<AggregateResult<T, M>>;
+  /**
+   * Aggregate metrics over the objects returned by a near vector search on this collection.
+   *
+   * At least one of `certainty`, `distance`, or `object_limit` must be specified here for the vector search.
+   *
+   * This method requires that the objects in the collection have associated vectors.
+   *
+   * @param {number[]} vector The vector to search for.
+   * @param {AggregateNearOptions<T, M>} [opts] The options for the request.
+   * @returns {Promise<AggregateResult<T, M>[]>} The aggregated metrics for the objects returned by the vector search.
+   */
   nearVector<M extends PropertiesMetrics<T>>(
     vector: number[],
     opts?: AggregateNearOptions<T, M>
   ): Promise<AggregateResult<T, M>>;
+  /**
+   * Aggregate metrics over all the objects in this collection without any vector search.
+   *
+   * @param {AggregateOptions<T, M>} [opts] The options for the request.
+   * @returns {Promise<AggregateResult<T, M>[]>} The aggregated metrics for the objects in the collection.
+   */
   overAll<M extends PropertiesMetrics<T>>(opts?: AggregateOptions<T, M>): Promise<AggregateResult<T, M>>;
 }
 
 export interface AggregateGroupBy<T> {
+  /**
+   * Aggregate metrics over the objects returned by a near image vector search on this collection.
+   *
+   * At least one of `certainty`, `distance`, or `object_limit` must be specified here for the vector search.
+   *
+   * This method requires a vectorizer capable of handling base64-encoded images, e.g. `img2vec-neural`, `multi2vec-clip`, and `multi2vec-bind`.
+   *
+   * @param {string} image The base64-encoded image to search for.
+   * @param {AggregateGroupByNearOptions<T, M>} [opts] The options for the request.
+   * @returns {Promise<AggregateGroupByResult<T, M>[]>} The aggregated metrics for the objects returned by the vector search.
+   */
   nearImage<M extends PropertiesMetrics<T>>(
     image: string,
     opts?: AggregateGroupByNearOptions<T, M>
   ): Promise<AggregateGroupByResult<T, M>[]>;
+  /**
+   * Aggregate metrics over the objects returned by a near object search on this collection.
+   *
+   * At least one of `certainty`, `distance`, or `object_limit` must be specified here for the vector search.
+   *
+   * This method requires that the objects in the collection have associated vectors.
+   *
+   * @param {string} id The ID of the object to search for.
+   * @param {AggregateGroupByNearOptions<T, M>} [opts] The options for the request.
+   * @returns {Promise<AggregateGroupByResult<T, M>[]>} The aggregated metrics for the objects returned by the vector search.
+   */
   nearObject<M extends PropertiesMetrics<T>>(
     id: string,
     opts?: AggregateGroupByNearOptions<T, M>
   ): Promise<AggregateGroupByResult<T, M>[]>;
+  /**
+   * Aggregate metrics over the objects returned by a near text vector search on this collection.
+   *
+   * At least one of `certainty`, `distance`, or `object_limit` must be specified here for the vector search.
+   *
+   * This method requires a vectorizer capable of handling text, e.g. `text2vec-contextionary`, `text2vec-openai`, etc.
+   *
+   * @param {string | string[]} query The text to search for.
+   * @param {AggregateGroupByNearOptions<T, M>} [opts] The options for the request.
+   * @returns {Promise<AggregateGroupByResult<T, M>[]>} The aggregated metrics for the objects returned by the vector search.
+   */
   nearText<M extends PropertiesMetrics<T>>(
     query: string | string[],
     opts: AggregateGroupByNearOptions<T, M>
   ): Promise<AggregateGroupByResult<T, M>[]>;
+  /**
+   * Aggregate metrics over the objects returned by a near vector search on this collection.
+   *
+   * At least one of `certainty`, `distance`, or `object_limit` must be specified here for the vector search.
+   *
+   * This method requires that the objects in the collection have associated vectors.
+   *
+   * @param {number[]} vector The vector to search for.
+   * @param {AggregateGroupByNearOptions<T, M>} [opts] The options for the request.
+   * @returns {Promise<AggregateGroupByResult<T, M>[]>} The aggregated metrics for the objects returned by the vector search.
+   */
   nearVector<M extends PropertiesMetrics<T>>(
     vector: number[],
     opts?: AggregateGroupByNearOptions<T, M>
   ): Promise<AggregateGroupByResult<T, M>[]>;
+  /**
+   * Aggregate metrics over all the objects in this collection without any vector search.
+   *
+   * @param {AggregateGroupByOptions<T, M>} [opts] The options for the request.
+   * @returns {Promise<AggregateGroupByResult<T, M>[]>} The aggregated metrics for the objects in the collection.
+   */
   overAll<M extends PropertiesMetrics<T>>(
     opts?: AggregateGroupByOptions<T, M>
   ): Promise<AggregateGroupByResult<T, M>[]>;

@@ -211,6 +211,22 @@ describe('Testing of the collection.aggregate methods', () => {
         // Metrics.aggregate('ref').reference(['pointingTo'])
       ],
     });
+    const resDef = await collection.aggregate.overAll({
+      returnMetrics: [
+        collection.metrics.aggregate('text').text(),
+        collection.metrics.aggregate('texts').text(),
+        collection.metrics.aggregate('int').integer(),
+        collection.metrics.aggregate('ints').integer(),
+        collection.metrics.aggregate('number').number(),
+        collection.metrics.aggregate('numbers').number(),
+        collection.metrics.aggregate('date').date(),
+        collection.metrics.aggregate('dates').date(),
+        collection.metrics.aggregate('boolean').boolean(),
+        collection.metrics.aggregate('booleans').boolean(),
+        // Metrics.aggregate('ref').reference(['pointingTo'])
+      ],
+    });
+    expect(resDef).toEqual(result);
     expect(result.totalCount).toEqual(100);
     expect(result.properties.text.count).toEqual(100);
     expect(result.properties.text.topOccurrences![0].occurs).toEqual(100);

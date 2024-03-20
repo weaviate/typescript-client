@@ -1,37 +1,8 @@
-import { SortBy } from '../types/index.js';
+export type { Sort } from './types.js';
+
 import { NonRefKeys } from '../types/internal.js';
-
-export class Sorting<T> {
-  private sorts: SortBy[];
-
-  constructor() {
-    this.sorts = [];
-  }
-
-  public byProperty<K extends NonRefKeys<T>>(property: K, ascending = true) {
-    this.sorts.push({ property, ascending });
-    return this;
-  }
-
-  public byId(ascending = true) {
-    this.sorts.push({ property: '_id', ascending });
-    return this;
-  }
-
-  public byCreationTime(ascending = true) {
-    this.sorts.push({ property: '_creationTimeUnix', ascending });
-    return this;
-  }
-
-  public byUpdateTime(ascending = true) {
-    this.sorts.push({ property: '_lastUpdateTimeUnix', ascending });
-    return this;
-  }
-
-  public get(): SortBy[] {
-    return this.sorts;
-  }
-}
+import { Sorting } from './classes.js';
+import { Sort } from './types.js';
 
 const sort = <T>(): Sort<T> => {
   return {
@@ -51,10 +22,3 @@ const sort = <T>(): Sort<T> => {
 };
 
 export default sort;
-
-export interface Sort<T> {
-  byProperty<K extends NonRefKeys<T>>(property: K, ascending?: boolean): Sorting<T>;
-  byId(ascending?: boolean): Sorting<T>;
-  byCreationTime(ascending?: boolean): Sorting<T>;
-  byUpdateTime(ascending?: boolean): Sorting<T>;
-}

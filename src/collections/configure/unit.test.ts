@@ -114,12 +114,7 @@ describe('Unit testing of the configure factory class', () => {
     expect(config).toEqual<ShardingConfigCreate>({
       virtualPerPhysical: 128,
       desiredCount: 1,
-      actualCount: 1,
       desiredVirtualCount: 128,
-      actualVirtualCount: 128,
-      function: 'murmur3',
-      key: '_id',
-      strategy: 'hash',
     });
   });
 
@@ -127,19 +122,12 @@ describe('Unit testing of the configure factory class', () => {
     const config = configure.sharding({
       virtualPerPhysical: 256,
       desiredCount: 2,
-      actualCount: 2,
       desiredVirtualCount: 256,
-      actualVirtualCount: 256,
     });
     expect(config).toEqual<ShardingConfigCreate>({
       virtualPerPhysical: 256,
       desiredCount: 2,
-      actualCount: 2,
       desiredVirtualCount: 256,
-      actualVirtualCount: 256,
-      function: 'murmur3',
-      key: '_id',
-      strategy: 'hash',
     });
   });
 

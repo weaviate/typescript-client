@@ -5,7 +5,7 @@ import { buildRefsPath } from '../../batch/path.js';
 import { ObjectsPath, ReferencesPath } from '../../data/path.js';
 import { DbVersionSupport } from '../../utils/dbVersion.js';
 import { Checker, ConsistencyLevel } from '../../data/index.js';
-import { referenceToBeacons } from '../references/index.js';
+import { referenceToBeacons } from '../references/utils.js';
 import { DataGuards, Serialize } from '../serialize/index.js';
 import {
   BatchObjectsReturn,
@@ -22,56 +22,133 @@ import {
 import { FilterValue } from '../filters/index.js';
 import { Deserialize } from '../deserialize/index.js';
 
+/** The available options to the `data.deleteMany` method.  */
 export type DeleteManyOptions<V> = {
+  /** Whether to return verbose information about the operation */
   verbose?: V;
+  /** Whether to perform a dry run of the operation */
   dryRun?: boolean;
 };
 
-export type InsertArgs<T> = {
+/** The available options to the `data.insert` method. */
+export type InsertObject<T> = {
+  /** The ID of the object to be inserted. If not provided, a new ID will be generated. */
   id?: string;
+  /** The properties of the object to be inserted */
   properties?: NonReferenceInputs<T>;
+  /** The references of the object to be inserted */
   references?: ReferenceInputs<T>;
+  /** The vector(s) of the object to be inserted */
   vectors?: number[] | Vectors;
 };
 
+/** The arguments of the `data.referenceX` methods */
 export type ReferenceArgs<T> = {
+  /** The ID of the object that will have the reference */
   fromUuid: string;
+  /** The property of the object that will have the reference */
   fromProperty: string;
+  /** The object(s) to reference */
   to: ReferenceInput<T>;
 };
 
-export type ReplaceArgs<T> = {
+/** The available options to the `data.replace` method. */
+export type ReplaceObject<T> = {
+  /** The ID of the object to be replaced */
   id: string;
-  properties?: T;
-  vector?: number[];
+  /** The properties of the object to be replaced */
+  properties?: NonReferenceInputs<T>;
+  /** The references of the object to be replaced */
+  references?: ReferenceInputs<T>;
+  //* The vector(s) to replace in the object */
+  vectors?: number[] | Vectors;
 };
 
-export type UpdateArgs<T> = ReplaceArgs<T>;
-
-export type InsertObject<T> = InsertArgs<T>;
-
-export type BatchDeleteResult = {
-  failed: number;
-  matches: number;
-  objects?: Record<string, any>[];
-  successful: number;
+/** The available options to the `data.update` method. */
+export type UpdateObject<T> = {
+  /** The ID of the object to be updated */
+  id: string;
+  /** The properties of the object to be updated */
+  properties?: NonReferenceInputs<T>;
+  /** The references of the object to be updated */
+  references?: ReferenceInputs<T>;
+  //* The vector(s) to update in the object */
+  vectors?: number[] | Vectors;
 };
 
 export interface Data<T> {
-  delete: (id: string) => Promise<boolean>;
+  deleteById: (id: string) => Promise<boolean>;
   deleteMany: <V extends boolean = false>(
     where: FilterValue,
     opts?: DeleteManyOptions<V>
   ) => Promise<DeleteManyReturn<V>>;
   exists: (id: string) => Promise<boolean>;
-  insert: (args?: InsertArgs<T> | NonReferenceInputs<T>) => Promise<string>;
+  /**
+   * Insert a single object into the collection.
+   *
+   * If you don't provide any options to the function, then an empty object will be created.
+   *
+   * @param {InsertArgs<T> | NonReferenceInputs<T>} [args] The object to insert. If an `id` is provided, it will be used as the object's ID. If not, a new ID will be generated.
+   * @returns {Promise<string>} The ID of the inserted object.
+   */
+  insert: (obj?: InsertObject<T> | NonReferenceInputs<T>) => Promise<string>;
+  /**
+   * Insert multiple objects into the collection.
+   *
+   * This object does not perform any batching for you. It sends all objects in a single request to Weaviate.
+   *
+   * @param {(DataObject<T> | NonReferenceInputs<T>)[]} objects The objects to insert.
+   * @returns {Promise<BatchObjectsReturn<T>>} The result of the batch insert.
+   */
   insertMany: (objects: (DataObject<T> | NonReferenceInputs<T>)[]) => Promise<BatchObjectsReturn<T>>;
+  /**
+   * Create a reference between an object in this collection and any other object in Weaviate.
+   *
+   * @param {ReferenceArgs<P>} args The reference to create.
+   * @returns {Promise<void>}
+   */
   referenceAdd: <P extends Properties>(args: ReferenceArgs<P>) => Promise<void>;
+  /**
+   * Create multiple references between an object in this collection and any other object in Weaviate.
+   *
+   * This method is optimized for performance and sends all references in a single request.
+   *
+   * @param {ReferenceArgs<P>[]} refs The references to create.
+   * @returns {Promise<BatchReferencesReturn>} The result of the batch reference creation.
+   */
   referenceAddMany: <P extends Properties>(refs: ReferenceArgs<P>[]) => Promise<BatchReferencesReturn>;
+  /**
+   * Delete a reference between an object in this collection and any other object in Weaviate.
+   *
+   * @param {ReferenceArgs<P>} args The reference to delete.
+   * @returns {Promise<void>}
+   */
   referenceDelete: <P extends Properties>(args: ReferenceArgs<P>) => Promise<void>;
+  /**
+   * Replace a reference between an object in this collection and any other object in Weaviate.
+   *
+   * @param {ReferenceArgs<P>} args The reference to replace.
+   * @returns {Promise<void>}
+   */
   referenceReplace: <P extends Properties>(args: ReferenceArgs<P>) => Promise<void>;
-  replace: (args: ReplaceArgs<T>) => Promise<void>;
-  update: (args: UpdateArgs<T>) => Promise<void>;
+  /**
+   * Replace an object in the collection.
+   *
+   * This is equivalent to a PUT operation.
+   *
+   * @param {ReplaceOptions<T>} [opts] The object attributes to replace.
+   * @returns {Promise<void>}
+   */
+  replace: (obj: ReplaceObject<T>) => Promise<void>;
+  /**
+   * Update an object in the collection.
+   *
+   * This is equivalent to a PATCH operation.
+   *
+   * @param {UpdateArgs<T>} [opts] The object attributes to replace.
+   * @returns {Promise<void>}
+   */
+  update: (obj: UpdateObject<T>) => Promise<void>;
 }
 
 interface IBuilder {
@@ -103,21 +180,26 @@ const data = <T>(
   const objectsPath = new ObjectsPath(dbVersionSupport);
   const referencesPath = new ReferencesPath(dbVersionSupport);
 
-  const parseObject = (object?: any): WeaviateObject<T> => {
+  const parseObject = (object?: InsertObject<any>): WeaviateObject<T> => {
     if (!object) {
       return {} as WeaviateObject<T>;
     }
-    return {
+    const obj: WeaviateObject<T> = {
       id: object.id,
       properties: object.properties
         ? (Serialize.restProperties(object.properties, object.references) as T)
         : undefined,
-      vector: object.vector,
     };
+    if (Array.isArray(object.vectors)) {
+      obj.vector = object.vectors;
+    } else if (object.vectors) {
+      obj.vectors = object.vectors;
+    }
+    return obj;
   };
 
   return {
-    delete: (id: string): Promise<boolean> =>
+    deleteById: (id: string): Promise<boolean> =>
       objectsPath
         .buildDelete(id, name, consistencyLevel, tenant)
         .then((path) => connection.delete(path, undefined, false))
@@ -142,7 +224,7 @@ const data = <T>(
         consistencyLevel,
         tenant
       ).do(),
-    insert: (args?: InsertArgs<T> | NonReferenceInputs<T>): Promise<string> =>
+    insert: (obj?: InsertObject<T> | NonReferenceInputs<T>): Promise<string> =>
       objectsPath
         .buildCreate(consistencyLevel)
         .then((path) =>
@@ -150,7 +232,7 @@ const data = <T>(
             class: name,
             tenant: tenant,
             ...parseObject(
-              args ? (DataGuards.isDataObject(args) ? args : ({ properties: args } as InsertObject<T>)) : args
+              obj ? (DataGuards.isDataObject(obj) ? obj : ({ properties: obj } as InsertObject<T>)) : obj
             ),
           })
         )
@@ -218,20 +300,20 @@ const data = <T>(
       referencesPath
         .build(args.fromUuid, name, args.fromProperty, consistencyLevel, tenant)
         .then((path) => connection.put(path, referenceToBeacons(args.to), false)),
-    replace: (args: ReplaceArgs<T>): Promise<void> =>
-      objectsPath.buildUpdate(args.id, name, consistencyLevel).then((path) =>
+    replace: (obj: ReplaceObject<T>): Promise<void> =>
+      objectsPath.buildUpdate(obj.id, name, consistencyLevel).then((path) =>
         connection.put(path, {
           class: name,
           tenant: tenant,
-          ...parseObject(args),
+          ...parseObject(obj),
         })
       ),
-    update: (args: UpdateArgs<T>): Promise<void> =>
-      objectsPath.buildUpdate(args.id, name, consistencyLevel).then((path) =>
+    update: (obj: UpdateObject<T>): Promise<void> =>
+      objectsPath.buildUpdate(obj.id, name, consistencyLevel).then((path) =>
         connection.patch(path, {
           class: name,
           tenant: tenant,
-          ...parseObject(args),
+          ...parseObject(obj),
         })
       ),
   };

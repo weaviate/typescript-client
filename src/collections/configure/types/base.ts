@@ -115,4 +115,8 @@ export type ReferenceConfigCreate<T> =
 
 export type ReplicationConfigCreate = RecursivePartial<ReplicationConfig>;
 
-export type ShardingConfigCreate = RecursivePartial<ShardingConfig>;
+export type ShardingConfigCreate = {
+  virtualPerPhysical?: number;
+  desiredCount?: number;
+  desiredVirtualCount?: number;
+};

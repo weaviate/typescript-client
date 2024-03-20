@@ -289,7 +289,6 @@ describe('Testing of the collection.config namespace', () => {
         name: 'TestCollectionConfigGetShards',
         sharding: {
           desiredCount: 2,
-          actualCount: 2,
         },
       })
       .then((collection) => collection.config.getShards());
@@ -309,7 +308,6 @@ describe('Testing of the collection.config namespace', () => {
         name: 'TestCollectionConfigUpdateAllShardStatuses',
         sharding: {
           desiredCount: 2,
-          actualCount: 2,
         },
       })
       .then((collection) => collection.config.updateShards('READONLY'));
@@ -329,7 +327,6 @@ describe('Testing of the collection.config namespace', () => {
         name: 'TestCollectionConfigUpdateOneShardStatus',
         sharding: {
           desiredCount: 2,
-          actualCount: 2,
         },
       })
       .then(async (collection) => {

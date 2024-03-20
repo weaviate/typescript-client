@@ -149,7 +149,7 @@ describe('Testing of the collection.data methods with a single target reference'
   });
 
   it('should be able to delete an object by id', async () => {
-    const result = await collection.data.delete(toBeDeletedID);
+    const result = await collection.data.deleteById(toBeDeletedID);
     expect(result).toBeTruthy();
     const obj = await collection.query.fetchObjectById(toBeDeletedID);
     expect(obj).toBeNull();

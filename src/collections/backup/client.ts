@@ -9,19 +9,29 @@ import {
 import Connection from '../../connection/index.js';
 import { BackupCreateResponse, BackupRestoreStatusResponse } from '../../openapi/types.js';
 
+/** The arguments required to create and restore backups. */
 export interface BackupArgs {
+  /** The ID of the backup. */
   backupId: string;
+  /** The backend to use for the backup. */
   backend: Backend;
+  /** The collections to include in the backup. */
   includeCollections?: string[];
+  /** The collections to exclude from the backup. */
   excludeCollections?: string[];
+  /** Whether to wait for the backup to complete. */
   waitForCompletion?: boolean;
 }
 
+/** The arguments required to get the status of a backup. */
 export interface BackupStatusArgs {
+  /** The ID of the backup. */
   backupId: string;
+  /** The backend to use for the backup. */
   backend: Backend;
 }
 
+/** The response from a backup creation request. */
 export type BackupReturn = {
   collections: string[];
   status: BackupStatus;
@@ -112,8 +122,32 @@ export const backup = (connection: Connection) => {
 };
 
 export interface Backup {
+  /**
+   * Create a backup of the database.
+   *
+   * @param {BackupArgs} args The arguments for the request.
+   * @returns {Promise<BackupCreateResponse>} The response from Weaviate.
+   */
   create(args: BackupArgs): Promise<BackupCreateResponse>;
+  /**
+   * Get the status of a backup creation.
+   *
+   * @param {BackupStatusArgs} args The arguments for the request.
+   * @returns {Promise<BackupStatus>} The status of the backup creation.
+   */
   getCreateStatus(args: BackupStatusArgs): Promise<BackupStatus>;
+  /**
+   * Get the status of a backup restore.
+   *
+   * @param {BackupStatusArgs} args The arguments for the request.
+   * @returns {Promise<BackupStatus>} The status of the backup restore.
+   */
   getRestoreStatus(args: BackupStatusArgs): Promise<BackupStatus>;
+  /**
+   * Restore a backup of the database.
+   *
+   * @param {BackupArgs} args The arguments for the request.
+   * @returns {Promise<BackupRestoreStatusResponse>} The response from Weaviate.
+   */
   restore(args: BackupArgs): Promise<BackupRestoreStatusResponse>;
 }

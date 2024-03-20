@@ -1,8 +1,8 @@
-export interface RerankerTransformersConfig {}
+export type RerankerTransformersConfig = {};
 
-export interface RerankerCohereConfig {
+export type RerankerCohereConfig = {
   model?: 'rerank-english-v2.0' | 'rerank-multilingual-v2.0' | string;
-}
+};
 
 export type RerankerConfig = RerankerCohereConfig | RerankerTransformersConfig | Record<string, any>;
 

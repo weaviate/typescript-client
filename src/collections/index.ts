@@ -23,7 +23,7 @@ import {
 import ClassExists from '../schema/classExists.js';
 import { classToCollection, resolveProperty, resolveReference } from './config/utils.js';
 import { WeaviateClass } from '../openapi/types.js';
-import { QuantizerGuards } from './configure/index.js';
+import { QuantizerGuards } from './configure/parsing.js';
 import { PrimitiveKeys } from './types/internal.js';
 
 export type CollectionConfigCreate<TProperties = undefined, N = string> = {
@@ -188,7 +188,6 @@ export * from './configure/index.js';
 export * from './data/index.js';
 export * from './filters/index.js';
 export * from './generate/index.js';
-export * from './iterator/index.js';
 export * from './query/index.js';
 export * from './references/index.js';
 export * from './sort/index.js';

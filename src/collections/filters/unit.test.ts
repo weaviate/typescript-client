@@ -1,4 +1,5 @@
-import maker, { FilterValue, Filters, GeoRangeFilter } from './index.js';
+import maker, { FilterValue, Filters } from './index.js';
+import { GeoRangeFilter } from './types.js';
 import { WhereFilter } from '../../openapi/types.js';
 import { CrossReference } from '../references/index.js';
 import { Serialize } from '../serialize/index.js';
@@ -7,6 +8,7 @@ describe('Unit testing of filters', () => {
   type Person = {
     name: string;
     age: number;
+    friends: string[];
     self: CrossReference<Person>;
   };
   const filter = maker<Person>();
@@ -23,9 +25,9 @@ describe('Unit testing of filters', () => {
       });
     });
 
-    it('should create a contains all filter', () => {
+    it('should create a contains all filter with a primitive type', () => {
       const f = filter.byProperty('name').containsAll(['John', 'Doe']);
-      expect(f).toEqual({
+      expect(f).toEqual<FilterValue<string[]>>({
         operator: 'ContainsAll',
         target: {
           property: 'name',
@@ -34,12 +36,34 @@ describe('Unit testing of filters', () => {
       });
     });
 
-    it('should create a contains any filter', () => {
+    it('should create a contains all filter with an array type', () => {
+      const f = filter.byProperty('friends').containsAll(['John', 'Doe']);
+      expect(f).toEqual<FilterValue<string[]>>({
+        operator: 'ContainsAll',
+        target: {
+          property: 'friends',
+        },
+        value: ['John', 'Doe'],
+      });
+    });
+
+    it('should create a contains any filter with a primitive type', () => {
       const f = filter.byProperty('name').containsAny(['John', 'Doe']);
       expect(f).toEqual<FilterValue<string[]>>({
         operator: 'ContainsAny',
         target: {
           property: 'name',
+        },
+        value: ['John', 'Doe'],
+      });
+    });
+
+    it('should create a contains any filter with an array type', () => {
+      const f = filter.byProperty('friends').containsAny(['John', 'Doe']);
+      expect(f).toEqual<FilterValue<string[]>>({
+        operator: 'ContainsAny',
+        target: {
+          property: 'friends',
         },
         value: ['John', 'Doe'],
       });

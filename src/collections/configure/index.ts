@@ -1,5 +1,3 @@
-export { QuantizerGuards } from './parsing.js';
-
 import {
   InvertedIndexConfigCreate,
   MultiTenancyConfigCreate,
@@ -61,6 +59,21 @@ export default {
   dataType,
   tokenization,
   vectorDistances,
+  /**
+   * Create an `InvertedIndexConfigCreate` object to be used when defining the configuration of the keyword searching algorithm of Weaviate.
+   *
+   * See [the docs](https://weaviate.io/developers/weaviate/configuration/indexes#configure-the-inverted-index) for details!
+   *
+   * @param {number} config.bm25b The BM25 b parameter. Default is 0.75.
+   * @param {number} config.bm25k1 The BM25 k1 parameter. Default is 1.2.
+   * @param {number} config.cleanupIntervalSeconds The interval in seconds at which the inverted index is cleaned up. Default is 60.
+   * @param {boolean} config.indexTimestamps Whether to index timestamps. Default is false.
+   * @param {boolean} config.indexPropertyLength Whether to index the length of properties. Default is false.
+   * @param {boolean} config.indexNullState Whether to index the null state of properties. Default is false.
+   * @param {'en' | 'none'} config.stopwordsPreset The stopwords preset to use. Default is 'en'.
+   * @param {string[]} config.stopwordsAdditions Additional stopwords to add. Default is [].
+   * @param {string[]} config.stopwordsRemovals Stopwords to remove. Default is [].
+   */
   invertedIndex: (config?: {
     bm25b?: number;
     bm25k1?: number;
@@ -88,9 +101,20 @@ export default {
       },
     };
   },
+  /**
+   * Create a `MultiTenancyConfigCreate` object to be used when defining the multi-tenancy configuration of Weaviate.
+   *
+   * @param {boolean} config.enabled Whether multi-tenancy is enabled. Default is true.
+   */
   multiTenancy: (config?: { enabled?: boolean }): MultiTenancyConfigCreate => {
     return config ? { enabled: parseWithDefault(config.enabled, true) } : { enabled: true };
   },
+  /**
+   * Create a `NamedVectorConfigCreate` object to be used when defining the named vector configuration of Weaviate.
+   *
+   * @param {string} name The name of the vector.
+   * @param {NamedVectorizerOptions} [options] The options for the named vector.
+   */
   namedVectorizer: <T, N extends string, I extends VectorIndexType = 'hnsw', V extends Vectorizer = 'none'>(
     name: N,
     options?: NamedVectorizerOptions<PrimitiveKeys<T>[], I, V>
@@ -102,25 +126,38 @@ export default {
       vectorizer: options?.vectorizerConfig ? options.vectorizerConfig : { name: 'none' as V },
     };
   },
+  /**
+   * Create a `ReplicationConfigCreate` object to be used when defining the replication configuration of Weaviate.
+   *
+   * NOTE: You can only use one of Sharding or Replication, not both.
+   *
+   * See [the docs](https://weaviate.io/developers/weaviate/concepts/replication-architecture#replication-vs-sharding) for more details.
+   *
+   * @param {number} config.factor The replication factor. Default is 1.
+   */
   replication: (config?: { factor?: number }): ReplicationConfigCreate => {
     return config ? { factor: parseWithDefault(config.factor, 1) } : { factor: 1 };
   },
+  /**
+   * Create a `ShardingConfigCreate` object to be used when defining the sharding configuration of Weaviate.
+   *
+   * NOTE: You can only use one of Sharding or Replication, not both.
+   *
+   * See [the docs](https://weaviate.io/developers/weaviate/concepts/replication-architecture#replication-vs-sharding) for more details.
+   *
+   * @param {number} config.virtualPerPhysical The number of virtual shards per physical shard. Default is 128.
+   * @param {number} config.desiredCount The desired number of physical shards. Default is 1.
+   * @param {number} config.desiredVirtualCount The desired number of virtual shards. Default is 128.
+   */
   sharding: (config?: {
     virtualPerPhysical?: number;
     desiredCount?: number;
-    actualCount?: number;
     desiredVirtualCount?: number;
-    actualVirtualCount?: number;
   }): ShardingConfigCreate => {
     return {
       virtualPerPhysical: parseWithDefault(config?.virtualPerPhysical, 128),
       desiredCount: parseWithDefault(config?.desiredCount, 1),
-      actualCount: parseWithDefault(config?.actualCount, 1),
       desiredVirtualCount: parseWithDefault(config?.desiredVirtualCount, 128),
-      actualVirtualCount: parseWithDefault(config?.actualVirtualCount, 128),
-      key: '_id',
-      strategy: 'hash',
-      function: 'murmur3',
     };
   },
 };

@@ -67,12 +67,45 @@ const config = <T>(connection: Connection, name: string, tenant?: string): Confi
 export default config;
 
 export interface Config<T> {
+  /**
+   * Add a property to the collection in Weaviate.
+   *
+   * @param {PropertyConfigCreate<any>} property The property configuration.
+   * @returns {Promise<void>} A promise that resolves when the property has been added.
+   */
   addProperty: (property: PropertyConfigCreate<any>) => Promise<void>;
+  /**
+   * Add a reference to the collection in Weaviate.
+   *
+   * @param {ReferenceSingleTargetConfigCreate<any> | ReferenceMultiTargetConfigCreate<any>} reference The reference configuration.
+   * @returns {Promise<void>} A promise that resolves when the reference has been added.
+   */
   addReference: (
     reference: ReferenceSingleTargetConfigCreate<T> | ReferenceMultiTargetConfigCreate<T>
   ) => Promise<void>;
+  /**
+   * Get the configuration for this collection from Weaviate.
+   *
+   * @returns {Promise<CollectionConfig<T>>} A promise that resolves with the collection configuration.
+   */
   get: () => Promise<CollectionConfig<T>>;
+  /**
+   * Get the statuses of the shards of this collection.
+   *
+   * If the collection is multi-tenancy and you did not call `.with_tenant` then you
+   * will receive the statuses of all the tenants within the collection. Otherwise, call
+   * `.with_tenant` on the collection first and you will receive only that single shard.
+   *
+   * @returns {Promise<Required<WeaviateShardStatus>[]>} A promise that resolves with the shard statuses.
+   */
   getShards: () => Promise<Required<WeaviateShardStatus>[]>;
+  /**
+   * Update the status of one or all shards of this collection.
+   *
+   * @param {'READY' | 'READONLY'} status The new status of the shard(s).
+   * @param {string | string[]} [names] The name(s) of the shard(s) to update. If not provided, all shards will be updated.
+   * @returns {Promise<Required<WeaviateShardStatus>[]>} A promise that resolves with the updated shard statuses.
+   */
   updateShards: (
     status: 'READY' | 'READONLY',
     names?: string | string[]

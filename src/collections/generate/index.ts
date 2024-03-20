@@ -16,7 +16,7 @@ import {
   NearTextOptions,
   GroupByNearOptions,
   GroupByNearTextOptions,
-} from '../query/index.js';
+} from '../query/types.js';
 import { GenerativeReturn, GenerativeGroupByReturn } from '../types/index.js';
 import { SearchReply } from '../../proto/v1/search_get.js';
 

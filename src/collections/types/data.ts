@@ -20,7 +20,7 @@ export type DeleteManyReturn<V> = {
   successful: number;
 };
 
-export interface ReferenceToMultiTarget {
+export type ReferenceToMultiTarget = {
   targetCollection: string;
   uuids: string | string[];
-}
+};
