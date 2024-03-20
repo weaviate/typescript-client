@@ -22,7 +22,7 @@
   "scripts": {
     "test": "jest --no-cache --useStderr --runInBand --detectOpenHandles",
     "test:coverage": "npm run test -- --coverage",
-    "build": "npm run build:node && cp -r ./src ./dist/src",
+    "build": "npm run build:node",
     "build:web": "tsup",
     "build:cjs": "tsc --module commonjs --outDir dist/node/cjs && touch dist/node/cjs/package.json && echo '{\"type\": \"commonjs\"}' > dist/node/cjs/package.json",
     "build:esm": "tsc --module esnext --outDir dist/node/esm && touch dist/node/esm/package.json && echo '{\"type\": \"module\"}' > dist/node/esm/package.json",
