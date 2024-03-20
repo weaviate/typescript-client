@@ -46,6 +46,13 @@ const tokenization = {
   GSE: 'gse' as const,
 };
 
+const vectorDistances = {
+  COSINE: 'cosine' as const,
+  DOT: 'dot' as const,
+  HAMMING: 'hamming' as const,
+  L2_SQUARED: 'l2-squared' as const,
+};
+
 export default {
   generative,
   reranker,
@@ -53,6 +60,7 @@ export default {
   vectorIndex,
   dataType,
   tokenization,
+  vectorDistances,
   invertedIndex: (config?: {
     bm25b?: number;
     bm25k1?: number;
