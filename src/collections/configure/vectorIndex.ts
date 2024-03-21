@@ -1,18 +1,22 @@
 import {
   BQConfigCreate,
+  BQConfigUpdate,
   PQConfigCreate,
+  PQConfigUpdate,
   VectorIndexConfigFlatCreate,
+  VectorIndexConfigFlatUpdate,
   VectorIndexConfigHNSWCreate,
+  VectorIndexConfigHNSWUpdate,
 } from './types/index.js';
 import { ModuleConfig, PQEncoderDistribution, PQEncoderType, VectorDistance } from '../config/types/index.js';
 
 import { parseWithDefault, parseQuantizer } from './parsing.js';
 
-export default {
+const configure = {
   /**
-   * Create a `ModuleConfig<'flat', VectorIndexConfigFlatCreate>` object to update the configuration of the FLAT vector index.
+   * Create a `ModuleConfig<'flat', VectorIndexConfigFlatCreate>` object when defining the configuration of the FLAT vector index.
    *
-   * Use this method when defining the `options.vectorIndexConfig` argument of the `namedVectorizer` method.
+   * Use this method when defining the `options.vectorIndexConfig` argument of the `configure.namedVectorizer` method.
    *
    * @param {VectorDistance} [config.distanceMetric] The distance metric to use. Default is 'cosine'.
    * @param {number} [config.vectorCacheMaxObjects] The maximum number of objects to cache in the vector cache. Default is 1000000000000.
@@ -34,9 +38,9 @@ export default {
     };
   },
   /**
-   * Create a `ModuleConfig<'hnsw', VectorIndexConfigHNSWCreate>` object to update the configuration of the HNSW vector index.
+   * Create a `ModuleConfig<'hnsw', VectorIndexConfigHNSWCreate>` object when defining the configuration of the HNSW vector index.
    *
-   * Use this method when defining the `options.vectorIndexConfig` argument of the `namedVectorizer` method.
+   * Use this method when defining the `options.vectorIndexConfig` argument of the `configure.namedVectorizer` method.
    *
    * @param {number} [config.cleanupIntervalSeconds] The interval in seconds at which to clean up the index. Default is 300.
    * @param {VectorDistance} [config.distanceMetric] The distance metric to use. Default is 'cosine'.
@@ -142,3 +146,106 @@ export default {
     },
   },
 };
+
+const reconfigure = {
+  /**
+   * Create a `ModuleConfig<'flat', VectorIndexConfigFlatUpdate>` object to update the configuration of the FLAT vector index.
+   *
+   * Use this method when defining the `options.vectorIndexConfig` argument of the `reconfigure.namedVectorizer` method.
+   *
+   * @param {VectorDistance} [options.distanceMetric] The distance metric to use. Default is 'cosine'.
+   * @param {number} [options.vectorCacheMaxObjects] The maximum number of objects to cache in the vector cache. Default is 1000000000000.
+   * @param {BQConfigCreate} [options.quantizer] The quantizer configuration to use. Default is `bq`.
+   * @returns {ModuleConfig<'flat', VectorIndexConfigFlatCreate>} The configuration object.
+   */
+  flat: (options?: {
+    vectorCacheMaxObjects?: number;
+    quantizer?: BQConfigUpdate;
+  }): ModuleConfig<'flat', VectorIndexConfigFlatUpdate> => {
+    return {
+      name: 'flat',
+      config: {
+        vectorCacheMaxObjects: options?.vectorCacheMaxObjects,
+        quantizer: parseQuantizer(options?.quantizer),
+      },
+    };
+  },
+  /**
+   * Create a `ModuleConfig<'hnsw', VectorIndexConfigHNSWCreate>` object to update the configuration of the HNSW vector index.
+   *
+   * Use this method when defining the `options.vectorIndexConfig` argument of the `reconfigure.namedVectorizer` method.
+   *
+   * @param {number} [options.dynamicEfFactor] The dynamic ef factor. Default is 8.
+   * @param {number} [options.dynamicEfMax] The dynamic ef max. Default is 500.
+   * @param {number} [options.dynamicEfMin] The dynamic ef min. Default is 100.
+   * @param {number} [options.ef] The ef parameter. Default is -1.
+   * @param {number} [options.flatSearchCutoff] The flat search cutoff. Default is 40000.
+   * @param {PQConfigUpdate | BQConfigUpdate} [options.quantizer] The quantizer configuration to use. Use `vectorIndex.quantizer.bq` or `vectorIndex.quantizer.pq` to make one.
+   * @param {number} [options.vectorCacheMaxObjects] The maximum number of objects to cache in the vector cache. Default is 1000000000000.
+   * @returns {ModuleConfig<'hnsw', VectorIndexConfigHNSWUpdate>} The configuration object.
+   */
+  hnsw: (options?: {
+    dynamicEfFactor?: number;
+    dynamicEfMax?: number;
+    dynamicEfMin?: number;
+    ef?: number;
+    flatSearchCutoff?: number;
+    quantizer?: PQConfigUpdate | BQConfigUpdate;
+    vectorCacheMaxObjects?: number;
+  }): ModuleConfig<'hnsw', VectorIndexConfigHNSWUpdate> => {
+    return {
+      name: 'hnsw',
+      config: options,
+    };
+  },
+  /**
+   * Define the quantizer configuration to use when creating a vector index.
+   */
+  quantizer: {
+    /**
+     * Create a `BQConfigUpdate` object to be used when defining the quantizer configuration of a vector index.
+     *
+     * @param {boolean} [options.cache] Whether to cache the quantizer. Default is false.
+     * @param {number} [options.rescoreLimit] The rescore limit. Default is 1000.
+     * @returns {BQConfigCreate} The configuration object.
+     */
+    bq: (options?: { cache?: boolean; rescoreLimit?: number }): BQConfigUpdate => {
+      return {
+        ...options,
+        type: 'bq',
+      };
+    },
+    /**
+     * Create a `PQConfigCreate` object to be used when defining the quantizer configuration of a vector index.
+     *
+     * @param {number} [options.centroids] The number of centroids. Default is 256.
+     * @param {PQEncoderDistribution} [options.pqEncoderDistribution] The encoder distribution. Default is 'log-normal'.
+     * @param {PQEncoderType} [options.pqEncoderType] The encoder type. Default is 'kmeans'.
+     * @param {number} [options.segments] The number of segments. Default is 0.
+     * @param {number} [options.trainingLimit] The training limit. Default is 100000.
+     * @returns {PQConfigUpdate} The configuration object.
+     */
+    pq: (options?: {
+      centroids?: number;
+      pqEncoderDistribution?: PQEncoderDistribution;
+      pqEncoderType?: PQEncoderType;
+      segments?: number;
+      trainingLimit?: number;
+    }): PQConfigUpdate => {
+      const { pqEncoderDistribution, pqEncoderType, ...rest } = options || {};
+      return {
+        ...rest,
+        encoder:
+          pqEncoderDistribution || pqEncoderType
+            ? {
+                distribution: pqEncoderDistribution,
+                type: pqEncoderType,
+              }
+            : undefined,
+        type: 'pq',
+      };
+    },
+  },
+};
+
+export { configure, reconfigure };

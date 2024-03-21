@@ -1,17 +1,22 @@
 import {
   InvertedIndexConfigCreate,
+  InvertedIndexConfigUpdate,
+  ModuleConfig,
   MultiTenancyConfigCreate,
   NamedVectorConfigCreate,
-  NamedVectorizerOptions,
+  NamedVectorConfigUpdate,
+  NamedVectorizerCreateOptions,
+  NamedVectorizerUpdateOptions,
   ReplicationConfigCreate,
   ShardingConfigCreate,
+  VectorIndexConfigUpdateType,
   VectorIndexType,
   Vectorizer,
 } from '../types/index.js';
 
 import generative from './generative.js';
 import reranker from './reranker.js';
-import vectorIndex from './vectorIndex.js';
+import { configure as configureVectorIndex, reconfigure as reconfigureVectorIndex } from './vectorIndex.js';
 import { vectorizer } from './vectorizer.js';
 
 import { parseWithDefault } from './parsing.js';
@@ -51,11 +56,11 @@ const vectorDistances = {
   L2_SQUARED: 'l2-squared' as const,
 };
 
-export default {
+const configure = {
   generative,
   reranker,
   vectorizer,
-  vectorIndex,
+  vectorIndex: configureVectorIndex,
   dataType,
   tokenization,
   vectorDistances,
@@ -64,17 +69,17 @@ export default {
    *
    * See [the docs](https://weaviate.io/developers/weaviate/configuration/indexes#configure-the-inverted-index) for details!
    *
-   * @param {number} config.bm25b The BM25 b parameter. Default is 0.75.
-   * @param {number} config.bm25k1 The BM25 k1 parameter. Default is 1.2.
-   * @param {number} config.cleanupIntervalSeconds The interval in seconds at which the inverted index is cleaned up. Default is 60.
-   * @param {boolean} config.indexTimestamps Whether to index timestamps. Default is false.
-   * @param {boolean} config.indexPropertyLength Whether to index the length of properties. Default is false.
-   * @param {boolean} config.indexNullState Whether to index the null state of properties. Default is false.
-   * @param {'en' | 'none'} config.stopwordsPreset The stopwords preset to use. Default is 'en'.
-   * @param {string[]} config.stopwordsAdditions Additional stopwords to add. Default is [].
-   * @param {string[]} config.stopwordsRemovals Stopwords to remove. Default is [].
+   * @param {number} options.bm25b The BM25 b parameter. Default is 0.75.
+   * @param {number} options.bm25k1 The BM25 k1 parameter. Default is 1.2.
+   * @param {number} options.cleanupIntervalSeconds The interval in seconds at which the inverted index is cleaned up. Default is 60.
+   * @param {boolean} options.indexTimestamps Whether to index timestamps. Default is false.
+   * @param {boolean} options.indexPropertyLength Whether to index the length of properties. Default is false.
+   * @param {boolean} options.indexNullState Whether to index the null state of properties. Default is false.
+   * @param {'en' | 'none'} options.stopwordsPreset The stopwords preset to use. Default is 'en'.
+   * @param {string[]} options.stopwordsAdditions Additional stopwords to add. Default is [].
+   * @param {string[]} options.stopwordsRemovals Stopwords to remove. Default is [].
    */
-  invertedIndex: (config?: {
+  invertedIndex: (options?: {
     bm25b?: number;
     bm25k1?: number;
     cleanupIntervalSeconds?: number;
@@ -87,17 +92,17 @@ export default {
   }): InvertedIndexConfigCreate => {
     return {
       bm25: {
-        b: parseWithDefault(config?.bm25b, 0.75),
-        k1: parseWithDefault(config?.bm25k1, 1.2),
+        b: parseWithDefault(options?.bm25b, 0.75),
+        k1: parseWithDefault(options?.bm25k1, 1.2),
       },
-      cleanupIntervalSeconds: parseWithDefault(config?.cleanupIntervalSeconds, 60),
-      indexTimestamps: parseWithDefault(config?.indexTimestamps, false),
-      indexPropertyLength: parseWithDefault(config?.indexPropertyLength, false),
-      indexNullState: parseWithDefault(config?.indexNullState, false),
+      cleanupIntervalSeconds: parseWithDefault(options?.cleanupIntervalSeconds, 60),
+      indexTimestamps: parseWithDefault(options?.indexTimestamps, false),
+      indexPropertyLength: parseWithDefault(options?.indexPropertyLength, false),
+      indexNullState: parseWithDefault(options?.indexNullState, false),
       stopwords: {
-        preset: parseWithDefault(config?.stopwordsPreset, 'en'),
-        additions: parseWithDefault(config?.stopwordsAdditions, []),
-        removals: parseWithDefault(config?.stopwordsRemovals, []),
+        preset: parseWithDefault(options?.stopwordsPreset, 'en'),
+        additions: parseWithDefault(options?.stopwordsAdditions, []),
+        removals: parseWithDefault(options?.stopwordsRemovals, []),
       },
     };
   },
@@ -106,8 +111,8 @@ export default {
    *
    * @param {boolean} config.enabled Whether multi-tenancy is enabled. Default is true.
    */
-  multiTenancy: (config?: { enabled?: boolean }): MultiTenancyConfigCreate => {
-    return config ? { enabled: parseWithDefault(config.enabled, true) } : { enabled: true };
+  multiTenancy: (options?: { enabled?: boolean }): MultiTenancyConfigCreate => {
+    return options ? { enabled: parseWithDefault(options.enabled, true) } : { enabled: true };
   },
   /**
    * Create a `NamedVectorConfigCreate` object to be used when defining the named vector configuration of Weaviate.
@@ -117,7 +122,7 @@ export default {
    */
   namedVectorizer: <T, N extends string, I extends VectorIndexType = 'hnsw', V extends Vectorizer = 'none'>(
     name: N,
-    options?: NamedVectorizerOptions<PrimitiveKeys<T>[], I, V>
+    options?: NamedVectorizerCreateOptions<PrimitiveKeys<T>[], I, V>
   ): NamedVectorConfigCreate<PrimitiveKeys<T>[], N, I, V> => {
     return {
       vectorName: name,
@@ -145,19 +150,83 @@ export default {
    *
    * See [the docs](https://weaviate.io/developers/weaviate/concepts/replication-architecture#replication-vs-sharding) for more details.
    *
-   * @param {number} config.virtualPerPhysical The number of virtual shards per physical shard. Default is 128.
-   * @param {number} config.desiredCount The desired number of physical shards. Default is 1.
-   * @param {number} config.desiredVirtualCount The desired number of virtual shards. Default is 128.
+   * @param {number} options.virtualPerPhysical The number of virtual shards per physical shard. Default is 128.
+   * @param {number} options.desiredCount The desired number of physical shards. Default is 1.
+   * @param {number} options.desiredVirtualCount The desired number of virtual shards. Default is 128.
    */
-  sharding: (config?: {
+  sharding: (options?: {
     virtualPerPhysical?: number;
     desiredCount?: number;
     desiredVirtualCount?: number;
   }): ShardingConfigCreate => {
     return {
-      virtualPerPhysical: parseWithDefault(config?.virtualPerPhysical, 128),
-      desiredCount: parseWithDefault(config?.desiredCount, 1),
-      desiredVirtualCount: parseWithDefault(config?.desiredVirtualCount, 128),
+      virtualPerPhysical: parseWithDefault(options?.virtualPerPhysical, 128),
+      desiredCount: parseWithDefault(options?.desiredCount, 1),
+      desiredVirtualCount: parseWithDefault(options?.desiredVirtualCount, 128),
     };
   },
 };
+
+const reconfigure = {
+  vectorIndex: reconfigureVectorIndex,
+  /**
+   * Create an `InvertedIndexConfigUpdate` object to be used when updating the configuration of the keyword searching algorithm of Weaviate.
+   *
+   * See [the docs](https://weaviate.io/developers/weaviate/configuration/indexes#configure-the-inverted-index) for details!
+   *
+   * @param {number} options.bm25b The BM25 b parameter. Default is 0.75.
+   * @param {number} options.bm25k1 The BM25 k1 parameter. Default is 1.2.
+   * @param {number} options.cleanupIntervalSeconds The interval in seconds at which the inverted index is cleaned up. Default is 60.
+   * @param {'en' | 'none'} options.stopwordsPreset The stopwords preset to use. Default is 'en'.
+   * @param {string[]} options.stopwordsAdditions Additional stopwords to add. Default is [].
+   * @param {string[]} options.stopwordsRemovals Stopwords to remove. Default is [].
+   */
+  invertedIndex: (options?: {
+    bm25b?: number;
+    bm25k1?: number;
+    cleanupIntervalSeconds?: number;
+    stopwordsPreset?: 'en' | 'none';
+    stopwordsAdditions?: string[];
+    stopwordsRemovals?: string[];
+  }): InvertedIndexConfigUpdate => {
+    return {
+      bm25: {
+        b: options?.bm25b,
+        k1: options?.bm25k1,
+      },
+      cleanupIntervalSeconds: options?.cleanupIntervalSeconds,
+      stopwords: {
+        preset: options?.stopwordsPreset,
+        additions: options?.stopwordsAdditions,
+        removals: options?.stopwordsRemovals,
+      },
+    };
+  },
+  /**
+   * Create a `NamedVectorConfigUpdate` object to be used when updating the named vector configuration of Weaviate.
+   *
+   * @param {string} name The name of the vector.
+   * @param {NamedVectorizerOptions} [options] The options for the named vector.
+   */
+  namedVectorizer: <N extends string, I extends VectorIndexType = 'hnsw'>(
+    name: N,
+    options: NamedVectorizerUpdateOptions<I>
+  ): NamedVectorConfigUpdate<N, I> => {
+    return {
+      vectorName: name,
+      vectorIndex: options.vectorIndexConfig,
+    };
+  },
+  /**
+   * Create a `ReplicationConfigUpdate` object to be used when defining the replication configuration of Weaviate.
+   *
+   * See [the docs](https://weaviate.io/developers/weaviate/concepts/replication-architecture#replication-vs-sharding) for more details.
+   *
+   * @param {number} options.factor The replication factor. Default is 1.
+   */
+  replication: (options?: { factor?: number }): ReplicationConfigCreate => {
+    return options ? { factor: options.factor } : { factor: 1 };
+  },
+};
+
+export { configure, reconfigure };

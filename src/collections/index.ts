@@ -47,7 +47,7 @@ const parseVectorIndexConfig = (config?: VectorIndexConfigCreate) => {
   if (config === undefined) return undefined;
   const { quantizer, ...conf } = config;
   if (quantizer === undefined) return conf;
-  if (QuantizerGuards.isBQ(quantizer)) {
+  if (QuantizerGuards.isBQCreate(quantizer)) {
     const { type, ...quant } = quantizer;
     return {
       ...conf,
@@ -57,7 +57,7 @@ const parseVectorIndexConfig = (config?: VectorIndexConfigCreate) => {
       },
     };
   }
-  if (QuantizerGuards.isPQ(quantizer)) {
+  if (QuantizerGuards.isPQCreate(quantizer)) {
     const { type, ...quant } = quantizer;
     return {
       ...conf,
@@ -113,9 +113,11 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
             vectorizer: {},
           };
           vectorizers = [...vectorizers, v.vectorizer.name];
+          const vectorizeClassName = (v.vectorizer.config as any)?.vectorizeCollectionName;
+          delete (v.vectorizer.config as any)?.vectorizeCollectionName;
           vectorConfig.vectorizer[v.vectorizer.name] = {
             properties: v.properties,
-            ...(v.vectorizer.config ? v.vectorizer.config : {}),
+            ...(v.vectorizer.config ? { ...v.vectorizer.config, vectorizeClassName } : {}),
           };
           vectorsConfig![v.vectorName] = vectorConfig;
         });
@@ -171,11 +173,11 @@ export interface Collections {
   delete(collection: string): Promise<void>;
   deleteAll(): Promise<void[]>;
   exists(name: string): Promise<boolean>;
-  export<TProperties>(name: string): Promise<CollectionConfig<TProperties>>;
+  export(name: string): Promise<CollectionConfig>;
   get<TProperties extends Properties | undefined = undefined, TName extends string = string>(
     name: TName
   ): Collection<TProperties, TName>;
-  listAll(): Promise<CollectionConfig<any>[]>;
+  listAll(): Promise<CollectionConfig[]>;
 }
 
 export default collections;

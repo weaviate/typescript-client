@@ -1,4 +1,4 @@
-import configure from './index.js';
+import { configure } from './index.js';
 import {
   Img2VecNeuralConfig,
   ModuleConfig,

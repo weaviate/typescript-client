@@ -10,7 +10,7 @@ import {
   WeaviateVectorIndexConfig,
   WeaviateNestedProperty,
   WeaviateProperty,
-  WeaviateVectorConfig,
+  WeaviateVectorsConfig,
 } from '../../openapi/types.js';
 import {
   BQConfig,
@@ -100,7 +100,7 @@ export const resolveReference = <T>(
   }
 };
 
-export const classToCollection = <T>(cls: WeaviateClass): CollectionConfig<T> => {
+export const classToCollection = <T>(cls: WeaviateClass): CollectionConfig => {
   return {
     name: ConfigGuards._name(cls.class),
     description: cls.description,
@@ -159,7 +159,7 @@ class ConfigGuards {
     if (rerankerKey === undefined) return undefined;
     return v[rerankerKey] as RerankerConfig;
   }
-  private static namedVectors(v: WeaviateVectorConfig): VectorConfig {
+  private static namedVectors(v: WeaviateVectorsConfig): VectorConfig {
     if (!populated(v)) throw new Error('Vector config was not returned by Weaviate');
     const out: VectorConfig = {};
     Object.keys(v).forEach((key) => {

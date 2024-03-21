@@ -3,9 +3,16 @@ export * from './reranker.js';
 export * from './vectorIndex.js';
 export * from './vectorizer.js';
 
+import {
+  InvertedIndexConfigUpdate,
+  NamedVectorConfigUpdate,
+  ReplicationConfigUpdate,
+  VectorIndexConfigUpdate,
+} from '../../configure/types/index.js';
 import { GenerativeConfig } from './generative.js';
 import { RerankerConfig } from './reranker.js';
 import { VectorConfig } from './vectorizer.js';
+import { VectorIndexType } from './vectorIndex.js';
 
 export type ModuleConfig<N, C = Record<string, any>> = {
   name: N;
@@ -73,7 +80,7 @@ export type ShardingConfig = {
   function: 'murmur3';
 };
 
-export type CollectionConfig<T> = {
+export type CollectionConfig = {
   name: string;
   description?: string;
   generative?: GenerativeConfig;
@@ -85,4 +92,11 @@ export type CollectionConfig<T> = {
   reranker?: RerankerConfig;
   sharding: ShardingConfig;
   vectorizer: VectorConfig;
+};
+
+export type CollectionConfigUpdate = {
+  description?: string;
+  invertedIndex?: InvertedIndexConfigUpdate;
+  replication?: ReplicationConfigUpdate;
+  vectorizer?: VectorIndexConfigUpdate | NamedVectorConfigUpdate<string, VectorIndexType>[];
 };

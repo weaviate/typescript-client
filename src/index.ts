@@ -19,7 +19,7 @@ import {
 import { ProxiesParams } from './connection/http.js';
 import MetaGetter from './misc/metaGetter.js';
 import collections, { Collections } from './collections/index.js';
-import configure from './collections/configure/index.js';
+import { configure, reconfigure } from './collections/configure/index.js';
 import { Meta } from './openapi/types.js';
 
 import { Agent as HttpAgent } from 'http';
@@ -154,6 +154,7 @@ const app = {
   AuthAccessTokenCredentials,
   AuthClientCredentials,
   configure,
+  reconfigure,
 };
 
 function initDbVersionProvider(conn: ConnectionGRPC) {

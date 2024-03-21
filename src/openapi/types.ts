@@ -52,7 +52,8 @@ export type WeaviateReplicationConfig = WeaviateClass['replicationConfig'];
 export type WeaviateShardingConfig = WeaviateClass['shardingConfig'];
 export type WeaviateShardStatus = definitions['ShardStatusGetResponse'];
 export type WeaviateVectorIndexConfig = WeaviateClass['vectorIndexConfig'];
-export type WeaviateVectorConfig = WeaviateClass['vectorConfig'];
+export type WeaviateVectorsConfig = WeaviateClass['vectorConfig'];
+export type WeaviateVectorConfig = definitions['VectorConfig'];
 // Nodes
 export type NodesStatusResponse = definitions['NodesStatusResponse'];
 export type NodeStats = definitions['NodeStats'];

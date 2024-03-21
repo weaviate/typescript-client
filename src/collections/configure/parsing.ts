@@ -1,11 +1,19 @@
-import { PQConfigCreate, BQConfigCreate } from './types/index.js';
+import { PQConfigCreate, PQConfigUpdate, BQConfigCreate, BQConfigUpdate } from './types/index.js';
+
+type QuantizerConfig = PQConfigCreate | PQConfigUpdate | BQConfigCreate | BQConfigUpdate;
 
 export class QuantizerGuards {
-  static isPQ(config: BQConfigCreate | PQConfigCreate): config is PQConfigCreate {
-    return (config as PQConfigCreate).type === 'pq';
+  static isPQCreate(config?: QuantizerConfig): config is PQConfigCreate {
+    return (config as PQConfigCreate)?.type === 'pq';
   }
-  static isBQ(config: BQConfigCreate | PQConfigCreate): config is BQConfigCreate {
-    return (config as BQConfigCreate).type === 'bq';
+  static isPQUpdate(config?: QuantizerConfig): config is PQConfigUpdate {
+    return (config as PQConfigUpdate)?.type === 'pq';
+  }
+  static isBQCreate(config?: QuantizerConfig): config is BQConfigCreate {
+    return (config as BQConfigCreate)?.type === 'bq';
+  }
+  static isBQUpdate(config?: QuantizerConfig): config is BQConfigUpdate {
+    return (config as BQConfigUpdate)?.type === 'bq';
   }
 }
 
@@ -13,11 +21,11 @@ export function parseWithDefault<D>(value: D | undefined, defaultValue: D): D {
   return value !== undefined ? value : defaultValue;
 }
 
-export const parseQuantizer = <T extends PQConfigCreate | BQConfigCreate>(config?: T): T | undefined => {
+export const parseQuantizer = <T extends QuantizerConfig>(config?: T): T | undefined => {
   if (config === undefined) {
     return undefined;
   }
-  if (QuantizerGuards.isPQ(config)) {
+  if (QuantizerGuards.isPQCreate(config)) {
     return {
       bitCompression: parseWithDefault(config.bitCompression, false),
       centroids: parseWithDefault(config.centroids, 256),
@@ -31,7 +39,7 @@ export const parseQuantizer = <T extends PQConfigCreate | BQConfigCreate>(config
       trainingLimit: parseWithDefault(config.trainingLimit, 100000),
       type: 'pq',
     } as T;
-  } else if (QuantizerGuards.isBQ(config)) {
+  } else if (QuantizerGuards.isBQCreate(config)) {
     return {
       cache: parseWithDefault(config.cache, false),
       rescoreLimit: parseWithDefault(config.rescoreLimit, 1000),

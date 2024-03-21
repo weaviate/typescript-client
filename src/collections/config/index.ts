@@ -2,15 +2,18 @@ import Connection from '../../connection/index.js';
 import { WeaviateShardStatus } from '../../openapi/types.js';
 import { ClassGetter, PropertyCreator, ShardUpdater } from '../../schema/index.js';
 import ShardsGetter from '../../schema/shardsGetter.js';
-import { CollectionConfig } from './types/index.js';
+import { CollectionConfig, CollectionConfigUpdate } from './types/index.js';
 import {
   PropertyConfigCreate,
   ReferenceMultiTargetConfigCreate,
   ReferenceSingleTargetConfigCreate,
 } from '../configure/types/index.js';
 import { classToCollection, resolveProperty, resolveReference } from './utils.js';
+import ClassUpdater from '../../schema/classUpdater.js';
+import { MergeWithExisting } from './classes.js';
 
 const config = <T>(connection: Connection, name: string, tenant?: string): Config<T> => {
+  const getRaw = new ClassGetter(connection).withClassName(name).do;
   return {
     addProperty: (property: PropertyConfigCreate<any>) =>
       new PropertyCreator(connection)
@@ -26,11 +29,7 @@ const config = <T>(connection: Connection, name: string, tenant?: string): Confi
         .withProperty(resolveReference<any>(reference))
         .do()
         .then(() => {}),
-    get: () =>
-      new ClassGetter(connection)
-        .withClassName(name)
-        .do()
-        .then(classToCollection<T>),
+    get: () => getRaw().then(classToCollection<T>),
     getShards: () => {
       let builder = new ShardsGetter(connection).withClassName(name);
       if (tenant) {
@@ -61,6 +60,12 @@ const config = <T>(connection: Connection, name: string, tenant?: string): Confi
         )
       ).then(() => this.getShards());
     },
+    update: (config?: CollectionConfigUpdate) => {
+      return getRaw()
+        .then((current) => MergeWithExisting.schema(current, config))
+        .then((merged) => new ClassUpdater(connection).withClass(merged).do())
+        .then(() => {});
+    },
   };
 };
 
@@ -88,7 +93,7 @@ export interface Config<T> {
    *
    * @returns {Promise<CollectionConfig<T>>} A promise that resolves with the collection configuration.
    */
-  get: () => Promise<CollectionConfig<T>>;
+  get: () => Promise<CollectionConfig>;
   /**
    * Get the statuses of the shards of this collection.
    *
@@ -110,4 +115,13 @@ export interface Config<T> {
     status: 'READY' | 'READONLY',
     names?: string | string[]
   ) => Promise<Required<WeaviateShardStatus>[]>;
+  /**
+   * Update the configuration for this collection in Weaviate.
+   *
+   * Use the `weaviate.classes.Reconfigure` class to generate the necessary configuration objects for this method.
+   *
+   * @param {CollectionConfigUpdate} [config] The configuration to update. Only a subset of the actual collection configuration can be updated.
+   * @returns {Promise<void>} A promise that resolves when the collection has been updated.
+   */
+  update: (config?: CollectionConfigUpdate) => Promise<void>;
 }

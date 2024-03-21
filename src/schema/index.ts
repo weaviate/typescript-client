@@ -2,6 +2,7 @@ import ClassCreator from './classCreator.js';
 import ClassDeleter from './classDeleter.js';
 import ClassExists from './classExists.js';
 import ClassGetter from './classGetter.js';
+import ClassUpdater from './classUpdater.js';
 import PropertyCreator from './propertyCreator.js';
 import SchemaGetter from './getter.js';
 import ShardsGetter from './shardsGetter.js';
@@ -19,6 +20,7 @@ export interface Schema {
   classCreator: () => ClassCreator;
   classDeleter: () => ClassDeleter;
   classGetter: () => ClassGetter;
+  classUpdater: () => ClassUpdater;
   exists: (className: string) => Promise<boolean>;
   getter: () => SchemaGetter;
   propertyCreator: () => PropertyCreator;
@@ -37,6 +39,7 @@ const schema = (client: Connection): Schema => {
     classCreator: () => new ClassCreator(client),
     classDeleter: () => new ClassDeleter(client),
     classGetter: () => new ClassGetter(client),
+    classUpdater: () => new ClassUpdater(client),
     exists: (className: string) => new ClassExists(client).withClassName(className).do(),
     getter: () => new SchemaGetter(client),
     propertyCreator: () => new PropertyCreator(client),

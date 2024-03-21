@@ -130,7 +130,7 @@ describe('Testing of the collection.config namespace', () => {
 
   it('should be able to get a collection with named vectors', async () => {
     const collectionName = 'TestCollectionConfigGetNamedVectors';
-    await client.collections.create({
+    const collection = await client.collections.create({
       name: collectionName,
       properties: [
         {
@@ -154,7 +154,6 @@ describe('Testing of the collection.config namespace', () => {
         }),
       ],
     });
-    const collection = client.collections.get(collectionName);
     const config = await collection.config.get();
 
     expect(config.name).toEqual(collectionName);
@@ -174,13 +173,12 @@ describe('Testing of the collection.config namespace', () => {
 
   it('should be able to get the config of a collection with HNSW+PQ', async () => {
     const collectionName = 'TestCollectionConfigGetHNSWPlusPQ';
-    await client.collections.create({
+    const collection = await client.collections.create({
       name: collectionName,
       vectorIndex: weaviate.configure.vectorIndex.hnsw({
         quantizer: weaviate.configure.vectorIndex.quantizer.pq(),
       }),
     });
-    const collection = client.collections.get(collectionName);
     const config = await collection.config.get();
 
     expect(config.name).toEqual(collectionName);
@@ -195,13 +193,12 @@ describe('Testing of the collection.config namespace', () => {
 
   it('should be able to get the config of a collection with HNSW+BQ', async () => {
     const collectionName = 'TestCollectionConfigGetHNSWPlusBQ';
-    await client.collections.create({
+    const collection = await client.collections.create({
       name: collectionName,
       vectorIndex: weaviate.configure.vectorIndex.hnsw({
         quantizer: weaviate.configure.vectorIndex.quantizer.bq(),
       }),
     });
-    const collection = client.collections.get(collectionName);
     const config = await collection.config.get();
 
     expect(config.name).toEqual(collectionName);
@@ -216,13 +213,12 @@ describe('Testing of the collection.config namespace', () => {
 
   it('should be able to get the config of a collection with flat+BQ', async () => {
     const collectionName = 'TestCollectionConfigGetFlatPlusBQ';
-    await client.collections.create({
+    const collection = await client.collections.create({
       name: collectionName,
       vectorIndex: weaviate.configure.vectorIndex.flat({
         quantizer: weaviate.configure.vectorIndex.quantizer.bq(),
       }),
     });
-    const collection = client.collections.get(collectionName);
     const config = await collection.config.get();
 
     expect(config.name).toEqual(collectionName);
@@ -341,5 +337,74 @@ describe('Testing of the collection.config namespace', () => {
     const notUpdated = shards.find((s) => s.name !== shard);
     expect(updated?.status).toEqual('READONLY');
     expect(notUpdated?.status).toEqual('READY');
+  });
+
+  it('should be able update the config of a collection', async () => {
+    const collectionName = 'TestCollectionConfigUpdate';
+    const collection = await client.collections.create({
+      name: collectionName,
+      properties: [
+        {
+          name: 'testProp',
+          dataType: 'text',
+        },
+      ],
+      vectorizer: [weaviate.configure.namedVectorizer('text')],
+    });
+    const config = await collection.config
+      .update({
+        vectorizer: [
+          weaviate.reconfigure.namedVectorizer('text', {
+            vectorIndexConfig: weaviate.reconfigure.vectorIndex.hnsw({
+              quantizer: weaviate.reconfigure.vectorIndex.quantizer.pq(),
+              ef: 4,
+            }),
+          }),
+        ],
+      })
+      .then(() => collection.config.get());
+
+    expect(config.name).toEqual(collectionName);
+    expect(config.properties).toEqual<PropertyConfig[]>([
+      {
+        name: 'testProp',
+        dataType: 'text',
+        description: undefined,
+        indexSearchable: true,
+        indexFilterable: true,
+        indexInverted: false,
+        vectorizerConfig: undefined,
+        nestedProperties: undefined,
+        tokenization: 'word',
+      },
+    ]);
+    expect(config.generative).toBeUndefined();
+    expect(config.reranker).toBeUndefined();
+    expect(config.vectorizer.text.indexConfig).toEqual<VectorIndexConfigHNSW>({
+      skip: false,
+      cleanupIntervalSeconds: 300,
+      maxConnections: 64,
+      efConstruction: 128,
+      ef: 4,
+      dynamicEfMin: 100,
+      dynamicEfMax: 500,
+      dynamicEfFactor: 8,
+      vectorCacheMaxObjects: 1000000000000,
+      flatSearchCutoff: 40000,
+      distance: 'cosine',
+      quantizer: {
+        bitCompression: false,
+        segments: 0,
+        centroids: 256,
+        trainingLimit: 100000,
+        encoder: {
+          type: 'kmeans',
+          distribution: 'log-normal',
+        },
+        type: 'pq',
+      },
+    });
+    expect(config.vectorizer.text.indexType).toEqual('hnsw');
+    expect(config.vectorizer.text.vectorizer.name).toEqual('none');
   });
 });

@@ -14,6 +14,19 @@ export type RecursivePartial<T> = {
 
 export type InvertedIndexConfigCreate = RecursivePartial<InvertedIndexConfig>;
 
+export type InvertedIndexConfigUpdate = {
+  bm25?: {
+    b?: number;
+    k1?: number;
+  };
+  cleanupIntervalSeconds?: number;
+  stopwords?: {
+    preset?: string;
+    additions?: string[];
+    removals?: string[];
+  };
+};
+
 export type MultiTenancyConfigCreate = RecursivePartial<MultiTenancyConfig>;
 
 type NestedPropertyCreate<T = undefined> = T extends undefined
@@ -114,6 +127,10 @@ export type ReferenceConfigCreate<T> =
   | ReferenceMultiTargetConfigCreate<T>;
 
 export type ReplicationConfigCreate = RecursivePartial<ReplicationConfig>;
+
+export type ReplicationConfigUpdate = {
+  factor?: number;
+};
 
 export type ShardingConfigCreate = {
   virtualPerPhysical?: number;
