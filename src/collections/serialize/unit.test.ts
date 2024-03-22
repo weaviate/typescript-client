@@ -125,7 +125,7 @@ describe('Unit testing of Serialize', () => {
       autoLimit: 1,
     });
     expect(args).toEqual<SearchBm25Args>({
-      bm25: BM25.fromPartial({
+      bm25Search: BM25.fromPartial({
         query: 'test',
         properties: ['name'],
       }),
@@ -144,7 +144,7 @@ describe('Unit testing of Serialize', () => {
       fusionType: 'Ranked',
     });
     expect(args).toEqual<SearchHybridArgs>({
-      hybrid: Hybrid.fromPartial({
+      hybridSearch: Hybrid.fromPartial({
         query: 'test',
         properties: ['name'],
         alpha: 0.6,
