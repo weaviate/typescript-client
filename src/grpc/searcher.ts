@@ -52,11 +52,11 @@ type BaseSearchArgs = {
 };
 
 export type SearchBm25Args = BaseSearchArgs & {
-  bm25: BM25;
+  bm25Search: BM25;
 };
 
 export type SearchHybridArgs = BaseSearchArgs & {
-  hybrid: Hybrid;
+  hybridSearch: Hybrid;
 };
 
 export type SearchNearAudioArgs = BaseSearchArgs & {

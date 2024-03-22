@@ -321,7 +321,7 @@ export class Serialize {
   public static bm25 = <T>(args: { query: string } & Bm25Options<T>): SearchBm25Args => {
     return {
       ...Serialize.common(args),
-      bm25: BM25.fromPartial({
+      bm25Search: BM25.fromPartial({
         query: args.query,
         properties: args.queryProperties,
       }),
@@ -342,7 +342,7 @@ export class Serialize {
     };
     return {
       ...Serialize.common(args),
-      hybrid: Hybrid.fromPartial({
+      hybridSearch: Hybrid.fromPartial({
         query: args.query,
         alpha: args.alpha ? args.alpha : 0.5,
         properties: args.queryProperties,

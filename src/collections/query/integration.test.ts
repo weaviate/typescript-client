@@ -14,6 +14,7 @@ describe('Testing of the collection.query methods with a simple collection', () 
 
   type TestCollectionQueryMinimalOptions = {
     testProp: string;
+    testProp2: string;
   };
 
   afterAll(() => {
@@ -45,13 +46,24 @@ describe('Testing of the collection.query methods with a simple collection', () 
             name: 'testProp',
             dataType: 'text',
           },
+          {
+            name: 'testProp2',
+            dataType: 'text',
+          },
         ],
         vectorizer: weaviate.configure.vectorizer.text2VecContextionary({ vectorizeClassName: false }),
       })
-      .then(() => {
+      .then(async () => {
+        await collection.data.insert({
+          properties: {
+            testProp: 'apple',
+            testProp2: 'banana',
+          },
+        });
         return collection.data.insert({
           properties: {
             testProp: 'test',
+            testProp2: 'test2',
           },
         });
       });
@@ -67,52 +79,58 @@ describe('Testing of the collection.query methods with a simple collection', () 
 
   it('should query without search', async () => {
     const ret = await collection.query.fetchObjects();
-    expect(ret.objects.length).toEqual(1);
-    expect(ret.objects[0].properties.testProp).toEqual('test');
-    expect(ret.objects[0].uuid).toEqual(id);
+    expect(ret.objects.length).toEqual(2);
+    expect(ret.objects[0].properties.testProp).toBeDefined();
+    expect(ret.objects[0].uuid).toBeDefined();
   });
 
   it('should query without search specifying return properties', async () => {
     const ret = await collection.query.fetchObjects({
       returnProperties: ['testProp'],
     });
-    expect(ret.objects.length).toEqual(1);
-    expect(ret.objects[0].properties.testProp).toEqual('test');
-    expect(ret.objects[0].uuid).toEqual(id);
+    expect(ret.objects.length).toEqual(2);
+    expect(ret.objects[0].properties.testProp).toBeDefined();
+    expect(ret.objects[0].properties.testProp2).toBeUndefined();
+    expect(ret.objects[0].uuid).toBeDefined();
   });
 
   it('should query with bm25', async () => {
     const ret = await collection.query.bm25('test');
     expect(ret.objects.length).toEqual(1);
     expect(ret.objects[0].properties.testProp).toEqual('test');
+    expect(ret.objects[0].properties.testProp2).toEqual('test2');
     expect(ret.objects[0].uuid).toEqual(id);
   });
 
   it('should query with hybrid', async () => {
-    const ret = await collection.query.hybrid('test');
+    const ret = await collection.query.hybrid('test', { limit: 1 });
     expect(ret.objects.length).toEqual(1);
     expect(ret.objects[0].properties.testProp).toEqual('test');
+    expect(ret.objects[0].properties.testProp2).toEqual('test2');
     expect(ret.objects[0].uuid).toEqual(id);
   });
 
   it('should query with nearObject', async () => {
-    const ret = await collection.query.nearObject(id);
+    const ret = await collection.query.nearObject(id, { limit: 1 });
     expect(ret.objects.length).toEqual(1);
     expect(ret.objects[0].properties.testProp).toEqual('test');
+    expect(ret.objects[0].properties.testProp2).toEqual('test2');
     expect(ret.objects[0].uuid).toEqual(id);
   });
 
   it('should query with nearText', async () => {
-    const ret = await collection.query.nearText(['test']);
+    const ret = await collection.query.nearText(['test'], { limit: 1 });
     expect(ret.objects.length).toEqual(1);
     expect(ret.objects[0].properties.testProp).toEqual('test');
+    expect(ret.objects[0].properties.testProp2).toEqual('test2');
     expect(ret.objects[0].uuid).toEqual(id);
   });
 
   it('should query with nearVector', async () => {
-    const ret = await collection.query.nearVector(vector);
+    const ret = await collection.query.nearVector(vector, { limit: 1 });
     expect(ret.objects.length).toEqual(1);
     expect(ret.objects[0].properties.testProp).toEqual('test');
+    expect(ret.objects[0].properties.testProp2).toEqual('test2');
     expect(ret.objects[0].uuid).toEqual(id);
   });
 });
@@ -251,7 +269,7 @@ describe('Testing of the collection.query methods with a collection with a refer
           },
         ],
       });
-      expect(ret.objects.length).toEqual(2);
+      expect(ret.objects.length).toEqual(1);
       expect(ret.objects.map((obj) => obj.properties.testProp).includes('other')).toEqual(true);
       expect(
         ret.objects.find((obj) => obj.properties.testProp === 'other')?.references?.refProp?.objects.length
