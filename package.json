@@ -52,6 +52,7 @@
   "homepage": "https://github.com/weaviate/typescript-client#readme",
   "dependencies": {
     "graphql-request": "^6.1.0",
+    "graphql": "^16.8.1",
     "long": "^5.2.3",
     "nice-grpc": "^2.1.7",
     "nice-grpc-client-middleware-deadline": "^2.0.11",
