@@ -25,7 +25,7 @@ import { CrossReference } from '../references/index.js';
 // hence it should be the last type in the union
 export type DataType<T = any> = T extends infer U | undefined
   ? U extends string
-    ? 'text' | 'blob'
+    ? 'text' | 'uuid' | 'blob'
     : U extends number
     ? 'number' | 'int'
     : U extends boolean
@@ -33,7 +33,7 @@ export type DataType<T = any> = T extends infer U | undefined
     : U extends Date
     ? 'date'
     : U extends string[]
-    ? 'text[]'
+    ? 'text[]' | 'uuid[]'
     : U extends number[]
     ? 'number[]' | 'int[]'
     : U extends boolean[]

@@ -1,7 +1,6 @@
 import {
   InvertedIndexConfigCreate,
   InvertedIndexConfigUpdate,
-  ModuleConfig,
   MultiTenancyConfigCreate,
   NamedVectorConfigCreate,
   NamedVectorConfigUpdate,
@@ -9,7 +8,6 @@ import {
   NamedVectorizerUpdateOptions,
   ReplicationConfigCreate,
   ShardingConfigCreate,
-  VectorIndexConfigUpdateType,
   VectorIndexType,
   Vectorizer,
 } from '../types/index.js';
@@ -29,6 +27,8 @@ const dataType = {
   NUMBER_ARRAY: 'number[]' as const,
   TEXT: 'text' as const,
   TEXT_ARRAY: 'text[]' as const,
+  UUID: 'uuid' as const,
+  UUID_ARRAY: 'uuid[]' as const,
   BOOLEAN: 'boolean' as const,
   BOOLEAN_ARRAY: 'boolean[]' as const,
   DATE: 'date' as const,
