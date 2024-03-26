@@ -734,6 +734,22 @@ describe('Testing of the groupBy collection.query methods with a simple collecti
     expect(ret.objects[0].uuid).toEqual(id);
     expect(ret.objects[0].belongsToGroup).toEqual('test');
   });
+
+  it('should groupBy with nearVector and a non-generic collection', async () => {
+    const ret = await client.collections.get(collectionName).query.nearVector(vector, {
+      groupBy: {
+        numberOfGroups: 1,
+        objectsPerGroup: 1,
+        property: 'testProp',
+      },
+    });
+    expect(ret.objects.length).toEqual(1);
+    expect(ret.groups).toBeDefined();
+    expect(Object.keys(ret.groups)).toEqual(['test']);
+    expect(ret.objects[0].properties.testProp).toEqual('test');
+    expect(ret.objects[0].uuid).toEqual(id);
+    expect(ret.objects[0].belongsToGroup).toEqual('test');
+  });
 });
 
 describe('Testing of the collection.query methods with a multi-tenancy collection', () => {

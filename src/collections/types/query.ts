@@ -91,11 +91,17 @@ export type GroupByReturn<T> = {
   groups: Record<string, GroupByResult<T>>;
 };
 
-export type GroupByOptions<T> = {
-  property: keyof T;
-  numberOfGroups: number;
-  objectsPerGroup: number;
-};
+export type GroupByOptions<T> = T extends undefined
+  ? {
+      property: string;
+      numberOfGroups: number;
+      objectsPerGroup: number;
+    }
+  : {
+      property: keyof T;
+      numberOfGroups: number;
+      objectsPerGroup: number;
+    };
 
 export type RerankOptions<T> = T extends undefined
   ? {
