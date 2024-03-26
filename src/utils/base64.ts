@@ -19,28 +19,29 @@
  * const onChange = (event) => toBase64FromBlob(event.target.files[0]).then(setBase64);
  *
  * // Submit
- * const onSubmit = (base64: string) => client.data
+ * const onSubmit = (blob: Blob) => client.data
  *     .creator()
  *     .withClassName('MyClass')
- *     .withProperties({ myMediaField: base64 })
+ *     .withProperties({ myMediaField: toBase64FromBlob(base64) })
  *     .do();
  *
  */
 export function toBase64FromBlob(blob: Blob): Promise<string> {
-  if (typeof window === 'undefined') {
+  if (typeof window !== 'undefined') {
+    const reader = new FileReader();
+    return new Promise((resolve, reject) => {
+      reader.onload = resolve;
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    }).then(() => {
+      if (typeof reader.result !== 'string') {
+        throw new Error(
+          `Unexpected result when converting blob to base64 (result is not a string): ${reader.result}`
+        );
+      }
+      return reader.result;
+    });
+  } else {
     throw new Error('This function is only available in the browser');
   }
-  const reader = new FileReader();
-  return new Promise((resolve, reject) => {
-    reader.onload = resolve;
-    reader.onerror = reject;
-    reader.readAsDataURL(blob);
-  }).then(() => {
-    if (typeof reader.result !== 'string') {
-      throw new Error(
-        `Unexpected result when converting blob to base64 (result is not a string): ${reader.result}`
-      );
-    }
-    return reader.result;
-  });
 }

@@ -1,8 +1,8 @@
-import { validateBackend } from './validation';
-import Connection from '../connection';
-import { CommandBase } from '../validation/commandBase';
-import { BackupCreateResponse } from '../openapi/types';
-import { Backend } from '.';
+import { validateBackend } from './validation.js';
+import Connection from '../connection/index.js';
+import { CommandBase } from '../validation/commandBase.js';
+import { BackupCreateResponse } from '../openapi/types.js';
+import { Backend } from './index.js';
 
 export default class BackupGetter extends CommandBase {
   private backend?: Backend;

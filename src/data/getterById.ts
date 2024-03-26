@@ -1,8 +1,8 @@
-import Connection from '../connection';
-import { WeaviateObject } from '../openapi/types';
-import { CommandBase } from '../validation/commandBase';
-import { ObjectsPath } from './path';
-import { ConsistencyLevel } from './replication';
+import Connection from '../connection/index.js';
+import { WeaviateObject } from '../openapi/types.js';
+import { CommandBase } from '../validation/commandBase.js';
+import { ObjectsPath } from './path.js';
+import { ConsistencyLevel } from './replication.js';
 
 export default class GetterById extends CommandBase {
   private additional: string[];

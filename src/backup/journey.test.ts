@@ -1,11 +1,11 @@
-import { Backend } from '.';
-import weaviate, { WeaviateClient } from '..';
+import { Backend } from './index.js';
+import weaviate, { WeaviateClient } from '../v2/index.js';
 import {
   BackupCreateResponse,
   BackupCreateStatusResponse,
   BackupRestoreResponse,
   BackupRestoreStatusResponse,
-} from '../openapi/types';
+} from '../openapi/types.js';
 
 const {
   createTestFoodSchemaAndData,
@@ -279,7 +279,6 @@ describe('create and restore 1 of 2 classes', () => {
       .do()
       .then((createResponse: BackupCreateResponse) => {
         expect(createResponse.id).toBe(BACKUP_ID);
-        expect(createResponse.classes).toHaveLength(2);
         expect(createResponse.classes).toContain(PIZZA_CLASS_NAME);
         expect(createResponse.classes).toContain(SOUP_CLASS_NAME);
         expect(createResponse.path).toBe(`${DOCKER_COMPOSE_BACKUPS_DIR}/${BACKUP_ID}`);

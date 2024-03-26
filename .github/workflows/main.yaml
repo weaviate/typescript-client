@@ -6,9 +6,8 @@ on:
       - '**'
   pull_request:
 
-
 env:
-  WEAVIATE_VERSION: preview--f005cb8
+  WEAVIATE_VERSION: 1.24.1
 
 jobs:
   checks:
@@ -66,7 +65,7 @@ jobs:
           node-version: '18.x'
           registry-url: 'https://registry.npmjs.org'
       - run: npm ci && npm run build
-      - run: npm publish
+      - run: npm publish --tag beta
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTOMATION_TOKEN }}
       - name: "Create a GitHub release"

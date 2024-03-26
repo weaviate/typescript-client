@@ -1,4 +1,4 @@
-import { NearMediaBase } from './nearMedia';
+import { NearMediaBase } from './nearMedia.js';
 
 export interface NearImageArgs extends NearMediaBase {
   image?: string;

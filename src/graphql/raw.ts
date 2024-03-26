@@ -1,5 +1,5 @@
-import Connection from '../connection';
-import { CommandBase } from '../validation/commandBase';
+import Connection from '../connection/index.js';
+import { CommandBase } from '../validation/commandBase.js';
 
 export default class RawGraphQL extends CommandBase {
   private query?: string;

@@ -1,6 +1,9 @@
-import { definitions } from './schema';
+import { definitions } from './schema.js';
 
-export type WeaviateObject = definitions['Object'];
+type Override<T1, T2> = Omit<T1, keyof T2> & T2;
+type DefaultProperties = { [key: string]: unknown };
+
+export type WeaviateObject<T = DefaultProperties> = Override<definitions['Object'], { properties?: T }>;
 export type WeaviateObjectsList = definitions['ObjectsListResponse'];
 export type WeaviateObjectsGet = definitions['ObjectsGetResponse'];
 export type Reference = definitions['SingleRef'];
@@ -20,7 +23,7 @@ export type BatchDelete = definitions['BatchDelete'];
 export type BatchDeleteResponse = definitions['BatchDeleteResponse'];
 export type BatchRequest = {
   fields?: ('ALL' | 'class' | 'schema' | 'id' | 'creationTimeUnix')[];
-  objects?: WeaviateObject[];
+  objects?: WeaviateObject<any>[];
 };
 export type BatchReference = definitions['BatchReference'];
 export type BatchReferenceResponse = definitions['BatchReferenceResponse'];
@@ -34,9 +37,27 @@ export type WhereFilter = definitions['WhereFilter'];
 // Schema
 export type WeaviateSchema = definitions['Schema'];
 export type WeaviateClass = definitions['Class'];
+export type WeaviateProperty = definitions['Property'];
+export type WeaviateNestedProperty = definitions['NestedProperty'];
 export type ShardStatus = definitions['ShardStatus'];
 export type ShardStatusList = definitions['ShardStatusList'];
 export type Tenant = definitions['Tenant'];
 export type SchemaClusterStatus = definitions['SchemaClusterStatus'];
+export type WeaviateModuleConfig = WeaviateClass['moduleConfig'];
+export type WeaviateInvertedIndexConfig = WeaviateClass['invertedIndexConfig'];
+export type WeaviateBM25Config = definitions['BM25Config'];
+export type WeaviateStopwordConfig = definitions['StopwordConfig'];
+export type WeaviateMultiTenancyConfig = WeaviateClass['multiTenancyConfig'];
+export type WeaviateReplicationConfig = WeaviateClass['replicationConfig'];
+export type WeaviateShardingConfig = WeaviateClass['shardingConfig'];
+export type WeaviateShardStatus = definitions['ShardStatusGetResponse'];
+export type WeaviateVectorIndexConfig = WeaviateClass['vectorIndexConfig'];
+export type WeaviateVectorsConfig = WeaviateClass['vectorConfig'];
+export type WeaviateVectorConfig = definitions['VectorConfig'];
 // Nodes
 export type NodesStatusResponse = definitions['NodesStatusResponse'];
+export type NodeStats = definitions['NodeStats'];
+export type BatchStats = definitions['BatchStats'];
+export type NodeShardStatus = definitions['NodeShardStatus'];
+// Meta
+export type Meta = definitions['Meta'];

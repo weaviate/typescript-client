@@ -1,6 +1,6 @@
-import { TestDbVersionProvider } from '../../test/dbVersionProvider';
-import { DbVersionSupport } from '../utils/dbVersion';
-import { ObjectsPath, ReferencesPath } from './path';
+import { TestDbVersionProvider } from '../../test/dbVersionProvider.js';
+import { DbVersionSupport } from '../utils/dbVersion.js';
+import { ObjectsPath, ReferencesPath } from './path.js';
 
 // This can be anything > 1.14.2, to support class-namespaced urls.
 // The actual value is not used for anything else

@@ -1,4 +1,4 @@
-import { HttpClient } from '../connection/httpClient';
+import { HttpClient } from '../connection/http.js';
 
 export default class OpenidConfigurationGetterGetter {
   private client: HttpClient;

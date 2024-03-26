@@ -1,5 +1,5 @@
-import NodesStatusGetter from './nodesStatusGetter';
-import Connection from '../connection';
+import NodesStatusGetter from './nodesStatusGetter.js';
+import Connection from '../connection/index.js';
 
 export type NodeStatus = 'HEALTHY' | 'UNHEALTHY' | 'UNAVAILABLE';
 
@@ -14,4 +14,4 @@ const cluster = (client: Connection): Cluster => {
 };
 
 export default cluster;
-export { default as NodesStatusGetter } from './nodesStatusGetter';
+export { default as NodesStatusGetter } from './nodesStatusGetter.js';

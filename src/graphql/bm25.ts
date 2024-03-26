@@ -1,4 +1,4 @@
-import { isValidStringArray, isValidStringProperty } from '../validation/string';
+import { isValidStringArray, isValidStringProperty } from '../validation/string.js';
 
 export interface Bm25Args {
   properties?: string[];

@@ -1,10 +1,10 @@
-import Getter, { FusionType } from './getter';
-import { WhereFilter } from '../openapi/types';
-import { NearObjectArgs } from './nearObject';
-import { AskArgs } from './ask';
-import { SortArgs } from './sort';
-import { NearTextArgs } from './nearText';
-import { NearImageArgs } from './nearImage';
+import Getter, { FusionType } from './getter.js';
+import { WhereFilter } from '../openapi/types.js';
+import { NearObjectArgs } from './nearObject.js';
+import { AskArgs } from './ask.js';
+import { SortArgs } from './sort.js';
+import { NearTextArgs } from './nearText.js';
+import { NearImageArgs } from './nearImage.js';
 
 test('a simple query without params', () => {
   const mockClient: any = {

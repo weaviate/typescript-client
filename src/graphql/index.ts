@@ -1,8 +1,8 @@
-import Aggregator from './aggregator';
-import GraphQLGetter from './getter';
-import Explorer from './explorer';
-import Raw from './raw';
-import Connection from '../connection';
+import Aggregator from './aggregator.js';
+import GraphQLGetter from './getter.js';
+import Explorer from './explorer.js';
+import Raw from './raw.js';
+import Connection from '../connection/index.js';
 
 export interface GraphQL {
   get: () => GraphQLGetter;
@@ -21,8 +21,8 @@ const graphql = (client: Connection): GraphQL => {
 };
 
 export default graphql;
-export { default as Aggregator } from './aggregator';
-export { default as GraphQLGetter } from './getter';
-export { default as Explorer } from './explorer';
-export { default as Raw } from './raw';
-export { FusionType } from './getter';
+export { default as Aggregator } from './aggregator.js';
+export { default as GraphQLGetter } from './getter.js';
+export { default as Explorer } from './explorer.js';
+export { default as Raw } from './raw.js';
+export { FusionType } from './getter.js';

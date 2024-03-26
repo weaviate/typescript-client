@@ -145,6 +145,10 @@ export interface paths {
     /** delete tenants from a specific class */
     delete: operations['tenants.delete'];
   };
+  '/schema/{className}/tenants/{tenantName}': {
+    /** Check if a tenant exists for a specific class */
+    head: operations['tenant.exists'];
+  };
   '/backups/{backend}': {
     /** Starts a process of creating a backup for a set of classes */
     post: operations['backups.create'];
@@ -2563,6 +2567,35 @@ export interface operations {
       403: {
         schema: definitions['ErrorResponse'];
       };
+      /** Invalid Tenant class */
+      422: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
+  /** Check if a tenant exists for a specific class */
+  'tenant.exists': {
+    parameters: {
+      path: {
+        className: string;
+        tenantName: string;
+      };
+    };
+    responses: {
+      /** The tenant exists in the specified class */
+      200: unknown;
+      /** Unauthorized or invalid credentials. */
+      401: unknown;
+      /** Forbidden */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** The tenant not found */
+      404: unknown;
       /** Invalid Tenant class */
       422: {
         schema: definitions['ErrorResponse'];
