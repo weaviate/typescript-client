@@ -11,6 +11,7 @@ import {
   BackupRestoreRequest,
   BackupRestoreResponse,
   BackupRestoreStatusResponse,
+  BackupRestoreConfig,
 } from '../openapi/types.js';
 import { Backend } from './index.js';
 
@@ -23,6 +24,7 @@ export default class BackupRestorer extends CommandBase {
   private includeClassNames?: string[];
   private statusGetter: BackupRestoreStatusGetter;
   private waitForCompletion?: boolean;
+  private config?: BackupRestoreConfig;
 
   constructor(client: Connection, statusGetter: BackupRestoreStatusGetter) {
     super(client);
@@ -62,6 +64,11 @@ export default class BackupRestorer extends CommandBase {
     return this;
   }
 
+  withConfig(config: BackupRestoreConfig) {
+    this.config = config;
+    return this;
+  }
+
   validate = (): void => {
     this.addErrors([
       ...validateIncludeClassNames(this.includeClassNames || []),
@@ -78,7 +85,7 @@ export default class BackupRestorer extends CommandBase {
     }
 
     const payload = {
-      config: {},
+      config: this.config ? this.config : {},
       include: this.includeClassNames,
       exclude: this.excludeClassNames,
     } as BackupRestoreRequest;

@@ -18,6 +18,8 @@ export type BackupCreateStatusResponse = definitions['BackupCreateStatusResponse
 export type BackupRestoreRequest = definitions['BackupRestoreRequest'];
 export type BackupRestoreResponse = definitions['BackupRestoreResponse'];
 export type BackupRestoreStatusResponse = definitions['BackupRestoreStatusResponse'];
+export type BackupCreateConfig = definitions['BackupConfig'];
+export type BackupRestoreConfig = definitions['RestoreConfig'];
 // Batch
 export type BatchDelete = definitions['BatchDelete'];
 export type BatchDeleteResponse = definitions['BatchDeleteResponse'];
