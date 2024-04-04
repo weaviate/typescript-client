@@ -672,32 +672,29 @@ describe('Testing of the groupBy collection.query methods with a simple collecti
   //   expect(ret.objects[0].belongsToGroup).toEqual('test');
   // });
 
-  // it('should groupBy with bm25', async () => {
-  //   const ret = await collection.groupBy.bm25({
-  //     query: 'test',
-  //     ...groupByArgs,
-  //   });
-  //   expect(ret.objects.length).toEqual(1);
-  //   expect(ret.groups).toBeDefined();
-  //   expect(Object.keys(ret.groups)).toEqual(['test']);
-  //   expect(ret.objects[0].properties.testProp).toEqual('test');
-  //   expect(ret.objects[0].metadata.uuid).toEqual(id);
-  //   expect(ret.objects[0].belongsToGroup).toEqual('test');
-  // });
+  it('should groupBy with bm25', async () => {
+    const ret = await collection.query.bm25('test', {
+      groupBy: groupByArgs,
+    });
+    expect(ret.objects.length).toEqual(1);
+    expect(ret.groups).toBeDefined();
+    expect(Object.keys(ret.groups)).toEqual(['test']);
+    expect(ret.objects[0].properties.testProp).toEqual('test');
+    expect(ret.objects[0].uuid).toEqual(id);
+    expect(ret.objects[0].belongsToGroup).toEqual('test');
+  });
 
-  // it('should groupBy with hybrid', async () => {
-  //   const ret = await collection.groupBy.hybrid({
-  //     query: 'test',
-  //     ...groupByArgs,
-
-  //   });
-  //   expect(ret.objects.length).toEqual(1);
-  //   expect(ret.groups).toBeDefined();
-  //   expect(Object.keys(ret.groups)).toEqual(['test']);
-  //   expect(ret.objects[0].properties.testProp).toEqual('test');
-  //   expect(ret.objects[0].metadata.uuid).toEqual(id);
-  //   expect(ret.objects[0].belongsToGroup).toEqual('test');
-  // });
+  it('should groupBy with hybrid', async () => {
+    const ret = await collection.query.hybrid('test', {
+      groupBy: groupByArgs,
+    });
+    expect(ret.objects.length).toEqual(1);
+    expect(ret.groups).toBeDefined();
+    expect(Object.keys(ret.groups)).toEqual(['test']);
+    expect(ret.objects[0].properties.testProp).toEqual('test');
+    expect(ret.objects[0].uuid).toEqual(id);
+    expect(ret.objects[0].belongsToGroup).toEqual('test');
+  });
 
   it('should groupBy with nearObject', async () => {
     const ret = await collection.query.nearObject(id, {

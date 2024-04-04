@@ -14,11 +14,15 @@ import { WeaviateObject, WeaviateReturn, GroupByReturn } from '../types/index.js
 import { SearchReply } from '../../proto/v1/search_get.js';
 
 import {
+  BaseBm25Options,
+  BaseHybridOptions,
   BaseNearOptions,
   BaseNearTextOptions,
   Bm25Options,
   FetchObjectByIdOptions,
   FetchObjectsOptions,
+  GroupByBm25Options,
+  GroupByHybridOptions,
   GroupByNearOptions,
   GroupByNearTextOptions,
   HybridOptions,
@@ -74,21 +78,43 @@ class QueryManager<T> implements Query<T> {
     return this.connection
       .search(this.name, this.consistencyLevel, this.tenant)
       .then((search) => search.withFetch(Serialize.fetchObjects(opts)))
-      .then((reply) => Deserialize.generate<T>(reply));
+      .then((reply) => Deserialize.query<T>(reply));
   }
 
-  public bm25(query: string, opts?: Bm25Options<T>): Promise<WeaviateReturn<T>> {
+  public bm25(query: string, opts?: BaseBm25Options<T>): Promise<WeaviateReturn<T>>;
+  public bm25(query: string, opts: GroupByBm25Options<T>): Promise<GroupByReturn<T>>;
+  public bm25(query: string, opts?: Bm25Options<T>): QueryReturn<T> {
     return this.connection
       .search(this.name, this.consistencyLevel, this.tenant)
-      .then((search) => search.withBm25(Serialize.bm25({ query, ...opts })))
-      .then((reply) => Deserialize.generate<T>(reply));
+      .then((search) =>
+        search.withBm25({
+          ...Serialize.bm25({ query, ...opts }),
+          groupBy: Serialize.isGroupBy<GroupByBm25Options<T>>(opts)
+            ? Serialize.groupBy(opts.groupBy)
+            : undefined,
+        })
+      )
+      .then((reply) =>
+        Serialize.isGroupBy(opts) ? Deserialize.groupBy<T>(reply) : Deserialize.query<T>(reply)
+      );
   }
 
-  public hybrid(query: string, opts?: HybridOptions<T>): Promise<WeaviateReturn<T>> {
+  public hybrid(query: string, opts?: BaseHybridOptions<T>): Promise<WeaviateReturn<T>>;
+  public hybrid(query: string, opts: GroupByHybridOptions<T>): Promise<GroupByReturn<T>>;
+  public hybrid(query: string, opts?: HybridOptions<T>): QueryReturn<T> {
     return this.connection
       .search(this.name, this.consistencyLevel, this.tenant)
-      .then((search) => search.withHybrid(Serialize.hybrid({ query, ...opts })))
-      .then((reply) => Deserialize.generate<T>(reply));
+      .then((search) =>
+        search.withHybrid({
+          ...Serialize.hybrid({ query, ...opts }),
+          groupBy: Serialize.isGroupBy<GroupByHybridOptions<T>>(opts)
+            ? Serialize.groupBy(opts.groupBy)
+            : undefined,
+        })
+      )
+      .then((reply) =>
+        Serialize.isGroupBy(opts) ? Deserialize.groupBy<T>(reply) : Deserialize.query<T>(reply)
+      );
   }
 
   public nearImage(image: string | Blob, opts?: BaseNearOptions<T>): Promise<WeaviateReturn<T>>;

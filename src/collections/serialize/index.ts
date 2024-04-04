@@ -78,7 +78,7 @@ import {
   SearchOptions,
   NearTextOptions,
 } from '../query/types.js';
-import { GenerateOptions } from '../generate/index.js';
+import { GenerateOptions } from '../generate/types.js';
 import {
   BooleanArrayProperties,
   IntArrayProperties,

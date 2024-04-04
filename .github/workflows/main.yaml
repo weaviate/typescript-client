@@ -7,7 +7,7 @@ on:
   pull_request:
 
 env:
-  WEAVIATE_VERSION: 1.24.1
+  WEAVIATE_VERSION: preview-hybrid-groupby-a57307d
 
 jobs:
   checks:

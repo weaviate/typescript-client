@@ -75,14 +75,23 @@ export type SearchOptions<T> = {
   returnReferences?: QueryReference<T>[];
 };
 
-/** Options available in the `query.bm25` method */
-export type Bm25Options<T> = SearchOptions<T> & {
+/** Base options available in the `query.bm25` method */
+export type BaseBm25Options<T> = SearchOptions<T> & {
   /** Which properties of the collection to perform the keyword search on. */
   queryProperties?: PrimitiveKeys<T>[];
 };
 
-/** Options available in the `query.hybrid` method */
-export type HybridOptions<T> = SearchOptions<T> & {
+/** Options available in the `query.bm25` method when specifying the `groupBy` parameter. */
+export type GroupByBm25Options<T> = BaseBm25Options<T> & {
+  /** The group by options to apply to the search. */
+  groupBy: GroupByOptions<T>;
+};
+
+/** Options available in the `query.bm25` method */
+export type Bm25Options<T> = BaseBm25Options<T> | GroupByBm25Options<T> | undefined;
+
+/** Base ptions available in the `query.hybrid` method */
+export type BaseHybridOptions<T> = SearchOptions<T> & {
   /** The weight of the BM25 score. If not specified, the default weight specified by the server is used. */
   alpha?: number;
   /** The specific vector to search for. If not specified, the query is vectorized and used in the similarity search. */
@@ -94,6 +103,15 @@ export type HybridOptions<T> = SearchOptions<T> & {
   /** Specify which vector to search on if using named vectors. */
   targetVector?: string;
 };
+
+/** Options available in the `query.hybrid` method when specifying the `groupBy` parameter. */
+export type GroupByHybridOptions<T> = BaseHybridOptions<T> & {
+  /** The group by options to apply to the search. */
+  groupBy: GroupByOptions<T>;
+};
+
+/** Options available in the `query.hybrid` method */
+export type HybridOptions<T> = BaseHybridOptions<T> | GroupByHybridOptions<T> | undefined;
 
 /** Base options for the near search queries. */
 export type BaseNearOptions<T> = SearchOptions<T> & {
@@ -131,6 +149,90 @@ export type GroupByNearTextOptions<T> = BaseNearTextOptions<T> & {
 
 /** The type of the media to search for in the `query.nearMedia` method */
 export type NearMediaType = 'audio' | 'depth' | 'image' | 'imu' | 'thermal' | 'video';
+
+interface Bm25<T> {
+  /**
+   * Search for objects in this collection using the keyword-based BM25 algorithm.
+   *
+   * See the [docs](https://weaviate.io/developers/weaviate/search/bm25) for a more detailed explanation.
+   *
+   * This overload is for performing a search without the `groupBy` param.
+   *
+   * @overload
+   * @param {string} query - The query to search for.
+   * @param {BaseBm25Options<T>} [opts] - The available options for the search excluding the `groupBy` param.
+   * @returns {Promise<WeaviateReturn<T>>} - The result of the search within the fetched collection.
+   */
+  bm25(query: string, opts?: BaseBm25Options<T>): Promise<WeaviateReturn<T>>;
+  /**
+   * Search for objects in this collection using the keyword-based BM25 algorithm.
+   *
+   * See the [docs](https://weaviate.io/developers/weaviate/search/bm25) for a more detailed explanation.
+   *
+   * This overload is for performing a search with the `groupBy` param.
+   *
+   * @overload
+   * @param {string} query - The query to search for.
+   * @param {GroupByBm25Options<T>} opts - The available options for the search including the `groupBy` param.
+   * @returns {Promise<GroupByReturn<T>>} - The result of the search within the fetched collection.
+   */
+  bm25(query: string, opts: GroupByBm25Options<T>): Promise<GroupByReturn<T>>;
+  /**
+   * Search for objects in this collection using the keyword-based BM25 algorithm.
+   *
+   * See the [docs](https://weaviate.io/developers/weaviate/search/bm25) for a more detailed explanation.
+   *
+   * This overload is for performing a search with a programmatically defined `opts` param.
+   *
+   * @overload
+   * @param {string} query - The query to search for.
+   * @param {Bm25Options<T>} [opts] - The available options for the search including the `groupBy` param.
+   * @returns {Promise<GroupByReturn<T>>} - The result of the search within the fetched collection.
+   */
+  bm25(query: string, opts?: Bm25Options<T>): QueryReturn<T>;
+}
+
+interface Hybrid<T> {
+  /**
+   * Search for objects in this collection using the hybrid algorithm blending keyword-based BM25 and vector-based similarity.
+   *
+   * See the [docs](https://weaviate.io/developers/weaviate/search/hybrid) for a more detailed explanation.
+   *
+   * This overload is for performing a search without the `groupBy` param.
+   *
+   * @overload
+   * @param {string} query - The query to search for.
+   * @param {BaseHybridOptions<T>} [opts] - The available options for the search excluding the `groupBy` param.
+   * @returns {Promise<WeaviateReturn<T>>} - The result of the search within the fetched collection.
+   */
+  hybrid(query: string, opts?: BaseHybridOptions<T>): Promise<WeaviateReturn<T>>;
+  /**
+   * Search for objects in this collection using the hybrid algorithm blending keyword-based BM25 and vector-based similarity.
+   *
+   * See the [docs](https://weaviate.io/developers/weaviate/search/hybrid) for a more detailed explanation.
+   *
+   * This overload is for performing a search with the `groupBy` param.
+   *
+   * @overload
+   * @param {string} query - The query to search for.
+   * @param {GroupByHybridOptions<T>} opts - The available options for the search including the `groupBy` param.
+   * @returns {Promise<GroupByReturn<T>>} - The result of the search within the fetched collection.
+   */
+  hybrid(query: string, opts: GroupByHybridOptions<T>): Promise<GroupByReturn<T>>;
+  /**
+   * Search for objects in this collection using the hybrid algorithm blending keyword-based BM25 and vector-based similarity.
+   *
+   * See the [docs](https://weaviate.io/developers/weaviate/search/hybrid) for a more detailed explanation.
+   *
+   * This overload is for performing a search with a programmatically defined `opts` param.
+   *
+   * @overload
+   * @param {string} query - The query to search for.
+   * @param {HybridOptions<T>} [opts] - The available options for the search including the `groupBy` param.
+   * @returns {Promise<QueryReturn<T>>} - The result of the search within the fetched collection.
+   */
+  hybrid(query: string, opts?: HybridOptions<T>): QueryReturn<T>;
+}
 
 interface NearImage<T> {
   /**
@@ -363,7 +465,14 @@ interface NearVector<T> {
 }
 
 /** All the available methods on the `.query` namespace. */
-export interface Query<T> extends NearImage<T>, NearMedia<T>, NearObject<T>, NearText<T>, NearVector<T> {
+export interface Query<T>
+  extends Bm25<T>,
+    Hybrid<T>,
+    NearImage<T>,
+    NearMedia<T>,
+    NearObject<T>,
+    NearText<T>,
+    NearVector<T> {
   /**
    * Retrieve an object from the server by its UUID.
    *
@@ -380,28 +489,6 @@ export interface Query<T> extends NearImage<T>, NearMedia<T>, NearObject<T>, Nea
    * @returns {Promise<WeaviateReturn<T>>} - The objects within the fetched collection.
    */
   fetchObjects: (opts?: FetchObjectsOptions<T>) => Promise<WeaviateReturn<T>>;
-
-  /**
-   * Search for objects in this collection using the keyword-based BM25 algorithm.
-   *
-   * See the [docs](https://weaviate.io/developers/weaviate/search/bm25) for a more detailed explanation.
-   *
-   * @param {string} query - The keyword query to search for.
-   * @param {Bm25Options<T>} [opts] - The available options for searching for the objects.
-   * @returns {Promise<WeaviateReturn<T>>} - The objects matching the search within the fetched collection.
-   */
-  bm25: (query: string, opts?: Bm25Options<T>) => Promise<WeaviateReturn<T>>;
-
-  /**
-   * Search for objects in this collection using the hybrid algorithm blending keyword-based BM25 and vector-based similarity.
-   *
-   * See the [docs](https://weaviate.io/developers/weaviate/search/hybrid) for a more detailed explanation.
-   *
-   * @param {string} query - The keyword query to search for.
-   * @param {HybridOptions<T>} [opts] - The available options for searching for the objects.
-   * @returns {Promise<WeaviateReturn<T>>} - The objects matching the search within the fetched collection.
-   */
-  hybrid: (query: string, opts?: HybridOptions<T>) => Promise<WeaviateReturn<T>>;
 }
 /** Options available in the `query.nearImage`, `query.nearMedia`, `query.nearObject`, and `query.nearVector` methods */
 export type NearOptions<T> = BaseNearOptions<T> | GroupByNearOptions<T> | undefined;
