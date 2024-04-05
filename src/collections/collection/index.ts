@@ -91,7 +91,7 @@ const collection = <T, N>(
   dbVersionSupport: DbVersionSupport,
   consistencyLevel?: ConsistencyLevel,
   tenant?: Tenant
-) => {
+): Collection<T, N> => {
   const capitalizedName = capitalizeCollectionName(name as string);
   const queryCollection = query<T>(
     connection,

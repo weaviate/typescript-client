@@ -11,6 +11,7 @@ import { HealthDefinition, HealthCheckResponse_ServingStatus } from '../proto/go
 
 import Batcher, { Batch } from '../grpc/batcher.js';
 import Searcher, { Search } from '../grpc/searcher.js';
+import { DbVersionSupport, initDbVersionProvider } from '../utils/dbVersion.js';
 
 export interface GrpcConnectionParams extends ConnectionParams {
   grpcAddress: string;
@@ -33,14 +34,28 @@ export default class ConnectionGRPC extends ConnectionGQL {
 
   static use = async (params: GrpcConnectionParams) => {
     const connection = new ConnectionGRPC(params);
-    await connection.connect();
-    return connection;
+    const dbVersionProvider = initDbVersionProvider(connection);
+    const dbVersionSupport = new DbVersionSupport(dbVersionProvider);
+    const settled = await Promise.allSettled([
+      dbVersionSupport.supportsCompatibleGrpcService().then((check) => {
+        if (!check.supports) {
+          throw new Error(check.message);
+        }
+      }),
+      connection.connect(),
+    ]);
+    settled.forEach((promise) => {
+      if (promise.status === 'rejected') {
+        throw new Error(promise.reason);
+      }
+    });
+    return { connection, dbVersionProvider, dbVersionSupport };
   };
 
   private async connect() {
     const isHealthy = await this.grpc.health();
     if (!isHealthy) {
-      throw new Error('gRPC server is not healthy');
+      throw new Error('Cannot connect to the provided gRPC PORT: gRPC server is not healthy');
     }
   }
 

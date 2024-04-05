@@ -77,6 +77,7 @@ import {
   NearOptions,
   SearchOptions,
   NearTextOptions,
+  BaseNearOptions,
 } from '../query/types.js';
 import { GenerateOptions } from '../generate/types.js';
 import {
@@ -284,6 +285,10 @@ export class DataGuards {
 }
 
 export class Serialize {
+  public static isNamedVectors = <T>(opts?: BaseNearOptions<T>): boolean => {
+    return Array.isArray(opts?.includeVector) || opts?.targetVector !== undefined;
+  };
+
   private static common = <T>(args?: SearchOptions<T>) => {
     return {
       limit: args?.limit,

@@ -564,10 +564,16 @@ describe('Testing of the collection.query methods with a collection with a refer
     });
 
     it('should query without searching returning named vector', async () => {
-      const ret = await collection.query.fetchObjects({
-        returnProperties: ['title'],
-        includeVector: ['title'],
-      });
+      const query = () =>
+        collection.query.fetchObjects({
+          returnProperties: ['title'],
+          includeVector: ['title'],
+        });
+      if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 24, 0))) {
+        await expect(query()).rejects.toThrow(Error);
+        return;
+      }
+      const ret = await query();
       ret.objects.sort((a, b) => a.properties.title.localeCompare(b.properties.title));
       expect(ret.objects.length).toEqual(2);
       expect(ret.objects[0].properties.title).toEqual('other');
@@ -577,10 +583,16 @@ describe('Testing of the collection.query methods with a collection with a refer
     });
 
     it('should query with a vector search over the named vector space', async () => {
-      const ret = await collection.query.nearObject(id1, {
-        returnProperties: ['title'],
-        targetVector: 'title',
-      });
+      const query = () =>
+        collection.query.nearObject(id1, {
+          returnProperties: ['title'],
+          targetVector: 'title',
+        });
+      if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 24, 0))) {
+        await expect(query()).rejects.toThrow(Error);
+        return;
+      }
+      const ret = await query();
       expect(ret.objects.length).toEqual(2);
       expect(ret.objects[0].properties.title).toEqual('test');
       expect(ret.objects[1].properties.title).toEqual('other');
@@ -673,9 +685,16 @@ describe('Testing of the groupBy collection.query methods with a simple collecti
   // });
 
   it('should groupBy with bm25', async () => {
-    const ret = await collection.query.bm25('test', {
-      groupBy: groupByArgs,
-    });
+    const query = () =>
+      collection.query.bm25('test', {
+        groupBy: groupByArgs,
+      });
+    if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 24, 5))) {
+      // change to 1.25.0 when it lands
+      await expect(query()).rejects.toThrow(Error);
+      return;
+    }
+    const ret = await query();
     expect(ret.objects.length).toEqual(1);
     expect(ret.groups).toBeDefined();
     expect(Object.keys(ret.groups)).toEqual(['test']);
@@ -685,9 +704,16 @@ describe('Testing of the groupBy collection.query methods with a simple collecti
   });
 
   it('should groupBy with hybrid', async () => {
-    const ret = await collection.query.hybrid('test', {
-      groupBy: groupByArgs,
-    });
+    const query = () =>
+      collection.query.hybrid('test', {
+        groupBy: groupByArgs,
+      });
+    if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 24, 5))) {
+      // change to 1.25.0 when it lands
+      await expect(query()).rejects.toThrow(Error);
+      return;
+    }
+    const ret = await query();
     expect(ret.objects.length).toEqual(1);
     expect(ret.groups).toBeDefined();
     expect(Object.keys(ret.groups)).toEqual(['test']);

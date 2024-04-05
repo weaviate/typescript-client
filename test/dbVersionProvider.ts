@@ -1,4 +1,4 @@
-import { VersionProvider } from '../src/utils/dbVersion.js';
+import { VersionProvider, DbVersion } from '../src/utils/dbVersion.js';
 
 export class TestDbVersionProvider implements VersionProvider {
   private version: string;
@@ -7,7 +7,11 @@ export class TestDbVersionProvider implements VersionProvider {
     this.version = version;
   }
 
-  getVersionPromise(): Promise<string> {
+  getVersionString(): Promise<string> {
     return Promise.resolve(this.version);
+  }
+
+  getVersion(): Promise<DbVersion> {
+    return Promise.resolve(DbVersion.fromString(this.version));
   }
 }

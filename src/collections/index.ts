@@ -75,7 +75,7 @@ const isLegacyVectorizer = (
   return !Array.isArray(argument);
 };
 
-const collections = (connection: Connection, dbVersionSupport: DbVersionSupport) => {
+const collections = (connection: Connection, dbVersionSupport: DbVersionSupport): Collections => {
   const listAll = () =>
     new SchemaGetter(connection)
       .do()
