@@ -7,7 +7,6 @@ on:
   pull_request:
 
 env:
-  OLD_WEAVIATE_VERSION: 1.23.11
   NEW_WEAVIATE_VERSION: 1.24.7
 
 jobs:
@@ -39,9 +38,7 @@ jobs:
       matrix:
         versions: [
           { node: "18.x", weaviate: $NEW_WEAVIATE_VERSION},
-          { node: "18.x", weaviate: $OLD_WEAVIATE_VERSION},
-          { node: "20.x", weaviate: $NEW_WEAVIATE_VERSION},
-          { node: "20.x", weaviate: $OLD_WEAVIATE_VERSION}
+          { node: "20.x", weaviate: $NEW_WEAVIATE_VERSION}
         ]
     steps:
     - uses: actions/checkout@v3
