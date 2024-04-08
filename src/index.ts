@@ -72,6 +72,13 @@ export type ClientParams = {
    * Note, if your proxy is a forwarding proxy then supply its configuration as if it were the Weaviate server itself using `rest` and `grpc`.
    */
   proxies?: ProxiesParams;
+  /**
+   * Whether or not to skip checks that the client makes to Weaviate when connecting and performing operations.
+   *
+   * For example, if true, the client will not check if Weaviate is live or ready before performing operations.
+   * It will also not check whether collections exist before performing operations on them nor validate any input parameters.
+   */
+  skipChecks?: boolean;
 };
 
 export interface WeaviateClient {
@@ -131,6 +138,7 @@ const app = {
       apiKey: params.auth instanceof ApiKey ? params.auth : undefined,
       authClientSecret: params.auth instanceof ApiKey ? undefined : params.auth,
       agent,
+      skipChecks: params.skipChecks || false,
     });
 
     const dbVersionProvider = initDbVersionProvider(conn);

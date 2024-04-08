@@ -1,5 +1,6 @@
 import Connection from '../../connection/grpc.js';
 import { ConsistencyLevel } from '../../data/index.js';
+import ClassExists from '../../schema/classExists.js';
 import { DbVersionSupport } from '../../utils/dbVersion.js';
 
 import aggregate, { metrics, Aggregate, Metrics } from '../aggregate/index.js';
@@ -37,6 +38,12 @@ export interface Collection<T = undefined, N = string> {
   sort: Sort<T>;
   /** This namespace includes all the CRUD methods available to you when modifying the tenants of a multi-tenancy-enabled collection in Weaviate. */
   tenants: Tenants;
+  /**
+   * Use this method to check if the collection exists in Weaviate.
+   *
+   * @returns {Promise<boolean>} A promise that resolves to `true` if the collection exists and `false` otherwise.
+   */
+  exists: () => Promise<boolean>;
   /**
    * Use this method to return an iterator over the objects in the collection.
    *
@@ -112,6 +119,7 @@ const collection = <T, N>(
     query: queryCollection,
     sort: sort<T>(),
     tenants: tenants(connection, capitalizedName),
+    exists: () => new ClassExists(connection).withClassName(name as string).do(),
     iterator: (opts?: IteratorOptions<T>) =>
       new Iterator<T>((limit: number, after?: string) =>
         queryCollection

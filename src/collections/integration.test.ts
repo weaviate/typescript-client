@@ -705,3 +705,47 @@ describe('Testing of the collections.create method', () => {
     await openai.collections.delete(collectionName);
   });
 });
+
+describe('Testing of the collections.get method', () => {
+  const existingName = 'TestCollectionGetExisting';
+
+  const clientMaker = (skipChecks: boolean) =>
+    weaviate.client({
+      rest: {
+        secure: false,
+        host: 'localhost',
+        port: 8087,
+      },
+      grpc: {
+        secure: false,
+        host: 'localhost',
+        port: 50051,
+      },
+      skipChecks,
+    });
+
+  beforeAll(() => clientMaker(false).then((client) => client.collections.create({ name: existingName })));
+
+  it('should return an existing collection', () => {
+    return Promise.all(
+      [true, false].map(async (skipChecks) => {
+        const client = await clientMaker(skipChecks);
+        const response = await client.collections.get(existingName);
+        expect(response.name).toEqual(existingName);
+      })
+    );
+  });
+
+  it('should throw an error for a non-existing collection with skipChecks=false', async () => {
+    const client = await clientMaker(false);
+    const nonExistingName = 'TestCollectionGetNonExisting';
+    await expect(client.collections.get(nonExistingName)).rejects.toThrow();
+  });
+
+  it('should not throw an error for a non-existing collection with skipChecks=true', async () => {
+    const client = await clientMaker(true);
+    const nonExistingName = 'TestCollectionGetNonExisting';
+    const response = await client.collections.get(nonExistingName);
+    expect(response.name).toEqual(nonExistingName);
+  });
+});

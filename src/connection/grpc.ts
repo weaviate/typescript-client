@@ -13,10 +13,11 @@ import { HealthDefinition, HealthCheckResponse_ServingStatus } from '../proto/go
 import Batcher, { Batch } from '../grpc/batcher.js';
 import Searcher, { Search } from '../grpc/searcher.js';
 
-export interface GrpcConnectionParams extends ConnectionParams {
+export type GrpcConnectionParams = ConnectionParams & {
   grpcAddress: string;
   grpcSecure: boolean;
-}
+  skipChecks: boolean;
+};
 
 const clientFactory = createClientFactory().use(deadlineMiddleware);
 
@@ -26,15 +27,19 @@ const MAX_GRPC_MESSAGE_LENGTH = 104858000; // 10mb, needs to be synchronized wit
 // which are tightly coupled to ConnectionGQL
 export default class ConnectionGRPC extends ConnectionGQL {
   private grpc: GrpcClient;
+  public skipChecks: boolean;
 
   private constructor(params: GrpcConnectionParams) {
     super(params);
     this.grpc = grpcClient(params);
+    this.skipChecks = params.skipChecks;
   }
 
   static use = async (params: GrpcConnectionParams) => {
     const connection = new ConnectionGRPC(params);
-    await connection.connect();
+    if (!params.skipChecks) {
+      await connection.connect();
+    }
     return connection;
   };
 

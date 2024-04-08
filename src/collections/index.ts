@@ -162,7 +162,7 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
     get: <TProperties extends Properties | undefined = undefined, TName extends string = string>(
       name: TName
     ) =>
-      exists(name).then((exists) => {
+      (connection.skipChecks ? Promise.resolve(true) : exists(name)).then((exists) => {
         if (!exists) {
           throw new Error(`Collection '${name}' does not exist`);
         }
