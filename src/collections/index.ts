@@ -75,7 +75,8 @@ const isLegacyVectorizer = (
   return !Array.isArray(argument);
 };
 
-const collections = (connection: Connection, dbVersionSupport: DbVersionSupport) => {
+const collections = (connection: Connection, dbVersionSupport: DbVersionSupport): Collections => {
+  const exists = (name: string) => new ClassExists(connection).withClassName(name).do();
   const listAll = () =>
     new SchemaGetter(connection)
       .do()
@@ -152,7 +153,7 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
     createFromSchema: (config: WeaviateClass) => new ClassCreator(connection).withClass(config).do(),
     delete: deleteCollection,
     deleteAll: () => listAll().then((configs) => Promise.all(configs?.map((c) => deleteCollection(c.name)))),
-    exists: (name: string) => new ClassExists(connection).withClassName(name).do(),
+    exists: exists,
     export: <TProperties>(name: string) =>
       new ClassGetter(connection)
         .withClassName(name)
@@ -160,7 +161,13 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
         .then(classToCollection<TProperties>),
     get: <TProperties extends Properties | undefined = undefined, TName extends string = string>(
       name: TName
-    ) => collection<TProperties, TName>(connection, name, dbVersionSupport),
+    ) =>
+      exists(name).then((exists) => {
+        if (!exists) {
+          throw new Error(`Collection '${name}' does not exist`);
+        }
+        return collection<TProperties, TName>(connection, name, dbVersionSupport);
+      }),
     listAll: listAll,
   };
 };
@@ -176,7 +183,7 @@ export interface Collections {
   export(name: string): Promise<CollectionConfig>;
   get<TProperties extends Properties | undefined = undefined, TName extends string = string>(
     name: TName
-  ): Collection<TProperties, TName>;
+  ): Promise<Collection<TProperties, TName>>;
   listAll(): Promise<CollectionConfig[]>;
 }
 

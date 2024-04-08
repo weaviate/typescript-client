@@ -73,7 +73,8 @@ describe('Testing of the collections.create method', () => {
           },
         ],
       })
-      .then(() => contextionary.collections.get<TestCollectionSimple>(collectionName).config.get());
+      .then(() => contextionary.collections.get<TestCollectionSimple>(collectionName))
+      .then((collection) => collection.config.get());
     expect(response.name).toEqual(collectionName);
     expect(response.properties?.length).toEqual(1);
     expect(response.properties[0].name).toEqual('testProp');
@@ -97,7 +98,8 @@ describe('Testing of the collections.create method', () => {
           },
         ],
       })
-      .then(() => contextionary.collections.get(collectionName).config.get());
+      .then(() => contextionary.collections.get(collectionName))
+      .then((collection) => collection.config.get());
     expect(response.name).toEqual(collectionName);
     expect(response.properties?.length).toEqual(1);
     expect(response.properties[0].name).toEqual('testProp');
@@ -122,7 +124,8 @@ describe('Testing of the collections.create method', () => {
     };
     const response = await contextionary.collections
       .create(schema)
-      .then(() => contextionary.collections.get(collectionName).config.get());
+      .then(() => contextionary.collections.get(collectionName))
+      .then((collection) => collection.config.get());
     expect(response.name).toEqual(collectionName);
     expect(response.properties?.length).toEqual(1);
     expect(response.properties[0].name).toEqual('testProp');
@@ -150,7 +153,8 @@ describe('Testing of the collections.create method', () => {
     };
     const response = await contextionary.collections
       .create<TestCollectionSimple>(schema)
-      .then(() => contextionary.collections.get<TestCollectionSimple>(collectionName).config.get());
+      .then(() => contextionary.collections.get<TestCollectionSimple>(collectionName))
+      .then((collection) => collection.config.get());
     expect(response.name).toEqual(collectionName);
     expect(response.properties?.length).toEqual(1);
     expect(response.properties[0].name).toEqual('testProp');
@@ -178,7 +182,8 @@ describe('Testing of the collections.create method', () => {
     };
     const response = await contextionary.collections
       .create<TestCollectionSimple>(schema)
-      .then(() => contextionary.collections.get<TestCollectionSimple>(collectionName).config.get());
+      .then(() => contextionary.collections.get<TestCollectionSimple>(collectionName))
+      .then((collection) => collection.config.get());
     expect(response.name).toEqual(collectionName);
     expect(response.properties?.length).toEqual(1);
     expect(response.properties[0].name).toEqual('testProp');
@@ -213,7 +218,8 @@ describe('Testing of the collections.create method', () => {
           },
         ],
       })
-      .then(() => contextionary.collections.get<TestCollectionNested>(collectionName).config.get());
+      .then(() => contextionary.collections.get<TestCollectionNested>(collectionName))
+      .then((collection) => collection.config.get());
     expect(response.name).toEqual(collectionName);
     expect(response.properties.length).toEqual(1);
     expect(response.properties[0].name).toEqual('testProp');
@@ -461,7 +467,8 @@ describe('Testing of the collections.create method', () => {
           },
         },
       })
-      .then(() => cluster.collections.get(collectionName).config.get());
+      .then(() => cluster.collections.get(collectionName))
+      .then((collection) => collection.config.get());
 
     expect(response.name).toEqual(collectionName);
     expect(response.description).toEqual('A test collection');
@@ -563,7 +570,8 @@ describe('Testing of the collections.create method', () => {
           },
         },
       })
-      .then(() => contextionary.collections.get(collectionName).config.get());
+      .then(() => contextionary.collections.get(collectionName))
+      .then((collection) => collection.config.get());
     expect(response.name).toEqual(collectionName);
     expect(response.properties?.length).toEqual(1);
     expect(response.properties?.[0].name).toEqual('testProp');
@@ -591,7 +599,8 @@ describe('Testing of the collections.create method', () => {
         ],
         vectorizer: weaviate.configure.vectorizer.text2VecContextionary(),
       })
-      .then(() => contextionary.collections.get(collectionName).config.get());
+      .then(() => contextionary.collections.get(collectionName))
+      .then((collection) => collection.config.get());
     expect(response.name).toEqual(collectionName);
     expect(response.properties?.length).toEqual(1);
     expect(response.properties?.[0].name).toEqual('testProp');
@@ -625,7 +634,8 @@ describe('Testing of the collections.create method', () => {
           },
         },
       })
-      .then(() => openai.collections.get(collectionName).config.get());
+      .then(() => openai.collections.get(collectionName))
+      .then((collection) => collection.config.get());
     expect(response.name).toEqual(collectionName);
     expect(response.properties?.length).toEqual(1);
     expect(response.properties?.[0].name).toEqual('testProp');
@@ -654,7 +664,8 @@ describe('Testing of the collections.create method', () => {
         ],
         vectorizer: weaviate.configure.vectorizer.text2VecOpenAI(),
       })
-      .then(() => openai.collections.get(collectionName).config.get());
+      .then(() => openai.collections.get(collectionName))
+      .then((collection) => collection.config.get());
     expect(response.name).toEqual(collectionName);
     expect(response.properties?.length).toEqual(1);
     expect(response.properties?.[0].name).toEqual('testProp');
@@ -683,7 +694,8 @@ describe('Testing of the collections.create method', () => {
         ],
         generative: weaviate.configure.generative.openAI(),
       })
-      .then(() => openai.collections.get(collectionName).config.get());
+      .then(() => openai.collections.get(collectionName))
+      .then((collection) => collection.config.get());
     expect(response.name).toEqual(collectionName);
     expect(response.properties?.length).toEqual(1);
     expect(response.properties?.[0].name).toEqual('testProp');

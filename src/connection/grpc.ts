@@ -3,6 +3,7 @@ import { ConnectionParams } from './http.js';
 
 import { ConsistencyLevel } from '../data/index.js';
 
+import { closeClient } from '@grpc/grpc-js';
 import { ChannelCredentials, ChannelOptions, createChannel, createClientFactory, Metadata } from 'nice-grpc';
 import { deadlineMiddleware } from 'nice-grpc-client-middleware-deadline';
 
@@ -59,9 +60,12 @@ export default class ConnectionGRPC extends ConnectionGQL {
     }
     return new Promise<Batch>((resolve) => resolve(this.grpc.batch(name, consistencyLevel, tenant)));
   };
+
+  close = () => Promise.all([this.http.close(), this.grpc.close()]).then(() => {});
 }
 
 export interface GrpcClient {
+  close: () => Promise<void>;
   batch: (name: string, consistencyLevel?: ConsistencyLevel, tenant?: string, bearerToken?: string) => Batch;
   health: () => Promise<boolean>;
   search: (
@@ -91,6 +95,7 @@ export const grpcClient = (config: GrpcConnectionParams): GrpcClient => {
   const client = clientFactory.create(WeaviateDefinition, channel);
   const health = clientFactory.create(HealthDefinition, channel);
   return {
+    close: () => Promise.resolve(channel.close()),
     batch: (name: string, consistencyLevel?: ConsistencyLevel, tenant?: string, bearerToken?: string) =>
       Batcher.use(
         client,

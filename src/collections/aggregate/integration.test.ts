@@ -29,8 +29,8 @@ describe('Testing of the collection.aggregate methods', () => {
   const date2 = '2023-01-02T00:00:00Z';
   const dateMid = '2023-01-01T12:00:00Z';
 
-  afterAll(async () => {
-    return (await client).collections.delete(collectionName).catch((err) => {
+  afterAll(() => {
+    return client.collections.delete(collectionName).catch((err) => {
       console.error(err);
       throw err;
     });
@@ -49,7 +49,7 @@ describe('Testing of the collection.aggregate methods', () => {
         port: 50051,
       },
     });
-    collection = client.collections.get(collectionName);
+    collection = await client.collections.get(collectionName);
     return client.collections
       .create({
         name: collectionName,
@@ -172,11 +172,13 @@ describe('Testing of the collection.aggregate methods', () => {
   });
 
   it('should aggregate data without a search and one non-generic property metric', async () => {
-    const result = await (await client).collections.get(collectionName).aggregate.overAll({
-      returnMetrics: collection.metrics
-        .aggregate('text')
-        .text(['count', 'topOccurrencesOccurs', 'topOccurrencesValue']),
-    });
+    const result = await client.collections.get(collectionName).then((collection) =>
+      collection.aggregate.overAll({
+        returnMetrics: collection.metrics
+          .aggregate('text')
+          .text(['count', 'topOccurrencesOccurs', 'topOccurrencesValue']),
+      })
+    );
     expect(result.totalCount).toEqual(100);
     expect(result.properties.text.count).toEqual(100);
     expect((result.properties.text as AggregateText).topOccurrences![0].occurs).toEqual(100);
@@ -314,7 +316,7 @@ describe('Testing of the collection.aggregate methods with named vectors', () =>
         port: 50051,
       },
     });
-    collection = client.collections.get(collectionName);
+    collection = await client.collections.get(collectionName);
     return client.collections.create<TestCollectionAggregateNamedVectors>({
       name: collectionName,
       properties: [

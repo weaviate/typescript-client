@@ -7,7 +7,7 @@ describe('Testing of the client.cluster methods', () => {
   const two = 'TestClusterCollectionTwo';
 
   afterAll(async () => {
-    await (await client).collections.delete(one);
+    await client.collections.delete(one);
   });
 
   beforeAll(async () => {

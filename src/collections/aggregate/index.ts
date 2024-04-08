@@ -122,9 +122,11 @@ export type AggregateMetrics<M> = {
   [K in keyof M]: M[K] extends true ? number : never;
 };
 
+type MetricsProperty<T> = T extends undefined ? string : keyof T & string;
+
 export const metrics = <T>() => {
   return {
-    aggregate: <P extends keyof T & string>(property: P) => new MetricsManager<T, P>(property),
+    aggregate: <P extends MetricsProperty<T>>(property: P) => new MetricsManager<T, P>(property),
   };
 };
 
@@ -137,10 +139,10 @@ export interface Metrics<T> {
 
     See [the docs](https://weaviate.io/developers/weaviate/search/aggregate) for more details!
    */
-  aggregate: <P extends keyof T & string>(property: P) => MetricsManager<T, P>;
+  aggregate: <P extends MetricsProperty<T>>(property: P) => MetricsManager<T, P>;
 }
 
-export class MetricsManager<T, P extends keyof T & string> {
+export class MetricsManager<T, P extends MetricsProperty<T>> {
   private propertyName: P;
 
   constructor(property: P) {

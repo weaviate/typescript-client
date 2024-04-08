@@ -45,8 +45,8 @@ describe('Testing of the Sort class with a simple collection', () => {
         port: 50051,
       },
     });
-    collection = client.collections.get(collectionName);
-    collections = [collection, client.collections.get(collectionName)];
+    collection = await client.collections.get(collectionName);
+    collections = [collection, await client.collections.get(collectionName)];
     ids = await client.collections
       .create({
         name: collectionName,
