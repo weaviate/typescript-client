@@ -47,7 +47,6 @@ maybe('Testing of the collection.generate methods with a simple collection', () 
         'X-Openai-Api-Key': process.env.OPENAI_APIKEY!,
       },
     });
-    collection = await client.collections.get(collectionName);
     id = await client.collections
       .create({
         name: collectionName,
@@ -60,13 +59,14 @@ maybe('Testing of the collection.generate methods with a simple collection', () 
         generative: weaviate.configure.generative.openAI(),
         vectorizer: weaviate.configure.vectorizer.text2VecOpenAI({ vectorizeClassName: false }),
       })
-      .then(() => {
+      .then((collection) => {
         return collection.data.insert({
           properties: {
             testProp: 'test',
           },
         });
       });
+    collection = await client.collections.get(collectionName);
     const res = await collection.query.fetchObjectById(id, { includeVector: true });
     vector = res?.vectors.default!;
   });
@@ -201,7 +201,6 @@ maybe('Testing of the groupBy collection.generate methods with a simple collecti
         'X-Openai-Api-Key': process.env.OPENAI_APIKEY!,
       },
     });
-    collection = await client.collections.get(collectionName);
     id = await client.collections
       .create({
         name: collectionName,
@@ -214,13 +213,14 @@ maybe('Testing of the groupBy collection.generate methods with a simple collecti
         generative: weaviate.configure.generative.openAI(),
         vectorizer: weaviate.configure.vectorizer.text2VecOpenAI({ vectorizeClassName: false }),
       })
-      .then(() => {
+      .then((collection) => {
         return collection.data.insert({
           properties: {
             testProp: 'test',
           },
         });
       });
+    collection = await client.collections.get(collectionName);
     const res = await collection.query.fetchObjectById(id, { includeVector: true });
     vector = res?.vectors.default!;
   });

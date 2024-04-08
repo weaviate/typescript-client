@@ -34,7 +34,6 @@ describe('Testing of the collection.iterator method with a simple collection', (
         port: 50051,
       },
     });
-    collection = await client.collections.get(collectionName);
     id = await client.collections
       .create({
         name: collectionName,
@@ -46,13 +45,14 @@ describe('Testing of the collection.iterator method with a simple collection', (
         ],
         vectorizer: weaviate.configure.vectorizer.text2VecContextionary({ vectorizeClassName: false }),
       })
-      .then(() => {
+      .then((collection) => {
         return collection.data.insert({
           properties: {
             testProp: 'test',
           },
         });
       });
+    collection = await client.collections.get(collectionName);
     const res = await collection.query.fetchObjectById(id, { includeVector: true });
     vector = res?.vectors.default!;
   });

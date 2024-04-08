@@ -37,7 +37,6 @@ describe('Testing of the collection.query methods with a simple collection', () 
         port: 50051,
       },
     });
-    collection = await client.collections.get(collectionName);
     id = await client.collections
       .create({
         name: collectionName,
@@ -53,7 +52,7 @@ describe('Testing of the collection.query methods with a simple collection', () 
         ],
         vectorizer: weaviate.configure.vectorizer.text2VecContextionary({ vectorizeClassName: false }),
       })
-      .then(async () => {
+      .then(async (collection) => {
         await collection.data.insert({
           properties: {
             testProp: 'apple',
@@ -67,6 +66,7 @@ describe('Testing of the collection.query methods with a simple collection', () 
           },
         });
       });
+    collection = await client.collections.get(collectionName);
     const res = await collection.query.fetchObjectById(id, { includeVector: true });
     vector = res?.vectors.default!;
   });
@@ -168,8 +168,7 @@ describe('Testing of the collection.query methods with a collection with a refer
         port: 50051,
       },
     });
-    collection = await client.collections.get(collectionName);
-    return client.collections
+    await client.collections
       .create({
         name: collectionName,
         properties: [
@@ -187,7 +186,7 @@ describe('Testing of the collection.query methods with a collection with a refer
         ],
         vectorizer: weaviate.configure.vectorizer.text2VecContextionary({ vectorizeClassName: false }),
       })
-      .then(async () => {
+      .then(async (collection) => {
         id1 = await collection.data.insert({
           properties: {
             testProp: 'test',
@@ -202,6 +201,7 @@ describe('Testing of the collection.query methods with a collection with a refer
           },
         });
       });
+    collection = await client.collections.get(collectionName);
   });
 
   describe('using a non-generic collection', () => {
@@ -397,8 +397,7 @@ describe('Testing of the collection.query methods with a collection with a refer
           port: 50051,
         },
       });
-      collection = await client.collections.get(collectionName);
-      return client.collections
+      [id1, id2] = await client.collections
         .create<TestCollectionQueryWithNestedProps>({
           name: collectionName,
           properties: [
@@ -445,28 +444,31 @@ describe('Testing of the collection.query methods with a collection with a refer
           ],
           vectorizer: weaviate.configure.vectorizer.text2VecContextionary(),
         })
-        .then(async () => {
-          id1 = await collection.data.insert({
-            properties: {
-              testProp: 'test',
-            },
-          });
-          id2 = await collection.data.insert({
-            properties: {
-              testProp: 'other',
-              nestedProp: {
-                one: 'test',
-                two: 'test',
-                again: {
-                  three: 'test',
-                },
-                onceMore: {
-                  four: 'test',
+        .then((collection) =>
+          Promise.all([
+            collection.data.insert({
+              properties: {
+                testProp: 'test',
+              },
+            }),
+            collection.data.insert({
+              properties: {
+                testProp: 'other',
+                nestedProp: {
+                  one: 'test',
+                  two: 'test',
+                  again: {
+                    three: 'test',
+                  },
+                  onceMore: {
+                    four: 'test',
+                  },
                 },
               },
-            },
-          });
-        });
+            }),
+          ])
+        );
+      collection = await client.collections.get(collectionName);
     });
 
     it('should query without searching returning the nested object', async () => {
@@ -533,8 +535,7 @@ describe('Testing of the collection.query methods with a collection with a refer
           port: 50051,
         },
       });
-      collection = await client.collections.get(collectionName);
-      return client.collections
+      [id1, id2] = await client.collections
         .create<TestCollectionQueryWithMultiVector>({
           name: collectionName,
           properties: [
@@ -550,18 +551,21 @@ describe('Testing of the collection.query methods with a collection with a refer
             }),
           ],
         })
-        .then(async () => {
-          id1 = await collection.data.insert({
-            properties: {
-              title: 'test',
-            },
-          });
-          id2 = await collection.data.insert({
-            properties: {
-              title: 'other',
-            },
-          });
-        });
+        .then((collection) =>
+          Promise.all([
+            collection.data.insert({
+              properties: {
+                title: 'test',
+              },
+            }),
+            collection.data.insert({
+              properties: {
+                title: 'other',
+              },
+            }),
+          ])
+        );
+      collection = await client.collections.get(collectionName);
     });
 
     it('should query without searching returning named vector', async () => {
@@ -626,7 +630,6 @@ describe('Testing of the groupBy collection.query methods with a simple collecti
         port: 50051,
       },
     });
-    collection = await client.collections.get(collectionName);
     id = await client.collections
       .create({
         name: collectionName,
@@ -638,13 +641,14 @@ describe('Testing of the groupBy collection.query methods with a simple collecti
         ],
         vectorizer: weaviate.configure.vectorizer.text2VecContextionary({ vectorizeClassName: false }),
       })
-      .then(() => {
+      .then((collection) => {
         return collection.data.insert({
           properties: {
             testProp: 'test',
           },
         });
       });
+    collection = await client.collections.get(collectionName);
     const res = await collection.query.fetchObjectById(id, { includeVector: true });
     vector = res?.vectors.default!;
   });
@@ -777,7 +781,6 @@ describe('Testing of the collection.query methods with a multi-tenancy collectio
 
   beforeAll(async () => {
     client = await weaviate.connectToLocal();
-    collection = await client.collections.get(collectionName);
     [id1, id2] = await client.collections
       .create<TestCollectionMultiTenancy>({
         name: collectionName,
@@ -808,6 +811,7 @@ describe('Testing of the collection.query methods with a multi-tenancy collectio
           }),
         ])
       );
+    collection = await client.collections.get(collectionName);
   });
 
   it('should find the objects in their tenants by ID', async () => {
@@ -923,7 +927,6 @@ maybe('Testing of collection.query using rerank functionality', () => {
         'X-OpenAI-Api-Key': process.env.OPENAI_APIKEY as string,
       },
     });
-    collection = await client.collections.get(collectionName);
     [id1, id2] = await client.collections
       .create({
         name: collectionName,
@@ -936,7 +939,7 @@ maybe('Testing of collection.query using rerank functionality', () => {
         reranker: weaviate.configure.reranker.transformers(),
         vectorizer: weaviate.configure.vectorizer.text2VecOpenAI(),
       })
-      .then(() =>
+      .then((collection) =>
         Promise.all([
           collection.data.insert({
             properties: {
@@ -950,6 +953,7 @@ maybe('Testing of collection.query using rerank functionality', () => {
           }),
         ])
       );
+    collection = await client.collections.get(collectionName);
   });
 
   it('should rerank the results in a bm25 query', async () => {

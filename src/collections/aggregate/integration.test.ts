@@ -49,8 +49,7 @@ describe('Testing of the collection.aggregate methods', () => {
         port: 50051,
       },
     });
-    collection = await client.collections.get(collectionName);
-    return client.collections
+    await client.collections
       .create({
         name: collectionName,
         properties: [
@@ -101,7 +100,7 @@ describe('Testing of the collection.aggregate methods', () => {
         ],
         vectorizer: weaviate.configure.vectorizer.text2VecContextionary({ vectorizeClassName: false }),
       })
-      .then(async () => {
+      .then((collection) => {
         const data: DataObject<TestCollectionAggregate>[] = [];
         for (let i = 0; i < 100; i++) {
           data.push({
@@ -119,21 +118,10 @@ describe('Testing of the collection.aggregate methods', () => {
             },
           });
         }
-        const res = (await collection).data.insertMany(data);
+        const res = collection.data.insertMany(data);
         return res;
       });
-    // .then(async (res) => {
-    //   const uuid1 = res.uuids[0];
-    //   await collection.data.referenceAddMany({
-    //     refs: Object.values(res.uuids).map((uuid) => {
-    //       return {
-    //         fromProperty: 'ref',
-    //         fromUuid: uuid1,
-    //         reference: Reference.to({ uuids: [uuid] })
-    //       }
-    //     })
-    //   })
-    // })
+    collection = await client.collections.get(collectionName);
   });
 
   it('should aggregate data without a search and no property metrics', async () => {
@@ -316,8 +304,7 @@ describe('Testing of the collection.aggregate methods with named vectors', () =>
         port: 50051,
       },
     });
-    collection = await client.collections.get(collectionName);
-    return client.collections.create<TestCollectionAggregateNamedVectors>({
+    await client.collections.create<TestCollectionAggregateNamedVectors>({
       name: collectionName,
       properties: [
         {
@@ -332,6 +319,7 @@ describe('Testing of the collection.aggregate methods with named vectors', () =>
         }),
       ],
     });
+    collection = await client.collections.get(collectionName);
   });
 
   it('should aggregate data with a near text search over a named vector', async () => {

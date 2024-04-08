@@ -43,7 +43,6 @@ describe('Testing of the filter class with a simple collection', () => {
         port: 50051,
       },
     });
-    collection = await client.collections.get(collectionName);
     ids = await client.collections
       .create({
         name: collectionName,
@@ -70,31 +69,34 @@ describe('Testing of the filter class with a simple collection', () => {
         invertedIndex: weaviate.configure.invertedIndex({ indexTimestamps: true }),
         vectorizer: weaviate.configure.vectorizer.text2VecContextionary({ vectorizeClassName: false }),
       })
-      .then(() =>
-        collection.data.insertMany([
-          {
-            text: 'one',
-            int: 1,
-            float: 1.1,
-          },
-          {
-            text: 'two',
-            int: 2,
-            float: 2.2,
-          },
-          {
-            text: 'three',
-            int: 3,
-            float: 3.3,
-          },
-          {
-            text: 'one',
-            int: 4,
-            float: 4.4,
-          },
-        ])
-      )
-      .then(async (res) => {
+      .then(async (collection) => {
+        return {
+          res: await collection.data.insertMany([
+            {
+              text: 'one',
+              int: 1,
+              float: 1.1,
+            },
+            {
+              text: 'two',
+              int: 2,
+              float: 2.2,
+            },
+            {
+              text: 'three',
+              int: 3,
+              float: 3.3,
+            },
+            {
+              text: 'one',
+              int: 4,
+              float: 4.4,
+            },
+          ]),
+          collection,
+        };
+      })
+      .then(async ({ res, collection }) => {
         const uuids = Object.values(res.uuids);
         await collection.data.referenceAdd({
           fromUuid: res.uuids[2],
@@ -103,6 +105,7 @@ describe('Testing of the filter class with a simple collection', () => {
         });
         return uuids;
       });
+    collection = await client.collections.get(collectionName);
     const res = await collection.query.fetchObjectById(ids[0], { includeVector: true });
     vector = res?.vectors.default!;
   });
@@ -313,7 +316,6 @@ describe('Testing of the filter class with complex data type', () => {
         port: 50051,
       },
     });
-    collection = await client.collections.get(collectionName);
     await client.collections
       .create<TestCollectionFilterComplex>({
         name: collectionName,
@@ -325,7 +327,7 @@ describe('Testing of the filter class with complex data type', () => {
         ],
         vectorizer: weaviate.configure.vectorizer.none(),
       })
-      .then(() =>
+      .then((collection) =>
         collection.data.insertMany([
           {
             location: {
@@ -341,6 +343,7 @@ describe('Testing of the filter class with complex data type', () => {
           },
         ])
       );
+    collection = await client.collections.get(collectionName);
   });
 
   afterAll(() => {

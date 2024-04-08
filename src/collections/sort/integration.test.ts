@@ -45,8 +45,6 @@ describe('Testing of the Sort class with a simple collection', () => {
         port: 50051,
       },
     });
-    collection = await client.collections.get(collectionName);
-    collections = [collection, await client.collections.get(collectionName)];
     ids = await client.collections
       .create({
         name: collectionName,
@@ -76,7 +74,7 @@ describe('Testing of the Sort class with a simple collection', () => {
       .catch((err) => {
         throw err;
       })
-      .then(() =>
+      .then((collection) =>
         collection.data.insertMany([
           {
             properties: {
@@ -131,7 +129,8 @@ describe('Testing of the Sort class with a simple collection', () => {
       .catch((err) => {
         throw err;
       });
-    return ids;
+    collection = await client.collections.get(collectionName);
+    collections = [collection, await client.collections.get(collectionName)];
   });
 
   it('should sort by text ascending', async () => {

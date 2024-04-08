@@ -50,7 +50,6 @@ describe('Testing of the collection.data methods with a single target reference'
         port: 50051,
       },
     });
-    collection = await client.collections.get(collectionName);
     await client.collections
       .create<undefined>({
         name: collectionName,
@@ -83,7 +82,7 @@ describe('Testing of the collection.data methods with a single target reference'
           },
           id: toBeDeletedID,
         });
-        return collection.data.insertMany([
+        await collection.data.insertMany([
           { properties: { testProp: 'DELETE ME' } },
           { properties: { testProp: 'DELETE ME' } },
           { properties: { testProp: 'DELETE ME' } },
@@ -109,8 +108,9 @@ describe('Testing of the collection.data methods with a single target reference'
             id: toBeUpdatedID,
           },
         ]);
+        return collection;
       })
-      .then(() => {
+      .then((collection) => {
         const one = collection.data.referenceAdd({
           fromProperty: 'ref',
           fromUuid: toBeReplacedID,
@@ -126,6 +126,7 @@ describe('Testing of the collection.data methods with a single target reference'
       .catch((err) => {
         throw err;
       });
+    collection = await client.collections.get(collectionName);
   });
 
   it('should be able to insert an object without an id', async () => {
@@ -513,8 +514,6 @@ describe('Testing of the collection.data methods with a multi target reference',
         port: 50051,
       },
     });
-    collectionOne = await client.collections.get(classNameOne);
-    collectionTwo = await client.collections.get(classNameTwo);
     oneId = await client.collections
       .create({
         name: classNameOne,
@@ -526,7 +525,7 @@ describe('Testing of the collection.data methods with a multi target reference',
           },
         ],
       })
-      .then(() => collectionOne.data.insert({ one: 'one' }));
+      .then((collection) => collection.data.insert({ one: 'one' }));
     twoId = await client.collections
       .create({
         name: classNameTwo,
@@ -544,7 +543,9 @@ describe('Testing of the collection.data methods with a multi target reference',
           },
         ],
       })
-      .then(() => collectionTwo.data.insert({ two: 'two' }));
+      .then((collection) => collection.data.insert({ two: 'two' }));
+    collectionOne = await client.collections.get(classNameOne);
+    collectionTwo = await client.collections.get(classNameTwo);
   });
 
   it('should be able to insert an object with a multi target reference', async () => {

@@ -27,19 +27,19 @@ describe('Testing of the collection.data methods', () => {
         port: 50051,
       },
     });
-    collection = await client.collections.get(collectionName);
-    return client.collections
+    await client.collections
       .create({
         name: collectionName,
         multiTenancy: weaviate.configure.multiTenancy({ enabled: true }),
       })
-      .then(() =>
+      .then((collection) =>
         collection.tenants.create([
           { name: 'hot', activityStatus: 'HOT' },
           { name: 'cold', activityStatus: 'COLD' },
           { name: 'remove-me', activityStatus: 'HOT' },
         ])
       );
+    collection = await client.collections.get(collectionName);
   });
 
   it('should be able to create a tenant', async () => {
