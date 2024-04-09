@@ -59,9 +59,15 @@ export default class ConnectionGRPC extends ConnectionGQL {
     }
     return new Promise<Batch>((resolve) => resolve(this.grpc.batch(name, consistencyLevel, tenant)));
   };
+
+  close = () => {
+    this.grpc.close();
+    this.http.close();
+  };
 }
 
 export interface GrpcClient {
+  close: () => void;
   batch: (name: string, consistencyLevel?: ConsistencyLevel, tenant?: string, bearerToken?: string) => Batch;
   health: () => Promise<boolean>;
   search: (
@@ -91,6 +97,7 @@ export const grpcClient = (config: GrpcConnectionParams): GrpcClient => {
   const client = clientFactory.create(WeaviateDefinition, channel);
   const health = clientFactory.create(HealthDefinition, channel);
   return {
+    close: () => channel.close(),
     batch: (name: string, consistencyLevel?: ConsistencyLevel, tenant?: string, bearerToken?: string) =>
       Batcher.use(
         client,
