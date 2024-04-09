@@ -7,16 +7,23 @@ on:
   pull_request:
 
 env:
-  WEAVIATE_VERSION: 1.24.1
+  NEW_WEAVIATE_VERSION: 1.24.7
 
 jobs:
   checks:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [
+          "18.x",
+          "20.x"
+        ]
     steps:
     - uses: actions/checkout@v3
     - uses: actions/setup-node@v3
       with:
-        node-version: '18.x'
+        node-version: ${{ matrix.node }}
     - name: "Run checks"
       run: |
         npm install
@@ -26,15 +33,22 @@ jobs:
   tests:
     needs: checks
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        versions: [
+          { node: "18.x", weaviate: $NEW_WEAVIATE_VERSION},
+          { node: "20.x", weaviate: $NEW_WEAVIATE_VERSION}
+        ]
     steps:
     - uses: actions/checkout@v3
     - uses: actions/setup-node@v3
       with:
-        node-version: '18.x'
+        node-version: ${{ matrix.versions.node }}
     - name: "Install dependencies"
       run: |
         npm install
-        ci/run_dependencies.sh ${{ env.WEAVIATE_VERSION }}
+        ci/run_dependencies.sh ${{ matrix.versions.weaviate }}
     - name: "Run tests with authentication tests"
       if: ${{ !github.event.pull_request.head.repo.fork }}
       env:
@@ -51,7 +65,7 @@ jobs:
         npm test
         npm run build
     - name: "Stop Weaviate"
-      run: ci/stop_dependencies.sh ${{ env.WEAVIATE_VERSION }}
+      run: ci/stop_dependencies.sh ${{ matrix.versions.weaviate }}
 
   publish:
     needs: tests
