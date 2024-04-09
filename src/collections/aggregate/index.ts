@@ -122,7 +122,7 @@ export type AggregateMetrics<M> = {
   [K in keyof M]: M[K] extends true ? number : never;
 };
 
-type MetricsProperty<T> = T extends undefined ? string : keyof T & string;
+export type MetricsProperty<T> = T extends undefined ? string : keyof T & string;
 
 export const metrics = <T>() => {
   return {

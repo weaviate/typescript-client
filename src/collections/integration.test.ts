@@ -124,6 +124,7 @@ describe('Testing of the collections.create method', () => {
     };
     const response = await contextionary.collections
       .create(schema)
+      .then(async (collection) => expect(await collection.exists()).toEqual(true))
       .then(() => contextionary.collections.get(collectionName))
       .then((collection) => collection.config.get());
     expect(response.name).toEqual(collectionName);
@@ -153,6 +154,7 @@ describe('Testing of the collections.create method', () => {
     };
     const response = await contextionary.collections
       .create<TestCollectionSimple>(schema)
+      .then(async (collection) => expect(await collection.exists()).toEqual(true))
       .then(() => contextionary.collections.get<TestCollectionSimple>(collectionName))
       .then((collection) => collection.config.get());
     expect(response.name).toEqual(collectionName);
@@ -182,6 +184,7 @@ describe('Testing of the collections.create method', () => {
     };
     const response = await contextionary.collections
       .create<TestCollectionSimple>(schema)
+      .then(async (collection) => expect(await collection.exists()).toEqual(true))
       .then(() => contextionary.collections.get<TestCollectionSimple>(collectionName))
       .then((collection) => collection.config.get());
     expect(response.name).toEqual(collectionName);
@@ -218,6 +221,7 @@ describe('Testing of the collections.create method', () => {
           },
         ],
       })
+      .then(async (collection) => expect(await collection.exists()).toEqual(true))
       .then(() => contextionary.collections.get<TestCollectionNested>(collectionName))
       .then((collection) => collection.config.get());
     expect(response.name).toEqual(collectionName);
@@ -467,6 +471,7 @@ describe('Testing of the collections.create method', () => {
           },
         },
       })
+      .then(async (collection) => expect(await collection.exists()).toEqual(true))
       .then(() => cluster.collections.get(collectionName))
       .then((collection) => collection.config.get());
 
@@ -570,6 +575,7 @@ describe('Testing of the collections.create method', () => {
           },
         },
       })
+      .then(async (collection) => expect(await collection.exists()).toEqual(true))
       .then(() => contextionary.collections.get(collectionName))
       .then((collection) => collection.config.get());
     expect(response.name).toEqual(collectionName);
@@ -599,6 +605,7 @@ describe('Testing of the collections.create method', () => {
         ],
         vectorizer: weaviate.configure.vectorizer.text2VecContextionary(),
       })
+      .then(async (collection) => expect(await collection.exists()).toEqual(true))
       .then(() => contextionary.collections.get(collectionName))
       .then((collection) => collection.config.get());
     expect(response.name).toEqual(collectionName);
@@ -664,6 +671,7 @@ describe('Testing of the collections.create method', () => {
         ],
         vectorizer: weaviate.configure.vectorizer.text2VecOpenAI(),
       })
+      .then(async (collection) => expect(await collection.exists()).toEqual(true))
       .then(() => openai.collections.get(collectionName))
       .then((collection) => collection.config.get());
     expect(response.name).toEqual(collectionName);
@@ -694,6 +702,7 @@ describe('Testing of the collections.create method', () => {
         ],
         generative: weaviate.configure.generative.openAI(),
       })
+      .then(async (collection) => expect(await collection.exists()).toEqual(true))
       .then(() => openai.collections.get(collectionName))
       .then((collection) => collection.config.get());
     expect(response.name).toEqual(collectionName);

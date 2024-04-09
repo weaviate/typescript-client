@@ -168,7 +168,7 @@ export default class ConnectionREST {
 export * from './auth.js';
 
 export interface HttpClient {
-  close: () => Promise<void>;
+  close: () => void;
   patch: (path: string, payload: any, bearerToken?: string) => any;
   head: (path: string, payload: any, bearerToken?: string) => any;
   post: <B, T>(
@@ -191,7 +191,7 @@ export const httpClient = (config: ConnectionParams): HttpClient => {
   const url = makeUrl(baseUri);
 
   return {
-    close: () => Promise.resolve(config.agent?.destroy()),
+    close: () => config.agent?.destroy(),
     post: <B, T>(
       path: string,
       payload: B,

@@ -41,7 +41,7 @@ export interface Collection<T = undefined, N = string> {
   /**
    * Use this method to check if the collection exists in Weaviate.
    *
-   * @returns {Promise<boolean>} A promise that resolves to `true` if the collection exists and `false` otherwise.
+   * @returns {Promise<boolean>} A promise that resolves to `true` if the collection exists, and `false` otherwise.
    */
   exists: () => Promise<boolean>;
   /**
@@ -90,7 +90,10 @@ export type IteratorOptions<T> = {
   returnReferences?: QueryReference<T>[];
 };
 
-const capitalizeCollectionName = (name: string) => name.charAt(0).toUpperCase() + name.slice(1);
+const isString = (value: any): value is string => typeof value === 'string';
+
+const capitalizeCollectionName = <N extends string>(name: N): N =>
+  (name.charAt(0).toUpperCase() + name.slice(1)) as N;
 
 const collection = <T, N>(
   connection: Connection,
@@ -98,8 +101,11 @@ const collection = <T, N>(
   dbVersionSupport: DbVersionSupport,
   consistencyLevel?: ConsistencyLevel,
   tenant?: Tenant
-): Collection<T, N> => {
-  const capitalizedName = capitalizeCollectionName(name as string);
+) => {
+  if (!isString(name)) {
+    throw new Error(`The collection name must be a string, got: ${typeof name}`);
+  }
+  const capitalizedName = capitalizeCollectionName(name);
   const queryCollection = query<T>(
     connection,
     capitalizedName,
@@ -119,7 +125,7 @@ const collection = <T, N>(
     query: queryCollection,
     sort: sort<T>(),
     tenants: tenants(connection, capitalizedName),
-    exists: () => new ClassExists(connection).withClassName(name as string).do(),
+    exists: () => new ClassExists(connection).withClassName(capitalizedName).do(),
     iterator: (opts?: IteratorOptions<T>) =>
       new Iterator<T>((limit: number, after?: string) =>
         queryCollection
@@ -134,11 +140,11 @@ const collection = <T, N>(
           .then((res) => res.objects)
       ),
     withConsistency: (consistencyLevel: ConsistencyLevel) =>
-      collection<T, N>(connection, name, dbVersionSupport, consistencyLevel, tenant),
+      collection<T, N>(connection, capitalizedName, dbVersionSupport, consistencyLevel, tenant),
     withTenant: (tenant: string | Tenant) =>
       collection<T, N>(
         connection,
-        name,
+        capitalizedName,
         dbVersionSupport,
         consistencyLevel,
         typeof tenant === 'string' ? { name: tenant } : tenant
