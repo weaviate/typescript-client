@@ -1,5 +1,6 @@
 import { VectorIndexConfigCreateType, VectorIndexConfigUpdateType } from './vectorIndex.js';
 import { ModuleConfig, VectorIndexType, Vectorizer, VectorizerConfigType } from '../../config/types/index.js';
+import { PrimitiveKeys } from '../../types/internal.js';
 
 export type NamedVectorizerCreateOptions<P, I, V> = {
   properties?: P;
@@ -22,3 +23,7 @@ export type NamedVectorConfigUpdate<N extends string, I extends VectorIndexType>
   vectorName: N;
   vectorIndex: ModuleConfig<I, VectorIndexConfigUpdateType<I>>;
 };
+
+export type VectorizersConfigCreate<T> =
+  | NamedVectorConfigCreate<PrimitiveKeys<T>[], 'default', VectorIndexType, Vectorizer>
+  | NamedVectorConfigCreate<PrimitiveKeys<T>[], string, VectorIndexType, Vectorizer>[];

@@ -65,7 +65,7 @@ const configure = {
   tokenization,
   vectorDistances,
   /**
-   * Create an `InvertedIndexConfigCreate` object to be used when defining the configuration of the keyword searching algorithm of Weaviate.
+   * Create an `InvertedIndexConfigCreate` object to be used when defining the configuration of the keyword searching algorithm of your collection.
    *
    * See [the docs](https://weaviate.io/developers/weaviate/configuration/indexes#configure-the-inverted-index) for details!
    *
@@ -107,7 +107,7 @@ const configure = {
     };
   },
   /**
-   * Create a `MultiTenancyConfigCreate` object to be used when defining the multi-tenancy configuration of Weaviate.
+   * Create a `MultiTenancyConfigCreate` object to be used when defining the multi-tenancy configuration of your collection.
    *
    * @param {boolean} config.enabled Whether multi-tenancy is enabled. Default is true.
    */
@@ -115,7 +115,7 @@ const configure = {
     return options ? { enabled: parseWithDefault(options.enabled, true) } : { enabled: true };
   },
   /**
-   * Create a `NamedVectorConfigCreate` object to be used when defining the named vector configuration of Weaviate.
+   * Create a `NamedVectorConfigCreate` object to be used when defining one of the named vectors configuration of your collection.
    *
    * @param {string} name The name of the vector.
    * @param {NamedVectorizerOptions} [options] The options for the named vector.
@@ -132,7 +132,7 @@ const configure = {
     };
   },
   /**
-   * Create a `ReplicationConfigCreate` object to be used when defining the replication configuration of Weaviate.
+   * Create a `ReplicationConfigCreate` object to be used when defining the replication configuration of your collection.
    *
    * NOTE: You can only use one of Sharding or Replication, not both.
    *
@@ -144,7 +144,7 @@ const configure = {
     return config ? { factor: parseWithDefault(config.factor, 1) } : { factor: 1 };
   },
   /**
-   * Create a `ShardingConfigCreate` object to be used when defining the sharding configuration of Weaviate.
+   * Create a `ShardingConfigCreate` object to be used when defining the sharding configuration of your collection.
    *
    * NOTE: You can only use one of Sharding or Replication, not both.
    *
@@ -170,7 +170,7 @@ const configure = {
 const reconfigure = {
   vectorIndex: reconfigureVectorIndex,
   /**
-   * Create an `InvertedIndexConfigUpdate` object to be used when updating the configuration of the keyword searching algorithm of Weaviate.
+   * Create an `InvertedIndexConfigUpdate` object to be used when updating the configuration of the keyword searching algorithm of your collection.
    *
    * See [the docs](https://weaviate.io/developers/weaviate/configuration/indexes#configure-the-inverted-index) for details!
    *

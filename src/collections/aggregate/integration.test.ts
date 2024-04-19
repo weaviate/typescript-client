@@ -323,10 +323,11 @@ describe('Testing of the collection.aggregate methods with named vectors', () =>
           dataType: 'text',
         },
       ],
-      vectorizer: [
+      vectorizers: [
         weaviate.configure.namedVectorizer('text', {
           properties: ['text'],
           vectorizerConfig: weaviate.configure.vectorizer.text2VecContextionary(),
+          vectorIndexConfig: weaviate.configure.vectorIndex.hnsw(),
         }),
       ],
     });

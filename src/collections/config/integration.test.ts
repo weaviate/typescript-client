@@ -143,7 +143,7 @@ describe('Testing of the collection.config namespace', () => {
           dataType: 'int',
         },
       ],
-      vectorizer: [
+      vectorizers: [
         weaviate.configure.namedVectorizer('title', {
           properties: ['title'],
           vectorizerConfig: weaviate.configure.vectorizer.text2VecContextionary(),
@@ -349,7 +349,7 @@ describe('Testing of the collection.config namespace', () => {
           dataType: 'text',
         },
       ],
-      vectorizer: [weaviate.configure.namedVectorizer('text')],
+      vectorizers: [weaviate.configure.namedVectorizer('text')],
     });
     const config = await collection.config
       .update({

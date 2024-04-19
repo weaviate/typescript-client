@@ -543,7 +543,7 @@ describe('Testing of the collection.query methods with a collection with a refer
               vectorizePropertyName: false,
             },
           ],
-          vectorizer: [
+          vectorizers: [
             weaviate.configure.namedVectorizer('title', {
               vectorizerConfig: weaviate.configure.vectorizer.text2VecContextionary(),
             }),

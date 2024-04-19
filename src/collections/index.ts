@@ -19,6 +19,7 @@ import {
   VectorizerConfig,
   NamedVectorConfigCreate,
   VectorIndexConfigCreate,
+  VectorizersConfigCreate,
 } from './types/index.js';
 import ClassExists from '../schema/classExists.js';
 import { classToCollection, resolveProperty, resolveReference } from './config/utils.js';
@@ -38,9 +39,8 @@ export type CollectionConfigCreate<TProperties = undefined, N = string> = {
   reranker?: ModuleConfig<Reranker>;
   sharding?: ShardingConfigCreate;
   vectorIndex?: ModuleConfig<VectorIndexType, VectorIndexConfigCreate>;
-  vectorizer?:
-    | ModuleConfig<Vectorizer, VectorizerConfig>
-    | NamedVectorConfigCreate<PrimitiveKeys<TProperties>[], string, VectorIndexType, Vectorizer>[];
+  vectorizer?: ModuleConfig<Vectorizer, VectorizerConfig>;
+  vectorizers?: VectorizersConfigCreate<TProperties>;
 };
 
 const parseVectorIndexConfig = (config?: VectorIndexConfigCreate) => {
@@ -69,12 +69,6 @@ const parseVectorIndexConfig = (config?: VectorIndexConfigCreate) => {
   }
 };
 
-const isLegacyVectorizer = (
-  argument: ModuleConfig<string, any> | NamedVectorConfigCreate<any, string, VectorIndexType, Vectorizer>[]
-): argument is ModuleConfig<string, any> => {
-  return !Array.isArray(argument);
-};
-
 const collections = (connection: Connection, dbVersionSupport: DbVersionSupport) => {
   const listAll = () =>
     new SchemaGetter(connection)
@@ -87,6 +81,12 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
     ) {
       const { name, invertedIndex, multiTenancy, replication, sharding, vectorIndex, ...rest } = config;
 
+      if (config.vectorizer !== undefined || config.vectorIndex !== undefined) {
+        console.warn(
+          'You are using legacy vectorization. The vectorizer and vectorIndexConfig fields will be removed from the API in the future. Please use the vectorizers field instead to created specifically named vectorizers for your collection.'
+        );
+      }
+
       const moduleConfig: any = {};
       if (config.generative) {
         moduleConfig[config.generative.name] = config.generative.config ? config.generative.config : {};
@@ -95,18 +95,21 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
       let defaultVectorizer: string | undefined;
       let vectorizers: string[] = [];
       let vectorsConfig: any | undefined;
-      if (config.vectorizer === undefined) {
+      if (config.vectorizer === undefined && config.vectorizers === undefined) {
         defaultVectorizer = 'none';
         vectorsConfig = undefined;
-      } else if (isLegacyVectorizer(config.vectorizer)) {
+      } else if (config.vectorizer !== undefined && config.vectorizers === undefined) {
         defaultVectorizer = config.vectorizer.name;
         vectorizers = [config.vectorizer.name];
         vectorsConfig = undefined;
         moduleConfig[defaultVectorizer] = config.vectorizer.config ? config.vectorizer.config : {};
-      } else {
+      } else if (config.vectorizer === undefined && config.vectorizers !== undefined) {
+        const vectorizersConfig = Array.isArray(config.vectorizers)
+          ? config.vectorizers
+          : [config.vectorizers];
         defaultVectorizer = undefined;
         vectorsConfig = {};
-        config.vectorizer.forEach((v) => {
+        vectorizersConfig.forEach((v) => {
           const vectorConfig: any = {
             vectorIndexConfig: parseVectorIndexConfig(v.vectorIndex.config),
             vectorIndexType: v.vectorIndex.name,
@@ -121,6 +124,8 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
           };
           vectorsConfig![v.vectorName] = vectorConfig;
         });
+      } else {
+        throw new Error('Either vectorizer or vectorizers can be defined, not both');
       }
 
       const properties = config.properties
