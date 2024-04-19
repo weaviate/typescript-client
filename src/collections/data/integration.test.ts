@@ -50,7 +50,7 @@ describe('Testing of the collection.data methods with a single target reference'
         port: 50051,
       },
     });
-    collection = client.collections.get(collectionName);
+    collection = client.collections.use(collectionName);
     await client.collections
       .create<undefined>({
         name: collectionName,
@@ -513,8 +513,8 @@ describe('Testing of the collection.data methods with a multi target reference',
         port: 50051,
       },
     });
-    collectionOne = client.collections.get(classNameOne);
-    collectionTwo = client.collections.get(classNameTwo);
+    collectionOne = client.collections.use(classNameOne);
+    collectionTwo = client.collections.use(classNameTwo);
     oneId = await client.collections
       .create({
         name: classNameOne,

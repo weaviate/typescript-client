@@ -160,8 +160,16 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
         .then(classToCollection<TProperties>),
     get: <TProperties extends Properties | undefined = undefined, TName extends string = string>(
       name: TName
-    ) => collection<TProperties, TName>(connection, name, dbVersionSupport),
+    ) => {
+      console.warn(
+        'The method collections.get() is deprecated and will be removed in the next major version. Please use collections.use() instead.'
+      );
+      return collection<TProperties, TName>(connection, name, dbVersionSupport);
+    },
     listAll: listAll,
+    use: <TProperties extends Properties | undefined = undefined, TName extends string = string>(
+      name: TName
+    ) => collection<TProperties, TName>(connection, name, dbVersionSupport),
   };
 };
 
@@ -178,6 +186,9 @@ export interface Collections {
     name: TName
   ): Collection<TProperties, TName>;
   listAll(): Promise<CollectionConfig[]>;
+  use<TProperties extends Properties | undefined = undefined, TName extends string = string>(
+    name: TName
+  ): Collection<TProperties, TName>;
 }
 
 export default collections;

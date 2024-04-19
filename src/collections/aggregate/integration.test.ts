@@ -49,7 +49,7 @@ describe('Testing of the collection.aggregate methods', () => {
         port: 50051,
       },
     });
-    collection = client.collections.get(collectionName);
+    collection = client.collections.use(collectionName);
     return client.collections
       .create({
         name: collectionName,
@@ -172,7 +172,7 @@ describe('Testing of the collection.aggregate methods', () => {
   });
 
   it('should aggregate data without a search and one non-generic property metric', async () => {
-    const result = await (await client).collections.get(collectionName).aggregate.overAll({
+    const result = await (await client).collections.use(collectionName).aggregate.overAll({
       returnMetrics: collection.metrics
         .aggregate('text')
         .text(['count', 'topOccurrencesOccurs', 'topOccurrencesValue']),
@@ -314,7 +314,7 @@ describe('Testing of the collection.aggregate methods with named vectors', () =>
         port: 50051,
       },
     });
-    collection = client.collections.get(collectionName);
+    collection = client.collections.use(collectionName);
     return client.collections.create<TestCollectionAggregateNamedVectors>({
       name: collectionName,
       properties: [

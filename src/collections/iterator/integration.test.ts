@@ -34,7 +34,7 @@ describe('Testing of the collection.iterator method with a simple collection', (
         port: 50051,
       },
     });
-    collection = client.collections.get(collectionName);
+    collection = client.collections.use(collectionName);
     id = await client.collections
       .create({
         name: collectionName,
