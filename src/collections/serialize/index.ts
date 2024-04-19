@@ -54,8 +54,10 @@ import {
   ReferenceInput,
   QueryMetadata,
   RerankOptions,
+  MetadataKeys,
 } from '../types/index.js';
 import {
+  BaseSearchArgs,
   SearchBm25Args,
   SearchFetchArgs,
   SearchHybridArgs,
@@ -283,19 +285,36 @@ export class DataGuards {
   };
 }
 
+export class MetadataGuards {
+  static isKeys = (argument?: QueryMetadata): argument is MetadataKeys => {
+    return argument instanceof Array && argument.length > 0;
+  };
+
+  static isAll = (argument?: QueryMetadata): argument is 'all' => {
+    return argument === 'all';
+  };
+
+  static isUndefined = (argument?: QueryMetadata): argument is undefined => {
+    return argument === undefined;
+  };
+}
+
 export class Serialize {
-  private static common = <T>(args?: SearchOptions<T>) => {
-    return {
+  private static common = <T>(args?: SearchOptions<T>): BaseSearchArgs => {
+    const out: BaseSearchArgs = {
       limit: args?.limit,
       offset: args?.offset,
       filters: args?.filters ? Serialize.filtersGRPC(args.filters) : undefined,
-      rerank: args?.rerank ? Serialize.rerank(args.rerank) : undefined,
       properties:
         args?.returnProperties || args?.returnReferences
           ? Serialize.queryProperties(args.returnProperties, args.returnReferences)
           : undefined,
       metadata: Serialize.metadata(args?.includeVector, args?.returnMetadata),
     };
+    if (args?.rerank) {
+      out.rerank = Serialize.rerank(args.rerank);
+    }
+    return out;
   };
 
   public static fetchObjects = <T>(args?: FetchObjectsOptions<T>): SearchFetchArgs => {
@@ -720,8 +739,20 @@ export class Serialize {
     const out: any = {
       uuid: true,
       vector: typeof includeVector === 'boolean' ? includeVector : false,
-      vectors: Array.isArray(includeVector) ? includeVector : undefined,
+      vectors: Array.isArray(includeVector) ? includeVector : [],
     };
+    if (MetadataGuards.isAll(metadata)) {
+      return {
+        ...out,
+        creationTimeUnix: true,
+        lastUpdateTimeUnix: true,
+        distance: true,
+        certainty: true,
+        score: true,
+        explainScore: true,
+        isConsistent: true,
+      };
+    }
     metadata?.forEach((key) => {
       let weaviateKey: string;
       if (key === 'creationTime') {

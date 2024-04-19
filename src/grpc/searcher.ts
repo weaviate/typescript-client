@@ -39,7 +39,7 @@ export type SearchFetchArgs = {
   groupBy?: GroupBy;
 };
 
-type BaseSearchArgs = {
+export type BaseSearchArgs = {
   limit?: number;
   offset?: number;
   autocut?: number;
