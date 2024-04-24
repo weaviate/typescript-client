@@ -1,5 +1,6 @@
 import {
   BQConfig,
+  ModuleConfig,
   PQConfig,
   PQEncoderDistribution,
   PQEncoderType,
@@ -77,3 +78,8 @@ export type VectorIndexConfigUpdateType<I> = I extends 'hnsw'
   : I extends string
   ? Record<string, any>
   : never;
+
+export type LegacyVectorizerConfigUpdate =
+  | ModuleConfig<'flat', VectorIndexConfigFlatUpdate>
+  | ModuleConfig<'hnsw', VectorIndexConfigHNSWUpdate>
+  | ModuleConfig<string, Record<string, any>>;

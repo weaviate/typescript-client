@@ -3,6 +3,7 @@ import {
   BQConfigUpdate,
   PQConfigCreate,
   PQConfigUpdate,
+  VectorIndexConfigCreate,
   VectorIndexConfigFlatCreate,
   VectorIndexConfigFlatUpdate,
   VectorIndexConfigHNSWCreate,

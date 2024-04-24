@@ -407,4 +407,69 @@ describe('Testing of the collection.config namespace', () => {
     expect(config.vectorizer.text.indexType).toEqual('hnsw');
     expect(config.vectorizer.text.vectorizer.name).toEqual('none');
   });
+
+  it('should be able update the config of a collection with legacy vectors', async () => {
+    const collectionName = 'TestCollectionConfigUpdateLegacyVectors';
+    const collection = await client.collections.create({
+      name: collectionName,
+      properties: [
+        {
+          name: 'testProp',
+          dataType: 'text',
+        },
+      ],
+      vectorizer: weaviate.configure.vectorizer.none(),
+    });
+    const config = await collection.config
+      .update({
+        vectorizer: weaviate.reconfigure.vectorIndex.hnsw({
+          quantizer: weaviate.reconfigure.vectorIndex.quantizer.pq(),
+          ef: 4,
+        }),
+      })
+      .then(() => collection.config.get());
+
+    expect(config.name).toEqual(collectionName);
+    expect(config.properties).toEqual<PropertyConfig[]>([
+      {
+        name: 'testProp',
+        dataType: 'text',
+        description: undefined,
+        indexSearchable: true,
+        indexFilterable: true,
+        indexInverted: false,
+        vectorizerConfig: undefined,
+        nestedProperties: undefined,
+        tokenization: 'word',
+      },
+    ]);
+    expect(config.generative).toBeUndefined();
+    expect(config.reranker).toBeUndefined();
+    expect(config.vectorizer.default.indexConfig).toEqual<VectorIndexConfigHNSW>({
+      skip: false,
+      cleanupIntervalSeconds: 300,
+      maxConnections: 64,
+      efConstruction: 128,
+      ef: 4,
+      dynamicEfMin: 100,
+      dynamicEfMax: 500,
+      dynamicEfFactor: 8,
+      vectorCacheMaxObjects: 1000000000000,
+      flatSearchCutoff: 40000,
+      distance: 'cosine',
+      quantizer: {
+        bitCompression: false,
+        segments: 0,
+        centroids: 256,
+        trainingLimit: 100000,
+        encoder: {
+          type: 'kmeans',
+          distribution: 'log-normal',
+        },
+        type: 'pq',
+      },
+    });
+    expect(config.vectorizer.default.indexType).toEqual('hnsw');
+    expect(config.vectorizer.default.vectorizer.name).toEqual('none');
+  });
 });
