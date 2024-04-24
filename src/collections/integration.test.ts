@@ -436,7 +436,10 @@ describe('Testing of the collections.create method', () => {
         replication: {
           factor: 2,
         },
-        vectorizer: weaviate.configure.vectorizer.none(),
+        vectorizer: {
+          name: 'none',
+          config: {},
+        },
         vectorIndex: {
           name: 'hnsw',
           config: {
@@ -561,7 +564,7 @@ describe('Testing of the collections.create method', () => {
             dataType: 'text',
           },
         ],
-        vectorizer: weaviate.configure.vectorizer.text2VecContextionary(),
+        vectorizers: weaviate.configure.namedVectorizer.text2VecContextionary('default'),
       })
       .then(async (collection) => expect(await collection.exists()).toEqual(true))
       .then(() => contextionary.collections.use(collectionName).config.get());
@@ -591,7 +594,7 @@ describe('Testing of the collections.create method', () => {
             dataType: 'text',
           },
         ],
-        vectorizer: weaviate.configure.vectorizer.text2VecOpenAI(),
+        vectorizers: weaviate.configure.namedVectorizer.text2VecOpenAI('default'),
       })
       .then(async (collection) => expect(await collection.exists()).toEqual(true))
       .then(() => openai.collections.use(collectionName).config.get());

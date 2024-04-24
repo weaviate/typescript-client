@@ -15,7 +15,7 @@ import {
 import generative from './generative.js';
 import reranker from './reranker.js';
 import { configure as configureVectorIndex, reconfigure as reconfigureVectorIndex } from './vectorIndex.js';
-import { vectorizer } from './vectorizer.js';
+import { namedVectorizer } from './vectorizer.js';
 
 import { parseWithDefault } from './parsing.js';
 import { PrimitiveKeys } from '../types/internal.js';
@@ -59,7 +59,7 @@ const vectorDistances = {
 const configure = {
   generative,
   reranker,
-  vectorizer,
+  namedVectorizer,
   vectorIndex: configureVectorIndex,
   dataType,
   tokenization,
@@ -120,17 +120,17 @@ const configure = {
    * @param {string} name The name of the vector.
    * @param {NamedVectorizerOptions} [options] The options for the named vector.
    */
-  namedVectorizer: <T, N extends string, I extends VectorIndexType = 'hnsw', V extends Vectorizer = 'none'>(
-    name: N,
-    options?: NamedVectorizerCreateOptions<PrimitiveKeys<T>[], I, V>
-  ): NamedVectorConfigCreate<PrimitiveKeys<T>[], N, I, V> => {
-    return {
-      vectorName: name,
-      properties: options?.properties,
-      vectorIndex: options?.vectorIndexConfig ? options.vectorIndexConfig : { name: 'hnsw' as I },
-      vectorizer: options?.vectorizerConfig ? options.vectorizerConfig : { name: 'none' as V },
-    };
-  },
+  // namedVectorizer: <T, N extends string, I extends VectorIndexType = 'hnsw', V extends Vectorizer = 'none'>(
+  //   name: N,
+  //   options?: NamedVectorizerCreateOptions<PrimitiveKeys<T>[], I, V>
+  // ): NamedVectorConfigCreate<PrimitiveKeys<T>[], N, I, V> => {
+  //   return {
+  //     vectorName: name,
+  //     properties: options?.properties,
+  //     vectorIndex: options?.vectorIndexConfig ? options.vectorIndexConfig : { name: 'hnsw' as I },
+  //     vectorizer: options?.vectorizerConfig ? options.vectorizerConfig : { name: 'none' as V },
+  //   };
+  // },
   /**
    * Create a `ReplicationConfigCreate` object to be used when defining the replication configuration of your collection.
    *

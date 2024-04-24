@@ -14,9 +14,9 @@ import { RerankerConfig } from './reranker.js';
 import { VectorConfig } from './vectorizer.js';
 import { VectorIndexType } from './vectorIndex.js';
 
-export type ModuleConfig<N, C = Record<string, any>> = {
+export type ModuleConfig<N, C = undefined> = {
   name: N;
-  config?: C;
+  config: C;
 };
 
 export type InvertedIndexConfig = {

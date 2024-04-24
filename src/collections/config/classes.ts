@@ -115,8 +115,8 @@ export class MergeWithExisting {
   ): WeaviateVectorIndexConfig {
     if (update === undefined) return current;
     if (
-      (QuantizerGuards.isBQUpdate(update.quantizer) && (current?.bq as any).enabled) ||
-      (QuantizerGuards.isPQUpdate(update.quantizer) && (current?.pq as any).enabled)
+      (QuantizerGuards.isBQUpdate(update.quantizer) && ((current?.bq as any) || {}).enabled) ||
+      (QuantizerGuards.isPQUpdate(update.quantizer) && ((current?.pq as any) || {}).enabled)
     )
       throw Error(`Cannot update the quantizer type of an enabled vector index.`);
     const { quantizer, ...rest } = update;

@@ -51,7 +51,9 @@ describe('Testing of the collection.query methods with a simple collection', () 
             dataType: 'text',
           },
         ],
-        vectorizer: weaviate.configure.vectorizer.text2VecContextionary({ vectorizeClassName: false }),
+        vectorizers: weaviate.configure.namedVectorizer.text2VecContextionary('vector', {
+          vectorizeClassName: false,
+        }),
       })
       .then(async () => {
         await collection.data.insert({
@@ -68,7 +70,7 @@ describe('Testing of the collection.query methods with a simple collection', () 
         });
       });
     const res = await collection.query.fetchObjectById(id, { includeVector: true });
-    vector = res?.vectors.default!;
+    vector = res?.vectors.vector!;
   });
 
   it('should fetch an object by its id', async () => {
@@ -111,7 +113,7 @@ describe('Testing of the collection.query methods with a simple collection', () 
   });
 
   it('should query with nearObject', async () => {
-    const ret = await collection.query.nearObject(id, { limit: 1 });
+    const ret = await collection.query.nearObject(id, { limit: 1, targetVector: 'vector' });
     expect(ret.objects.length).toEqual(1);
     expect(ret.objects[0].properties.testProp).toEqual('test');
     expect(ret.objects[0].properties.testProp2).toEqual('test2');
@@ -119,7 +121,7 @@ describe('Testing of the collection.query methods with a simple collection', () 
   });
 
   it('should query with nearText', async () => {
-    const ret = await collection.query.nearText(['test'], { limit: 1 });
+    const ret = await collection.query.nearText(['test'], { limit: 1, targetVector: 'vector' });
     expect(ret.objects.length).toEqual(1);
     expect(ret.objects[0].properties.testProp).toEqual('test');
     expect(ret.objects[0].properties.testProp2).toEqual('test2');
@@ -127,7 +129,7 @@ describe('Testing of the collection.query methods with a simple collection', () 
   });
 
   it('should query with nearVector', async () => {
-    const ret = await collection.query.nearVector(vector, { limit: 1 });
+    const ret = await collection.query.nearVector(vector, { limit: 1, targetVector: 'vector' });
     expect(ret.objects.length).toEqual(1);
     expect(ret.objects[0].properties.testProp).toEqual('test');
     expect(ret.objects[0].properties.testProp2).toEqual('test2');
@@ -185,7 +187,9 @@ describe('Testing of the collection.query methods with a collection with a refer
             targetCollection: collectionName,
           },
         ],
-        vectorizer: weaviate.configure.vectorizer.text2VecContextionary({ vectorizeClassName: false }),
+        vectorizers: weaviate.configure.namedVectorizer.text2VecContextionary('vector', {
+          vectorizeClassName: false,
+        }),
       })
       .then(async () => {
         id1 = await collection.data.insert({
@@ -282,6 +286,7 @@ describe('Testing of the collection.query methods with a collection with a refer
 
     it('should query with hybrid returning the referenced object', async () => {
       const ret = await collection.query.hybrid('other', {
+        targetVector: 'vector',
         returnProperties: ['testProp'],
         returnReferences: [
           {
@@ -303,6 +308,7 @@ describe('Testing of the collection.query methods with a collection with a refer
 
     it('should query with nearObject returning the referenced object', async () => {
       const ret = await collection.query.nearObject(id2, {
+        targetVector: 'vector',
         returnProperties: ['testProp'],
         returnReferences: [
           {
@@ -442,7 +448,7 @@ describe('Testing of the collection.query methods with a collection with a refer
               ],
             },
           ],
-          vectorizer: weaviate.configure.vectorizer.text2VecContextionary(),
+          vectorizers: weaviate.configure.namedVectorizer.text2VecContextionary('vector'),
         })
         .then(async () => {
           id1 = await collection.data.insert({
@@ -543,11 +549,7 @@ describe('Testing of the collection.query methods with a collection with a refer
               vectorizePropertyName: false,
             },
           ],
-          vectorizers: [
-            weaviate.configure.namedVectorizer('title', {
-              vectorizerConfig: weaviate.configure.vectorizer.text2VecContextionary(),
-            }),
-          ],
+          vectorizers: [weaviate.configure.namedVectorizer.text2VecContextionary('title')],
         })
         .then(async () => {
           id1 = await collection.data.insert({
@@ -635,7 +637,9 @@ describe('Testing of the groupBy collection.query methods with a simple collecti
             dataType: 'text',
           },
         ],
-        vectorizer: weaviate.configure.vectorizer.text2VecContextionary({ vectorizeClassName: false }),
+        vectorizers: weaviate.configure.namedVectorizer.text2VecContextionary('vector', {
+          vectorizeClassName: false,
+        }),
       })
       .then(() => {
         return collection.data.insert({
@@ -702,6 +706,7 @@ describe('Testing of the groupBy collection.query methods with a simple collecti
   it('should groupBy with nearObject', async () => {
     const ret = await collection.query.nearObject(id, {
       groupBy: groupByArgs,
+      targetVector: 'vector',
     });
     expect(ret.objects.length).toEqual(1);
     expect(ret.groups).toBeDefined();
@@ -714,6 +719,7 @@ describe('Testing of the groupBy collection.query methods with a simple collecti
   it('should groupBy with nearText', async () => {
     const ret = await collection.query.nearText(['test'], {
       groupBy: groupByArgs,
+      targetVector: 'vector',
     });
     expect(ret.objects.length).toEqual(1);
     expect(ret.groups).toBeDefined();
@@ -726,6 +732,7 @@ describe('Testing of the groupBy collection.query methods with a simple collecti
   it('should groupBy with nearVector', async () => {
     const ret = await collection.query.nearVector(vector, {
       groupBy: groupByArgs,
+      targetVector: 'vector',
     });
     expect(ret.objects.length).toEqual(1);
     expect(ret.groups).toBeDefined();
@@ -742,6 +749,7 @@ describe('Testing of the groupBy collection.query methods with a simple collecti
         objectsPerGroup: 1,
         property: 'testProp',
       },
+      targetVector: 'vector',
     });
     expect(ret.objects.length).toEqual(1);
     expect(ret.groups).toBeDefined();
@@ -786,7 +794,9 @@ describe('Testing of the collection.query methods with a multi-tenancy collectio
           },
         ],
         multiTenancy: weaviate.configure.multiTenancy({ enabled: true }),
-        vectorizer: weaviate.configure.vectorizer.text2VecContextionary({ vectorizeClassName: false }),
+        vectorizers: weaviate.configure.namedVectorizer.text2VecContextionary('vector', {
+          vectorizeClassName: false,
+        }),
       })
       .then(async (col) => {
         await col.tenants.create([tenantOne, tenantTwo]);
@@ -858,8 +868,8 @@ describe('Testing of the collection.query methods with a multi-tenancy collectio
   });
 
   it('should find the objects in their tenants by nearObject', async () => {
-    const obj1 = await collection.withTenant(tenantOne).query.nearObject(id1);
-    const obj2 = await collection.withTenant(tenantTwo).query.nearObject(id2);
+    const obj1 = await collection.withTenant(tenantOne).query.nearObject(id1, { targetVector: 'vector' });
+    const obj2 = await collection.withTenant(tenantTwo).query.nearObject(id2, { targetVector: 'vector' });
     expect(obj1.objects.length).toEqual(1);
     expect(obj1.objects[0].properties.testProp).toEqual('one');
     expect(obj1.objects[0].uuid).toEqual(id1);
@@ -869,8 +879,8 @@ describe('Testing of the collection.query methods with a multi-tenancy collectio
   });
 
   it('should find the objects in their tenants by nearText', async () => {
-    const obj1 = await collection.withTenant(tenantOne).query.nearText(['one']);
-    const obj2 = await collection.withTenant(tenantTwo).query.nearText(['two']);
+    const obj1 = await collection.withTenant(tenantOne).query.nearText(['one'], { targetVector: 'vector' });
+    const obj2 = await collection.withTenant(tenantTwo).query.nearText(['two'], { targetVector: 'vector' });
     expect(obj1.objects.length).toEqual(1);
     expect(obj1.objects[0].properties.testProp).toEqual('one');
     expect(obj1.objects[0].uuid).toEqual(id1);
@@ -886,8 +896,12 @@ describe('Testing of the collection.query methods with a multi-tenancy collectio
     const { vectors: vecs2 } = (await collection
       .withTenant(tenantTwo)
       .query.fetchObjectById(id2, { includeVector: true }))!;
-    const obj1 = await collection.withTenant(tenantOne).query.nearVector(vecs1.default);
-    const obj2 = await collection.withTenant(tenantTwo).query.nearVector(vecs2.default);
+    const obj1 = await collection
+      .withTenant(tenantOne)
+      .query.nearVector(vecs1.default, { targetVector: 'vector' });
+    const obj2 = await collection
+      .withTenant(tenantTwo)
+      .query.nearVector(vecs2.default, { targetVector: 'vector' });
     expect(obj1.objects.length).toEqual(1);
     expect(obj1.objects[0].properties.testProp).toEqual('one');
     expect(obj1.objects[0].uuid).toEqual(id1);
@@ -932,7 +946,7 @@ maybe('Testing of collection.query using rerank functionality', () => {
           },
         ],
         reranker: weaviate.configure.reranker.transformers(),
-        vectorizer: weaviate.configure.vectorizer.text2VecOpenAI(),
+        vectorizers: weaviate.configure.namedVectorizer.text2VecOpenAI('vector'),
       })
       .then(() =>
         Promise.all([
@@ -971,6 +985,7 @@ maybe('Testing of collection.query using rerank functionality', () => {
         property: 'text',
         query: 'another',
       },
+      targetVector: 'vector',
     });
     const objects = ret.objects;
     expect(objects.length).toEqual(2);
@@ -986,6 +1001,7 @@ maybe('Testing of collection.query using rerank functionality', () => {
         property: 'text',
         query: 'another',
       },
+      targetVector: 'vector',
     });
     const objects = ret.objects;
     expect(objects.length).toEqual(2);
@@ -1001,6 +1017,7 @@ maybe('Testing of collection.query using rerank functionality', () => {
         property: 'text',
         query: 'another',
       },
+      targetVector: 'vector',
     });
     const objects = ret.objects;
     expect(objects.length).toEqual(2);
@@ -1017,6 +1034,7 @@ maybe('Testing of collection.query using rerank functionality', () => {
         property: 'text',
         query: 'another',
       },
+      targetVector: 'vector',
     });
     const objects = ret.objects;
     expect(objects.length).toEqual(2);

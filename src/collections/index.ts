@@ -20,6 +20,8 @@ import {
   NamedVectorConfigCreate,
   VectorIndexConfigCreate,
   VectorizersConfigCreate,
+  GenerativeConfig,
+  RerankerConfig,
 } from './types/index.js';
 import ClassExists from '../schema/classExists.js';
 import { classToCollection, resolveProperty, resolveReference } from './config/utils.js';
@@ -30,13 +32,13 @@ import { PrimitiveKeys } from './types/internal.js';
 export type CollectionConfigCreate<TProperties = undefined, N = string> = {
   name: N;
   description?: string;
-  generative?: ModuleConfig<GenerativeSearch>;
+  generative?: ModuleConfig<GenerativeSearch, GenerativeConfig>;
   invertedIndex?: InvertedIndexConfigCreate;
   multiTenancy?: MultiTenancyConfigCreate;
   properties?: PropertyConfigCreate<TProperties>[];
   references?: ReferenceConfigCreate<TProperties>[];
   replication?: ReplicationConfigCreate;
-  reranker?: ModuleConfig<Reranker>;
+  reranker?: ModuleConfig<Reranker, RerankerConfig>;
   sharding?: ShardingConfigCreate;
   vectorIndex?: ModuleConfig<VectorIndexType, VectorIndexConfigCreate>;
   vectorizer?: ModuleConfig<Vectorizer, VectorizerConfig>;

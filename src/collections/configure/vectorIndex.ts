@@ -159,15 +159,15 @@ const reconfigure = {
    * @param {BQConfigCreate} [options.quantizer] The quantizer configuration to use. Default is `bq`.
    * @returns {ModuleConfig<'flat', VectorIndexConfigFlatCreate>} The configuration object.
    */
-  flat: (options?: {
+  flat: (options: {
     vectorCacheMaxObjects?: number;
     quantizer?: BQConfigUpdate;
   }): ModuleConfig<'flat', VectorIndexConfigFlatUpdate> => {
     return {
       name: 'flat',
       config: {
-        vectorCacheMaxObjects: options?.vectorCacheMaxObjects,
-        quantizer: parseQuantizer(options?.quantizer),
+        vectorCacheMaxObjects: options.vectorCacheMaxObjects,
+        quantizer: parseQuantizer(options.quantizer),
       },
     };
   },
@@ -185,7 +185,7 @@ const reconfigure = {
    * @param {number} [options.vectorCacheMaxObjects] The maximum number of objects to cache in the vector cache. Default is 1000000000000.
    * @returns {ModuleConfig<'hnsw', VectorIndexConfigHNSWUpdate>} The configuration object.
    */
-  hnsw: (options?: {
+  hnsw: (options: {
     dynamicEfFactor?: number;
     dynamicEfMax?: number;
     dynamicEfMin?: number;

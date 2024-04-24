@@ -9,7 +9,9 @@ export default {
    * @param {RerankerCohereConfig} [config] The configuration for the `reranker-cohere` module.
    * @returns {ModuleConfig<'reranker-cohere', RerankerCohereConfig>} The configuration object.
    */
-  cohere: (config?: RerankerCohereConfig): ModuleConfig<'reranker-cohere', RerankerCohereConfig> => {
+  cohere: (
+    config?: RerankerCohereConfig
+  ): ModuleConfig<'reranker-cohere', RerankerCohereConfig | undefined> => {
     return {
       name: 'reranker-cohere',
       config: config,

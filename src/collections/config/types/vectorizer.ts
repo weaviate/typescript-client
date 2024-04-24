@@ -18,6 +18,7 @@ export type Vectorizer =
   | 'multi2vec-palm'
   | 'ref2vec-centroid'
   | 'text2vec-aws'
+  | 'text2vec-azure-openai'
   | 'text2vec-cohere'
   | 'text2vec-contextionary'
   | 'text2vec-gpt4all'
@@ -130,7 +131,7 @@ export type Text2VecTransformersConfig = {
   vectorizeClassName?: boolean;
 };
 
-export type Text2VecVoyageConfig = {
+export type Text2VecVoyageAIConfig = {
   baseURL?: string;
   model?: string;
   truncate?: boolean;
@@ -140,11 +141,11 @@ export type Text2VecVoyageConfig = {
 export type NoVectorizerConfig = {};
 
 export type VectorizerConfigType<V> = V extends 'img2vec-neural'
-  ? Img2VecNeuralConfig
+  ? Img2VecNeuralConfig | undefined
   : V extends 'multi2vec-clip'
-  ? Multi2VecClipConfig
+  ? Multi2VecClipConfig | undefined
   : V extends 'multi2vec-bind'
-  ? Multi2VecBindConfig
+  ? Multi2VecBindConfig | undefined
   : V extends 'multi2vec-palm'
   ? Multi2VecPalmConfig
   : V extends 'ref2vec-centroid'
@@ -152,24 +153,28 @@ export type VectorizerConfigType<V> = V extends 'img2vec-neural'
   : V extends 'text2vec-aws'
   ? Text2VecAWSConfig
   : V extends 'text2vec-contextionary'
-  ? Text2VecContextionaryConfig
+  ? Text2VecContextionaryConfig | undefined
   : V extends 'text2vec-cohere'
-  ? Text2VecCohereConfig
+  ? Text2VecCohereConfig | undefined
   : V extends 'text2vec-gpt4all'
-  ? Text2VecGPT4AllConfig
+  ? Text2VecGPT4AllConfig | undefined
   : V extends 'text2vec-huggingface'
-  ? Text2VecHuggingFaceConfig
+  ? Text2VecHuggingFaceConfig | undefined
   : V extends 'text2vec-jina'
-  ? Text2VecJinaConfig
+  ? Text2VecJinaConfig | undefined
   : V extends 'text2vec-openai'
-  ? Text2VecOpenAIConfig
+  ? Text2VecOpenAIConfig | undefined
+  : V extends 'text2vec-azure-openai'
+  ? Text2VecAzureOpenAIConfig
   : V extends 'text2vec-palm'
   ? Text2VecPalmConfig
   : V extends 'text2vec-transformers'
-  ? Text2VecTransformersConfig
+  ? Text2VecTransformersConfig | undefined
   : V extends 'text2vec-voyageai'
-  ? Text2VecVoyageConfig
+  ? Text2VecVoyageAIConfig | undefined
   : V extends 'none'
+  ? {}
+  : V extends undefined
   ? undefined
   : never;
 
@@ -189,5 +194,5 @@ export type VectorizerConfig =
   | Text2VecOpenAIConfig
   | Text2VecPalmConfig
   | Text2VecTransformersConfig
-  | Text2VecVoyageConfig
+  | Text2VecVoyageAIConfig
   | NoVectorizerConfig;

@@ -37,7 +37,7 @@ describe('Testing of the collection.config namespace', () => {
           dataType: 'text',
         },
       ],
-      vectorizer: weaviate.configure.vectorizer.none(),
+      vectorizers: weaviate.configure.namedVectorizer.none('default'),
     });
     const collection = client.collections.use<TestCollectionConfigGet>(collectionName);
     const config = await collection.config.get();
@@ -89,7 +89,7 @@ describe('Testing of the collection.config namespace', () => {
           dataType: 'text',
         },
       ],
-      vectorizer: weaviate.configure.vectorizer.none(),
+      vectorizers: weaviate.configure.namedVectorizer.none('default'),
     });
     const collection = client.collections.use<TestCollectionConfigGet>(collectionName);
     const config = await collection.config.get();
@@ -144,13 +144,11 @@ describe('Testing of the collection.config namespace', () => {
         },
       ],
       vectorizers: [
-        weaviate.configure.namedVectorizer('title', {
-          properties: ['title'],
-          vectorizerConfig: weaviate.configure.vectorizer.text2VecContextionary(),
+        weaviate.configure.namedVectorizer.text2VecContextionary('title', {
+          sourceProperties: ['title'],
         }),
-        weaviate.configure.namedVectorizer('age', {
-          properties: ['age'],
-          vectorizerConfig: weaviate.configure.vectorizer.text2VecContextionary(),
+        weaviate.configure.namedVectorizer.text2VecContextionary('age', {
+          sourceProperties: ['age'],
         }),
       ],
     });
@@ -235,7 +233,7 @@ describe('Testing of the collection.config namespace', () => {
     const collectionName = 'TestCollectionConfigAddProperty';
     const collection = await client.collections.create({
       name: collectionName,
-      vectorizer: weaviate.configure.vectorizer.none(),
+      vectorizers: weaviate.configure.namedVectorizer.none('default'),
     });
     const config = await collection.config
       .addProperty({
@@ -262,7 +260,7 @@ describe('Testing of the collection.config namespace', () => {
     const collectionName = 'TestCollectionConfigAddReference' as const;
     const collection = await client.collections.create({
       name: collectionName,
-      vectorizer: weaviate.configure.vectorizer.none(),
+      vectorizers: weaviate.configure.namedVectorizer.none('default'),
     });
     const config = await collection.config
       .addReference({
@@ -349,7 +347,7 @@ describe('Testing of the collection.config namespace', () => {
           dataType: 'text',
         },
       ],
-      vectorizers: [weaviate.configure.namedVectorizer('text')],
+      vectorizers: [weaviate.configure.namedVectorizer.none('text')],
     });
     const config = await collection.config
       .update({
@@ -418,7 +416,10 @@ describe('Testing of the collection.config namespace', () => {
           dataType: 'text',
         },
       ],
-      vectorizer: weaviate.configure.vectorizer.none(),
+      vectorizer: {
+        name: 'none',
+        config: {},
+      },
     });
     const config = await collection.config
       .update({

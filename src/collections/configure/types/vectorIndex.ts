@@ -47,9 +47,9 @@ export type VectorIndexConfigHNSWUpdate = {
 };
 
 export type VectorIndexConfigCreateType<I> = I extends 'hnsw'
-  ? VectorIndexConfigHNSWCreate
+  ? VectorIndexConfigHNSWCreate | undefined
   : I extends 'flat'
-  ? VectorIndexConfigFlatCreate
+  ? VectorIndexConfigFlatCreate | undefined
   : I extends string
   ? Record<string, any>
   : never;
@@ -68,7 +68,9 @@ export type VectorIndexConfigCreate =
 
 export type VectorIndexConfigUpdate =
   | VectorIndexConfigFlatUpdate
+  | undefined
   | VectorIndexConfigHNSWUpdate
+  | undefined
   | Record<string, any>;
 
 export type VectorIndexConfigUpdateType<I> = I extends 'hnsw'
