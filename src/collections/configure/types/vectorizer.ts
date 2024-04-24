@@ -25,5 +25,5 @@ export type NamedVectorConfigUpdate<N extends string, I extends VectorIndexType>
 };
 
 export type VectorizersConfigCreate<T> =
-  | NamedVectorConfigCreate<PrimitiveKeys<T>[], 'default', VectorIndexType, Vectorizer>
+  | NamedVectorConfigCreate<PrimitiveKeys<T>[], string, VectorIndexType, Vectorizer>
   | NamedVectorConfigCreate<PrimitiveKeys<T>[], string, VectorIndexType, Vectorizer>[];
