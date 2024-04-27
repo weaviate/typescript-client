@@ -17,7 +17,7 @@ import {
   VectorIndexType,
   Vectorizer,
   VectorizerConfig,
-  NamedVectorConfigCreate,
+  VectorConfigCreate,
   VectorIndexConfigCreate,
   VectorizersConfigCreate,
   GenerativeConfig,

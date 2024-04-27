@@ -51,7 +51,7 @@ describe('Testing of the collection.query methods with a simple collection', () 
             dataType: 'text',
           },
         ],
-        vectorizers: weaviate.configure.namedVectorizer.text2VecContextionary('vector', {
+        vectorizers: weaviate.configure.vectorizer.text2VecContextionary('vector', {
           vectorizeClassName: false,
         }),
       })
@@ -187,7 +187,7 @@ describe('Testing of the collection.query methods with a collection with a refer
             targetCollection: collectionName,
           },
         ],
-        vectorizers: weaviate.configure.namedVectorizer.text2VecContextionary('vector', {
+        vectorizers: weaviate.configure.vectorizer.text2VecContextionary('vector', {
           vectorizeClassName: false,
         }),
       })
@@ -448,7 +448,7 @@ describe('Testing of the collection.query methods with a collection with a refer
               ],
             },
           ],
-          vectorizers: weaviate.configure.namedVectorizer.text2VecContextionary('vector'),
+          vectorizers: weaviate.configure.vectorizer.text2VecContextionary('vector'),
         })
         .then(async () => {
           id1 = await collection.data.insert({
@@ -549,7 +549,7 @@ describe('Testing of the collection.query methods with a collection with a refer
               vectorizePropertyName: false,
             },
           ],
-          vectorizers: [weaviate.configure.namedVectorizer.text2VecContextionary('title')],
+          vectorizers: [weaviate.configure.vectorizer.text2VecContextionary('title')],
         })
         .then(async () => {
           id1 = await collection.data.insert({
@@ -637,7 +637,7 @@ describe('Testing of the groupBy collection.query methods with a simple collecti
             dataType: 'text',
           },
         ],
-        vectorizers: weaviate.configure.namedVectorizer.text2VecContextionary('vector', {
+        vectorizers: weaviate.configure.vectorizer.text2VecContextionary('vector', {
           vectorizeClassName: false,
         }),
       })
@@ -794,7 +794,7 @@ describe('Testing of the collection.query methods with a multi-tenancy collectio
           },
         ],
         multiTenancy: weaviate.configure.multiTenancy({ enabled: true }),
-        vectorizers: weaviate.configure.namedVectorizer.text2VecContextionary('vector', {
+        vectorizers: weaviate.configure.vectorizer.text2VecContextionary('vector', {
           vectorizeClassName: false,
         }),
       })
@@ -946,7 +946,7 @@ maybe('Testing of collection.query using rerank functionality', () => {
           },
         ],
         reranker: weaviate.configure.reranker.transformers(),
-        vectorizers: weaviate.configure.namedVectorizer.text2VecOpenAI('vector'),
+        vectorizers: weaviate.configure.vectorizer.text2VecOpenAI('vector'),
       })
       .then(() =>
         Promise.all([

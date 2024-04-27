@@ -9,7 +9,7 @@ import {
 import { CollectionConfigUpdate, VectorIndexType } from './types/index.js';
 import {
   InvertedIndexConfigUpdate,
-  NamedVectorConfigUpdate,
+  VectorConfigUpdate,
   ReplicationConfigUpdate,
   VectorIndexConfigFlatUpdate,
   VectorIndexConfigHNSWUpdate,
@@ -74,7 +74,7 @@ export class MergeWithExisting {
 
   static vectors(
     current: WeaviateVectorsConfig,
-    update?: NamedVectorConfigUpdate<string, VectorIndexType>[]
+    update?: VectorConfigUpdate<string, VectorIndexType>[]
   ): WeaviateVectorsConfig {
     if (current === undefined) throw Error('Vector index config is missing from the class schema.');
     if (update === undefined) return current;

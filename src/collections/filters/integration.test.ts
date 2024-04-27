@@ -68,7 +68,7 @@ describe('Testing of the filter class with a simple collection', () => {
           },
         ],
         invertedIndex: weaviate.configure.invertedIndex({ indexTimestamps: true }),
-        vectorizers: weaviate.configure.namedVectorizer.text2VecContextionary('default', {
+        vectorizers: weaviate.configure.vectorizer.text2VecContextionary('default', {
           vectorizeClassName: false,
         }),
       })

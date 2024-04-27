@@ -564,7 +564,7 @@ describe('Testing of the collections.create method', () => {
             dataType: 'text',
           },
         ],
-        vectorizers: weaviate.configure.namedVectorizer.text2VecContextionary('default'),
+        vectorizers: weaviate.configure.vectorizer.text2VecContextionary('default'),
       })
       .then(async (collection) => expect(await collection.exists()).toEqual(true))
       .then(() => contextionary.collections.use(collectionName).config.get());
@@ -583,7 +583,7 @@ describe('Testing of the collections.create method', () => {
     await contextionary.collections.delete(collectionName);
   });
 
-  it('should be able to create a collection with an openai vectorizer with configure.namedVectorizer', async () => {
+  it('should be able to create a collection with an openai vectorizer with configure.vectorizer', async () => {
     const collectionName = 'TestCollectionOpenAIVectorizerWithConfigureVectorizer';
     const response = await openai.collections
       .create({
@@ -594,7 +594,7 @@ describe('Testing of the collections.create method', () => {
             dataType: 'text',
           },
         ],
-        vectorizers: weaviate.configure.namedVectorizer.text2VecOpenAI('default'),
+        vectorizers: weaviate.configure.vectorizer.text2VecOpenAI('default'),
       })
       .then(async (collection) => expect(await collection.exists()).toEqual(true))
       .then(() => openai.collections.use(collectionName).config.get());

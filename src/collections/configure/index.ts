@@ -2,10 +2,10 @@ import {
   InvertedIndexConfigCreate,
   InvertedIndexConfigUpdate,
   MultiTenancyConfigCreate,
-  NamedVectorConfigCreate,
-  NamedVectorConfigUpdate,
-  NamedVectorizerCreateOptions,
-  NamedVectorizerUpdateOptions,
+  VectorConfigCreate,
+  VectorConfigUpdate,
+  VectorizerCreateOptions,
+  VectorizerUpdateOptions,
   ReplicationConfigCreate,
   ShardingConfigCreate,
   VectorIndexType,
@@ -15,7 +15,7 @@ import {
 import generative from './generative.js';
 import reranker from './reranker.js';
 import { configure as configureVectorIndex, reconfigure as reconfigureVectorIndex } from './vectorIndex.js';
-import { namedVectorizer } from './vectorizer.js';
+import { vectorizer } from './vectorizer.js';
 
 import { parseWithDefault } from './parsing.js';
 import { PrimitiveKeys } from '../types/internal.js';
@@ -59,7 +59,7 @@ const vectorDistances = {
 const configure = {
   generative,
   reranker,
-  namedVectorizer,
+  vectorizer,
   vectorIndex: configureVectorIndex,
   dataType,
   tokenization,
@@ -114,23 +114,6 @@ const configure = {
   multiTenancy: (options?: { enabled?: boolean }): MultiTenancyConfigCreate => {
     return options ? { enabled: parseWithDefault(options.enabled, true) } : { enabled: true };
   },
-  /**
-   * Create a `NamedVectorConfigCreate` object to be used when defining one of the named vectors configuration of your collection.
-   *
-   * @param {string} name The name of the vector.
-   * @param {NamedVectorizerOptions} [options] The options for the named vector.
-   */
-  // namedVectorizer: <T, N extends string, I extends VectorIndexType = 'hnsw', V extends Vectorizer = 'none'>(
-  //   name: N,
-  //   options?: NamedVectorizerCreateOptions<PrimitiveKeys<T>[], I, V>
-  // ): NamedVectorConfigCreate<PrimitiveKeys<T>[], N, I, V> => {
-  //   return {
-  //     vectorName: name,
-  //     properties: options?.properties,
-  //     vectorIndex: options?.vectorIndexConfig ? options.vectorIndexConfig : { name: 'hnsw' as I },
-  //     vectorizer: options?.vectorizerConfig ? options.vectorizerConfig : { name: 'none' as V },
-  //   };
-  // },
   /**
    * Create a `ReplicationConfigCreate` object to be used when defining the replication configuration of your collection.
    *
@@ -202,20 +185,22 @@ const reconfigure = {
       },
     };
   },
-  /**
-   * Create a `NamedVectorConfigUpdate` object to be used when updating the named vector configuration of Weaviate.
-   *
-   * @param {string} name The name of the vector.
-   * @param {NamedVectorizerOptions} [options] The options for the named vector.
-   */
-  namedVectorizer: <N extends string, I extends VectorIndexType = 'hnsw'>(
-    name: N,
-    options: NamedVectorizerUpdateOptions<I>
-  ): NamedVectorConfigUpdate<N, I> => {
-    return {
-      vectorName: name,
-      vectorIndex: options.vectorIndexConfig,
-    };
+  vectorizer: {
+    /**
+     * Create a `VectorConfigUpdate` object to be used when updating the named vector configuration of Weaviate.
+     *
+     * @param {string} name The name of the vector.
+     * @param {VectorizerOptions} [options] The options for the named vector.
+     */
+    update: <N extends string, I extends VectorIndexType>(
+      name: N,
+      options: VectorizerUpdateOptions<I>
+    ): VectorConfigUpdate<N, I> => {
+      return {
+        vectorName: name,
+        vectorIndex: options.vectorIndexConfig,
+      };
+    },
   },
   /**
    * Create a `ReplicationConfigUpdate` object to be used when defining the replication configuration of Weaviate.

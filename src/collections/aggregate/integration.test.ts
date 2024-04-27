@@ -99,7 +99,7 @@ describe('Testing of the collection.aggregate methods', () => {
           //   dataType: [collectionName],
           // },
         ],
-        vectorizers: weaviate.configure.namedVectorizer.text2VecContextionary('vector', {
+        vectorizers: weaviate.configure.vectorizer.text2VecContextionary('vector', {
           vectorizeClassName: false,
         }),
       })
@@ -294,9 +294,9 @@ describe('Testing of the collection.aggregate methods', () => {
 
 describe('Testing of the collection.aggregate methods with named vectors', () => {
   let client: WeaviateClient;
-  let collection: Collection<TestCollectionAggregateNamedVectors, 'TestCollectionAggregateNamedVectors'>;
-  const collectionName = 'TestCollectionAggregateNamedVectors';
-  type TestCollectionAggregateNamedVectors = {
+  let collection: Collection<TestCollectionAggregateVectors, 'TestCollectionAggregateVectors'>;
+  const collectionName = 'TestCollectionAggregateVectors';
+  type TestCollectionAggregateVectors = {
     text: string;
   };
 
@@ -321,7 +321,7 @@ describe('Testing of the collection.aggregate methods with named vectors', () =>
       },
     });
     collection = client.collections.use(collectionName);
-    return client.collections.create<TestCollectionAggregateNamedVectors>({
+    return client.collections.create<TestCollectionAggregateVectors>({
       name: collectionName,
       properties: [
         {
@@ -330,7 +330,7 @@ describe('Testing of the collection.aggregate methods with named vectors', () =>
         },
       ],
       vectorizers: [
-        weaviate.configure.namedVectorizer.text2VecContextionary('text', {
+        weaviate.configure.vectorizer.text2VecContextionary('text', {
           sourceProperties: ['text'],
           vectorIndexConfig: weaviate.configure.vectorIndex.hnsw(),
         }),

@@ -6,7 +6,7 @@ export * from './vectorizer.js';
 import {
   InvertedIndexConfigUpdate,
   LegacyVectorizerConfigUpdate,
-  NamedVectorConfigUpdate,
+  VectorConfigUpdate,
   ReplicationConfigUpdate,
 } from '../../configure/types/index.js';
 import { GenerativeConfig } from './generative.js';
@@ -98,5 +98,5 @@ export type CollectionConfigUpdate = {
   description?: string;
   invertedIndex?: InvertedIndexConfigUpdate;
   replication?: ReplicationConfigUpdate;
-  vectorizer?: LegacyVectorizerConfigUpdate | NamedVectorConfigUpdate<string, VectorIndexType>[];
+  vectorizer?: LegacyVectorizerConfigUpdate | VectorConfigUpdate<string, VectorIndexType>[];
 };
