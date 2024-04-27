@@ -649,7 +649,7 @@ describe('Testing of the groupBy collection.query methods with a simple collecti
         });
       });
     const res = await collection.query.fetchObjectById(id, { includeVector: true });
-    vector = res?.vectors.default!;
+    vector = res?.vectors.vector!;
   });
 
   // it('should groupBy without search', async () => {

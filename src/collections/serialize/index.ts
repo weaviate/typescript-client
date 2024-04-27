@@ -488,7 +488,7 @@ export class Serialize {
     return {
       ...Serialize.common(args),
       nearVector: NearVector.fromPartial({
-        vectorBytes: args.vector ? Serialize.vectorToBytes(args.vector) : undefined,
+        vectorBytes: Serialize.vectorToBytes(args.vector),
         certainty: args.certainty,
         distance: args.distance,
         targetVectors: args.targetVector ? [args.targetVector] : undefined,
