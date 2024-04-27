@@ -16,7 +16,7 @@ import {
   DeleteManyReturn,
 } from '../types/index.js';
 import { BatchObject as BatchObjectGRPC, BatchObjectsReply } from '../../proto/v1/batch.js';
-import { Properties as PropertiesGrpc, Value } from '../../proto/v1/properties.js';
+import { ListValue, Properties as PropertiesGrpc, Value } from '../../proto/v1/properties.js';
 import { BatchDeleteReply } from '../../proto/v1/batch_delete.js';
 
 export class Deserialize {
@@ -144,17 +144,27 @@ export class Deserialize {
     if (value.boolValue !== undefined) return value.boolValue;
     if (value.dateValue !== undefined) return new Date(value.dateValue);
     if (value.intValue !== undefined) return value.intValue;
-    if (value.listValue !== undefined)
-      return value.listValue.values.map((v) => Deserialize.parsePropertyValue(v));
+    if (value.listValue !== undefined) return Deserialize.parseListValue(value.listValue);
     if (value.numberValue !== undefined) return value.numberValue;
     if (value.objectValue !== undefined) return Deserialize.objectProperties(value.objectValue);
-    if (value.stringValue !== undefined) return value.stringValue;
+    if (value.textValue !== undefined) return value.textValue;
     if (value.uuidValue !== undefined) return value.uuidValue;
     if (value.blobValue !== undefined) return value.blobValue;
     if (value.geoValue !== undefined) return value.geoValue;
     if (value.phoneValue !== undefined) return value.phoneValue;
     if (value.nullValue !== undefined) return undefined;
     throw new Error(`Unknown value type: ${JSON.stringify(value, null, 2)}`);
+  }
+
+  private static parseListValue(value: ListValue): string[] | number[] | boolean[] | Date[] | Properties[] {
+    if (value.boolValues !== undefined) return value.boolValues.values;
+    if (value.dateValues !== undefined) return value.dateValues.values.map((date) => new Date(date));
+    if (value.intValues !== undefined) return Deserialize.intsFromBytes(value.intValues.values);
+    if (value.numberValues !== undefined) return Deserialize.numbersFromBytes(value.numberValues.values);
+    if (value.objectValues !== undefined) return value.objectValues.values.map(Deserialize.objectProperties);
+    if (value.textValues !== undefined) return value.textValues.values;
+    if (value.uuidValues !== undefined) return value.uuidValues.values;
+    throw new Error(`Unknown list value type: ${JSON.stringify(value, null, 2)}`);
   }
 
   private static objectProperties(properties?: PropertiesGrpc): Properties {
@@ -189,6 +199,18 @@ export class Deserialize {
   private static vectorFromBytes(bytes: Uint8Array) {
     const buffer = Buffer.from(bytes);
     const view = new Float32Array(buffer.buffer, buffer.byteOffset, buffer.byteLength / 4); // vector is float32 in weaviate
+    return Array.from(view);
+  }
+
+  private static intsFromBytes(bytes: Uint8Array) {
+    const buffer = Buffer.from(bytes);
+    const view = new Float64Array(buffer.buffer, buffer.byteOffset, buffer.byteLength / 4); // ints are float64 in weaviate
+    return Array.from(view);
+  }
+
+  private static numbersFromBytes(bytes: Uint8Array) {
+    const buffer = Buffer.from(bytes);
+    const view = new Float64Array(buffer.buffer, buffer.byteOffset, buffer.byteLength / 8); // numbers are float64 in weaviate
     return Array.from(view);
   }
 

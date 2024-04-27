@@ -99,15 +99,40 @@ describe('db version support', () => {
   });
 
   it('should support', () => {
-    const supportedVersions = ['1.14.0', '1.14.9', '1.100', '2.0', '10.11.12'];
+    const supportedVersions = [
+      {
+        in: '1.14.0',
+        exp: '1.14.0',
+      },
+      {
+        in: '1.14.9',
+        exp: '1.14.9',
+      },
+      {
+        in: '1.100',
+        exp: '1.100',
+      },
+      {
+        in: '2.0',
+        exp: '2.0',
+      },
+      {
+        in: '10.11.12',
+        exp: '10.11.12',
+      },
+      {
+        in: '1.25.0-raft',
+        exp: '1.25.0',
+      },
+    ];
     return supportedVersions.forEach(async (version) => {
-      const dbVersionProvider = new DbVersionProvider(() => Promise.resolve(version));
+      const dbVersionProvider = new DbVersionProvider(() => Promise.resolve(version.in));
       const dbVersionSupport = new DbVersionSupport(dbVersionProvider);
 
       const support = await dbVersionSupport.supportsClassNameNamespacedEndpointsPromise();
 
       expect(support.supports).toBe(true);
-      expect(support.version).toBe(version);
+      expect(support.version).toBe(version.exp);
     });
   });
 });

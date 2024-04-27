@@ -159,10 +159,7 @@ export class DbVersionProvider implements VersionProvider {
 export function initDbVersionProvider(conn: ConnectionGRPC) {
   const metaGetter = new MetaGetter(conn);
   const versionGetter = () => {
-    return metaGetter
-      .do()
-      .then((result) => (result.version ? result.version : ''))
-      .catch(() => Promise.resolve(''));
+    return metaGetter.do().then((result) => (result.version ? result.version : ''));
   };
 
   const dbVersionProvider = new DbVersionProvider(versionGetter);
@@ -183,7 +180,7 @@ export class DbVersion {
   }
 
   static fromString = (version: string) => {
-    let regex = /^v?(\d+)\.(\d+)\.(\d+)$/;
+    let regex = /v?(\d+)\.(\d+)\.(\d+)(?:-.+)?/;
     let match = version.match(regex);
     if (match) {
       const [_, major, minor, patch] = match;
