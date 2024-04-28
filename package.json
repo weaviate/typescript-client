@@ -35,7 +35,7 @@
     "format:dist": "prettier --write --no-error-on-unmatched-pattern '**/dist/**/*.{ts,js}'",
     "schema": "./tools/refresh_schema.sh",
     "protos": "./tools/refresh_protos.sh",
-    "docs": "typedoc --out docs/ src/"
+    "docs": "typedoc --plugin typedoc-plugin-extras --favicon public/favicon.ico --out docs/ src/"
   },
   "repository": {
     "type": "git",
@@ -51,8 +51,8 @@
   },
   "homepage": "https://github.com/weaviate/typescript-client#readme",
   "dependencies": {
-    "graphql-request": "^6.1.0",
     "graphql": "^16.8.1",
+    "graphql-request": "^6.1.0",
     "long": "^5.2.3",
     "nice-grpc": "^2.1.7",
     "nice-grpc-client-middleware-deadline": "^2.0.11",
@@ -91,6 +91,7 @@
     "ts-proto": "^1.163.0",
     "tsup": "^8.0.2",
     "typedoc": "^0.25.12",
+    "typedoc-plugin-extras": "^3.0.0",
     "typescript": "4.9.5",
     "uuid": "^9.0.1"
   },
