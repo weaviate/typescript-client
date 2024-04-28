@@ -8,7 +8,7 @@ on:
 
 env:
   OLD_WEAVIATE_VERSION: 1.23.11
-  NEW_WEAVIATE_VERSION: preview-change-listvalue-message-to-avoid-grpc-n-1-problem-a22beb5
+  NEW_WEAVIATE_VERSION: preview-change-listvalue-message-to-avoid-grpc-n-1-problem-8414990
 
 jobs:
   checks:
