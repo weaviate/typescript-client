@@ -149,7 +149,10 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
       await new ClassCreator(connection).withClass(schema).do();
       return collection<TProperties, TName>(connection, name, dbVersionSupport);
     },
-    createFromSchema: (config: WeaviateClass) => new ClassCreator(connection).withClass(config).do(),
+    createFromSchema: async function (config: WeaviateClass) {
+      const { class: name } = await new ClassCreator(connection).withClass(config).do();
+      return collection<Properties, string>(connection, name as string, dbVersionSupport);
+    },
     delete: deleteCollection,
     deleteAll: () => listAll().then((configs) => Promise.all(configs?.map((c) => deleteCollection(c.name)))),
     exists: (name: string) => new ClassExists(connection).withClassName(name).do(),
@@ -169,7 +172,7 @@ export interface Collections {
   create<TProperties extends Properties | undefined = undefined, TName = string>(
     config: CollectionConfigCreate<TProperties, TName>
   ): Promise<Collection<TProperties, TName>>;
-  createFromSchema(config: WeaviateClass): Promise<WeaviateClass>;
+  createFromSchema(config: WeaviateClass): Promise<Collection<Properties, string>>;
   delete(collection: string): Promise<void>;
   deleteAll(): Promise<void[]>;
   exists(name: string): Promise<boolean>;

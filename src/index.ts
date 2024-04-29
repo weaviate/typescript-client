@@ -80,6 +80,7 @@ export interface WeaviateClient {
   collections: Collections;
   oidcAuth?: OidcAuthenticator;
 
+  close: () => Promise<void>;
   getMeta: () => Promise<Meta>;
   getOpenIDConfig?: () => Promise<any>;
   getWeaviateVersion: () => Promise<DbVersion>;
@@ -137,6 +138,7 @@ const app = {
       backup: backup(connection),
       cluster: cluster(connection),
       collections: collections(connection, dbVersionSupport),
+      close: () => Promise.resolve(connection.close()), // hedge against future changes to add I/O to .close()
       getMeta: () => new MetaGetter(connection).do(),
       getOpenIDConfig: () => new OpenidConfigurationGetter(connection.http).do(),
       getWeaviateVersion: () => dbVersionSupport.getVersion(),
