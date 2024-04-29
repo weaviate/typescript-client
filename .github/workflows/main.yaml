@@ -8,7 +8,7 @@ on:
 
 env:
   OLD_WEAVIATE_VERSION: 1.23.11
-  NEW_WEAVIATE_VERSION: 1.25.0-raft-0e75949
+  NEW_WEAVIATE_VERSION: 1.25.0-raft-8f2b428
 
 jobs:
   checks:
