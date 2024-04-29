@@ -7,7 +7,9 @@ on:
   pull_request:
 
 env:
-  NEW_WEAVIATE_VERSION: 1.24.7
+  WEAVIATE_123: 1.23.14
+  WEAVIATE_124: 1.24.10
+  WEAVIATE_125: 1.25.0-raft-fa6e08b
 
 jobs:
   checks:
@@ -37,8 +39,12 @@ jobs:
       fail-fast: false
       matrix:
         versions: [
-          { node: "18.x", weaviate: $NEW_WEAVIATE_VERSION},
-          { node: "20.x", weaviate: $NEW_WEAVIATE_VERSION}
+          { node: "18.x", weaviate: $WEAVIATE_123},
+          { node: "18.x", weaviate: $WEAVIATE_124},
+          { node: "18.x", weaviate: $WEAVIATE_125},
+          { node: "20.x", weaviate: $WEAVIATE_123},
+          { node: "20.x", weaviate: $WEAVIATE_124},
+          { node: "20.x", weaviate: $WEAVIATE_125}
         ]
     steps:
     - uses: actions/checkout@v3
