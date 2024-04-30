@@ -7,7 +7,7 @@ on:
   pull_request:
 
 env:
-  NEW_WEAVIATE_VERSION: 1.25.0-raft-8f2b428
+  NEW_WEAVIATE_VERSION: 1.24.10
 
 jobs:
   checks:
