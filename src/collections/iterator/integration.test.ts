@@ -45,7 +45,7 @@ describe('Testing of the collection.iterator method with a simple collection', (
           },
         ],
         vectorizers: weaviate.configure.vectorizer.text2VecContextionary('vector', {
-          vectorizeClassName: false,
+          vectorizeCollectionName: false,
         }),
       })
       .then(() => {

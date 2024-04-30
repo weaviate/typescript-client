@@ -177,7 +177,7 @@ describe('schema', () => {
               },
               moduleConfig: {
                 'text2vec-contextionary': {
-                  vectorizeClassName: true,
+                  vectorizeCollectionName: true,
                 },
               },
               multiTenancyConfig: {
@@ -822,7 +822,7 @@ function newClassObject(className: string) {
     },
     moduleConfig: {
       'text2vec-contextionary': {
-        vectorizeClassName: true,
+        vectorizeCollectionName: true,
       },
     },
     multiTenancyConfig: {

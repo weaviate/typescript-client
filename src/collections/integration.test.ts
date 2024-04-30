@@ -554,7 +554,7 @@ describe('Testing of the collections.create method', () => {
   });
 
   it('should be able to create a collection with the contextionary vectorizer using configure.vectorizer', async () => {
-    const collectionName = 'ThisOneIsATest'; // must include words in contextionary's vocabulary to pass since vectorizeClassName will be true
+    const collectionName = 'ThisOneIsATest'; // must include words in contextionary's vocabulary to pass since vectorizeCollectionName will be true
     const response = await contextionary.collections
       .create({
         name: collectionName,
@@ -577,7 +577,7 @@ describe('Testing of the collections.create method', () => {
     expect(response.vectorizer.default.indexType).toEqual('hnsw');
     expect(response.vectorizer.default.vectorizer.name).toEqual('text2vec-contextionary');
     expect(
-      (response.vectorizer.default.vectorizer.config as Text2VecContextionaryConfig).vectorizeClassName
+      (response.vectorizer.default.vectorizer.config as Text2VecContextionaryConfig).vectorizeCollectionName
     ).toEqual(true);
 
     await contextionary.collections.delete(collectionName);
@@ -607,7 +607,7 @@ describe('Testing of the collections.create method', () => {
     expect(response.vectorizer.default.indexType).toEqual('hnsw');
     expect(response.vectorizer.default.vectorizer.name).toEqual('text2vec-openai');
     expect(
-      (response.vectorizer.default.vectorizer.config as Text2VecOpenAIConfig).vectorizeClassName
+      (response.vectorizer.default.vectorizer.config as Text2VecOpenAIConfig).vectorizeCollectionName
     ).toEqual(true);
 
     await openai.collections.delete(collectionName);

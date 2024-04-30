@@ -172,11 +172,15 @@ class ConfigGuards {
           `Expected exactly one vectorizer for ${key} named vector, got ${vectorizerNames.length}`
         );
       const vectorizerName = vectorizerNames[0];
-      const { properties, ...rest } = vectorizer[vectorizerName] as any;
+      const { properties, ...restA } = vectorizer[vectorizerName] as any;
+      const { vectorizeClassName, ...restB } = restA;
       out[key] = {
         vectorizer: {
           name: vectorizerName,
-          config: rest,
+          config: {
+            vectorizeCollectionName: vectorizeClassName,
+            ...restB,
+          },
         },
         properties: properties,
         indexConfig: ConfigGuards.vectorIndex(v[key].vectorIndexConfig, v[key].vectorIndexType),

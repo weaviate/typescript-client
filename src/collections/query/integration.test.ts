@@ -52,7 +52,7 @@ describe('Testing of the collection.query methods with a simple collection', () 
           },
         ],
         vectorizers: weaviate.configure.vectorizer.text2VecContextionary('vector', {
-          vectorizeClassName: false,
+          vectorizeCollectionName: false,
         }),
       })
       .then(async () => {
@@ -188,7 +188,7 @@ describe('Testing of the collection.query methods with a collection with a refer
           },
         ],
         vectorizers: weaviate.configure.vectorizer.text2VecContextionary('vector', {
-          vectorizeClassName: false,
+          vectorizeCollectionName: false,
         }),
       })
       .then(async () => {
@@ -638,7 +638,7 @@ describe('Testing of the groupBy collection.query methods with a simple collecti
           },
         ],
         vectorizers: weaviate.configure.vectorizer.text2VecContextionary('vector', {
-          vectorizeClassName: false,
+          vectorizeCollectionName: false,
         }),
       })
       .then(() => {
@@ -795,7 +795,7 @@ describe('Testing of the collection.query methods with a multi-tenancy collectio
         ],
         multiTenancy: weaviate.configure.multiTenancy({ enabled: true }),
         vectorizers: weaviate.configure.vectorizer.text2VecContextionary('vector', {
-          vectorizeClassName: false,
+          vectorizeCollectionName: false,
         }),
       })
       .then(async (col) => {

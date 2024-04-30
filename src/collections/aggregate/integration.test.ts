@@ -100,7 +100,7 @@ describe('Testing of the collection.aggregate methods', () => {
           // },
         ],
         vectorizers: weaviate.configure.vectorizer.text2VecContextionary('vector', {
-          vectorizeClassName: false,
+          vectorizeCollectionName: false,
         }),
       })
       .then(async () => {

@@ -37,7 +37,7 @@ export type Img2VecNeuralConfig = {
 export type Multi2VecClipConfig = {
   imageFields?: string[];
   textFields?: string[];
-  vectorizeClassName?: boolean;
+  vectorizeCollectionName?: boolean;
 };
 
 export type Multi2VecBindConfig = {
@@ -48,7 +48,7 @@ export type Multi2VecBindConfig = {
   textFields?: string[];
   thermalFields?: string[];
   videoFields?: string[];
-  vectorizeClassName?: boolean;
+  vectorizeCollectionName?: boolean;
 };
 
 export type Multi2VecPalmConfig = {
@@ -56,7 +56,7 @@ export type Multi2VecPalmConfig = {
   location?: string;
   modelId?: string;
   dimensions?: number;
-  vectorizeClassName?: boolean;
+  vectorizeCollectionName?: boolean;
 };
 
 export type Ref2VecCentroidConfig = {
@@ -69,29 +69,29 @@ export type Text2VecAWSConfig = {
   model?: string;
   region: string;
   service: string;
-  vectorizeClassName?: boolean;
+  vectorizeCollectionName?: boolean;
 };
 
 export type Text2VecAzureOpenAIConfig = {
   baseURL?: string;
   deploymentID: string;
   resourceName: string;
-  vectorizeClassName?: boolean;
+  vectorizeCollectionName?: boolean;
 };
 
 export type Text2VecCohereConfig = {
   baseURL?: string;
   model?: string;
   truncate?: boolean;
-  vectorizeClassName?: boolean;
+  vectorizeCollectionName?: boolean;
 };
 
 export type Text2VecContextionaryConfig = {
-  vectorizeClassName?: boolean;
+  vectorizeCollectionName?: boolean;
 };
 
 export type Text2VecGPT4AllConfig = {
-  vectorizeClassName?: boolean;
+  vectorizeCollectionName?: boolean;
 };
 
 export type Text2VecHuggingFaceConfig = {
@@ -102,12 +102,12 @@ export type Text2VecHuggingFaceConfig = {
   useCache?: boolean;
   useGPU?: boolean;
   waitForModel?: boolean;
-  vectorizeClassName?: boolean;
+  vectorizeCollectionName?: boolean;
 };
 
 export type Text2VecJinaConfig = {
   model?: string;
-  vectorizeClassName?: boolean;
+  vectorizeCollectionName?: boolean;
 };
 
 export type Text2VecOpenAIConfig = {
@@ -116,26 +116,26 @@ export type Text2VecOpenAIConfig = {
   model?: string;
   modelVersion?: string;
   type?: string;
-  vectorizeClassName?: boolean;
+  vectorizeCollectionName?: boolean;
 };
 
 export type Text2VecPalmConfig = {
   apiEndpoint?: string;
   modelId?: string;
   projectId: string;
-  vectorizeClassName?: boolean;
+  vectorizeCollectionName?: boolean;
 };
 
 export type Text2VecTransformersConfig = {
   poolingStrategy?: string;
-  vectorizeClassName?: boolean;
+  vectorizeCollectionName?: boolean;
 };
 
 export type Text2VecVoyageAIConfig = {
   baseURL?: string;
   model?: string;
   truncate?: boolean;
-  vectorizeClassName?: boolean;
+  vectorizeCollectionName?: boolean;
 };
 
 export type NoVectorizerConfig = {};
