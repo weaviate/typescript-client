@@ -2135,7 +2135,7 @@ describe('named vectors test', () => {
             vectorIndexType: 'hnsw',
             vectorizer: {
               'text2vec-contextionary': {
-                vectorizeCollectionName: false,
+                vectorizeClassName: false,
                 properties: ['title'],
               },
             },
@@ -2144,7 +2144,7 @@ describe('named vectors test', () => {
             vectorIndexType: 'hnsw',
             vectorizer: {
               'text2vec-contextionary': {
-                vectorizeCollectionName: false,
+                vectorizeClassName: false,
                 properties: ['rating'],
               },
             },
