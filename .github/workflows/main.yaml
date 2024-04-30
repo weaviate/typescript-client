@@ -8,7 +8,7 @@ on:
 
 env:
   WEAVIATE_124: 1.24.10
-  WEAVIATE_125: preview-fix-backup-restore-with-include-exclude-57efdf5
+  WEAVIATE_125: 1.25.0-raft-064194f
 
 jobs:
   checks:
