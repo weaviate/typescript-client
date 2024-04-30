@@ -163,6 +163,10 @@ export interface paths {
     /** Starts a process of restoring a backup for a set of classes */
     post: operations['backups.restore'];
   };
+  '/cluster/statistics': {
+    /** Returns Raft cluster statistics of Weaviate DB. */
+    get: operations['cluster.get.statistics'];
+  };
   '/nodes': {
     /** Returns status of Weaviate DB. */
     get: operations['nodes.get'];
@@ -368,6 +372,8 @@ export interface definitions {
   MultiTenancyConfig: {
     /** @description Whether or not multi-tenancy is enabled for this class */
     enabled?: boolean;
+    /** @description Nonexistent tenants should (not) be created implicitly */
+    autoTenantCreation?: boolean;
   };
   /** @description JSON object value. */
   JsonObject: { [key: string]: unknown };
@@ -720,6 +726,8 @@ export interface definitions {
      * @description The length of the vector indexing queue.
      */
     vectorQueueLength?: number;
+    /** @description The load status of the shard. */
+    loaded?: boolean;
   };
   /** @description The definition of a backup node status response body */
   NodeStatus: {
@@ -745,6 +753,57 @@ export interface definitions {
   /** @description The status of all of the Weaviate nodes */
   NodesStatusResponse: {
     nodes?: definitions['NodeStatus'][];
+  };
+  /** @description The definition of Raft statistics. */
+  RaftStatistics: {
+    appliedIndex?: string;
+    commitIndex?: string;
+    fsmPending?: string;
+    lastContact?: string;
+    lastLogIndex?: string;
+    lastLogTerm?: string;
+    lastSnapshotIndex?: string;
+    lastSnapshotTerm?: string;
+    /** @description Weaviate Raft nodes. */
+    latestConfiguration?: { [key: string]: unknown };
+    latestConfigurationIndex?: string;
+    numPeers?: string;
+    protocolVersion?: string;
+    protocolVersionMax?: string;
+    protocolVersionMin?: string;
+    snapshotVersionMax?: string;
+    snapshotVersionMin?: string;
+    state?: string;
+    term?: string;
+  };
+  /** @description The definition of node statistics. */
+  Statistics: {
+    /** @description The name of the node. */
+    name?: string;
+    /**
+     * @description Node's status.
+     * @default HEALTHY
+     * @enum {string}
+     */
+    status?: 'HEALTHY' | 'UNHEALTHY' | 'UNAVAILABLE' | 'TIMEOUT';
+    bootstrapped?: boolean;
+    dbLoaded?: boolean;
+    /** Format: uint64 */
+    initialLastAppliedIndex?: number;
+    lastAppliedIndex?: number;
+    isVoter?: boolean;
+    leaderId?: { [key: string]: unknown };
+    leaderAddress?: { [key: string]: unknown };
+    open?: boolean;
+    ready?: boolean;
+    candidates?: { [key: string]: unknown };
+    /** @description Weaviate Raft statistics. */
+    raft?: definitions['RaftStatistics'];
+  };
+  /** @description The cluster statistics of all of the Weaviate nodes */
+  ClusterStatisticsResponse: {
+    statistics?: definitions['Statistics'][];
+    synchronized?: boolean;
   };
   /** @description Either set beacon (direct reference) or set class and schema (concept reference) */
   SingleRef: {
@@ -2233,6 +2292,12 @@ export interface operations {
     };
   };
   'schema.dump': {
+    parameters: {
+      header: {
+        /** If consistency is true, the request will be proxied to the leader to ensure strong schema consistency */
+        consistency?: boolean;
+      };
+    };
     responses: {
       /** Successfully dumped the database schema. */
       200: {
@@ -2281,6 +2346,10 @@ export interface operations {
     parameters: {
       path: {
         className: string;
+      };
+      header: {
+        /** If consistency is true, the request will be proxied to the leader to ensure strong schema consistency */
+        consistency?: boolean;
       };
     };
     responses: {
@@ -2464,6 +2533,10 @@ export interface operations {
       path: {
         className: string;
       };
+      header: {
+        /** If consistency is true, the request will be proxied to the leader to ensure strong schema consistency */
+        consistency?: boolean;
+      };
     };
     responses: {
       /** tenants from specified class. */
@@ -2583,6 +2656,10 @@ export interface operations {
       path: {
         className: string;
         tenantName: string;
+      };
+      header: {
+        /** If consistency is true, the request will be proxied to the leader to ensure strong schema consistency */
+        consistency?: boolean;
       };
     };
     responses: {
@@ -2733,6 +2810,29 @@ export interface operations {
         schema: definitions['ErrorResponse'];
       };
       /** Invalid backup restoration attempt. */
+      422: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
+  /** Returns Raft cluster statistics of Weaviate DB. */
+  'cluster.get.statistics': {
+    responses: {
+      /** Cluster statistics successfully returned */
+      200: {
+        schema: definitions['ClusterStatisticsResponse'];
+      };
+      /** Unauthorized or invalid credentials. */
+      401: unknown;
+      /** Forbidden */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Invalid backup restoration status attempt. */
       422: {
         schema: definitions['ErrorResponse'];
       };
