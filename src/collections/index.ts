@@ -28,6 +28,7 @@ import { classToCollection, resolveProperty, resolveReference } from './config/u
 import { WeaviateClass } from '../openapi/types.js';
 import { QuantizerGuards } from './configure/parsing.js';
 import { PrimitiveKeys } from './types/internal.js';
+import { WeaviateInvalidInputError } from '../errors.js';
 
 export type CollectionConfigCreate<TProperties = undefined, N = string> = {
   name: N;
@@ -127,7 +128,7 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
           vectorsConfig![v.vectorName] = vectorConfig;
         });
       } else {
-        throw new Error('Either vectorizer or vectorizers can be defined, not both');
+        throw new WeaviateInvalidInputError('Either vectorizer or vectorizers can be defined, not both');
       }
 
       const properties = config.properties

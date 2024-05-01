@@ -96,6 +96,7 @@ import {
 import { Beacon } from '../references/index.js';
 import { ReferenceGuards } from '../references/classes.js';
 import { uuidToBeacon } from '../references/utils.js';
+import { WeaviateInvalidInputError, WeaviateSerializationError } from '../../errors.js';
 
 class FilterGuards {
   static isFilters = (
@@ -549,12 +550,14 @@ export class Serialize {
     if (target.property) {
       return [target.property];
     } else if (target.singleTarget) {
-      throw new Error(
+      throw new WeaviateSerializationError(
         'Cannot use Filter.byRef() in the aggregate API currently. Instead use Filter.byRefMultiTarget() and specify the target collection explicitly.'
       );
     } else if (target.multiTarget) {
       if (target.multiTarget.target === undefined) {
-        throw new Error(`target of multiTarget filter was unexpectedly undefined: ${target}`);
+        throw new WeaviateSerializationError(
+          `target of multiTarget filter was unexpectedly undefined: ${target}`
+        );
       }
       return [
         target.multiTarget.on,
@@ -577,7 +580,7 @@ export class Serialize {
       };
     } else {
       if (filters.target === undefined) {
-        throw new Error(`target of filter was unexpectedly undefined: ${filters}`);
+        throw new WeaviateSerializationError(`target of filter was unexpectedly undefined: ${filters}`);
       }
       const out = {
         path: Serialize.filterTargetToREST(filters.target),
@@ -647,7 +650,7 @@ export class Serialize {
           },
         };
       } else {
-        throw new Error('Invalid filter value type');
+        throw new WeaviateInvalidInputError('Invalid filter value type');
       }
     }
   };

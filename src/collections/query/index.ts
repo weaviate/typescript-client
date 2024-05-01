@@ -28,6 +28,7 @@ import {
   Query,
   QueryReturn,
 } from './types.js';
+import { WeaviateInvalidInputError } from '../../errors.js';
 
 class QueryManager<T> implements Query<T> {
   connection: Connection;
@@ -158,7 +159,7 @@ class QueryManager<T> implements Query<T> {
           );
           break;
         default:
-          throw new Error(`Invalid media type: ${type}`);
+          throw new WeaviateInvalidInputError(`Invalid media type: ${type}`);
       }
       return reply.then((reply) =>
         Serialize.isGroupBy(opts) ? Deserialize.groupBy<T>(reply) : Deserialize.query<T>(reply)
