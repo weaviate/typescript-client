@@ -37,7 +37,7 @@ describe('Testing of the collection.query methods with a simple collection', () 
         port: 50051,
       },
     });
-    collection = client.collections.use(collectionName);
+    collection = client.collections.get(collectionName);
     id = await client.collections
       .create({
         name: collectionName,
@@ -170,7 +170,7 @@ describe('Testing of the collection.query methods with a collection with a refer
         port: 50051,
       },
     });
-    collection = client.collections.use(collectionName);
+    collection = client.collections.get(collectionName);
     return client.collections
       .create({
         name: collectionName,
@@ -210,7 +210,7 @@ describe('Testing of the collection.query methods with a collection with a refer
 
   describe('using a non-generic collection', () => {
     it('should query without searching returning the referenced object', async () => {
-      const ret = await client.collections.use(collectionName).query.fetchObjects({
+      const ret = await client.collections.get(collectionName).query.fetchObjects({
         returnProperties: ['testProp'],
         returnReferences: [
           {
@@ -402,7 +402,7 @@ describe('Testing of the collection.query methods with a collection with a refer
           port: 50051,
         },
       });
-      collection = client.collections.use(collectionName);
+      collection = client.collections.get(collectionName);
       return client.collections
         .create<TestCollectionQueryWithNestedProps>({
           name: collectionName,
@@ -538,7 +538,7 @@ describe('Testing of the collection.query methods with a collection with a refer
           port: 50051,
         },
       });
-      collection = client.collections.use(collectionName);
+      collection = client.collections.get(collectionName);
       return client.collections
         .create<TestCollectionQueryWithMultiVector>({
           name: collectionName,
@@ -627,7 +627,7 @@ describe('Testing of the groupBy collection.query methods with a simple collecti
         port: 50051,
       },
     });
-    collection = client.collections.use(collectionName);
+    collection = client.collections.get(collectionName);
     id = await client.collections
       .create({
         name: collectionName,
@@ -743,7 +743,7 @@ describe('Testing of the groupBy collection.query methods with a simple collecti
   });
 
   it('should groupBy with nearVector and a non-generic collection', async () => {
-    const ret = await client.collections.use(collectionName).query.nearVector(vector, {
+    const ret = await client.collections.get(collectionName).query.nearVector(vector, {
       groupBy: {
         numberOfGroups: 1,
         objectsPerGroup: 1,
@@ -783,7 +783,7 @@ describe('Testing of the collection.query methods with a multi-tenancy collectio
 
   beforeAll(async () => {
     client = await weaviate.connectToLocal();
-    collection = client.collections.use(collectionName);
+    collection = client.collections.get(collectionName);
     [id1, id2] = await client.collections
       .create<TestCollectionMultiTenancy>({
         name: collectionName,
@@ -935,7 +935,7 @@ maybe('Testing of collection.query using rerank functionality', () => {
         'X-OpenAI-Api-Key': process.env.OPENAI_APIKEY as string,
       },
     });
-    collection = client.collections.use(collectionName);
+    collection = client.collections.get(collectionName);
     [id1, id2] = await client.collections
       .create({
         name: collectionName,

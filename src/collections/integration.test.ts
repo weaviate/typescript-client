@@ -97,7 +97,7 @@ describe('Testing of the collections.create method', () => {
           },
         ],
       })
-      .then(() => contextionary.collections.use(collectionName).config.get());
+      .then(() => contextionary.collections.get(collectionName).config.get());
     expect(response.name).toEqual(collectionName);
     expect(response.properties?.length).toEqual(1);
     expect(response.properties[0].name).toEqual('testProp');
@@ -123,7 +123,7 @@ describe('Testing of the collections.create method', () => {
     const response = await contextionary.collections
       .create(schema)
       .then(async (collection) => expect(await collection.exists()).toEqual(true))
-      .then(() => contextionary.collections.use(collectionName).config.get());
+      .then(() => contextionary.collections.get(collectionName).config.get());
     expect(response.name).toEqual(collectionName);
     expect(response.properties?.length).toEqual(1);
     expect(response.properties[0].name).toEqual('testProp');
@@ -469,7 +469,7 @@ describe('Testing of the collections.create method', () => {
         },
       })
       .then(async (collection) => expect(await collection.exists()).toEqual(true))
-      .then(() => cluster.collections.use(collectionName).config.get());
+      .then(() => cluster.collections.get(collectionName).config.get());
 
     expect(response.name).toEqual(collectionName);
     expect(response.description).toEqual('A test collection');
@@ -567,7 +567,7 @@ describe('Testing of the collections.create method', () => {
         vectorizers: weaviate.configure.vectorizer.text2VecContextionary('default'),
       })
       .then(async (collection) => expect(await collection.exists()).toEqual(true))
-      .then(() => contextionary.collections.use(collectionName).config.get());
+      .then(() => contextionary.collections.get(collectionName).config.get());
     expect(response.name).toEqual(collectionName);
     expect(response.properties?.length).toEqual(1);
     expect(response.properties?.[0].name).toEqual('testProp');
@@ -597,7 +597,7 @@ describe('Testing of the collections.create method', () => {
         vectorizers: weaviate.configure.vectorizer.text2VecOpenAI('default'),
       })
       .then(async (collection) => expect(await collection.exists()).toEqual(true))
-      .then(() => openai.collections.use(collectionName).config.get());
+      .then(() => openai.collections.get(collectionName).config.get());
     expect(response.name).toEqual(collectionName);
     expect(response.properties?.length).toEqual(1);
     expect(response.properties?.[0].name).toEqual('testProp');
@@ -627,7 +627,7 @@ describe('Testing of the collections.create method', () => {
         generative: weaviate.configure.generative.openAI(),
       })
       .then(async (collection) => expect(await collection.exists()).toEqual(true))
-      .then(() => openai.collections.use(collectionName).config.get());
+      .then(() => openai.collections.get(collectionName).config.get());
     expect(response.name).toEqual(collectionName);
     expect(response.properties?.length).toEqual(1);
     expect(response.properties?.[0].name).toEqual('testProp');

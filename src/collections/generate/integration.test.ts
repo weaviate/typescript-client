@@ -47,7 +47,7 @@ maybe('Testing of the collection.generate methods with a simple collection', () 
         'X-Openai-Api-Key': process.env.OPENAI_APIKEY!,
       },
     });
-    collection = client.collections.use(collectionName);
+    collection = client.collections.get(collectionName);
     id = await client.collections
       .create({
         name: collectionName,
@@ -75,7 +75,7 @@ maybe('Testing of the collection.generate methods with a simple collection', () 
 
   describe('using a non-generic collection', () => {
     it('should generate without search', async () => {
-      const ret = await client.collections.use(collectionName).generate.fetchObjects({
+      const ret = await client.collections.get(collectionName).generate.fetchObjects({
         singlePrompt: 'Write a haiku about ducks for {testProp}',
         groupedTask: 'What is the value of testProp here?',
         groupedProperties: ['testProp'],
@@ -202,7 +202,7 @@ maybe('Testing of the groupBy collection.generate methods with a simple collecti
         'X-Openai-Api-Key': process.env.OPENAI_APIKEY!,
       },
     });
-    collection = client.collections.use(collectionName);
+    collection = client.collections.get(collectionName);
     id = await client.collections
       .create({
         name: collectionName,

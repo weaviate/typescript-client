@@ -27,7 +27,7 @@ describe('Testing of the collection.data methods', () => {
         port: 50051,
       },
     });
-    collection = client.collections.use(collectionName);
+    collection = client.collections.get(collectionName);
     return client.collections
       .create({
         name: collectionName,
