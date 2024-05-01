@@ -73,7 +73,7 @@ describe('Testing of the collections.create method', () => {
           },
         ],
       })
-      .then(() => contextionary.collections.use<TestCollectionSimple>(collectionName).config.get());
+      .then(() => contextionary.collections.get<TestCollectionSimple>(collectionName).config.get());
     expect(response.name).toEqual(collectionName);
     expect(response.properties?.length).toEqual(1);
     expect(response.properties[0].name).toEqual('testProp');
@@ -152,7 +152,7 @@ describe('Testing of the collections.create method', () => {
     const response = await contextionary.collections
       .create<TestCollectionSimple>(schema)
       .then(async (collection) => expect(await collection.exists()).toEqual(true))
-      .then(() => contextionary.collections.use<TestCollectionSimple>(collectionName).config.get());
+      .then(() => contextionary.collections.get<TestCollectionSimple>(collectionName).config.get());
     expect(response.name).toEqual(collectionName);
     expect(response.properties?.length).toEqual(1);
     expect(response.properties[0].name).toEqual('testProp');
@@ -181,7 +181,7 @@ describe('Testing of the collections.create method', () => {
     const response = await contextionary.collections
       .create<TestCollectionSimple>(schema)
       .then(async (collection) => expect(await collection.exists()).toEqual(true))
-      .then(() => contextionary.collections.use<TestCollectionSimple>(collectionName).config.get());
+      .then(() => contextionary.collections.get<TestCollectionSimple>(collectionName).config.get());
     expect(response.name).toEqual(collectionName);
     expect(response.properties?.length).toEqual(1);
     expect(response.properties[0].name).toEqual('testProp');
@@ -217,7 +217,7 @@ describe('Testing of the collections.create method', () => {
         ],
       })
       .then(async (collection) => expect(await collection.exists()).toEqual(true))
-      .then(() => contextionary.collections.use<TestCollectionNested>(collectionName).config.get());
+      .then(() => contextionary.collections.get<TestCollectionNested>(collectionName).config.get());
     expect(response.name).toEqual(collectionName);
     expect(response.properties.length).toEqual(1);
     expect(response.properties[0].name).toEqual('testProp');

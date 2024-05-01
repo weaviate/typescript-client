@@ -39,7 +39,7 @@ describe('Testing of the collection.config namespace', () => {
       ],
       vectorizers: weaviate.configure.vectorizer.none('default'),
     });
-    const collection = client.collections.use<TestCollectionConfigGet>(collectionName);
+    const collection = client.collections.get<TestCollectionConfigGet>(collectionName);
     const config = await collection.config.get();
 
     expect(config.name).toEqual(collectionName);
@@ -91,7 +91,7 @@ describe('Testing of the collection.config namespace', () => {
       ],
       vectorizers: weaviate.configure.vectorizer.none('default'),
     });
-    const collection = client.collections.use<TestCollectionConfigGet>(collectionName);
+    const collection = client.collections.get<TestCollectionConfigGet>(collectionName);
     const config = await collection.config.get();
 
     expect(config.name).toEqual(collectionName);
