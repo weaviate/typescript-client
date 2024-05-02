@@ -6,3 +6,4 @@ export default ConnectionGQL;
 
 export type { ConnectionParams } from './http.js';
 export { ConnectionGQL, ConnectionGRPC, ConnectionREST };
+export type { ConnectToCustomOptions, ConnectToLocalOptions, ConnectToWCSOptions } from './helpers.js';
