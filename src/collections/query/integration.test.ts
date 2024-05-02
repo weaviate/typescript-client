@@ -929,7 +929,7 @@ maybe('Testing of collection.query using rerank functionality', () => {
 
   beforeAll(async () => {
     client = await weaviate.connectToLocal({
-      httpPort: 8079,
+      port: 8079,
       grpcPort: 50050,
       headers: {
         'X-OpenAI-Api-Key': process.env.OPENAI_APIKEY as string,
