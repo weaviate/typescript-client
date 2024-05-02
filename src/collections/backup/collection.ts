@@ -1,6 +1,10 @@
 import { Backend, BackupStatus } from '../../backup/index.js';
 import Connection from '../../connection/index.js';
-import { BackupCreateResponse, BackupRestoreStatusResponse } from '../../openapi/types.js';
+import {
+  BackupCreateResponse,
+  BackupCreateStatusResponse,
+  BackupRestoreStatusResponse,
+} from '../../openapi/types.js';
 import { BackupStatusArgs, backup } from './client.js';
 
 /** The arguments required to create and restore backups. */
@@ -45,14 +49,14 @@ export interface BackupCollection {
    * @param {BackupStatusArgs} args The arguments for the request.
    * @returns {Promise<BackupStatus>} The status of the backup.
    */
-  getCreateStatus(args: BackupStatusArgs): Promise<BackupStatus>;
+  getCreateStatus(args: BackupStatusArgs): Promise<BackupCreateStatusResponse>;
   /**
    * Get the status of a restore.
    *
    * @param {BackupStatusArgs} args The arguments for the request.
    * @returns {Promise<BackupStatus>} The status of the restore.
    */
-  getRestoreStatus(args: BackupStatusArgs): Promise<BackupStatus>;
+  getRestoreStatus(args: BackupStatusArgs): Promise<BackupRestoreStatusResponse>;
   /**
    * Restore a backup of this collection.
    *

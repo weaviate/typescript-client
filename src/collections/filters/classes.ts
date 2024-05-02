@@ -1,3 +1,4 @@
+import { WeaviateInvalidInputError } from '../../errors.js';
 import {
   FilterTarget,
   FilterReferenceCount,
@@ -86,7 +87,7 @@ export class FilterBase {
       if (TargetGuards.isTargetRef(target.target)) {
         target = target.target;
       } else {
-        throw new Error('Invalid target reference');
+        throw new WeaviateInvalidInputError('Invalid target reference');
       }
     }
     target.target = this.property;

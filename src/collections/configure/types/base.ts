@@ -38,7 +38,6 @@ type NestedPropertyCreate<T = undefined> = T extends undefined
       indexInverted?: boolean;
       indexFilterable?: boolean;
       indexSearchable?: boolean;
-      skipVectorisation?: boolean;
       tokenization?: WeaviateNestedProperty['tokenization'];
       vectorizePropertyName?: boolean;
     }
@@ -69,7 +68,6 @@ type PropertyConfigCreateBase = {
   indexInverted?: boolean;
   indexFilterable?: boolean;
   indexSearchable?: boolean;
-  skipVectorisation?: boolean;
   tokenization?: WeaviateProperty['tokenization'];
   vectorizePropertyName?: boolean;
 };
@@ -91,7 +89,6 @@ export type PropertyConfigCreate<T> = T extends undefined
       indexInverted?: boolean;
       indexFilterable?: boolean;
       indexSearchable?: boolean;
-      skipVectorisation?: boolean;
       tokenization?: WeaviateProperty['tokenization'];
       vectorizePropertyName?: boolean;
     }

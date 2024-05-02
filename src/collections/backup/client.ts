@@ -7,7 +7,12 @@ import {
   BackupStatus,
 } from '../../backup/index.js';
 import Connection from '../../connection/index.js';
-import { BackupCreateResponse, BackupRestoreStatusResponse } from '../../openapi/types.js';
+import { WeaviateBackupFailed, WeaviateDeserializationError } from '../../errors.js';
+import {
+  BackupCreateResponse,
+  BackupCreateStatusResponse,
+  BackupRestoreStatusResponse,
+} from '../../openapi/types.js';
 
 /** The arguments required to create and restore backups. */
 export interface BackupArgs {
@@ -39,25 +44,17 @@ export type BackupReturn = {
 };
 
 export const backup = (connection: Connection) => {
-  const getCreateStatus = (args: BackupStatusArgs): Promise<BackupStatus> => {
+  const getCreateStatus = (args: BackupStatusArgs): Promise<BackupCreateStatusResponse> => {
     return new BackupCreateStatusGetter(connection)
       .withBackupId(args.backupId)
       .withBackend(args.backend)
-      .do()
-      .then((res) => {
-        if (!res.status) throw new Error('No status returned by Weaviate');
-        return res.status;
-      });
+      .do();
   };
-  const getRestoreStatus = (args: BackupStatusArgs): Promise<BackupStatus> => {
+  const getRestoreStatus = (args: BackupStatusArgs): Promise<BackupRestoreStatusResponse> => {
     return new BackupRestoreStatusGetter(connection)
       .withBackupId(args.backupId)
       .withBackend(args.backend)
-      .do()
-      .then((res) => {
-        if (!res.status) throw new Error('No status returned by Weaviate');
-        return res.status;
-      });
+      .do();
   };
   return {
     create: async (args: BackupArgs): Promise<BackupCreateResponse> => {
@@ -74,12 +71,12 @@ export const backup = (connection: Connection) => {
       if (args.waitForCompletion) {
         let wait = true;
         while (wait) {
-          const status = await getCreateStatus(args); // eslint-disable-line no-await-in-loop
-          if (status === 'SUCCESS') {
+          const res = await getCreateStatus(args); // eslint-disable-line no-await-in-loop
+          if (res.status === 'SUCCESS') {
             wait = false;
           }
-          if (status === 'FAILED') {
-            throw new Error('Backup creation failed');
+          if (res.status === 'FAILED') {
+            throw new WeaviateBackupFailed(res.error ? res.error : '<unknown>', 'creation');
           }
           await new Promise((resolve) => setTimeout(resolve, 1000)); // eslint-disable-line no-await-in-loop
         }
@@ -104,12 +101,12 @@ export const backup = (connection: Connection) => {
       if (args.waitForCompletion) {
         let wait = true;
         while (wait) {
-          const status = await getRestoreStatus(args); // eslint-disable-line no-await-in-loop
-          if (status === 'SUCCESS') {
+          const res = await getRestoreStatus(args); // eslint-disable-line no-await-in-loop
+          if (res.status === 'SUCCESS') {
             wait = false;
           }
-          if (status === 'FAILED') {
-            throw new Error('Backup creation failed');
+          if (res.status === 'FAILED') {
+            throw new WeaviateBackupFailed(res.error ? res.error : '<unknown>', 'restoration');
           }
           await new Promise((resolve) => setTimeout(resolve, 1000)); // eslint-disable-line no-await-in-loop
         }
@@ -135,14 +132,14 @@ export interface Backup {
    * @param {BackupStatusArgs} args The arguments for the request.
    * @returns {Promise<BackupStatus>} The status of the backup creation.
    */
-  getCreateStatus(args: BackupStatusArgs): Promise<BackupStatus>;
+  getCreateStatus(args: BackupStatusArgs): Promise<BackupCreateStatusResponse>;
   /**
    * Get the status of a backup restore.
    *
    * @param {BackupStatusArgs} args The arguments for the request.
    * @returns {Promise<BackupStatus>} The status of the backup restore.
    */
-  getRestoreStatus(args: BackupStatusArgs): Promise<BackupStatus>;
+  getRestoreStatus(args: BackupStatusArgs): Promise<BackupRestoreStatusResponse>;
   /**
    * Restore a backup of the database.
    *

@@ -11,6 +11,7 @@ import {
 import { classToCollection, resolveProperty, resolveReference } from './utils.js';
 import ClassUpdater from '../../schema/classUpdater.js';
 import { MergeWithExisting } from './classes.js';
+import { WeaviateDeserializationError } from '../../errors.js';
 
 const config = <T>(connection: Connection, name: string, tenant?: string): Config<T> => {
   const getRaw = new ClassGetter(connection).withClassName(name).do;
@@ -37,10 +38,12 @@ const config = <T>(connection: Connection, name: string, tenant?: string): Confi
       }
       return builder.do().then((shards) =>
         shards.map((shard) => {
-          if (shard.name === undefined) throw new Error('Shard name was not returned by Weaviate');
-          if (shard.status === undefined) throw new Error('Shard status was not returned by Weaviate');
+          if (shard.name === undefined)
+            throw new WeaviateDeserializationError('Shard name was not returned by Weaviate');
+          if (shard.status === undefined)
+            throw new WeaviateDeserializationError('Shard status was not returned by Weaviate');
           if (shard.vectorQueueSize === undefined)
-            throw new Error('Shard vector queue size was not returned by Weaviate');
+            throw new WeaviateDeserializationError('Shard vector queue size was not returned by Weaviate');
           return { name: shard.name, status: shard.status, vectorQueueSize: shard.vectorQueueSize };
         })
       );
