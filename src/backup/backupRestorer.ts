@@ -7,7 +7,12 @@ import {
 import Connection from '../connection';
 import BackupRestoreStatusGetter from './backupRestoreStatusGetter';
 import { CommandBase } from '../validation/commandBase';
-import { BackupRestoreRequest, BackupRestoreResponse, BackupRestoreStatusResponse } from '../openapi/types';
+import {
+  BackupRestoreRequest,
+  BackupRestoreResponse,
+  BackupRestoreStatusResponse,
+  RestoreConfig,
+} from '../openapi/types';
 import { Backend } from '.';
 
 const WAIT_INTERVAL = 1000;
@@ -19,6 +24,7 @@ export default class BackupRestorer extends CommandBase {
   private includeClassNames?: string[];
   private statusGetter: BackupRestoreStatusGetter;
   private waitForCompletion?: boolean;
+  private config?: RestoreConfig;
 
   constructor(client: Connection, statusGetter: BackupRestoreStatusGetter) {
     super(client);
@@ -58,6 +64,11 @@ export default class BackupRestorer extends CommandBase {
     return this;
   }
 
+  withConfig(cfg: RestoreConfig) {
+    this.config = cfg;
+    return this;
+  }
+
   validate = (): void => {
     this.addErrors([
       ...validateIncludeClassNames(this.includeClassNames || []),
@@ -74,7 +85,7 @@ export default class BackupRestorer extends CommandBase {
     }
 
     const payload = {
-      config: {},
+      config: this.config,
       include: this.includeClassNames,
       exclude: this.excludeClassNames,
     } as BackupRestoreRequest;

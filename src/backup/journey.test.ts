@@ -674,6 +674,283 @@ describe('fail restoring backup for both include and exclude classes', () => {
   it('cleans up', () => cleanupTestFood(client).catch(() => Promise.resolve('ignore not exising Pizza')));
 });
 
+describe('creates backup with valid compression config values', () => {
+  const BACKEND: Backend = 'filesystem';
+  const BACKUP_ID = randomBackupId();
+
+  const client = weaviate.client({
+    scheme: 'http',
+    host: 'localhost:8080',
+  });
+
+  it('sets up', () => createTestFoodSchemaAndData(client));
+
+  it('creates backup', () => {
+    return client.backup
+      .creator()
+      .withIncludeClassNames(PIZZA_CLASS_NAME, SOUP_CLASS_NAME)
+      .withBackend(BACKEND)
+      .withBackupId(BACKUP_ID)
+      .withWaitForCompletion(true)
+      .withConfig({
+        CPUPercentage: 80,
+        ChunkSize: 512,
+        CompressionLevel: 'BestSpeed',
+      })
+      .do()
+      .catch((err: Error) => {
+        throw new Error('should not fail on create backup: ' + err);
+      });
+  });
+
+  it('cleans up', () => cleanupTestFood(client));
+});
+
+describe('fails creating backup with invalid compression config', () => {
+  const BACKEND: Backend = 'filesystem';
+  const BACKUP_ID = randomBackupId();
+
+  const client = weaviate.client({
+    scheme: 'http',
+    host: 'localhost:8080',
+  });
+
+  it('sets up', () => createTestFoodSchemaAndData(client));
+
+  it('fails creating backup with CPUPercentage too high', () => {
+    return client.backup
+      .creator()
+      .withIncludeClassNames(PIZZA_CLASS_NAME)
+      .withBackend(BACKEND)
+      .withBackupId(BACKUP_ID)
+      .withConfig({
+        CPUPercentage: 81, // Max is 80
+      })
+      .do()
+      .then(() => {
+        throw new Error('should fail on create backup');
+      })
+      .catch((err: Error) => {
+        expect(err.message).toContain('422');
+        expect(err.message).toContain('CPUPercentage');
+      });
+  });
+
+  it('fails creating backup with CPUPercentage too low', () => {
+    return client.backup
+      .creator()
+      .withIncludeClassNames(PIZZA_CLASS_NAME)
+      .withBackend(BACKEND)
+      .withBackupId(BACKUP_ID)
+      .withConfig({
+        CPUPercentage: -1,
+      })
+      .do()
+      .then(() => {
+        throw new Error('should fail on create backup');
+      })
+      .catch((err: Error) => {
+        expect(err.message).toContain('422');
+        expect(err.message).toContain('CPUPercentage');
+      });
+  });
+
+  it('fails creating backup with ChunkSize too high', () => {
+    return client.backup
+      .creator()
+      .withIncludeClassNames(PIZZA_CLASS_NAME)
+      .withBackend(BACKEND)
+      .withBackupId(BACKUP_ID)
+      .withConfig({
+        ChunkSize: 513, // Max is 512
+      })
+      .do()
+      .then(() => {
+        throw new Error('should fail on create backup');
+      })
+      .catch((err: Error) => {
+        expect(err.message).toContain('422');
+        expect(err.message).toContain('ChunkSize');
+      });
+  });
+
+  it('fails creating backup with ChunkSize too low', () => {
+    return client.backup
+      .creator()
+      .withIncludeClassNames(PIZZA_CLASS_NAME)
+      .withBackend(BACKEND)
+      .withBackupId(BACKUP_ID)
+      .withConfig({
+        ChunkSize: 1, // Min is 2
+      })
+      .do()
+      .then(() => {
+        throw new Error('should fail on create backup');
+      })
+      .catch((err: Error) => {
+        expect(err.message).toContain('422');
+        expect(err.message).toContain('ChunkSize');
+      });
+  });
+
+  it('cleans up', () => cleanupTestFood(client));
+});
+
+describe('restores backup with valid compression config values', () => {
+  const BACKEND: Backend = 'filesystem';
+  const BACKUP_ID = randomBackupId();
+
+  const client = weaviate.client({
+    scheme: 'http',
+    host: 'localhost:8080',
+  });
+
+  it('sets up', () => createTestFoodSchemaAndData(client));
+
+  it('asserts data exist', () => assertThatAllPizzasExist(client));
+
+  it('creates backup', () => {
+    return client.backup
+      .creator()
+      .withIncludeClassNames(PIZZA_CLASS_NAME)
+      .withBackend(BACKEND)
+      .withBackupId(BACKUP_ID)
+      .withWaitForCompletion(true)
+      .do()
+      .catch((err: any) => {
+        throw new Error('should not fail on create backup: ' + err);
+      });
+  });
+
+  it('removes existing class', () => {
+    return client.schema
+      .classDeleter()
+      .withClassName(PIZZA_CLASS_NAME)
+      .do()
+      .catch((err: any) => {
+        throw new Error('should not fail on class delete: ' + err);
+      });
+  });
+
+  it('restores backup', () => {
+    return client.backup
+      .restorer()
+      .withIncludeClassNames(PIZZA_CLASS_NAME)
+      .withBackend(BACKEND)
+      .withBackupId(BACKUP_ID)
+      .withWaitForCompletion(true)
+      .withConfig({
+        CPUPercentage: 80,
+      })
+      .do()
+      .then((restoreResponse: BackupRestoreResponse) => {
+        expect(restoreResponse.status).toBe('SUCCESS');
+        expect(restoreResponse.error).toBeUndefined();
+      })
+      .catch((err: Error) => {
+        throw new Error('should not fail on restore backup: ' + err);
+      });
+  });
+
+  it('asserts data again exist', () => assertThatAllPizzasExist(client));
+
+  it('checks restore status', () => {
+    return client.backup
+      .restoreStatusGetter()
+      .withBackend(BACKEND)
+      .withBackupId(BACKUP_ID)
+      .do()
+      .then((restoreStatusResponse: BackupRestoreStatusResponse) => {
+        expect(restoreStatusResponse.status).toBe('SUCCESS');
+        expect(restoreStatusResponse.error).toBeUndefined();
+      })
+      .catch((err: Error) => {
+        throw new Error('should not fail on restore status: ' + err);
+      });
+  });
+
+  it('cleans up', () => cleanupTestFood(client));
+});
+
+describe('fails restoring backup with invalid compression config', () => {
+  const BACKEND: Backend = 'filesystem';
+  const BACKUP_ID = randomBackupId();
+
+  const client = weaviate.client({
+    scheme: 'http',
+    host: 'localhost:8080',
+  });
+
+  it('sets up', () => createTestFoodSchemaAndData(client));
+
+  it('asserts data exist', () => assertThatAllPizzasExist(client));
+
+  it('creates backup', () => {
+    return client.backup
+      .creator()
+      .withIncludeClassNames(PIZZA_CLASS_NAME)
+      .withBackend(BACKEND)
+      .withBackupId(BACKUP_ID)
+      .withWaitForCompletion(true)
+      .do()
+      .catch((err: any) => {
+        throw new Error('should not fail on create backup: ' + err);
+      });
+  });
+
+  it('removes existing class', () => {
+    return client.schema
+      .classDeleter()
+      .withClassName(PIZZA_CLASS_NAME)
+      .do()
+      .catch((err: any) => {
+        throw new Error('should not fail on class delete: ' + err);
+      });
+  });
+
+  it('fails restoring backup with too high CPUPercentage', () => {
+    return client.backup
+      .restorer()
+      .withIncludeClassNames(PIZZA_CLASS_NAME)
+      .withExcludeClassNames(SOUP_CLASS_NAME)
+      .withBackend(BACKEND)
+      .withBackupId(BACKUP_ID)
+      .withConfig({
+        CPUPercentage: 81, // Max is 80
+      })
+      .do()
+      .then(() => {
+        throw new Error('should fail on restore');
+      })
+      .catch((err: Error) => {
+        expect(err.message).toContain('422');
+        expect(err.message).toContain('CPUPercentage');
+      });
+  });
+
+  it('fails restoring backup with too low CPUPercentage', () => {
+    return client.backup
+      .restorer()
+      .withIncludeClassNames(PIZZA_CLASS_NAME)
+      .withExcludeClassNames(SOUP_CLASS_NAME)
+      .withBackend(BACKEND)
+      .withBackupId(BACKUP_ID)
+      .withConfig({
+        CPUPercentage: -1,
+      })
+      .do()
+      .then(() => {
+        throw new Error('should fail on restore');
+      })
+      .catch((err: Error) => {
+        expect(err.message).toContain('422');
+        expect(err.message).toContain('CPUPercentage');
+      });
+  });
+
+  it('cleans up', () => cleanupTestFood(client));
+});
+
 // describe("get all exising backups", () => {
 //   const BACKEND: Backend = 'filesystem';
 //   const BACKUP_ID = randomBackupId()
