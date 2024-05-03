@@ -39,7 +39,6 @@ type NestedPropertyCreate<T = undefined> = T extends undefined
       indexFilterable?: boolean;
       indexSearchable?: boolean;
       tokenization?: WeaviateNestedProperty['tokenization'];
-      vectorizePropertyName?: boolean;
     }
   : {
       [K in NonRefKeys<T>]: RequiresNested<DataType<T[K]>> extends true
@@ -69,6 +68,7 @@ type PropertyConfigCreateBase = {
   indexFilterable?: boolean;
   indexSearchable?: boolean;
   tokenization?: WeaviateProperty['tokenization'];
+  skipVectorization?: boolean;
   vectorizePropertyName?: boolean;
 };
 
@@ -90,6 +90,7 @@ export type PropertyConfigCreate<T> = T extends undefined
       indexFilterable?: boolean;
       indexSearchable?: boolean;
       tokenization?: WeaviateProperty['tokenization'];
+      skipVectorization?: boolean;
       vectorizePropertyName?: boolean;
     }
   : {

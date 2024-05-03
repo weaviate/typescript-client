@@ -136,6 +136,7 @@ describe('Testing of the collection.config namespace', () => {
         {
           name: 'title',
           dataType: 'text',
+          skipVectorization: true,
           vectorizePropertyName: false,
         },
         {
@@ -160,9 +161,11 @@ describe('Testing of the collection.config namespace', () => {
     expect(config.properties[0].vectorizerConfig?.['text2vec-contextionary'].vectorizePropertyName).toEqual(
       false
     );
+    expect(config.properties[0].vectorizerConfig?.['text2vec-contextionary'].skip).toEqual(true);
     expect(config.properties[1].vectorizerConfig?.['text2vec-contextionary'].vectorizePropertyName).toEqual(
       true
     );
+    expect(config.properties[1].vectorizerConfig?.['text2vec-contextionary'].skip).toEqual(false);
     expect(config.vectorizer.title.indexConfig).toBeDefined();
     expect(config.vectorizer.title.indexType).toEqual('hnsw');
     expect(config.vectorizer.title.properties).toEqual(['title']);

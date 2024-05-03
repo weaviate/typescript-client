@@ -56,10 +56,11 @@ export const resolveProperty = <T>(
   prop: PropertyConfigCreate<T>,
   vectorizers?: string[]
 ): WeaviateProperty => {
-  const { dataType, nestedProperties, vectorizePropertyName, ...rest } = prop;
+  const { dataType, nestedProperties, skipVectorization, vectorizePropertyName, ...rest } = prop;
   const moduleConfig: any = {};
   vectorizers?.forEach((vectorizer) => {
     moduleConfig[vectorizer] = {
+      skip: skipVectorization === undefined ? false : skipVectorization,
       vectorizePropertyName: vectorizePropertyName === undefined ? true : vectorizePropertyName,
     };
   });
