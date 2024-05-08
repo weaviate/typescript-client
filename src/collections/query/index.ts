@@ -33,6 +33,7 @@ import {
   QueryReturn,
   SearchOptions,
 } from './types.js';
+import { WeaviateInvalidInputError } from '../../errors.js';
 
 class QueryManager<T> implements Query<T> {
   private connection: Connection;
@@ -212,7 +213,7 @@ class QueryManager<T> implements Query<T> {
             );
             break;
           default:
-            throw new Error(`Invalid media type: ${type}`);
+            throw new WeaviateInvalidInputError(`Invalid media type: ${type}`);
         }
         return reply;
       })

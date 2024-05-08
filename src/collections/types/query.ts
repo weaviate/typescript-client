@@ -32,7 +32,7 @@ type Metadata = {
 
 export type MetadataKeys = (keyof Metadata)[];
 
-export type QueryMetadata = MetadataKeys | undefined;
+export type QueryMetadata = 'all' | MetadataKeys | undefined;
 
 // export type ReturnMetadata<M extends MetadataKeys> = {
 //   [Key in M[number]]: Metadata[Key];

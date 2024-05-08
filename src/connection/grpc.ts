@@ -13,6 +13,8 @@ import Batcher, { Batch } from '../grpc/batcher.js';
 import Searcher, { Search } from '../grpc/searcher.js';
 import { DbVersionSupport, initDbVersionProvider } from '../utils/dbVersion.js';
 
+import { WeaviateGRPCUnavailableError } from '../errors.js';
+
 export interface GrpcConnectionParams extends ConnectionParams {
   grpcAddress: string;
   grpcSecure: boolean;
@@ -26,10 +28,12 @@ const MAX_GRPC_MESSAGE_LENGTH = 104858000; // 10mb, needs to be synchronized wit
 // which are tightly coupled to ConnectionGQL
 export default class ConnectionGRPC extends ConnectionGQL {
   private grpc: GrpcClient;
+  private grpcAddress: string;
 
   private constructor(params: GrpcConnectionParams) {
     super(params);
     this.grpc = grpcClient(params);
+    this.grpcAddress = params.grpcAddress;
   }
 
   static use = async (params: GrpcConnectionParams) => {
@@ -55,7 +59,7 @@ export default class ConnectionGRPC extends ConnectionGQL {
   private async connect() {
     const isHealthy = await this.grpc.health();
     if (!isHealthy) {
-      throw new Error('Cannot connect to the provided gRPC PORT: gRPC server is not healthy');
+      throw new WeaviateGRPCUnavailableError(this.grpcAddress);
     }
   }
 

@@ -18,7 +18,8 @@ jobs:
       matrix:
         node: [
           "18.x",
-          "20.x"
+          "20.x",
+          "22.x"
         ]
     steps:
     - uses: actions/checkout@v3
@@ -41,7 +42,9 @@ jobs:
           { node: "18.x", weaviate: $NEW_WEAVIATE_VERSION},
           { node: "18.x", weaviate: $OLD_WEAVIATE_VERSION},
           { node: "20.x", weaviate: $NEW_WEAVIATE_VERSION},
-          { node: "20.x", weaviate: $OLD_WEAVIATE_VERSION}
+          { node: "20.x", weaviate: $OLD_WEAVIATE_VERSION},
+          { node: "22.x", weaviate: $NEW_WEAVIATE_VERSION},
+          { node: "22.x", weaviate: $OLD_WEAVIATE_VERSION}
         ]
     steps:
     - uses: actions/checkout@v3
@@ -82,7 +85,7 @@ jobs:
           node-version: '18.x'
           registry-url: 'https://registry.npmjs.org'
       - run: npm ci && npm run build
-      - run: npm publish --tag beta
+      - run: npm publish --tag next
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTOMATION_TOKEN }}
       - name: "Create a GitHub release"

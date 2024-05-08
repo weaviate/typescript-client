@@ -8,6 +8,7 @@ import {
   BackupStatus,
 } from '../../backup/index.js';
 import Connection from '../../connection/index.js';
+import { WeaviateBackupFailed, WeaviateDeserializationError } from '../../errors.js';
 import {
   BackupCreateResponse,
   BackupCreateStatusResponse,
@@ -99,12 +100,12 @@ export const backup = (connection: Connection) => {
       if (args.waitForCompletion) {
         let wait = true;
         while (wait) {
-          status = await getCreateStatus(args); // eslint-disable-line no-await-in-loop
-          if (status.status === 'SUCCESS') {
+          const res = await getCreateStatus(args); // eslint-disable-line no-await-in-loop
+          if (res.status === 'SUCCESS') {
             wait = false;
           }
-          if (status.status === 'FAILED') {
-            throw new Error(`Backup creation failed: ${status.error}`);
+          if (res.status === 'FAILED') {
+            throw new WeaviateBackupFailed(res.error ? res.error : '<unknown>', 'creation');
           }
           await new Promise((resolve) => setTimeout(resolve, 1000)); // eslint-disable-line no-await-in-loop
         }
@@ -141,12 +142,12 @@ export const backup = (connection: Connection) => {
       if (args.waitForCompletion) {
         let wait = true;
         while (wait) {
-          status = await getRestoreStatus(args); // eslint-disable-line no-await-in-loop
-          if (status.status === 'SUCCESS') {
+          const res = await getRestoreStatus(args); // eslint-disable-line no-await-in-loop
+          if (res.status === 'SUCCESS') {
             wait = false;
           }
-          if (status.status === 'FAILED') {
-            throw new Error(`Backup restoration failed: ${status.error}`);
+          if (res.status === 'FAILED') {
+            throw new WeaviateBackupFailed(res.error ? res.error : '<unknown>', 'restoration');
           }
           await new Promise((resolve) => setTimeout(resolve, 1000)); // eslint-disable-line no-await-in-loop
         }

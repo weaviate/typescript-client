@@ -75,7 +75,7 @@ describe('data', () => {
       .do()
       .catch((e: Error) => {
         expect(e.message).toEqual(
-          `usage error (422): {"error":[{"message":"invalid object: invalid text property 'stringProp' on class 'DataJourneyTestThing': not a string, but json.Number"}]}`
+          `The request to Weaviate failed with status code: 422 and message: {"error":[{"message":"invalid object: invalid text property 'stringProp' on class 'DataJourneyTestThing': not a string, but json.Number"}]}`
         );
       });
   });
@@ -491,7 +491,7 @@ describe('data', () => {
       .withId('00000000-0000-0000-0000-000000000000')
       .do()
       .catch((err: Error) => {
-        expect(err.message).toEqual('usage error (404): ');
+        expect(err.message).toEqual('The request to Weaviate failed with status code: 404 and message: ');
       });
   });
 

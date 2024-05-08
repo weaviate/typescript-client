@@ -3,6 +3,7 @@ import {
   BQConfigUpdate,
   PQConfigCreate,
   PQConfigUpdate,
+  VectorIndexConfigCreate,
   VectorIndexConfigFlatCreate,
   VectorIndexConfigFlatUpdate,
   VectorIndexConfigHNSWCreate,
@@ -16,7 +17,7 @@ const configure = {
   /**
    * Create a `ModuleConfig<'flat', VectorIndexConfigFlatCreate>` object when defining the configuration of the FLAT vector index.
    *
-   * Use this method when defining the `options.vectorIndexConfig` argument of the `configure.namedVectorizer` method.
+   * Use this method when defining the `options.vectorIndexConfig` argument of the `configure.vectorizer` method.
    *
    * @param {VectorDistance} [config.distanceMetric] The distance metric to use. Default is 'cosine'.
    * @param {number} [config.vectorCacheMaxObjects] The maximum number of objects to cache in the vector cache. Default is 1000000000000.
@@ -40,7 +41,7 @@ const configure = {
   /**
    * Create a `ModuleConfig<'hnsw', VectorIndexConfigHNSWCreate>` object when defining the configuration of the HNSW vector index.
    *
-   * Use this method when defining the `options.vectorIndexConfig` argument of the `configure.namedVectorizer` method.
+   * Use this method when defining the `options.vectorIndexConfig` argument of the `configure.vectorizer` method.
    *
    * @param {number} [config.cleanupIntervalSeconds] The interval in seconds at which to clean up the index. Default is 300.
    * @param {VectorDistance} [config.distanceMetric] The distance metric to use. Default is 'cosine'.
@@ -151,29 +152,29 @@ const reconfigure = {
   /**
    * Create a `ModuleConfig<'flat', VectorIndexConfigFlatUpdate>` object to update the configuration of the FLAT vector index.
    *
-   * Use this method when defining the `options.vectorIndexConfig` argument of the `reconfigure.namedVectorizer` method.
+   * Use this method when defining the `options.vectorIndexConfig` argument of the `reconfigure.vectorizer` method.
    *
    * @param {VectorDistance} [options.distanceMetric] The distance metric to use. Default is 'cosine'.
    * @param {number} [options.vectorCacheMaxObjects] The maximum number of objects to cache in the vector cache. Default is 1000000000000.
    * @param {BQConfigCreate} [options.quantizer] The quantizer configuration to use. Default is `bq`.
    * @returns {ModuleConfig<'flat', VectorIndexConfigFlatCreate>} The configuration object.
    */
-  flat: (options?: {
+  flat: (options: {
     vectorCacheMaxObjects?: number;
     quantizer?: BQConfigUpdate;
   }): ModuleConfig<'flat', VectorIndexConfigFlatUpdate> => {
     return {
       name: 'flat',
       config: {
-        vectorCacheMaxObjects: options?.vectorCacheMaxObjects,
-        quantizer: parseQuantizer(options?.quantizer),
+        vectorCacheMaxObjects: options.vectorCacheMaxObjects,
+        quantizer: parseQuantizer(options.quantizer),
       },
     };
   },
   /**
    * Create a `ModuleConfig<'hnsw', VectorIndexConfigHNSWCreate>` object to update the configuration of the HNSW vector index.
    *
-   * Use this method when defining the `options.vectorIndexConfig` argument of the `reconfigure.namedVectorizer` method.
+   * Use this method when defining the `options.vectorIndexConfig` argument of the `reconfigure.vectorizer` method.
    *
    * @param {number} [options.dynamicEfFactor] The dynamic ef factor. Default is 8.
    * @param {number} [options.dynamicEfMax] The dynamic ef max. Default is 500.
@@ -184,7 +185,7 @@ const reconfigure = {
    * @param {number} [options.vectorCacheMaxObjects] The maximum number of objects to cache in the vector cache. Default is 1000000000000.
    * @returns {ModuleConfig<'hnsw', VectorIndexConfigHNSWUpdate>} The configuration object.
    */
-  hnsw: (options?: {
+  hnsw: (options: {
     dynamicEfFactor?: number;
     dynamicEfMax?: number;
     dynamicEfMin?: number;

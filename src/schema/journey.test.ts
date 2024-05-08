@@ -92,7 +92,7 @@ describe('schema', () => {
       .do()
       .catch((err: Error) => {
         expect(err.message).toEqual(
-          'usage error (422): {"error":[{"message":"Tokenization is not allowed for data type \'int[]\'"}]}'
+          'The request to Weaviate failed with status code: 422 and message: {"error":[{"message":"Tokenization is not allowed for data type \'int[]\'"}]}'
         );
       });
   });

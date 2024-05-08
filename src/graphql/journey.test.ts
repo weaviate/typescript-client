@@ -2113,7 +2113,7 @@ describe('named vectors test', () => {
     });
   });
 
-  const className = 'NamedVectorTest';
+  const className = 'VectorTest';
   const oneUUID = 'abefd256-8574-442b-9293-9205193737e1';
 
   describe('setup', () => {
@@ -2154,7 +2154,7 @@ describe('named vectors test', () => {
       return client.schema.classCreator().withClass(namedVectorTest).do();
     });
 
-    it('should insert NamedVectorTest data', () => {
+    it('should insert VectorTest data', () => {
       const objects: WeaviateObject[] = [
         {
           class: className,
@@ -2197,8 +2197,8 @@ describe('named vectors test', () => {
         .withFields('title')
         .do()
         .then((res) => {
-          expect(res.data.Get.NamedVectorTest).toHaveLength(3);
-          expect(res.data.Get.NamedVectorTest[0].title).toBe('Two');
+          expect(res.data.Get.VectorTest).toHaveLength(3);
+          expect(res.data.Get.VectorTest[0].title).toBe('Two');
         });
     });
 
@@ -2213,8 +2213,8 @@ describe('named vectors test', () => {
         .withFields('rating')
         .do()
         .then((res) => {
-          expect(res.data.Get.NamedVectorTest).toHaveLength(3);
-          expect(res.data.Get.NamedVectorTest[0].rating).toBe('Good');
+          expect(res.data.Get.VectorTest).toHaveLength(3);
+          expect(res.data.Get.VectorTest[0].rating).toBe('Good');
         });
     });
   });
@@ -2238,8 +2238,8 @@ describe('named vectors test', () => {
           .do()
       )
       .then((res) => {
-        expect(res.data.Get.NamedVectorTest).toHaveLength(3);
-        expect(res.data.Get.NamedVectorTest[0].title).toBe('One');
+        expect(res.data.Get.VectorTest).toHaveLength(3);
+        expect(res.data.Get.VectorTest[0].title).toBe('One');
       });
   });
 
@@ -2254,13 +2254,13 @@ describe('named vectors test', () => {
       .withFields('rating')
       .do()
       .then((res) => {
-        expect(res.data.Get.NamedVectorTest).toHaveLength(3);
-        expect(res.data.Get.NamedVectorTest[0].rating).toBe('Best');
+        expect(res.data.Get.VectorTest).toHaveLength(3);
+        expect(res.data.Get.VectorTest[0].rating).toBe('Best');
       });
   });
 
   describe('destroy', () => {
-    it('tears down NamedVectorTest class', () => {
+    it('tears down VectorTest class', () => {
       return client.schema.classDeleter().withClassName(className).do();
     });
   });
