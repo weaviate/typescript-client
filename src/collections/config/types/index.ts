@@ -5,18 +5,18 @@ export * from './vectorizer.js';
 
 import {
   InvertedIndexConfigUpdate,
-  NamedVectorConfigUpdate,
+  LegacyVectorizerConfigUpdate,
+  VectorConfigUpdate,
   ReplicationConfigUpdate,
-  VectorIndexConfigUpdate,
 } from '../../configure/types/index.js';
 import { GenerativeConfig } from './generative.js';
 import { RerankerConfig } from './reranker.js';
 import { VectorConfig } from './vectorizer.js';
 import { VectorIndexType } from './vectorIndex.js';
 
-export type ModuleConfig<N, C = Record<string, any>> = {
+export type ModuleConfig<N, C = undefined> = {
   name: N;
-  config?: C;
+  config: C;
 };
 
 export type InvertedIndexConfig = {
@@ -98,5 +98,5 @@ export type CollectionConfigUpdate = {
   description?: string;
   invertedIndex?: InvertedIndexConfigUpdate;
   replication?: ReplicationConfigUpdate;
-  vectorizer?: VectorIndexConfigUpdate | NamedVectorConfigUpdate<string, VectorIndexType>[];
+  vectorizer?: LegacyVectorizerConfigUpdate | VectorConfigUpdate<string, VectorIndexType>[];
 };

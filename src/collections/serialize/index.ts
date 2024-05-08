@@ -54,8 +54,10 @@ import {
   ReferenceInput,
   QueryMetadata,
   RerankOptions,
+  MetadataKeys,
 } from '../types/index.js';
 import {
+  BaseSearchArgs,
   SearchBm25Args,
   SearchFetchArgs,
   SearchHybridArgs,
@@ -94,6 +96,7 @@ import {
 import { Beacon } from '../references/index.js';
 import { ReferenceGuards } from '../references/classes.js';
 import { uuidToBeacon } from '../references/utils.js';
+import { WeaviateInvalidInputError, WeaviateSerializationError } from '../../errors.js';
 
 class FilterGuards {
   static isFilters = (
@@ -283,19 +286,36 @@ export class DataGuards {
   };
 }
 
+export class MetadataGuards {
+  static isKeys = (argument?: QueryMetadata): argument is MetadataKeys => {
+    return argument instanceof Array && argument.length > 0;
+  };
+
+  static isAll = (argument?: QueryMetadata): argument is 'all' => {
+    return argument === 'all';
+  };
+
+  static isUndefined = (argument?: QueryMetadata): argument is undefined => {
+    return argument === undefined;
+  };
+}
+
 export class Serialize {
-  private static common = <T>(args?: SearchOptions<T>) => {
-    return {
+  private static common = <T>(args?: SearchOptions<T>): BaseSearchArgs => {
+    const out: BaseSearchArgs = {
       limit: args?.limit,
       offset: args?.offset,
       filters: args?.filters ? Serialize.filtersGRPC(args.filters) : undefined,
-      rerank: args?.rerank ? Serialize.rerank(args.rerank) : undefined,
       properties:
         args?.returnProperties || args?.returnReferences
           ? Serialize.queryProperties(args.returnProperties, args.returnReferences)
           : undefined,
       metadata: Serialize.metadata(args?.includeVector, args?.returnMetadata),
     };
+    if (args?.rerank) {
+      out.rerank = Serialize.rerank(args.rerank);
+    }
+    return out;
   };
 
   public static fetchObjects = <T>(args?: FetchObjectsOptions<T>): SearchFetchArgs => {
@@ -469,7 +489,7 @@ export class Serialize {
     return {
       ...Serialize.common(args),
       nearVector: NearVector.fromPartial({
-        vectorBytes: args.vector ? Serialize.vectorToBytes(args.vector) : undefined,
+        vectorBytes: Serialize.vectorToBytes(args.vector),
         certainty: args.certainty,
         distance: args.distance,
         targetVectors: args.targetVector ? [args.targetVector] : undefined,
@@ -530,12 +550,14 @@ export class Serialize {
     if (target.property) {
       return [target.property];
     } else if (target.singleTarget) {
-      throw new Error(
+      throw new WeaviateSerializationError(
         'Cannot use Filter.byRef() in the aggregate API currently. Instead use Filter.byRefMultiTarget() and specify the target collection explicitly.'
       );
     } else if (target.multiTarget) {
       if (target.multiTarget.target === undefined) {
-        throw new Error(`target of multiTarget filter was unexpectedly undefined: ${target}`);
+        throw new WeaviateSerializationError(
+          `target of multiTarget filter was unexpectedly undefined: ${target}`
+        );
       }
       return [
         target.multiTarget.on,
@@ -558,7 +580,7 @@ export class Serialize {
       };
     } else {
       if (filters.target === undefined) {
-        throw new Error(`target of filter was unexpectedly undefined: ${filters}`);
+        throw new WeaviateSerializationError(`target of filter was unexpectedly undefined: ${filters}`);
       }
       const out = {
         path: Serialize.filterTargetToREST(filters.target),
@@ -628,7 +650,7 @@ export class Serialize {
           },
         };
       } else {
-        throw new Error('Invalid filter value type');
+        throw new WeaviateInvalidInputError('Invalid filter value type');
       }
     }
   };
@@ -720,8 +742,20 @@ export class Serialize {
     const out: any = {
       uuid: true,
       vector: typeof includeVector === 'boolean' ? includeVector : false,
-      vectors: Array.isArray(includeVector) ? includeVector : undefined,
+      vectors: Array.isArray(includeVector) ? includeVector : [],
     };
+    if (MetadataGuards.isAll(metadata)) {
+      return {
+        ...out,
+        creationTimeUnix: true,
+        lastUpdateTimeUnix: true,
+        distance: true,
+        certainty: true,
+        score: true,
+        explainScore: true,
+        isConsistent: true,
+      };
+    }
     metadata?.forEach((key) => {
       let weaviateKey: string;
       if (key === 'creationTime') {

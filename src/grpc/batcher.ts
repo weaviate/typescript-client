@@ -8,6 +8,7 @@ import { WeaviateClient } from '../proto/v1/weaviate.js';
 import Base from './base.js';
 import { BatchDeleteReply, BatchDeleteRequest } from '../proto/v1/batch_delete.js';
 import { Filters } from '../proto/v1/base.js';
+import { WeaviateBatchError, WeaviateDeleteManyError } from '../errors.js';
 
 export interface Batch {
   withDelete: (args: BatchDeleteArgs) => Promise<BatchDeleteReply>;
@@ -39,28 +40,36 @@ export default class Batcher extends Base implements Batch {
   public withObjects = (args: BatchObjectsArgs) => this.callObjects(BatchObjectsRequest.fromPartial(args));
 
   private callDelete(message: BatchDeleteRequest) {
-    return this.connection.batchDelete(
-      {
-        ...message,
-        collection: this.name,
-        consistencyLevel: this.consistencyLevel,
-        tenant: this.tenant,
-      },
-      {
-        metadata: this.metadata,
-      }
-    );
+    return this.connection
+      .batchDelete(
+        {
+          ...message,
+          collection: this.name,
+          consistencyLevel: this.consistencyLevel,
+          tenant: this.tenant,
+        },
+        {
+          metadata: this.metadata,
+        }
+      )
+      .catch((err) => {
+        throw new WeaviateDeleteManyError(err.message);
+      });
   }
 
   private callObjects(message: BatchObjectsRequest) {
-    return this.connection.batchObjects(
-      {
-        ...message,
-        consistencyLevel: this.consistencyLevel,
-      },
-      {
-        metadata: this.metadata,
-      }
-    );
+    return this.connection
+      .batchObjects(
+        {
+          ...message,
+          consistencyLevel: this.consistencyLevel,
+        },
+        {
+          metadata: this.metadata,
+        }
+      )
+      .catch((err) => {
+        throw new WeaviateBatchError(err.message);
+      });
   }
 }

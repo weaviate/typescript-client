@@ -18,6 +18,7 @@ import {
 import { BatchObject as BatchObjectGRPC, BatchObjectsReply } from '../../proto/v1/batch.js';
 import { Properties as PropertiesGrpc, Value } from '../../proto/v1/properties.js';
 import { BatchDeleteReply } from '../../proto/v1/batch_delete.js';
+import { WeaviateDeserializationError } from '../../errors.js';
 
 export class Deserialize {
   public static query<T>(reply: SearchReply): WeaviateReturn<T> {
@@ -154,7 +155,7 @@ export class Deserialize {
     if (value.geoValue !== undefined) return value.geoValue;
     if (value.phoneValue !== undefined) return value.phoneValue;
     if (value.nullValue !== undefined) return undefined;
-    throw new Error(`Unknown value type: ${JSON.stringify(value, null, 2)}`);
+    throw new WeaviateDeserializationError(`Unknown value type: ${JSON.stringify(value, null, 2)}`);
   }
 
   private static objectProperties(properties?: PropertiesGrpc): Properties {
@@ -182,7 +183,8 @@ export class Deserialize {
   }
 
   private static uuid(metadata?: MetadataResult) {
-    if (!metadata || !(metadata.id.length > 0)) throw new Error('No uuid returned from server');
+    if (!metadata || !(metadata.id.length > 0))
+      throw new WeaviateDeserializationError('No uuid returned from server');
     return metadata.id;
   }
 

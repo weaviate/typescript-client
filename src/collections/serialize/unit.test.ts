@@ -47,7 +47,7 @@ describe('Unit testing of Serialize', () => {
       filters: filter<any>().byProperty('name').equal('test'),
       sort: sort<any>().byProperty('name'),
       includeVector: true,
-      returnMetadata: ['certainty'],
+      returnMetadata: 'all',
       returnProperties: ['name'],
       returnReferences: [{ linkOn: 'ref' }],
     });
@@ -65,8 +65,15 @@ describe('Unit testing of Serialize', () => {
       sortBy: [{ ascending: true, path: ['name'] }],
       metadata: MetadataRequest.fromPartial({
         certainty: true,
+        distance: true,
         uuid: true,
         vector: true,
+        vectors: undefined,
+        creationTimeUnix: true,
+        lastUpdateTimeUnix: true,
+        isConsistent: true,
+        explainScore: true,
+        score: true,
       }),
       properties: PropertiesRequest.fromPartial({
         nonRefProperties: ['name'],

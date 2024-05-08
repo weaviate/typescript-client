@@ -7,7 +7,12 @@ import {
 import BackupCreateStatusGetter from './backupCreateStatusGetter.js';
 import Connection from '../connection/index.js';
 import { CommandBase } from '../validation/commandBase.js';
-import { BackupCreateRequest, BackupCreateResponse, BackupCreateStatusResponse } from '../openapi/types.js';
+import {
+  BackupCreateRequest,
+  BackupCreateResponse,
+  BackupCreateStatusResponse,
+  BackupConfig,
+} from '../openapi/types.js';
 import { Backend } from './index.js';
 
 const WAIT_INTERVAL = 1000;
@@ -19,6 +24,7 @@ export default class BackupCreator extends CommandBase {
   private includeClassNames?: string[];
   private statusGetter: BackupCreateStatusGetter;
   private waitForCompletion!: boolean;
+  private config?: BackupConfig;
 
   constructor(client: Connection, statusGetter: BackupCreateStatusGetter) {
     super(client);
@@ -58,6 +64,11 @@ export default class BackupCreator extends CommandBase {
     return this;
   }
 
+  withConfig(cfg: BackupConfig) {
+    this.config = cfg;
+    return this;
+  }
+
   validate = (): void => {
     this.addErrors([
       ...validateIncludeClassNames(this.includeClassNames),
@@ -75,7 +86,7 @@ export default class BackupCreator extends CommandBase {
 
     const payload = {
       id: this.backupId,
-      config: {},
+      config: this.config,
       include: this.includeClassNames,
       exclude: this.excludeClassNames,
     } as BackupCreateRequest;

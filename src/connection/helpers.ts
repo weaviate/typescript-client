@@ -3,14 +3,27 @@ import { AuthCredentials } from './auth.js';
 import { ProxiesParams } from './http.js';
 
 /** The options available to the `weaviate.connectToWCS` method. */
-export interface ConnectToWCSOptions {
+export type ConnectToWCSOptions = {
   /** The authentication credentials to use when connecting to Weaviate, e.g. API key */
   authCredentials?: AuthCredentials;
   /** Additional headers to include in the request */
   headers?: Record<string, string>;
-}
+};
 
-export interface ConnectToLocalOptions {
+export type ConnectToLocalOptions = {
+  /** The host where Weaviate is served. Assumes that the HTTP/1.1 and HTTP/2 servers are served on the same host */
+  host?: string;
+  /** The port of the HTTP/1.1 server */
+  port?: number;
+  /** The port of the HTTP/2 server */
+  grpcPort?: number;
+  /** The authentication credentials to use when connecting to Weaviate, e.g. API key */
+  authCredentials?: AuthCredentials;
+  /** Additional headers to include in the request */
+  headers?: Record<string, string>;
+};
+
+export type ConnectToCustomOptions = {
   /** The hostname of the HTTP/1.1 server */
   httpHost?: string;
   /** An additional path of the HTTP/1.1 server, e.g. `http://proxy.net/weaviate` */
@@ -31,7 +44,7 @@ export interface ConnectToLocalOptions {
   headers?: Record<string, string>;
   /** The proxy configuration to use */
   proxies?: ProxiesParams;
-}
+};
 
 export function connectToWCS(
   clusterURL: string,
@@ -73,6 +86,26 @@ export function connectToWCS(
 export function connectToLocal(
   clientMaker: (params: ClientParams) => Promise<WeaviateClient>,
   options?: ConnectToLocalOptions
+): Promise<WeaviateClient> {
+  return clientMaker({
+    rest: {
+      secure: false,
+      host: options?.host || 'localhost',
+      port: options?.port || 8080,
+    },
+    grpc: {
+      secure: false,
+      host: options?.host || 'localhost',
+      port: options?.grpcPort || 50051,
+    },
+    auth: options?.authCredentials,
+    headers: options?.headers,
+  });
+}
+
+export function connectToCustom(
+  clientMaker: (params: ClientParams) => Promise<WeaviateClient>,
+  options?: ConnectToCustomOptions
 ): Promise<WeaviateClient> {
   return clientMaker({
     rest: {

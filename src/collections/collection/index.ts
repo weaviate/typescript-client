@@ -1,5 +1,6 @@
 import Connection from '../../connection/grpc.js';
 import { ConsistencyLevel } from '../../data/index.js';
+import { WeaviateInvalidInputError } from '../../errors.js';
 import ClassExists from '../../schema/classExists.js';
 import { DbVersionSupport } from '../../utils/dbVersion.js';
 
@@ -103,7 +104,7 @@ const collection = <T, N>(
   tenant?: Tenant
 ) => {
   if (!isString(name)) {
-    throw new Error(`The collection name must be a string, got: ${typeof name}`);
+    throw new WeaviateInvalidInputError(`The collection name must be a string, got: ${typeof name}`);
   }
   const capitalizedName = capitalizeCollectionName(name);
   const queryCollection = query<T>(

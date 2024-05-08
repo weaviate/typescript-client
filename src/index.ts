@@ -15,6 +15,8 @@ import {
   connectToWCS,
   ConnectToLocalOptions,
   ConnectToWCSOptions,
+  connectToCustom,
+  ConnectToCustomOptions,
 } from './connection/helpers.js';
 import { ProxiesParams } from './connection/http.js';
 import MetaGetter from './misc/metaGetter.js';
@@ -89,7 +91,16 @@ export interface WeaviateClient {
 
 const app = {
   /**
-   * Connect to a personally-deployed Weaviate instance.
+   * Connect to a custom Weaviate deployment, e.g. your own self-hosted Kubernetes cluster.
+   *
+   * @param {ConnectToCustomOptions} options Options for the connection.
+   * @returns {Promise<WeaviateClient>} A Promise that resolves to a client connected to your custom Weaviate deployment.
+   */
+  connectToCustom: function (options: ConnectToCustomOptions): Promise<WeaviateClient> {
+    return connectToCustom(this.client, options);
+  },
+  /**
+   * Connect to a locally-deployed Weaviate instance, e.g. as a Docker compose stack.
    *
    * @param {ConnectToLocalOptions} [options] Options for the connection.
    * @returns {Promise<WeaviateClient>} A Promise that resolves to a client connected to your local Weaviate instance.
