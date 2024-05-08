@@ -183,7 +183,7 @@ export class DbVersion {
   }
 
   static fromString = (version: string) => {
-    let regex = /^v?(\d+)\.(\d+)\.(\d+)$/;
+    let regex = /^v?(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?$/;
     let match = version.match(regex);
     if (match) {
       const [_, major, minor, patch] = match;
