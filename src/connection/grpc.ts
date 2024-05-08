@@ -12,6 +12,7 @@ import { HealthDefinition, HealthCheckResponse_ServingStatus } from '../proto/go
 import Batcher, { Batch } from '../grpc/batcher.js';
 import Searcher, { Search } from '../grpc/searcher.js';
 import { DbVersionSupport, initDbVersionProvider } from '../utils/dbVersion.js';
+import TenantsManager, { Tenants } from '../grpc/tenantsManager.js';
 
 export interface GrpcConnectionParams extends ConnectionParams {
   grpcAddress: string;
@@ -75,6 +76,13 @@ export default class ConnectionGRPC extends ConnectionGQL {
     return new Promise<Batch>((resolve) => resolve(this.grpc.batch(name, consistencyLevel, tenant)));
   };
 
+  tenants = (name: string) => {
+    if (this.authEnabled) {
+      return this.login().then((token) => this.grpc.tenants(name, `Bearer ${token}`));
+    }
+    return new Promise<Tenants>((resolve) => resolve(this.grpc.tenants(name)));
+  };
+
   close = () => {
     this.grpc.close();
     this.http.close();
@@ -91,6 +99,7 @@ export interface GrpcClient {
     tenant?: string,
     bearerToken?: string
   ) => Search;
+  tenants: (name: string, bearerToken?: string) => Tenants;
 }
 
 export const grpcClient = (config: GrpcConnectionParams): GrpcClient => {
@@ -132,6 +141,12 @@ export const grpcClient = (config: GrpcConnectionParams): GrpcClient => {
         new Metadata(bearerToken ? { ...config.headers, authorization: bearerToken } : config.headers),
         consistencyLevel,
         tenant
+      ),
+    tenants: (name: string, bearerToken?: string) =>
+      TenantsManager.use(
+        client,
+        name,
+        new Metadata(bearerToken ? { ...config.headers, authorization: bearerToken } : config.headers)
       ),
   };
 };

@@ -1,4 +1,5 @@
-import Connection from '../../connection/index.js';
+import { ConnectionGRPC } from '../../connection/index.js';
+import { TenantActivityStatus } from '../../proto/v1/tenants.js';
 import { TenantsCreator, TenantsDeleter, TenantsGetter, TenantsUpdater } from '../../schema/index.js';
 
 export type Tenant = {
@@ -6,7 +7,24 @@ export type Tenant = {
   activityStatus?: 'COLD' | 'HOT';
 };
 
-const tenants = (connection: Connection, name: string): Tenants => {
+export type TenantsGetOptions = {
+  tenants?: string;
+};
+
+class ActivityStatusMapper {
+  static from(status: TenantActivityStatus): 'COLD' | 'HOT' {
+    switch (status) {
+      case TenantActivityStatus.TENANT_ACTIVITY_STATUS_COLD:
+        return 'COLD';
+      case TenantActivityStatus.TENANT_ACTIVITY_STATUS_HOT:
+        return 'HOT';
+      default:
+        throw new Error(`Unsupported tenant activity status: ${status}`);
+    }
+  }
+}
+
+const tenants = (connection: ConnectionGRPC, name: string): Tenants => {
   const parseTenants = (tenants: Tenant | Tenant[]) => (Array.isArray(tenants) ? tenants : [tenants]);
   return {
     create: (tenants: Tenant | Tenant[]) =>
@@ -20,6 +38,18 @@ const tenants = (connection: Connection, name: string): Tenants => {
         });
         return result;
       }),
+    getByName: (name: string) =>
+      connection
+        .tenants(name)
+        .then((builder) => builder.withGet({ names: [name] }))
+        .then((reply) =>
+          reply.tenants.length === 1
+            ? {
+                name: reply.tenants[0].name,
+                activityStatus: ActivityStatusMapper.from(reply.tenants[0].activityStatus),
+              }
+            : null
+        ),
     remove: (tenants: Tenant | Tenant[]) =>
       new TenantsDeleter(
         connection,
@@ -58,6 +88,15 @@ export interface Tenants {
    * @returns {Promise<Record<string, Tenant>>} A list of tenants as an object of Tenant types, where the key is the tenant name.
    */
   get: () => Promise<Record<string, Tenant>>;
+  /**
+   * Return the specified tenant from a collection in Weaviate.
+   *
+   * The collection must have been created with multi-tenancy enabled.
+   *
+   * @param {string} name The name of the tenant to retrieve.
+   * @returns {Promise<Tenant | null>} The tenant as a Tenant type, or null if the tenant does not exist.
+   */
+  getByName: (name: string) => Promise<Tenant | null>;
   /**
    * Remove the specified tenants from a collection in Weaviate.
    *
