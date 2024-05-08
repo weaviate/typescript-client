@@ -33,5 +33,6 @@ sed -i ''  's/\".\/batch\"/\".\/batch.js\"/g' src/proto/v1/*.ts
 sed -i ''  's/\".\/batch_delete\"/\".\/batch_delete.js\"/g' src/proto/v1/*.ts
 sed -i ''  's/\".\/properties\"/\".\/properties.js\"/g' src/proto/v1/*.ts
 sed -i ''  's/\".\/search_get\"/\".\/search_get.js\"/g' src/proto/v1/*.ts
+sed -i ''  's/\".\/tenants\"/\".\/tenants.js\"/g' src/proto/v1/*.ts
 
 echo "done"

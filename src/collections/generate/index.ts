@@ -20,10 +20,11 @@ import {
   GroupByHybridOptions,
   BaseBm25Options,
   GroupByBm25Options,
+  SearchOptions,
 } from '../query/types.js';
 import { GenerativeReturn, GenerativeGroupByReturn, GroupByOptions } from '../types/index.js';
 import { SearchReply } from '../../proto/v1/search_get.js';
-import { WeaviateInvalidInputError } from '../../errors.js';
+import { WeaviateInvalidInputError, WeaviateUnsupportedFeatureError } from '../../errors.js';
 import { GenerateOptions, Generate, GenerateReturn } from './types.js';
 
 class GenerateManager<T> implements Generate<T> {
@@ -60,14 +61,27 @@ class GenerateManager<T> implements Generate<T> {
   private checkSupportForNamedVectors = async (opts?: BaseNearOptions<T>) => {
     if (!Serialize.isNamedVectors(opts)) return;
     const check = await this.dbVersionSupport.supportsNamedVectors();
-    if (!check.supports) throw new Error(check.message);
+    if (!check.supports) throw new WeaviateUnsupportedFeatureError(check.message);
   };
 
   private checkSupportForBm25AndHybridGroupByQueries = async (query: 'Bm25' | 'Hybrid', opts?: any) => {
     if (!Serialize.isGroupBy(opts)) return;
     const check = await this.dbVersionSupport.supportsBm25AndHybridGroupByQueries();
-    if (!check.supports) throw new Error(check.message(query));
+    if (!check.supports) throw new WeaviateUnsupportedFeatureError(check.message(query));
   };
+
+  private async parseReply(reply: SearchReply) {
+    const deserialize = await Deserialize.use(this.dbVersionSupport);
+    return deserialize.generate<T>(reply);
+  }
+
+  private async parseGroupByReply(
+    opts: SearchOptions<T> | GroupByOptions<T> | undefined,
+    reply: SearchReply
+  ) {
+    const deserialize = await Deserialize.use(this.dbVersionSupport);
+    return Serialize.isGroupBy(opts) ? deserialize.generateGroupBy<T>(reply) : deserialize.generate<T>(reply);
+  }
 
   public fetchObjects(
     generate: GenerateOptions<T>,
@@ -81,7 +95,7 @@ class GenerateManager<T> implements Generate<T> {
           generative: Serialize.generative(generate),
         })
       )
-      .then((reply) => Deserialize.generate<T>(reply));
+      .then((reply) => this.parseReply(reply));
   }
 
   public bm25(
@@ -109,9 +123,7 @@ class GenerateManager<T> implements Generate<T> {
             : undefined,
         })
       )
-      .then((reply) =>
-        Serialize.isGroupBy(opts) ? Deserialize.generateGroupBy<T>(reply) : Deserialize.generate<T>(reply)
-      );
+      .then((reply) => this.parseGroupByReply(opts, reply));
   }
 
   public hybrid(
@@ -139,9 +151,7 @@ class GenerateManager<T> implements Generate<T> {
             : undefined,
         })
       )
-      .then((reply) =>
-        Serialize.isGroupBy(opts) ? Deserialize.generateGroupBy<T>(reply) : Deserialize.generate<T>(reply)
-      );
+      .then((reply) => this.parseGroupByReply(opts, reply));
   }
 
   public nearImage(
@@ -166,9 +176,7 @@ class GenerateManager<T> implements Generate<T> {
             : undefined,
         })
       )
-      .then((reply) =>
-        Serialize.isGroupBy(opts) ? Deserialize.generateGroupBy<T>(reply) : Deserialize.generate<T>(reply)
-      );
+      .then((reply) => this.parseGroupByReply(opts, reply));
   }
 
   public nearObject(
@@ -193,9 +201,7 @@ class GenerateManager<T> implements Generate<T> {
             : undefined,
         })
       )
-      .then((reply) =>
-        Serialize.isGroupBy(opts) ? Deserialize.generateGroupBy<T>(reply) : Deserialize.generate<T>(reply)
-      );
+      .then((reply) => this.parseGroupByReply(opts, reply));
   }
 
   public nearText(
@@ -224,9 +230,7 @@ class GenerateManager<T> implements Generate<T> {
             : undefined,
         })
       )
-      .then((reply) =>
-        Serialize.isGroupBy(opts) ? Deserialize.generateGroupBy<T>(reply) : Deserialize.generate<T>(reply)
-      );
+      .then((reply) => this.parseGroupByReply(opts, reply));
   }
 
   public nearVector(
@@ -255,9 +259,7 @@ class GenerateManager<T> implements Generate<T> {
             : undefined,
         })
       )
-      .then((reply) =>
-        Serialize.isGroupBy(opts) ? Deserialize.generateGroupBy<T>(reply) : Deserialize.generate<T>(reply)
-      );
+      .then((reply) => this.parseGroupByReply(opts, reply));
   }
 
   public nearMedia(
@@ -334,9 +336,7 @@ class GenerateManager<T> implements Generate<T> {
         }
         return reply;
       })
-      .then((reply) =>
-        Serialize.isGroupBy(opts) ? Deserialize.generateGroupBy<T>(reply) : Deserialize.generate<T>(reply)
-      );
+      .then((reply) => this.parseGroupByReply(opts, reply));
   }
 }
 

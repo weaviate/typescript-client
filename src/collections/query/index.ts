@@ -33,7 +33,7 @@ import {
   QueryReturn,
   SearchOptions,
 } from './types.js';
-import { WeaviateInvalidInputError } from '../../errors.js';
+import { WeaviateInvalidInputError, WeaviateUnsupportedFeatureError } from '../../errors.js';
 
 class QueryManager<T> implements Query<T> {
   private connection: Connection;
@@ -69,7 +69,7 @@ class QueryManager<T> implements Query<T> {
   private checkSupportForNamedVectors = async (opts?: BaseNearOptions<T>) => {
     if (!Serialize.isNamedVectors(opts)) return;
     const check = await this.dbVersionSupport.supportsNamedVectors();
-    if (!check.supports) throw new Error(check.message);
+    if (!check.supports) throw new WeaviateUnsupportedFeatureError(check.message);
   };
 
   private checkSupportForBm25AndHybridGroupByQueries = async (
@@ -78,14 +78,27 @@ class QueryManager<T> implements Query<T> {
   ) => {
     if (!Serialize.isGroupBy(opts)) return;
     const check = await this.dbVersionSupport.supportsBm25AndHybridGroupByQueries();
-    if (!check.supports) throw new Error(check.message(query));
+    if (!check.supports) throw new WeaviateUnsupportedFeatureError(check.message(query));
   };
+
+  private async parseReply(reply: SearchReply) {
+    const deserialize = await Deserialize.use(this.dbVersionSupport);
+    return deserialize.query<T>(reply);
+  }
+
+  private async parseGroupByReply(
+    opts: SearchOptions<T> | GroupByOptions<T> | undefined,
+    reply: SearchReply
+  ) {
+    const deserialize = await Deserialize.use(this.dbVersionSupport);
+    return Serialize.isGroupBy(opts) ? deserialize.groupBy<T>(reply) : deserialize.query<T>(reply);
+  }
 
   public fetchObjectById(id: string, opts?: FetchObjectByIdOptions<T>): Promise<WeaviateObject<T> | null> {
     return this.checkSupportForNamedVectors(opts)
       .then(() => this.connection.search(this.name, this.consistencyLevel, this.tenant))
       .then((search) => search.withFetch(Serialize.fetchObjectById({ id, ...opts })))
-      .then((reply) => Deserialize.generate<T>(reply))
+      .then((reply) => this.parseReply(reply))
       .then((ret) => (ret.objects.length === 1 ? ret.objects[0] : null));
   }
 
@@ -93,7 +106,7 @@ class QueryManager<T> implements Query<T> {
     return this.checkSupportForNamedVectors(opts)
       .then(() => this.connection.search(this.name, this.consistencyLevel, this.tenant))
       .then((search) => search.withFetch(Serialize.fetchObjects(opts)))
-      .then((reply) => Deserialize.query<T>(reply));
+      .then((reply) => this.parseReply(reply));
   }
 
   public bm25(query: string, opts?: BaseBm25Options<T>): Promise<WeaviateReturn<T>>;
@@ -108,16 +121,14 @@ class QueryManager<T> implements Query<T> {
         const isGroupBy = Serialize.isGroupBy<GroupByBm25Options<T>>(opts);
         if (isGroupBy) {
           const check = await this.dbVersionSupport.supportsBm25AndHybridGroupByQueries();
-          if (!check.supports) throw new Error(check.message('Bm25'));
+          if (!check.supports) throw new WeaviateUnsupportedFeatureError(check.message('Bm25'));
         }
         return search.withBm25({
           ...Serialize.bm25({ query, ...opts }),
           groupBy: isGroupBy ? Serialize.groupBy(opts.groupBy) : undefined,
         });
       })
-      .then((reply) =>
-        Serialize.isGroupBy(opts) ? Deserialize.groupBy<T>(reply) : Deserialize.query<T>(reply)
-      );
+      .then((reply) => this.parseGroupByReply(opts, reply));
   }
 
   public hybrid(query: string, opts?: BaseHybridOptions<T>): Promise<WeaviateReturn<T>>;
@@ -139,9 +150,7 @@ class QueryManager<T> implements Query<T> {
           groupBy: isGroupBy ? Serialize.groupBy(opts.groupBy) : undefined,
         });
       })
-      .then((reply) =>
-        Serialize.isGroupBy(opts) ? Deserialize.groupBy<T>(reply) : Deserialize.query<T>(reply)
-      );
+      .then((reply) => this.parseGroupByReply(opts, reply));
   }
 
   public nearImage(image: string | Blob, opts?: BaseNearOptions<T>): Promise<WeaviateReturn<T>>;
@@ -160,9 +169,7 @@ class QueryManager<T> implements Query<T> {
           })
         );
       })
-      .then((reply) =>
-        Serialize.isGroupBy(opts) ? Deserialize.groupBy<T>(reply) : Deserialize.query<T>(reply)
-      );
+      .then((reply) => this.parseGroupByReply(opts, reply));
   }
 
   public nearMedia(
@@ -217,9 +224,7 @@ class QueryManager<T> implements Query<T> {
         }
         return reply;
       })
-      .then((reply) =>
-        Serialize.isGroupBy(opts) ? Deserialize.groupBy<T>(reply) : Deserialize.query<T>(reply)
-      );
+      .then((reply) => this.parseGroupByReply(opts, reply));
   }
 
   public nearObject(id: string, opts?: BaseNearOptions<T>): Promise<WeaviateReturn<T>>;
@@ -235,9 +240,7 @@ class QueryManager<T> implements Query<T> {
             : undefined,
         })
       )
-      .then((reply) =>
-        Serialize.isGroupBy(opts) ? Deserialize.groupBy<T>(reply) : Deserialize.query<T>(reply)
-      );
+      .then((reply) => this.parseGroupByReply(opts, reply));
   }
 
   public nearText(query: string | string[], opts?: BaseNearTextOptions<T>): Promise<WeaviateReturn<T>>;
@@ -253,9 +256,7 @@ class QueryManager<T> implements Query<T> {
             : undefined,
         })
       )
-      .then((reply) =>
-        Serialize.isGroupBy(opts) ? Deserialize.groupBy<T>(reply) : Deserialize.query<T>(reply)
-      );
+      .then((reply) => this.parseGroupByReply(opts, reply));
   }
 
   public nearVector(vector: number[], opts?: BaseNearOptions<T>): Promise<WeaviateReturn<T>>;
@@ -271,9 +272,7 @@ class QueryManager<T> implements Query<T> {
             : undefined,
         })
       )
-      .then((reply) =>
-        Serialize.isGroupBy(opts) ? Deserialize.groupBy<T>(reply) : Deserialize.query<T>(reply)
-      );
+      .then((reply) => this.parseGroupByReply(opts, reply));
   }
 }
 

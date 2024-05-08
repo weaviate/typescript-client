@@ -3,7 +3,7 @@ import type { CallContext, CallOptions } from "nice-grpc-common";
 import { BatchObjectsReply, BatchObjectsRequest } from "./batch.js";
 import { BatchDeleteReply, BatchDeleteRequest } from "./batch_delete.js";
 import { SearchReply, SearchRequest } from "./search_get.js";
-import { TenantsGetReply, TenantsGetRequest } from "./tenants";
+import { TenantsGetReply, TenantsGetRequest } from "./tenants.js";
 
 export const protobufPackage = "weaviate.v1";
 

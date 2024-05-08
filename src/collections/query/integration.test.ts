@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
+import { WeaviateUnsupportedFeatureError } from '../../errors.js';
 import weaviate, { WeaviateClient } from '../../index.js';
 import { Collection } from '../collection/index.js';
 import { CrossReference, Reference } from '../references/index.js';
@@ -339,7 +340,7 @@ describe('Testing of the collection.query methods with a collection with a refer
 
     it('should query with nearVector returning the referenced object', async () => {
       const res = await collection.query.fetchObjectById(id2, { includeVector: true });
-      const ret = await collection.query.nearVector(res?.vectors.default!, {
+      const ret = await collection.query.nearVector(res?.vectors.vector!, {
         returnProperties: ['testProp'],
         returnReferences: [
           {
@@ -572,7 +573,7 @@ describe('Testing of the collection.query methods with a collection with a refer
           includeVector: ['title'],
         });
       if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 24, 0))) {
-        await expect(query()).rejects.toThrow(Error);
+        await expect(query()).rejects.toThrow(WeaviateUnsupportedFeatureError);
         return;
       }
       const ret = await query();
@@ -591,7 +592,7 @@ describe('Testing of the collection.query methods with a collection with a refer
           targetVector: 'title',
         });
       if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 24, 0))) {
-        await expect(query()).rejects.toThrow(Error);
+        await expect(query()).rejects.toThrow(WeaviateUnsupportedFeatureError);
         return;
       }
       const ret = await query();
@@ -693,9 +694,8 @@ describe('Testing of the groupBy collection.query methods with a simple collecti
       collection.query.bm25('test', {
         groupBy: groupByArgs,
       });
-    if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 24, 5))) {
-      // change to 1.25.0 when it lands
-      await expect(query()).rejects.toThrow(Error);
+    if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 25, 0))) {
+      await expect(query()).rejects.toThrow(WeaviateUnsupportedFeatureError);
       return;
     }
     const ret = await query();
@@ -712,9 +712,8 @@ describe('Testing of the groupBy collection.query methods with a simple collecti
       collection.query.hybrid('test', {
         groupBy: groupByArgs,
       });
-    if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 24, 5))) {
-      // change to 1.25.0 when it lands
-      await expect(query()).rejects.toThrow(Error);
+    if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 25, 0))) {
+      await expect(query()).rejects.toThrow(WeaviateUnsupportedFeatureError);
       return;
     }
     const ret = await query();
@@ -921,10 +920,10 @@ describe('Testing of the collection.query methods with a multi-tenancy collectio
       .query.fetchObjectById(id2, { includeVector: true }))!;
     const obj1 = await collection
       .withTenant(tenantOne)
-      .query.nearVector(vecs1.default, { targetVector: 'vector' });
+      .query.nearVector(vecs1.vector, { targetVector: 'vector' });
     const obj2 = await collection
       .withTenant(tenantTwo)
-      .query.nearVector(vecs2.default, { targetVector: 'vector' });
+      .query.nearVector(vecs2.vector, { targetVector: 'vector' });
     expect(obj1.objects.length).toEqual(1);
     expect(obj1.objects[0].properties.testProp).toEqual('one');
     expect(obj1.objects[0].uuid).toEqual(id1);
@@ -1052,7 +1051,7 @@ maybe('Testing of collection.query using rerank functionality', () => {
 
   it('should rerank the results in a nearObject query', async () => {
     const obj = await collection.query.fetchObjectById(id1, { includeVector: true });
-    const ret = await collection.query.nearVector(obj?.vectors.default!, {
+    const ret = await collection.query.nearVector(obj?.vectors.vector!, {
       rerank: {
         property: 'text',
         query: 'another',

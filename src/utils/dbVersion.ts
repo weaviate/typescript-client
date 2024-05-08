@@ -85,7 +85,8 @@ export class DbVersionSupport {
       return {
         version: version,
         supports: version.isAtLeast(1, 25, 0),
-        message: (query: 'Bm25' | 'Hybrid') => this.errorMessage(query, version.show(), '1.25.0'),
+        message: (query: 'Bm25' | 'Hybrid') =>
+          this.errorMessage(`GroupBy with ${query}`, version.show(), '1.25.0'),
       };
     });
 
@@ -95,6 +96,16 @@ export class DbVersionSupport {
         version: version,
         supports: version.isAtLeast(1, 25, 0),
         message: this.errorMessage('Hybrid nearText/nearVector subsearching', version.show(), '1.25.0'),
+      };
+    });
+  };
+
+  supports125ListValue = () => {
+    return this.dbVersionProvider.getVersion().then((version) => {
+      return {
+        version: version,
+        supports: version.isAtLeast(1, 25, 0),
+        message: undefined,
       };
     });
   };

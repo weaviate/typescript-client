@@ -56,7 +56,6 @@ export function tenantActivityStatusToJSON(object: TenantActivityStatus): string
 
 export interface TenantsGetRequest {
   collection: string;
-  isConsistent: boolean;
   names?: TenantNames | undefined;
 }
 
@@ -75,7 +74,7 @@ export interface Tenant {
 }
 
 function createBaseTenantsGetRequest(): TenantsGetRequest {
-  return { collection: "", isConsistent: false, names: undefined };
+  return { collection: "", names: undefined };
 }
 
 export const TenantsGetRequest = {
@@ -83,11 +82,8 @@ export const TenantsGetRequest = {
     if (message.collection !== "") {
       writer.uint32(10).string(message.collection);
     }
-    if (message.isConsistent === true) {
-      writer.uint32(16).bool(message.isConsistent);
-    }
     if (message.names !== undefined) {
-      TenantNames.encode(message.names, writer.uint32(26).fork()).ldelim();
+      TenantNames.encode(message.names, writer.uint32(18).fork()).ldelim();
     }
     return writer;
   },
@@ -107,14 +103,7 @@ export const TenantsGetRequest = {
           message.collection = reader.string();
           continue;
         case 2:
-          if (tag !== 16) {
-            break;
-          }
-
-          message.isConsistent = reader.bool();
-          continue;
-        case 3:
-          if (tag !== 26) {
+          if (tag !== 18) {
             break;
           }
 
@@ -132,7 +121,6 @@ export const TenantsGetRequest = {
   fromJSON(object: any): TenantsGetRequest {
     return {
       collection: isSet(object.collection) ? globalThis.String(object.collection) : "",
-      isConsistent: isSet(object.isConsistent) ? globalThis.Boolean(object.isConsistent) : false,
       names: isSet(object.names) ? TenantNames.fromJSON(object.names) : undefined,
     };
   },
@@ -141,9 +129,6 @@ export const TenantsGetRequest = {
     const obj: any = {};
     if (message.collection !== "") {
       obj.collection = message.collection;
-    }
-    if (message.isConsistent === true) {
-      obj.isConsistent = message.isConsistent;
     }
     if (message.names !== undefined) {
       obj.names = TenantNames.toJSON(message.names);
@@ -157,7 +142,6 @@ export const TenantsGetRequest = {
   fromPartial(object: DeepPartial<TenantsGetRequest>): TenantsGetRequest {
     const message = createBaseTenantsGetRequest();
     message.collection = object.collection ?? "";
-    message.isConsistent = object.isConsistent ?? false;
     message.names = (object.names !== undefined && object.names !== null)
       ? TenantNames.fromPartial(object.names)
       : undefined;
