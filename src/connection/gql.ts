@@ -18,6 +18,8 @@ export default class ConnectionGQL extends ConnectionREST {
     }
     return this.gql.query<V, T>(query, variables);
   };
+
+  close = () => this.http.close();
 }
 
 export * from './auth.js';

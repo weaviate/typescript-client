@@ -31,7 +31,9 @@ export default {
    * @param {GenerativeCohereConfig} [config] The configuration for the `generative-cohere` module.
    * @returns {ModuleConfig<'generative-cohere', GenerativeCohereConfig>} The configuration object.
    */
-  cohere: (config?: GenerativeCohereConfig): ModuleConfig<'generative-cohere', GenerativeCohereConfig> => {
+  cohere: (
+    config?: GenerativeCohereConfig
+  ): ModuleConfig<'generative-cohere', GenerativeCohereConfig | undefined> => {
     return {
       name: 'generative-cohere',
       config: config,
@@ -45,7 +47,9 @@ export default {
    * @param {GenerativeOpenAIConfig} [config] The configuration for the `generative-openai` module.
    * @returns {ModuleConfig<'generative-openai', GenerativeOpenAIConfig>} The configuration object.
    */
-  openAI: (config?: GenerativeOpenAIConfig): ModuleConfig<'generative-openai', GenerativeOpenAIConfig> => {
+  openAI: (
+    config?: GenerativeOpenAIConfig
+  ): ModuleConfig<'generative-openai', GenerativeOpenAIConfig | undefined> => {
     return {
       name: 'generative-openai',
       config: config,

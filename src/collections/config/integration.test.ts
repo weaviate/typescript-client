@@ -37,7 +37,7 @@ describe('Testing of the collection.config namespace', () => {
           dataType: 'text',
         },
       ],
-      vectorizer: weaviate.configure.vectorizer.none(),
+      vectorizers: weaviate.configure.vectorizer.none('default'),
     });
     const collection = client.collections.get<TestCollectionConfigGet>(collectionName);
     const config = await collection.config.get();
@@ -89,7 +89,7 @@ describe('Testing of the collection.config namespace', () => {
           dataType: 'text',
         },
       ],
-      vectorizer: weaviate.configure.vectorizer.none(),
+      vectorizers: weaviate.configure.vectorizer.none('default'),
     });
     const collection = client.collections.get<TestCollectionConfigGet>(collectionName);
     const config = await collection.config.get();
@@ -129,13 +129,14 @@ describe('Testing of the collection.config namespace', () => {
   });
 
   it('should be able to get a collection with named vectors', async () => {
-    const collectionName = 'TestCollectionConfigGetNamedVectors';
+    const collectionName = 'TestCollectionConfigGetVectors';
     const collection = await client.collections.create({
       name: collectionName,
       properties: [
         {
           name: 'title',
           dataType: 'text',
+          skipVectorization: true,
           vectorizePropertyName: false,
         },
         {
@@ -143,14 +144,12 @@ describe('Testing of the collection.config namespace', () => {
           dataType: 'int',
         },
       ],
-      vectorizer: [
-        weaviate.configure.namedVectorizer('title', {
-          properties: ['title'],
-          vectorizerConfig: weaviate.configure.vectorizer.text2VecContextionary(),
+      vectorizers: [
+        weaviate.configure.vectorizer.text2VecContextionary('title', {
+          sourceProperties: ['title'],
         }),
-        weaviate.configure.namedVectorizer('age', {
-          properties: ['age'],
-          vectorizerConfig: weaviate.configure.vectorizer.text2VecContextionary(),
+        weaviate.configure.vectorizer.text2VecContextionary('age', {
+          sourceProperties: ['age'],
         }),
       ],
     });
@@ -162,9 +161,11 @@ describe('Testing of the collection.config namespace', () => {
     expect(config.properties[0].vectorizerConfig?.['text2vec-contextionary'].vectorizePropertyName).toEqual(
       false
     );
+    expect(config.properties[0].vectorizerConfig?.['text2vec-contextionary'].skip).toEqual(true);
     expect(config.properties[1].vectorizerConfig?.['text2vec-contextionary'].vectorizePropertyName).toEqual(
       true
     );
+    expect(config.properties[1].vectorizerConfig?.['text2vec-contextionary'].skip).toEqual(false);
     expect(config.vectorizer.title.indexConfig).toBeDefined();
     expect(config.vectorizer.title.indexType).toEqual('hnsw');
     expect(config.vectorizer.title.properties).toEqual(['title']);
@@ -235,7 +236,7 @@ describe('Testing of the collection.config namespace', () => {
     const collectionName = 'TestCollectionConfigAddProperty';
     const collection = await client.collections.create({
       name: collectionName,
-      vectorizer: weaviate.configure.vectorizer.none(),
+      vectorizers: weaviate.configure.vectorizer.none('default'),
     });
     const config = await collection.config
       .addProperty({
@@ -262,7 +263,7 @@ describe('Testing of the collection.config namespace', () => {
     const collectionName = 'TestCollectionConfigAddReference' as const;
     const collection = await client.collections.create({
       name: collectionName,
-      vectorizer: weaviate.configure.vectorizer.none(),
+      vectorizers: weaviate.configure.vectorizer.none('default'),
     });
     const config = await collection.config
       .addReference({
@@ -349,12 +350,12 @@ describe('Testing of the collection.config namespace', () => {
           dataType: 'text',
         },
       ],
-      vectorizer: [weaviate.configure.namedVectorizer('text')],
+      vectorizers: [weaviate.configure.vectorizer.none('text')],
     });
     const config = await collection.config
       .update({
         vectorizer: [
-          weaviate.reconfigure.namedVectorizer('text', {
+          weaviate.reconfigure.vectorizer.update('text', {
             vectorIndexConfig: weaviate.reconfigure.vectorIndex.hnsw({
               quantizer: weaviate.reconfigure.vectorIndex.quantizer.pq(),
               ef: 4,
@@ -406,5 +407,73 @@ describe('Testing of the collection.config namespace', () => {
     });
     expect(config.vectorizer.text.indexType).toEqual('hnsw');
     expect(config.vectorizer.text.vectorizer.name).toEqual('none');
+  });
+
+  it('should be able update the config of a collection with legacy vectors', async () => {
+    const collectionName = 'TestCollectionConfigUpdateLegacyVectors';
+    const collection = await client.collections.create({
+      name: collectionName,
+      properties: [
+        {
+          name: 'testProp',
+          dataType: 'text',
+        },
+      ],
+      vectorizer: {
+        name: 'none',
+        config: {},
+      },
+    });
+    const config = await collection.config
+      .update({
+        vectorizer: weaviate.reconfigure.vectorIndex.hnsw({
+          quantizer: weaviate.reconfigure.vectorIndex.quantizer.pq(),
+          ef: 4,
+        }),
+      })
+      .then(() => collection.config.get());
+
+    expect(config.name).toEqual(collectionName);
+    expect(config.properties).toEqual<PropertyConfig[]>([
+      {
+        name: 'testProp',
+        dataType: 'text',
+        description: undefined,
+        indexSearchable: true,
+        indexFilterable: true,
+        indexInverted: false,
+        vectorizerConfig: undefined,
+        nestedProperties: undefined,
+        tokenization: 'word',
+      },
+    ]);
+    expect(config.generative).toBeUndefined();
+    expect(config.reranker).toBeUndefined();
+    expect(config.vectorizer.default.indexConfig).toEqual<VectorIndexConfigHNSW>({
+      skip: false,
+      cleanupIntervalSeconds: 300,
+      maxConnections: 64,
+      efConstruction: 128,
+      ef: 4,
+      dynamicEfMin: 100,
+      dynamicEfMax: 500,
+      dynamicEfFactor: 8,
+      vectorCacheMaxObjects: 1000000000000,
+      flatSearchCutoff: 40000,
+      distance: 'cosine',
+      quantizer: {
+        bitCompression: false,
+        segments: 0,
+        centroids: 256,
+        trainingLimit: 100000,
+        encoder: {
+          type: 'kmeans',
+          distribution: 'log-normal',
+        },
+        type: 'pq',
+      },
+    });
+    expect(config.vectorizer.default.indexType).toEqual('hnsw');
+    expect(config.vectorizer.default.vectorizer.name).toEqual('none');
   });
 });

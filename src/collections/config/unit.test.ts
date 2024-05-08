@@ -48,7 +48,7 @@ describe('Unit testing of the MergeWithExisting class', () => {
       vectorizer: {
         'text2vec-contextionary': {
           properties: ['name'],
-          vectorizeClassName: false,
+          vectorizeCollectionName: false,
         },
       },
     },
@@ -103,7 +103,7 @@ describe('Unit testing of the MergeWithExisting class', () => {
       vectorizer: {
         'text2vec-contextionary': {
           properties: ['name'],
-          vectorizeClassName: false,
+          vectorizeCollectionName: false,
         },
       },
     },
@@ -188,7 +188,7 @@ describe('Unit testing of the MergeWithExisting class', () => {
         vectorizer: {
           'text2vec-contextionary': {
             properties: ['name'],
-            vectorizeClassName: false,
+            vectorizeCollectionName: false,
           },
         },
       },
@@ -250,7 +250,7 @@ describe('Unit testing of the MergeWithExisting class', () => {
         vectorizer: {
           'text2vec-contextionary': {
             properties: ['name'],
-            vectorizeClassName: false,
+            vectorizeCollectionName: false,
           },
         },
       },
@@ -285,7 +285,7 @@ describe('Unit testing of the MergeWithExisting class', () => {
         vectorizer: {
           'text2vec-contextionary': {
             properties: ['name'],
-            vectorizeClassName: false,
+            vectorizeCollectionName: false,
           },
         },
       },
@@ -321,7 +321,7 @@ describe('Unit testing of the MergeWithExisting class', () => {
         vectorizer: {
           'text2vec-contextionary': {
             properties: ['name'],
-            vectorizeClassName: false,
+            vectorizeCollectionName: false,
           },
         },
       },

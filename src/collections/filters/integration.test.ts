@@ -68,7 +68,9 @@ describe('Testing of the filter class with a simple collection', () => {
           },
         ],
         invertedIndex: weaviate.configure.invertedIndex({ indexTimestamps: true }),
-        vectorizer: weaviate.configure.vectorizer.text2VecContextionary({ vectorizeClassName: false }),
+        vectorizers: weaviate.configure.vectorizer.text2VecContextionary('default', {
+          vectorizeCollectionName: false,
+        }),
       })
       .then(() =>
         collection.data.insertMany([
@@ -322,7 +324,6 @@ describe('Testing of the filter class with complex data type', () => {
             dataType: 'geoCoordinates',
           },
         ],
-        vectorizer: weaviate.configure.vectorizer.none(),
       })
       .then(() =>
         collection.data.insertMany([

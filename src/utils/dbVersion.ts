@@ -84,8 +84,8 @@ export class DbVersionSupport {
     this.dbVersionProvider.getVersion().then((version) => {
       return {
         version: version,
-        supports: version.isAtLeast(1, 24, 5),
-        message: (query: 'Bm25' | 'Hybrid') => this.errorMessage(query, version.show(), '1.24.5'), // change to 1.25.0 when it lands
+        supports: version.isAtLeast(1, 25, 0),
+        message: (query: 'Bm25' | 'Hybrid') => this.errorMessage(query, version.show(), '1.25.0'),
       };
     });
 
@@ -93,8 +93,8 @@ export class DbVersionSupport {
     return this.dbVersionProvider.getVersion().then((version) => {
       return {
         version: version,
-        supports: version.isAtLeast(1, 24, 5),
-        message: this.errorMessage('Hybrid nearText/nearVector subsearching', version.show(), '1.24.5'), // change to 1.25.0 when it lands
+        supports: version.isAtLeast(1, 25, 0),
+        message: this.errorMessage('Hybrid nearText/nearVector subsearching', version.show(), '1.25.0'),
       };
     });
   };
@@ -180,7 +180,7 @@ export class DbVersion {
   }
 
   static fromString = (version: string) => {
-    let regex = /v?(\d+)\.(\d+)\.(\d+)(?:-.+)?/;
+    let regex = /^v?(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?$/;
     let match = version.match(regex);
     if (match) {
       const [_, major, minor, patch] = match;

@@ -26,6 +26,7 @@ import {
 import { Metadata } from 'nice-grpc';
 
 import Base from './base.js';
+import { WeaviateQueryError } from '../errors.js';
 
 export type SearchFetchArgs = {
   limit?: number;
@@ -39,7 +40,7 @@ export type SearchFetchArgs = {
   groupBy?: GroupBy;
 };
 
-type BaseSearchArgs = {
+export type BaseSearchArgs = {
   limit?: number;
   offset?: number;
   autocut?: number;
@@ -135,18 +136,22 @@ export default class Searcher extends Base implements Search {
   public withNearVideo = (args: SearchNearVideoArgs) => this.call(SearchRequest.fromPartial(args));
 
   private call(message: SearchRequest) {
-    return this.connection.search(
-      {
-        ...message,
-        collection: this.name,
-        consistencyLevel: this.consistencyLevel,
-        tenant: this.tenant,
-        uses123Api: true,
-        uses125Api: true,
-      },
-      {
-        metadata: this.metadata,
-      }
-    );
+    return this.connection
+      .search(
+        {
+          ...message,
+          collection: this.name,
+          consistencyLevel: this.consistencyLevel,
+          tenant: this.tenant,
+          uses123Api: true,
+          uses125Api: true,
+        },
+        {
+          metadata: this.metadata,
+        }
+      )
+      .catch((err) => {
+        throw new WeaviateQueryError(err.message, 'gRPC');
+      });
   }
 }

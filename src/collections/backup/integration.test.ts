@@ -7,7 +7,7 @@ import weaviate, { Collection, WeaviateClient } from '../../index.js';
 // These must run sequentially because Weaviate is not capable of running multiple backups at the same time
 describe('Integration testing of backups', () => {
   const clientPromise = weaviate.connectToLocal({
-    httpPort: 8089,
+    port: 8089,
     grpcPort: 50060,
   });
 

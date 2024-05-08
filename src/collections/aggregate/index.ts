@@ -122,9 +122,11 @@ export type AggregateMetrics<M> = {
   [K in keyof M]: M[K] extends true ? number : never;
 };
 
+export type MetricsProperty<T> = T extends undefined ? string : keyof T & string;
+
 export const metrics = <T>() => {
   return {
-    aggregate: <P extends keyof T & string>(property: P) => new MetricsManager<T, P>(property),
+    aggregate: <P extends MetricsProperty<T>>(property: P) => new MetricsManager<T, P>(property),
   };
 };
 
@@ -137,10 +139,10 @@ export interface Metrics<T> {
 
     See [the docs](https://weaviate.io/developers/weaviate/search/aggregate) for more details!
    */
-  aggregate: <P extends keyof T & string>(property: P) => MetricsManager<T, P>;
+  aggregate: <P extends MetricsProperty<T>>(property: P) => MetricsManager<T, P>;
 }
 
-export class MetricsManager<T, P extends keyof T & string> {
+export class MetricsManager<T, P extends MetricsProperty<T>> {
   private propertyName: P;
 
   constructor(property: P) {
@@ -318,7 +320,7 @@ type AggregateGroupByResult<T, M extends PropertiesMetrics<T> | undefined = unde
   };
 };
 
-export class AggregateManager<T> implements Aggregate<T> {
+class AggregateManager<T> implements Aggregate<T> {
   connection: Connection;
   groupBy: AggregateGroupBy<T>;
   name: string;
@@ -409,11 +411,11 @@ export class AggregateManager<T> implements Aggregate<T> {
     };
   }
 
-  private query() {
+  query() {
     return new Aggregator(this.connection);
   }
 
-  private base(
+  base(
     metrics?: PropertiesMetrics<T>,
     filters?: FilterValue,
     groupBy?: (keyof T & string) | GroupByAggregate<T>
@@ -443,7 +445,7 @@ export class AggregateManager<T> implements Aggregate<T> {
     return builder;
   }
 
-  private metrics(metrics: MetricsInput<(keyof T & string) | string>) {
+  metrics(metrics: MetricsInput<(keyof T & string) | string>) {
     let body = '';
     const { kind, propertyName, ...rest } = metrics;
     switch (kind) {
@@ -470,7 +472,7 @@ export class AggregateManager<T> implements Aggregate<T> {
     return `${propertyName} { ${body} }`;
   }
 
-  public static use<T>(
+  static use<T>(
     connection: Connection,
     name: string,
     dbVersionSupport: DbVersionSupport,
@@ -480,7 +482,7 @@ export class AggregateManager<T> implements Aggregate<T> {
     return new AggregateManager<T>(connection, name, dbVersionSupport, consistencyLevel, tenant);
   }
 
-  public nearImage<M extends PropertiesMetrics<T>>(
+  nearImage<M extends PropertiesMetrics<T>>(
     image: string,
     opts?: AggregateNearOptions<T, M>
   ): Promise<AggregateResult<T, M>> {
@@ -496,7 +498,7 @@ export class AggregateManager<T> implements Aggregate<T> {
     return this.do(builder);
   }
 
-  public nearObject<M extends PropertiesMetrics<T>>(
+  nearObject<M extends PropertiesMetrics<T>>(
     id: string,
     opts?: AggregateNearOptions<T, M>
   ): Promise<AggregateResult<T, M>> {
@@ -512,7 +514,7 @@ export class AggregateManager<T> implements Aggregate<T> {
     return this.do(builder);
   }
 
-  public nearText<M extends PropertiesMetrics<T>>(
+  nearText<M extends PropertiesMetrics<T>>(
     query: string | string[],
     opts?: AggregateNearOptions<T, M>
   ): Promise<AggregateResult<T, M>> {
@@ -528,7 +530,7 @@ export class AggregateManager<T> implements Aggregate<T> {
     return this.do(builder);
   }
 
-  public nearVector<M extends PropertiesMetrics<T>>(
+  nearVector<M extends PropertiesMetrics<T>>(
     vector: number[],
     opts?: AggregateNearOptions<T, M>
   ): Promise<AggregateResult<T, M>> {
@@ -544,14 +546,12 @@ export class AggregateManager<T> implements Aggregate<T> {
     return this.do(builder);
   }
 
-  public overAll<M extends PropertiesMetrics<T>>(
-    opts?: AggregateOptions<T, M>
-  ): Promise<AggregateResult<T, M>> {
+  overAll<M extends PropertiesMetrics<T>>(opts?: AggregateOptions<T, M>): Promise<AggregateResult<T, M>> {
     const builder = this.base(opts?.returnMetrics, opts?.filters);
     return this.do(builder);
   }
 
-  private do = <M extends PropertiesMetrics<T> | undefined = undefined>(
+  do = <M extends PropertiesMetrics<T> | undefined = undefined>(
     query: Aggregator
   ): Promise<AggregateResult<T, M>> => {
     return query.do().then(({ data }: any) => {
@@ -563,7 +563,7 @@ export class AggregateManager<T> implements Aggregate<T> {
     });
   };
 
-  private doGroupBy = <M extends PropertiesMetrics<T> | undefined = undefined>(
+  doGroupBy = <M extends PropertiesMetrics<T> | undefined = undefined>(
     query: Aggregator
   ): Promise<AggregateGroupByResult<T, M>[]> => {
     return query.do().then(({ data }: any) =>

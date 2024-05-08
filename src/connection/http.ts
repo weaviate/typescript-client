@@ -8,6 +8,7 @@ import {
   AuthUserPasswordCredentials,
   OidcAuthenticator,
 } from './auth.js';
+import { WeaviateInvalidInputError, WeaviateUnexpectedStatusCodeError } from '../errors.js';
 
 /**
  * You can only specify the gRPC proxy URL at this point in time. This is because ProxiesParams should be used to define tunnelling proxies
@@ -48,7 +49,9 @@ export default class ConnectionREST {
 
   private parseAuthParams(params: ConnectionParams): boolean {
     if (params.authClientSecret && params.apiKey) {
-      throw new Error('must provide one of authClientSecret (OIDC) or apiKey, cannot provide both');
+      throw new WeaviateInvalidInputError(
+        'must provide one of authClientSecret (OIDC) or apiKey, cannot provide both'
+      );
     }
     if (params.authClientSecret) {
       this.oidcAuth = new OidcAuthenticator(this.http, params.authClientSecret);
@@ -74,7 +77,7 @@ export default class ConnectionREST {
     if (params.scheme) {
       // If the host contains a scheme different than provided scheme, replace it and throw a warning
       if (extractedSchemeMatch && extractedSchemeMatch[1] !== `${params.scheme}`) {
-        throw new Error(
+        throw new WeaviateInvalidInputError(
           `The host contains a different protocol than specified in the scheme (scheme: ${params.scheme} != host: ${extractedSchemeMatch[1]})`
         );
       } else if (!extractedSchemeMatch) {
@@ -83,7 +86,7 @@ export default class ConnectionREST {
       }
       // If there's no scheme in params, ensure the host starts with a recognized protocol
     } else if (!extractedSchemeMatch) {
-      throw new Error(
+      throw new WeaviateInvalidInputError(
         'The host must start with a recognized protocol (e.g., http or https) if no scheme is provided.'
       );
     }
@@ -168,6 +171,7 @@ export default class ConnectionREST {
 export * from './auth.js';
 
 export interface HttpClient {
+  close: () => void;
   patch: (path: string, payload: any, bearerToken?: string) => any;
   head: (path: string, payload: any, bearerToken?: string) => any;
   post: <B, T>(
@@ -190,6 +194,7 @@ export const httpClient = (config: ConnectionParams): HttpClient => {
   const url = makeUrl(baseUri);
 
   return {
+    close: () => config.agent?.destroy(),
     post: <B, T>(
       path: string,
       payload: B,
@@ -330,7 +335,7 @@ const checkStatus =
         } catch (e) {
           err = errText;
         }
-        return Promise.reject(new Error(`usage error (${res.status}): ${err}`));
+        return Promise.reject(new WeaviateUnexpectedStatusCodeError(res.status, err));
       });
     }
     if (expectResponseBody) {

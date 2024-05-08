@@ -1,3 +1,4 @@
+import { WeaviateDeserializationError } from '../../errors.js';
 import { WeaviateObject } from '../types/index.js';
 
 const ITERATOR_CACHE_SIZE = 100;
@@ -22,11 +23,11 @@ export class Iterator<T> {
         }
         const obj = this.cache.shift();
         if (obj === undefined) {
-          throw new Error('Object iterator returned an object that is undefined');
+          throw new WeaviateDeserializationError('Object iterator returned an object that is undefined');
         }
         this.last = obj?.uuid;
         if (this.last === undefined) {
-          throw new Error('Object iterator returned an object without a UUID');
+          throw new WeaviateDeserializationError('Object iterator returned an object without a UUID');
         }
         return {
           done: false,

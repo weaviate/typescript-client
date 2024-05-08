@@ -11,7 +11,7 @@ import {
   BackupCreateRequest,
   BackupCreateResponse,
   BackupCreateStatusResponse,
-  BackupCreateConfig,
+  BackupConfig,
 } from '../openapi/types.js';
 import { Backend } from './index.js';
 
@@ -24,7 +24,7 @@ export default class BackupCreator extends CommandBase {
   private includeClassNames?: string[];
   private statusGetter: BackupCreateStatusGetter;
   private waitForCompletion!: boolean;
-  private config?: BackupCreateConfig;
+  private config?: BackupConfig;
 
   constructor(client: Connection, statusGetter: BackupCreateStatusGetter) {
     super(client);
@@ -64,8 +64,8 @@ export default class BackupCreator extends CommandBase {
     return this;
   }
 
-  withConfig(config: BackupCreateConfig) {
-    this.config = config;
+  withConfig(cfg: BackupConfig) {
+    this.config = cfg;
     return this;
   }
 
@@ -86,7 +86,7 @@ export default class BackupCreator extends CommandBase {
 
     const payload = {
       id: this.backupId,
-      config: this.config ? this.config : {},
+      config: this.config,
       include: this.includeClassNames,
       exclude: this.excludeClassNames,
     } as BackupCreateRequest;

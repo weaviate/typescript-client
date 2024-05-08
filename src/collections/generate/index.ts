@@ -23,6 +23,7 @@ import {
 } from '../query/types.js';
 import { GenerativeReturn, GenerativeGroupByReturn, GroupByOptions } from '../types/index.js';
 import { SearchReply } from '../../proto/v1/search_get.js';
+import { WeaviateInvalidInputError } from '../../errors.js';
 import { GenerateOptions, Generate, GenerateReturn } from './types.js';
 
 class GenerateManager<T> implements Generate<T> {
@@ -329,7 +330,7 @@ class GenerateManager<T> implements Generate<T> {
             });
             break;
           default:
-            throw new Error(`Invalid media type: ${type}`);
+            throw new WeaviateInvalidInputError(`Invalid media type: ${type}`);
         }
         return reply;
       })

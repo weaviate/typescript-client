@@ -17,30 +17,33 @@ import {
   VectorIndexType,
   Vectorizer,
   VectorizerConfig,
-  NamedVectorConfigCreate,
+  VectorConfigCreate,
   VectorIndexConfigCreate,
+  VectorizersConfigCreate,
+  GenerativeConfig,
+  RerankerConfig,
 } from './types/index.js';
 import ClassExists from '../schema/classExists.js';
 import { classToCollection, resolveProperty, resolveReference } from './config/utils.js';
 import { WeaviateClass } from '../openapi/types.js';
 import { QuantizerGuards } from './configure/parsing.js';
 import { PrimitiveKeys } from './types/internal.js';
+import { WeaviateInvalidInputError } from '../errors.js';
 
 export type CollectionConfigCreate<TProperties = undefined, N = string> = {
   name: N;
   description?: string;
-  generative?: ModuleConfig<GenerativeSearch>;
+  generative?: ModuleConfig<GenerativeSearch, GenerativeConfig>;
   invertedIndex?: InvertedIndexConfigCreate;
   multiTenancy?: MultiTenancyConfigCreate;
   properties?: PropertyConfigCreate<TProperties>[];
   references?: ReferenceConfigCreate<TProperties>[];
   replication?: ReplicationConfigCreate;
-  reranker?: ModuleConfig<Reranker>;
+  reranker?: ModuleConfig<Reranker, RerankerConfig>;
   sharding?: ShardingConfigCreate;
   vectorIndex?: ModuleConfig<VectorIndexType, VectorIndexConfigCreate>;
-  vectorizer?:
-    | ModuleConfig<Vectorizer, VectorizerConfig>
-    | NamedVectorConfigCreate<PrimitiveKeys<TProperties>[], string, VectorIndexType, Vectorizer>[];
+  vectorizer?: ModuleConfig<Vectorizer, VectorizerConfig>;
+  vectorizers?: VectorizersConfigCreate<TProperties>;
 };
 
 const parseVectorIndexConfig = (config?: VectorIndexConfigCreate) => {
@@ -69,13 +72,7 @@ const parseVectorIndexConfig = (config?: VectorIndexConfigCreate) => {
   }
 };
 
-const isLegacyVectorizer = (
-  argument: ModuleConfig<string, any> | NamedVectorConfigCreate<any, string, VectorIndexType, Vectorizer>[]
-): argument is ModuleConfig<string, any> => {
-  return !Array.isArray(argument);
-};
-
-const collections = (connection: Connection, dbVersionSupport: DbVersionSupport): Collections => {
+const collections = (connection: Connection, dbVersionSupport: DbVersionSupport) => {
   const listAll = () =>
     new SchemaGetter(connection)
       .do()
@@ -87,6 +84,12 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
     ) {
       const { name, invertedIndex, multiTenancy, replication, sharding, vectorIndex, ...rest } = config;
 
+      if (config.vectorizer !== undefined || config.vectorIndex !== undefined) {
+        console.warn(
+          'You are using legacy vectorization. The vectorizer and vectorIndexConfig fields will be removed from the API in the future. Please use the vectorizers field instead to created specifically named vectorizers for your collection.'
+        );
+      }
+
       const moduleConfig: any = {};
       if (config.generative) {
         moduleConfig[config.generative.name] = config.generative.config ? config.generative.config : {};
@@ -95,18 +98,21 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
       let defaultVectorizer: string | undefined;
       let vectorizers: string[] = [];
       let vectorsConfig: any | undefined;
-      if (config.vectorizer === undefined) {
+      if (config.vectorizer === undefined && config.vectorizers === undefined) {
         defaultVectorizer = 'none';
         vectorsConfig = undefined;
-      } else if (isLegacyVectorizer(config.vectorizer)) {
+      } else if (config.vectorizer !== undefined && config.vectorizers === undefined) {
         defaultVectorizer = config.vectorizer.name;
         vectorizers = [config.vectorizer.name];
         vectorsConfig = undefined;
         moduleConfig[defaultVectorizer] = config.vectorizer.config ? config.vectorizer.config : {};
-      } else {
+      } else if (config.vectorizer === undefined && config.vectorizers !== undefined) {
+        const vectorizersConfig = Array.isArray(config.vectorizers)
+          ? config.vectorizers
+          : [config.vectorizers];
         defaultVectorizer = undefined;
         vectorsConfig = {};
-        config.vectorizer.forEach((v) => {
+        vectorizersConfig.forEach((v) => {
           const vectorConfig: any = {
             vectorIndexConfig: parseVectorIndexConfig(v.vectorIndex.config),
             vectorIndexType: v.vectorIndex.name,
@@ -121,6 +127,8 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
           };
           vectorsConfig![v.vectorName] = vectorConfig;
         });
+      } else {
+        throw new WeaviateInvalidInputError('Either vectorizer or vectorizers can be defined, not both');
       }
 
       const properties = config.properties
@@ -149,7 +157,10 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
       await new ClassCreator(connection).withClass(schema).do();
       return collection<TProperties, TName>(connection, name, dbVersionSupport);
     },
-    createFromSchema: (config: WeaviateClass) => new ClassCreator(connection).withClass(config).do(),
+    createFromSchema: async function (config: WeaviateClass) {
+      const { class: name } = await new ClassCreator(connection).withClass(config).do();
+      return collection<Properties, string>(connection, name as string, dbVersionSupport);
+    },
     delete: deleteCollection,
     deleteAll: () => listAll().then((configs) => Promise.all(configs?.map((c) => deleteCollection(c.name)))),
     exists: (name: string) => new ClassExists(connection).withClassName(name).do(),
@@ -158,10 +169,18 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
         .withClassName(name)
         .do()
         .then(classToCollection<TProperties>),
+    // get: <TProperties extends Properties | undefined = undefined, TName extends string = string>(
+    //   name: TName
+    // ) => {
+    //   console.warn(
+    //     'The method collections.get() is deprecated and will be removed in the next major version. Please use collections.use() instead.'
+    //   );
+    //   return collection<TProperties, TName>(connection, name, dbVersionSupport);
+    // },
+    listAll: listAll,
     get: <TProperties extends Properties | undefined = undefined, TName extends string = string>(
       name: TName
     ) => collection<TProperties, TName>(connection, name, dbVersionSupport),
-    listAll: listAll,
   };
 };
 
@@ -169,7 +188,7 @@ export interface Collections {
   create<TProperties extends Properties | undefined = undefined, TName = string>(
     config: CollectionConfigCreate<TProperties, TName>
   ): Promise<Collection<TProperties, TName>>;
-  createFromSchema(config: WeaviateClass): Promise<WeaviateClass>;
+  createFromSchema(config: WeaviateClass): Promise<Collection<Properties, string>>;
   delete(collection: string): Promise<void>;
   deleteAll(): Promise<void[]>;
   exists(name: string): Promise<boolean>;
@@ -178,6 +197,9 @@ export interface Collections {
     name: TName
   ): Collection<TProperties, TName>;
   listAll(): Promise<CollectionConfig[]>;
+  // use<TProperties extends Properties | undefined = undefined, TName extends string = string>(
+  //   name: TName
+  // ): Collection<TProperties, TName>;
 }
 
 export default collections;
