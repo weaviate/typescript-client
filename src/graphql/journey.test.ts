@@ -472,8 +472,10 @@ describe('the graphql journey', () => {
         query: '',
         searches: [
           {
-            concepts: ['Article'],
-            certainty: 0.7,
+            nearText: {
+              concepts: ['Article'],
+              certainty: 0.7,
+            },
           },
         ],
       })
@@ -536,8 +538,10 @@ describe('the graphql journey', () => {
         query: '',
         searches: [
           {
-            vector: searchVec,
-            distance: 0.3,
+            nearVector: {
+              vector: searchVec,
+              certainty: 0.7,
+            },
           },
         ],
       })

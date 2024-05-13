@@ -7,7 +7,7 @@ export interface HybridArgs {
   properties?: string[];
   targetVectors?: string[];
   fusionType?: FusionType;
-  searches?: (NearTextSubSearch | NearVectorSubSearch)[];
+  searches?: HybridSubSearch[];
 }
 
 export interface NearTextSubSearch {
@@ -25,91 +25,57 @@ export interface NearVectorSubSearch {
   targetVectors?: string[];
 }
 
+export interface HybridSubSearch {
+  nearText?: NearTextSubSearch;
+  nearVector?: NearVectorSubSearch;
+}
+
 export enum FusionType {
   rankedFusion = 'rankedFusion',
   relativeScoreFusion = 'relativeScoreFusion',
 }
 
 class GraphQLHybridSubSearch {
-  constructor() {
-    if (new.target === GraphQLHybridSubSearch) {
-      throw new Error('Cannot instantiate abstract class');
-    }
-  }
+  private nearText?: NearTextSubSearch;
+  private nearVector?: NearVectorSubSearch;
 
-  static fromArgs(args: NearTextSubSearch | NearVectorSubSearch): GraphQLHybridSubSearch {
-    if ('concepts' in args) {
-      return new GraphQLHybridSubSearchNearText(args);
-    } else {
-      return new GraphQLHybridSubSearchNearVector(args);
-    }
+  constructor(args: HybridSubSearch) {
+    this.nearText = args.nearText;
+    this.nearVector = args.nearVector;
   }
 
   toString(): string {
-    throw new Error('Method not implemented.');
-  }
-}
-
-class GraphQLHybridSubSearchNearText extends GraphQLHybridSubSearch {
-  private concepts: string[];
-  private certainty?: number;
-  private distance?: number;
-  private moveAwayFrom?: Move;
-  private moveTo?: Move;
-
-  constructor(args: NearTextSubSearch) {
-    super();
-    this.concepts = args.concepts;
-    this.certainty = args.certainty;
-    this.distance = args.distance;
-    this.moveAwayFrom = args.moveAwayFrom;
-    this.moveTo = args.moveTo;
-  }
-
-  toString(): string {
-    let args = [`concepts:${JSON.stringify(this.concepts)}`];
-    if (this.certainty) {
-      args = [...args, `certainty:${this.certainty}`];
+    let outer: string[] = [];
+    if (this.nearText !== undefined) {
+      let inner = [`concepts:${JSON.stringify(this.nearText.concepts)}`];
+      if (this.nearText.certainty) {
+        inner = [...inner, `certainty:${this.nearText.certainty}`];
+      }
+      if (this.nearText.distance) {
+        inner = [...inner, `distance:${this.nearText.distance}`];
+      }
+      if (this.nearText.moveTo) {
+        inner = [...inner, parseMove('moveTo', this.nearText.moveTo)];
+      }
+      if (this.nearText.moveAwayFrom) {
+        inner = [...inner, parseMove('moveAwayFrom', this.nearText.moveAwayFrom)];
+      }
+      outer = [...outer, `nearText:{${inner.join(',')}}`];
     }
-    if (this.distance) {
-      args = [...args, `distance:${this.distance}`];
+    if (this.nearVector !== undefined) {
+      let inner = [`vector:${JSON.stringify(this.nearVector.vector)}`];
+      if (this.nearVector.certainty) {
+        inner = [...inner, `certainty:${this.nearVector.certainty}`];
+      }
+      if (this.nearVector.distance) {
+        inner = [...inner, `distance:${this.nearVector.distance}`];
+      }
+      if (this.nearVector.targetVectors && this.nearVector.targetVectors.length > 0) {
+        inner = [...inner, `targetVectors:${JSON.stringify(this.nearVector.targetVectors)}`];
+      }
+      outer = [...outer, `nearVector:{${inner.join(',')}}`];
     }
-    if (this.moveTo) {
-      args = [...args, parseMove('moveTo', this.moveTo)];
-    }
-    if (this.moveAwayFrom) {
-      args = [...args, parseMove('moveAwayFrom', this.moveAwayFrom)];
-    }
-    return `{${args.join(',')}}`;
-  }
-}
-
-class GraphQLHybridSubSearchNearVector extends GraphQLHybridSubSearch {
-  private vector: number[];
-  private certainty?: number;
-  private distance?: number;
-  private targetVectors?: string[];
-
-  constructor(args: NearVectorSubSearch) {
-    super();
-    this.vector = args.vector;
-    this.certainty = args.certainty;
-    this.distance = args.distance;
-    this.targetVectors = args.targetVectors;
-  }
-
-  toString(): string {
-    let args = [`vector:${JSON.stringify(this.vector)}`];
-    if (this.certainty) {
-      args = [...args, `certainty:${this.certainty}`];
-    }
-    if (this.distance) {
-      args = [...args, `distance:${this.distance}`];
-    }
-    if (this.targetVectors && this.targetVectors.length > 0) {
-      args = [...args, `targetVectors:${JSON.stringify(this.targetVectors)}`];
-    }
-    return `{${args.join(',')}}`;
+    return `{${outer.join(',')}}`;
   }
 }
 
@@ -129,7 +95,7 @@ export default class GraphQLHybrid {
     this.properties = args.properties;
     this.targetVectors = args.targetVectors;
     this.fusionType = args.fusionType;
-    this.searches = args.searches?.map((search) => GraphQLHybridSubSearch.fromArgs(search));
+    this.searches = args.searches?.map((search) => new GraphQLHybridSubSearch(search));
   }
 
   toString() {
