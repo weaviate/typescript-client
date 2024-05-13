@@ -8,7 +8,7 @@ on:
 
 
 env:
-  WEAVIATE_VERSION: 1.25.0
+  WEAVIATE_VERSION: preview--cba31db
 
 jobs:
   checks:
