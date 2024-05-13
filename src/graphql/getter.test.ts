@@ -1413,6 +1413,34 @@ describe('hybrid valid searchers', () => {
 
     expect(mockClient.query).toHaveBeenCalledWith(expectedQuery);
   });
+
+  test('query and subsearches', () => {
+    const subQuery = `searches:[{vector:[1,2,3],certainty:0.8,targetVectors:["employer"]},{concepts:["accountant"],distance:0.3,moveTo:{concepts:["foo"],objects:[{id:"uuid"}],force:0.8}}]`;
+    const expectedQuery = `{Get{Person(hybrid:{query:"accountant",${subQuery}}){name}}}`;
+
+    new Getter(mockClient)
+      .withClassName('Person')
+      .withFields('name')
+      .withHybrid({
+        query: 'accountant',
+        searches: [
+          { certainty: 0.8, targetVectors: ['employer'], vector: [1, 2, 3] },
+          {
+            concepts: ['accountant'],
+            distance: 0.3,
+            moveTo: {
+              concepts: ['foo'],
+              objects: [{ id: 'uuid' }],
+              force: 0.8,
+            },
+          },
+        ],
+      })
+      .do();
+
+    console.log(mockClient.query.mock.calls);
+    expect(mockClient.query).toHaveBeenCalledWith(expectedQuery);
+  });
 });
 
 describe('generative search', () => {
