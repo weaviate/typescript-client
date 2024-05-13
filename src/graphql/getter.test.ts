@@ -1383,6 +1383,21 @@ describe('hybrid valid searchers', () => {
 
     expect(mockClient.query).toHaveBeenCalledWith(expectedQuery);
   });
+
+  test('query and groupby', () => {
+    const expectedQuery = `{Get{Person(hybrid:{query:"accountant"},groupBy:{path:["employer"],groups:2,objectsPerGroup:3}){name}}}`;
+
+    new Getter(mockClient)
+      .withClassName('Person')
+      .withFields('name')
+      .withHybrid({
+        query: 'accountant',
+      })
+      .withGroupBy({ path: ['employer'], groups: 2, objectsPerGroup: 3 })
+      .do();
+
+    expect(mockClient.query).toHaveBeenCalledWith(expectedQuery);
+  });
 });
 
 describe('generative search', () => {

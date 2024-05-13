@@ -424,6 +424,26 @@ describe('the graphql journey', () => {
       });
   });
 
+  test('graphql get hybrid with query and groupby', () => {
+    return client.graphql
+      .get()
+      .withClassName('Article')
+      .withHybrid({ query: 'Apple', properties: ['title'], alpha: 0 })
+      .withGroupBy({
+        path: ['title'],
+        objectsPerGroup: 1,
+        groups: 1,
+      })
+      .withFields('_additional { id }')
+      .do()
+      .then((res: any) => {
+        expect(res.data.Get.Article.length).toBe(1);
+      })
+      .catch((e: any) => {
+        throw new Error('it should not have errord' + e);
+      });
+  });
+
   test('graphql get with nearText (with certainty)', () => {
     return client.graphql
       .get()
