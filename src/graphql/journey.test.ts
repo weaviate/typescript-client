@@ -311,6 +311,26 @@ describe('the graphql journey', () => {
       });
   });
 
+  test('graphql get bm25 with query and groupby', () => {
+    return client.graphql
+      .get()
+      .withClassName('Article')
+      .withBm25({ query: 'Apple' })
+      .withGroupBy({
+        path: ['title'],
+        objectsPerGroup: 1,
+        groups: 1,
+      })
+      .withFields('_additional { id }')
+      .do()
+      .then((res: any) => {
+        expect(res.data.Get.Article.length).toBe(1);
+      })
+      .catch((e: any) => {
+        throw new Error('it should not have errord' + e);
+      });
+  });
+
   test('graphql get nearText with autocut', () => {
     return client.graphql
       .get()

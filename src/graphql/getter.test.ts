@@ -1289,6 +1289,21 @@ describe('bm25 valid searchers', () => {
 
     expect(mockClient.query).toHaveBeenCalledWith(expectedQuery);
   });
+
+  test('query and groupby', () => {
+    const expectedQuery = `{Get{Person(bm25:{query:"accountant"},groupBy:{path:["employer"],groups:2,objectsPerGroup:3}){name}}}`;
+
+    new Getter(mockClient)
+      .withClassName('Person')
+      .withFields('name')
+      .withBm25({
+        query: 'accountant',
+      })
+      .withGroupBy({ path: ['employer'], groups: 2, objectsPerGroup: 3 })
+      .do();
+
+    expect(mockClient.query).toHaveBeenCalledWith(expectedQuery);
+  });
 });
 
 describe('hybrid valid searchers', () => {
