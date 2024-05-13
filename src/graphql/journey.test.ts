@@ -2254,7 +2254,7 @@ describe('named vectors test', () => {
       .withFields('rating')
       .do()
       .then((res) => {
-        expect(res.data.Get.NamedVectorTest).toHaveLength(1);
+        expect(res.data.Get.NamedVectorTest).toHaveLength(3);
         expect(res.data.Get.NamedVectorTest[0].rating).toBe('Best');
       });
   });
