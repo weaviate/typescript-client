@@ -181,6 +181,7 @@ describe('schema', () => {
                 },
               },
               multiTenancyConfig: {
+                autoTenantCreation: false,
                 enabled: false,
               },
               shardingConfig: {
@@ -587,7 +588,7 @@ describe('property setting defaults and migrations', () => {
 
   const errMsg1 =
     '`indexInverted` is deprecated and can not be set together with `indexFilterable` or `indexSearchable`';
-  const errMsg2 = '`indexSearchable` is not allowed for other than text/text[] data types';
+  const errMsg2 = '`indexSearchable` is allowed only for text/text[] data types';
   test.each([
     ['text', false, null, false, errMsg1],
     ['text', false, null, true, errMsg1],
@@ -678,6 +679,7 @@ describe('multi tenancy', () => {
     vectorIndexType: 'hnsw',
     vectorizer: 'text2vec-contextionary',
     multiTenancyConfig: {
+      autoTenantCreation: true,
       enabled: true,
     },
   };
@@ -826,6 +828,7 @@ function newClassObject(className: string) {
       },
     },
     multiTenancyConfig: {
+      autoTenantCreation: false,
       enabled: false,
     },
     shardingConfig: {
