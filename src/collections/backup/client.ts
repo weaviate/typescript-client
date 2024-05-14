@@ -103,6 +103,7 @@ export const backup = (connection: Connection) => {
           const res = await getCreateStatus(args); // eslint-disable-line no-await-in-loop
           if (res.status === 'SUCCESS') {
             wait = false;
+            status = res;
           }
           if (res.status === 'FAILED') {
             throw new WeaviateBackupFailed(res.error ? res.error : '<unknown>', 'creation');
@@ -145,6 +146,7 @@ export const backup = (connection: Connection) => {
           const res = await getRestoreStatus(args); // eslint-disable-line no-await-in-loop
           if (res.status === 'SUCCESS') {
             wait = false;
+            status = res;
           }
           if (res.status === 'FAILED') {
             throw new WeaviateBackupFailed(res.error ? res.error : '<unknown>', 'restoration');
