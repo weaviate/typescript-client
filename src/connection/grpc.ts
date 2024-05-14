@@ -64,27 +64,29 @@ export default class ConnectionGRPC extends ConnectionGQL {
     }
   }
 
-  search = (name: string, consistencyLevel?: ConsistencyLevel, tenant?: string) => {
+  search = (collection: string, consistencyLevel?: ConsistencyLevel, tenant?: string) => {
     if (this.authEnabled) {
       return this.login().then((token) =>
-        this.grpc.search(name, consistencyLevel, tenant, `Bearer ${token}`)
+        this.grpc.search(collection, consistencyLevel, tenant, `Bearer ${token}`)
       );
     }
-    return new Promise<Search>((resolve) => resolve(this.grpc.search(name, consistencyLevel, tenant)));
+    return new Promise<Search>((resolve) => resolve(this.grpc.search(collection, consistencyLevel, tenant)));
   };
 
-  batch = (name: string, consistencyLevel?: ConsistencyLevel, tenant?: string) => {
+  batch = (collection: string, consistencyLevel?: ConsistencyLevel, tenant?: string) => {
     if (this.authEnabled) {
-      return this.login().then((token) => this.grpc.batch(name, consistencyLevel, tenant, `Bearer ${token}`));
+      return this.login().then((token) =>
+        this.grpc.batch(collection, consistencyLevel, tenant, `Bearer ${token}`)
+      );
     }
-    return new Promise<Batch>((resolve) => resolve(this.grpc.batch(name, consistencyLevel, tenant)));
+    return new Promise<Batch>((resolve) => resolve(this.grpc.batch(collection, consistencyLevel, tenant)));
   };
 
-  tenants = (name: string) => {
+  tenants = (collection: string) => {
     if (this.authEnabled) {
-      return this.login().then((token) => this.grpc.tenants(name, `Bearer ${token}`));
+      return this.login().then((token) => this.grpc.tenants(collection, `Bearer ${token}`));
     }
-    return new Promise<Tenants>((resolve) => resolve(this.grpc.tenants(name)));
+    return new Promise<Tenants>((resolve) => resolve(this.grpc.tenants(collection)));
   };
 
   close = () => {
@@ -95,15 +97,20 @@ export default class ConnectionGRPC extends ConnectionGQL {
 
 export interface GrpcClient {
   close: () => void;
-  batch: (name: string, consistencyLevel?: ConsistencyLevel, tenant?: string, bearerToken?: string) => Batch;
+  batch: (
+    collection: string,
+    consistencyLevel?: ConsistencyLevel,
+    tenant?: string,
+    bearerToken?: string
+  ) => Batch;
   health: () => Promise<boolean>;
   search: (
-    name: string,
+    collection: string,
     consistencyLevel?: ConsistencyLevel,
     tenant?: string,
     bearerToken?: string
   ) => Search;
-  tenants: (name: string, bearerToken?: string) => Tenants;
+  tenants: (collection: string, bearerToken?: string) => Tenants;
 }
 
 export const grpcClient = (config: GrpcConnectionParams): GrpcClient => {
@@ -126,10 +133,10 @@ export const grpcClient = (config: GrpcConnectionParams): GrpcClient => {
   const health = clientFactory.create(HealthDefinition, channel);
   return {
     close: () => channel.close(),
-    batch: (name: string, consistencyLevel?: ConsistencyLevel, tenant?: string, bearerToken?: string) =>
+    batch: (collection: string, consistencyLevel?: ConsistencyLevel, tenant?: string, bearerToken?: string) =>
       Batcher.use(
         client,
-        name,
+        collection,
         new Metadata(bearerToken ? { ...config.headers, authorization: bearerToken } : config.headers),
         consistencyLevel,
         tenant
@@ -138,18 +145,23 @@ export const grpcClient = (config: GrpcConnectionParams): GrpcClient => {
       health
         .check({ service: '/grpc.health.v1.Health/Check' })
         .then((res) => res.status === HealthCheckResponse_ServingStatus.SERVING),
-    search: (name: string, consistencyLevel?: ConsistencyLevel, tenant?: string, bearerToken?: string) =>
+    search: (
+      collection: string,
+      consistencyLevel?: ConsistencyLevel,
+      tenant?: string,
+      bearerToken?: string
+    ) =>
       Searcher.use(
         client,
-        name,
+        collection,
         new Metadata(bearerToken ? { ...config.headers, authorization: bearerToken } : config.headers),
         consistencyLevel,
         tenant
       ),
-    tenants: (name: string, bearerToken?: string) =>
+    tenants: (collection: string, bearerToken?: string) =>
       TenantsManager.use(
         client,
-        name,
+        collection,
         new Metadata(bearerToken ? { ...config.headers, authorization: bearerToken } : config.headers)
       ),
   };

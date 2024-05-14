@@ -24,13 +24,13 @@ class ActivityStatusMapper {
   }
 }
 
-const tenants = (connection: ConnectionGRPC, name: string): Tenants => {
+const tenants = (connection: ConnectionGRPC, collection: string): Tenants => {
   const parseTenants = (tenants: Tenant | Tenant[]) => (Array.isArray(tenants) ? tenants : [tenants]);
   return {
     create: (tenants: Tenant | Tenant[]) =>
-      new TenantsCreator(connection, name, parseTenants(tenants)).do() as Promise<Tenant[]>,
+      new TenantsCreator(connection, collection, parseTenants(tenants)).do() as Promise<Tenant[]>,
     get: () =>
-      new TenantsGetter(connection, name).do().then((tenants) => {
+      new TenantsGetter(connection, collection).do().then((tenants) => {
         const result: Record<string, Tenant> = {};
         tenants.forEach((tenant) => {
           if (!tenant.name) return;
@@ -38,26 +38,34 @@ const tenants = (connection: ConnectionGRPC, name: string): Tenants => {
         });
         return result;
       }),
-    getByName: (name: string) =>
+    getByNames: (tenants: (string | Tenant)[]) =>
       connection
-        .tenants(name)
-        .then((builder) => builder.withGet({ names: [name] }))
-        .then((reply) =>
-          reply.tenants.length === 1
-            ? {
-                name: reply.tenants[0].name,
-                activityStatus: ActivityStatusMapper.from(reply.tenants[0].activityStatus),
-              }
-            : null
-        ),
+        .tenants(collection)
+        .then((builder) =>
+          builder.withGet({ names: tenants.map((t) => (typeof t === 'string' ? t : t.name)) })
+        )
+        .then((reply) => {
+          const tenants: Record<string, Tenant> = {};
+          reply.tenants.forEach((t) => {
+            tenants[t.name] = {
+              name: t.name,
+              activityStatus: ActivityStatusMapper.from(t.activityStatus),
+            };
+          });
+          return tenants;
+        }),
+    getByName: function (tenant: string | Tenant) {
+      const tenantName = typeof tenant === 'string' ? tenant : tenant.name;
+      return this.getByNames([tenant]).then((tenants) => tenants[tenantName] || null);
+    },
     remove: (tenants: Tenant | Tenant[]) =>
       new TenantsDeleter(
         connection,
-        name,
+        collection,
         parseTenants(tenants).map((t) => t.name)
       ).do(),
     update: (tenants: Tenant | Tenant[]) =>
-      new TenantsUpdater(connection, name, parseTenants(tenants)).do() as Promise<Tenant[]>,
+      new TenantsUpdater(connection, collection, parseTenants(tenants)).do() as Promise<Tenant[]>,
   };
 };
 
@@ -89,14 +97,23 @@ export interface Tenants {
    */
   get: () => Promise<Record<string, Tenant>>;
   /**
+   * Return the specified tenants from a collection in Weaviate.
+   *
+   * The collection must have been created with multi-tenancy enabled.
+   *
+   * @param {(string | Tenant)[]} names The tenants to retrieve.
+   * @returns {Promise<Tenant[]>} The list of tenants. If the tenant does not exist, it will not be included in the list.
+   */
+  getByNames: (names: (string | Tenant)[]) => Promise<Record<string, Tenant>>;
+  /**
    * Return the specified tenant from a collection in Weaviate.
    *
    * The collection must have been created with multi-tenancy enabled.
    *
-   * @param {string} name The name of the tenant to retrieve.
+   * @param {string | Tenant} name The name of the tenant to retrieve.
    * @returns {Promise<Tenant | null>} The tenant as a Tenant type, or null if the tenant does not exist.
    */
-  getByName: (name: string) => Promise<Tenant | null>;
+  getByName: (name: string | Tenant) => Promise<Tenant | null>;
   /**
    * Remove the specified tenants from a collection in Weaviate.
    *

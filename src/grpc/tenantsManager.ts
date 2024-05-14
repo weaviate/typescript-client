@@ -1,8 +1,7 @@
 import Base from './base.js';
-import { ConsistencyLevel } from '../data/index.js';
 import { Metadata } from 'nice-grpc';
 import { WeaviateClient } from '../proto/v1/weaviate.js';
-import { TenantNames, TenantsGetReply, TenantsGetRequest } from '../proto/v1/tenants.js';
+import { TenantsGetReply, TenantsGetRequest } from '../proto/v1/tenants.js';
 
 export type TenantsGetArgs = {
   names?: string[];
@@ -13,8 +12,8 @@ export interface Tenants {
 }
 
 export default class TenantsManager extends Base implements TenantsManager {
-  public static use(connection: WeaviateClient, name: string, metadata: Metadata): Tenants {
-    return new TenantsManager(connection, name, metadata);
+  public static use(connection: WeaviateClient, collection: string, metadata: Metadata): Tenants {
+    return new TenantsManager(connection, collection, metadata);
   }
 
   public withGet = (args: TenantsGetArgs) =>
@@ -24,7 +23,7 @@ export default class TenantsManager extends Base implements TenantsManager {
     return this.connection.tenantsGet(
       {
         ...message,
-        collection: this.name,
+        collection: this.collection,
       },
       {
         metadata: this.metadata,
