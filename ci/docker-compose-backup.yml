@@ -5,8 +5,8 @@ services:
     image: semitechnologies/weaviate:${WEAVIATE_VERSION}
     restart: on-failure:0
     ports:
-      - 8089:8080
-      - 50060:50051
+      - 8090:8080
+      - 50061:50051
     environment:
       QUERY_DEFAULTS_LIMIT: 20
       AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: 'true'
