@@ -38,7 +38,8 @@ export type GenerativeConfig =
   | GenerativeOpenAIConfig
   | GenerativeCohereConfig
   | GenerativePaLMConfig
-  | Record<string, any>;
+  | Record<string, any>
+  | undefined;
 
 export type GenerativeConfigType<G> = G extends 'generative-openai'
   ? GenerativeOpenAIConfig

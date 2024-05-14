@@ -4,7 +4,8 @@ Official JS/TS client for easy interaction with a Weaviate instance.
 
 ## Documentation
 
-- [Documentation](https://weaviate.io/developers/weaviate/client-libraries/typescript).
+- [General Documentation](https://weaviate.io/developers/weaviate/client-libraries/typescript).
+- [Client-specific Documentation](https://weaviate.github.io/typescript-client/)
 
 ## Support
 

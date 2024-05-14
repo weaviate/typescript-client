@@ -4,6 +4,7 @@ import weaviate, { WeaviateClient } from '../../index.js';
 import { GenerateOptions } from './types.js';
 import { GroupByOptions } from '../types/index.js';
 import { Collection } from '../collection/index.js';
+import { WeaviateUnsupportedFeatureError } from '../../errors.js';
 
 const maybe = process.env.OPENAI_APIKEY ? describe : describe.skip;
 
@@ -58,7 +59,9 @@ maybe('Testing of the collection.generate methods with a simple collection', () 
           },
         ],
         generative: weaviate.configure.generative.openAI(),
-        vectorizer: weaviate.configure.vectorizer.text2VecOpenAI({ vectorizeClassName: false }),
+        vectorizers: weaviate.configure.vectorizer.text2VecOpenAI('vector', {
+          vectorizeCollectionName: false,
+        }),
       })
       .then(() => {
         return collection.data.insert({
@@ -68,7 +71,7 @@ maybe('Testing of the collection.generate methods with a simple collection', () 
         });
       });
     const res = await collection.query.fetchObjectById(id, { includeVector: true });
-    vector = res?.vectors.default!;
+    vector = res?.vectors.vector!;
   });
 
   describe('using a non-generic collection', () => {
@@ -117,7 +120,7 @@ maybe('Testing of the collection.generate methods with a simple collection', () 
     });
 
     it('should generate with hybrid', async () => {
-      const ret = await collection.generate.hybrid('test', generateOpts);
+      const ret = await collection.generate.hybrid('test', generateOpts, { targetVector: 'vector' });
       expect(ret.objects.length).toEqual(1);
       expect(ret.generated).toBeDefined();
       expect(ret.objects[0].properties.testProp).toEqual('test');
@@ -126,7 +129,7 @@ maybe('Testing of the collection.generate methods with a simple collection', () 
     });
 
     it('should generate with nearObject', async () => {
-      const ret = await collection.generate.nearObject(id, generateOpts);
+      const ret = await collection.generate.nearObject(id, generateOpts, { targetVector: 'vector' });
       expect(ret.objects.length).toEqual(1);
       expect(ret.generated).toBeDefined();
       expect(ret.objects[0].properties.testProp).toEqual('test');
@@ -135,7 +138,7 @@ maybe('Testing of the collection.generate methods with a simple collection', () 
     });
 
     it('should generate with nearText', async () => {
-      const ret = await collection.generate.nearText(['test'], generateOpts);
+      const ret = await collection.generate.nearText(['test'], generateOpts, { targetVector: 'vector' });
       expect(ret.objects.length).toEqual(1);
       expect(ret.generated).toBeDefined();
       expect(ret.objects[0].properties.testProp).toEqual('test');
@@ -144,7 +147,7 @@ maybe('Testing of the collection.generate methods with a simple collection', () 
     });
 
     it('should generate with nearVector', async () => {
-      const ret = await collection.generate.nearVector(vector, generateOpts);
+      const ret = await collection.generate.nearVector(vector, generateOpts, { targetVector: 'vector' });
       expect(ret.objects.length).toEqual(1);
       expect(ret.generated).toBeDefined();
       expect(ret.objects[0].properties.testProp).toEqual('test');
@@ -211,7 +214,9 @@ maybe('Testing of the groupBy collection.generate methods with a simple collecti
           },
         ],
         generative: weaviate.configure.generative.openAI(),
-        vectorizer: weaviate.configure.vectorizer.text2VecOpenAI({ vectorizeClassName: false }),
+        vectorizers: weaviate.configure.vectorizer.text2VecOpenAI('vector', {
+          vectorizeCollectionName: false,
+        }),
       })
       .then(() => {
         return collection.data.insert({
@@ -221,7 +226,7 @@ maybe('Testing of the groupBy collection.generate methods with a simple collecti
         });
       });
     const res = await collection.query.fetchObjectById(id, { includeVector: true });
-    vector = res?.vectors.default!;
+    vector = res?.vectors.vector!;
   });
 
   // it('should groupBy without search', async () => {
@@ -249,9 +254,15 @@ maybe('Testing of the groupBy collection.generate methods with a simple collecti
   // });
 
   it('should groupBy with bm25', async () => {
-    const ret = await collection.generate.bm25('test', generateOpts, {
-      groupBy: groupByArgs,
-    });
+    const query = () =>
+      collection.generate.bm25('test', generateOpts, {
+        groupBy: groupByArgs,
+      });
+    if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 25, 0))) {
+      await expect(query()).rejects.toThrow(WeaviateUnsupportedFeatureError);
+      return;
+    }
+    const ret = await query();
     expect(ret.objects.length).toEqual(1);
     expect(ret.groups).toBeDefined();
     expect(Object.keys(ret.groups)).toEqual(['test']);
@@ -261,9 +272,15 @@ maybe('Testing of the groupBy collection.generate methods with a simple collecti
   });
 
   it('should groupBy with hybrid', async () => {
-    const ret = await collection.generate.hybrid('test', generateOpts, {
-      groupBy: groupByArgs,
-    });
+    const query = () =>
+      collection.generate.hybrid('test', generateOpts, {
+        groupBy: groupByArgs,
+      });
+    if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 25, 0))) {
+      await expect(query()).rejects.toThrow(WeaviateUnsupportedFeatureError);
+      return;
+    }
+    const ret = await query();
     expect(ret.objects.length).toEqual(1);
     expect(ret.groups).toBeDefined();
     expect(Object.keys(ret.groups)).toEqual(['test']);
@@ -275,6 +292,7 @@ maybe('Testing of the groupBy collection.generate methods with a simple collecti
   it('should groupBy with nearObject', async () => {
     const ret = await collection.generate.nearObject(id, generateOpts, {
       groupBy: groupByArgs,
+      targetVector: 'vector',
     });
     expect(ret.objects.length).toEqual(1);
     expect(ret.groups).toBeDefined();
@@ -289,6 +307,7 @@ maybe('Testing of the groupBy collection.generate methods with a simple collecti
   it('should groupBy with nearText', async () => {
     const ret = await collection.generate.nearText(['test'], generateOpts, {
       groupBy: groupByArgs,
+      targetVector: 'vector',
     });
     expect(ret.objects.length).toEqual(1);
     expect(ret.groups).toBeDefined();
@@ -303,6 +322,7 @@ maybe('Testing of the groupBy collection.generate methods with a simple collecti
   it('should groupBy with nearVector', async () => {
     const ret = await collection.generate.nearVector(vector, generateOpts, {
       groupBy: groupByArgs,
+      targetVector: 'vector',
     });
     expect(ret.objects.length).toEqual(1);
     expect(ret.groups).toBeDefined();

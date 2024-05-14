@@ -2,10 +2,10 @@ import {
   InvertedIndexConfigCreate,
   InvertedIndexConfigUpdate,
   MultiTenancyConfigCreate,
-  NamedVectorConfigCreate,
-  NamedVectorConfigUpdate,
-  NamedVectorizerCreateOptions,
-  NamedVectorizerUpdateOptions,
+  VectorConfigCreate,
+  VectorConfigUpdate,
+  VectorizerCreateOptions,
+  VectorizerUpdateOptions,
   ReplicationConfigCreate,
   ShardingConfigCreate,
   VectorIndexType,
@@ -65,7 +65,7 @@ const configure = {
   tokenization,
   vectorDistances,
   /**
-   * Create an `InvertedIndexConfigCreate` object to be used when defining the configuration of the keyword searching algorithm of Weaviate.
+   * Create an `InvertedIndexConfigCreate` object to be used when defining the configuration of the keyword searching algorithm of your collection.
    *
    * See [the docs](https://weaviate.io/developers/weaviate/configuration/indexes#configure-the-inverted-index) for details!
    *
@@ -107,7 +107,7 @@ const configure = {
     };
   },
   /**
-   * Create a `MultiTenancyConfigCreate` object to be used when defining the multi-tenancy configuration of Weaviate.
+   * Create a `MultiTenancyConfigCreate` object to be used when defining the multi-tenancy configuration of your collection.
    *
    * @param {boolean} config.enabled Whether multi-tenancy is enabled. Default is true.
    */
@@ -115,24 +115,7 @@ const configure = {
     return options ? { enabled: parseWithDefault(options.enabled, true) } : { enabled: true };
   },
   /**
-   * Create a `NamedVectorConfigCreate` object to be used when defining the named vector configuration of Weaviate.
-   *
-   * @param {string} name The name of the vector.
-   * @param {NamedVectorizerOptions} [options] The options for the named vector.
-   */
-  namedVectorizer: <T, N extends string, I extends VectorIndexType = 'hnsw', V extends Vectorizer = 'none'>(
-    name: N,
-    options?: NamedVectorizerCreateOptions<PrimitiveKeys<T>[], I, V>
-  ): NamedVectorConfigCreate<PrimitiveKeys<T>[], N, I, V> => {
-    return {
-      vectorName: name,
-      properties: options?.properties,
-      vectorIndex: options?.vectorIndexConfig ? options.vectorIndexConfig : { name: 'hnsw' as I },
-      vectorizer: options?.vectorizerConfig ? options.vectorizerConfig : { name: 'none' as V },
-    };
-  },
-  /**
-   * Create a `ReplicationConfigCreate` object to be used when defining the replication configuration of Weaviate.
+   * Create a `ReplicationConfigCreate` object to be used when defining the replication configuration of your collection.
    *
    * NOTE: You can only use one of Sharding or Replication, not both.
    *
@@ -144,7 +127,7 @@ const configure = {
     return config ? { factor: parseWithDefault(config.factor, 1) } : { factor: 1 };
   },
   /**
-   * Create a `ShardingConfigCreate` object to be used when defining the sharding configuration of Weaviate.
+   * Create a `ShardingConfigCreate` object to be used when defining the sharding configuration of your collection.
    *
    * NOTE: You can only use one of Sharding or Replication, not both.
    *
@@ -170,7 +153,7 @@ const configure = {
 const reconfigure = {
   vectorIndex: reconfigureVectorIndex,
   /**
-   * Create an `InvertedIndexConfigUpdate` object to be used when updating the configuration of the keyword searching algorithm of Weaviate.
+   * Create an `InvertedIndexConfigUpdate` object to be used when updating the configuration of the keyword searching algorithm of your collection.
    *
    * See [the docs](https://weaviate.io/developers/weaviate/configuration/indexes#configure-the-inverted-index) for details!
    *
@@ -202,20 +185,22 @@ const reconfigure = {
       },
     };
   },
-  /**
-   * Create a `NamedVectorConfigUpdate` object to be used when updating the named vector configuration of Weaviate.
-   *
-   * @param {string} name The name of the vector.
-   * @param {NamedVectorizerOptions} [options] The options for the named vector.
-   */
-  namedVectorizer: <N extends string, I extends VectorIndexType = 'hnsw'>(
-    name: N,
-    options: NamedVectorizerUpdateOptions<I>
-  ): NamedVectorConfigUpdate<N, I> => {
-    return {
-      vectorName: name,
-      vectorIndex: options.vectorIndexConfig,
-    };
+  vectorizer: {
+    /**
+     * Create a `VectorConfigUpdate` object to be used when updating the named vector configuration of Weaviate.
+     *
+     * @param {string} name The name of the vector.
+     * @param {VectorizerOptions} [options] The options for the named vector.
+     */
+    update: <N extends string, I extends VectorIndexType>(
+      name: N,
+      options: VectorizerUpdateOptions<I>
+    ): VectorConfigUpdate<N, I> => {
+      return {
+        vectorName: name,
+        vectorIndex: options.vectorIndexConfig,
+      };
+    },
   },
   /**
    * Create a `ReplicationConfigUpdate` object to be used when defining the replication configuration of Weaviate.
