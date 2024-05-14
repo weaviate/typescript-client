@@ -21,5 +21,5 @@ function compose_down_all {
 }
 
 function all_weaviate_ports {
-  echo "8079 8080 8081 8082 8083 8085 8086 8087 8088 8089"
+  echo "8079 8080 8081 8082 8083 8085 8086 8087 8088 8089 8090"
 }
