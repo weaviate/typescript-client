@@ -70,7 +70,7 @@ maybe('Testing of the collection.generate methods with a simple collection', () 
         });
       });
     const res = await collection.query.fetchObjectById(id, { includeVector: true });
-    vector = res?.vectors.default!;
+    vector = res?.vectors.vector!;
   });
 
   describe('using a non-generic collection', () => {
