@@ -129,7 +129,11 @@ export interface Hybrid {
   fusionType: Hybrid_FusionType;
   vectorBytes: Uint8Array;
   targetVectors: string[];
-  nearText: NearTextSearch | undefined;
+  /** target_vector in msg is ignored and should not be set for hybrid */
+  nearText:
+    | NearTextSearch
+    | undefined;
+  /** same as above. Use the target vector in the hybrid message */
   nearVector: NearVector | undefined;
 }
 

@@ -90,7 +90,7 @@ export class DbVersionSupport {
       };
     });
 
-  supportsHybridNearSubsearchQueries = () => {
+  supportsHybridNearTextAndNearVectorSubsearchQueries = () => {
     return this.dbVersionProvider.getVersion().then((version) => {
       return {
         version: version,

@@ -80,6 +80,9 @@ import {
   SearchOptions,
   NearTextOptions,
   BaseNearOptions,
+  BaseHybridOptions,
+  HybridNearTextSubSearch,
+  HybridNearVectorSubSearch,
 } from '../query/types.js';
 import { GenerateOptions } from '../generate/types.js';
 import {
@@ -354,6 +357,43 @@ export class Serialize {
     };
   };
 
+  private static isHybridVectorSearch = <T>(vector: BaseHybridOptions<T>['vector']): vector is number[] => {
+    return Array.isArray(vector);
+  };
+
+  private static isHybridNearTextSearch = <T>(
+    vector: BaseHybridOptions<T>['vector']
+  ): vector is HybridNearTextSubSearch => {
+    return (vector as HybridNearTextSubSearch)?.text !== undefined;
+  };
+
+  private static isHybridNearVectorSearch = <T>(
+    vector: BaseHybridOptions<T>['vector']
+  ): vector is HybridNearVectorSubSearch => {
+    return (vector as HybridNearVectorSubSearch)?.vector !== undefined;
+  };
+
+  private static hybridVector = <T>(vector: BaseHybridOptions<T>['vector']): Uint8Array | undefined => {
+    return Serialize.isHybridVectorSearch(vector) ? Serialize.vectorToBytes(vector) : undefined;
+  };
+
+  private static hybridNearText = <T>(vector: BaseHybridOptions<T>['vector']): NearTextSearch | undefined => {
+    return Serialize.isHybridNearTextSearch(vector)
+      ? Serialize.nearTextSearch({
+          ...vector,
+          query: vector.text,
+        })
+      : undefined;
+  };
+
+  private static hybridNearVector = <T>(vector: BaseHybridOptions<T>['vector']): NearVector | undefined => {
+    return Serialize.isHybridNearVectorSearch(vector)
+      ? NearVector.fromPartial({
+          vectorBytes: Serialize.vectorToBytes(vector.vector),
+        })
+      : undefined;
+  };
+
   public static hybrid = <T>(args: { query: string } & HybridOptions<T>): SearchHybridArgs => {
     const fusionType = (fusionType?: string): Hybrid_FusionType => {
       switch (fusionType) {
@@ -365,15 +405,18 @@ export class Serialize {
           return Hybrid_FusionType.FUSION_TYPE_UNSPECIFIED;
       }
     };
+
     return {
       ...Serialize.common(args),
       hybridSearch: Hybrid.fromPartial({
         query: args.query,
         alpha: args.alpha ? args.alpha : 0.5,
         properties: args.queryProperties,
-        vectorBytes: args.vector ? Serialize.vectorToBytes(args.vector) : undefined,
+        vectorBytes: Serialize.hybridVector(args.vector),
         fusionType: fusionType(args.fusionType),
         targetVectors: args.targetVector ? [args.targetVector] : undefined,
+        nearText: Serialize.hybridNearText(args.vector),
+        nearVector: Serialize.hybridNearVector(args.vector),
       }),
       autocut: args.autoLimit,
     };
@@ -444,31 +487,42 @@ export class Serialize {
     };
   };
 
+  private static nearTextSearch = (args: {
+    query: string | string[];
+    certainty?: number;
+    distance?: number;
+    targetVector?: string;
+    moveAway?: { concepts?: string[]; force?: number; objects?: string[] };
+    moveTo?: { concepts?: string[]; force?: number; objects?: string[] };
+  }) => {
+    return NearTextSearch.fromPartial({
+      query: typeof args.query === 'string' ? [args.query] : args.query,
+      certainty: args.certainty,
+      distance: args.distance,
+      targetVectors: args.targetVector ? [args.targetVector] : undefined,
+      moveAway: args.moveAway
+        ? NearTextSearch_Move.fromPartial({
+            concepts: args.moveAway.concepts,
+            force: args.moveAway.force,
+            uuids: args.moveAway.objects,
+          })
+        : undefined,
+      moveTo: args.moveTo
+        ? NearTextSearch_Move.fromPartial({
+            concepts: args.moveTo.concepts,
+            force: args.moveTo.force,
+            uuids: args.moveTo.objects,
+          })
+        : undefined,
+    });
+  };
+
   public static nearText = <T>(
     args: { query: string | string[] } & NearTextOptions<T>
   ): SearchNearTextArgs => {
     return {
       ...Serialize.common(args),
-      nearText: NearTextSearch.fromPartial({
-        query: typeof args.query === 'string' ? [args.query] : args.query,
-        certainty: args.certainty,
-        distance: args.distance,
-        targetVectors: args.targetVector ? [args.targetVector] : undefined,
-        moveAway: args.moveAway
-          ? NearTextSearch_Move.fromPartial({
-              concepts: args.moveAway.concepts,
-              force: args.moveAway.force,
-              uuids: args.moveAway.objects,
-            })
-          : undefined,
-        moveTo: args.moveTo
-          ? NearTextSearch_Move.fromPartial({
-              concepts: args.moveTo.concepts,
-              force: args.moveTo.force,
-              uuids: args.moveTo.objects,
-            })
-          : undefined,
-      }),
+      nearText: Serialize.nearTextSearch(args),
       autocut: args.autoLimit,
     };
   };
@@ -490,15 +544,24 @@ export class Serialize {
     return new Uint8Array(new Float32Array(vector).buffer);
   };
 
+  private static nearVectorSearch = (args: {
+    vector: number[];
+    certainty?: number;
+    distance?: number;
+    targetVector?: string;
+  }) => {
+    return NearVector.fromPartial({
+      vectorBytes: Serialize.vectorToBytes(args.vector),
+      certainty: args.certainty,
+      distance: args.distance,
+      targetVectors: args.targetVector ? [args.targetVector] : undefined,
+    });
+  };
+
   public static nearVector = <T>(args: { vector: number[] } & NearOptions<T>): SearchNearVectorArgs => {
     return {
       ...Serialize.common(args),
-      nearVector: NearVector.fromPartial({
-        vectorBytes: Serialize.vectorToBytes(args.vector),
-        certainty: args.certainty,
-        distance: args.distance,
-        targetVectors: args.targetVector ? [args.targetVector] : undefined,
-      }),
+      nearVector: Serialize.nearVectorSearch(args),
       autocut: args.autoLimit,
     };
   };

@@ -113,6 +113,63 @@ describe('Testing of the collection.query methods with a simple collection', () 
     expect(ret.objects[0].uuid).toEqual(id);
   });
 
+  it('should query with hybrid and vector', async () => {
+    const ret = await collection.query.hybrid('test', {
+      limit: 1,
+      vector: vector,
+    });
+    expect(ret.objects.length).toEqual(1);
+    expect(ret.objects[0].properties.testProp).toEqual('test');
+    expect(ret.objects[0].properties.testProp2).toEqual('test2');
+    expect(ret.objects[0].uuid).toEqual(id);
+  });
+
+  it('should query with hybrid and near text subsearch', async () => {
+    const query = () =>
+      collection.query.hybrid('test', {
+        limit: 1,
+        vector: {
+          text: 'apple',
+          distance: 0.9,
+          moveTo: {
+            concepts: ['banana'],
+            force: 0.9,
+          },
+          moveAway: {
+            concepts: ['test'],
+            force: 0.1,
+          },
+        },
+      });
+    if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 25, 0))) {
+      await expect(query()).rejects.toThrow(WeaviateUnsupportedFeatureError);
+      return;
+    }
+    const ret = await query();
+    expect(ret.objects.length).toEqual(1);
+    expect(ret.objects[0].properties.testProp).toEqual('apple');
+    expect(ret.objects[0].properties.testProp2).toEqual('banana');
+  });
+
+  it('should query with hybrid and near vector subsearch', async () => {
+    const query = () =>
+      collection.query.hybrid('test', {
+        limit: 1,
+        vector: {
+          vector: vector,
+          distance: 0.9,
+        },
+      });
+    if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 25, 0))) {
+      await expect(query()).rejects.toThrow(WeaviateUnsupportedFeatureError);
+      return;
+    }
+    const ret = await query();
+    expect(ret.objects.length).toEqual(1);
+    expect(ret.objects[0].properties.testProp).toEqual('test');
+    expect(ret.objects[0].properties.testProp2).toEqual('test2');
+  });
+
   it('should query with nearObject', async () => {
     const ret = await collection.query.nearObject(id, { limit: 1, targetVector: 'vector' });
     expect(ret.objects.length).toEqual(1);

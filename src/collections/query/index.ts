@@ -4,7 +4,6 @@ import Connection from '../../connection/grpc.js';
 
 import { toBase64FromBlob } from '../../utils/base64.js';
 
-import { ObjectsPath } from '../../data/path.js';
 import { DbVersionSupport } from '../../utils/dbVersion.js';
 import { ConsistencyLevel } from '../../data/index.js';
 
@@ -81,6 +80,12 @@ class QueryManager<T> implements Query<T> {
     if (!check.supports) throw new WeaviateUnsupportedFeatureError(check.message(query));
   };
 
+  private checkSupportForHybridNearTextAndNearVectorSubSearches = async (opts?: HybridOptions<T>) => {
+    if (opts?.vector === undefined || Array.isArray(opts.vector)) return;
+    const check = await this.dbVersionSupport.supportsHybridNearTextAndNearVectorSubsearchQueries();
+    if (!check.supports) throw new WeaviateUnsupportedFeatureError(check.message);
+  };
+
   private async parseReply(reply: SearchReply) {
     const deserialize = await Deserialize.use(this.dbVersionSupport);
     return deserialize.query<T>(reply);
@@ -134,6 +139,7 @@ class QueryManager<T> implements Query<T> {
     return Promise.all([
       this.checkSupportForNamedVectors(opts),
       this.checkSupportForBm25AndHybridGroupByQueries('Hybrid', opts),
+      this.checkSupportForHybridNearTextAndNearVectorSubSearches(opts),
     ])
       .then(() => this.connection.search(this.name, this.consistencyLevel, this.tenant))
       .then((search) =>

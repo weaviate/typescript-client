@@ -90,18 +90,33 @@ export type GroupByBm25Options<T> = BaseBm25Options<T> & {
 /** Options available in the `query.bm25` method */
 export type Bm25Options<T> = BaseBm25Options<T> | GroupByBm25Options<T> | undefined;
 
-/** Base ptions available in the `query.hybrid` method */
+/** Base options available in the `query.hybrid` method */
 export type BaseHybridOptions<T> = SearchOptions<T> & {
   /** The weight of the BM25 score. If not specified, the default weight specified by the server is used. */
   alpha?: number;
-  /** The specific vector to search for. If not specified, the query is vectorized and used in the similarity search. */
-  vector?: number[];
+  /** The specific vector to search for or a specific vector subsearch. If not specified, the query is vectorized and used in the similarity search. */
+  vector?: number[] | HybridNearTextSubSearch | HybridNearVectorSubSearch;
   /** The properties to search in. If not specified, all properties are searched. */
   queryProperties?: PrimitiveKeys<T>[];
   /** The type of fusion to apply. If not specified, the default fusion type specified by the server is used. */
   fusionType?: 'Ranked' | 'RelativeScore';
   /** Specify which vector to search on if using named vectors. */
   targetVector?: string;
+};
+
+export type HybridSubSearchBase = {
+  certainty?: number;
+  distance?: number;
+};
+
+export type HybridNearTextSubSearch = HybridSubSearchBase & {
+  text: string | string[];
+  moveTo?: MoveOptions;
+  moveAway?: MoveOptions;
+};
+
+export type HybridNearVectorSubSearch = HybridSubSearchBase & {
+  vector: number[];
 };
 
 /** Options available in the `query.hybrid` method when specifying the `groupBy` parameter. */
