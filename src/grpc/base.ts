@@ -6,20 +6,20 @@ import { Metadata } from 'nice-grpc';
 
 export default class Base {
   protected connection: WeaviateClient;
-  protected name: string;
+  protected collection: string;
   protected consistencyLevel?: ConsistencyLevelGRPC;
   protected tenant?: string;
   protected metadata?: Metadata;
 
   protected constructor(
     connection: WeaviateClient,
-    name: string,
+    collection: string,
     metadata: Metadata,
     consistencyLevel?: ConsistencyLevel,
     tenant?: string
   ) {
     this.connection = connection;
-    this.name = name;
+    this.collection = collection;
     this.consistencyLevel = this.mapConsistencyLevel(consistencyLevel);
     this.tenant = tenant;
     this.metadata = metadata;
