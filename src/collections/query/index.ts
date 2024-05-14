@@ -117,17 +117,14 @@ class QueryManager<T> implements Query<T> {
       this.checkSupportForBm25AndHybridGroupByQueries('Bm25', opts),
     ])
       .then(() => this.connection.search(this.name, this.consistencyLevel, this.tenant))
-      .then(async (search) => {
-        const isGroupBy = Serialize.isGroupBy<GroupByBm25Options<T>>(opts);
-        if (isGroupBy) {
-          const check = await this.dbVersionSupport.supportsBm25AndHybridGroupByQueries();
-          if (!check.supports) throw new WeaviateUnsupportedFeatureError(check.message('Bm25'));
-        }
-        return search.withBm25({
+      .then((search) =>
+        search.withBm25({
           ...Serialize.bm25({ query, ...opts }),
-          groupBy: isGroupBy ? Serialize.groupBy(opts.groupBy) : undefined,
-        });
-      })
+          groupBy: Serialize.isGroupBy<GroupByBm25Options<T>>(opts)
+            ? Serialize.groupBy(opts.groupBy)
+            : undefined,
+        })
+      )
       .then((reply) => this.parseGroupByReply(opts, reply));
   }
 
@@ -136,20 +133,17 @@ class QueryManager<T> implements Query<T> {
   public hybrid(query: string, opts?: HybridOptions<T>): QueryReturn<T> {
     return Promise.all([
       this.checkSupportForNamedVectors(opts),
-      this.checkSupportForBm25AndHybridGroupByQueries('Bm25', opts),
+      this.checkSupportForBm25AndHybridGroupByQueries('Hybrid', opts),
     ])
       .then(() => this.connection.search(this.name, this.consistencyLevel, this.tenant))
-      .then(async (search) => {
-        const isGroupBy = Serialize.isGroupBy<GroupByBm25Options<T>>(opts);
-        if (isGroupBy) {
-          const check = await this.dbVersionSupport.supportsBm25AndHybridGroupByQueries();
-          if (!check.supports) throw new Error(check.message('Hybrid'));
-        }
-        return search.withHybrid({
+      .then((search) =>
+        search.withHybrid({
           ...Serialize.hybrid({ query, ...opts }),
-          groupBy: isGroupBy ? Serialize.groupBy(opts.groupBy) : undefined,
-        });
-      })
+          groupBy: Serialize.isGroupBy<GroupByHybridOptions<T>>(opts)
+            ? Serialize.groupBy(opts.groupBy)
+            : undefined,
+        })
+      )
       .then((reply) => this.parseGroupByReply(opts, reply));
   }
 
