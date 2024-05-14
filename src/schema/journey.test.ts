@@ -733,6 +733,20 @@ describe('multi tenancy', () => {
       });
   });
 
+  it('successfully finds an existing tenant for MultiTenancy class', () => {
+    return client.schema
+      .tenantsExists(classObj.class!, tenants[1].name!)
+      .do()
+      .then((res: boolean) => expect(res).toEqual(true));
+  });
+
+  it('successfully fails to find a non-existant tenant for MultiTenancy class', () => {
+    return client.schema
+      .tenantsExists(classObj.class!, 'nonExistantTenant')
+      .do()
+      .then((res: boolean) => expect(res).toEqual(false));
+  });
+
   it('deletes MultiTenancy class', () => {
     return deleteClass(client, classObj.class!);
   });
