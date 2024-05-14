@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
+import { WeaviateUnsupportedFeatureError } from '../../errors.js';
 import weaviate, { WeaviateClient } from '../../index.js';
 import { Collection } from '../collection/index.js';
 import { CrossReference, Reference } from '../references/index.js';
@@ -572,7 +573,7 @@ describe('Testing of the collection.query methods with a collection with a refer
           includeVector: ['title'],
         });
       if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 24, 0))) {
-        await expect(query()).rejects.toThrow(Error);
+        await expect(query()).rejects.toThrow(WeaviateUnsupportedFeatureError);
         return;
       }
       const ret = await query();
@@ -591,7 +592,7 @@ describe('Testing of the collection.query methods with a collection with a refer
           targetVector: 'title',
         });
       if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 24, 0))) {
-        await expect(query()).rejects.toThrow(Error);
+        await expect(query()).rejects.toThrow(WeaviateUnsupportedFeatureError);
         return;
       }
       const ret = await query();
@@ -693,9 +694,8 @@ describe('Testing of the groupBy collection.query methods with a simple collecti
       collection.query.bm25('test', {
         groupBy: groupByArgs,
       });
-    if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 24, 5))) {
-      // change to 1.25.0 when it lands
-      await expect(query()).rejects.toThrow(Error);
+    if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 25, 0))) {
+      await expect(query()).rejects.toThrow(WeaviateUnsupportedFeatureError);
       return;
     }
     const ret = await query();
@@ -712,9 +712,8 @@ describe('Testing of the groupBy collection.query methods with a simple collecti
       collection.query.hybrid('test', {
         groupBy: groupByArgs,
       });
-    if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 24, 5))) {
-      // change to 1.25.0 when it lands
-      await expect(query()).rejects.toThrow(Error);
+    if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 25, 0))) {
+      await expect(query()).rejects.toThrow(WeaviateUnsupportedFeatureError);
       return;
     }
     const ret = await query();

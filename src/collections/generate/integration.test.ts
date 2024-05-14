@@ -4,6 +4,7 @@ import weaviate, { WeaviateClient } from '../../index.js';
 import { GenerateOptions } from './types.js';
 import { GroupByOptions } from '../types/index.js';
 import { Collection } from '../collection/index.js';
+import { WeaviateUnsupportedFeatureError } from '../../errors.js';
 
 const maybe = process.env.OPENAI_APIKEY ? describe : describe.skip;
 
@@ -253,9 +254,15 @@ maybe('Testing of the groupBy collection.generate methods with a simple collecti
   // });
 
   it('should groupBy with bm25', async () => {
-    const ret = await collection.generate.bm25('test', generateOpts, {
-      groupBy: groupByArgs,
-    });
+    const query = () =>
+      collection.generate.bm25('test', generateOpts, {
+        groupBy: groupByArgs,
+      });
+    if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 25, 0))) {
+      await expect(query()).rejects.toThrow(WeaviateUnsupportedFeatureError);
+      return;
+    }
+    const ret = await query();
     expect(ret.objects.length).toEqual(1);
     expect(ret.groups).toBeDefined();
     expect(Object.keys(ret.groups)).toEqual(['test']);
@@ -265,9 +272,15 @@ maybe('Testing of the groupBy collection.generate methods with a simple collecti
   });
 
   it('should groupBy with hybrid', async () => {
-    const ret = await collection.generate.hybrid('test', generateOpts, {
-      groupBy: groupByArgs,
-    });
+    const query = () =>
+      collection.generate.hybrid('test', generateOpts, {
+        groupBy: groupByArgs,
+      });
+    if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 25, 0))) {
+      await expect(query()).rejects.toThrow(WeaviateUnsupportedFeatureError);
+      return;
+    }
+    const ret = await query();
     expect(ret.objects.length).toEqual(1);
     expect(ret.groups).toBeDefined();
     expect(Object.keys(ret.groups)).toEqual(['test']);
