@@ -17,7 +17,7 @@ export default class TenantsManager extends Base implements TenantsManager {
   }
 
   public withGet = (args: TenantsGetArgs) =>
-    this.call(TenantsGetRequest.fromPartial({ names: { values: args.names } }));
+    this.call(TenantsGetRequest.fromPartial({ names: args.names ? { values: args.names } : undefined }));
 
   private call(message: TenantsGetRequest) {
     return this.connection.tenantsGet(

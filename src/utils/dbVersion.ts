@@ -119,6 +119,16 @@ export class DbVersionSupport {
       };
     });
   };
+
+  supportsTenantsGetGRPCMethod = () => {
+    return this.dbVersionProvider.getVersion().then((version) => {
+      return {
+        version: version,
+        supports: version.isAtLeast(1, 25, 0),
+        message: this.errorMessage('Tenants get method', version.show(), '1.25.0'),
+      };
+    });
+  };
 }
 
 const EMPTY_VERSION = '';

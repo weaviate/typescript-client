@@ -125,7 +125,7 @@ const collection = <T, N>(
     name: name,
     query: queryCollection,
     sort: sort<T>(),
-    tenants: tenants(connection, capitalizedName),
+    tenants: tenants(connection, capitalizedName, dbVersionSupport),
     exists: () => new ClassExists(connection).withClassName(capitalizedName).do(),
     iterator: (opts?: IteratorOptions<T>) =>
       new Iterator<T>((limit: number, after?: string) =>

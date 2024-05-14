@@ -1,6 +1,8 @@
 import { ConnectionGRPC } from '../../connection/index.js';
-import { TenantActivityStatus } from '../../proto/v1/tenants.js';
+import { WeaviateUnsupportedFeatureError } from '../../errors.js';
+import { TenantActivityStatus, TenantsGetReply } from '../../proto/v1/tenants.js';
 import { TenantsCreator, TenantsDeleter, TenantsGetter, TenantsUpdater } from '../../schema/index.js';
+import { DbVersionSupport } from '../../utils/dbVersion.js';
 
 export type Tenant = {
   name: string;
@@ -24,48 +26,66 @@ class ActivityStatusMapper {
   }
 }
 
-const tenants = (connection: ConnectionGRPC, collection: string): Tenants => {
-  const parseTenants = (tenants: Tenant | Tenant[]) => (Array.isArray(tenants) ? tenants : [tenants]);
+const mapReply = (reply: TenantsGetReply): Record<string, Tenant> => {
+  const tenants: Record<string, Tenant> = {};
+  reply.tenants.forEach((t) => {
+    tenants[t.name] = {
+      name: t.name,
+      activityStatus: ActivityStatusMapper.from(t.activityStatus),
+    };
+  });
+  return tenants;
+};
+
+const checkSupportForGRPCTenantsGetEndpoint = async (dbVersionSupport: DbVersionSupport) => {
+  const check = await dbVersionSupport.supportsTenantsGetGRPCMethod();
+  if (!check.supports) throw new WeaviateUnsupportedFeatureError(check.message);
+};
+
+const parseTenantOrTenantArray = (tenants: Tenant | Tenant[]) =>
+  Array.isArray(tenants) ? tenants : [tenants];
+
+const parseStringOrTenant = (tenant: string | Tenant) => (typeof tenant === 'string' ? tenant : tenant.name);
+
+const tenants = (
+  connection: ConnectionGRPC,
+  collection: string,
+  dbVersionSupport: DbVersionSupport
+): Tenants => {
+  const getGRPC = (names?: string[]) =>
+    checkSupportForGRPCTenantsGetEndpoint(dbVersionSupport)
+      .then(() => connection.tenants(collection))
+      .then((builder) => builder.withGet({ names }))
+      .then(mapReply);
+  const getREST = () =>
+    new TenantsGetter(connection, collection).do().then((tenants) => {
+      const result: Record<string, Tenant> = {};
+      tenants.forEach((tenant) => {
+        if (!tenant.name) return;
+        result[tenant.name] = tenant as Tenant;
+      });
+      return result;
+    });
   return {
     create: (tenants: Tenant | Tenant[]) =>
-      new TenantsCreator(connection, collection, parseTenants(tenants)).do() as Promise<Tenant[]>,
-    get: () =>
-      new TenantsGetter(connection, collection).do().then((tenants) => {
-        const result: Record<string, Tenant> = {};
-        tenants.forEach((tenant) => {
-          if (!tenant.name) return;
-          result[tenant.name] = tenant as Tenant;
-        });
-        return result;
-      }),
-    getByNames: (tenants: (string | Tenant)[]) =>
-      connection
-        .tenants(collection)
-        .then((builder) =>
-          builder.withGet({ names: tenants.map((t) => (typeof t === 'string' ? t : t.name)) })
-        )
-        .then((reply) => {
-          const tenants: Record<string, Tenant> = {};
-          reply.tenants.forEach((t) => {
-            tenants[t.name] = {
-              name: t.name,
-              activityStatus: ActivityStatusMapper.from(t.activityStatus),
-            };
-          });
-          return tenants;
-        }),
-    getByName: function (tenant: string | Tenant) {
-      const tenantName = typeof tenant === 'string' ? tenant : tenant.name;
-      return this.getByNames([tenant]).then((tenants) => tenants[tenantName] || null);
+      new TenantsCreator(connection, collection, parseTenantOrTenantArray(tenants)).do() as Promise<Tenant[]>,
+    get: async function () {
+      const check = await dbVersionSupport.supportsTenantsGetGRPCMethod();
+      return check.supports ? getGRPC() : getREST();
+    },
+    getByNames: (tenants: (string | Tenant)[]) => getGRPC(tenants.map(parseStringOrTenant)),
+    getByName: (tenant: string | Tenant) => {
+      const tenantName = parseStringOrTenant(tenant);
+      return getGRPC([tenantName]).then((tenants) => tenants[tenantName] || null);
     },
     remove: (tenants: Tenant | Tenant[]) =>
       new TenantsDeleter(
         connection,
         collection,
-        parseTenants(tenants).map((t) => t.name)
+        parseTenantOrTenantArray(tenants).map((t) => t.name)
       ).do(),
     update: (tenants: Tenant | Tenant[]) =>
-      new TenantsUpdater(connection, collection, parseTenants(tenants)).do() as Promise<Tenant[]>,
+      new TenantsUpdater(connection, collection, parseTenantOrTenantArray(tenants)).do() as Promise<Tenant[]>,
   };
 };
 
