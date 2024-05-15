@@ -1,4 +1,11 @@
-import { GenerativePaLMConfig } from '../../index.js';
+import {
+  GenerativeAWSConfig,
+  GenerativeAnyscaleConfig,
+  GenerativeMistralConfig,
+  GenerativeOctoAIConfig,
+  GenerativeOllamaConfig,
+  GenerativePaLMConfig,
+} from '../../index.js';
 
 type GenerativeOpenAIConfigBaseCreate = {
   baseURL?: string;
@@ -26,6 +33,16 @@ export type GenerativeCohereConfigCreate = {
   stopSequences?: string[];
   temperature?: number;
 };
+
+export type GenerativeAnyscaleConfigCreate = GenerativeAnyscaleConfig;
+
+export type GenerativeAWSConfigCreate = GenerativeAWSConfig;
+
+export type GenerativeMistralConfigCreate = GenerativeMistralConfig;
+
+export type GenerativeOctoAIConfigCreate = GenerativeOctoAIConfig;
+
+export type GenerativeOllamaConfigCreate = GenerativeOllamaConfig;
 
 export type GenerativePaLMConfigCreate = GenerativePaLMConfig;
 

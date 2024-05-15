@@ -7,6 +7,36 @@ type GenerativeOpenAIConfigBase = {
   topPProperty?: number;
 };
 
+export type GenerativeAWSConfig = {
+  region: string;
+  service: string;
+  model?: string;
+  endpoint?: string;
+};
+
+export type GenerativeAnyscaleConfig = {
+  model?: string;
+  temperature?: number;
+};
+
+export type GenerativeMistralConfig = {
+  maxTokens?: number;
+  model?: string;
+  temperature?: number;
+};
+
+export type GenerativeOctoAIConfig = {
+  baseURL?: string;
+  maxTokens?: number;
+  model?: string;
+  temperature?: number;
+};
+
+export type GenerativeOllamaConfig = {
+  apiEndpoint?: string;
+  model?: string;
+};
+
 export type GenerativeOpenAIConfig = GenerativeOpenAIConfigBase & {
   model?: string;
 };
@@ -53,6 +83,11 @@ export type GenerativeConfigType<G> = G extends 'generative-openai'
   : Record<string, any> | undefined;
 
 export type GenerativeSearch =
+  | 'generative-anyscale'
+  | 'generative-aws'
+  | 'generative-mistral'
+  | 'generative-octoai'
+  | 'generative-ollama'
   | 'generative-openai'
   | 'generative-cohere'
   | 'generative-palm'
