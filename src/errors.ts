@@ -102,3 +102,5 @@ export class WeaviateBackupFailed extends WeaviateError {
     super(`Backup ${kind} failed with message: ${message}`);
   }
 }
+
+export class WeaviateUnsupportedFeatureError extends WeaviateError {}

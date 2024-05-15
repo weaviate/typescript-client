@@ -12,7 +12,7 @@ describe('connection', () => {
   it('makes a logged-in request when client host param has trailing slashes', () => {
     if (process.env.WCS_DUMMY_CI_PW == undefined || process.env.WCS_DUMMY_CI_PW == '') {
       console.warn('Skipping because `WCS_DUMMY_CI_PW` is not set');
-      return;
+      return Promise.resolve();
     }
 
     const client = weaviate.client({
@@ -39,7 +39,7 @@ describe('connection', () => {
   it('makes an Azure logged-in request with client credentials', () => {
     if (process.env.AZURE_CLIENT_SECRET == undefined || process.env.AZURE_CLIENT_SECRET == '') {
       console.warn('Skipping because `AZURE_CLIENT_SECRET` is not set');
-      return;
+      return Promise.resolve();
     }
 
     const client = weaviate.client({
@@ -65,7 +65,7 @@ describe('connection', () => {
   it('makes an Okta logged-in request with client credentials', () => {
     if (process.env.OKTA_CLIENT_SECRET == undefined || process.env.OKTA_CLIENT_SECRET == '') {
       console.warn('Skipping because `OKTA_CLIENT_SECRET` is not set');
-      return;
+      return Promise.resolve();
     }
 
     const client = weaviate.client({
@@ -92,7 +92,7 @@ describe('connection', () => {
   it('makes an Okta logged-in request with username/password', () => {
     if (process.env.OKTA_DUMMY_CI_PW == undefined || process.env.OKTA_DUMMY_CI_PW == '') {
       console.warn('Skipping because `OKTA_DUMMY_CI_PW` is not set');
-      return;
+      return Promise.resolve();
     }
 
     const client = weaviate.client({
@@ -119,7 +119,7 @@ describe('connection', () => {
   it('makes a WCS logged-in request with username/password', () => {
     if (process.env.WCS_DUMMY_CI_PW == undefined || process.env.WCS_DUMMY_CI_PW == '') {
       console.warn('Skipping because `WCS_DUMMY_CI_PW` is not set');
-      return;
+      return Promise.resolve();
     }
 
     const client = weaviate.client({

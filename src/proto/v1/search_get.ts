@@ -59,6 +59,7 @@ export interface SearchRequest {
     | undefined;
   /** @deprecated */
   uses123Api: boolean;
+  uses125Api: boolean;
 }
 
 export interface GroupBy {
@@ -128,6 +129,12 @@ export interface Hybrid {
   fusionType: Hybrid_FusionType;
   vectorBytes: Uint8Array;
   targetVectors: string[];
+  /** target_vector in msg is ignored and should not be set for hybrid */
+  nearText:
+    | NearTextSearch
+    | undefined;
+  /** same as above. Use the target vector in the hybrid message */
+  nearVector: NearVector | undefined;
 }
 
 export enum Hybrid_FusionType {
@@ -382,6 +389,7 @@ function createBaseSearchRequest(): SearchRequest {
     generative: undefined,
     rerank: undefined,
     uses123Api: false,
+    uses125Api: false,
   };
 }
 
@@ -464,6 +472,9 @@ export const SearchRequest = {
     }
     if (message.uses123Api === true) {
       writer.uint32(800).bool(message.uses123Api);
+    }
+    if (message.uses125Api === true) {
+      writer.uint32(808).bool(message.uses125Api);
     }
     return writer;
   },
@@ -657,6 +668,13 @@ export const SearchRequest = {
 
           message.uses123Api = reader.bool();
           continue;
+        case 101:
+          if (tag !== 808) {
+            break;
+          }
+
+          message.uses125Api = reader.bool();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -694,6 +712,7 @@ export const SearchRequest = {
       generative: isSet(object.generative) ? GenerativeSearch.fromJSON(object.generative) : undefined,
       rerank: isSet(object.rerank) ? Rerank.fromJSON(object.rerank) : undefined,
       uses123Api: isSet(object.uses123Api) ? globalThis.Boolean(object.uses123Api) : false,
+      uses125Api: isSet(object.uses125Api) ? globalThis.Boolean(object.uses125Api) : false,
     };
   },
 
@@ -777,6 +796,9 @@ export const SearchRequest = {
     if (message.uses123Api === true) {
       obj.uses123Api = message.uses123Api;
     }
+    if (message.uses125Api === true) {
+      obj.uses125Api = message.uses125Api;
+    }
     return obj;
   },
 
@@ -845,6 +867,7 @@ export const SearchRequest = {
       ? Rerank.fromPartial(object.rerank)
       : undefined;
     message.uses123Api = object.uses123Api ?? false;
+    message.uses125Api = object.uses125Api ?? false;
     return message;
   },
 };
@@ -1522,6 +1545,8 @@ function createBaseHybrid(): Hybrid {
     fusionType: 0,
     vectorBytes: new Uint8Array(0),
     targetVectors: [],
+    nearText: undefined,
+    nearVector: undefined,
   };
 }
 
@@ -1549,6 +1574,12 @@ export const Hybrid = {
     }
     for (const v of message.targetVectors) {
       writer.uint32(58).string(v!);
+    }
+    if (message.nearText !== undefined) {
+      NearTextSearch.encode(message.nearText, writer.uint32(66).fork()).ldelim();
+    }
+    if (message.nearVector !== undefined) {
+      NearVector.encode(message.nearVector, writer.uint32(74).fork()).ldelim();
     }
     return writer;
   },
@@ -1619,6 +1650,20 @@ export const Hybrid = {
 
           message.targetVectors.push(reader.string());
           continue;
+        case 8:
+          if (tag !== 66) {
+            break;
+          }
+
+          message.nearText = NearTextSearch.decode(reader, reader.uint32());
+          continue;
+        case 9:
+          if (tag !== 74) {
+            break;
+          }
+
+          message.nearVector = NearVector.decode(reader, reader.uint32());
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1641,6 +1686,8 @@ export const Hybrid = {
       targetVectors: globalThis.Array.isArray(object?.targetVectors)
         ? object.targetVectors.map((e: any) => globalThis.String(e))
         : [],
+      nearText: isSet(object.nearText) ? NearTextSearch.fromJSON(object.nearText) : undefined,
+      nearVector: isSet(object.nearVector) ? NearVector.fromJSON(object.nearVector) : undefined,
     };
   },
 
@@ -1667,6 +1714,12 @@ export const Hybrid = {
     if (message.targetVectors?.length) {
       obj.targetVectors = message.targetVectors;
     }
+    if (message.nearText !== undefined) {
+      obj.nearText = NearTextSearch.toJSON(message.nearText);
+    }
+    if (message.nearVector !== undefined) {
+      obj.nearVector = NearVector.toJSON(message.nearVector);
+    }
     return obj;
   },
 
@@ -1682,6 +1735,12 @@ export const Hybrid = {
     message.fusionType = object.fusionType ?? 0;
     message.vectorBytes = object.vectorBytes ?? new Uint8Array(0);
     message.targetVectors = object.targetVectors?.map((e) => e) || [];
+    message.nearText = (object.nearText !== undefined && object.nearText !== null)
+      ? NearTextSearch.fromPartial(object.nearText)
+      : undefined;
+    message.nearVector = (object.nearVector !== undefined && object.nearVector !== null)
+      ? NearVector.fromPartial(object.nearVector)
+      : undefined;
     return message;
   },
 };

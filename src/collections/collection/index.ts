@@ -102,7 +102,7 @@ const collection = <T, N>(
   dbVersionSupport: DbVersionSupport,
   consistencyLevel?: ConsistencyLevel,
   tenant?: Tenant
-) => {
+): Collection<T, N> => {
   if (!isString(name)) {
     throw new WeaviateInvalidInputError(`The collection name must be a string, got: ${typeof name}`);
   }
@@ -125,7 +125,7 @@ const collection = <T, N>(
     name: name,
     query: queryCollection,
     sort: sort<T>(),
-    tenants: tenants(connection, capitalizedName),
+    tenants: tenants(connection, capitalizedName, dbVersionSupport),
     exists: () => new ClassExists(connection).withClassName(capitalizedName).do(),
     iterator: (opts?: IteratorOptions<T>) =>
       new Iterator<T>((limit: number, after?: string) =>

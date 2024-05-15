@@ -1,5 +1,5 @@
 import { ConnectionGRPC } from './connection/index.js';
-import { DbVersionProvider, DbVersionSupport } from './utils/dbVersion.js';
+import { DbVersion, DbVersionProvider, DbVersionSupport } from './utils/dbVersion.js';
 import { backup, Backup } from './collections/backup/client.js';
 import cluster, { Cluster } from './collections/cluster/index.js';
 import {
@@ -84,9 +84,10 @@ export interface WeaviateClient {
 
   close: () => Promise<void>;
   getMeta: () => Promise<Meta>;
+  getOpenIDConfig?: () => Promise<any>;
+  getWeaviateVersion: () => Promise<DbVersion>;
   isLive: () => Promise<boolean>;
   isReady: () => Promise<boolean>;
-  getOpenIDConfig?: () => Promise<any>;
 }
 
 const app = {
@@ -130,7 +131,7 @@ const app = {
       ? new HttpsAgent({ keepAlive: true })
       : new HttpAgent({ keepAlive: true });
 
-    const conn = await ConnectionGRPC.use({
+    const { connection, dbVersionProvider, dbVersionSupport } = await ConnectionGRPC.use({
       host: params.rest.host.startsWith('http')
         ? `${params.rest.host}${params.rest.path || ''}`
         : `${scheme}://${params.rest.host}:${params.rest.port}${params.rest.path || ''}`,
@@ -144,20 +145,18 @@ const app = {
       agent,
     });
 
-    const dbVersionProvider = initDbVersionProvider(conn);
-    const dbVersionSupport = new DbVersionSupport(dbVersionProvider);
-
     const ifc: WeaviateClient = {
-      backup: backup(conn),
-      cluster: cluster(conn),
-      collections: collections(conn, dbVersionSupport),
-      close: () => Promise.resolve(conn.close()), // hedge against future changes to add I/O to .close()
-      getMeta: () => new MetaGetter(conn).do(),
-      getOpenIDConfig: () => new OpenidConfigurationGetter(conn.http).do(),
-      isLive: () => new LiveChecker(conn, dbVersionProvider).do(),
-      isReady: () => new ReadyChecker(conn, dbVersionProvider).do(),
+      backup: backup(connection),
+      cluster: cluster(connection),
+      collections: collections(connection, dbVersionSupport),
+      close: () => Promise.resolve(connection.close()), // hedge against future changes to add I/O to .close()
+      getMeta: () => new MetaGetter(connection).do(),
+      getOpenIDConfig: () => new OpenidConfigurationGetter(connection.http).do(),
+      getWeaviateVersion: () => dbVersionSupport.getVersion(),
+      isLive: () => new LiveChecker(connection, dbVersionProvider).do(),
+      isReady: () => new ReadyChecker(connection, dbVersionProvider).do(),
     };
-    if (conn.oidcAuth) ifc.oidcAuth = conn.oidcAuth;
+    if (connection.oidcAuth) ifc.oidcAuth = connection.oidcAuth;
 
     return ifc;
   },
@@ -169,21 +168,6 @@ const app = {
   configure,
   reconfigure,
 };
-
-function initDbVersionProvider(conn: ConnectionGRPC) {
-  const metaGetter = new MetaGetter(conn);
-  const versionGetter = () => {
-    return metaGetter
-      .do()
-      .then((result: any) => result.version)
-      .catch(() => Promise.resolve(''));
-  };
-
-  const dbVersionProvider = new DbVersionProvider(versionGetter);
-  dbVersionProvider.refresh();
-
-  return dbVersionProvider;
-}
 
 export default app;
 export * from './collections/index.js';

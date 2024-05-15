@@ -15,7 +15,10 @@ const is125 = (client: WeaviateClient) =>
     .metaGetter()
     .do()
     .then((res: Meta) => res.version)
-    .then((version: string) => {
+    .then((version: string | undefined) => {
+      if (!version) {
+        return false;
+      }
       const semver = version.split('.').map((v) => parseInt(v, 10));
       return semver[1] >= 25;
     });
@@ -681,11 +684,6 @@ describe('multi tenancy', () => {
     scheme: 'http',
     host: 'localhost:8080',
   });
-  const versionPromise: Promise<string> = client.misc
-    .metaGetter()
-    .do()
-    .then((res: Meta) => res.version);
-
   const classObj: WeaviateClass = {
     class: 'MultiTenancy',
     properties: [

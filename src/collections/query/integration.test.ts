@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
+import { WeaviateUnsupportedFeatureError } from '../../errors.js';
 import weaviate, { WeaviateClient } from '../../index.js';
 import { Collection } from '../collection/index.js';
 import { CrossReference, Reference } from '../references/index.js';
@@ -110,6 +111,63 @@ describe('Testing of the collection.query methods with a simple collection', () 
     expect(ret.objects[0].properties.testProp).toEqual('test');
     expect(ret.objects[0].properties.testProp2).toEqual('test2');
     expect(ret.objects[0].uuid).toEqual(id);
+  });
+
+  it('should query with hybrid and vector', async () => {
+    const ret = await collection.query.hybrid('test', {
+      limit: 1,
+      vector: vector,
+    });
+    expect(ret.objects.length).toEqual(1);
+    expect(ret.objects[0].properties.testProp).toEqual('test');
+    expect(ret.objects[0].properties.testProp2).toEqual('test2');
+    expect(ret.objects[0].uuid).toEqual(id);
+  });
+
+  it('should query with hybrid and near text subsearch', async () => {
+    const query = () =>
+      collection.query.hybrid('test', {
+        limit: 1,
+        vector: {
+          text: 'apple',
+          distance: 0.9,
+          moveTo: {
+            concepts: ['banana'],
+            force: 0.9,
+          },
+          moveAway: {
+            concepts: ['test'],
+            force: 0.1,
+          },
+        },
+      });
+    if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 25, 0))) {
+      await expect(query()).rejects.toThrow(WeaviateUnsupportedFeatureError);
+      return;
+    }
+    const ret = await query();
+    expect(ret.objects.length).toEqual(1);
+    expect(ret.objects[0].properties.testProp).toEqual('apple');
+    expect(ret.objects[0].properties.testProp2).toEqual('banana');
+  });
+
+  it('should query with hybrid and near vector subsearch', async () => {
+    const query = () =>
+      collection.query.hybrid('test', {
+        limit: 1,
+        vector: {
+          vector: vector,
+          distance: 0.9,
+        },
+      });
+    if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 25, 0))) {
+      await expect(query()).rejects.toThrow(WeaviateUnsupportedFeatureError);
+      return;
+    }
+    const ret = await query();
+    expect(ret.objects.length).toEqual(1);
+    expect(ret.objects[0].properties.testProp).toEqual('test');
+    expect(ret.objects[0].properties.testProp2).toEqual('test2');
   });
 
   it('should query with nearObject', async () => {
@@ -566,10 +624,16 @@ describe('Testing of the collection.query methods with a collection with a refer
     });
 
     it('should query without searching returning named vector', async () => {
-      const ret = await collection.query.fetchObjects({
-        returnProperties: ['title'],
-        includeVector: ['title'],
-      });
+      const query = () =>
+        collection.query.fetchObjects({
+          returnProperties: ['title'],
+          includeVector: ['title'],
+        });
+      if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 24, 0))) {
+        await expect(query()).rejects.toThrow(WeaviateUnsupportedFeatureError);
+        return;
+      }
+      const ret = await query();
       ret.objects.sort((a, b) => a.properties.title.localeCompare(b.properties.title));
       expect(ret.objects.length).toEqual(2);
       expect(ret.objects[0].properties.title).toEqual('other');
@@ -579,10 +643,16 @@ describe('Testing of the collection.query methods with a collection with a refer
     });
 
     it('should query with a vector search over the named vector space', async () => {
-      const ret = await collection.query.nearObject(id1, {
-        returnProperties: ['title'],
-        targetVector: 'title',
-      });
+      const query = () =>
+        collection.query.nearObject(id1, {
+          returnProperties: ['title'],
+          targetVector: 'title',
+        });
+      if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 24, 0))) {
+        await expect(query()).rejects.toThrow(WeaviateUnsupportedFeatureError);
+        return;
+      }
+      const ret = await query();
       expect(ret.objects.length).toEqual(2);
       expect(ret.objects[0].properties.title).toEqual('test');
       expect(ret.objects[1].properties.title).toEqual('other');
@@ -676,32 +746,41 @@ describe('Testing of the groupBy collection.query methods with a simple collecti
   //   expect(ret.objects[0].belongsToGroup).toEqual('test');
   // });
 
-  // it('should groupBy with bm25', async () => {
-  //   const ret = await collection.groupBy.bm25({
-  //     query: 'test',
-  //     ...groupByArgs,
-  //   });
-  //   expect(ret.objects.length).toEqual(1);
-  //   expect(ret.groups).toBeDefined();
-  //   expect(Object.keys(ret.groups)).toEqual(['test']);
-  //   expect(ret.objects[0].properties.testProp).toEqual('test');
-  //   expect(ret.objects[0].metadata.uuid).toEqual(id);
-  //   expect(ret.objects[0].belongsToGroup).toEqual('test');
-  // });
+  it('should groupBy with bm25', async () => {
+    const query = () =>
+      collection.query.bm25('test', {
+        groupBy: groupByArgs,
+      });
+    if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 25, 0))) {
+      await expect(query()).rejects.toThrow(WeaviateUnsupportedFeatureError);
+      return;
+    }
+    const ret = await query();
+    expect(ret.objects.length).toEqual(1);
+    expect(ret.groups).toBeDefined();
+    expect(Object.keys(ret.groups)).toEqual(['test']);
+    expect(ret.objects[0].properties.testProp).toEqual('test');
+    expect(ret.objects[0].uuid).toEqual(id);
+    expect(ret.objects[0].belongsToGroup).toEqual('test');
+  });
 
-  // it('should groupBy with hybrid', async () => {
-  //   const ret = await collection.groupBy.hybrid({
-  //     query: 'test',
-  //     ...groupByArgs,
-
-  //   });
-  //   expect(ret.objects.length).toEqual(1);
-  //   expect(ret.groups).toBeDefined();
-  //   expect(Object.keys(ret.groups)).toEqual(['test']);
-  //   expect(ret.objects[0].properties.testProp).toEqual('test');
-  //   expect(ret.objects[0].metadata.uuid).toEqual(id);
-  //   expect(ret.objects[0].belongsToGroup).toEqual('test');
-  // });
+  it('should groupBy with hybrid', async () => {
+    const query = () =>
+      collection.query.hybrid('test', {
+        groupBy: groupByArgs,
+      });
+    if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 25, 0))) {
+      await expect(query()).rejects.toThrow(WeaviateUnsupportedFeatureError);
+      return;
+    }
+    const ret = await query();
+    expect(ret.objects.length).toEqual(1);
+    expect(ret.groups).toBeDefined();
+    expect(Object.keys(ret.groups)).toEqual(['test']);
+    expect(ret.objects[0].properties.testProp).toEqual('test');
+    expect(ret.objects[0].uuid).toEqual(id);
+    expect(ret.objects[0].belongsToGroup).toEqual('test');
+  });
 
   it('should groupBy with nearObject', async () => {
     const ret = await collection.query.nearObject(id, {

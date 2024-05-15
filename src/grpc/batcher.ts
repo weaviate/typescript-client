@@ -28,12 +28,12 @@ export interface BatchDeleteArgs {
 export default class Batcher extends Base implements Batch {
   public static use(
     connection: WeaviateClient,
-    name: string,
+    collection: string,
     metadata: Metadata,
     consistencyLevel?: ConsistencyLevel,
     tenant?: string
   ): Batch {
-    return new Batcher(connection, name, metadata, consistencyLevel, tenant);
+    return new Batcher(connection, collection, metadata, consistencyLevel, tenant);
   }
 
   public withDelete = (args: BatchDeleteArgs) => this.callDelete(BatchDeleteRequest.fromPartial(args));
@@ -44,7 +44,7 @@ export default class Batcher extends Base implements Batch {
       .batchDelete(
         {
           ...message,
-          collection: this.name,
+          collection: this.collection,
           consistencyLevel: this.consistencyLevel,
           tenant: this.tenant,
         },
