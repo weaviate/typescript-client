@@ -104,3 +104,9 @@ export class WeaviateBackupFailed extends WeaviateError {
 }
 
 export class WeaviateUnsupportedFeatureError extends WeaviateError {}
+
+export class WeaviateStartUpError extends WeaviateError {
+  constructor(message: string) {
+    super(`Weaviate startup failed with message: ${message}`);
+  }
+}

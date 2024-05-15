@@ -1,3 +1,4 @@
+import { WeaviateStartUpError } from '../errors.js';
 import { ClientParams, WeaviateClient } from '../index.js';
 import { AuthCredentials } from './auth.js';
 import { ProxiesParams } from './http.js';
@@ -80,6 +81,8 @@ export function connectToWCS(
     },
     auth: options?.authCredentials,
     headers: options?.headers,
+  }).catch((e) => {
+    throw new WeaviateStartUpError(`Weaviate failed to startup with message: ${e.message}`);
   });
 }
 
@@ -100,6 +103,8 @@ export function connectToLocal(
     },
     auth: options?.authCredentials,
     headers: options?.headers,
+  }).catch((e) => {
+    throw new WeaviateStartUpError(`Weaviate failed to startup with message: ${e.message}`);
   });
 }
 
@@ -122,5 +127,7 @@ export function connectToCustom(
     auth: options?.authCredentials,
     headers: options?.headers,
     proxies: options?.proxies,
+  }).catch((e) => {
+    throw new WeaviateStartUpError(`Weaviate failed to startup with message: ${e.message}`);
   });
 }

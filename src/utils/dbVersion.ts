@@ -76,7 +76,7 @@ export class DbVersionSupport {
       return {
         version: version,
         supports: version.isAtLeast(1, 23, 7),
-        message: this.errorMessage('gRPC', version.show(), '1.23.7'),
+        message: this.errorMessage('The gRPC API', version.show(), '1.23.7'),
       };
     });
 
@@ -182,11 +182,7 @@ export function initDbVersionProvider(conn: ConnectionGRPC) {
   const versionGetter = () => {
     return metaGetter.do().then((result) => (result.version ? result.version : ''));
   };
-
-  const dbVersionProvider = new DbVersionProvider(versionGetter);
-  dbVersionProvider.refresh();
-
-  return dbVersionProvider;
+  return new DbVersionProvider(versionGetter);
 }
 
 export class DbVersion {

@@ -9,6 +9,8 @@ import {
   AuthUserPasswordCredentials,
   AuthCredentials,
   OidcAuthenticator,
+  isApiKey,
+  mapApiKey,
 } from './connection/auth.js';
 import {
   connectToLocal,
@@ -140,8 +142,8 @@ const app = {
       grpcAddress: `${params.grpc.host}:${params.grpc.port}`,
       grpcSecure: params.grpc.secure,
       grpcProxyUrl: params.proxies?.grpc,
-      apiKey: params.auth instanceof ApiKey ? params.auth : undefined,
-      authClientSecret: params.auth instanceof ApiKey ? undefined : params.auth,
+      apiKey: isApiKey(params.auth) ? mapApiKey(params.auth) : undefined,
+      authClientSecret: isApiKey(params.auth) ? undefined : params.auth,
       agent,
     });
 

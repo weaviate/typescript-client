@@ -14,7 +14,11 @@ import Searcher, { Search } from '../grpc/searcher.js';
 import { DbVersionSupport, initDbVersionProvider } from '../utils/dbVersion.js';
 import TenantsManager, { Tenants } from '../grpc/tenantsManager.js';
 
-import { WeaviateGRPCUnavailableError } from '../errors.js';
+import {
+  WeaviateGRPCUnavailableError,
+  WeaviateStartUpError,
+  WeaviateUnsupportedFeatureError,
+} from '../errors.js';
 
 export interface GrpcConnectionParams extends ConnectionParams {
   grpcAddress: string;
@@ -41,19 +45,16 @@ export default class ConnectionGRPC extends ConnectionGQL {
     const connection = new ConnectionGRPC(params);
     const dbVersionProvider = initDbVersionProvider(connection);
     const dbVersionSupport = new DbVersionSupport(dbVersionProvider);
-    const settled = await Promise.allSettled([
+    await Promise.all([
       dbVersionSupport.supportsCompatibleGrpcService().then((check) => {
         if (!check.supports) {
-          throw new Error(check.message);
+          throw new WeaviateUnsupportedFeatureError(
+            `Checking for gRPC compatibility failed with message: ${check.message}`
+          );
         }
       }),
       connection.connect(),
     ]);
-    settled.forEach((promise) => {
-      if (promise.status === 'rejected') {
-        throw new Error(promise.reason);
-      }
-    });
     return { connection, dbVersionProvider, dbVersionSupport };
   };
 
