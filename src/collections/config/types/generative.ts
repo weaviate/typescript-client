@@ -1,7 +1,8 @@
 type GenerativeOpenAIConfigBase = {
+  baseURL?: string;
   frequencyPenaltyProperty?: number;
-  presencePenaltyProperty?: number;
   maxTokensProperty?: number;
+  presencePenaltyProperty?: number;
   temperatureProperty?: number;
   topPProperty?: number;
 };
