@@ -92,6 +92,17 @@ export interface WeaviateClient {
   isReady: () => Promise<boolean>;
 }
 
+const cleanHost = (host: string, protocol: 'rest' | 'grpc') => {
+  if (host.includes('http')) {
+    console.warn(
+      `The ${protocol}.host parameter should not include the protocol. Please remove the http:// or https:// from the ${protocol}.host parameter.\
+      To specify a secure connection, set the secure parameter to true. The protocol will be inferred from the secure parameter instead.`
+    );
+    return host.replace('http://', '').replace('https://', '');
+  }
+  return host;
+};
+
 const app = {
   /**
    * Connect to a custom Weaviate deployment, e.g. your own self-hosted Kubernetes cluster.
@@ -122,8 +133,8 @@ const app = {
     return connectToWCS(clusterURL, this.client, options);
   },
   client: async function (params: ClientParams): Promise<WeaviateClient> {
-    // check if the URL is set
-    if (!params.rest.host) throw new Error('Missing `host` parameter');
+    params.rest.host = cleanHost(params.rest.host, 'rest');
+    params.grpc.host = cleanHost(params.grpc.host, 'grpc');
 
     // check if headers are set
     if (!params.headers) params.headers = {};
@@ -134,9 +145,7 @@ const app = {
       : new HttpAgent({ keepAlive: true });
 
     const { connection, dbVersionProvider, dbVersionSupport } = await ConnectionGRPC.use({
-      host: params.rest.host.startsWith('http')
-        ? `${params.rest.host}${params.rest.path || ''}`
-        : `${scheme}://${params.rest.host}:${params.rest.port}${params.rest.path || ''}`,
+      host: `${scheme}://${params.rest.host}:${params.rest.port}${params.rest.path || ''}`,
       scheme: scheme,
       headers: params.headers,
       grpcAddress: `${params.grpc.host}:${params.grpc.port}`,
