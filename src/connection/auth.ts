@@ -42,7 +42,7 @@ export interface OidcAuthFlow {
 }
 
 export class OidcAuthenticator {
-  private readonly rest: HttpClient;
+  private readonly http: HttpClient;
   private readonly creds: OidcCredentials;
   private accessToken: string;
   private refreshToken?: string;
@@ -50,8 +50,8 @@ export class OidcAuthenticator {
   private refreshRunning: boolean;
   private refreshInterval!: NodeJS.Timeout;
 
-  constructor(rest: HttpClient, creds: any) {
-    this.rest = rest;
+  constructor(http: HttpClient, creds: any) {
+    this.http = http;
     this.creds = creds;
     this.accessToken = '';
     this.refreshToken = '';
@@ -73,13 +73,13 @@ export class OidcAuthenticator {
     let authenticator: OidcAuthFlow;
     switch (this.creds.constructor) {
       case AuthUserPasswordCredentials:
-        authenticator = new UserPasswordAuthenticator(this.rest, this.creds, config);
+        authenticator = new UserPasswordAuthenticator(this.http, this.creds, config);
         break;
       case AuthAccessTokenCredentials:
-        authenticator = new AccessTokenAuthenticator(this.rest, this.creds, config);
+        authenticator = new AccessTokenAuthenticator(this.http, this.creds, config);
         break;
       case AuthClientCredentials:
-        authenticator = new ClientCredentialsAuthenticator(this.rest, this.creds, config);
+        authenticator = new ClientCredentialsAuthenticator(this.http, this.creds, config);
         break;
       default:
         throw new Error('unsupported credential type');
@@ -94,7 +94,7 @@ export class OidcAuthenticator {
   };
 
   getOpenidConfig = (localConfig: any) => {
-    return this.rest.externalGet(localConfig.href).then((openidProviderConfig: any) => {
+    return this.http.externalGet(localConfig.href).then((openidProviderConfig: any) => {
       const scopes = localConfig.scopes || [];
       return {
         clientId: localConfig.clientId,

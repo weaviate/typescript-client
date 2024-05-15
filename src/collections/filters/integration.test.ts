@@ -31,18 +31,7 @@ describe('Testing of the filter class with a simple collection', () => {
   });
 
   beforeAll(async () => {
-    client = await weaviate.client({
-      rest: {
-        secure: false,
-        host: 'localhost',
-        port: 8080,
-      },
-      grpc: {
-        secure: false,
-        host: 'localhost',
-        port: 50051,
-      },
-    });
+    client = await weaviate.connectToLocal();
     collection = client.collections.get(collectionName);
     ids = await client.collections
       .create({
@@ -302,18 +291,7 @@ describe('Testing of the filter class with complex data type', () => {
   };
 
   beforeAll(async () => {
-    client = await weaviate.client({
-      rest: {
-        secure: false,
-        host: 'localhost',
-        port: 8080,
-      },
-      grpc: {
-        secure: false,
-        host: 'localhost',
-        port: 50051,
-      },
-    });
+    client = await weaviate.connectToLocal();
     collection = client.collections.get(collectionName);
     await client.collections
       .create<TestCollectionFilterComplex>({

@@ -11,18 +11,7 @@ describe('Testing of the client.cluster methods', () => {
   });
 
   beforeAll(async () => {
-    client = await weaviate.client({
-      rest: {
-        secure: false,
-        host: 'localhost',
-        port: 8080,
-      },
-      grpc: {
-        secure: false,
-        host: 'localhost',
-        port: 50051,
-      },
-    });
+    client = await weaviate.connectToLocal();
     return Promise.all([client.collections.create({ name: one }), client.collections.create({ name: two })]);
   });
 

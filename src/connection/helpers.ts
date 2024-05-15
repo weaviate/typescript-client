@@ -69,15 +69,17 @@ export function connectToWCS(
   }
 
   return clientMaker({
-    rest: {
-      secure: true,
-      host: url.hostname,
-      port: 443,
-    },
-    grpc: {
-      secure: true,
-      host: grpcHost,
-      port: 443,
+    connectionParams: {
+      http: {
+        secure: true,
+        host: url.hostname,
+        port: 443,
+      },
+      grpc: {
+        secure: true,
+        host: grpcHost,
+        port: 443,
+      },
     },
     auth: options?.authCredentials,
     headers: options?.headers,
@@ -91,15 +93,17 @@ export function connectToLocal(
   options?: ConnectToLocalOptions
 ): Promise<WeaviateClient> {
   return clientMaker({
-    rest: {
-      secure: false,
-      host: options?.host || 'localhost',
-      port: options?.port || 8080,
-    },
-    grpc: {
-      secure: false,
-      host: options?.host || 'localhost',
-      port: options?.grpcPort || 50051,
+    connectionParams: {
+      http: {
+        secure: false,
+        host: options?.host || 'localhost',
+        port: options?.port || 8080,
+      },
+      grpc: {
+        secure: false,
+        host: options?.host || 'localhost',
+        port: options?.grpcPort || 50051,
+      },
     },
     auth: options?.authCredentials,
     headers: options?.headers,
@@ -113,16 +117,18 @@ export function connectToCustom(
   options?: ConnectToCustomOptions
 ): Promise<WeaviateClient> {
   return clientMaker({
-    rest: {
-      secure: options?.httpSecure || false,
-      host: options?.httpHost || 'localhost',
-      path: options?.httpPath || '',
-      port: options?.httpPort || 8080,
-    },
-    grpc: {
-      secure: options?.grpcSecure || false,
-      host: options?.grpcHost || 'localhost',
-      port: options?.grpcPort || 50051,
+    connectionParams: {
+      http: {
+        secure: options?.httpSecure || false,
+        host: options?.httpHost || 'localhost',
+        path: options?.httpPath || '',
+        port: options?.httpPort || 8080,
+      },
+      grpc: {
+        secure: options?.grpcSecure || false,
+        host: options?.grpcHost || 'localhost',
+        port: options?.grpcPort || 50051,
+      },
     },
     auth: options?.authCredentials,
     headers: options?.headers,

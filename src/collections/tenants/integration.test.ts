@@ -16,18 +16,7 @@ describe('Testing of the collection.tenants methods', () => {
   });
 
   beforeAll(async () => {
-    client = await weaviate.client({
-      rest: {
-        secure: false,
-        host: 'localhost',
-        port: 8080,
-      },
-      grpc: {
-        secure: false,
-        host: 'localhost',
-        port: 50051,
-      },
-    });
+    client = await weaviate.connectToLocal();
     collection = client.collections.get(collectionName);
     return client.collections
       .create({

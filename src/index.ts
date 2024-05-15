@@ -51,15 +51,22 @@ export type ProtocolParams = {
   path?: string;
 };
 
-export type ClientParams = {
+export type ConnectionParams = {
   /**
    * The connection parameters for the REST and GraphQL APIs (http/1.1).
    */
-  rest: ProtocolParams;
+  http: ProtocolParams;
   /**
    * The connection paramaters for the gRPC API (http/2).
    */
   grpc: ProtocolParams;
+};
+
+export type ClientParams = {
+  /**
+   * The connection parameters for Weaviate's public APIs.
+   */
+  connectionParams: ConnectionParams;
   /**
    * The credentials used to authenticate with Weaviate.
    *
@@ -133,23 +140,25 @@ const app = {
     return connectToWCS(clusterURL, this.client, options);
   },
   client: async function (params: ClientParams): Promise<WeaviateClient> {
-    params.rest.host = cleanHost(params.rest.host, 'rest');
-    params.grpc.host = cleanHost(params.grpc.host, 'grpc');
+    let { host: httpHost } = params.connectionParams.http;
+    let { host: grpcHost } = params.connectionParams.grpc;
+    const { port: httpPort, secure: httpSecure, path: httpPath } = params.connectionParams.http;
+    const { port: grpcPort, secure: grpcSecure } = params.connectionParams.grpc;
+    httpHost = cleanHost(httpHost, 'rest');
+    grpcHost = cleanHost(grpcHost, 'grpc');
 
     // check if headers are set
     if (!params.headers) params.headers = {};
 
-    const scheme = params.rest.secure ? 'https' : 'http';
-    const agent = params.rest.secure
-      ? new HttpsAgent({ keepAlive: true })
-      : new HttpAgent({ keepAlive: true });
+    const scheme = httpSecure ? 'https' : 'http';
+    const agent = httpSecure ? new HttpsAgent({ keepAlive: true }) : new HttpAgent({ keepAlive: true });
 
     const { connection, dbVersionProvider, dbVersionSupport } = await ConnectionGRPC.use({
-      host: `${scheme}://${params.rest.host}:${params.rest.port}${params.rest.path || ''}`,
+      host: `${scheme}://${httpHost}:${httpPort}${httpPath || ''}`,
       scheme: scheme,
       headers: params.headers,
-      grpcAddress: `${params.grpc.host}:${params.grpc.port}`,
-      grpcSecure: params.grpc.secure,
+      grpcAddress: `${grpcHost}:${grpcPort}`,
+      grpcSecure: grpcSecure,
       grpcProxyUrl: params.proxies?.grpc,
       apiKey: isApiKey(params.auth) ? mapApiKey(params.auth) : undefined,
       authClientSecret: isApiKey(params.auth) ? undefined : params.auth,

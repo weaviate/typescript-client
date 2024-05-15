@@ -10,18 +10,7 @@ describe('Testing of the collection.config namespace', () => {
   let client: WeaviateClient;
 
   beforeAll(async () => {
-    client = await weaviate.client({
-      rest: {
-        secure: false,
-        host: 'localhost',
-        port: 8080,
-      },
-      grpc: {
-        secure: false,
-        host: 'localhost',
-        port: 50051,
-      },
-    });
+    client = await weaviate.connectToLocal();
   });
 
   it('should be able get the config of a collection without generics', async () => {

@@ -33,17 +33,9 @@ maybe('Testing of the collection.generate methods with a simple collection', () 
   });
 
   beforeAll(async () => {
-    client = await weaviate.client({
-      rest: {
-        secure: false,
-        host: 'localhost',
-        port: 8086,
-      },
-      grpc: {
-        secure: false,
-        host: 'localhost',
-        port: 50057,
-      },
+    client = await weaviate.connectToLocal({
+      port: 8086,
+      grpcPort: 50057,
       headers: {
         'X-Openai-Api-Key': process.env.OPENAI_APIKEY!,
       },
@@ -188,17 +180,9 @@ maybe('Testing of the groupBy collection.generate methods with a simple collecti
   });
 
   beforeAll(async () => {
-    client = await weaviate.client({
-      rest: {
-        secure: false,
-        host: 'localhost',
-        port: 8086,
-      },
-      grpc: {
-        secure: false,
-        host: 'localhost',
-        port: 50057,
-      },
+    client = await weaviate.connectToLocal({
+      port: 8086,
+      grpcPort: 50057,
       headers: {
         'X-Openai-Api-Key': process.env.OPENAI_APIKEY!,
       },
