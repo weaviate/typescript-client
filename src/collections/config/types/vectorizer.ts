@@ -53,6 +53,9 @@ export type Multi2VecBindConfig = {
 
 export type Multi2VecPalmConfig = {
   projectId: string;
+  imageFields?: string[];
+  textFields?: string[];
+  videoFields?: string[];
   location?: string;
   modelId?: string;
   dimensions?: number;
@@ -122,7 +125,7 @@ export type Text2VecOpenAIConfig = {
 export type Text2VecPalmConfig = {
   apiEndpoint?: string;
   modelId?: string;
-  projectId: string;
+  projectId?: string;
   vectorizeCollectionName?: boolean;
 };
 
@@ -167,7 +170,7 @@ export type VectorizerConfigType<V> = V extends 'img2vec-neural'
   : V extends 'text2vec-azure-openai'
   ? Text2VecAzureOpenAIConfig
   : V extends 'text2vec-palm'
-  ? Text2VecPalmConfig
+  ? Text2VecPalmConfig | undefined
   : V extends 'text2vec-transformers'
   ? Text2VecTransformersConfig | undefined
   : V extends 'text2vec-voyageai'

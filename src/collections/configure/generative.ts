@@ -5,6 +5,12 @@ import {
   GenerativePaLMConfig,
   ModuleConfig,
 } from '../config/types/index.js';
+import {
+  GenerativeAzureOpenAIConfigCreate,
+  GenerativeCohereConfigCreate,
+  GenerativeOpenAIConfigCreate,
+  GenerativePaLMConfigCreate,
+} from '../index.js';
 
 export default {
   /**
@@ -12,15 +18,24 @@ export default {
    *
    * See the [documentation](https://weaviate.io/developers/weaviate/modules/reader-generator-modules/generative-openai) for detailed usage.
    *
-   * @param {GenerativeAzureOpenAIConfig} config The configuration for the `generative-openai` module.
+   * @param {GenerativeAzureOpenAIConfigCreate} config The configuration for the `generative-openai` module.
    * @returns {ModuleConfig<'generative-openai', GenerativeAzureOpenAIConfig>} The configuration object.
    */
   azureOpenAI: (
-    config: GenerativeAzureOpenAIConfig
+    config: GenerativeAzureOpenAIConfigCreate
   ): ModuleConfig<'generative-openai', GenerativeAzureOpenAIConfig> => {
     return {
       name: 'generative-openai',
-      config: config,
+      config: {
+        deploymentId: config.deploymentId,
+        resourceName: config.resourceName,
+        baseURL: config.baseURL,
+        frequencyPenaltyProperty: config.frequencyPenalty,
+        maxTokensProperty: config.maxTokens,
+        presencePenaltyProperty: config.presencePenalty,
+        temperatureProperty: config.temperature,
+        topPProperty: config.topP,
+      },
     };
   },
   /**
@@ -28,15 +43,24 @@ export default {
    *
    * See the [documentation](https://weaviate.io/developers/weaviate/modules/reader-generator-modules/generative-cohere) for detailed usage.
    *
-   * @param {GenerativeCohereConfig} [config] The configuration for the `generative-cohere` module.
+   * @param {GenerativeCohereConfigCreate} [config] The configuration for the `generative-cohere` module.
    * @returns {ModuleConfig<'generative-cohere', GenerativeCohereConfig>} The configuration object.
    */
   cohere: (
-    config?: GenerativeCohereConfig
+    config?: GenerativeCohereConfigCreate
   ): ModuleConfig<'generative-cohere', GenerativeCohereConfig | undefined> => {
     return {
       name: 'generative-cohere',
-      config: config,
+      config: config
+        ? {
+            kProperty: config.k,
+            maxTokensProperty: config.maxTokens,
+            model: config.model,
+            returnLikelihoodsProperty: config.returnLikelihoods,
+            stopSequencesProperty: config.stopSequences,
+            temperatureProperty: config.temperature,
+          }
+        : undefined,
     };
   },
   /**
@@ -44,15 +68,25 @@ export default {
    *
    * See the [documentation](https://weaviate.io/developers/weaviate/modules/reader-generator-modules/generative-openai) for detailed usage.
    *
-   * @param {GenerativeOpenAIConfig} [config] The configuration for the `generative-openai` module.
+   * @param {GenerativeOpenAIConfigCreate} [config] The configuration for the `generative-openai` module.
    * @returns {ModuleConfig<'generative-openai', GenerativeOpenAIConfig>} The configuration object.
    */
   openAI: (
-    config?: GenerativeOpenAIConfig
+    config?: GenerativeOpenAIConfigCreate
   ): ModuleConfig<'generative-openai', GenerativeOpenAIConfig | undefined> => {
     return {
       name: 'generative-openai',
-      config: config,
+      config: config
+        ? {
+            baseURL: config.baseURL,
+            frequencyPenaltyProperty: config.frequencyPenalty,
+            maxTokensProperty: config.maxTokens,
+            model: config.model,
+            presencePenaltyProperty: config.presencePenalty,
+            temperatureProperty: config.temperature,
+            topPProperty: config.topP,
+          }
+        : undefined,
     };
   },
   /**
@@ -60,10 +94,10 @@ export default {
    *
    * See the [documentation](https://weaviate.io/developers/weaviate/modules/reader-generator-modules/generative-palm) for detailed usage.
    *
-   * @param {GenerativePaLMConfig} config The configuration for the `generative-palm` module.
+   * @param {GenerativePaLMConfigCreate} config The configuration for the `generative-palm` module.
    * @returns {ModuleConfig<'generative-palm', GenerativePaLMConfig>} The configuration object.
    */
-  palm: (config: GenerativePaLMConfig): ModuleConfig<'generative-palm', GenerativePaLMConfig> => {
+  palm: (config: GenerativePaLMConfigCreate): ModuleConfig<'generative-palm', GenerativePaLMConfig> => {
     return {
       name: 'generative-palm',
       config: config,

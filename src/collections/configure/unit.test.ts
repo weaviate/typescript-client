@@ -1,5 +1,12 @@
 import { configure } from './index.js';
-import { ModuleConfig, VectorConfigCreate } from '../types/index.js';
+import {
+  GenerativeAzureOpenAIConfig,
+  GenerativeCohereConfig,
+  GenerativeOpenAIConfig,
+  GenerativePaLMConfig,
+  ModuleConfig,
+  VectorConfigCreate,
+} from '../types/index.js';
 import {
   InvertedIndexConfigCreate,
   MultiTenancyConfigCreate,
@@ -354,6 +361,9 @@ describe('Unit testing of the vectorizer factory class', () => {
   it('should create the correct Multi2VecPalmConfig type with custom values', () => {
     const config = configure.vectorizer.multi2VecPalm('test', {
       projectId: 'project-id',
+      imageFields: ['field1', 'field2'],
+      textFields: ['field3', 'field4'],
+      videoFields: ['field5', 'field6'],
       location: 'location',
       modelId: 'model-id',
       dimensions: 256,
@@ -369,6 +379,9 @@ describe('Unit testing of the vectorizer factory class', () => {
         name: 'multi2vec-palm',
         config: {
           projectId: 'project-id',
+          imageFields: ['field1', 'field2'],
+          textFields: ['field3', 'field4'],
+          videoFields: ['field5', 'field6'],
           location: 'location',
           modelId: 'model-id',
           dimensions: 256,
@@ -709,9 +722,7 @@ describe('Unit testing of the vectorizer factory class', () => {
   });
 
   it('should create the correct Text2VecPalmConfig type with defaults', () => {
-    const config = configure.vectorizer.text2VecPalm('test', {
-      projectId: 'project-id',
-    });
+    const config = configure.vectorizer.text2VecPalm('test');
     expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'text2vec-palm'>>({
       vectorName: 'test',
       vectorIndex: {
@@ -720,9 +731,7 @@ describe('Unit testing of the vectorizer factory class', () => {
       },
       vectorizer: {
         name: 'text2vec-palm',
-        config: {
-          projectId: 'project-id',
-        },
+        config: undefined,
       },
     });
   });
@@ -824,6 +833,144 @@ describe('Unit testing of the vectorizer factory class', () => {
           truncate: true,
           vectorizeCollectionName: true,
         },
+      },
+    });
+  });
+
+  it('should create the correct GenerativeAzureOpenAIConfig type with default values', () => {
+    const config = configure.generative.azureOpenAI({
+      resourceName: 'resource-name',
+      deploymentId: 'deployment-id',
+    });
+    expect(config).toEqual<ModuleConfig<'generative-openai', GenerativeAzureOpenAIConfig>>({
+      name: 'generative-openai',
+      config: {
+        resourceName: 'resource-name',
+        deploymentId: 'deployment-id',
+      },
+    });
+  });
+
+  it('should create the correct GenerativeAzureOpenAIConfig type with custom values', () => {
+    const config = configure.generative.azureOpenAI({
+      resourceName: 'resource-name',
+      deploymentId: 'deployment-id',
+      baseURL: 'base-url',
+      frequencyPenalty: 0.5,
+      maxTokens: 100,
+      presencePenalty: 0.3,
+      temperature: 0.7,
+      topP: 0.8,
+    });
+    expect(config).toEqual<ModuleConfig<'generative-openai', GenerativeAzureOpenAIConfig>>({
+      name: 'generative-openai',
+      config: {
+        resourceName: 'resource-name',
+        deploymentId: 'deployment-id',
+        baseURL: 'base-url',
+        frequencyPenaltyProperty: 0.5,
+        maxTokensProperty: 100,
+        presencePenaltyProperty: 0.3,
+        temperatureProperty: 0.7,
+        topPProperty: 0.8,
+      },
+    });
+  });
+
+  it('should create the correct GenerativeCohereConfig type with default values', () => {
+    const config = configure.generative.cohere();
+    expect(config).toEqual<ModuleConfig<'generative-cohere', GenerativeCohereConfig | undefined>>({
+      name: 'generative-cohere',
+      config: undefined,
+    });
+  });
+
+  it('should create the correct GenerativeCohereConfig type with custom values', () => {
+    const config = configure.generative.cohere({
+      k: 5,
+      maxTokens: 100,
+      model: 'model',
+      returnLikelihoods: 'return-likelihoods',
+      stopSequences: ['stop1', 'stop2'],
+      temperature: 0.5,
+    });
+    expect(config).toEqual<ModuleConfig<'generative-cohere', GenerativeCohereConfig | undefined>>({
+      name: 'generative-cohere',
+      config: {
+        kProperty: 5,
+        maxTokensProperty: 100,
+        model: 'model',
+        returnLikelihoodsProperty: 'return-likelihoods',
+        stopSequencesProperty: ['stop1', 'stop2'],
+        temperatureProperty: 0.5,
+      },
+    });
+  });
+
+  it('should create the correct GenerativeOpenAIConfig type with default values', () => {
+    const config = configure.generative.openAI();
+    expect(config).toEqual<ModuleConfig<'generative-openai', GenerativeAzureOpenAIConfig | undefined>>({
+      name: 'generative-openai',
+      config: undefined,
+    });
+  });
+
+  it('should create the correct GenerativeOpenAIConfig type with custom values', () => {
+    const config = configure.generative.openAI({
+      baseURL: 'base-url',
+      frequencyPenalty: 0.5,
+      maxTokens: 100,
+      model: 'model',
+      presencePenalty: 0.3,
+      temperature: 0.7,
+      topP: 0.8,
+    });
+    expect(config).toEqual<ModuleConfig<'generative-openai', GenerativeOpenAIConfig | undefined>>({
+      name: 'generative-openai',
+      config: {
+        baseURL: 'base-url',
+        frequencyPenaltyProperty: 0.5,
+        maxTokensProperty: 100,
+        model: 'model',
+        presencePenaltyProperty: 0.3,
+        temperatureProperty: 0.7,
+        topPProperty: 0.8,
+      },
+    });
+  });
+
+  it('should create the correct GenerativePaLMConfig type with default values', () => {
+    const config = configure.generative.palm({
+      projectId: 'project-id',
+    });
+    expect(config).toEqual<ModuleConfig<'generative-palm', GenerativePaLMConfig>>({
+      name: 'generative-palm',
+      config: {
+        projectId: 'project-id',
+      },
+    });
+  });
+
+  it('should create the correct GenerativePaLMConfig type with custom values', () => {
+    const config = configure.generative.palm({
+      apiEndpoint: 'api-endpoint',
+      maxOutputTokens: 100,
+      modelId: 'model-id',
+      projectId: 'project-id',
+      temperature: 0.5,
+      topK: 5,
+      topP: 0.8,
+    });
+    expect(config).toEqual<ModuleConfig<'generative-palm', GenerativePaLMConfig>>({
+      name: 'generative-palm',
+      config: {
+        apiEndpoint: 'api-endpoint',
+        maxOutputTokens: 100,
+        modelId: 'model-id',
+        projectId: 'project-id',
+        temperature: 0.5,
+        topK: 5,
+        topP: 0.8,
       },
     });
   });

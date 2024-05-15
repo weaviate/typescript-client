@@ -337,15 +337,15 @@ export const vectorizer = {
    */
   text2VecPalm: <T, N extends string, I extends VectorIndexType = 'hnsw'>(
     name: N,
-    opts: ConfigureTextVectorizerOptions<T, I, 'text2vec-palm'>
+    opts?: ConfigureTextVectorizerOptions<T, I, 'text2vec-palm'>
   ): VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2vec-palm'> => {
-    const { sourceProperties, vectorIndexConfig, ...config } = opts;
+    const { sourceProperties, vectorIndexConfig, ...config } = opts || {};
     return makeVectorizer(name, {
       sourceProperties,
       vectorIndexConfig,
       vectorizerConfig: {
         name: 'text2vec-palm',
-        config,
+        config: Object.keys(config).length === 0 ? undefined : config,
       },
     });
   },
