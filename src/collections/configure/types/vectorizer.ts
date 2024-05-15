@@ -1,18 +1,5 @@
 import { VectorIndexConfigCreateType, VectorIndexConfigUpdateType } from './vectorIndex.js';
-import {
-  Img2VecNeuralConfig,
-  ModuleConfig,
-  Multi2VecBindConfig,
-  Multi2VecClipConfig,
-  Multi2VecPalmConfig,
-  Ref2VecCentroidConfig,
-  Text2VecAWSConfig,
-  Text2VecAzureOpenAIConfig,
-  Text2VecCohereConfig,
-  VectorIndexType,
-  Vectorizer,
-  VectorizerConfigType,
-} from '../../config/types/index.js';
+import { ModuleConfig, VectorIndexType, Vectorizer, VectorizerConfigType } from '../../config/types/index.js';
 import { PrimitiveKeys } from '../../types/internal.js';
 
 export type VectorizerCreateOptions<P, I, V> = {

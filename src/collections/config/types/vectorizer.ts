@@ -53,6 +53,9 @@ export type Multi2VecBindConfig = {
 
 export type Multi2VecPalmConfig = {
   projectId: string;
+  imageFields?: string[];
+  textFields?: string[];
+  videoFields?: string[];
   location?: string;
   modelId?: string;
   dimensions?: number;

@@ -354,6 +354,9 @@ describe('Unit testing of the vectorizer factory class', () => {
   it('should create the correct Multi2VecPalmConfig type with custom values', () => {
     const config = configure.vectorizer.multi2VecPalm('test', {
       projectId: 'project-id',
+      imageFields: ['field1', 'field2'],
+      textFields: ['field3', 'field4'],
+      videoFields: ['field5', 'field6'],
       location: 'location',
       modelId: 'model-id',
       dimensions: 256,
@@ -369,6 +372,9 @@ describe('Unit testing of the vectorizer factory class', () => {
         name: 'multi2vec-palm',
         config: {
           projectId: 'project-id',
+          imageFields: ['field1', 'field2'],
+          textFields: ['field3', 'field4'],
+          videoFields: ['field5', 'field6'],
           location: 'location',
           modelId: 'model-id',
           dimensions: 256,
