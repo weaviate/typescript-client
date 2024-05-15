@@ -722,9 +722,7 @@ describe('Unit testing of the vectorizer factory class', () => {
   });
 
   it('should create the correct Text2VecPalmConfig type with defaults', () => {
-    const config = configure.vectorizer.text2VecPalm('test', {
-      projectId: 'project-id',
-    });
+    const config = configure.vectorizer.text2VecPalm('test');
     expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'text2vec-palm'>>({
       vectorName: 'test',
       vectorIndex: {
@@ -733,9 +731,7 @@ describe('Unit testing of the vectorizer factory class', () => {
       },
       vectorizer: {
         name: 'text2vec-palm',
-        config: {
-          projectId: 'project-id',
-        },
+        config: undefined,
       },
     });
   });
