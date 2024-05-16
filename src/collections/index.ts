@@ -31,7 +31,7 @@ import { classToCollection, resolveProperty, resolveReference } from './config/u
 import { WeaviateClass } from '../openapi/types.js';
 import { QuantizerGuards } from './configure/parsing.js';
 import { PrimitiveKeys } from './types/internal.js';
-import { WeaviateInvalidInputError } from '../errors.js';
+import { WeaviateInvalidInputError, WeaviateUnsupportedFeatureError } from '../errors.js';
 
 export type CollectionConfigCreate<TProperties = undefined, N = string> = {
   name: N;
@@ -98,6 +98,8 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
     ) {
       const { name, invertedIndex, multiTenancy, replication, sharding, vectorIndex, ...rest } = config;
 
+      const supportsDynamicVectorIndex = await dbVersionSupport.supportsDynamicVectorIndex();
+
       if (config.vectorizer !== undefined || config.vectorIndex !== undefined) {
         console.warn(
           'You are using legacy vectorization. The vectorizer and vectorIndexConfig fields will be removed from the API in the future. Please use the vectorizers field instead to created specifically named vectorizers for your collection.'
@@ -127,6 +129,9 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
         defaultVectorizer = undefined;
         vectorsConfig = {};
         vectorizersConfig.forEach((v) => {
+          if (v.vectorIndex.name === 'dynamic' && !supportsDynamicVectorIndex.supports) {
+            throw new WeaviateUnsupportedFeatureError(supportsDynamicVectorIndex.message);
+          }
           const vectorConfig: any = {
             vectorIndexConfig: parseVectorIndex(v.vectorIndex),
             vectorIndexType: v.vectorIndex.name,
@@ -150,6 +155,9 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
         : [];
       const references = config.references ? config.references.map(resolveReference<TProperties>) : [];
 
+      if (vectorIndex?.name === 'dynamic' && !supportsDynamicVectorIndex.supports) {
+        throw new WeaviateUnsupportedFeatureError(supportsDynamicVectorIndex.message);
+      }
       const schema = {
         ...rest,
         class: name,

@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
+import { WeaviateUnsupportedFeatureError } from '../../errors.js';
 import weaviate, { WeaviateClient } from '../../index.js';
 import { PropertyConfig, VectorIndexConfigDynamic, VectorIndexConfigHNSW } from './types/index.js';
 
@@ -241,18 +242,23 @@ describe('Testing of the collection.config namespace', () => {
     const asyncIndexing = await weaviate.connectToLocal({ port: 8078, grpcPort: 50049 }); // need async indexing for dynamic vectorizer
     const collectionName = 'TestSVCollectionConfigGetDynamicPlusBQ';
     await asyncIndexing.collections.delete(collectionName);
-    const collection = await asyncIndexing.collections.create({
-      name: collectionName,
-      vectorIndex: weaviate.configure.vectorIndex.dynamic({
-        hnsw: weaviate.configure.vectorIndex.hnsw({
-          quantizer: weaviate.configure.vectorIndex.quantizer.pq(),
+    const query = () =>
+      asyncIndexing.collections.create({
+        name: collectionName,
+        vectorIndex: weaviate.configure.vectorIndex.dynamic({
+          hnsw: weaviate.configure.vectorIndex.hnsw({
+            quantizer: weaviate.configure.vectorIndex.quantizer.pq(),
+          }),
+          flat: weaviate.configure.vectorIndex.flat({
+            quantizer: weaviate.configure.vectorIndex.quantizer.bq(),
+          }),
         }),
-        flat: weaviate.configure.vectorIndex.flat({
-          quantizer: weaviate.configure.vectorIndex.quantizer.bq(),
-        }),
-      }),
-    });
-    const config = await collection.config.get();
+      });
+    if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 25, 0))) {
+      await expect(query()).rejects.toThrow(WeaviateUnsupportedFeatureError);
+      return;
+    }
+    const config = await query().then((collection) => collection.config.get());
 
     const vectorIndexConfig = config.vectorizer.default.indexConfig as VectorIndexConfigDynamic;
     expect(config.name).toEqual(collectionName);
@@ -273,20 +279,25 @@ describe('Testing of the collection.config namespace', () => {
     const asyncIndexing = await weaviate.connectToLocal({ port: 8078, grpcPort: 50049 }); // need async indexing for dynamic vectorizer
     const collectionName = 'TestMVCollectionConfigGetDynamicPlusBQ';
     await asyncIndexing.collections.delete(collectionName);
-    const collection = await asyncIndexing.collections.create({
-      name: collectionName,
-      vectorizers: weaviate.configure.vectorizer.none('vector', {
-        vectorIndexConfig: weaviate.configure.vectorIndex.dynamic({
-          hnsw: weaviate.configure.vectorIndex.hnsw({
-            quantizer: weaviate.configure.vectorIndex.quantizer.pq(),
-          }),
-          flat: weaviate.configure.vectorIndex.flat({
-            quantizer: weaviate.configure.vectorIndex.quantizer.bq(),
+    const query = () =>
+      asyncIndexing.collections.create({
+        name: collectionName,
+        vectorizers: weaviate.configure.vectorizer.none('vector', {
+          vectorIndexConfig: weaviate.configure.vectorIndex.dynamic({
+            hnsw: weaviate.configure.vectorIndex.hnsw({
+              quantizer: weaviate.configure.vectorIndex.quantizer.pq(),
+            }),
+            flat: weaviate.configure.vectorIndex.flat({
+              quantizer: weaviate.configure.vectorIndex.quantizer.bq(),
+            }),
           }),
         }),
-      }),
-    });
-    const config = await collection.config.get();
+      });
+    if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 25, 0))) {
+      await expect(query()).rejects.toThrow(WeaviateUnsupportedFeatureError);
+      return;
+    }
+    const config = await query().then((collection) => collection.config.get());
 
     const vectorIndexConfig = config.vectorizer.vector.indexConfig as VectorIndexConfigDynamic;
     expect(config.name).toEqual(collectionName);

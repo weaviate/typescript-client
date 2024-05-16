@@ -7,8 +7,8 @@ on:
   pull_request:
 
 env:
-  WEAVIATE_124: 1.24.12
-  WEAVIATE_125: preview-merge-stable-v1-25-into-main-ec81815
+  WEAVIATE_124: 1.24.13
+  WEAVIATE_125: preview-prepare-release-v1-25-1-2b30b50
 
 jobs:
   checks:

@@ -129,6 +129,16 @@ export class DbVersionSupport {
       };
     });
   };
+
+  supportsDynamicVectorIndex = () => {
+    return this.dbVersionProvider.getVersion().then((version) => {
+      return {
+        version: version,
+        supports: version.isAtLeast(1, 25, 0),
+        message: this.errorMessage('Dynamic vector index', version.show(), '1.25.0'),
+      };
+    });
+  };
 }
 
 const EMPTY_VERSION = '';
