@@ -115,7 +115,7 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
       let vectorizers: string[] = [];
       let vectorsConfig: any | undefined;
       if (config.vectorizer === undefined && config.vectorizers === undefined) {
-        defaultVectorizer = 'none';
+        defaultVectorizer = undefined;
         vectorsConfig = undefined;
       } else if (config.vectorizer !== undefined && config.vectorizers === undefined) {
         defaultVectorizer = config.vectorizer.name;

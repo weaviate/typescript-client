@@ -182,6 +182,10 @@ describe('Testing of the collection.config namespace', () => {
       vectorIndex: weaviate.configure.vectorIndex.hnsw({
         quantizer: weaviate.configure.vectorIndex.quantizer.pq(),
       }),
+      vectorizer: {
+        name: 'none',
+        config: {},
+      },
     });
     const config = await collection.config.get();
 
@@ -203,6 +207,10 @@ describe('Testing of the collection.config namespace', () => {
       vectorIndex: weaviate.configure.vectorIndex.hnsw({
         quantizer: weaviate.configure.vectorIndex.quantizer.bq(),
       }),
+      vectorizer: {
+        name: 'none',
+        config: {},
+      },
     });
     const config = await collection.config.get();
 
@@ -235,7 +243,7 @@ describe('Testing of the collection.config namespace', () => {
     expect(vectorIndexConfig.quantizer).toBeDefined();
     expect(config.vectorizer.default.indexType).toEqual('flat');
     expect(config.vectorizer.default.properties).toBeUndefined();
-    expect(config.vectorizer.default.vectorizer.name).toEqual('none');
+    expect(config.vectorizer.default.vectorizer.name).toEqual('text2vec-contextionary');
   });
 
   it('should be able to get the config of a single-vector collection with dynamic+BQ', async () => {

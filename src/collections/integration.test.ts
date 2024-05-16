@@ -80,7 +80,7 @@ describe('Testing of the collections.create method', () => {
     expect(response.properties[0].dataType).toEqual('text');
     expect(response.vectorizer.default.indexConfig).toBeDefined();
     expect(response.vectorizer.default.indexType).toEqual('hnsw');
-    expect(response.vectorizer.default.vectorizer.name).toEqual('none');
+    expect(response.vectorizer.default.vectorizer.name).toEqual('text2vec-contextionary');
 
     await contextionary.collections.delete(collectionName);
   });
@@ -104,7 +104,7 @@ describe('Testing of the collections.create method', () => {
     expect(response.properties[0].dataType).toEqual('text');
     expect(response.vectorizer.default.indexConfig).toBeDefined();
     expect(response.vectorizer.default.indexType).toEqual('hnsw');
-    expect(response.vectorizer.default.vectorizer.name).toEqual('none');
+    expect(response.vectorizer.default.vectorizer.name).toEqual('text2vec-contextionary');
 
     await contextionary.collections.delete(collectionName);
   });
@@ -130,7 +130,7 @@ describe('Testing of the collections.create method', () => {
     expect(response.properties[0].dataType).toEqual('text');
     expect(response.vectorizer.default.indexConfig).toBeDefined();
     expect(response.vectorizer.default.indexType).toEqual('hnsw');
-    expect(response.vectorizer.default.vectorizer.name).toEqual('none');
+    expect(response.vectorizer.default.vectorizer.name).toEqual('text2vec-contextionary');
 
     await contextionary.collections.delete(collectionName);
   });
@@ -159,7 +159,7 @@ describe('Testing of the collections.create method', () => {
     expect(response.properties[0].dataType).toEqual('text');
     expect(response.vectorizer.default.indexConfig).toBeDefined();
     expect(response.vectorizer.default.indexType).toEqual('hnsw');
-    expect(response.vectorizer.default.vectorizer.name).toEqual('none');
+    expect(response.vectorizer.default.vectorizer.name).toEqual('text2vec-contextionary');
 
     await contextionary.collections.delete(collectionName);
   });
@@ -188,7 +188,7 @@ describe('Testing of the collections.create method', () => {
     expect(response.properties[0].dataType).toEqual('text');
     expect(response.vectorizer.default.indexConfig).toBeDefined();
     expect(response.vectorizer.default.indexType).toEqual('hnsw');
-    expect(response.vectorizer.default.vectorizer.name).toEqual('none');
+    expect(response.vectorizer.default.vectorizer.name).toEqual('text2vec-contextionary');
 
     await contextionary.collections.delete(collectionName);
   });
@@ -226,7 +226,7 @@ describe('Testing of the collections.create method', () => {
     expect(response.properties[0].nestedProperties?.[0].name).toEqual('nestedProp');
     expect(response.vectorizer.default.indexConfig).toBeDefined();
     expect(response.vectorizer.default.indexType).toEqual('hnsw');
-    expect(response.vectorizer.default.vectorizer.name).toEqual('none');
+    expect(response.vectorizer.default.vectorizer.name).toEqual('text2vec-contextionary');
 
     await contextionary.collections.delete(collectionName);
   });
@@ -437,7 +437,7 @@ describe('Testing of the collections.create method', () => {
           factor: 2,
         },
         vectorizer: {
-          name: 'none',
+          name: 'text2vec-contextionary',
           config: {},
         },
         vectorIndex: {
@@ -548,7 +548,7 @@ describe('Testing of the collections.create method', () => {
 
     expect(response.vectorizer.default.indexType).toEqual('hnsw');
 
-    expect(response.vectorizer.default.vectorizer.name).toEqual('none');
+    expect(response.vectorizer.default.vectorizer.name).toEqual('text2vec-contextionary');
 
     await cluster.collections.delete(collectionName);
   });
