@@ -22,25 +22,6 @@ import {
 } from './types/index.js';
 
 describe('Unit testing of the configure factory class', () => {
-  it('should create the correct InvertedIndexConfig type with defaults', () => {
-    const config = configure.invertedIndex();
-    expect(config).toEqual<InvertedIndexConfigCreate>({
-      bm25: {
-        b: 0.75,
-        k1: 1.2,
-      },
-      cleanupIntervalSeconds: 60,
-      indexTimestamps: false,
-      indexPropertyLength: false,
-      indexNullState: false,
-      stopwords: {
-        additions: [],
-        preset: 'en',
-        removals: [],
-      },
-    });
-  });
-
   it('should create the correct InvertedIndexConfig type with all values', () => {
     const config = configure.invertedIndex({
       bm25b: 0.5,
@@ -73,23 +54,19 @@ describe('Unit testing of the configure factory class', () => {
   it('should create the correct MultiTenancyConfig type with defaults', () => {
     const config = configure.multiTenancy();
     expect(config).toEqual<MultiTenancyConfigCreate>({
+      autoTenantCreation: false,
       enabled: true,
     });
   });
 
   it('should create the correct MultiTenancyConfig type with all values', () => {
     const config = configure.multiTenancy({
+      autoTenantCreation: true,
       enabled: false,
     });
     expect(config).toEqual<MultiTenancyConfigCreate>({
+      autoTenantCreation: true,
       enabled: false,
-    });
-  });
-
-  it('should crete the correct ReplicationConfig type with defaults', () => {
-    const config = configure.replication();
-    expect(config).toEqual<ReplicationConfigCreate>({
-      factor: 1,
     });
   });
 
@@ -99,15 +76,6 @@ describe('Unit testing of the configure factory class', () => {
     });
     expect(config).toEqual<ReplicationConfigCreate>({
       factor: 2,
-    });
-  });
-
-  it('should create the correct ShardingConfig type with defaults', () => {
-    const config = configure.sharding();
-    expect(config).toEqual<ShardingConfigCreate>({
-      virtualPerPhysical: 128,
-      desiredCount: 1,
-      desiredVirtualCount: 128,
     });
   });
 
@@ -130,28 +98,9 @@ describe('Unit testing of the configure factory class', () => {
       expect(config).toEqual<ModuleConfig<'hnsw', VectorIndexConfigHNSWCreate>>({
         name: 'hnsw',
         config: {
-          cleanupIntervalSeconds: 300,
-          distance: 'cosine',
-          dynamicEfFactor: 8,
-          dynamicEfMax: 500,
-          dynamicEfMin: 100,
-          ef: -1,
-          efConstruction: 128,
-          flatSearchCutoff: 40000,
-          maxConnections: 64,
           quantizer: {
-            bitCompression: false,
-            centroids: 256,
-            encoder: {
-              distribution: 'log-normal',
-              type: 'kmeans',
-            },
-            segments: 0,
-            trainingLimit: 100000,
             type: 'pq',
           },
-          skip: false,
-          vectorCacheMaxObjects: 1000000000000,
         },
       });
     });
@@ -210,15 +159,38 @@ describe('Unit testing of the configure factory class', () => {
     });
 
     it('should create the correct flat VectorIndexConfig type with defaults', () => {
-      const config = configure.vectorIndex.flat();
-      expect(config).toEqual<ModuleConfig<'flat', VectorIndexConfigFlatCreate>>({
+      const config = configure.vectorIndex.flat({ quantizer: configure.vectorIndex.quantizer.bq() });
+      expect(config).toEqual<ModuleConfig<'flat', VectorIndexConfigFlatCreate | undefined>>({
         name: 'flat',
         config: {
-          distance: 'cosine',
-          quantizer: undefined,
-          vectorCacheMaxObjects: 1000000000000,
+          quantizer: {
+            type: 'bq',
+          },
         },
       });
+    });
+  });
+
+  it('should create the correct flat VectorIndexConfig type with all values', () => {
+    const config = configure.vectorIndex.flat({
+      distanceMetric: 'cosine',
+      vectorCacheMaxObjects: 1000000000,
+      quantizer: configure.vectorIndex.quantizer.bq({
+        cache: true,
+        rescoreLimit: 100,
+      }),
+    });
+    expect(config).toEqual<ModuleConfig<'flat', VectorIndexConfigFlatCreate>>({
+      name: 'flat',
+      config: {
+        distance: 'cosine',
+        vectorCacheMaxObjects: 1000000000,
+        quantizer: {
+          cache: true,
+          rescoreLimit: 100,
+          type: 'bq',
+        },
+      },
     });
   });
 });
@@ -841,7 +813,9 @@ describe('Unit testing of the vectorizer factory class', () => {
       },
     });
   });
+});
 
+describe('Unit testing of the generative factory class', () => {
   it('should create the correct GenerativeAnyscaleConfig type with required & default values', () => {
     const config = configure.generative.anyscale();
     expect(config).toEqual<ModuleConfig<'generative-anyscale', GenerativeAnyscaleConfig | undefined>>({

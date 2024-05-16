@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import weaviate, { WeaviateClient } from '../../index.js';
-import { PropertyConfig, VectorIndexConfigHNSW } from './types/index.js';
+import { PropertyConfig, VectorIndexConfigDynamic, VectorIndexConfigHNSW } from './types/index.js';
 
 const fail = (msg: string) => {
   throw new Error(msg);
@@ -23,6 +23,8 @@ describe('Testing of the collection.config namespace', () => {
       },
     });
   });
+
+  afterAll(() => client.collections.deleteAll());
 
   it('should be able get the config of a collection without generics', async () => {
     const collectionName = 'TestCollectionConfigGetWithGenerics';
@@ -182,11 +184,12 @@ describe('Testing of the collection.config namespace', () => {
     });
     const config = await collection.config.get();
 
+    const vectorIndexConfig = config.vectorizer.default.indexConfig as VectorIndexConfigHNSW;
     expect(config.name).toEqual(collectionName);
     expect(config.generative).toBeUndefined();
     expect(config.reranker).toBeUndefined();
-    expect(config.vectorizer.default.indexConfig).toBeDefined();
-    expect(config.vectorizer.default.indexConfig.quantizer).toBeDefined();
+    expect(vectorIndexConfig).toBeDefined();
+    expect(vectorIndexConfig.quantizer).toBeDefined();
     expect(config.vectorizer.default.indexType).toEqual('hnsw');
     expect(config.vectorizer.default.properties).toBeUndefined();
     expect(config.vectorizer.default.vectorizer.name).toEqual('none');
@@ -202,11 +205,12 @@ describe('Testing of the collection.config namespace', () => {
     });
     const config = await collection.config.get();
 
+    const vectorIndexConfig = config.vectorizer.default.indexConfig as VectorIndexConfigHNSW;
     expect(config.name).toEqual(collectionName);
     expect(config.generative).toBeUndefined();
     expect(config.reranker).toBeUndefined();
-    expect(config.vectorizer.default.indexConfig).toBeDefined();
-    expect(config.vectorizer.default.indexConfig.quantizer).toBeDefined();
+    expect(vectorIndexConfig).toBeDefined();
+    expect(vectorIndexConfig.quantizer).toBeDefined();
     expect(config.vectorizer.default.indexType).toEqual('hnsw');
     expect(config.vectorizer.default.properties).toBeUndefined();
     expect(config.vectorizer.default.vectorizer.name).toEqual('none');
@@ -222,14 +226,81 @@ describe('Testing of the collection.config namespace', () => {
     });
     const config = await collection.config.get();
 
+    const vectorIndexConfig = config.vectorizer.default.indexConfig as VectorIndexConfigHNSW;
     expect(config.name).toEqual(collectionName);
     expect(config.generative).toBeUndefined();
     expect(config.reranker).toBeUndefined();
-    expect(config.vectorizer.default.indexConfig).toBeDefined();
-    expect(config.vectorizer.default.indexConfig.quantizer).toBeDefined();
+    expect(vectorIndexConfig).toBeDefined();
+    expect(vectorIndexConfig.quantizer).toBeDefined();
     expect(config.vectorizer.default.indexType).toEqual('flat');
     expect(config.vectorizer.default.properties).toBeUndefined();
     expect(config.vectorizer.default.vectorizer.name).toEqual('none');
+  });
+
+  it('should be able to get the config of a single-vector collection with dynamic+BQ', async () => {
+    const asyncIndexing = await weaviate.connectToLocal({ port: 8078, grpcPort: 50049 }); // need async indexing for dynamic vectorizer
+    const collectionName = 'TestSVCollectionConfigGetDynamicPlusBQ';
+    await asyncIndexing.collections.delete(collectionName);
+    const collection = await asyncIndexing.collections.create({
+      name: collectionName,
+      vectorIndex: weaviate.configure.vectorIndex.dynamic({
+        hnsw: weaviate.configure.vectorIndex.hnsw({
+          quantizer: weaviate.configure.vectorIndex.quantizer.pq(),
+        }),
+        flat: weaviate.configure.vectorIndex.flat({
+          quantizer: weaviate.configure.vectorIndex.quantizer.bq(),
+        }),
+      }),
+    });
+    const config = await collection.config.get();
+
+    const vectorIndexConfig = config.vectorizer.default.indexConfig as VectorIndexConfigDynamic;
+    expect(config.name).toEqual(collectionName);
+    expect(config.generative).toBeUndefined();
+    expect(config.reranker).toBeUndefined();
+    expect(vectorIndexConfig).toBeDefined();
+    expect((vectorIndexConfig as any).quantizer).toBeUndefined();
+    expect(vectorIndexConfig.hnsw).toBeDefined();
+    expect(vectorIndexConfig.hnsw.quantizer).toBeDefined();
+    expect(vectorIndexConfig.flat).toBeDefined();
+    expect(vectorIndexConfig.flat.quantizer).toBeDefined();
+    expect(config.vectorizer.default.indexType).toEqual('dynamic');
+    expect(config.vectorizer.default.properties).toBeUndefined();
+    expect(config.vectorizer.default.vectorizer.name).toEqual('none');
+  });
+
+  it('should be able to get the config of a multi-vector collection with dynamic+BQ', async () => {
+    const asyncIndexing = await weaviate.connectToLocal({ port: 8078, grpcPort: 50049 }); // need async indexing for dynamic vectorizer
+    const collectionName = 'TestMVCollectionConfigGetDynamicPlusBQ';
+    await asyncIndexing.collections.delete(collectionName);
+    const collection = await asyncIndexing.collections.create({
+      name: collectionName,
+      vectorizers: weaviate.configure.vectorizer.none('vector', {
+        vectorIndexConfig: weaviate.configure.vectorIndex.dynamic({
+          hnsw: weaviate.configure.vectorIndex.hnsw({
+            quantizer: weaviate.configure.vectorIndex.quantizer.pq(),
+          }),
+          flat: weaviate.configure.vectorIndex.flat({
+            quantizer: weaviate.configure.vectorIndex.quantizer.bq(),
+          }),
+        }),
+      }),
+    });
+    const config = await collection.config.get();
+
+    const vectorIndexConfig = config.vectorizer.vector.indexConfig as VectorIndexConfigDynamic;
+    expect(config.name).toEqual(collectionName);
+    expect(config.generative).toBeUndefined();
+    expect(config.reranker).toBeUndefined();
+    expect(vectorIndexConfig).toBeDefined();
+    expect((vectorIndexConfig as any).quantizer).toBeUndefined();
+    expect(vectorIndexConfig.hnsw).toBeDefined();
+    expect(vectorIndexConfig.hnsw.quantizer).toBeDefined();
+    expect(vectorIndexConfig.flat).toBeDefined();
+    expect(vectorIndexConfig.flat.quantizer).toBeDefined();
+    expect(config.vectorizer.vector.indexType).toEqual('dynamic');
+    expect(config.vectorizer.vector.properties).toBeUndefined();
+    expect(config.vectorizer.vector.vectorizer.name).toEqual('none');
   });
 
   it('should be able to add a property to a collection', async () => {

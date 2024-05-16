@@ -19,10 +19,19 @@ export type VectorIndexConfigFlat = {
   quantizer: BQConfig | undefined;
 };
 
+export type VectorIndexConfigDynamic = {
+  distance: VectorDistance;
+  threshold: number;
+  hnsw: VectorIndexConfigHNSW;
+  flat: VectorIndexConfigFlat;
+};
+
 export type VectorIndexConfigType<I> = I extends 'hnsw'
   ? VectorIndexConfigHNSW
   : I extends 'flat'
   ? VectorIndexConfigFlat
+  : I extends 'dynamic'
+  ? VectorIndexConfigDynamic
   : I extends string
   ? Record<string, any>
   : never;
@@ -52,6 +61,6 @@ export type VectorDistance = 'cosine' | 'dot' | 'l2-squared' | 'hamming';
 export type PQEncoderType = 'kmeans' | 'tile';
 export type PQEncoderDistribution = 'log-normal' | 'normal';
 
-export type VectorIndexType = 'hnsw' | 'flat' | string;
+export type VectorIndexType = 'hnsw' | 'flat' | 'dynamic' | string;
 
-export type VectorIndexConfig = VectorIndexConfigHNSW | VectorIndexConfigFlat;
+export type VectorIndexConfig = VectorIndexConfigHNSW | VectorIndexConfigFlat | VectorIndexConfigDynamic;

@@ -30,6 +30,7 @@ import {
   ShardingConfig,
   VectorConfig,
   VectorDistance,
+  VectorIndexConfigDynamic,
   VectorIndexConfigFlat,
   VectorIndexConfigHNSW,
   VectorIndexConfigType,
@@ -235,6 +236,7 @@ class ConfigGuards {
   static multiTenancy(v?: WeaviateMultiTenancyConfig): MultiTenancyConfig {
     if (v === undefined) throw new WeaviateDeserializationError('Multi tenancy was not returned by Weaviate');
     return {
+      autoTenantCreation: v.autoTenantCreation ? v.autoTenantCreation : false,
       enabled: v.enabled ? v.enabled : false,
     };
   }
@@ -388,11 +390,30 @@ class ConfigGuards {
       quantizer: ConfigGuards.bq(v.bq),
     };
   }
+  static vectorIndexDynamic(v: WeaviateVectorIndexConfig): VectorIndexConfigDynamic {
+    if (v === undefined) throw new WeaviateDeserializationError('Vector index was not returned by Weaviate');
+    if (!exists<number>(v.threshold))
+      throw new WeaviateDeserializationError('Vector index threshold was not returned by Weaviate');
+    if (!exists<VectorDistance>(v.distance))
+      throw new WeaviateDeserializationError('Vector index distance was not returned by Weaviate');
+    if (!exists<WeaviateVectorIndexConfig>(v.hnsw))
+      throw new WeaviateDeserializationError('Vector index hnsw was not returned by Weaviate');
+    if (!exists<WeaviateVectorIndexConfig>(v.flat))
+      throw new WeaviateDeserializationError('Vector index flat was not returned by Weaviate');
+    return {
+      distance: v.distance,
+      hnsw: ConfigGuards.vectorIndexHNSW(v.hnsw),
+      flat: ConfigGuards.vectorIndexFlat(v.flat),
+      threshold: v.threshold,
+    };
+  }
   static vectorIndex<I>(v: WeaviateVectorIndexConfig, t?: string): VectorIndexConfigType<I> {
     if (t === 'hnsw') {
       return ConfigGuards.vectorIndexHNSW(v) as VectorIndexConfigType<I>;
     } else if (t === 'flat') {
       return ConfigGuards.vectorIndexFlat(v) as VectorIndexConfigType<I>;
+    } else if (t === 'dynamic') {
+      return ConfigGuards.vectorIndexDynamic(v) as VectorIndexConfigType<I>;
     } else {
       return v as VectorIndexConfigType<I>;
     }

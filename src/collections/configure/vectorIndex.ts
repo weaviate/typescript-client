@@ -3,90 +3,89 @@ import {
   BQConfigUpdate,
   PQConfigCreate,
   PQConfigUpdate,
-  VectorIndexConfigCreate,
+  VectorIndexConfigDynamicCreate,
+  VectorIndexConfigDynamicCreateOptions,
   VectorIndexConfigFlatCreate,
+  VectorIndexConfigFlatCreateOptions,
   VectorIndexConfigFlatUpdate,
   VectorIndexConfigHNSWCreate,
+  VectorIndexConfigHNSWCreateOptions,
   VectorIndexConfigHNSWUpdate,
 } from './types/index.js';
 import { ModuleConfig, PQEncoderDistribution, PQEncoderType, VectorDistance } from '../config/types/index.js';
 
 import { parseWithDefault, parseQuantizer } from './parsing.js';
 
+const isModuleConfig = <N, C>(config: ModuleConfig<N, C> | C): config is ModuleConfig<N, C> => {
+  return config && typeof config === 'object' && 'name' in config && 'config' in config;
+};
+
 const configure = {
   /**
-   * Create a `ModuleConfig<'flat', VectorIndexConfigFlatCreate>` object when defining the configuration of the FLAT vector index.
+   * Create a `ModuleConfig<'flat', VectorIndexConfigFlatCreate | undefined>` object when defining the configuration of the FLAT vector index.
    *
    * Use this method when defining the `options.vectorIndexConfig` argument of the `configure.vectorizer` method.
    *
-   * @param {VectorDistance} [config.distanceMetric] The distance metric to use. Default is 'cosine'.
-   * @param {number} [config.vectorCacheMaxObjects] The maximum number of objects to cache in the vector cache. Default is 1000000000000.
-   * @param {BQConfigCreate} [config.quantizer] The quantizer configuration to use. Default is `bq`.
-   * @returns {ModuleConfig<'flat', VectorIndexConfigFlatCreate>} The configuration object.
+   * @param {VectorIndexConfigFlatCreateOptions} [opts] The options available for configuring the flat vector index.
+   * @returns {ModuleConfig<'flat', VectorIndexConfigFlatCreate | undefined>} The configuration object.
    */
-  flat: (config?: {
-    distanceMetric?: VectorDistance;
-    vectorCacheMaxObjects?: number;
-    quantizer?: BQConfigCreate;
-  }): ModuleConfig<'flat', VectorIndexConfigFlatCreate> => {
+  flat: (
+    opts?: VectorIndexConfigFlatCreateOptions
+  ): ModuleConfig<'flat', VectorIndexConfigFlatCreate | undefined> => {
+    const { distanceMetric: distance, vectorCacheMaxObjects, quantizer } = opts || {};
     return {
       name: 'flat',
       config: {
-        distance: parseWithDefault(config?.distanceMetric, 'cosine'),
-        vectorCacheMaxObjects: parseWithDefault(config?.vectorCacheMaxObjects, 1000000000000),
-        quantizer: parseQuantizer(config?.quantizer),
+        distance,
+        vectorCacheMaxObjects,
+        quantizer: parseQuantizer(quantizer),
       },
     };
   },
   /**
-   * Create a `ModuleConfig<'hnsw', VectorIndexConfigHNSWCreate>` object when defining the configuration of the HNSW vector index.
+   * Create a `ModuleConfig<'hnsw', VectorIndexConfigHNSWCreate | undefined>` object when defining the configuration of the HNSW vector index.
    *
    * Use this method when defining the `options.vectorIndexConfig` argument of the `configure.vectorizer` method.
    *
-   * @param {number} [config.cleanupIntervalSeconds] The interval in seconds at which to clean up the index. Default is 300.
-   * @param {VectorDistance} [config.distanceMetric] The distance metric to use. Default is 'cosine'.
-   * @param {number} [config.dynamicEfFactor] The dynamic ef factor. Default is 8.
-   * @param {number} [config.dynamicEfMax] The dynamic ef max. Default is 500.
-   * @param {number} [config.dynamicEfMin] The dynamic ef min. Default is 100.
-   * @param {number} [config.ef] The ef parameter. Default is -1.
-   * @param {number} [config.efConstruction] The ef construction parameter. Default is 128.
-   * @param {number} [config.flatSearchCutoff] The flat search cutoff. Default is 40000.
-   * @param {number} [config.maxConnections] The maximum number of connections. Default is 64.
-   * @param {PQConfigCreate | BQConfigCreate} [config.quantizer] The quantizer configuration to use. Use `vectorIndex.quantizer.bq` or `vectorIndex.quantizer.pq` to make one.
-   * @param {boolean} [config.skip] Whether to skip the index. Default is false.
-   * @param {number} [config.vectorCacheMaxObjects] The maximum number of objects to cache in the vector cache. Default is 1000000000000.
-   * @returns The `ModuleConfig<'hnsw', VectorIndexConfigHNSWCreate>` object.
+   * @param {VectorIndexConfigHNSWCreateOptions} [opts] The options available for configuring the HNSW vector index.
+   * @returns {ModuleConfig<'hnsw', VectorIndexConfigHNSWCreate | undefined>} The configuration object.
    */
-  hnsw: (config?: {
-    cleanupIntervalSeconds?: number;
-    distanceMetric?: VectorDistance;
-    dynamicEfFactor?: number;
-    dynamicEfMax?: number;
-    dynamicEfMin?: number;
-    ef?: number;
-    efConstruction?: number;
-    flatSearchCutoff?: number;
-    maxConnections?: number;
-    quantizer?: PQConfigCreate | BQConfigCreate;
-    skip?: boolean;
-    vectorCacheMaxObjects?: number;
-  }): ModuleConfig<'hnsw', VectorIndexConfigHNSWCreate> => {
+  hnsw: (
+    opts?: VectorIndexConfigHNSWCreateOptions
+  ): ModuleConfig<'hnsw', VectorIndexConfigHNSWCreate | undefined> => {
+    const { distanceMetric, ...rest } = opts || {};
     return {
       name: 'hnsw',
-      config: {
-        cleanupIntervalSeconds: parseWithDefault(config?.cleanupIntervalSeconds, 300),
-        distance: parseWithDefault(config?.distanceMetric, 'cosine'),
-        dynamicEfFactor: parseWithDefault(config?.dynamicEfFactor, 8),
-        dynamicEfMax: parseWithDefault(config?.dynamicEfMax, 500),
-        dynamicEfMin: parseWithDefault(config?.dynamicEfMin, 100),
-        ef: parseWithDefault(config?.ef, -1),
-        efConstruction: parseWithDefault(config?.efConstruction, 128),
-        flatSearchCutoff: parseWithDefault(config?.flatSearchCutoff, 40000),
-        maxConnections: parseWithDefault(config?.maxConnections, 64),
-        quantizer: parseQuantizer(config?.quantizer),
-        skip: parseWithDefault(config?.skip, false),
-        vectorCacheMaxObjects: parseWithDefault(config?.vectorCacheMaxObjects, 1000000000000),
-      },
+      config: rest
+        ? {
+            ...rest,
+            distance: distanceMetric,
+            quantizer: parseQuantizer(rest.quantizer),
+          }
+        : undefined,
+    };
+  },
+  /**
+   * Create a `ModuleConfig<'dynamic', VectorIndexConfigDynamicCreate | undefined>` object when defining the configuration of the dynamic vector index.
+   *
+   * Use this method when defining the `options.vectorIndexConfig` argument of the `configure.vectorizer` method.
+   *
+   * @param {VectorIndexConfigDynamicCreateOptions} [opts] The options available for configuring the dynamic vector index.
+   * @returns {ModuleConfig<'dynamic', VectorIndexConfigDynamicCreate | undefined>} The configuration object.
+   */
+  dynamic: (
+    opts?: VectorIndexConfigDynamicCreateOptions
+  ): ModuleConfig<'dynamic', VectorIndexConfigDynamicCreate | undefined> => {
+    return {
+      name: 'dynamic',
+      config: opts
+        ? {
+            distance: opts.distanceMetric,
+            threshold: opts.threshold,
+            hnsw: isModuleConfig(opts.hnsw) ? opts.hnsw.config : configure.hnsw(opts.hnsw).config,
+            flat: isModuleConfig(opts.flat) ? opts.flat.config : configure.flat(opts.flat).config,
+          }
+        : undefined,
     };
   },
   /**
@@ -96,29 +95,29 @@ const configure = {
     /**
      * Create a `BQConfigCreate` object to be used when defining the quantizer configuration of a vector index.
      *
-     * @param config.cache Whether to cache the quantizer. Default is false.
-     * @param config.rescoreLimit The rescore limit. Default is 1000.
-     * @returns The `BQConfigCreate` object.
+     * @param {boolean} [options.cache] Whether to cache the quantizer. Default is false.
+     * @param {number} [options.rescoreLimit] The rescore limit. Default is 1000.
+     * @returns {BQConfigCreate} The `BQConfigCreate` object.
      */
-    bq: (config?: { cache?: boolean; rescoreLimit?: number }): BQConfigCreate => {
+    bq: (options?: { cache?: boolean; rescoreLimit?: number }): BQConfigCreate => {
       return {
-        cache: parseWithDefault(config?.cache, false),
-        rescoreLimit: parseWithDefault(config?.rescoreLimit, 1000),
+        cache: options?.cache,
+        rescoreLimit: options?.rescoreLimit,
         type: 'bq',
       };
     },
     /**
      * Create a `PQConfigCreate` object to be used when defining the quantizer configuration of a vector index.
      *
-     * @param config.bitCompression Whether to use bit compression. Default is false.
-     * @param config.centroids The number of centroids. Default is 256.
-     * @param config.encoder.distribution The encoder distribution. Default is 'log-normal'.
-     * @param config.encoder.type The encoder type. Default is 'kmeans'.
-     * @param config.segments The number of segments. Default is 0.
-     * @param config.trainingLimit The training limit. Default is 100000.
-     * @returns The `PQConfigCreate` object.
+     * @param {boolean} [options.bitCompression] Whether to use bit compression.
+     * @param {number} [options.centroids] The number of centroids[.
+     * @param {PQEncoderDistribution} ]options.encoder.distribution The encoder distribution.
+     * @param {PQEncoderType} [options.encoder.type] The encoder type.
+     * @param {number} [options.segments] The number of segments.
+     * @param {number} [options.trainingLimit] The training limit.
+     * @returns {PQConfigCreate} The `PQConfigCreate` object.
      */
-    pq: (config?: {
+    pq: (options?: {
       bitCompression?: boolean;
       centroids?: number;
       encoder?: {
@@ -129,19 +128,16 @@ const configure = {
       trainingLimit?: number;
     }): PQConfigCreate => {
       return {
-        bitCompression: parseWithDefault(config?.bitCompression, false),
-        centroids: parseWithDefault(config?.centroids, 256),
-        encoder: config?.encoder
+        bitCompression: options?.bitCompression,
+        centroids: options?.centroids,
+        encoder: options?.encoder
           ? {
-              distribution: parseWithDefault(config.encoder.distribution, 'log-normal'),
-              type: parseWithDefault(config.encoder.type, 'kmeans'),
+              distribution: options.encoder.distribution,
+              type: options.encoder.type,
             }
-          : {
-              distribution: 'log-normal',
-              type: 'kmeans',
-            },
-        segments: parseWithDefault(config?.segments, 0),
-        trainingLimit: parseWithDefault(config?.trainingLimit, 100000),
+          : undefined,
+        segments: options?.segments,
+        trainingLimit: options?.trainingLimit,
         type: 'pq',
       };
     },

@@ -22,6 +22,9 @@ import {
   VectorizersConfigCreate,
   GenerativeConfig,
   RerankerConfig,
+  VectorIndexConfigDynamicCreate,
+  VectorIndexConfigFlatCreate,
+  VectorIndexConfigHNSWCreate,
 } from './types/index.js';
 import ClassExists from '../schema/classExists.js';
 import { classToCollection, resolveProperty, resolveReference } from './config/utils.js';
@@ -46,9 +49,20 @@ export type CollectionConfigCreate<TProperties = undefined, N = string> = {
   vectorizers?: VectorizersConfigCreate<TProperties>;
 };
 
-const parseVectorIndexConfig = (config?: VectorIndexConfigCreate) => {
-  if (config === undefined) return undefined;
-  const { quantizer, ...conf } = config;
+const parseVectorIndex = (module: ModuleConfig<VectorIndexType, VectorIndexConfigCreate>): any => {
+  if (module.config === undefined) return undefined;
+  if (module.name === 'dynamic') {
+    const { hnsw, flat, ...conf } = module.config as VectorIndexConfigDynamicCreate;
+    return {
+      ...conf,
+      hnsw: parseVectorIndex({ name: 'hnsw', config: hnsw }),
+      flat: parseVectorIndex({ name: 'flat', config: flat }),
+    };
+  }
+  const { quantizer, ...conf } = module.config as
+    | VectorIndexConfigFlatCreate
+    | VectorIndexConfigHNSWCreate
+    | Record<string, any>;
   if (quantizer === undefined) return conf;
   if (QuantizerGuards.isBQCreate(quantizer)) {
     const { type, ...quant } = quantizer;
@@ -114,7 +128,7 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
         vectorsConfig = {};
         vectorizersConfig.forEach((v) => {
           const vectorConfig: any = {
-            vectorIndexConfig: parseVectorIndexConfig(v.vectorIndex.config),
+            vectorIndexConfig: parseVectorIndex(v.vectorIndex),
             vectorIndexType: v.vectorIndex.name,
             vectorizer: {},
           };
@@ -150,7 +164,7 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
         vectorIndexConfig: vectorsConfig
           ? undefined
           : vectorIndex
-          ? parseVectorIndexConfig(vectorIndex.config)
+          ? parseVectorIndex(vectorIndex)
           : undefined,
         vectorIndexType: vectorsConfig ? undefined : vectorIndex ? vectorIndex.name : 'hnsw',
       };

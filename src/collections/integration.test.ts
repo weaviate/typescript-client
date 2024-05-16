@@ -573,7 +573,7 @@ describe('Testing of the collections.create method', () => {
     expect(response.properties?.[0].name).toEqual('testProp');
     expect(response.properties?.[0].dataType).toEqual('text');
     expect(response.vectorizer.default.indexConfig).toBeDefined();
-    expect(response.vectorizer.default.indexConfig.quantizer).toBeUndefined();
+    expect((response.vectorizer.default.indexConfig as VectorIndexConfigHNSW).quantizer).toBeUndefined();
     expect(response.vectorizer.default.indexType).toEqual('hnsw');
     expect(response.vectorizer.default.vectorizer.name).toEqual('text2vec-contextionary');
     expect(
@@ -603,7 +603,7 @@ describe('Testing of the collections.create method', () => {
     expect(response.properties?.[0].name).toEqual('testProp');
     expect(response.properties?.[0].dataType).toEqual('text');
     expect(response.vectorizer.default.indexConfig).toBeDefined();
-    expect(response.vectorizer.default.indexConfig.quantizer).toBeUndefined();
+    expect((response.vectorizer.default.indexConfig as VectorIndexConfigHNSW).quantizer).toBeUndefined();
     expect(response.vectorizer.default.indexType).toEqual('hnsw');
     expect(response.vectorizer.default.vectorizer.name).toEqual('text2vec-openai');
     expect(

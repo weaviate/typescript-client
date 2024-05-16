@@ -27,22 +27,12 @@ export const parseQuantizer = <T extends QuantizerConfig>(config?: T): T | undef
   }
   if (QuantizerGuards.isPQCreate(config)) {
     return {
-      bitCompression: parseWithDefault(config.bitCompression, false),
-      centroids: parseWithDefault(config.centroids, 256),
-      encoder: config.encoder
-        ? {
-            distribution: parseWithDefault(config.encoder.distribution, 'log_normal'),
-            type: parseWithDefault(config.encoder.type, 'kmeans'),
-          }
-        : undefined,
-      segments: parseWithDefault(config.segments, 0),
-      trainingLimit: parseWithDefault(config.trainingLimit, 100000),
+      ...config,
       type: 'pq',
     } as T;
   } else if (QuantizerGuards.isBQCreate(config)) {
     return {
-      cache: parseWithDefault(config.cache, false),
-      rescoreLimit: parseWithDefault(config.rescoreLimit, 1000),
+      ...config,
       type: 'bq',
     } as T;
   }
