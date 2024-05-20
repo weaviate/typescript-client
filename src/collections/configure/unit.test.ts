@@ -196,21 +196,6 @@ describe('Unit testing of the configure factory class', () => {
 });
 
 describe('Unit testing of the vectorizer factory class', () => {
-  it('should create the correct Img2VecNeuralConfig type with defaults', () => {
-    const config = configure.vectorizer.img2VecNeural('test');
-    expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'img2vec-neural'>>({
-      vectorName: 'test',
-      vectorIndex: {
-        name: 'hnsw',
-        config: undefined,
-      },
-      vectorizer: {
-        name: 'img2vec-neural',
-        config: undefined,
-      },
-    });
-  });
-
   it('should create the correct Img2VecNeuralConfig type with all values', () => {
     const config = configure.vectorizer.img2VecNeural('test', {
       imageFields: ['field1', 'field2'],
@@ -268,6 +253,39 @@ describe('Unit testing of the vectorizer factory class', () => {
     });
   });
 
+  it('should create the correct Multi2VecClipConfig type with all values and weights', () => {
+    const config = configure.vectorizer.multi2VecClip('test', {
+      imageFields: [
+        { name: 'field1', weight: 0.1 },
+        { name: 'field2', weight: 0.2 },
+      ],
+      textFields: [
+        { name: 'field3', weight: 0.3 },
+        { name: 'field4', weight: 0.4 },
+      ],
+      vectorizeCollectionName: true,
+    });
+    expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'multi2vec-clip'>>({
+      vectorName: 'test',
+      vectorIndex: {
+        name: 'hnsw',
+        config: undefined,
+      },
+      vectorizer: {
+        name: 'multi2vec-clip',
+        config: {
+          imageFields: ['field1', 'field2'],
+          textFields: ['field3', 'field4'],
+          vectorizeCollectionName: true,
+          weights: {
+            imageFields: [0.1, 0.2],
+            textFields: [0.3, 0.4],
+          },
+        },
+      },
+    });
+  });
+
   it('should create the correct Multi2VecBindConfig type with defaults', () => {
     const config = configure.vectorizer.multi2VecBind('test');
     expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'multi2vec-bind'>>({
@@ -316,9 +334,73 @@ describe('Unit testing of the vectorizer factory class', () => {
     });
   });
 
+  it('should create the correct Multi2VecBindConfig type with all values and weights', () => {
+    const config = configure.vectorizer.multi2VecBind('test', {
+      audioFields: [
+        { name: 'field1', weight: 0.1 },
+        { name: 'field2', weight: 0.2 },
+      ],
+      depthFields: [
+        { name: 'field3', weight: 0.3 },
+        { name: 'field4', weight: 0.4 },
+      ],
+      imageFields: [
+        { name: 'field5', weight: 0.5 },
+        { name: 'field6', weight: 0.6 },
+      ],
+      IMUFields: [
+        { name: 'field7', weight: 0.7 },
+        { name: 'field8', weight: 0.8 },
+      ],
+      textFields: [
+        { name: 'field9', weight: 0.9 },
+        { name: 'field10', weight: 1.0 },
+      ],
+      thermalFields: [
+        { name: 'field11', weight: 1.1 },
+        { name: 'field12', weight: 1.2 },
+      ],
+      videoFields: [
+        { name: 'field13', weight: 1.3 },
+        { name: 'field14', weight: 1.4 },
+      ],
+      vectorizeCollectionName: true,
+    });
+    expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'multi2vec-bind'>>({
+      vectorName: 'test',
+      vectorIndex: {
+        name: 'hnsw',
+        config: undefined,
+      },
+      vectorizer: {
+        name: 'multi2vec-bind',
+        config: {
+          audioFields: ['field1', 'field2'],
+          depthFields: ['field3', 'field4'],
+          imageFields: ['field5', 'field6'],
+          IMUFields: ['field7', 'field8'],
+          textFields: ['field9', 'field10'],
+          thermalFields: ['field11', 'field12'],
+          videoFields: ['field13', 'field14'],
+          vectorizeCollectionName: true,
+          weights: {
+            audioFields: [0.1, 0.2],
+            depthFields: [0.3, 0.4],
+            imageFields: [0.5, 0.6],
+            IMUFields: [0.7, 0.8],
+            textFields: [0.9, 1.0],
+            thermalFields: [1.1, 1.2],
+            videoFields: [1.3, 1.4],
+          },
+        },
+      },
+    });
+  });
+
   it('should create the correct Multi2VecPalmConfig type with defaults', () => {
     const config = configure.vectorizer.multi2VecPalm('test', {
       projectId: 'project-id',
+      location: 'location',
     });
     expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'multi2vec-palm'>>({
       vectorName: 'test',
@@ -330,6 +412,7 @@ describe('Unit testing of the vectorizer factory class', () => {
         name: 'multi2vec-palm',
         config: {
           projectId: 'project-id',
+          location: 'location',
         },
       },
     });
@@ -363,6 +446,53 @@ describe('Unit testing of the vectorizer factory class', () => {
           modelId: 'model-id',
           dimensions: 256,
           vectorizeCollectionName: true,
+        },
+      },
+    });
+  });
+
+  it('should create the correct Multi2VecPalmConfig type with all values and weights', () => {
+    const config = configure.vectorizer.multi2VecPalm('test', {
+      projectId: 'project-id',
+      imageFields: [
+        { name: 'field1', weight: 0.1 },
+        { name: 'field2', weight: 0.2 },
+      ],
+      textFields: [
+        { name: 'field3', weight: 0.3 },
+        { name: 'field4', weight: 0.4 },
+      ],
+      videoFields: [
+        { name: 'field5', weight: 0.5 },
+        { name: 'field6', weight: 0.6 },
+      ],
+      location: 'location',
+      modelId: 'model-id',
+      dimensions: 256,
+      vectorizeCollectionName: true,
+    });
+    expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'multi2vec-palm'>>({
+      vectorName: 'test',
+      vectorIndex: {
+        name: 'hnsw',
+        config: undefined,
+      },
+      vectorizer: {
+        name: 'multi2vec-palm',
+        config: {
+          projectId: 'project-id',
+          imageFields: ['field1', 'field2'],
+          textFields: ['field3', 'field4'],
+          videoFields: ['field5', 'field6'],
+          location: 'location',
+          modelId: 'model-id',
+          dimensions: 256,
+          vectorizeCollectionName: true,
+          weights: {
+            imageFields: [0.1, 0.2],
+            textFields: [0.3, 0.4],
+            videoFields: [0.5, 0.6],
+          },
         },
       },
     });

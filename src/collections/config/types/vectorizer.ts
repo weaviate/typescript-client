@@ -30,118 +30,316 @@ export type Vectorizer =
   | 'text2vec-voyageai'
   | 'none';
 
+/** The configuration for image vectorization using a neural network.
+ *
+ * See the [documentation](https://weaviate.io/developers/weaviate/modules/retriever-vectorizer-modules/img2vec-neural) for detailed usage.
+ */
 export type Img2VecNeuralConfig = {
-  imageFields?: string[];
+  /** The image fields used when vectorizing. This is a required field and must match the property fields of the collection that are defined as `DataType.BLOB`. */
+  imageFields: string[];
 };
 
+/** The field configuration for multi-media vectorization. */
+export type Multi2VecField = {
+  /** The name of the field to be used when performing multi-media vectorization. */
+  name: string;
+  /** The weight of the field when performing multi-media vectorization. */
+  weight?: number;
+};
+
+/** The configuration for multi-media vectorization using CLIP.
+ *
+ * See the [documentation](https://weaviate.io/developers/weaviate/modules/retriever-vectorizer-modules/multi2vec-clip) for detailed usage.
+ */
 export type Multi2VecClipConfig = {
+  /** The image fields used when vectorizing. */
   imageFields?: string[];
+  /** The URL where inference requests are sent. */
+  inferenceUrl?: string;
+  /** The text fields used when vectorizing. */
   textFields?: string[];
+  /** Whether the collection name is vectorized. */
   vectorizeCollectionName?: boolean;
+  /** The weights of the fields used for vectorization. */
+  weights?: {
+    /** The weights of the image fields. */
+    imageFields?: number[];
+    /** The weights of the text fields. */
+    textFields?: number[];
+  };
 };
 
+/** The configuration for multi-media vectorization using Bind.
+ *
+ * See the [documentation](https://weaviate.io/developers/weaviate/modules/retriever-vectorizer-modules/multi2vec-bind) for detailed usage.
+ */
 export type Multi2VecBindConfig = {
+  /** The audio fields used when vectorizing. */
   audioFields?: string[];
+  /** The depth fields used when vectorizing. */
   depthFields?: string[];
+  /** The image fields used when vectorizing. */
   imageFields?: string[];
+  /** The IMU fields used when vectorizing. */
   IMUFields?: string[];
+  /** The text fields used when vectorizing. */
   textFields?: string[];
+  /** The thermal fields used when vectorizing. */
   thermalFields?: string[];
+  /** The video fields used when vectorizing. */
   videoFields?: string[];
+  /** Whether the collection name is vectorized. */
   vectorizeCollectionName?: boolean;
+  /** The weights of the fields used for vectorization. */
+  weights?: {
+    /** The weights of the audio fields. */
+    audioFields?: number[];
+    /** The weights of the depth fields. */
+    depthFields?: number[];
+    /** The weights of the image fields. */
+    imageFields?: number[];
+    /** The weights of the IMU fields. */
+    IMUFields?: number[];
+    /** The weights of the text fields. */
+    textFields?: number[];
+    /** The weights of the thermal fields. */
+    thermalFields?: number[];
+    /** The weights of the video fields. */
+    videoFields?: number[];
+  };
 };
 
+/** The configuration for multi-media vectorization using Palm.
+ *
+ * See the [documentation](https://weaviate.io/developers/weaviate/modules/retriever-vectorizer-modules/text2vec-palm) for detailed usage.
+ */
 export type Multi2VecPalmConfig = {
+  /** The project ID of the Palm model. */
   projectId: string;
+  /** The location where the model runs. */
+  location: string;
+  /** The image fields used when vectorizing. */
   imageFields?: string[];
+  /** The text fields used when vectorizing. */
   textFields?: string[];
+  /** The video fields used when vectorizing. */
   videoFields?: string[];
-  location?: string;
+  /** The model ID in use. */
   modelId?: string;
+  /** The number of dimensions in use. */
   dimensions?: number;
+  /** Whether the collection name is vectorized. */
   vectorizeCollectionName?: boolean;
+  /** The weights of the fields used for vectorization. */
+  weights?: {
+    /** The weights of the image fields. */
+    imageFields?: number[];
+    /** The weights of the text fields. */
+    textFields?: number[];
+    /** The weights of the video fields. */
+    videoFields?: number[];
+  };
 };
 
+/** The configuration for reference-based vectorization using centroids.
+ *
+ * See the [documentation](https://weaviate.io/developers/weaviate/modules/retriever-vectorizer-modules/ref2vec-centroid) for detailed usage.
+ */
 export type Ref2VecCentroidConfig = {
+  /** The properties used as reference points for vectorization. */
   referenceProperties: string[];
-  method: 'mean';
+  /** The method used to calculate the centroid. */
+  method: 'mean' | string;
 };
 
+/** The configuration for text vectorization using AWS.
+ *
+ * See the [documentation](https://weaviate.io/developers/weaviate/modules/retriever-vectorizer-modules/text2vec-aws) for detailed usage.
+ */
 export type Text2VecAWSConfig = {
+  /** The model to use. REQUIRED for service `sagemaker`. */
   endpoint?: string;
-  model?: string;
+  /** The model to use. REQUIRED for service `bedrock`. */
+  model?: 'amazon.titan-embed-text-v1' | 'cohere.embed-english-v3' | 'cohere.embed-multilingual-v3' | string;
+  /** The AWS region where the model runs. */
   region: string;
-  service: string;
+  /** The AWS service to use. */
+  service: 'sagemaker' | 'bedrock' | string;
+  /** Whether the collection name is vectorized. */
   vectorizeCollectionName?: boolean;
 };
 
+/** The configuration for text vectorization using Azure OpenAI.
+ *
+ * See the [documentation](https://weaviate.io/developers/weaviate/modules/retriever-vectorizer-modules/text2vec-azure-openai) for detailed usage.
+ */
 export type Text2VecAzureOpenAIConfig = {
+  /** The base URL to use where API requests should go. */
   baseURL?: string;
+  /** The deployment ID to use */
   deploymentID: string;
+  /** The resource name to use. */
   resourceName: string;
+  /** Whether to vectorize the collection name. */
   vectorizeCollectionName?: boolean;
 };
 
+/** The configuration for text vectorization using Cohere.
+ *
+ * See the [documentation](https://weaviate.io/developers/weaviate/modules/retriever-vectorizer-modules/text2vec-cohere) for detailed usage.
+ */
 export type Text2VecCohereConfig = {
+  /** The base URL to use where API requests should go. */
   baseURL?: string;
+  /** The model to use. */
   model?: string;
+  /** The truncation strategy to use. */
   truncate?: boolean;
+  /** Whether to vectorize the collection name. */
   vectorizeCollectionName?: boolean;
 };
 
+/** The configuration for text vectorization using Contextionary.
+ *
+ * See the [documentation](https://weaviate.io/developers/weaviate/modules/retriever-vectorizer-modules/text2vec-contextionary) for detailed usage.
+ */
 export type Text2VecContextionaryConfig = {
+  /** Whether to vectorize the collection name. */
   vectorizeCollectionName?: boolean;
 };
 
+/** The configuration for text vectorization using GPT4All.
+ *
+ * See the [documentation](https://weaviate.io/developers/weaviate/modules/retriever-vectorizer-modules/text2vec-gpt4all) for detailed usage.
+ */
 export type Text2VecGPT4AllConfig = {
+  /** Whether to vectorize the collection name. */
   vectorizeCollectionName?: boolean;
 };
 
+/**
+ * The configuration for text vectorization using Hugging Face.
+ *
+ * See the [documentation](https://weaviate.io/developers/weaviate/modules/retriever-vectorizer-modules/text2vec-huggingface) for detailed usage.
+ */
 export type Text2VecHuggingFaceConfig = {
+  /** The endpoint URL to use. */
   endpointURL?: string;
+  /** The model to use. */
   model?: string;
+  /** The model to use for passage vectorization. */
   passageModel?: string;
+  /** The model to use for query vectorization. */
   queryModel?: string;
+  /** Whether to use the cache. */
   useCache?: boolean;
+  /** Whether to use the GPU. */
   useGPU?: boolean;
+  /** Whether to wait for the model. */
   waitForModel?: boolean;
+  /** Whether to vectorize the collection name. */
   vectorizeCollectionName?: boolean;
 };
 
+/**
+ * The configuration for text vectorization using Jina.
+ *
+ * See the [documentation](https://weaviate.io/developers/weaviate/modules/retriever-vectorizer-modules/text2vec-jina) for detailed usage.
+ */
 export type Text2VecJinaConfig = {
-  model?: string;
+  /** The model to use. */
+  model?: 'jina-embeddings-v2-base-en' | 'jina-embeddings-v2-small-en' | string;
+  /** Whether to vectorize the collection name. */
   vectorizeCollectionName?: boolean;
 };
 
+/**
+ * The configuration for text vectorization using OpenAI.
+ *
+ * See the [documentation](https://weaviate.io/developers/weaviate/modules/retriever-vectorizer-modules/text2vec-openai) for detailed usage.
+ */
 export type Text2VecOpenAIConfig = {
+  /** The base URL to use where API requests should go. */
   baseURL?: string;
+  /** The dimensions to use. */
   dimensions?: number;
-  model?: string;
+  /** The model to use. */
+  model?: 'text-embedding-3-small' | 'text-embedding-3-large' | 'text-embedding-ada-002' | string;
+  /** The model version to use. */
   modelVersion?: string;
-  type?: string;
+  /** The type of model to use. */
+  type?: 'text' | 'code' | string;
+  /** Whether to vectorize the collection name. */
   vectorizeCollectionName?: boolean;
 };
 
+/**
+ * The configuration for text vectorization using Palm.
+ *
+ * See the [documentation](https://weaviate.io/developers/weaviate/modules/retriever-vectorizer-modules/text2vec-palm) for detailed usage.
+ */
 export type Text2VecPalmConfig = {
+  /** The API endpoint to use without a leading scheme such as `http://`. */
   apiEndpoint?: string;
+  /** The model ID to use. */
   modelId?: string;
+  /** The project ID to use. */
   projectId?: string;
+  /** The Weaviate property name for the `gecko-002` or `gecko-003` model to use as the title. */
+  titleProperty?: string;
+  /** Whether to vectorize the collection name. */
   vectorizeCollectionName?: boolean;
 };
 
 export type Text2VecTransformersConfig = {
-  poolingStrategy?: string;
+  /** The inference url to use where API requests should go. You can use either this OR (`passage_inference_url` & `query_inference_url`). */
+  inferenceUrl?: string;
+  /** The inference url to use where passage API requests should go. You can use either (this AND query_inference_url) OR `inference_url`. */
+  passageInferenceUrl?: string;
+  /** The inference url to use where query API requests should go. You can use either (this AND `passage_inference_url`) OR `inference_url`. */
+  queryInferenceUrl?: string;
+  /** The pooling strategy to use. */
+  poolingStrategy?: 'masked_mean' | 'cls' | string;
+  /** Whether to vectorize the collection name. */
   vectorizeCollectionName?: boolean;
 };
 
+/**
+ * The configuration for text vectorization using Voyage AI.
+ *
+ * See the [documentation](https://weaviate.io/developers/weaviate/modules/retriever-vectorizer-modules/text2vec-voyageai) for detailed usage.
+ */
 export type Text2VecVoyageAIConfig = {
+  /** The base URL to use where API requests should go. */
   baseURL?: string;
+  /** The model to use. */
   model?: string;
+  /** Whether to truncate the input texts to fit within the context length. */
   truncate?: boolean;
+  /** Whether to vectorize the collection name. */
   vectorizeCollectionName?: boolean;
 };
 
 export type NoVectorizerConfig = {};
+
+export type VectorizerConfig =
+  | Img2VecNeuralConfig
+  | Multi2VecClipConfig
+  | Multi2VecBindConfig
+  | Multi2VecPalmConfig
+  | Ref2VecCentroidConfig
+  | Text2VecAWSConfig
+  | Text2VecAzureOpenAIConfig
+  | Text2VecContextionaryConfig
+  | Text2VecCohereConfig
+  | Text2VecGPT4AllConfig
+  | Text2VecHuggingFaceConfig
+  | Text2VecJinaConfig
+  | Text2VecOpenAIConfig
+  | Text2VecPalmConfig
+  | Text2VecTransformersConfig
+  | Text2VecVoyageAIConfig
+  | NoVectorizerConfig;
 
 export type VectorizerConfigType<V> = V extends 'img2vec-neural'
   ? Img2VecNeuralConfig | undefined
@@ -180,22 +378,3 @@ export type VectorizerConfigType<V> = V extends 'img2vec-neural'
   : V extends undefined
   ? undefined
   : never;
-
-export type VectorizerConfig =
-  | Img2VecNeuralConfig
-  | Multi2VecClipConfig
-  | Multi2VecBindConfig
-  | Multi2VecPalmConfig
-  | Ref2VecCentroidConfig
-  | Text2VecAWSConfig
-  | Text2VecAzureOpenAIConfig
-  | Text2VecContextionaryConfig
-  | Text2VecCohereConfig
-  | Text2VecGPT4AllConfig
-  | Text2VecHuggingFaceConfig
-  | Text2VecJinaConfig
-  | Text2VecOpenAIConfig
-  | Text2VecPalmConfig
-  | Text2VecTransformersConfig
-  | Text2VecVoyageAIConfig
-  | NoVectorizerConfig;

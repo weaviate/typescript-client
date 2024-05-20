@@ -1,4 +1,12 @@
-import { VectorIndexType, Vectorizer, VectorizerConfigType } from '../config/types/index.js';
+import {
+  Multi2VecBindConfig,
+  Multi2VecClipConfig,
+  Multi2VecField,
+  Multi2VecPalmConfig,
+  VectorIndexType,
+  Vectorizer,
+  VectorizerConfigType,
+} from '../config/types/index.js';
 import { ConfigureNonTextVectorizerOptions, ConfigureTextVectorizerOptions } from './types/index.js';
 import { VectorConfigCreate, VectorizerCreateOptions, VectorIndexConfigCreateType } from '../index.js';
 import { PrimitiveKeys } from '../types/internal.js';
@@ -17,6 +25,27 @@ const makeVectorizer = <T, N extends string, I extends VectorIndexType, V extend
       ? options.vectorizerConfig
       : { name: 'none' as V, config: undefined as VectorizerConfigType<V> },
   };
+};
+
+const mapMulti2VecField = (field: string | Multi2VecField): Multi2VecField => {
+  if (typeof field === 'string') {
+    return { name: field };
+  }
+  return field;
+};
+
+const formatMulti2VecFields = (
+  weights: Record<string, number[]>,
+  key: string,
+  fields?: Multi2VecField[]
+): Record<string, number[]> => {
+  if (fields !== undefined && fields.length > 0) {
+    weights[key] = fields.filter((f) => f.weight !== undefined).map((f) => f.weight as number);
+    if (weights[key].length === 0) {
+      delete weights[key];
+    }
+  }
+  return weights;
 };
 
 export const vectorizer = {
@@ -43,14 +72,14 @@ export const vectorizer = {
    */
   img2VecNeural: <N extends string, I extends VectorIndexType = 'hnsw'>(
     name: N,
-    opts?: ConfigureNonTextVectorizerOptions<I, 'img2vec-neural'>
+    opts: ConfigureNonTextVectorizerOptions<I, 'img2vec-neural'>
   ): VectorConfigCreate<never, N, I, 'img2vec-neural'> => {
-    const { vectorIndexConfig, ...config } = opts || {};
+    const { vectorIndexConfig, ...config } = opts;
     return makeVectorizer(name, {
       vectorIndexConfig,
       vectorizerConfig: {
         name: 'img2vec-neural',
-        config: Object.keys(config).length === 0 ? undefined : config,
+        config: config,
       },
     });
   },
@@ -68,11 +97,39 @@ export const vectorizer = {
     opts?: ConfigureNonTextVectorizerOptions<I, 'multi2vec-bind'>
   ): VectorConfigCreate<never, N, I, 'multi2vec-bind'> => {
     const { vectorIndexConfig, ...config } = opts || {};
+    const audioFields = config.audioFields?.map(mapMulti2VecField);
+    const depthFields = config.depthFields?.map(mapMulti2VecField);
+    const imageFields = config.imageFields?.map(mapMulti2VecField);
+    const IMUFields = config.IMUFields?.map(mapMulti2VecField);
+    const textFields = config.textFields?.map(mapMulti2VecField);
+    const thermalFields = config.thermalFields?.map(mapMulti2VecField);
+    const videoFields = config.videoFields?.map(mapMulti2VecField);
+    let weights: Multi2VecClipConfig['weights'] = {};
+    weights = formatMulti2VecFields(weights, 'audioFields', audioFields);
+    weights = formatMulti2VecFields(weights, 'depthFields', depthFields);
+    weights = formatMulti2VecFields(weights, 'imageFields', imageFields);
+    weights = formatMulti2VecFields(weights, 'IMUFields', IMUFields);
+    weights = formatMulti2VecFields(weights, 'textFields', textFields);
+    weights = formatMulti2VecFields(weights, 'thermalFields', thermalFields);
+    weights = formatMulti2VecFields(weights, 'videoFields', videoFields);
     return makeVectorizer(name, {
       vectorIndexConfig,
       vectorizerConfig: {
         name: 'multi2vec-bind',
-        config: Object.keys(config).length === 0 ? undefined : config,
+        config:
+          Object.keys(config).length === 0
+            ? undefined
+            : {
+                ...config,
+                audioFields: audioFields?.map((f) => f.name),
+                depthFields: depthFields?.map((f) => f.name),
+                imageFields: imageFields?.map((f) => f.name),
+                IMUFields: IMUFields?.map((f) => f.name),
+                textFields: textFields?.map((f) => f.name),
+                thermalFields: thermalFields?.map((f) => f.name),
+                videoFields: videoFields?.map((f) => f.name),
+                weights: Object.keys(weights).length === 0 ? undefined : weights,
+              },
       },
     });
   },
@@ -90,11 +147,24 @@ export const vectorizer = {
     opts?: ConfigureNonTextVectorizerOptions<I, 'multi2vec-clip'>
   ): VectorConfigCreate<never, N, I, 'multi2vec-clip'> => {
     const { vectorIndexConfig, ...config } = opts || {};
+    const imageFields = config.imageFields?.map(mapMulti2VecField);
+    const textFields = config.textFields?.map(mapMulti2VecField);
+    let weights: Multi2VecBindConfig['weights'] = {};
+    weights = formatMulti2VecFields(weights, 'imageFields', imageFields);
+    weights = formatMulti2VecFields(weights, 'textFields', textFields);
     return makeVectorizer(name, {
       vectorIndexConfig,
       vectorizerConfig: {
         name: 'multi2vec-clip',
-        config: Object.keys(config).length === 0 ? undefined : config,
+        config:
+          Object.keys(config).length === 0
+            ? undefined
+            : {
+                ...config,
+                imageFields: imageFields?.map((f) => f.name),
+                textFields: textFields?.map((f) => f.name),
+                weights: Object.keys(weights).length === 0 ? undefined : weights,
+              },
       },
     });
   },
@@ -112,11 +182,24 @@ export const vectorizer = {
     opts: ConfigureNonTextVectorizerOptions<I, 'multi2vec-palm'>
   ): VectorConfigCreate<never, N, I, 'multi2vec-palm'> => {
     const { vectorIndexConfig, ...config } = opts;
+    const imageFields = config.imageFields?.map(mapMulti2VecField);
+    const textFields = config.textFields?.map(mapMulti2VecField);
+    const videoFields = config.videoFields?.map(mapMulti2VecField);
+    let weights: Multi2VecPalmConfig['weights'] = {};
+    weights = formatMulti2VecFields(weights, 'imageFields', imageFields);
+    weights = formatMulti2VecFields(weights, 'textFields', textFields);
+    weights = formatMulti2VecFields(weights, 'videoFields', videoFields);
     return makeVectorizer(name, {
       vectorIndexConfig,
       vectorizerConfig: {
         name: 'multi2vec-palm',
-        config,
+        config: {
+          ...config,
+          imageFields: imageFields?.map((f) => f.name),
+          textFields: textFields?.map((f) => f.name),
+          videoFields: videoFields?.map((f) => f.name),
+          weights: Object.keys(weights).length === 0 ? undefined : weights,
+        },
       },
     });
   },
