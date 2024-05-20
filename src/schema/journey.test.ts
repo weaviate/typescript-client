@@ -181,6 +181,7 @@ describe('schema', () => {
                 },
               },
               multiTenancyConfig: {
+                autoTenantCreation: false,
                 enabled: false,
               },
               shardingConfig: {
@@ -587,7 +588,7 @@ describe('property setting defaults and migrations', () => {
 
   const errMsg1 =
     '`indexInverted` is deprecated and can not be set together with `indexFilterable` or `indexSearchable`';
-  const errMsg2 = '`indexSearchable` is not allowed for other than text/text[] data types';
+  const errMsg2 = '`indexSearchable` is allowed only for text/text[] data types';
   test.each([
     ['text', false, null, false, errMsg1],
     ['text', false, null, true, errMsg1],
@@ -678,6 +679,7 @@ describe('multi tenancy', () => {
     vectorIndexType: 'hnsw',
     vectorizer: 'text2vec-contextionary',
     multiTenancyConfig: {
+      autoTenantCreation: true,
       enabled: true,
     },
   };
@@ -729,6 +731,20 @@ describe('multi tenancy', () => {
       .then((res: Array<Tenant>) => {
         expect(res).toHaveLength(2);
       });
+  });
+
+  it('successfully finds an existing tenant for MultiTenancy class', () => {
+    return client.schema
+      .tenantsExists(classObj.class!, tenants[1].name!)
+      .do()
+      .then((res: boolean) => expect(res).toEqual(true));
+  });
+
+  it('successfully fails to find a non-existant tenant for MultiTenancy class', () => {
+    return client.schema
+      .tenantsExists(classObj.class!, 'nonExistantTenant')
+      .do()
+      .then((res: boolean) => expect(res).toEqual(false));
   });
 
   it('deletes MultiTenancy class', () => {
@@ -826,6 +842,7 @@ function newClassObject(className: string) {
       },
     },
     multiTenancyConfig: {
+      autoTenantCreation: false,
       enabled: false,
     },
     shardingConfig: {

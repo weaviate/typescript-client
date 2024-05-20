@@ -149,8 +149,8 @@ const makeCheckStatus = (expectResponseBody: boolean) => (res: Response) => {
 };
 
 const handleHeadResponse = (expectResponseBody: boolean) => (res: Response) => {
-  if (res.status == 204 || res.status == 404) {
-    return res.status == 204;
+  if (res.status == 200 || res.status == 204 || res.status == 404) {
+    return res.status == 200 || res.status == 204;
   }
   return makeCheckStatus(expectResponseBody)(res);
 };

@@ -56,34 +56,11 @@ export default class GraphQLNearText {
     }
 
     if (this.moveTo) {
-      let moveToArgs: string[] = [];
-      if (this.moveTo.concepts) {
-        moveToArgs = [...moveToArgs, `concepts:${JSON.stringify(this.moveTo.concepts)}`];
-      }
-      if (this.moveTo.objects) {
-        moveToArgs = [...moveToArgs, `objects:${this.parseMoveObjects('moveTo', this.moveTo.objects)}`];
-      }
-      if (this.moveTo.force) {
-        moveToArgs = [...moveToArgs, `force:${this.moveTo.force}`];
-      }
-      args = [...args, `moveTo:{${moveToArgs.join(',')}}`];
+      args = [...args, parseMove('moveTo', this.moveTo)];
     }
 
     if (this.moveAwayFrom) {
-      let moveAwayFromArgs: string[] = [];
-      if (this.moveAwayFrom.concepts) {
-        moveAwayFromArgs = [...moveAwayFromArgs, `concepts:${JSON.stringify(this.moveAwayFrom.concepts)}`];
-      }
-      if (this.moveAwayFrom.objects) {
-        moveAwayFromArgs = [
-          ...moveAwayFromArgs,
-          `objects:${this.parseMoveObjects('moveAwayFrom', this.moveAwayFrom.objects)}`,
-        ];
-      }
-      if (this.moveAwayFrom.force) {
-        moveAwayFromArgs = [...moveAwayFromArgs, `force:${this.moveAwayFrom.force}`];
-      }
-      args = [...args, `moveAwayFrom:{${moveAwayFromArgs.join(',')}}`];
+      args = [...args, parseMove('moveAwayFrom', this.moveAwayFrom)];
     }
 
     if (this.autocorrect !== undefined) {
@@ -112,24 +89,38 @@ export default class GraphQLNearText {
       }
     }
   }
-
-  parseMoveObjects(move: MoveType, objects: MoveObject[]): string {
-    const moveObjects: string[] = [];
-    for (const i in objects) {
-      if (!objects[i].id && !objects[i].beacon) {
-        throw new Error(`nearText: ${move}.objects[${i}].id or ${move}.objects[${i}].beacon must be present`);
-      }
-      const objs = [];
-      if (objects[i].id) {
-        objs.push(`id:"${objects[i].id}"`);
-      }
-      if (objects[i].beacon) {
-        objs.push(`beacon:"${objects[i].beacon}"`);
-      }
-      moveObjects.push(`{${objs.join(',')}}`);
-    }
-    return `[${moveObjects.join(',')}]`;
-  }
 }
 
 type MoveType = 'moveTo' | 'moveAwayFrom';
+
+export function parseMoveObjects(move: MoveType, objects: MoveObject[]): string {
+  const moveObjects: string[] = [];
+  for (const i in objects) {
+    if (!objects[i].id && !objects[i].beacon) {
+      throw new Error(`nearText: ${move}.objects[${i}].id or ${move}.objects[${i}].beacon must be present`);
+    }
+    const objs = [];
+    if (objects[i].id) {
+      objs.push(`id:"${objects[i].id}"`);
+    }
+    if (objects[i].beacon) {
+      objs.push(`beacon:"${objects[i].beacon}"`);
+    }
+    moveObjects.push(`{${objs.join(',')}}`);
+  }
+  return `[${moveObjects.join(',')}]`;
+}
+
+export function parseMove(move: MoveType, args: Move): string {
+  let moveArgs: string[] = [];
+  if (args.concepts) {
+    moveArgs = [...moveArgs, `concepts:${JSON.stringify(args.concepts)}`];
+  }
+  if (args.objects) {
+    moveArgs = [...moveArgs, `objects:${parseMoveObjects(move, args.objects)}`];
+  }
+  if (args.force) {
+    moveArgs = [...moveArgs, `force:${args.force}`];
+  }
+  return `${move}:{${moveArgs.join(',')}}`;
+}
