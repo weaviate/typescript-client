@@ -1,8 +1,8 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import {
   WeaviateClass,
   WeaviateInvertedIndexConfig,
   WeaviateReplicationConfig,
-  WeaviateVectorConfig,
   WeaviateVectorsConfig,
   WeaviateVectorIndexConfig,
 } from '../../openapi/types.js';

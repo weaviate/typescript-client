@@ -1289,6 +1289,21 @@ describe('bm25 valid searchers', () => {
 
     expect(mockClient.query).toHaveBeenCalledWith(expectedQuery);
   });
+
+  test('query and groupby', () => {
+    const expectedQuery = `{Get{Person(bm25:{query:"accountant"},groupBy:{path:["employer"],groups:2,objectsPerGroup:3}){name}}}`;
+
+    new Getter(mockClient)
+      .withClassName('Person')
+      .withFields('name')
+      .withBm25({
+        query: 'accountant',
+      })
+      .withGroupBy({ path: ['employer'], groups: 2, objectsPerGroup: 3 })
+      .do();
+
+    expect(mockClient.query).toHaveBeenCalledWith(expectedQuery);
+  });
 });
 
 describe('hybrid valid searchers', () => {
@@ -1379,6 +1394,50 @@ describe('hybrid valid searchers', () => {
       .withClassName('Person')
       .withFields('name')
       .withHybrid({ query: 'accountant', alpha: 0, fusionType: FusionType.rankedFusion })
+      .do();
+
+    expect(mockClient.query).toHaveBeenCalledWith(expectedQuery);
+  });
+
+  test('query and groupby', () => {
+    const expectedQuery = `{Get{Person(hybrid:{query:"accountant"},groupBy:{path:["employer"],groups:2,objectsPerGroup:3}){name}}}`;
+
+    new Getter(mockClient)
+      .withClassName('Person')
+      .withFields('name')
+      .withHybrid({
+        query: 'accountant',
+      })
+      .withGroupBy({ path: ['employer'], groups: 2, objectsPerGroup: 3 })
+      .do();
+
+    expect(mockClient.query).toHaveBeenCalledWith(expectedQuery);
+  });
+
+  test('query and subsearches', () => {
+    const subQuery = `searches:[{nearVector:{vector:[1,2,3],certainty:0.8,targetVectors:["employer"]}},{nearText:{concepts:["accountant"],distance:0.3,moveTo:{concepts:["foo"],objects:[{id:"uuid"}],force:0.8}}}]`;
+    const expectedQuery = `{Get{Person(hybrid:{query:"accountant",${subQuery}}){name}}}`;
+
+    new Getter(mockClient)
+      .withClassName('Person')
+      .withFields('name')
+      .withHybrid({
+        query: 'accountant',
+        searches: [
+          { nearVector: { certainty: 0.8, targetVectors: ['employer'], vector: [1, 2, 3] } },
+          {
+            nearText: {
+              concepts: ['accountant'],
+              distance: 0.3,
+              moveTo: {
+                concepts: ['foo'],
+                objects: [{ id: 'uuid' }],
+                force: 0.8,
+              },
+            },
+          },
+        ],
+      })
       .do();
 
     expect(mockClient.query).toHaveBeenCalledWith(expectedQuery);

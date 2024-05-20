@@ -144,7 +144,7 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
             properties: v.properties,
             ...(v.vectorizer.config ? { ...v.vectorizer.config, vectorizeClassName } : {}),
           };
-          vectorsConfig![v.vectorName] = vectorConfig;
+          vectorsConfig![v.vectorName] = vectorConfig; // eslint-disable-line @typescript-eslint/no-non-null-assertion
         });
       } else {
         throw new WeaviateInvalidInputError('Either vectorizer or vectorizers can be defined, not both');

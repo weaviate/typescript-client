@@ -15,6 +15,7 @@ import TenantsDeleter from './tenantsDeleter.js';
 import Connection from '../connection/index.js';
 import deleteAll from './deleteAll.js';
 import { Tenant } from '../openapi/types.js';
+import TenantsExists from './tenantsExists.js';
 
 export interface Schema {
   classCreator: () => ClassCreator;
@@ -32,6 +33,7 @@ export interface Schema {
   tenantsGetter: (className: string) => TenantsGetter;
   tenantsUpdater: (className: string, tenants: Array<Tenant>) => TenantsUpdater;
   tenantsDeleter: (className: string, tenants: Array<string>) => TenantsDeleter;
+  tenantsExists: (className: string, tenant: string) => TenantsExists;
 }
 
 const schema = (client: Connection): Schema => {
@@ -54,6 +56,7 @@ const schema = (client: Connection): Schema => {
       new TenantsUpdater(client, className, tenants),
     tenantsDeleter: (className: string, tenants: Array<string>) =>
       new TenantsDeleter(client, className, tenants),
+    tenantsExists: (className: string, tenant: string) => new TenantsExists(client, className, tenant),
   };
 };
 
@@ -69,3 +72,4 @@ export { default as TenantsCreator } from './tenantsCreator.js';
 export { default as TenantsUpdater } from './tenantsUpdater.js';
 export { default as TenantsGetter } from './tenantsGetter.js';
 export { default as TenantsDeleter } from './tenantsDeleter.js';
+export { default as TenantsExists } from './tenantsExists.js';

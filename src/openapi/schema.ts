@@ -112,9 +112,6 @@ export interface paths {
     /** Gives meta information about the server and can be used to provide information to another Weaviate instance that wants to interact with the current instance. */
     get: operations['meta.get'];
   };
-  '/schema/cluster-status': {
-    get: operations['schema.cluster.status'];
-  };
   '/schema': {
     get: operations['schema.dump'];
     post: operations['schema.objects.create'];
@@ -2276,18 +2273,6 @@ export interface operations {
       /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
       500: {
         schema: definitions['ErrorResponse'];
-      };
-    };
-  };
-  'schema.cluster.status': {
-    responses: {
-      /** The schema in the cluster is in sync. */
-      200: {
-        schema: definitions['SchemaClusterStatus'];
-      };
-      /** The schema is either out of sync (see response body) or the sync check could not be completed. */
-      500: {
-        schema: definitions['SchemaClusterStatus'];
       };
     };
   };
