@@ -8,7 +8,7 @@ on:
 
 env:
   WEAVIATE_124: 1.24.13
-  WEAVIATE_125: preview-prepare-release-v1-25-1-2b30b50
+  WEAVIATE_125: 1.25.1
 
 jobs:
   checks:
