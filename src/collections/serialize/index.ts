@@ -745,6 +745,8 @@ export class Serialize {
         return Filters_Operator.OPERATOR_LIKE;
       case 'WithinGeoRange':
         return Filters_Operator.OPERATOR_WITHIN_GEO_RANGE;
+      case 'IsNull':
+        return Filters_Operator.OPERATOR_IS_NULL;
       default:
         return Filters_Operator.OPERATOR_UNSPECIFIED;
     }
