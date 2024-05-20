@@ -756,18 +756,24 @@ describe('multi tenancy', () => {
       });
   });
 
-  it('successfully finds an existing tenant for MultiTenancy class', () => {
+  it('successfully finds an existing tenant for MultiTenancy class', async () => {
+    if (!(await is125(client))) {
+      return Promise.resolve();
+    }
     return client.schema
       .tenantsExists(classObj.class!, tenants[1].name!)
       .do()
-      .then((res: boolean) => expect(res).toEqual(true));
+      .then((res) => expect(res).toEqual(true));
   });
 
-  it('successfully fails to find a non-existant tenant for MultiTenancy class', () => {
+  it('successfully fails to find a non-existant tenant for MultiTenancy class', async () => {
+    if (!(await is125(client))) {
+      return Promise.resolve();
+    }
     return client.schema
       .tenantsExists(classObj.class!, 'nonExistantTenant')
       .do()
-      .then((res: boolean) => expect(res).toEqual(false));
+      .then((res) => expect(res).toEqual(false));
   });
 
   it('deletes MultiTenancy class', () => {

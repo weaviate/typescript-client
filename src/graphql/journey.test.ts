@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
+import { DbVersionProvider } from '../utils/dbVersion.js';
 import weaviate, {
   Reference,
   WeaviateClient,
@@ -8,17 +9,23 @@ import weaviate, {
   Tenant,
   ReferenceCreator,
   WhereFilter,
+  Meta,
 } from '../v2/index.js';
 import { FusionType } from './hybrid.js';
 
 describe('the graphql journey', () => {
   let client: WeaviateClient;
+  let versionLessThan125: boolean;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     client = weaviate.client({
       scheme: 'http',
       host: 'localhost:8080',
     });
+    versionLessThan125 = await client.misc
+      .metaGetter()
+      .do()
+      .then((res: Meta) => res.version!.localeCompare('1.25.0') < 0);
   });
 
   it('creates a schema class', () => {
@@ -445,6 +452,9 @@ describe('the graphql journey', () => {
   });
 
   test('graphql get hybrid with query and groupby', () => {
+    if (versionLessThan125) {
+      return Promise.resolve();
+    }
     return client.graphql
       .get()
       .withClassName('Article')
@@ -465,6 +475,9 @@ describe('the graphql journey', () => {
   });
 
   test('graphql get hybrid with query and nearText subsearch', () => {
+    if (versionLessThan125) {
+      return Promise.resolve();
+    }
     return client.graphql
       .get()
       .withClassName('Article')
@@ -530,6 +543,10 @@ describe('the graphql journey', () => {
       0.16178907, 0.39356324, -0.03106238, 0.09375929, 0.17185533, 0.10400415, -0.36850816, 0.18424486,
       -0.081376314, 0.23645392, 0.05198973, 0.09471436,
     ];
+
+    if (versionLessThan125) {
+      return Promise.resolve();
+    }
 
     return client.graphql
       .get()
