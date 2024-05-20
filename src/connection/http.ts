@@ -347,8 +347,8 @@ const checkStatus =
 const handleHeadResponse =
   <T>(expectResponseBody: boolean) =>
   (res: Response) => {
-    if (res.status == 204 || res.status == 404) {
-      return Promise.resolve(res.status == 204);
+    if (res.status == 200 || res.status == 204 || res.status == 404) {
+      return Promise.resolve(res.status == 200 || res.status == 204);
     }
     return checkStatus<T>(expectResponseBody)(res);
   };

@@ -14,11 +14,7 @@ import Searcher, { Search } from '../grpc/searcher.js';
 import { DbVersionSupport, initDbVersionProvider } from '../utils/dbVersion.js';
 import TenantsManager, { Tenants } from '../grpc/tenantsManager.js';
 
-import {
-  WeaviateGRPCUnavailableError,
-  WeaviateStartUpError,
-  WeaviateUnsupportedFeatureError,
-} from '../errors.js';
+import { WeaviateGRPCUnavailableError, WeaviateUnsupportedFeatureError } from '../errors.js';
 
 export interface GrpcConnectionParams extends ConnectionParams {
   grpcAddress: string;

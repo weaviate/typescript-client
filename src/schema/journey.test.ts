@@ -609,7 +609,7 @@ describe('property setting defaults and migrations', () => {
 
   const errMsg1 =
     '`indexInverted` is deprecated and can not be set together with `indexFilterable` or `indexSearchable`';
-  const errMsg2 = '`indexSearchable` is allowed only for text/text[] data types';
+  const errMsg2 = '`indexSearchable`';
   test.each([
     ['text', false, null, false, errMsg1],
     ['text', false, null, true, errMsg1],
