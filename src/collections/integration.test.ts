@@ -632,7 +632,10 @@ describe('Testing of the collections.create method', () => {
     expect(response.properties?.length).toEqual(1);
     expect(response.properties?.[0].name).toEqual('testProp');
     expect(response.properties?.[0].dataType).toEqual('text');
-    expect(response.generative).toEqual({});
+    expect(response.generative).toEqual({
+      name: 'generative-openai',
+      config: {},
+    });
 
     await openai.collections.delete(collectionName);
   });
