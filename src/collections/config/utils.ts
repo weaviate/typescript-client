@@ -16,7 +16,9 @@ import {
   BQConfig,
   CollectionConfig,
   GenerativeConfig,
+  GenerativeSearch,
   InvertedIndexConfig,
+  ModuleConfig,
   MultiTenancyConfig,
   PQConfig,
   PQEncoderConfig,
@@ -26,6 +28,7 @@ import {
   PropertyVectorizerConfig,
   ReferenceConfig,
   ReplicationConfig,
+  Reranker,
   RerankerConfig,
   ShardingConfig,
   VectorConfig,
@@ -149,19 +152,27 @@ class ConfigGuards {
       removals: v.removals ? v.removals : [],
     };
   }
-  static generative<G>(v?: WeaviateModuleConfig): GenerativeConfig | undefined {
+  static generative<G>(
+    v?: WeaviateModuleConfig
+  ): ModuleConfig<GenerativeSearch, GenerativeConfig> | undefined {
     if (!populated(v)) return undefined;
     const generativeKey = Object.keys(v).find((k) => k.includes('generative'));
     if (generativeKey === undefined) return undefined;
     if (!generativeKey)
       throw new WeaviateDeserializationError('Generative config was not returned by Weaviate');
-    return v[generativeKey] as GenerativeConfig;
+    return {
+      name: generativeKey,
+      config: v[generativeKey] as GenerativeConfig,
+    };
   }
-  static reranker(v?: WeaviateModuleConfig): RerankerConfig | undefined {
+  static reranker(v?: WeaviateModuleConfig): ModuleConfig<Reranker, RerankerConfig> | undefined {
     if (!populated(v)) return undefined;
     const rerankerKey = Object.keys(v).find((k) => k.includes('reranker'));
     if (rerankerKey === undefined) return undefined;
-    return v[rerankerKey] as RerankerConfig;
+    return {
+      name: rerankerKey,
+      config: v[rerankerKey] as RerankerConfig,
+    };
   }
   private static namedVectors(v: WeaviateVectorsConfig): VectorConfig {
     if (!populated(v)) throw new WeaviateDeserializationError('Vector config was not returned by Weaviate');

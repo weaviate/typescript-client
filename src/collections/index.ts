@@ -110,6 +110,9 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
       if (config.generative) {
         moduleConfig[config.generative.name] = config.generative.config ? config.generative.config : {};
       }
+      if (config.reranker) {
+        moduleConfig[config.reranker.name] = config.reranker.config ? config.reranker.config : {};
+      }
 
       let defaultVectorizer: string | undefined;
       let vectorizers: string[] = [];
