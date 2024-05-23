@@ -292,13 +292,15 @@ describe('Testing of the filter class with a simple collection', () => {
   });
 });
 
-describe('Testing of the filter class with complex data type', () => {
+describe('Testing of the filter class with complex data types', () => {
   let client: WeaviateClient;
   let collection: Collection<TestCollectionFilterComplex, 'TestCollectionFilterComplex'>;
 
   const collectionName = 'TestCollectionFilterComplex';
   type TestCollectionFilterComplex = {
+    name: string;
     location: GeoCoordinate;
+    date?: Date;
   };
 
   beforeAll(async () => {
@@ -318,22 +320,40 @@ describe('Testing of the filter class with complex data type', () => {
     await client.collections
       .create<TestCollectionFilterComplex>({
         name: collectionName,
+        invertedIndex: {
+          indexNullState: true,
+        },
         properties: [
+          {
+            name: 'name',
+            dataType: 'text',
+          },
           {
             name: 'location',
             dataType: 'geoCoordinates',
           },
+          {
+            name: 'date',
+            dataType: 'date',
+          },
         ],
+        vectorizer: {
+          name: 'text2vec-contextionary',
+          config: {},
+        },
       })
       .then(() =>
         collection.data.insertMany([
           {
+            name: 'Tim',
             location: {
               latitude: 52.52,
               longitude: 13.405,
             },
+            date: new Date('2021-01-01T00:00:00Z'),
           },
           {
+            name: 'Tom',
             location: {
               latitude: 53.55,
               longitude: 10.0,
@@ -359,5 +379,16 @@ describe('Testing of the filter class with complex data type', () => {
       }),
     });
     expect(res.objects.length).toEqual(1);
+  });
+
+  it('should filter a fetch objects query with a date filter', async () => {
+    const res = await collection.query.nearText(['Tom'], {
+      filters: Filters.and(
+        collection.filter.byProperty('date').isNull(true),
+        collection.filter.byProperty('name').equal('Tom')
+      ),
+    });
+    expect(res.objects.length).toEqual(1);
+    expect(res.objects[0].properties.name).toEqual('Tom');
   });
 });
