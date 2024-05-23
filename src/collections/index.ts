@@ -17,7 +17,6 @@ import {
   VectorIndexType,
   Vectorizer,
   VectorizerConfig,
-  VectorConfigCreate,
   VectorIndexConfigCreate,
   VectorizersConfigCreate,
   GenerativeConfig,
@@ -30,24 +29,48 @@ import ClassExists from '../schema/classExists.js';
 import { classToCollection, resolveProperty, resolveReference } from './config/utils.js';
 import { WeaviateClass } from '../openapi/types.js';
 import { QuantizerGuards } from './configure/parsing.js';
-import { PrimitiveKeys } from './types/internal.js';
 import { WeaviateInvalidInputError, WeaviateUnsupportedFeatureError } from '../errors.js';
 
+/**
+ * All the options available when creating a new collection.
+ *
+ * Inspect [the docs](https://weaviate.io/developers/weaviate/configuration) for more information on the
+ * different configuration options and how they affect the behavior of your collection.
+ */
 export type CollectionConfigCreate<TProperties = undefined, N = string> = {
+  /** The name of the collection. */
   name: N;
+  /** The description of the collection. */
   description?: string;
+  /** The configuration for Weaviate's generative capabilities. */
   generative?: ModuleConfig<GenerativeSearch, GenerativeConfig>;
+  /** The configuration for Weaviate's inverted index. */
   invertedIndex?: InvertedIndexConfigCreate;
+  /** The configuration for Weaviate's multi-tenancy capabilities. */
   multiTenancy?: MultiTenancyConfigCreate;
-  properties?: PropertyConfigCreate<TProperties>[];
+  /** The references of the objects in the collection. */
   references?: ReferenceConfigCreate<TProperties>[];
+  /** The configuration for Weaviate's replication strategy. Is mutually exclusive with `sharding`. */
   replication?: ReplicationConfigCreate;
+  /** The configuration for Weaviate's reranking capabilities. */
   reranker?: ModuleConfig<Reranker, RerankerConfig>;
+  /** The configuration for Weaviate's sharding strategy. Is mutually exclusive with `replication`. */
   sharding?: ShardingConfigCreate;
+  /** Weaviate's legacy vector index configuration. Use `vectorizers` instead. */
   vectorIndex?: ModuleConfig<VectorIndexType, VectorIndexConfigCreate>;
+  /** Weaviate's legacy vectorization configuration. Use `vectorizers` instead. */
   vectorizer?: ModuleConfig<Vectorizer, VectorizerConfig>;
+  /** The configuration for Weaviate's vectorizer(s) capabilities. */
   vectorizers?: VectorizersConfigCreate<TProperties>;
-};
+} & (TProperties extends undefined
+  ? {
+      /** The properties of the objects in the collection. */
+      properties?: PropertyConfigCreate<TProperties>[];
+    }
+  : {
+      /** The properties of the objects in the collection. */
+      properties: PropertyConfigCreate<TProperties>[];
+    });
 
 const parseVectorIndex = (module: ModuleConfig<VectorIndexType, VectorIndexConfigCreate>): any => {
   if (module.config === undefined) return undefined;
@@ -128,7 +151,12 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
       } else if (config.vectorizer === undefined && config.vectorizers !== undefined) {
         const vectorizersConfig = Array.isArray(config.vectorizers)
           ? config.vectorizers
-          : [config.vectorizers];
+          : [
+              {
+                ...config.vectorizers,
+                vectorName: 'default',
+              },
+            ];
         defaultVectorizer = undefined;
         vectorsConfig = {};
         vectorizersConfig.forEach((v) => {
@@ -147,6 +175,11 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
             properties: v.properties,
             ...(v.vectorizer.config ? { ...v.vectorizer.config, vectorizeClassName } : {}),
           };
+          if (v.vectorName === undefined) {
+            throw new WeaviateInvalidInputError(
+              'vectorName is required for each vectorizer when specifying more than one vectorizer'
+            );
+          }
           vectorsConfig![v.vectorName] = vectorConfig; // eslint-disable-line @typescript-eslint/no-non-null-assertion
         });
       } else {
@@ -194,14 +227,6 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
         .withClassName(name)
         .do()
         .then(classToCollection<TProperties>),
-    // get: <TProperties extends Properties | undefined = undefined, TName extends string = string>(
-    //   name: TName
-    // ) => {
-    //   console.warn(
-    //     'The method collections.get() is deprecated and will be removed in the next major version. Please use collections.use() instead.'
-    //   );
-    //   return collection<TProperties, TName>(connection, name, dbVersionSupport);
-    // },
     listAll: listAll,
     get: <TProperties extends Properties | undefined = undefined, TName extends string = string>(
       name: TName

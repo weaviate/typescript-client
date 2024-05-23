@@ -113,7 +113,7 @@ export type RerankOptions<T> = T extends undefined
       query?: string;
     };
 
-interface BaseRefProperty<T extends Properties> {
+interface BaseRefProperty<T> {
   // linkOn: keyof T & string; // https://github.com/microsoft/TypeScript/issues/56239
   linkOn: RefKeys<T>;
   includeVector?: boolean | string[];
@@ -123,7 +123,7 @@ interface BaseRefProperty<T extends Properties> {
   targetCollection?: string;
 }
 
-export type RefProperty<T extends Properties> = BaseRefProperty<T>;
+export type RefProperty<T> = BaseRefProperty<T>;
 
 export type RefPropertyDefault = {
   linkOn: string;

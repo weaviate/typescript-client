@@ -4,7 +4,7 @@ import { AuthCredentials } from './auth.js';
 import { ProxiesParams } from './http.js';
 
 /** The options available to the `weaviate.connectToWCS` method. */
-export type ConnectToWCSOptions = {
+export type ConnectToWCDOptions = {
   /** The authentication credentials to use when connecting to Weaviate, e.g. API key */
   authCredentials?: AuthCredentials;
   /** Additional headers to include in the request */
@@ -47,10 +47,10 @@ export type ConnectToCustomOptions = {
   proxies?: ProxiesParams;
 };
 
-export function connectToWCS(
+export function connectToWCD(
   clusterURL: string,
   clientMaker: (params: ClientParams) => Promise<WeaviateClient>,
-  options?: ConnectToWCSOptions
+  options?: ConnectToWCDOptions
 ): Promise<WeaviateClient> {
   // check if the URL is set
   if (!clusterURL) throw new Error('Missing `clusterURL` parameter');

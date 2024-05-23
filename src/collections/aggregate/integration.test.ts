@@ -99,7 +99,7 @@ describe('Testing of the collection.aggregate methods', () => {
           //   dataType: [collectionName],
           // },
         ],
-        vectorizers: weaviate.configure.vectorizer.text2VecContextionary('vector', {
+        vectorizers: weaviate.configure.vectorizer.text2VecContextionary({
           vectorizeCollectionName: false,
         }),
       })
@@ -143,21 +143,19 @@ describe('Testing of the collection.aggregate methods', () => {
     expect(result.totalCount).toEqual(100);
   });
 
-  // Skip until fixed in 1.24.11
-  // it('should aggregate grouped by data without a search and no property metrics', async () => {
-  //   const result = await collection.aggregate.groupBy.overAll({ groupBy: 'text' });
-  //   expect(result.length).toEqual(1);
-  //   expect(result[0].totalCount).toEqual(100);
-  //   expect(result[0].groupedBy.prop).toEqual('text');
-  //   expect(result[0].groupedBy.value).toEqual('test');
-  //   expect(result[0].properties).toBeUndefined();
-  // });
+  it('should aggregate grouped by data without a search and no property metrics', async () => {
+    const result = await collection.aggregate.groupBy.overAll({ groupBy: 'text' });
+    expect(result.length).toEqual(1);
+    expect(result[0].totalCount).toEqual(100);
+    expect(result[0].groupedBy.prop).toEqual('text');
+    expect(result[0].groupedBy.value).toEqual('test');
+    expect(result[0].properties).toBeUndefined();
+  });
 
   it('should aggregate grouped by data with a near text search and no property metrics', async () => {
     const result = await collection.aggregate.groupBy.nearText('test', {
       groupBy: 'text',
       certainty: 0.1,
-      targetVector: 'vector',
     });
     expect(result.length).toEqual(1);
     expect(result[0].totalCount).toEqual(100);
@@ -331,7 +329,8 @@ describe('Testing of the collection.aggregate methods with named vectors', () =>
         },
       ],
       vectorizers: [
-        weaviate.configure.vectorizer.text2VecContextionary('text', {
+        weaviate.configure.vectorizer.text2VecContextionary({
+          name: 'text',
           sourceProperties: ['text'],
           vectorIndexConfig: weaviate.configure.vectorIndex.hnsw(),
         }),

@@ -31,7 +31,12 @@ export type VectorizerUpdateOptions<I> = {
   vectorIndexConfig: ModuleConfig<I, VectorIndexConfigUpdateType<I>>;
 };
 
-export type VectorConfigCreate<P, N extends string, I extends VectorIndexType, V extends Vectorizer> = {
+export type VectorConfigCreate<
+  P,
+  N extends string | undefined,
+  I extends VectorIndexType,
+  V extends Vectorizer
+> = {
   vectorName: N;
   properties?: P[];
   vectorizer: ModuleConfig<V, VectorizerConfigType<V>>;
@@ -44,21 +49,25 @@ export type VectorConfigUpdate<N extends string, I extends VectorIndexType> = {
 };
 
 export type VectorizersConfigCreate<T> =
-  | VectorConfigCreate<PrimitiveKeys<T>, string, VectorIndexType, Vectorizer>
+  | VectorConfigCreate<PrimitiveKeys<T>, undefined, VectorIndexType, Vectorizer>
   | VectorConfigCreate<PrimitiveKeys<T>, string, VectorIndexType, Vectorizer>[];
 
 export type ConfigureNonTextVectorizerOptions<
+  N extends string | undefined,
   I extends VectorIndexType,
   V extends Vectorizer
 > = VectorizerConfigCreateType<V> & {
+  name?: N;
   vectorIndexConfig?: ModuleConfig<I, VectorIndexConfigCreateType<I>>;
 };
 
 export type ConfigureTextVectorizerOptions<
   T,
+  N extends string | undefined,
   I extends VectorIndexType,
   V extends Vectorizer
 > = VectorizerConfigCreateType<V> & {
+  name?: N;
   sourceProperties?: PrimitiveKeys<T>[];
   vectorIndexConfig?: ModuleConfig<I, VectorIndexConfigCreateType<I>>;
 };

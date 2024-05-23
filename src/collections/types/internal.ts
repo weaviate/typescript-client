@@ -34,12 +34,12 @@ export type QueryNestedDefault = {
   properties: (string | QueryNestedDefault)[];
 };
 
-export type QueryProperty<T> = T extends Properties
-  ? PrimitiveKeys<T> | QueryNested<T>
-  : string | QueryNestedDefault;
-export type QueryReference<T> = T extends Properties ? RefProperty<T> : RefPropertyDefault;
+export type QueryProperty<T> = T extends undefined
+  ? string | QueryNestedDefault
+  : PrimitiveKeys<T> | QueryNested<T>;
+export type QueryReference<T> = T extends undefined ? RefPropertyDefault : RefProperty<T>;
 export type NonRefProperty<T> = keyof T | QueryNested<T>;
-export type NonPrimitiveProperty<T extends Properties> = RefProperty<T> | QueryNested<T>;
+export type NonPrimitiveProperty<T> = RefProperty<T> | QueryNested<T>;
 
 export type IsEmptyType<T> = keyof T extends never ? true : false;
 

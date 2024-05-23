@@ -68,7 +68,7 @@ describe('Testing of the filter class with a simple collection', () => {
           },
         ],
         invertedIndex: weaviate.configure.invertedIndex({ indexTimestamps: true }),
-        vectorizers: weaviate.configure.vectorizer.text2VecContextionary('default', {
+        vectorizers: weaviate.configure.vectorizer.text2VecContextionary({
           vectorizeCollectionName: false,
         }),
       })
@@ -301,6 +301,7 @@ describe('Testing of the filter class with complex data types', () => {
     name: string;
     location: GeoCoordinate;
     date?: Date;
+    personId: string;
   };
 
   beforeAll(async () => {
@@ -351,6 +352,7 @@ describe('Testing of the filter class with complex data types', () => {
               longitude: 13.405,
             },
             date: new Date('2021-01-01T00:00:00Z'),
+            personId: '00000000-0000-0000-0000-000000000000',
           },
           {
             name: 'Tom',
@@ -358,6 +360,7 @@ describe('Testing of the filter class with complex data types', () => {
               latitude: 53.55,
               longitude: 10.0,
             },
+            personId: '00000000-0000-0000-0000-000000000001',
           },
         ])
       );
@@ -385,7 +388,7 @@ describe('Testing of the filter class with complex data types', () => {
     const res = await collection.query.nearText(['Tom'], {
       filters: Filters.and(
         collection.filter.byProperty('date').isNull(true),
-        collection.filter.byProperty('name').equal('Tom')
+        collection.filter.byProperty('personId').equal('00000000-0000-0000-0000-000000000001')
       ),
     });
     expect(res.objects.length).toEqual(1);

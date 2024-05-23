@@ -564,7 +564,7 @@ describe('Testing of the collections.create method', () => {
             dataType: 'text',
           },
         ],
-        vectorizers: weaviate.configure.vectorizer.text2VecContextionary('default'),
+        vectorizers: weaviate.configure.vectorizer.text2VecContextionary(),
       })
       .then(async (collection) => expect(await collection.exists()).toEqual(true))
       .then(() => contextionary.collections.get(collectionName).config.get());
@@ -594,7 +594,7 @@ describe('Testing of the collections.create method', () => {
             dataType: 'text',
           },
         ],
-        vectorizers: weaviate.configure.vectorizer.text2VecOpenAI('default'),
+        vectorizers: weaviate.configure.vectorizer.text2VecOpenAI(),
       })
       .then(async (collection) => expect(await collection.exists()).toEqual(true))
       .then(() => openai.collections.get(collectionName).config.get());

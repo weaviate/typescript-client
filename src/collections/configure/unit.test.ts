@@ -197,7 +197,8 @@ describe('Unit testing of the configure factory class', () => {
 
 describe('Unit testing of the vectorizer factory class', () => {
   it('should create the correct Img2VecNeuralConfig type with all values', () => {
-    const config = configure.vectorizer.img2VecNeural('test', {
+    const config = configure.vectorizer.img2VecNeural({
+      name: 'test',
       imageFields: ['field1', 'field2'],
     });
     expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'img2vec-neural'>>({
@@ -216,9 +217,9 @@ describe('Unit testing of the vectorizer factory class', () => {
   });
 
   it('should create the correct Multi2VecClipConfig type with defaults', () => {
-    const config = configure.vectorizer.multi2VecClip('test');
-    expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'multi2vec-clip'>>({
-      vectorName: 'test',
+    const config = configure.vectorizer.multi2VecClip();
+    expect(config).toEqual<VectorConfigCreate<never, undefined, 'hnsw', 'multi2vec-clip'>>({
+      vectorName: undefined,
       vectorIndex: {
         name: 'hnsw',
         config: undefined,
@@ -231,7 +232,8 @@ describe('Unit testing of the vectorizer factory class', () => {
   });
 
   it('should create the correct Multi2VecClipConfig type with all values', () => {
-    const config = configure.vectorizer.multi2VecClip('test', {
+    const config = configure.vectorizer.multi2VecClip({
+      name: 'test',
       imageFields: ['field1', 'field2'],
       textFields: ['field3', 'field4'],
       vectorizeCollectionName: true,
@@ -254,7 +256,8 @@ describe('Unit testing of the vectorizer factory class', () => {
   });
 
   it('should create the correct Multi2VecClipConfig type with all values and weights', () => {
-    const config = configure.vectorizer.multi2VecClip('test', {
+    const config = configure.vectorizer.multi2VecClip({
+      name: 'test',
       imageFields: [
         { name: 'field1', weight: 0.1 },
         { name: 'field2', weight: 0.2 },
@@ -287,9 +290,9 @@ describe('Unit testing of the vectorizer factory class', () => {
   });
 
   it('should create the correct Multi2VecBindConfig type with defaults', () => {
-    const config = configure.vectorizer.multi2VecBind('test');
-    expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'multi2vec-bind'>>({
-      vectorName: 'test',
+    const config = configure.vectorizer.multi2VecBind();
+    expect(config).toEqual<VectorConfigCreate<never, undefined, 'hnsw', 'multi2vec-bind'>>({
+      vectorName: undefined,
       vectorIndex: {
         name: 'hnsw',
         config: undefined,
@@ -302,7 +305,8 @@ describe('Unit testing of the vectorizer factory class', () => {
   });
 
   it('should create the correct Multi2VecBindConfig type with all values', () => {
-    const config = configure.vectorizer.multi2VecBind('test', {
+    const config = configure.vectorizer.multi2VecBind({
+      name: 'test',
       audioFields: ['field1', 'field2'],
       depthFields: ['field3', 'field4'],
       imageFields: ['field5', 'field6'],
@@ -335,7 +339,8 @@ describe('Unit testing of the vectorizer factory class', () => {
   });
 
   it('should create the correct Multi2VecBindConfig type with all values and weights', () => {
-    const config = configure.vectorizer.multi2VecBind('test', {
+    const config = configure.vectorizer.multi2VecBind({
+      name: 'test',
       audioFields: [
         { name: 'field1', weight: 0.1 },
         { name: 'field2', weight: 0.2 },
@@ -398,12 +403,12 @@ describe('Unit testing of the vectorizer factory class', () => {
   });
 
   it('should create the correct Multi2VecPalmConfig type with defaults', () => {
-    const config = configure.vectorizer.multi2VecPalm('test', {
+    const config = configure.vectorizer.multi2VecPalm({
       projectId: 'project-id',
       location: 'location',
     });
-    expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'multi2vec-palm'>>({
-      vectorName: 'test',
+    expect(config).toEqual<VectorConfigCreate<never, undefined, 'hnsw', 'multi2vec-palm'>>({
+      vectorName: undefined,
       vectorIndex: {
         name: 'hnsw',
         config: undefined,
@@ -419,7 +424,8 @@ describe('Unit testing of the vectorizer factory class', () => {
   });
 
   it('should create the correct Multi2VecPalmConfig type with all values', () => {
-    const config = configure.vectorizer.multi2VecPalm('test', {
+    const config = configure.vectorizer.multi2VecPalm({
+      name: 'test',
       projectId: 'project-id',
       imageFields: ['field1', 'field2'],
       textFields: ['field3', 'field4'],
@@ -452,7 +458,8 @@ describe('Unit testing of the vectorizer factory class', () => {
   });
 
   it('should create the correct Multi2VecPalmConfig type with all values and weights', () => {
-    const config = configure.vectorizer.multi2VecPalm('test', {
+    const config = configure.vectorizer.multi2VecPalm({
+      name: 'test',
       projectId: 'project-id',
       imageFields: [
         { name: 'field1', weight: 0.1 },
@@ -499,12 +506,12 @@ describe('Unit testing of the vectorizer factory class', () => {
   });
 
   it('should create the correct Text2VecAWSConfig type with defaults', () => {
-    const config = configure.vectorizer.text2VecAWS('test', {
+    const config = configure.vectorizer.text2VecAWS({
       region: 'region',
       service: 'service',
     });
-    expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'text2vec-aws'>>({
-      vectorName: 'test',
+    expect(config).toEqual<VectorConfigCreate<never, undefined, 'hnsw', 'text2vec-aws'>>({
+      vectorName: undefined,
       vectorIndex: {
         name: 'hnsw',
         config: undefined,
@@ -520,7 +527,8 @@ describe('Unit testing of the vectorizer factory class', () => {
   });
 
   it('should create the correct Text2VecAWSConfig type with all values', () => {
-    const config = configure.vectorizer.text2VecAWS('test', {
+    const config = configure.vectorizer.text2VecAWS({
+      name: 'test',
       endpoint: 'endpoint',
       model: 'model',
       region: 'region',
@@ -547,12 +555,12 @@ describe('Unit testing of the vectorizer factory class', () => {
   });
 
   it('should create the correct Text2VecAzureOpenAIConfig type with defaults', () => {
-    const config = configure.vectorizer.text2VecAzureOpenAI('test', {
+    const config = configure.vectorizer.text2VecAzureOpenAI({
       deploymentID: 'deployment-id',
       resourceName: 'resource-name',
     });
-    expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'text2vec-azure-openai'>>({
-      vectorName: 'test',
+    expect(config).toEqual<VectorConfigCreate<never, undefined, 'hnsw', 'text2vec-azure-openai'>>({
+      vectorName: undefined,
       vectorIndex: {
         name: 'hnsw',
         config: undefined,
@@ -568,7 +576,8 @@ describe('Unit testing of the vectorizer factory class', () => {
   });
 
   it('should create the correct Text2VecAzureOpenAIConfig type with all values', () => {
-    const config = configure.vectorizer.text2VecAzureOpenAI('test', {
+    const config = configure.vectorizer.text2VecAzureOpenAI({
+      name: 'test',
       baseURL: 'base-url',
       deploymentID: 'deployment-id',
       resourceName: 'resource-name',
@@ -593,9 +602,9 @@ describe('Unit testing of the vectorizer factory class', () => {
   });
 
   it('should create the correct Text2VecCohereConfig type with defaults', () => {
-    const config = configure.vectorizer.text2VecCohere('test');
-    expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'text2vec-cohere'>>({
-      vectorName: 'test',
+    const config = configure.vectorizer.text2VecCohere();
+    expect(config).toEqual<VectorConfigCreate<never, undefined, 'hnsw', 'text2vec-cohere'>>({
+      vectorName: undefined,
       vectorIndex: {
         name: 'hnsw',
         config: undefined,
@@ -608,7 +617,8 @@ describe('Unit testing of the vectorizer factory class', () => {
   });
 
   it('should create the correct Text2VecCohereConfig type with all values', () => {
-    const config = configure.vectorizer.text2VecCohere('test', {
+    const config = configure.vectorizer.text2VecCohere({
+      name: 'test',
       baseURL: 'base-url',
       model: 'model',
       truncate: true,
@@ -633,9 +643,9 @@ describe('Unit testing of the vectorizer factory class', () => {
   });
 
   it('should create the correct Text2VecContextionaryConfig type with defaults', () => {
-    const config = configure.vectorizer.text2VecContextionary('test');
-    expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'text2vec-contextionary'>>({
-      vectorName: 'test',
+    const config = configure.vectorizer.text2VecContextionary();
+    expect(config).toEqual<VectorConfigCreate<never, undefined, 'hnsw', 'text2vec-contextionary'>>({
+      vectorName: undefined,
       vectorIndex: {
         name: 'hnsw',
         config: undefined,
@@ -648,7 +658,8 @@ describe('Unit testing of the vectorizer factory class', () => {
   });
 
   it('should create the correct Text2VecContextionaryConfig type with all values', () => {
-    const config = configure.vectorizer.text2VecContextionary('test', {
+    const config = configure.vectorizer.text2VecContextionary({
+      name: 'test',
       vectorizeCollectionName: true,
     });
     expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'text2vec-contextionary'>>({
@@ -667,9 +678,9 @@ describe('Unit testing of the vectorizer factory class', () => {
   });
 
   it('should create the correct Text2VecGPT4AllConfig type with defaults', () => {
-    const config = configure.vectorizer.text2VecGPT4All('test');
-    expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'text2vec-gpt4all'>>({
-      vectorName: 'test',
+    const config = configure.vectorizer.text2VecGPT4All();
+    expect(config).toEqual<VectorConfigCreate<never, undefined, 'hnsw', 'text2vec-gpt4all'>>({
+      vectorName: undefined,
       vectorIndex: {
         name: 'hnsw',
         config: undefined,
@@ -682,7 +693,8 @@ describe('Unit testing of the vectorizer factory class', () => {
   });
 
   it('should create the correct Text2VecGPT4AllConfig type with all values', () => {
-    const config = configure.vectorizer.text2VecGPT4All('test', {
+    const config = configure.vectorizer.text2VecGPT4All({
+      name: 'test',
       vectorizeCollectionName: true,
     });
     expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'text2vec-gpt4all'>>({
@@ -701,9 +713,9 @@ describe('Unit testing of the vectorizer factory class', () => {
   });
 
   it('should create the correct Text2VecHuggingFaceConfig type with defaults', () => {
-    const config = configure.vectorizer.text2VecHuggingFace('test');
-    expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'text2vec-huggingface'>>({
-      vectorName: 'test',
+    const config = configure.vectorizer.text2VecHuggingFace();
+    expect(config).toEqual<VectorConfigCreate<never, undefined, 'hnsw', 'text2vec-huggingface'>>({
+      vectorName: undefined,
       vectorIndex: {
         name: 'hnsw',
         config: undefined,
@@ -716,7 +728,8 @@ describe('Unit testing of the vectorizer factory class', () => {
   });
 
   it('should create the correct Text2VecHuggingFaceConfig type with all values', () => {
-    const config = configure.vectorizer.text2VecHuggingFace('test', {
+    const config = configure.vectorizer.text2VecHuggingFace({
+      name: 'test',
       endpointURL: 'endpoint-url',
       model: 'model',
       passageModel: 'passage-model',
@@ -749,9 +762,9 @@ describe('Unit testing of the vectorizer factory class', () => {
   });
 
   it('should create the correct Text2VecJinaConfig type with defaults', () => {
-    const config = configure.vectorizer.text2VecJina('test');
-    expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'text2vec-jina'>>({
-      vectorName: 'test',
+    const config = configure.vectorizer.text2VecJina();
+    expect(config).toEqual<VectorConfigCreate<never, undefined, 'hnsw', 'text2vec-jina'>>({
+      vectorName: undefined,
       vectorIndex: {
         name: 'hnsw',
         config: undefined,
@@ -764,7 +777,8 @@ describe('Unit testing of the vectorizer factory class', () => {
   });
 
   it('should create the correct Text2VecJinaConfig type with all values', () => {
-    const config = configure.vectorizer.text2VecJina('test', {
+    const config = configure.vectorizer.text2VecJina({
+      name: 'test',
       model: 'model',
       vectorizeCollectionName: true,
     });
@@ -785,9 +799,9 @@ describe('Unit testing of the vectorizer factory class', () => {
   });
 
   it('should create the correct Text2VecOpenAIConfig type with defaults', () => {
-    const config = configure.vectorizer.text2VecOpenAI('test');
-    expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'text2vec-openai'>>({
-      vectorName: 'test',
+    const config = configure.vectorizer.text2VecOpenAI();
+    expect(config).toEqual<VectorConfigCreate<never, undefined, 'hnsw', 'text2vec-openai'>>({
+      vectorName: undefined,
       vectorIndex: {
         name: 'hnsw',
         config: undefined,
@@ -800,7 +814,8 @@ describe('Unit testing of the vectorizer factory class', () => {
   });
 
   it('should create the correct Text2VecOpenAIConfig type with all values', () => {
-    const config = configure.vectorizer.text2VecOpenAI('test', {
+    const config = configure.vectorizer.text2VecOpenAI({
+      name: 'test',
       baseURL: 'base-url',
       dimensions: 256,
       model: 'model',
@@ -829,9 +844,9 @@ describe('Unit testing of the vectorizer factory class', () => {
   });
 
   it('should create the correct Text2VecPalmConfig type with defaults', () => {
-    const config = configure.vectorizer.text2VecPalm('test');
-    expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'text2vec-palm'>>({
-      vectorName: 'test',
+    const config = configure.vectorizer.text2VecPalm();
+    expect(config).toEqual<VectorConfigCreate<never, undefined, 'hnsw', 'text2vec-palm'>>({
+      vectorName: undefined,
       vectorIndex: {
         name: 'hnsw',
         config: undefined,
@@ -844,7 +859,8 @@ describe('Unit testing of the vectorizer factory class', () => {
   });
 
   it('should create the correct Text2VecPalmConfig type with all values', () => {
-    const config = configure.vectorizer.text2VecPalm('test', {
+    const config = configure.vectorizer.text2VecPalm({
+      name: 'test',
       apiEndpoint: 'api-endpoint',
       modelId: 'model-id',
       projectId: 'project-id',
@@ -869,9 +885,9 @@ describe('Unit testing of the vectorizer factory class', () => {
   });
 
   it('should create the correct Text2VecTransformersConfig type with defaults', () => {
-    const config = configure.vectorizer.text2VecTransformers('test');
-    expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'text2vec-transformers'>>({
-      vectorName: 'test',
+    const config = configure.vectorizer.text2VecTransformers();
+    expect(config).toEqual<VectorConfigCreate<never, undefined, 'hnsw', 'text2vec-transformers'>>({
+      vectorName: undefined,
       vectorIndex: {
         name: 'hnsw',
         config: undefined,
@@ -884,7 +900,8 @@ describe('Unit testing of the vectorizer factory class', () => {
   });
 
   it('should create the correct Text2VecTransformersConfig type with all values', () => {
-    const config = configure.vectorizer.text2VecTransformers('test', {
+    const config = configure.vectorizer.text2VecTransformers({
+      name: 'test',
       poolingStrategy: 'pooling-strategy',
       vectorizeCollectionName: true,
     });
@@ -905,9 +922,9 @@ describe('Unit testing of the vectorizer factory class', () => {
   });
 
   it('should create the correct Text2VecVoyageAIConfig type with defaults', () => {
-    const config = configure.vectorizer.text2VecVoyageAI('test');
-    expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'text2vec-voyageai'>>({
-      vectorName: 'test',
+    const config = configure.vectorizer.text2VecVoyageAI();
+    expect(config).toEqual<VectorConfigCreate<never, undefined, 'hnsw', 'text2vec-voyageai'>>({
+      vectorName: undefined,
       vectorIndex: {
         name: 'hnsw',
         config: undefined,
@@ -920,7 +937,8 @@ describe('Unit testing of the vectorizer factory class', () => {
   });
 
   it('should create the correct Text2VecVoyageConfig type with all values', () => {
-    const config = configure.vectorizer.text2VecVoyageAI('test', {
+    const config = configure.vectorizer.text2VecVoyageAI({
+      name: 'test',
       baseURL: 'base-url',
       model: 'model',
       truncate: true,

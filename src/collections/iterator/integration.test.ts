@@ -44,7 +44,7 @@ describe('Testing of the collection.iterator method with a simple collection', (
             dataType: 'text',
           },
         ],
-        vectorizers: weaviate.configure.vectorizer.text2VecContextionary('vector', {
+        vectorizers: weaviate.configure.vectorizer.text2VecContextionary({
           vectorizeCollectionName: false,
         }),
       })
@@ -56,7 +56,7 @@ describe('Testing of the collection.iterator method with a simple collection', (
         });
       });
     const res = await collection.query.fetchObjectById(id, { includeVector: true });
-    vector = res?.vectors.vector!;
+    vector = res?.vectors.default!;
   });
 
   it('should iterate through the collection with no options returning the objects', async () => {
@@ -64,7 +64,7 @@ describe('Testing of the collection.iterator method with a simple collection', (
     for await (const obj of collection.iterator()) {
       expect(obj.properties.testProp).toBe('test');
       expect(obj.uuid).toBe(id);
-      expect(obj.vectors.vector).toBeUndefined();
+      expect(obj.vectors.default).toBeUndefined();
       count++; // eslint-disable-line no-plusplus
     }
     expect(count).toBe(1);
@@ -75,7 +75,7 @@ describe('Testing of the collection.iterator method with a simple collection', (
     for await (const obj of collection.iterator({ returnProperties: ['testProp'] })) {
       expect(obj.properties.testProp).toBe('test');
       expect(obj.uuid).toBe(id);
-      expect(obj.vectors.vector).toBeUndefined();
+      expect(obj.vectors.default).toBeUndefined();
       count++; // eslint-disable-line no-plusplus
     }
     expect(count).toBe(1);
@@ -86,7 +86,7 @@ describe('Testing of the collection.iterator method with a simple collection', (
     for await (const obj of collection.iterator({ returnMetadata: ['creationTime'] })) {
       expect(obj.properties.testProp).toBe('test');
       expect(obj.uuid).toBe(id);
-      expect(obj.vectors.vector).toBeUndefined();
+      expect(obj.vectors.default).toBeUndefined();
       expect(obj.metadata?.creationTime).toBeDefined();
       count++; // eslint-disable-line no-plusplus
     }
@@ -98,7 +98,7 @@ describe('Testing of the collection.iterator method with a simple collection', (
     for await (const obj of collection.iterator({ includeVector: true })) {
       expect(obj.properties.testProp).toBe('test');
       expect(obj.uuid).toBe(id);
-      expect(obj.vectors.vector).toEqual(vector);
+      expect(obj.vectors.default).toEqual(vector);
       count++; // eslint-disable-line no-plusplus
     }
     expect(count).toBe(1);

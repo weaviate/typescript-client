@@ -14,9 +14,9 @@ import {
 } from './connection/auth.js';
 import {
   connectToLocal,
-  connectToWCS,
+  connectToWCD,
   ConnectToLocalOptions,
-  ConnectToWCSOptions,
+  ConnectToWCDOptions,
   connectToCustom,
   ConnectToCustomOptions,
 } from './connection/helpers.js';
@@ -123,14 +123,14 @@ const app = {
     return connectToLocal(this.client, options);
   },
   /**
-   * Connect to your own Weaviate Cloud Service (WCS) instance.
+   * Connect to your own Weaviate Cloud (WCD) instance.
    *
-   * @param {string} clusterURL The URL of your WCS instance. E.g., `https://example.weaviate.network`.
-   * @param {ConnectToWCSOptions} [options] Additional options for the connection.
-   * @returns {Promise<WeaviateClient>} A Promise that resolves to a client connected to your WCS instance.
+   * @param {string} clusterURL The URL of your WCD instance. E.g., `https://example.weaviate.network`.
+   * @param {ConnectToWCDOptions} [options] Additional options for the connection.
+   * @returns {Promise<WeaviateClient>} A Promise that resolves to a client connected to your WCD instance.
    */
-  connectToWCS: function (clusterURL: string, options?: ConnectToWCSOptions): Promise<WeaviateClient> {
-    return connectToWCS(clusterURL, this.client, options);
+  connectToWCD: function (clusterURL: string, options?: ConnectToWCDOptions): Promise<WeaviateClient> {
+    return connectToWCD(clusterURL, this.client, options);
   },
   client: async function (params: ClientParams): Promise<WeaviateClient> {
     params.rest.host = cleanHost(params.rest.host, 'rest');
