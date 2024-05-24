@@ -33,18 +33,12 @@ export class MergeWithExisting {
     if (update.vectorizers !== undefined) {
       if (Array.isArray(update.vectorizers)) {
         current.vectorConfig = MergeWithExisting.vectors(current.vectorConfig, update.vectorizers);
-      } else if (update.vectorizers.name === 'hnsw') {
-        current.vectorIndexConfig = MergeWithExisting.hnsw(
-          current.vectorIndexConfig,
-          update.vectorizers.config
-        );
-      } else if (update.vectorizers.name === 'flat') {
-        current.vectorIndexConfig = MergeWithExisting.flat(
-          current.vectorIndexConfig,
-          update.vectorizers.config
-        );
       } else {
-        throw Error(`Cannot update vector index config with unknown type ${update.vectorizers.name}`);
+        const updateVectorizers = {
+          ...update.vectorizers,
+          vectorName: 'default',
+        };
+        current.vectorConfig = MergeWithExisting.vectors(current.vectorConfig, [updateVectorizers]);
       }
     }
     return current;

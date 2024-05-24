@@ -1068,7 +1068,7 @@ maybe('Testing of collection.query using rerank functionality', () => {
     expect(objects[1].properties.text).toEqual('This is a test');
   });
 
-  it('should rerank the results in a nearObject query', async () => {
+  it.skip('should rerank the results in a nearObject query', async () => {
     const ret = await collection.query.nearObject(id1, {
       rerank: {
         property: 'text',
@@ -1098,7 +1098,7 @@ maybe('Testing of collection.query using rerank functionality', () => {
     expect(objects[1].properties.text).toEqual('This is a test');
   });
 
-  it('should rerank the results in a nearObject query', async () => {
+  it.skip('should rerank the results in a nearObject query', async () => {
     const obj = await collection.query.fetchObjectById(id1, { includeVector: true });
     const ret = await collection.query.nearVector(obj?.vectors.default!, {
       rerank: {

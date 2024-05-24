@@ -12,22 +12,29 @@ export interface Tenants {
 }
 
 export default class TenantsManager extends Base implements TenantsManager {
-  public static use(connection: WeaviateClient, collection: string, metadata: Metadata): Tenants {
-    return new TenantsManager(connection, collection, metadata);
+  public static use(
+    connection: WeaviateClient,
+    collection: string,
+    metadata: Metadata,
+    timeout: number
+  ): Tenants {
+    return new TenantsManager(connection, collection, metadata, timeout);
   }
 
   public withGet = (args: TenantsGetArgs) =>
     this.call(TenantsGetRequest.fromPartial({ names: args.names ? { values: args.names } : undefined }));
 
   private call(message: TenantsGetRequest) {
-    return this.connection.tenantsGet(
-      {
-        ...message,
-        collection: this.collection,
-      },
-      {
-        metadata: this.metadata,
-      }
+    return this.sendWithTimeout(() =>
+      this.connection.tenantsGet(
+        {
+          ...message,
+          collection: this.collection,
+        },
+        {
+          metadata: this.metadata,
+        }
+      )
     );
   }
 }

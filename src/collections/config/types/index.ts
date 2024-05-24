@@ -99,5 +99,7 @@ export type CollectionConfigUpdate = {
   description?: string;
   invertedIndex?: InvertedIndexConfigUpdate;
   replication?: ReplicationConfigUpdate;
-  vectorizers?: LegacyVectorizerConfigUpdate | VectorConfigUpdate<string, VectorIndexType>[];
+  vectorizers?:
+    | VectorConfigUpdate<undefined, VectorIndexType>
+    | VectorConfigUpdate<string, VectorIndexType>[];
 };

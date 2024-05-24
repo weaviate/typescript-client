@@ -2,14 +2,11 @@ import {
   InvertedIndexConfigCreate,
   InvertedIndexConfigUpdate,
   MultiTenancyConfigCreate,
-  VectorConfigCreate,
   VectorConfigUpdate,
-  VectorizerCreateOptions,
   VectorizerUpdateOptions,
   ReplicationConfigCreate,
   ShardingConfigCreate,
   VectorIndexType,
-  Vectorizer,
 } from '../types/index.js';
 
 import generative from './generative.js';
@@ -18,7 +15,6 @@ import { configure as configureVectorIndex, reconfigure as reconfigureVectorInde
 import { vectorizer } from './vectorizer.js';
 
 import { parseWithDefault } from './parsing.js';
-import { PrimitiveKeys } from '../types/internal.js';
 
 const dataType = {
   INT: 'int' as const,
@@ -198,12 +194,11 @@ const reconfigure = {
      * @param {string} name The name of the vector.
      * @param {VectorizerOptions} options The options for the named vector.
      */
-    update: <N extends string, I extends VectorIndexType>(
-      name: N,
-      options: VectorizerUpdateOptions<I>
+    update: <N extends string | undefined, I extends VectorIndexType>(
+      options: VectorizerUpdateOptions<N, I>
     ): VectorConfigUpdate<N, I> => {
       return {
-        vectorName: name,
+        vectorName: options?.vectorName as N,
         vectorIndex: options.vectorIndexConfig,
       };
     },

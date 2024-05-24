@@ -1,4 +1,6 @@
 import { Agent } from 'http';
+import { isAbortError } from 'abort-controller-x';
+
 import OpenidConfigurationGetter from '../misc/openidConfigurationGetter.js';
 
 import {
@@ -8,7 +10,11 @@ import {
   AuthUserPasswordCredentials,
   OidcAuthenticator,
 } from './auth.js';
-import { WeaviateInvalidInputError, WeaviateUnexpectedStatusCodeError } from '../errors.js';
+import {
+  WeaviateInvalidInputError,
+  WeaviateRequestTimeoutError,
+  WeaviateUnexpectedStatusCodeError,
+} from '../errors.js';
 
 /**
  * You can only specify the gRPC proxy URL at this point in time. This is because ProxiesParams should be used to define tunnelling proxies
@@ -22,6 +28,15 @@ export type ProxiesParams = {
   grpc?: string;
 };
 
+export type TimeoutParams = {
+  /** Define the configured timeout when querying data from Weaviate */
+  query?: number;
+  /** Define the configured timeout when mutating data to Weaviate */
+  insert?: number;
+  /** Define the configured timeout when initially connecting to Weaviate */
+  init?: number;
+};
+
 export type ConnectionParams = {
   authClientSecret?: AuthClientCredentials | AuthAccessTokenCredentials | AuthUserPasswordCredentials;
   apiKey?: ApiKey;
@@ -31,6 +46,7 @@ export type ConnectionParams = {
   // http1Agent?: Agent;
   grpcProxyUrl?: string;
   agent?: Agent;
+  timeout?: TimeoutParams;
 };
 
 export default class ConnectionREST {
@@ -188,6 +204,34 @@ export interface HttpClient {
   externalGet: (externalUrl: string) => Promise<any>;
 }
 
+const fetchWithTimeout = (
+  input: RequestInfo | URL,
+  timeout: number,
+  init?: RequestInit | undefined
+): Promise<Response> => {
+  const controller = new AbortController();
+  const signal = controller.signal;
+  init = init || {};
+  init.signal = signal; // Attach the signal to the fetch request options
+
+  // Set a timeout to abort the request
+  const timeoutId = setTimeout(() => {
+    controller.abort();
+  }, timeout * 1000);
+
+  return fetch(input, init)
+    .then((response) => {
+      clearTimeout(timeoutId); // Clear the timeout if the fetch completes in time
+      return response;
+    })
+    .catch((error) => {
+      if (isAbortError(error)) {
+        throw new WeaviateRequestTimeoutError(`Request timed out after ${timeout}ms`);
+      }
+      throw error; // For other errors, rethrow them
+    });
+};
+
 export const httpClient = (config: ConnectionParams): HttpClient => {
   const version = '/v1';
   const baseUri = `${config.host}${version}`;
@@ -211,7 +255,9 @@ export const httpClient = (config: ConnectionParams): HttpClient => {
         agent: config.agent,
       };
       addAuthHeaderIfNeeded(request, bearerToken);
-      return fetch(url(path), request).then(checkStatus<T>(expectReturnContent));
+      return fetchWithTimeout(url(path), config.timeout?.insert || 90, request).then(
+        checkStatus<T>(expectReturnContent)
+      );
     },
     put: <B, T>(
       path: string,
@@ -229,7 +275,9 @@ export const httpClient = (config: ConnectionParams): HttpClient => {
         agent: config.agent,
       };
       addAuthHeaderIfNeeded(request, bearerToken);
-      return fetch(url(path), request).then(checkStatus<T>(expectReturnContent));
+      return fetchWithTimeout(url(path), config.timeout?.insert || 90, request).then(
+        checkStatus<T>(expectReturnContent)
+      );
     },
     patch: <B, T>(path: string, payload: B, bearerToken = ''): Promise<T | undefined> => {
       const request = {
@@ -242,7 +290,7 @@ export const httpClient = (config: ConnectionParams): HttpClient => {
         agent: config.agent,
       };
       addAuthHeaderIfNeeded(request, bearerToken);
-      return fetch(url(path), request).then(checkStatus<T>(false));
+      return fetchWithTimeout(url(path), config.timeout?.insert || 90, request).then(checkStatus<T>(false));
     },
     delete: <B>(path: string, payload: B | null = null, expectReturnContent = false, bearerToken = '') => {
       const request = {
@@ -255,7 +303,9 @@ export const httpClient = (config: ConnectionParams): HttpClient => {
         agent: config.agent,
       };
       addAuthHeaderIfNeeded(request, bearerToken);
-      return fetch(url(path), request).then(checkStatus<undefined>(expectReturnContent));
+      return fetchWithTimeout(url(path), config.timeout?.insert || 90, request).then(
+        checkStatus<undefined>(expectReturnContent)
+      );
     },
     head: <B>(path: string, payload: B | null = null, bearerToken = '') => {
       const request = {
@@ -268,7 +318,9 @@ export const httpClient = (config: ConnectionParams): HttpClient => {
         agent: config.agent,
       };
       addAuthHeaderIfNeeded(request, bearerToken);
-      return fetch(url(path), request).then(handleHeadResponse<undefined>(false));
+      return fetchWithTimeout(url(path), config.timeout?.query || 30, request).then(
+        handleHeadResponse<undefined>(false)
+      );
     },
     get: <T>(path: string, expectReturnContent = true, bearerToken = ''): Promise<T | undefined> => {
       const request = {
@@ -279,7 +331,9 @@ export const httpClient = (config: ConnectionParams): HttpClient => {
         agent: config.agent,
       };
       addAuthHeaderIfNeeded(request, bearerToken);
-      return fetch(url(path), request).then(checkStatus<T>(expectReturnContent));
+      return fetchWithTimeout(url(path), config.timeout?.query || 30, request).then(
+        checkStatus<T>(expectReturnContent)
+      );
     },
     getRaw: (path: string, bearerToken = '') => {
       // getRaw does not handle the status leaving this to the caller
@@ -291,7 +345,7 @@ export const httpClient = (config: ConnectionParams): HttpClient => {
         agent: config.agent,
       };
       addAuthHeaderIfNeeded(request, bearerToken);
-      return fetch(url(path), request);
+      return fetchWithTimeout(url(path), config.timeout?.query || 30, request);
     },
     externalGet: (externalUrl: string) => {
       return fetch(externalUrl, {

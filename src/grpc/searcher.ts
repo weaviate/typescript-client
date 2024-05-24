@@ -116,10 +116,11 @@ export default class Searcher extends Base implements Search {
     connection: WeaviateClient,
     collection: string,
     metadata: Metadata,
+    timeout: number,
     consistencyLevel?: ConsistencyLevel,
     tenant?: string
   ): Search {
-    return new Searcher(connection, collection, metadata, consistencyLevel, tenant);
+    return new Searcher(connection, collection, metadata, timeout, consistencyLevel, tenant);
   }
 
   public withFetch = (args: SearchFetchArgs) => this.call(SearchRequest.fromPartial(args));
@@ -136,22 +137,24 @@ export default class Searcher extends Base implements Search {
   public withNearVideo = (args: SearchNearVideoArgs) => this.call(SearchRequest.fromPartial(args));
 
   private call(message: SearchRequest) {
-    return this.connection
-      .search(
-        {
-          ...message,
-          collection: this.collection,
-          consistencyLevel: this.consistencyLevel,
-          tenant: this.tenant,
-          uses123Api: true,
-          uses125Api: true,
-        },
-        {
-          metadata: this.metadata,
-        }
-      )
-      .catch((err) => {
-        throw new WeaviateQueryError(err.message, 'gRPC');
-      });
+    return this.sendWithTimeout(() =>
+      this.connection
+        .search(
+          {
+            ...message,
+            collection: this.collection,
+            consistencyLevel: this.consistencyLevel,
+            tenant: this.tenant,
+            uses123Api: true,
+            uses125Api: true,
+          },
+          {
+            metadata: this.metadata,
+          }
+        )
+        .catch((err) => {
+          throw new WeaviateQueryError(err.message, 'gRPC');
+        })
+    );
   }
 }

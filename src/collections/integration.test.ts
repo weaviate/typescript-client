@@ -452,37 +452,35 @@ describe('Testing of the collections.create method', () => {
         replication: {
           factor: 2,
         },
-        vectorizer: {
-          name: 'text2vec-contextionary',
-          config: {},
-        },
-        vectorIndex: {
-          name: 'hnsw',
-          config: {
-            cleanupIntervalSeconds: 10,
-            distance: 'dot',
-            dynamicEfFactor: 6,
-            dynamicEfMax: 100,
-            dynamicEfMin: 10,
-            ef: -2,
-            efConstruction: 100,
-            flatSearchCutoff: 41000,
-            maxConnections: 72,
-            quantizer: {
-              bitCompression: true,
-              centroids: 128,
-              encoder: {
-                distribution: 'normal',
-                type: 'tile',
+        vectorizers: weaviate.configure.vectorizer.text2VecContextionary({
+          vectorIndexConfig: {
+            name: 'hnsw',
+            config: {
+              cleanupIntervalSeconds: 10,
+              distance: 'dot',
+              dynamicEfFactor: 6,
+              dynamicEfMax: 100,
+              dynamicEfMin: 10,
+              ef: -2,
+              efConstruction: 100,
+              flatSearchCutoff: 41000,
+              maxConnections: 72,
+              quantizer: {
+                bitCompression: true,
+                centroids: 128,
+                encoder: {
+                  distribution: 'normal',
+                  type: 'tile',
+                },
+                segments: 4,
+                trainingLimit: 100001,
+                type: 'pq',
               },
-              segments: 4,
-              trainingLimit: 100001,
-              type: 'pq',
+              skip: true,
+              vectorCacheMaxObjects: 100000,
             },
-            skip: true,
-            vectorCacheMaxObjects: 100000,
           },
-        },
+        }),
       })
       .then(async (collection) => expect(await collection.exists()).toEqual(true))
       .then(() => cluster.collections.get(collectionName).config.get());

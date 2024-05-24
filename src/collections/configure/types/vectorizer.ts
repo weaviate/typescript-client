@@ -27,7 +27,8 @@ export type VectorizerCreateOptions<P, I, V> = {
   vectorizerConfig?: ModuleConfig<V, VectorizerConfigType<V>>;
 };
 
-export type VectorizerUpdateOptions<I> = {
+export type VectorizerUpdateOptions<N, I> = {
+  vectorName?: N;
   vectorIndexConfig: ModuleConfig<I, VectorIndexConfigUpdateType<I>>;
 };
 
@@ -43,7 +44,7 @@ export type VectorConfigCreate<
   vectorIndex: ModuleConfig<I, VectorIndexConfigCreateType<I>>;
 };
 
-export type VectorConfigUpdate<N extends string, I extends VectorIndexType> = {
+export type VectorConfigUpdate<N extends string | undefined, I extends VectorIndexType> = {
   vectorName: N;
   vectorIndex: ModuleConfig<I, VectorIndexConfigUpdateType<I>>;
 };

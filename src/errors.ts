@@ -103,10 +103,25 @@ export class WeaviateBackupFailed extends WeaviateError {
   }
 }
 
+/**
+ * Is thrown if the Weaviate server does not support a feature that the client is trying to use.
+ */
 export class WeaviateUnsupportedFeatureError extends WeaviateError {}
 
+/**
+ * Is thrown if the Weaviate server was not able to start up.
+ */
 export class WeaviateStartUpError extends WeaviateError {
   constructor(message: string) {
     super(`Weaviate startup failed with message: ${message}`);
+  }
+}
+
+/**
+ * Is thrown if a request to Weaviate times out.
+ */
+export class WeaviateRequestTimeoutError extends WeaviateError {
+  constructor(message: string) {
+    super(`Weaviate request timed out with message: ${message}`);
   }
 }

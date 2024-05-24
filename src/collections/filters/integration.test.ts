@@ -338,10 +338,7 @@ describe('Testing of the filter class with complex data types', () => {
             dataType: 'date',
           },
         ],
-        vectorizer: {
-          name: 'text2vec-contextionary',
-          config: {},
-        },
+        vectorizers: weaviate.configure.vectorizer.text2VecContextionary(),
       })
       .then(() =>
         collection.data.insertMany([

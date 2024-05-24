@@ -56,10 +56,6 @@ export type CollectionConfigCreate<TProperties = undefined, N = string> = {
   reranker?: ModuleConfig<Reranker, RerankerConfig>;
   /** The configuration for Weaviate's sharding strategy. Is mutually exclusive with `replication`. */
   sharding?: ShardingConfigCreate;
-  /** Weaviate's legacy vector index configuration. Use `vectorizers` instead. */
-  vectorIndex?: ModuleConfig<VectorIndexType, VectorIndexConfigCreate>;
-  /** Weaviate's legacy vectorization configuration. Use `vectorizers` instead. */
-  vectorizer?: ModuleConfig<Vectorizer, VectorizerConfig>;
   /** The configuration for Weaviate's vectorizer(s) capabilities. */
   vectorizers?: VectorizersConfigCreate<TProperties>;
 } & (TProperties extends undefined
@@ -119,15 +115,9 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
     create: async function <TProperties extends Properties | undefined = undefined, TName = string>(
       config: CollectionConfigCreate<TProperties, TName>
     ) {
-      const { name, invertedIndex, multiTenancy, replication, sharding, vectorIndex, ...rest } = config;
+      const { name, invertedIndex, multiTenancy, replication, sharding, ...rest } = config;
 
       const supportsDynamicVectorIndex = await dbVersionSupport.supportsDynamicVectorIndex();
-
-      if (config.vectorizer !== undefined || config.vectorIndex !== undefined) {
-        console.warn(
-          'You are using legacy vectorization. The vectorizer and vectorIndexConfig fields will be removed from the API in the future. Please use the vectorizers field instead to created specifically named vectorizers for your collection.'
-        );
-      }
 
       const moduleConfig: any = {};
       if (config.generative) {
@@ -137,28 +127,17 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
         moduleConfig[config.reranker.name] = config.reranker.config ? config.reranker.config : {};
       }
 
-      let defaultVectorizer: string | undefined;
-      let vectorizers: string[] = [];
-      let vectorsConfig: any | undefined;
-      if (config.vectorizer === undefined && config.vectorizers === undefined) {
-        defaultVectorizer = undefined;
-        vectorsConfig = undefined;
-      } else if (config.vectorizer !== undefined && config.vectorizers === undefined) {
-        defaultVectorizer = config.vectorizer.name;
-        vectorizers = [config.vectorizer.name];
-        vectorsConfig = undefined;
-        moduleConfig[defaultVectorizer] = config.vectorizer.config ? config.vectorizer.config : {};
-      } else if (config.vectorizer === undefined && config.vectorizers !== undefined) {
-        const vectorizersConfig = Array.isArray(config.vectorizers)
-          ? config.vectorizers
+      const makeVectorsConfig = (configVectorizers: VectorizersConfigCreate<TProperties>) => {
+        let vectorizers: string[] = [];
+        const vectorsConfig: Record<string, any> = {};
+        const vectorizersConfig = Array.isArray(configVectorizers)
+          ? configVectorizers
           : [
               {
-                ...config.vectorizers,
+                ...configVectorizers,
                 vectorName: 'default',
               },
             ];
-        defaultVectorizer = undefined;
-        vectorsConfig = {};
         vectorizersConfig.forEach((v) => {
           if (v.vectorIndex.name === 'dynamic' && !supportsDynamicVectorIndex.supports) {
             throw new WeaviateUnsupportedFeatureError(supportsDynamicVectorIndex.message);
@@ -180,24 +159,23 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
               'vectorName is required for each vectorizer when specifying more than one vectorizer'
             );
           }
-          vectorsConfig![v.vectorName] = vectorConfig; // eslint-disable-line @typescript-eslint/no-non-null-assertion
+          vectorsConfig[v.vectorName] = vectorConfig;
         });
-      } else {
-        throw new WeaviateInvalidInputError('Either vectorizer or vectorizers can be defined, not both');
-      }
+        return { vectorsConfig, vectorizers };
+      };
+
+      const { vectorsConfig, vectorizers } = config.vectorizers
+        ? makeVectorsConfig(config.vectorizers)
+        : { vectorsConfig: undefined, vectorizers: [] };
 
       const properties = config.properties
         ? config.properties.map((prop) => resolveProperty<TProperties>(prop as any, vectorizers))
         : [];
       const references = config.references ? config.references.map(resolveReference<TProperties>) : [];
 
-      if (vectorIndex?.name === 'dynamic' && !supportsDynamicVectorIndex.supports) {
-        throw new WeaviateUnsupportedFeatureError(supportsDynamicVectorIndex.message);
-      }
       const schema = {
         ...rest,
         class: name,
-        vectorizer: defaultVectorizer,
         invertedIndexConfig: invertedIndex,
         moduleConfig: moduleConfig,
         multiTenancyConfig: multiTenancy,
@@ -205,12 +183,6 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
         replicationConfig: replication,
         shardingConfig: sharding,
         vectorConfig: vectorsConfig,
-        vectorIndexConfig: vectorsConfig
-          ? undefined
-          : vectorIndex
-          ? parseVectorIndex(vectorIndex)
-          : undefined,
-        vectorIndexType: vectorsConfig ? undefined : vectorIndex ? vectorIndex.name : 'hnsw',
       };
       await new ClassCreator(connection).withClass(schema).do();
       return collection<TProperties, TName>(connection, name, dbVersionSupport);

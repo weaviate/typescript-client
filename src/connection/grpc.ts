@@ -1,3 +1,5 @@
+import { isAbortError } from 'abort-controller-x';
+
 import ConnectionGQL from './gql.js';
 import { ConnectionParams } from './http.js';
 
@@ -135,13 +137,26 @@ export const grpcClient = (config: GrpcConnectionParams): GrpcClient => {
         client,
         collection,
         new Metadata(bearerToken ? { ...config.headers, authorization: bearerToken } : config.headers),
+        config.timeout?.insert || 90,
         consistencyLevel,
         tenant
       ),
-    health: () =>
-      health
-        .check({ service: '/grpc.health.v1.Health/Check' })
-        .then((res) => res.status === HealthCheckResponse_ServingStatus.SERVING),
+    health: () => {
+      const abort = new AbortController();
+      const timeoutId = setTimeout(() => abort.abort(), (config.timeout?.init || 2) * 1000);
+      return health
+        .check({ service: '/grpc.health.v1.Health/Check' }, { signal: abort.signal })
+        .then((res) => {
+          clearTimeout(timeoutId);
+          return res.status === HealthCheckResponse_ServingStatus.SERVING;
+        })
+        .catch((err) => {
+          if (isAbortError(err)) {
+            throw new WeaviateGRPCUnavailableError(config.grpcAddress);
+          }
+          throw err;
+        });
+    },
     search: (
       collection: string,
       consistencyLevel?: ConsistencyLevel,
@@ -152,6 +167,7 @@ export const grpcClient = (config: GrpcConnectionParams): GrpcClient => {
         client,
         collection,
         new Metadata(bearerToken ? { ...config.headers, authorization: bearerToken } : config.headers),
+        config.timeout?.query || 30,
         consistencyLevel,
         tenant
       ),
@@ -159,7 +175,8 @@ export const grpcClient = (config: GrpcConnectionParams): GrpcClient => {
       TenantsManager.use(
         client,
         collection,
-        new Metadata(bearerToken ? { ...config.headers, authorization: bearerToken } : config.headers)
+        new Metadata(bearerToken ? { ...config.headers, authorization: bearerToken } : config.headers),
+        config.timeout?.query || 30
       ),
   };
 };

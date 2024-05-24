@@ -1,7 +1,7 @@
 import { WeaviateStartUpError } from '../errors.js';
 import { ClientParams, WeaviateClient } from '../index.js';
 import { AuthCredentials } from './auth.js';
-import { ProxiesParams } from './http.js';
+import { ProxiesParams, TimeoutParams } from './http.js';
 
 /** The options available to the `weaviate.connectToWCS` method. */
 export type ConnectToWCDOptions = {
@@ -9,6 +9,8 @@ export type ConnectToWCDOptions = {
   authCredentials?: AuthCredentials;
   /** Additional headers to include in the request */
   headers?: Record<string, string>;
+  /** The timeouts to use when making requests to Weaviate */
+  timeout?: TimeoutParams;
 };
 
 export type ConnectToLocalOptions = {
@@ -22,6 +24,8 @@ export type ConnectToLocalOptions = {
   authCredentials?: AuthCredentials;
   /** Additional headers to include in the request */
   headers?: Record<string, string>;
+  /** The timeouts to use when making requests to Weaviate */
+  timeout?: TimeoutParams;
 };
 
 export type ConnectToCustomOptions = {
@@ -45,6 +49,8 @@ export type ConnectToCustomOptions = {
   headers?: Record<string, string>;
   /** The proxy configuration to use */
   proxies?: ProxiesParams;
+  /** The timeouts to use when making requests to Weaviate */
+  timeout?: TimeoutParams;
 };
 
 export function connectToWCD(

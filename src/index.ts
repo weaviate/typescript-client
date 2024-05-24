@@ -20,7 +20,7 @@ import {
   connectToCustom,
   ConnectToCustomOptions,
 } from './connection/helpers.js';
-import { ProxiesParams } from './connection/http.js';
+import { ProxiesParams, TimeoutParams } from './connection/http.js';
 import MetaGetter from './misc/metaGetter.js';
 import collections, { Collections } from './collections/index.js';
 import { configure, reconfigure } from './collections/configure/index.js';
@@ -78,6 +78,8 @@ export type ClientParams = {
    * Note, if your proxy is a forwarding proxy then supply its configuration as if it were the Weaviate server itself using `rest` and `grpc`.
    */
   proxies?: ProxiesParams;
+  /** The timeouts to use when making requests to Weaviate */
+  timeout?: TimeoutParams;
 };
 
 export interface WeaviateClient {
@@ -156,6 +158,7 @@ const app = {
       apiKey: isApiKey(params.auth) ? mapApiKey(params.auth) : undefined,
       authClientSecret: isApiKey(params.auth) ? undefined : params.auth,
       agent,
+      timeout: params.timeout,
     });
 
     const ifc: WeaviateClient = {

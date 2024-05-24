@@ -1,12 +1,15 @@
+import { isAbortError } from 'abort-controller-x';
 import { ConsistencyLevel } from '../data/index.js';
 
 import { WeaviateClient } from '../proto/v1/weaviate.js';
 import { ConsistencyLevel as ConsistencyLevelGRPC } from '../proto/v1/base.js';
 import { Metadata } from 'nice-grpc';
+import { WeaviateRequestTimeoutError } from '../errors.js';
 
 export default class Base {
   protected connection: WeaviateClient;
   protected collection: string;
+  protected timeout: number;
   protected consistencyLevel?: ConsistencyLevelGRPC;
   protected tenant?: string;
   protected metadata?: Metadata;
@@ -15,14 +18,16 @@ export default class Base {
     connection: WeaviateClient,
     collection: string,
     metadata: Metadata,
+    timeout: number,
     consistencyLevel?: ConsistencyLevel,
     tenant?: string
   ) {
     this.connection = connection;
     this.collection = collection;
+    this.metadata = metadata;
+    this.timeout = timeout;
     this.consistencyLevel = this.mapConsistencyLevel(consistencyLevel);
     this.tenant = tenant;
-    this.metadata = metadata;
   }
 
   private mapConsistencyLevel(consistencyLevel?: ConsistencyLevel): ConsistencyLevelGRPC {
@@ -37,4 +42,17 @@ export default class Base {
         return ConsistencyLevelGRPC.CONSISTENCY_LEVEL_UNSPECIFIED;
     }
   }
+
+  protected sendWithTimeout = <T>(send: () => Promise<T>): Promise<T> => {
+    const abortController = new AbortController();
+    const timeoutId = setTimeout(() => abortController.abort(), this.timeout * 1000);
+    return send()
+      .catch((error) => {
+        if (isAbortError(error)) {
+          throw new WeaviateRequestTimeoutError(`timed out after ${this.timeout}ms`);
+        }
+        throw error;
+      })
+      .finally(() => clearTimeout(timeoutId));
+  };
 }
