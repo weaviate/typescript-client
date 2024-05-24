@@ -43,6 +43,9 @@ export default class ConnectionGRPC extends ConnectionGQL {
     const connection = new ConnectionGRPC(params);
     const dbVersionProvider = initDbVersionProvider(connection);
     const dbVersionSupport = new DbVersionSupport(dbVersionProvider);
+    if (params.skipInitChecks) {
+      return { connection, dbVersionProvider, dbVersionSupport };
+    }
     await Promise.all([
       dbVersionSupport.supportsCompatibleGrpcService().then((check) => {
         if (!check.supports) {
@@ -59,6 +62,7 @@ export default class ConnectionGRPC extends ConnectionGQL {
   private async connect() {
     const isHealthy = await this.grpc.health();
     if (!isHealthy) {
+      await this.close();
       throw new WeaviateGRPCUnavailableError(this.grpcAddress);
     }
   }

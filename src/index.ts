@@ -87,6 +87,8 @@ export type ClientParams = {
   proxies?: ProxiesParams;
   /** The timeouts to use when making requests to Weaviate */
   timeout?: TimeoutParams;
+  /** Whether to skip the initialization checks */
+  skipInitChecks?: boolean;
 };
 
 export interface WeaviateClient {
@@ -168,6 +170,7 @@ const app = {
       authClientSecret: isApiKey(params.auth) ? undefined : params.auth,
       agent,
       timeout: params.timeout,
+      skipInitChecks: params.skipInitChecks,
     });
 
     const ifc: WeaviateClient = {

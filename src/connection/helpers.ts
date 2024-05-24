@@ -11,6 +11,8 @@ export type ConnectToWCDOptions = {
   headers?: Record<string, string>;
   /** The timeouts to use when making requests to Weaviate */
   timeout?: TimeoutParams;
+  /** Whether to skip the initialization checks */
+  skipInitChecks?: boolean;
 };
 
 export type ConnectToLocalOptions = {
@@ -26,6 +28,8 @@ export type ConnectToLocalOptions = {
   headers?: Record<string, string>;
   /** The timeouts to use when making requests to Weaviate */
   timeout?: TimeoutParams;
+  /** Whether to skip the initialization checks */
+  skipInitChecks?: boolean;
 };
 
 export type ConnectToCustomOptions = {
@@ -51,6 +55,8 @@ export type ConnectToCustomOptions = {
   proxies?: ProxiesParams;
   /** The timeouts to use when making requests to Weaviate */
   timeout?: TimeoutParams;
+  /** Whether to skip the initialization checks */
+  skipInitChecks?: boolean;
 };
 
 export function connectToWCD(

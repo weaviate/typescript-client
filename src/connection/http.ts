@@ -47,6 +47,7 @@ export type ConnectionParams = {
   grpcProxyUrl?: string;
   agent?: Agent;
   timeout?: TimeoutParams;
+  skipInitChecks?: boolean;
 };
 
 export default class ConnectionREST {
