@@ -1,5 +1,5 @@
 import { ConnectionGRPC } from './connection/index.js';
-import { DbVersion, DbVersionProvider, DbVersionSupport } from './utils/dbVersion.js';
+import { DbVersion } from './utils/dbVersion.js';
 import { backup, Backup } from './collections/backup/client.js';
 import cluster, { Cluster } from './collections/cluster/index.js';
 import {
@@ -29,6 +29,8 @@ import { Meta } from './openapi/types.js';
 import { Agent as HttpAgent } from 'http';
 import { Agent as HttpsAgent } from 'https';
 import { LiveChecker, OpenidConfigurationGetter, ReadyChecker } from './misc/index.js';
+
+import weaviateV2 from './v2/index.js';
 
 export type ProtocolParams = {
   /**
@@ -181,6 +183,7 @@ const app = {
 };
 
 export default app;
+export { weaviateV2 };
 export * from './collections/index.js';
 export * from './connection/index.js';
 export * from './utils/base64.js';
