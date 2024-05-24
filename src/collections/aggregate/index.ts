@@ -83,9 +83,9 @@ type MetricsInput<N extends string> =
   | MetricsDate<N>;
 // | MetricsReference<T>;
 
-type PropertiesMetrics<T> = T extends Record<string, any>
-  ? MetricsInput<keyof T & string> | MetricsInput<keyof T & string>[]
-  : MetricsInput<string> | MetricsInput<string>[];
+type PropertiesMetrics<T> = T extends undefined
+  ? MetricsInput<string> | MetricsInput<string>[]
+  : MetricsInput<keyof T & string> | MetricsInput<keyof T & string>[];
 
 type MetricsBase<N extends string, K extends 'boolean' | 'date' | 'integer' | 'number' | 'text'> = {
   kind: K;
