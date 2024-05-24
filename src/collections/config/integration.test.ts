@@ -40,7 +40,7 @@ describe('Testing of the collection.config namespace', () => {
           dataType: 'text',
         },
       ],
-      vectorizers: weaviate.configure.vectorizer.none(),
+      vectorizers: weaviate.configure.vectorizers.none(),
     });
     const collection = client.collections.get<TestCollectionConfigGet>(collectionName);
     const config = await collection.config.get();
@@ -61,7 +61,7 @@ describe('Testing of the collection.config namespace', () => {
     ]);
     expect(config.generative).toBeUndefined();
     expect(config.reranker).toBeUndefined();
-    expect(config.vectorizer.default.indexConfig).toEqual<VectorIndexConfigHNSW>({
+    expect(config.vectorizers.default.indexConfig).toEqual<VectorIndexConfigHNSW>({
       skip: false,
       cleanupIntervalSeconds: 300,
       maxConnections: 64,
@@ -75,8 +75,8 @@ describe('Testing of the collection.config namespace', () => {
       distance: 'cosine',
       quantizer: undefined,
     });
-    expect(config.vectorizer.default.indexType).toEqual('hnsw');
-    expect(config.vectorizer.default.vectorizer.name).toEqual('none');
+    expect(config.vectorizers.default.indexType).toEqual('hnsw');
+    expect(config.vectorizers.default.vectorizers.name).toEqual('none');
   });
 
   it('should be able get the config of a collection with generics', async () => {
@@ -92,7 +92,7 @@ describe('Testing of the collection.config namespace', () => {
           dataType: 'text',
         },
       ],
-      vectorizers: weaviate.configure.vectorizer.none(),
+      vectorizers: weaviate.configure.vectorizers.none(),
     });
     const collection = client.collections.get<TestCollectionConfigGet>(collectionName);
     const config = await collection.config.get();
@@ -113,7 +113,7 @@ describe('Testing of the collection.config namespace', () => {
     ]);
     expect(config.generative).toBeUndefined();
     expect(config.reranker).toBeUndefined();
-    expect(config.vectorizer.default.indexConfig).toEqual<VectorIndexConfigHNSW>({
+    expect(config.vectorizers.default.indexConfig).toEqual<VectorIndexConfigHNSW>({
       skip: false,
       cleanupIntervalSeconds: 300,
       maxConnections: 64,
@@ -127,8 +127,8 @@ describe('Testing of the collection.config namespace', () => {
       distance: 'cosine',
       quantizer: undefined,
     });
-    expect(config.vectorizer.default.indexType).toEqual('hnsw');
-    expect(config.vectorizer.default.vectorizer.name).toEqual('none');
+    expect(config.vectorizers.default.indexType).toEqual('hnsw');
+    expect(config.vectorizers.default.vectorizers.name).toEqual('none');
   });
 
   it('should be able to get a collection with named vectors', async () => {
@@ -148,11 +148,11 @@ describe('Testing of the collection.config namespace', () => {
         },
       ],
       vectorizers: [
-        weaviate.configure.vectorizer.text2VecContextionary({
+        weaviate.configure.vectorizers.text2VecContextionary({
           name: 'title',
           sourceProperties: ['title'],
         }),
-        weaviate.configure.vectorizer.text2VecContextionary({
+        weaviate.configure.vectorizers.text2VecContextionary({
           name: 'age',
           sourceProperties: ['age'],
         }),
@@ -171,10 +171,10 @@ describe('Testing of the collection.config namespace', () => {
       true
     );
     expect(config.properties[1].vectorizerConfig?.['text2vec-contextionary'].skip).toEqual(false);
-    expect(config.vectorizer.title.indexConfig).toBeDefined();
-    expect(config.vectorizer.title.indexType).toEqual('hnsw');
-    expect(config.vectorizer.title.properties).toEqual(['title']);
-    expect(config.vectorizer.title.vectorizer.name).toEqual('text2vec-contextionary');
+    expect(config.vectorizers.title.indexConfig).toBeDefined();
+    expect(config.vectorizers.title.indexType).toEqual('hnsw');
+    expect(config.vectorizers.title.properties).toEqual(['title']);
+    expect(config.vectorizers.title.vectorizers.name).toEqual('text2vec-contextionary');
   });
 
   it('should be able to get the config of a collection with HNSW+PQ', async () => {
@@ -191,15 +191,15 @@ describe('Testing of the collection.config namespace', () => {
     });
     const config = await collection.config.get();
 
-    const vectorIndexConfig = config.vectorizer.default.indexConfig as VectorIndexConfigHNSW;
+    const vectorIndexConfig = config.vectorizers.default.indexConfig as VectorIndexConfigHNSW;
     expect(config.name).toEqual(collectionName);
     expect(config.generative).toBeUndefined();
     expect(config.reranker).toBeUndefined();
     expect(vectorIndexConfig).toBeDefined();
     expect(vectorIndexConfig.quantizer).toBeDefined();
-    expect(config.vectorizer.default.indexType).toEqual('hnsw');
-    expect(config.vectorizer.default.properties).toBeUndefined();
-    expect(config.vectorizer.default.vectorizer.name).toEqual('none');
+    expect(config.vectorizers.default.indexType).toEqual('hnsw');
+    expect(config.vectorizers.default.properties).toBeUndefined();
+    expect(config.vectorizers.default.vectorizers.name).toEqual('none');
   });
 
   it('should be able to get the config of a collection with HNSW+BQ', async () => {
@@ -216,15 +216,15 @@ describe('Testing of the collection.config namespace', () => {
     });
     const config = await collection.config.get();
 
-    const vectorIndexConfig = config.vectorizer.default.indexConfig as VectorIndexConfigHNSW;
+    const vectorIndexConfig = config.vectorizers.default.indexConfig as VectorIndexConfigHNSW;
     expect(config.name).toEqual(collectionName);
     expect(config.generative).toBeUndefined();
     expect(config.reranker).toBeUndefined();
     expect(vectorIndexConfig).toBeDefined();
     expect(vectorIndexConfig.quantizer).toBeDefined();
-    expect(config.vectorizer.default.indexType).toEqual('hnsw');
-    expect(config.vectorizer.default.properties).toBeUndefined();
-    expect(config.vectorizer.default.vectorizer.name).toEqual('none');
+    expect(config.vectorizers.default.indexType).toEqual('hnsw');
+    expect(config.vectorizers.default.properties).toBeUndefined();
+    expect(config.vectorizers.default.vectorizers.name).toEqual('none');
   });
 
   it('should be able to get the config of a collection with flat+BQ', async () => {
@@ -237,15 +237,15 @@ describe('Testing of the collection.config namespace', () => {
     });
     const config = await collection.config.get();
 
-    const vectorIndexConfig = config.vectorizer.default.indexConfig as VectorIndexConfigHNSW;
+    const vectorIndexConfig = config.vectorizers.default.indexConfig as VectorIndexConfigHNSW;
     expect(config.name).toEqual(collectionName);
     expect(config.generative).toBeUndefined();
     expect(config.reranker).toBeUndefined();
     expect(vectorIndexConfig).toBeDefined();
     expect(vectorIndexConfig.quantizer).toBeDefined();
-    expect(config.vectorizer.default.indexType).toEqual('flat');
-    expect(config.vectorizer.default.properties).toBeUndefined();
-    expect(config.vectorizer.default.vectorizer.name).toEqual('text2vec-contextionary');
+    expect(config.vectorizers.default.indexType).toEqual('flat');
+    expect(config.vectorizers.default.properties).toBeUndefined();
+    expect(config.vectorizers.default.vectorizers.name).toEqual('text2vec-contextionary');
   });
 
   it('should be able to get the config of a single-vector collection with dynamic+BQ', async () => {
@@ -270,7 +270,7 @@ describe('Testing of the collection.config namespace', () => {
     }
     const config = await query().then((collection) => collection.config.get());
 
-    const vectorIndexConfig = config.vectorizer.default.indexConfig as VectorIndexConfigDynamic;
+    const vectorIndexConfig = config.vectorizers.default.indexConfig as VectorIndexConfigDynamic;
     expect(config.name).toEqual(collectionName);
     expect(config.generative).toBeUndefined();
     expect(config.reranker).toBeUndefined();
@@ -280,9 +280,9 @@ describe('Testing of the collection.config namespace', () => {
     expect(vectorIndexConfig.hnsw.quantizer).toBeDefined();
     expect(vectorIndexConfig.flat).toBeDefined();
     expect(vectorIndexConfig.flat.quantizer).toBeDefined();
-    expect(config.vectorizer.default.indexType).toEqual('dynamic');
-    expect(config.vectorizer.default.properties).toBeUndefined();
-    expect(config.vectorizer.default.vectorizer.name).toEqual('none');
+    expect(config.vectorizers.default.indexType).toEqual('dynamic');
+    expect(config.vectorizers.default.properties).toBeUndefined();
+    expect(config.vectorizers.default.vectorizers.name).toEqual('none');
   });
 
   it('should be able to get the config of a multi-vector collection with dynamic+BQ', async () => {
@@ -292,7 +292,7 @@ describe('Testing of the collection.config namespace', () => {
     const query = () =>
       asyncIndexing.collections.create({
         name: collectionName,
-        vectorizers: weaviate.configure.vectorizer.none({
+        vectorizers: weaviate.configure.vectorizers.none({
           vectorIndexConfig: weaviate.configure.vectorIndex.dynamic({
             hnsw: weaviate.configure.vectorIndex.hnsw({
               quantizer: weaviate.configure.vectorIndex.quantizer.pq(),
@@ -309,7 +309,7 @@ describe('Testing of the collection.config namespace', () => {
     }
     const config = await query().then((collection) => collection.config.get());
 
-    const vectorIndexConfig = config.vectorizer.default.indexConfig as VectorIndexConfigDynamic;
+    const vectorIndexConfig = config.vectorizers.default.indexConfig as VectorIndexConfigDynamic;
     expect(config.name).toEqual(collectionName);
     expect(config.generative).toBeUndefined();
     expect(config.reranker).toBeUndefined();
@@ -319,16 +319,16 @@ describe('Testing of the collection.config namespace', () => {
     expect(vectorIndexConfig.hnsw.quantizer).toBeDefined();
     expect(vectorIndexConfig.flat).toBeDefined();
     expect(vectorIndexConfig.flat.quantizer).toBeDefined();
-    expect(config.vectorizer.default.indexType).toEqual('dynamic');
-    expect(config.vectorizer.default.properties).toBeUndefined();
-    expect(config.vectorizer.default.vectorizer.name).toEqual('none');
+    expect(config.vectorizers.default.indexType).toEqual('dynamic');
+    expect(config.vectorizers.default.properties).toBeUndefined();
+    expect(config.vectorizers.default.vectorizers.name).toEqual('none');
   });
 
   it('should be able to add a property to a collection', async () => {
     const collectionName = 'TestCollectionConfigAddProperty';
     const collection = await client.collections.create({
       name: collectionName,
-      vectorizers: weaviate.configure.vectorizer.none(),
+      vectorizers: weaviate.configure.vectorizers.none(),
     });
     const config = await collection.config
       .addProperty({
@@ -355,7 +355,7 @@ describe('Testing of the collection.config namespace', () => {
     const collectionName = 'TestCollectionConfigAddReference' as const;
     const collection = await client.collections.create({
       name: collectionName,
-      vectorizers: weaviate.configure.vectorizer.none(),
+      vectorizers: weaviate.configure.vectorizers.none(),
     });
     const config = await collection.config
       .addReference({
@@ -442,12 +442,12 @@ describe('Testing of the collection.config namespace', () => {
           dataType: 'text',
         },
       ],
-      vectorizers: weaviate.configure.vectorizer.none(),
+      vectorizers: weaviate.configure.vectorizers.none(),
     });
     const config = await collection.config
       .update({
         vectorizers: [
-          weaviate.reconfigure.vectorizer.update('default', {
+          weaviate.reconfigure.vectorizers.update('default', {
             vectorIndexConfig: weaviate.reconfigure.vectorIndex.hnsw({
               quantizer: weaviate.reconfigure.vectorIndex.quantizer.pq(),
               ef: 4,
@@ -473,7 +473,7 @@ describe('Testing of the collection.config namespace', () => {
     ]);
     expect(config.generative).toBeUndefined();
     expect(config.reranker).toBeUndefined();
-    expect(config.vectorizer.default.indexConfig).toEqual<VectorIndexConfigHNSW>({
+    expect(config.vectorizers.default.indexConfig).toEqual<VectorIndexConfigHNSW>({
       skip: false,
       cleanupIntervalSeconds: 300,
       maxConnections: 64,
@@ -497,8 +497,8 @@ describe('Testing of the collection.config namespace', () => {
         type: 'pq',
       },
     });
-    expect(config.vectorizer.default.indexType).toEqual('hnsw');
-    expect(config.vectorizer.default.vectorizer.name).toEqual('none');
+    expect(config.vectorizers.default.indexType).toEqual('hnsw');
+    expect(config.vectorizers.default.vectorizers.name).toEqual('none');
   });
 
   it('should be able update the config of a collection with legacy vectors', async () => {
@@ -541,7 +541,7 @@ describe('Testing of the collection.config namespace', () => {
     ]);
     expect(config.generative).toBeUndefined();
     expect(config.reranker).toBeUndefined();
-    expect(config.vectorizer.default.indexConfig).toEqual<VectorIndexConfigHNSW>({
+    expect(config.vectorizers.default.indexConfig).toEqual<VectorIndexConfigHNSW>({
       skip: false,
       cleanupIntervalSeconds: 300,
       maxConnections: 64,
@@ -565,7 +565,7 @@ describe('Testing of the collection.config namespace', () => {
         type: 'pq',
       },
     });
-    expect(config.vectorizer.default.indexType).toEqual('hnsw');
-    expect(config.vectorizer.default.vectorizer.name).toEqual('none');
+    expect(config.vectorizers.default.indexType).toEqual('hnsw');
+    expect(config.vectorizers.default.vectorizers.name).toEqual('none');
   });
 });

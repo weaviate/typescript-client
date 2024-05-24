@@ -99,7 +99,7 @@ describe('Testing of the collection.aggregate methods', () => {
           //   dataType: [collectionName],
           // },
         ],
-        vectorizers: weaviate.configure.vectorizer.text2VecContextionary({
+        vectorizers: weaviate.configure.vectorizers.text2VecContextionary({
           vectorizeCollectionName: false,
         }),
       })
@@ -329,7 +329,7 @@ describe('Testing of the collection.aggregate methods with named vectors', () =>
         },
       ],
       vectorizers: [
-        weaviate.configure.vectorizer.text2VecContextionary({
+        weaviate.configure.vectorizers.text2VecContextionary({
           name: 'text',
           sourceProperties: ['text'],
           vectorIndexConfig: weaviate.configure.vectorIndex.hnsw(),

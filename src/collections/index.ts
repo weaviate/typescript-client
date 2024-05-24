@@ -116,7 +116,7 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
       .then((schema) => (schema.classes ? schema.classes.map(classToCollection<any>) : []));
   const deleteCollection = (name: string) => new ClassDeleter(connection).withClassName(name).do();
   return {
-    create: async function <TProperties = undefined, TName = string>(
+    create: async function <TProperties extends Properties | undefined = undefined, TName = string>(
       config: CollectionConfigCreate<TProperties, TName>
     ) {
       const { name, invertedIndex, multiTenancy, replication, sharding, vectorIndex, ...rest } = config;
@@ -187,7 +187,7 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
       }
 
       const properties = config.properties
-        ? config.properties.map((prop) => resolveProperty<TProperties>(prop, vectorizers))
+        ? config.properties.map((prop) => resolveProperty<TProperties>(prop as any, vectorizers))
         : [];
       const references = config.references ? config.references.map(resolveReference<TProperties>) : [];
 
