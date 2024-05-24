@@ -26,7 +26,7 @@ export type QueryMetadata = 'all' | MetadataKeys | undefined;
 
 export type ReturnMetadata = Partial<Metadata>;
 
-export type WeaviateGenericObject<T extends Properties> = {
+export type WeaviateGenericObject<T> = {
   /** The generic returned properties of the object derived from the type `T`. */
   properties: ReturnProperties<T>;
   /** The returned metadata of the object. */
@@ -52,9 +52,9 @@ export type WeaviateNonGenericObject = {
   vectors: Vectors;
 };
 
-export type ReturnProperties<T extends Properties> = Pick<T, NonRefKeys<T>>;
+export type ReturnProperties<T> = Pick<T, NonRefKeys<T>>;
 
-export type ReturnReferences<T extends Properties> = Pick<T, RefKeys<T>>;
+export type ReturnReferences<T> = Pick<T, RefKeys<T>>;
 
 export type Vectors = Record<string, number[]>;
 
@@ -67,9 +67,9 @@ export type ReturnVectors<V> = V extends string[]
  * Depending on the generic type `T`, the object will have subfields that map from `T`'s specific type definition.
  * If not, then the object will be non-generic and have a `properties` field that maps from a generic string to a `WeaviateField`.
  */
-export type WeaviateObject<T> = T extends Record<string, any> // need this instead of Properties to avoid circular type reference
-  ? WeaviateGenericObject<T>
-  : WeaviateNonGenericObject;
+export type WeaviateObject<T> = T extends undefined // need this instead of Properties to avoid circular type reference
+  ? WeaviateNonGenericObject
+  : WeaviateGenericObject<T>;
 
 /** The return of a query method in the `collection.query` namespace. */
 export type WeaviateReturn<T> = {

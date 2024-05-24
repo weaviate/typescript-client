@@ -1,7 +1,7 @@
 import { Properties } from './index.js';
 import { GroupByObject, GroupByResult, WeaviateGenericObject, WeaviateNonGenericObject } from './query.js';
 
-export type GenerativeGenericObject<T extends Properties> = WeaviateGenericObject<T> & {
+export type GenerativeGenericObject<T> = WeaviateGenericObject<T> & {
   /** The LLM-generated output applicable to this single object. */
   generated?: string;
 };
@@ -16,9 +16,9 @@ export type GenerativeNonGenericObject = WeaviateNonGenericObject & {
  * Depending on the generic type `T`, the object will have subfields that map from `T`'s specific type definition.
  * If not, then the object will be non-generic and have a `properties` field that maps from a generic string to a `WeaviateField`.
  */
-export type GenerativeObject<T> = T extends Record<string, any> // need this instead of Properties to avoid circular type reference
-  ? GenerativeGenericObject<T>
-  : GenerativeNonGenericObject;
+export type GenerativeObject<T> = T extends undefined
+  ? GenerativeNonGenericObject
+  : GenerativeGenericObject<T>;
 
 /** The return of a query method in the `collection.generate` namespace. */
 export type GenerativeReturn<T> = {
