@@ -9,16 +9,6 @@ import {
   QueryNestedDefault,
 } from './internal.js';
 
-// export type MetadataQuery = (
-//   | 'creationTime'
-//   | 'updateTime'
-//   | 'distance'
-//   | 'certainty'
-//   | 'score'
-//   | 'explainScore'
-//   | 'isConsistent'
-// )[];
-
 type Metadata = {
   creationTime: Date;
   updateTime: Date;
