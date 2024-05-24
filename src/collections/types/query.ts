@@ -34,10 +34,6 @@ export type MetadataKeys = (keyof Metadata)[];
 
 export type QueryMetadata = 'all' | MetadataKeys | undefined;
 
-// export type ReturnMetadata<M extends MetadataKeys> = {
-//   [Key in M[number]]: Metadata[Key];
-// };
-
 export type ReturnMetadata = Partial<Metadata>;
 
 export type WeaviateGenericObject<T extends Properties> = {
