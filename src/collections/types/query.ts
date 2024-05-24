@@ -67,7 +67,9 @@ export type ReturnVectors<V> = V extends string[]
  * Depending on the generic type `T`, the object will have subfields that map from `T`'s specific type definition.
  * If not, then the object will be non-generic and have a `properties` field that maps from a generic string to a `WeaviateField`.
  */
-export type WeaviateObject<T> = T extends Properties ? WeaviateGenericObject<T> : WeaviateNonGenericObject;
+export type WeaviateObject<T> = T extends Record<string, any> // need this instead of Properties to avoid circular type reference
+  ? WeaviateGenericObject<T>
+  : WeaviateNonGenericObject;
 
 /** The return of a query method in the `collection.query` namespace. */
 export type WeaviateReturn<T> = {

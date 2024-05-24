@@ -16,7 +16,7 @@ export type GenerativeNonGenericObject = WeaviateNonGenericObject & {
  * Depending on the generic type `T`, the object will have subfields that map from `T`'s specific type definition.
  * If not, then the object will be non-generic and have a `properties` field that maps from a generic string to a `WeaviateField`.
  */
-export type GenerativeObject<T> = T extends Properties
+export type GenerativeObject<T> = T extends Record<string, any> // need this instead of Properties to avoid circular type reference
   ? GenerativeGenericObject<T>
   : GenerativeNonGenericObject;
 
