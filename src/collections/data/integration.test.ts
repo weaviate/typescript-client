@@ -38,18 +38,7 @@ describe('Testing of the collection.data methods with a single target reference'
   });
 
   beforeAll(async () => {
-    client = await weaviate.client({
-      rest: {
-        secure: false,
-        host: 'localhost',
-        port: 8080,
-      },
-      grpc: {
-        secure: false,
-        host: 'localhost',
-        port: 50051,
-      },
-    });
+    client = await weaviate.connectToLocal();
     collection = client.collections.get(collectionName);
     await client.collections
       .create<undefined>({
@@ -501,18 +490,7 @@ describe('Testing of the collection.data methods with a multi target reference',
   let twoId: string;
 
   beforeAll(async () => {
-    client = await weaviate.client({
-      rest: {
-        secure: false,
-        host: 'localhost',
-        port: 8080,
-      },
-      grpc: {
-        secure: false,
-        host: 'localhost',
-        port: 50051,
-      },
-    });
+    client = await weaviate.connectToLocal();
     collectionOne = client.collections.get(classNameOne);
     collectionTwo = client.collections.get(classNameTwo);
     oneId = await client.collections
@@ -611,18 +589,7 @@ describe('Testing of the collection.data.insertMany method with all possible typ
   };
 
   beforeAll(async () => {
-    client = await weaviate.client({
-      rest: {
-        secure: false,
-        host: 'localhost',
-        port: 8080,
-      },
-      grpc: {
-        secure: false,
-        host: 'localhost',
-        port: 50051,
-      },
-    });
+    client = await weaviate.connectToLocal();
     const primitives = [
       {
         name: 'text' as const,

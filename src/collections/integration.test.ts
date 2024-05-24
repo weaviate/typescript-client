@@ -20,41 +20,17 @@ describe('Testing of the collections.create method', () => {
   let openai: WeaviateClient;
 
   beforeAll(async () => {
-    cluster = await weaviate.client({
-      rest: {
-        secure: false,
-        host: 'localhost',
-        port: 8087,
-      },
-      grpc: {
-        secure: false,
-        host: 'localhost',
-        port: 50051,
-      },
+    cluster = await weaviate.connectToLocal({
+      port: 8087,
+      grpcPort: 50051,
     });
-    contextionary = await weaviate.client({
-      rest: {
-        secure: false,
-        host: 'localhost',
-        port: 8080,
-      },
-      grpc: {
-        secure: false,
-        host: 'localhost',
-        port: 50051,
-      },
+    contextionary = await weaviate.connectToLocal({
+      port: 8080,
+      grpcPort: 50051,
     });
-    openai = await weaviate.client({
-      rest: {
-        secure: false,
-        host: 'localhost',
-        port: 8086,
-      },
-      grpc: {
-        secure: false,
-        host: 'localhost',
-        port: 50051,
-      },
+    openai = await weaviate.connectToLocal({
+      port: 8086,
+      grpcPort: 50051,
     });
   });
 
