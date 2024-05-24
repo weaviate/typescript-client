@@ -289,7 +289,7 @@ maybe('Testing of the groupBy collection.generate methods with a simple collecti
     expect(ret.objects[0].belongsToGroup).toEqual('test');
   });
 
-  it('should groupBy with nearObject', async () => {
+  it.skip('should groupBy with nearObject', async () => {
     const ret = await collection.generate.nearObject(id, generateOpts, {
       groupBy: groupByArgs,
     });

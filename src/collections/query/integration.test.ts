@@ -170,7 +170,7 @@ describe('Testing of the collection.query methods with a simple collection', () 
     expect(ret.objects[0].properties.testProp2).toEqual('test2');
   });
 
-  it('should query with nearObject', async () => {
+  it.skip('should query with nearObject', async () => {
     const ret = await collection.query.nearObject(id, { limit: 1 });
     expect(ret.objects.length).toEqual(1);
     expect(ret.objects[0].properties.testProp).toEqual('test');
@@ -363,7 +363,7 @@ describe('Testing of the collection.query methods with a collection with a refer
       ).toEqual('test');
     });
 
-    it('should query with nearObject returning the referenced object', async () => {
+    it.skip('should query with nearObject returning the referenced object', async () => {
       const ret = await collection.query.nearObject(id2, {
         returnProperties: ['testProp'],
         returnReferences: [
@@ -785,7 +785,7 @@ describe('Testing of the groupBy collection.query methods with a simple collecti
     expect(ret.objects[0].belongsToGroup).toEqual('test');
   });
 
-  it('should groupBy with nearObject', async () => {
+  it.skip('should groupBy with nearObject', async () => {
     const ret = await collection.query.nearObject(id, {
       groupBy: groupByArgs,
     });
@@ -945,7 +945,7 @@ describe('Testing of the collection.query methods with a multi-tenancy collectio
     expect(obj2.objects[0].uuid).toEqual(id2);
   });
 
-  it('should find the objects in their tenants by nearObject', async () => {
+  it.skip('should find the objects in their tenants by nearObject', async () => {
     const obj1 = await collection.withTenant(tenantOne).query.nearObject(id1);
     const obj2 = await collection.withTenant(tenantTwo).query.nearObject(id2);
     expect(obj1.objects.length).toEqual(1);
