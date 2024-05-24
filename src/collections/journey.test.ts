@@ -45,7 +45,7 @@ describe('Journey testing of the client using a WCD cluster', () => {
       ],
       generative: weaviate.configure.generative.cohere(),
       reranker: weaviate.configure.reranker.cohere(),
-      vectorizers: weaviate.configure.vectorizers.text2VecCohere(),
+      vectorizers: weaviate.configure.vectorizer.text2VecCohere(),
     });
   });
 

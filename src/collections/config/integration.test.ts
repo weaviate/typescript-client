@@ -40,7 +40,7 @@ describe('Testing of the collection.config namespace', () => {
           dataType: 'text',
         },
       ],
-      vectorizers: weaviate.configure.vectorizers.none(),
+      vectorizers: weaviate.configure.vectorizer.none(),
     });
     const collection = client.collections.get<TestCollectionConfigGet>(collectionName);
     const config = await collection.config.get();
@@ -76,7 +76,7 @@ describe('Testing of the collection.config namespace', () => {
       quantizer: undefined,
     });
     expect(config.vectorizers.default.indexType).toEqual('hnsw');
-    expect(config.vectorizers.default.vectorizers.name).toEqual('none');
+    expect(config.vectorizers.default.vectorizer.name).toEqual('none');
   });
 
   it('should be able get the config of a collection with generics', async () => {
@@ -92,7 +92,7 @@ describe('Testing of the collection.config namespace', () => {
           dataType: 'text',
         },
       ],
-      vectorizers: weaviate.configure.vectorizers.none(),
+      vectorizers: weaviate.configure.vectorizer.none(),
     });
     const collection = client.collections.get<TestCollectionConfigGet>(collectionName);
     const config = await collection.config.get();
@@ -128,7 +128,7 @@ describe('Testing of the collection.config namespace', () => {
       quantizer: undefined,
     });
     expect(config.vectorizers.default.indexType).toEqual('hnsw');
-    expect(config.vectorizers.default.vectorizers.name).toEqual('none');
+    expect(config.vectorizers.default.vectorizer.name).toEqual('none');
   });
 
   it('should be able to get a collection with named vectors', async () => {
@@ -148,11 +148,11 @@ describe('Testing of the collection.config namespace', () => {
         },
       ],
       vectorizers: [
-        weaviate.configure.vectorizers.text2VecContextionary({
+        weaviate.configure.vectorizer.text2VecContextionary({
           name: 'title',
           sourceProperties: ['title'],
         }),
-        weaviate.configure.vectorizers.text2VecContextionary({
+        weaviate.configure.vectorizer.text2VecContextionary({
           name: 'age',
           sourceProperties: ['age'],
         }),
@@ -174,7 +174,7 @@ describe('Testing of the collection.config namespace', () => {
     expect(config.vectorizers.title.indexConfig).toBeDefined();
     expect(config.vectorizers.title.indexType).toEqual('hnsw');
     expect(config.vectorizers.title.properties).toEqual(['title']);
-    expect(config.vectorizers.title.vectorizers.name).toEqual('text2vec-contextionary');
+    expect(config.vectorizers.title.vectorizer.name).toEqual('text2vec-contextionary');
   });
 
   it('should be able to get the config of a collection with HNSW+PQ', async () => {
@@ -199,7 +199,7 @@ describe('Testing of the collection.config namespace', () => {
     expect(vectorIndexConfig.quantizer).toBeDefined();
     expect(config.vectorizers.default.indexType).toEqual('hnsw');
     expect(config.vectorizers.default.properties).toBeUndefined();
-    expect(config.vectorizers.default.vectorizers.name).toEqual('none');
+    expect(config.vectorizers.default.vectorizer.name).toEqual('none');
   });
 
   it('should be able to get the config of a collection with HNSW+BQ', async () => {
@@ -224,7 +224,7 @@ describe('Testing of the collection.config namespace', () => {
     expect(vectorIndexConfig.quantizer).toBeDefined();
     expect(config.vectorizers.default.indexType).toEqual('hnsw');
     expect(config.vectorizers.default.properties).toBeUndefined();
-    expect(config.vectorizers.default.vectorizers.name).toEqual('none');
+    expect(config.vectorizers.default.vectorizer.name).toEqual('none');
   });
 
   it('should be able to get the config of a collection with flat+BQ', async () => {
@@ -245,7 +245,7 @@ describe('Testing of the collection.config namespace', () => {
     expect(vectorIndexConfig.quantizer).toBeDefined();
     expect(config.vectorizers.default.indexType).toEqual('flat');
     expect(config.vectorizers.default.properties).toBeUndefined();
-    expect(config.vectorizers.default.vectorizers.name).toEqual('text2vec-contextionary');
+    expect(config.vectorizers.default.vectorizer.name).toEqual('text2vec-contextionary');
   });
 
   it('should be able to get the config of a single-vector collection with dynamic+BQ', async () => {
@@ -282,7 +282,7 @@ describe('Testing of the collection.config namespace', () => {
     expect(vectorIndexConfig.flat.quantizer).toBeDefined();
     expect(config.vectorizers.default.indexType).toEqual('dynamic');
     expect(config.vectorizers.default.properties).toBeUndefined();
-    expect(config.vectorizers.default.vectorizers.name).toEqual('none');
+    expect(config.vectorizers.default.vectorizer.name).toEqual('none');
   });
 
   it('should be able to get the config of a multi-vector collection with dynamic+BQ', async () => {
@@ -292,7 +292,7 @@ describe('Testing of the collection.config namespace', () => {
     const query = () =>
       asyncIndexing.collections.create({
         name: collectionName,
-        vectorizers: weaviate.configure.vectorizers.none({
+        vectorizers: weaviate.configure.vectorizer.none({
           vectorIndexConfig: weaviate.configure.vectorIndex.dynamic({
             hnsw: weaviate.configure.vectorIndex.hnsw({
               quantizer: weaviate.configure.vectorIndex.quantizer.pq(),
@@ -321,14 +321,14 @@ describe('Testing of the collection.config namespace', () => {
     expect(vectorIndexConfig.flat.quantizer).toBeDefined();
     expect(config.vectorizers.default.indexType).toEqual('dynamic');
     expect(config.vectorizers.default.properties).toBeUndefined();
-    expect(config.vectorizers.default.vectorizers.name).toEqual('none');
+    expect(config.vectorizers.default.vectorizer.name).toEqual('none');
   });
 
   it('should be able to add a property to a collection', async () => {
     const collectionName = 'TestCollectionConfigAddProperty';
     const collection = await client.collections.create({
       name: collectionName,
-      vectorizers: weaviate.configure.vectorizers.none(),
+      vectorizers: weaviate.configure.vectorizer.none(),
     });
     const config = await collection.config
       .addProperty({
@@ -355,7 +355,7 @@ describe('Testing of the collection.config namespace', () => {
     const collectionName = 'TestCollectionConfigAddReference' as const;
     const collection = await client.collections.create({
       name: collectionName,
-      vectorizers: weaviate.configure.vectorizers.none(),
+      vectorizers: weaviate.configure.vectorizer.none(),
     });
     const config = await collection.config
       .addReference({
@@ -442,12 +442,12 @@ describe('Testing of the collection.config namespace', () => {
           dataType: 'text',
         },
       ],
-      vectorizers: weaviate.configure.vectorizers.none(),
+      vectorizers: weaviate.configure.vectorizer.none(),
     });
     const config = await collection.config
       .update({
         vectorizers: [
-          weaviate.reconfigure.vectorizers.update('default', {
+          weaviate.reconfigure.vectorizer.update('default', {
             vectorIndexConfig: weaviate.reconfigure.vectorIndex.hnsw({
               quantizer: weaviate.reconfigure.vectorIndex.quantizer.pq(),
               ef: 4,
@@ -498,7 +498,7 @@ describe('Testing of the collection.config namespace', () => {
       },
     });
     expect(config.vectorizers.default.indexType).toEqual('hnsw');
-    expect(config.vectorizers.default.vectorizers.name).toEqual('none');
+    expect(config.vectorizers.default.vectorizer.name).toEqual('none');
   });
 
   it('should be able update the config of a collection with legacy vectors', async () => {
@@ -566,6 +566,6 @@ describe('Testing of the collection.config namespace', () => {
       },
     });
     expect(config.vectorizers.default.indexType).toEqual('hnsw');
-    expect(config.vectorizers.default.vectorizers.name).toEqual('none');
+    expect(config.vectorizers.default.vectorizer.name).toEqual('none');
   });
 });
