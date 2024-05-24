@@ -446,7 +446,7 @@ describe('Testing of the collection.config namespace', () => {
     });
     const config = await collection.config
       .update({
-        vectorizer: [
+        vectorizers: [
           weaviate.reconfigure.vectorizer.update('default', {
             vectorIndexConfig: weaviate.reconfigure.vectorIndex.hnsw({
               quantizer: weaviate.reconfigure.vectorIndex.quantizer.pq(),
@@ -518,7 +518,7 @@ describe('Testing of the collection.config namespace', () => {
     });
     const config = await collection.config
       .update({
-        vectorizer: weaviate.reconfigure.vectorIndex.hnsw({
+        vectorizers: weaviate.reconfigure.vectorIndex.hnsw({
           quantizer: weaviate.reconfigure.vectorIndex.quantizer.pq(),
           ef: 4,
         }),

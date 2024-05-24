@@ -117,7 +117,7 @@ export const classToCollection = <T>(cls: WeaviateClass): CollectionConfig => {
     replication: ConfigGuards.replication(cls.replicationConfig),
     reranker: ConfigGuards.reranker(cls.moduleConfig),
     sharding: ConfigGuards.sharding(cls.shardingConfig),
-    vectorizer: ConfigGuards.vectorizer(cls),
+    vectorizers: ConfigGuards.vectorizer(cls),
   };
 };
 

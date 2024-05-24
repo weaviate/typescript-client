@@ -92,12 +92,12 @@ export type CollectionConfig = {
   replication: ReplicationConfig;
   reranker?: RerankerConfig;
   sharding: ShardingConfig;
-  vectorizer: VectorConfig;
+  vectorizers: VectorConfig;
 };
 
 export type CollectionConfigUpdate = {
   description?: string;
   invertedIndex?: InvertedIndexConfigUpdate;
   replication?: ReplicationConfigUpdate;
-  vectorizer?: LegacyVectorizerConfigUpdate | VectorConfigUpdate<string, VectorIndexType>[];
+  vectorizers?: LegacyVectorizerConfigUpdate | VectorConfigUpdate<string, VectorIndexType>[];
 };

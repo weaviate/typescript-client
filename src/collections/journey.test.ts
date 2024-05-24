@@ -155,7 +155,7 @@ describe('Journey testing of the client using a WCD cluster', () => {
             strategy: 'hash',
             function: 'murmur3',
           },
-          vectorizer: {
+          vectorizers: {
             default: {
               vectorizer: {
                 name: 'text2vec-cohere',
