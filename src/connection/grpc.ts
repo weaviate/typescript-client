@@ -142,20 +142,18 @@ export const grpcClient = (config: GrpcConnectionParams): GrpcClient => {
         tenant
       ),
     health: () => {
-      const abort = new AbortController();
-      const timeoutId = setTimeout(() => abort.abort(), (config.timeout?.init || 2) * 1000);
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), (config.timeout?.init || 2) * 1000);
       return health
-        .check({ service: '/grpc.health.v1.Health/Check' }, { signal: abort.signal })
-        .then((res) => {
-          clearTimeout(timeoutId);
-          return res.status === HealthCheckResponse_ServingStatus.SERVING;
-        })
+        .check({ service: '/grpc.health.v1.Health/Check' }, { signal: controller.signal })
+        .then((res) => res.status === HealthCheckResponse_ServingStatus.SERVING)
         .catch((err) => {
           if (isAbortError(err)) {
             throw new WeaviateGRPCUnavailableError(config.grpcAddress);
           }
           throw err;
-        });
+        })
+        .finally(() => clearTimeout(timeoutId));
     },
     search: (
       collection: string,

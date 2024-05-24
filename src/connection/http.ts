@@ -210,26 +210,16 @@ const fetchWithTimeout = (
   init?: RequestInit | undefined
 ): Promise<Response> => {
   const controller = new AbortController();
-  const signal = controller.signal;
-  init = init || {};
-  init.signal = signal; // Attach the signal to the fetch request options
-
   // Set a timeout to abort the request
-  const timeoutId = setTimeout(() => {
-    controller.abort();
-  }, timeout * 1000);
-
-  return fetch(input, init)
-    .then((response) => {
-      clearTimeout(timeoutId); // Clear the timeout if the fetch completes in time
-      return response;
-    })
+  const timeoutId = setTimeout(() => controller.abort(), timeout * 1000);
+  return fetch(input, { ...init, signal: controller.signal })
     .catch((error) => {
       if (isAbortError(error)) {
         throw new WeaviateRequestTimeoutError(`Request timed out after ${timeout}ms`);
       }
       throw error; // For other errors, rethrow them
-    });
+    })
+    .finally(() => clearTimeout(timeoutId));
 };
 
 export const httpClient = (config: ConnectionParams): HttpClient => {

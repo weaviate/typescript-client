@@ -25,7 +25,7 @@ export default class TenantsManager extends Base implements TenantsManager {
     this.call(TenantsGetRequest.fromPartial({ names: args.names ? { values: args.names } : undefined }));
 
   private call(message: TenantsGetRequest) {
-    return this.sendWithTimeout(() =>
+    return this.sendWithTimeout((signal: AbortSignal) =>
       this.connection.tenantsGet(
         {
           ...message,
@@ -33,6 +33,7 @@ export default class TenantsManager extends Base implements TenantsManager {
         },
         {
           metadata: this.metadata,
+          signal,
         }
       )
     );

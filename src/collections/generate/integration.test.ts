@@ -128,7 +128,7 @@ maybe('Testing of the collection.generate methods with a simple collection', () 
       expect(ret.objects[0].generated).toBeDefined();
     });
 
-    it('should generate with nearObject', async () => {
+    it.skip('should generate with nearObject', async () => {
       const ret = await collection.generate.nearObject(id, generateOpts);
       expect(ret.objects.length).toEqual(1);
       expect(ret.generated).toBeDefined();

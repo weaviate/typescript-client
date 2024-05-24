@@ -42,7 +42,7 @@ export default class Batcher extends Base implements Batch {
   public withObjects = (args: BatchObjectsArgs) => this.callObjects(BatchObjectsRequest.fromPartial(args));
 
   private callDelete(message: BatchDeleteRequest) {
-    return this.sendWithTimeout(() =>
+    return this.sendWithTimeout((signal: AbortSignal) =>
       this.connection.batchDelete(
         {
           ...message,
@@ -52,6 +52,7 @@ export default class Batcher extends Base implements Batch {
         },
         {
           metadata: this.metadata,
+          signal,
         }
       )
     ).catch((err) => {
@@ -60,7 +61,7 @@ export default class Batcher extends Base implements Batch {
   }
 
   private callObjects(message: BatchObjectsRequest) {
-    return this.sendWithTimeout(() =>
+    return this.sendWithTimeout((signal: AbortSignal) =>
       this.connection
         .batchObjects(
           {
@@ -69,6 +70,7 @@ export default class Batcher extends Base implements Batch {
           },
           {
             metadata: this.metadata,
+            signal,
           }
         )
         .catch((err) => {

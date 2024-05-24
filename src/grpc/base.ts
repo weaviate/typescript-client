@@ -43,10 +43,10 @@ export default class Base {
     }
   }
 
-  protected sendWithTimeout = <T>(send: () => Promise<T>): Promise<T> => {
-    const abortController = new AbortController();
-    const timeoutId = setTimeout(() => abortController.abort(), this.timeout * 1000);
-    return send()
+  protected sendWithTimeout = <T>(send: (signal: AbortSignal) => Promise<T>): Promise<T> => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), this.timeout * 1000);
+    return send(controller.signal)
       .catch((error) => {
         if (isAbortError(error)) {
           throw new WeaviateRequestTimeoutError(`timed out after ${this.timeout}ms`);

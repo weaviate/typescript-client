@@ -137,7 +137,7 @@ export default class Searcher extends Base implements Search {
   public withNearVideo = (args: SearchNearVideoArgs) => this.call(SearchRequest.fromPartial(args));
 
   private call(message: SearchRequest) {
-    return this.sendWithTimeout(() =>
+    return this.sendWithTimeout((signal: AbortSignal) =>
       this.connection
         .search(
           {
@@ -150,6 +150,7 @@ export default class Searcher extends Base implements Search {
           },
           {
             metadata: this.metadata,
+            signal,
           }
         )
         .catch((err) => {
