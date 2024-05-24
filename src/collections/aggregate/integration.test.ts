@@ -37,18 +37,7 @@ describe('Testing of the collection.aggregate methods', () => {
   });
 
   beforeAll(async () => {
-    client = await weaviate.client({
-      rest: {
-        secure: false,
-        host: 'localhost',
-        port: 8080,
-      },
-      grpc: {
-        secure: false,
-        host: 'localhost',
-        port: 50051,
-      },
-    });
+    client = await weaviate.connectToLocal();
     collection = client.collections.get(collectionName);
     return client.collections
       .create({
@@ -307,18 +296,7 @@ describe('Testing of the collection.aggregate methods with named vectors', () =>
   });
 
   beforeAll(async () => {
-    client = await weaviate.client({
-      rest: {
-        secure: false,
-        host: 'localhost',
-        port: 8080,
-      },
-      grpc: {
-        secure: false,
-        host: 'localhost',
-        port: 50051,
-      },
-    });
+    client = await weaviate.connectToLocal();
     collection = client.collections.get(collectionName);
     return client.collections.create<TestCollectionAggregateVectors>({
       name: collectionName,

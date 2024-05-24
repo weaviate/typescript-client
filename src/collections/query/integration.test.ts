@@ -26,18 +26,7 @@ describe('Testing of the collection.query methods with a simple collection', () 
   });
 
   beforeAll(async () => {
-    client = await weaviate.client({
-      rest: {
-        secure: false,
-        host: 'localhost',
-        port: 8080,
-      },
-      grpc: {
-        secure: false,
-        host: 'localhost',
-        port: 50051,
-      },
-    });
+    client = await weaviate.connectToLocal();
     collection = client.collections.get(collectionName);
     id = await client.collections
       .create({
@@ -216,18 +205,7 @@ describe('Testing of the collection.query methods with a collection with a refer
   });
 
   beforeAll(async () => {
-    client = await weaviate.client({
-      rest: {
-        secure: false,
-        host: 'localhost',
-        port: 8080,
-      },
-      grpc: {
-        secure: false,
-        host: 'localhost',
-        port: 50051,
-      },
-    });
+    client = await weaviate.connectToLocal();
     collection = client.collections.get(collectionName);
     return client.collections
       .create({
@@ -446,18 +424,7 @@ describe('Testing of the collection.query methods with a collection with a refer
     });
 
     beforeAll(async () => {
-      client = await weaviate.client({
-        rest: {
-          secure: false,
-          host: 'localhost',
-          port: 8080,
-        },
-        grpc: {
-          secure: false,
-          host: 'localhost',
-          port: 50051,
-        },
-      });
+      client = await weaviate.connectToLocal();
       collection = client.collections.get(collectionName);
       return client.collections
         .create<TestCollectionQueryWithNestedProps>({
@@ -582,18 +549,7 @@ describe('Testing of the collection.query methods with a collection with a refer
     });
 
     beforeAll(async () => {
-      client = await weaviate.client({
-        rest: {
-          secure: false,
-          host: 'localhost',
-          port: 8080,
-        },
-        grpc: {
-          secure: false,
-          host: 'localhost',
-          port: 50051,
-        },
-      });
+      client = await weaviate.connectToLocal();
       collection = client.collections.get(collectionName);
       return client.collections
         .create<TestCollectionQueryWithMultiVector>({
@@ -688,18 +644,7 @@ describe('Testing of the groupBy collection.query methods with a simple collecti
   });
 
   beforeAll(async () => {
-    client = await weaviate.client({
-      rest: {
-        secure: false,
-        host: 'localhost',
-        port: 8080,
-      },
-      grpc: {
-        secure: false,
-        host: 'localhost',
-        port: 50051,
-      },
-    });
+    client = await weaviate.connectToLocal();
     collection = client.collections.get(collectionName);
     id = await client.collections
       .create({
