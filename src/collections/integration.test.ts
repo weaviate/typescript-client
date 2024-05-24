@@ -109,6 +109,22 @@ describe('Testing of the collections.create method', () => {
     await contextionary.collections.delete(collectionName);
   });
 
+  it('should be able to create a simple collection without a generic and no properties', async () => {
+    const collectionName = 'TestCollectionSimpleNonGeneric';
+    const response = await contextionary.collections
+      .create({
+        name: collectionName,
+      })
+      .then(() => contextionary.collections.get(collectionName).config.get());
+    expect(response.name).toEqual(collectionName);
+    expect(response.properties?.length).toEqual(0);
+    expect(response.vectorizers.default.indexConfig).toBeDefined();
+    expect(response.vectorizers.default.indexType).toEqual('hnsw');
+    expect(response.vectorizers.default.vectorizer.name).toEqual('text2vec-contextionary');
+
+    await contextionary.collections.delete(collectionName);
+  });
+
   it('should be able to create a simple collection without a generic using a schema var', async () => {
     const collectionName = 'TestCollectionSimpleNonGenericVar';
     const schema = {
