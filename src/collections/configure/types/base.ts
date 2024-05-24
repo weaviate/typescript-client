@@ -108,7 +108,7 @@ export type PropertyConfigCreate<T> = T extends undefined
     }[NonRefKeys<T>];
 
 type ReferenceConfigBaseCreate<T> = {
-  name: T extends Properties ? RefKeys<T> : string;
+  name: T extends undefined ? string : RefKeys<T>;
   description?: string;
 };
 
