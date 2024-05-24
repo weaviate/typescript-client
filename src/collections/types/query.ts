@@ -40,7 +40,7 @@ export type QueryMetadata = 'all' | MetadataKeys | undefined;
 
 export type ReturnMetadata = Partial<Metadata>;
 
-export type WeaviateObjectType<T extends Properties> = {
+export type WeaviateGenericObject<T extends Properties> = {
   properties: ReturnProperties<T>;
   metadata: ReturnMetadata | undefined;
   references: ReturnReferences<T> | undefined;
@@ -67,7 +67,7 @@ export type ReturnVectors<V> = V extends string[]
   : Record<string, number[]>;
 
 export type WeaviateObject<T> = T extends Record<string, any>
-  ? WeaviateObjectType<T>
+  ? WeaviateGenericObject<T>
   : WeaviateNonGenericObject;
 
 export type WeaviateReturn<T> = {

@@ -1,7 +1,7 @@
 import { Properties } from './index.js';
-import { GroupByObject, GroupByResult, WeaviateObjectType, WeaviateNonGenericObject } from './query.js';
+import { GroupByObject, GroupByResult, WeaviateGenericObject, WeaviateNonGenericObject } from './query.js';
 
-export type GenerativeObjectType<T extends Properties> = WeaviateObjectType<T> & {
+export type GenerativeGenericObject<T extends Properties> = WeaviateGenericObject<T> & {
   generated?: string;
 };
 
@@ -10,7 +10,7 @@ export type GenerativeNonGenericObject = WeaviateNonGenericObject & {
 };
 
 export type GenerativeObject<T> = T extends Record<string, any>
-  ? GenerativeObjectType<T>
+  ? GenerativeGenericObject<T>
   : GenerativeNonGenericObject;
 
 export type GenerativeReturn<T> = {
