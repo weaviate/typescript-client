@@ -30,21 +30,21 @@ export class MergeWithExisting {
         current.replicationConfig!,
         update.replication
       );
-    if (update.vectorizer !== undefined) {
-      if (Array.isArray(update.vectorizer)) {
-        current.vectorConfig = MergeWithExisting.vectors(current.vectorConfig, update.vectorizer);
-      } else if (update.vectorizer.name === 'hnsw') {
+    if (update.vectorizers !== undefined) {
+      if (Array.isArray(update.vectorizers)) {
+        current.vectorConfig = MergeWithExisting.vectors(current.vectorConfig, update.vectorizers);
+      } else if (update.vectorizers.name === 'hnsw') {
         current.vectorIndexConfig = MergeWithExisting.hnsw(
           current.vectorIndexConfig,
-          update.vectorizer.config
+          update.vectorizers.config
         );
-      } else if (update.vectorizer.name === 'flat') {
+      } else if (update.vectorizers.name === 'flat') {
         current.vectorIndexConfig = MergeWithExisting.flat(
           current.vectorIndexConfig,
-          update.vectorizer.config
+          update.vectorizers.config
         );
       } else {
-        throw Error(`Cannot update vector index config with unknown type ${update.vectorizer.name}`);
+        throw Error(`Cannot update vector index config with unknown type ${update.vectorizers.name}`);
       }
     }
     return current;
