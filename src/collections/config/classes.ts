@@ -17,7 +17,11 @@ import {
 import { QuantizerGuards } from '../configure/parsing.js';
 
 export class MergeWithExisting {
-  static schema(current: WeaviateClass, update?: CollectionConfigUpdate): WeaviateClass {
+  static schema(
+    current: WeaviateClass,
+    supportsNamedVectors: boolean,
+    update?: CollectionConfigUpdate
+  ): WeaviateClass {
     if (update === undefined) return current;
     if (update.description !== undefined) current.description = update.description;
     if (update.invertedIndex !== undefined)
@@ -33,12 +37,17 @@ export class MergeWithExisting {
     if (update.vectorizers !== undefined) {
       if (Array.isArray(update.vectorizers)) {
         current.vectorConfig = MergeWithExisting.vectors(current.vectorConfig, update.vectorizers);
-      } else {
+      } else if (supportsNamedVectors) {
         const updateVectorizers = {
           ...update.vectorizers,
           vectorName: 'default',
         };
         current.vectorConfig = MergeWithExisting.vectors(current.vectorConfig, [updateVectorizers]);
+      } else {
+        current.vectorIndexConfig =
+          update.vectorizers?.vectorIndex.name === 'hnsw'
+            ? MergeWithExisting.hnsw(current.vectorIndexConfig, update.vectorizers.vectorIndex.config)
+            : MergeWithExisting.flat(current.vectorIndexConfig, update.vectorizers.vectorIndex.config);
       }
     }
     return current;

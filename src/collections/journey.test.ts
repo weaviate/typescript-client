@@ -174,6 +174,7 @@ describe('Journey testing of the client using a WCD cluster', () => {
                 skip: false,
                 vectorCacheMaxObjects: 1000000000000,
                 quantizer: undefined,
+                type: 'hnsw',
               },
               indexType: 'hnsw',
             },

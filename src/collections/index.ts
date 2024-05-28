@@ -24,12 +24,15 @@ import {
   VectorIndexConfigDynamicCreate,
   VectorIndexConfigFlatCreate,
   VectorIndexConfigHNSWCreate,
+  VectorConfigCreate,
 } from './types/index.js';
 import ClassExists from '../schema/classExists.js';
 import { classToCollection, resolveProperty, resolveReference } from './config/utils.js';
 import { WeaviateClass } from '../openapi/types.js';
 import { QuantizerGuards } from './configure/parsing.js';
 import { WeaviateInvalidInputError, WeaviateUnsupportedFeatureError } from '../errors.js';
+import { PrimitiveKeys } from './types/internal.js';
+import { configGuards } from './index.js';
 
 /**
  * All the options available when creating a new collection.
@@ -105,6 +108,15 @@ const parseVectorIndex = (module: ModuleConfig<VectorIndexType, VectorIndexConfi
   }
 };
 
+const parseVectorizerConfig = (config?: VectorizerConfig): any => {
+  if (config === undefined) return {};
+  const { vectorizeCollectionName, ...rest } = config as any;
+  return {
+    ...rest,
+    vectorizeClassName: vectorizeCollectionName,
+  };
+};
+
 const collections = (connection: Connection, dbVersionSupport: DbVersionSupport) => {
   const listAll = () =>
     new SchemaGetter(connection)
@@ -118,6 +130,8 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
       const { name, invertedIndex, multiTenancy, replication, sharding, ...rest } = config;
 
       const supportsDynamicVectorIndex = await dbVersionSupport.supportsDynamicVectorIndex();
+      const supportsNamedVectors = await dbVersionSupport.supportsNamedVectors();
+      const supportsHNSWAndBQ = await dbVersionSupport.supportsHNSWAndBQ();
 
       const moduleConfig: any = {};
       if (config.generative) {
@@ -148,11 +162,9 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
             vectorizer: {},
           };
           vectorizers = [...vectorizers, v.vectorizer.name];
-          const vectorizeClassName = (v.vectorizer.config as any)?.vectorizeCollectionName;
-          delete (v.vectorizer.config as any)?.vectorizeCollectionName;
           vectorConfig.vectorizer[v.vectorizer.name] = {
             properties: v.properties,
-            ...(v.vectorizer.config ? { ...v.vectorizer.config, vectorizeClassName } : {}),
+            ...parseVectorizerConfig(v.vectorizer.config),
           };
           if (v.vectorName === undefined) {
             throw new WeaviateInvalidInputError(
@@ -164,26 +176,86 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
         return { vectorsConfig, vectorizers };
       };
 
-      const { vectorsConfig, vectorizers } = config.vectorizers
-        ? makeVectorsConfig(config.vectorizers)
-        : { vectorsConfig: undefined, vectorizers: [] };
+      const makeLegacyVectorizer = (
+        configVectorizers: VectorConfigCreate<PrimitiveKeys<TProperties>, undefined, string, Vectorizer>
+      ) => {
+        const vectorizer = configVectorizers.vectorizer.name;
+        const moduleConfig: any = {};
+        moduleConfig[vectorizer] = parseVectorizerConfig(configVectorizers.vectorizer.config);
 
-      const properties = config.properties
-        ? config.properties.map((prop) => resolveProperty<TProperties>(prop as any, vectorizers))
-        : [];
-      const references = config.references ? config.references.map(resolveReference<TProperties>) : [];
+        const vectorIndexConfig = parseVectorIndex(configVectorizers.vectorIndex);
+        const vectorIndexType = configVectorizers.vectorIndex.name;
 
-      const schema = {
+        if (
+          vectorIndexType === 'hnsw' &&
+          configVectorizers.vectorIndex.config !== undefined &&
+          configGuards.quantizer.isBQ(configVectorizers.vectorIndex.config.quantizer as any)
+        ) {
+          if (!supportsHNSWAndBQ.supports) {
+            throw new WeaviateUnsupportedFeatureError(supportsHNSWAndBQ.message);
+          }
+        }
+
+        if (vectorIndexType === 'dynamic' && !supportsDynamicVectorIndex.supports) {
+          throw new WeaviateUnsupportedFeatureError(supportsDynamicVectorIndex.message);
+        }
+
+        return {
+          vectorizer,
+          moduleConfig,
+          vectorIndexConfig,
+          vectorIndexType,
+        };
+      };
+
+      let schema: any = {
         ...rest,
         class: name,
         invertedIndexConfig: invertedIndex,
         moduleConfig: moduleConfig,
         multiTenancyConfig: multiTenancy,
-        properties: [...properties, ...references],
         replicationConfig: replication,
         shardingConfig: sharding,
-        vectorConfig: vectorsConfig,
       };
+      let vectorizers: string[] = [];
+      if (supportsNamedVectors.supports) {
+        const { vectorsConfig, vectorizers: vecs } = config.vectorizers
+          ? makeVectorsConfig(config.vectorizers)
+          : { vectorsConfig: undefined, vectorizers: [] };
+        schema.vectorConfig = vectorsConfig;
+        vectorizers = [...vecs];
+      } else {
+        if (config.vectorizers !== undefined && Array.isArray(config.vectorizers)) {
+          throw new WeaviateUnsupportedFeatureError(supportsNamedVectors.message);
+        }
+        const configs = config.vectorizers
+          ? makeLegacyVectorizer(config.vectorizers)
+          : {
+              vectorizer: undefined,
+              moduleConfig: undefined,
+              vectorIndexConfig: undefined,
+              vectorIndexType: undefined,
+            };
+        schema = {
+          ...schema,
+          moduleConfig: {
+            ...schema.moduleConfig,
+            ...configs.moduleConfig,
+          },
+          vectorizer: configs.vectorizer,
+          vectorIndexConfig: configs.vectorIndexConfig,
+          vectorIndexType: configs.vectorIndexType,
+        };
+        if (configs.vectorizer !== undefined) {
+          vectorizers = [configs.vectorizer];
+        }
+      }
+      const properties = config.properties
+        ? config.properties.map((prop) => resolveProperty<TProperties>(prop as any, vectorizers))
+        : [];
+      const references = config.references ? config.references.map(resolveReference<TProperties>) : [];
+      schema.properties = [...properties, ...references];
+
       await new ClassCreator(connection).withClass(schema).do();
       return collection<TProperties, TName>(connection, name, dbVersionSupport);
     },

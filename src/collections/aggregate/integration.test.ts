@@ -4,6 +4,7 @@ import weaviate, { AggregateText, WeaviateClient } from '../../index.js';
 import { DataObject } from '../types/index.js';
 import { CrossReference } from '../references/index.js';
 import { Collection } from '../collection/index.js';
+import { WeaviateUnsupportedFeatureError } from '../../errors.js';
 
 describe('Testing of the collection.aggregate methods', () => {
   type TestCollectionAggregate = {
@@ -298,25 +299,34 @@ describe('Testing of the collection.aggregate methods with named vectors', () =>
   beforeAll(async () => {
     client = await weaviate.connectToLocal();
     collection = client.collections.get(collectionName);
-    return client.collections.create<TestCollectionAggregateVectors>({
-      name: collectionName,
-      properties: [
-        {
-          name: 'text',
-          dataType: 'text',
-        },
-      ],
-      vectorizers: [
-        weaviate.configure.vectorizer.text2VecContextionary({
-          name: 'text',
-          sourceProperties: ['text'],
-          vectorIndexConfig: weaviate.configure.vectorIndex.hnsw(),
-        }),
-      ],
-    });
+    const query = () =>
+      client.collections.create<TestCollectionAggregateVectors>({
+        name: collectionName,
+        properties: [
+          {
+            name: 'text',
+            dataType: 'text',
+          },
+        ],
+        vectorizers: [
+          weaviate.configure.vectorizer.text2VecContextionary({
+            name: 'text',
+            sourceProperties: ['text'],
+            vectorIndexConfig: weaviate.configure.vectorIndex.hnsw(),
+          }),
+        ],
+      });
+    if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 24, 0))) {
+      await expect(query()).rejects.toThrow(WeaviateUnsupportedFeatureError);
+      return;
+    }
+    return query();
   });
 
   it('should aggregate data with a near text search over a named vector', async () => {
+    if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 24, 0))) {
+      return;
+    }
     const result = await collection.aggregate.nearText('test', { certainty: 0.9, targetVector: 'text' });
     expect(result.totalCount).toEqual(0);
   });

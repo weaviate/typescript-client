@@ -80,6 +80,15 @@ export class DbVersionSupport {
       };
     });
 
+  supportsHNSWAndBQ = () =>
+    this.dbVersionProvider.getVersion().then((version) => {
+      return {
+        version: version,
+        supports: version.isAtLeast(1, 24, 0),
+        message: this.errorMessage('HNSW index and BQ quantizer', version.show(), '1.24.0'),
+      };
+    });
+
   supportsBm25AndHybridGroupByQueries = () =>
     this.dbVersionProvider.getVersion().then((version) => {
       return {

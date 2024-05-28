@@ -107,17 +107,17 @@ export const resolveReference = <T>(
 
 export const classToCollection = <T>(cls: WeaviateClass): CollectionConfig => {
   return {
-    name: ConfigGuards._name(cls.class),
+    name: ConfigMapping._name(cls.class),
     description: cls.description,
-    generative: ConfigGuards.generative(cls.moduleConfig),
-    invertedIndex: ConfigGuards.invertedIndex(cls.invertedIndexConfig),
-    multiTenancy: ConfigGuards.multiTenancy(cls.multiTenancyConfig),
-    properties: ConfigGuards.properties(cls.properties),
-    references: ConfigGuards.references(cls.properties),
-    replication: ConfigGuards.replication(cls.replicationConfig),
-    reranker: ConfigGuards.reranker(cls.moduleConfig),
-    sharding: ConfigGuards.sharding(cls.shardingConfig),
-    vectorizers: ConfigGuards.vectorizer(cls),
+    generative: ConfigMapping.generative(cls.moduleConfig),
+    invertedIndex: ConfigMapping.invertedIndex(cls.invertedIndexConfig),
+    multiTenancy: ConfigMapping.multiTenancy(cls.multiTenancyConfig),
+    properties: ConfigMapping.properties(cls.properties),
+    references: ConfigMapping.references(cls.properties),
+    replication: ConfigMapping.replication(cls.replicationConfig),
+    reranker: ConfigMapping.reranker(cls.moduleConfig),
+    sharding: ConfigMapping.sharding(cls.shardingConfig),
+    vectorizers: ConfigMapping.vectorizer(cls),
   };
 };
 
@@ -129,7 +129,7 @@ function exists<T>(v: any): v is T {
   return v !== undefined && v !== null;
 }
 
-class ConfigGuards {
+class ConfigMapping {
   static _name(v?: string): string {
     if (v === undefined)
       throw new WeaviateDeserializationError('Collection name was not returned by Weaviate');
@@ -200,8 +200,8 @@ class ConfigGuards {
           },
         },
         properties: properties,
-        indexConfig: ConfigGuards.vectorIndex(v[key].vectorIndexConfig, v[key].vectorIndexType),
-        indexType: ConfigGuards.vectorIndexType(v[key].vectorIndexType),
+        indexConfig: ConfigMapping.vectorIndex(v[key].vectorIndexConfig, v[key].vectorIndexType),
+        indexType: ConfigMapping.vectorIndexType(v[key].vectorIndexType),
       };
     });
     return out;
@@ -209,7 +209,7 @@ class ConfigGuards {
   static vectorizer(v?: WeaviateClass): VectorConfig {
     if (!populated(v)) throw new WeaviateDeserializationError('Schema was not returned by Weaviate');
     if (populated(v.vectorConfig)) {
-      return ConfigGuards.namedVectors(v.vectorConfig);
+      return ConfigMapping.namedVectors(v.vectorConfig);
     }
     if (!populated(v.vectorizer))
       throw new WeaviateDeserializationError('Vectorizer was not returned by Weaviate');
@@ -223,10 +223,15 @@ class ConfigGuards {
               }
             : {
                 name: v.vectorizer,
-                config: v.moduleConfig ? (v.moduleConfig[v.vectorizer] as VectorizerConfig) : undefined,
+                config: v.moduleConfig
+                  ? ({
+                      ...(v.moduleConfig[v.vectorizer] as any),
+                      vectorizeCollectionName: (v.moduleConfig[v.vectorizer] as any).vectorizeClassName,
+                    } as VectorizerConfig)
+                  : undefined,
               },
-        indexConfig: ConfigGuards.vectorIndex(v.vectorIndexConfig, v.vectorIndexType),
-        indexType: ConfigGuards.vectorIndexType(v.vectorIndexType),
+        indexConfig: ConfigMapping.vectorIndex(v.vectorIndexConfig, v.vectorIndexType),
+        indexType: ConfigMapping.vectorIndexType(v.vectorIndexType),
       },
     };
   }
@@ -236,9 +241,9 @@ class ConfigGuards {
     if (!populated(v.cleanupIntervalSeconds))
       throw new WeaviateDeserializationError('Inverted index cleanup interval was not returned by Weaviate');
     return {
-      bm25: ConfigGuards.bm25(v.bm25),
+      bm25: ConfigMapping.bm25(v.bm25),
       cleanupIntervalSeconds: v.cleanupIntervalSeconds,
-      stopwords: ConfigGuards.stopwords(v.stopwords),
+      stopwords: ConfigMapping.stopwords(v.stopwords),
       indexNullState: v.indexNullState ? v.indexNullState : false,
       indexPropertyLength: v.indexPropertyLength ? v.indexPropertyLength : false,
       indexTimestamps: v.indexTimestamps ? v.indexTimestamps : false,
@@ -319,7 +324,7 @@ class ConfigGuards {
       segments: v.segments,
       centroids: v.centroids,
       trainingLimit: v.trainingLimit,
-      encoder: ConfigGuards.pqEncoder(v.encoder),
+      encoder: ConfigMapping.pqEncoder(v.encoder),
       type: 'pq',
     };
   }
@@ -351,9 +356,9 @@ class ConfigGuards {
       );
     let quantizer: PQConfig | BQConfig | undefined;
     if (exists<Record<string, any>>(v.pq) && v.pq.enabled === true) {
-      quantizer = ConfigGuards.pq(v.pq);
+      quantizer = ConfigMapping.pq(v.pq);
     } else if (exists<Record<string, any>>(v.bq) && v.bq.enabled === true) {
-      quantizer = ConfigGuards.bq(v.bq);
+      quantizer = ConfigMapping.bq(v.bq);
     } else {
       quantizer = undefined;
     }
@@ -370,6 +375,7 @@ class ConfigGuards {
       quantizer: quantizer,
       skip: v.skip,
       vectorCacheMaxObjects: v.vectorCacheMaxObjects,
+      type: 'hnsw',
     };
   }
   static bq(v?: Record<string, unknown>): BQConfig | undefined {
@@ -398,7 +404,8 @@ class ConfigGuards {
     return {
       vectorCacheMaxObjects: v.vectorCacheMaxObjects,
       distance: v.distance,
-      quantizer: ConfigGuards.bq(v.bq),
+      quantizer: ConfigMapping.bq(v.bq),
+      type: 'flat',
     };
   }
   static vectorIndexDynamic(v: WeaviateVectorIndexConfig): VectorIndexConfigDynamic {
@@ -413,18 +420,19 @@ class ConfigGuards {
       throw new WeaviateDeserializationError('Vector index flat was not returned by Weaviate');
     return {
       distance: v.distance,
-      hnsw: ConfigGuards.vectorIndexHNSW(v.hnsw),
-      flat: ConfigGuards.vectorIndexFlat(v.flat),
+      hnsw: ConfigMapping.vectorIndexHNSW(v.hnsw),
+      flat: ConfigMapping.vectorIndexFlat(v.flat),
       threshold: v.threshold,
+      type: 'dynamic',
     };
   }
   static vectorIndex<I>(v: WeaviateVectorIndexConfig, t?: string): VectorIndexConfigType<I> {
     if (t === 'hnsw') {
-      return ConfigGuards.vectorIndexHNSW(v) as VectorIndexConfigType<I>;
+      return ConfigMapping.vectorIndexHNSW(v) as VectorIndexConfigType<I>;
     } else if (t === 'flat') {
-      return ConfigGuards.vectorIndexFlat(v) as VectorIndexConfigType<I>;
+      return ConfigMapping.vectorIndexFlat(v) as VectorIndexConfigType<I>;
     } else if (t === 'dynamic') {
-      return ConfigGuards.vectorIndexDynamic(v) as VectorIndexConfigType<I>;
+      return ConfigMapping.vectorIndexDynamic(v) as VectorIndexConfigType<I>;
     } else {
       return v as VectorIndexConfigType<I>;
     }
@@ -461,7 +469,7 @@ class ConfigGuards {
               : (prop.moduleConfig as PropertyVectorizerConfig)
             : undefined,
           nestedProperties: prop.nestedProperties
-            ? ConfigGuards.properties(prop.nestedProperties)
+            ? ConfigMapping.properties(prop.nestedProperties)
             : undefined,
           tokenization: prop.tokenization ? prop.tokenization : 'none',
         };

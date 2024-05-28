@@ -11,12 +11,14 @@ export type VectorIndexConfigHNSW = {
   quantizer: PQConfig | BQConfig | undefined;
   skip: boolean;
   vectorCacheMaxObjects: number;
+  type: 'hnsw';
 };
 
 export type VectorIndexConfigFlat = {
   distance: VectorDistance;
   vectorCacheMaxObjects: number;
   quantizer: BQConfig | undefined;
+  type: 'flat';
 };
 
 export type VectorIndexConfigDynamic = {
@@ -24,6 +26,7 @@ export type VectorIndexConfigDynamic = {
   threshold: number;
   hnsw: VectorIndexConfigHNSW;
   flat: VectorIndexConfigFlat;
+  type: 'dynamic';
 };
 
 export type VectorIndexConfigType<I> = I extends 'hnsw'

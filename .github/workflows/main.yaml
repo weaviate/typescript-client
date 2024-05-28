@@ -7,6 +7,7 @@ on:
   pull_request:
 
 env:
+  WEAVIATE_123: 1.23.14
   WEAVIATE_124: preview-fix-extracting-near-object-vector-for-named-vector-classes-99cc1a9
   WEAVIATE_125: 1.25.1
 

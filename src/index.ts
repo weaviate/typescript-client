@@ -23,6 +23,7 @@ import {
 import { ProxiesParams, TimeoutParams } from './connection/http.js';
 import MetaGetter from './misc/metaGetter.js';
 import collections, { Collections } from './collections/index.js';
+import { configGuards } from './collections/config/index.js';
 import { configure, reconfigure } from './collections/configure/index.js';
 import { Meta } from './openapi/types.js';
 
@@ -194,6 +195,7 @@ const app = {
   AuthAccessTokenCredentials,
   AuthClientCredentials,
   configure,
+  configGuards,
   reconfigure,
 };
 

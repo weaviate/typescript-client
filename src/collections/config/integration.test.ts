@@ -63,6 +63,7 @@ describe('Testing of the collection.config namespace', () => {
       flatSearchCutoff: 40000,
       distance: 'cosine',
       quantizer: undefined,
+      type: 'hnsw',
     });
     expect(config.vectorizers.default.indexType).toEqual('hnsw');
     expect(config.vectorizers.default.vectorizer.name).toEqual('none');
@@ -115,6 +116,7 @@ describe('Testing of the collection.config namespace', () => {
       flatSearchCutoff: 40000,
       distance: 'cosine',
       quantizer: undefined,
+      type: 'hnsw',
     });
     expect(config.vectorizers.default.indexType).toEqual('hnsw');
     expect(config.vectorizers.default.vectorizer.name).toEqual('none');
@@ -122,32 +124,37 @@ describe('Testing of the collection.config namespace', () => {
 
   it('should be able to get a collection with named vectors', async () => {
     const collectionName = 'TestCollectionConfigGetVectors';
-    const collection = await client.collections.create({
-      name: collectionName,
-      properties: [
-        {
-          name: 'title',
-          dataType: 'text',
-          skipVectorization: true,
-          vectorizePropertyName: false,
-        },
-        {
-          name: 'age',
-          dataType: 'int',
-        },
-      ],
-      vectorizers: [
-        weaviate.configure.vectorizer.text2VecContextionary({
-          name: 'title',
-          sourceProperties: ['title'],
-        }),
-        weaviate.configure.vectorizer.text2VecContextionary({
-          name: 'age',
-          sourceProperties: ['age'],
-        }),
-      ],
-    });
-    const config = await collection.config.get();
+    const query = () =>
+      client.collections.create({
+        name: collectionName,
+        properties: [
+          {
+            name: 'title',
+            dataType: 'text',
+            skipVectorization: true,
+            vectorizePropertyName: false,
+          },
+          {
+            name: 'age',
+            dataType: 'int',
+          },
+        ],
+        vectorizers: [
+          weaviate.configure.vectorizer.text2VecContextionary({
+            name: 'title',
+            sourceProperties: ['title'],
+          }),
+          weaviate.configure.vectorizer.text2VecContextionary({
+            name: 'age',
+            sourceProperties: ['age'],
+          }),
+        ],
+      });
+    if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 24, 0))) {
+      await expect(query()).rejects.toThrow(WeaviateUnsupportedFeatureError);
+      return;
+    }
+    const config = await query().then((col) => col.config.get());
 
     expect(config.name).toEqual(collectionName);
     expect(config.generative).toBeUndefined();
@@ -191,15 +198,20 @@ describe('Testing of the collection.config namespace', () => {
 
   it('should be able to get the config of a collection with HNSW+BQ', async () => {
     const collectionName = 'TestCollectionConfigGetHNSWPlusBQ';
-    const collection = await client.collections.create({
-      name: collectionName,
-      vectorizers: weaviate.configure.vectorizer.none({
-        vectorIndexConfig: weaviate.configure.vectorIndex.hnsw({
-          quantizer: weaviate.configure.vectorIndex.quantizer.bq(),
+    const query = () =>
+      client.collections.create({
+        name: collectionName,
+        vectorizers: weaviate.configure.vectorizer.none({
+          vectorIndexConfig: weaviate.configure.vectorIndex.hnsw({
+            quantizer: weaviate.configure.vectorIndex.quantizer.bq(),
+          }),
         }),
-      }),
-    });
-    const config = await collection.config.get();
+      });
+    if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 24, 0))) {
+      await expect(query()).rejects.toThrow(WeaviateUnsupportedFeatureError);
+      return;
+    }
+    const config = await query().then((col) => col.config.get());
 
     const vectorIndexConfig = config.vectorizers.default.indexConfig as VectorIndexConfigHNSW;
     expect(config.name).toEqual(collectionName);
@@ -483,6 +495,7 @@ describe('Testing of the collection.config namespace', () => {
         },
         type: 'pq',
       },
+      type: 'hnsw',
     });
     expect(config.vectorizers.default.indexType).toEqual('hnsw');
     expect(config.vectorizers.default.vectorizer.name).toEqual('none');

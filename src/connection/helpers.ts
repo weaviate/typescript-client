@@ -15,6 +15,9 @@ export type ConnectToWCDOptions = {
   skipInitChecks?: boolean;
 };
 
+/** @deprecated Use `ConnectToWCDOptions` instead. */
+export type ConnectToWCSOptions = ConnectToWCDOptions;
+
 export type ConnectToLocalOptions = {
   /** The host where Weaviate is served. Assumes that the HTTP/1.1 and HTTP/2 servers are served on the same host */
   host?: string;
@@ -98,6 +101,16 @@ export function connectToWCD(
   }).catch((e) => {
     throw new WeaviateStartUpError(`Weaviate failed to startup with message: ${e.message}`);
   });
+}
+
+/** @deprecated Use `connectToWCD` instead. */
+export function connectToWCS(
+  clusterURL: string,
+  clientMaker: (params: ClientParams) => Promise<WeaviateClient>,
+  options?: ConnectToWCSOptions
+): Promise<WeaviateClient> {
+  console.warn('The `connectToWCS` method is deprecated, use `connectToWCD` instead.');
+  return connectToWCD(clusterURL, clientMaker, options);
 }
 
 export function connectToLocal(

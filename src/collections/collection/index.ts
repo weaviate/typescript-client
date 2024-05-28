@@ -117,7 +117,7 @@ const collection = <T, N>(
   return {
     aggregate: aggregate<T>(connection, capitalizedName, dbVersionSupport, consistencyLevel, tenant?.name),
     backup: backupCollection(connection, capitalizedName),
-    config: config<T>(connection, capitalizedName, tenant?.name),
+    config: config<T>(connection, capitalizedName, dbVersionSupport, tenant?.name),
     data: data<T>(connection, capitalizedName, dbVersionSupport, consistencyLevel, tenant?.name),
     filter: filter<T extends undefined ? any : T>(),
     generate: generate<T>(connection, capitalizedName, dbVersionSupport, consistencyLevel, tenant?.name),

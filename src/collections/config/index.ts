@@ -2,7 +2,16 @@ import Connection from '../../connection/index.js';
 import { WeaviateShardStatus } from '../../openapi/types.js';
 import { ClassGetter, PropertyCreator, ShardUpdater } from '../../schema/index.js';
 import ShardsGetter from '../../schema/shardsGetter.js';
-import { CollectionConfig, CollectionConfigUpdate } from './types/index.js';
+import {
+  BQConfig,
+  CollectionConfig,
+  CollectionConfigUpdate,
+  PQConfig,
+  VectorIndexConfig,
+  VectorIndexConfigDynamic,
+  VectorIndexConfigFlat,
+  VectorIndexConfigHNSW,
+} from './types/index.js';
 import {
   PropertyConfigCreate,
   ReferenceMultiTargetConfigCreate,
@@ -12,8 +21,14 @@ import { classToCollection, resolveProperty, resolveReference } from './utils.js
 import ClassUpdater from '../../schema/classUpdater.js';
 import { MergeWithExisting } from './classes.js';
 import { WeaviateDeserializationError } from '../../errors.js';
+import { DbVersionSupport } from '../../utils/dbVersion.js';
 
-const config = <T>(connection: Connection, name: string, tenant?: string): Config<T> => {
+const config = <T>(
+  connection: Connection,
+  name: string,
+  dbVersionSupport: DbVersionSupport,
+  tenant?: string
+): Config<T> => {
   const getRaw = new ClassGetter(connection).withClassName(name).do;
   return {
     addProperty: (property: PropertyConfigCreate<any>) =>
@@ -65,7 +80,13 @@ const config = <T>(connection: Connection, name: string, tenant?: string): Confi
     },
     update: (config?: CollectionConfigUpdate) => {
       return getRaw()
-        .then((current) => MergeWithExisting.schema(current, config))
+        .then(async (current) =>
+          MergeWithExisting.schema(
+            current,
+            await dbVersionSupport.supportsNamedVectors().then((s) => s.supports),
+            config
+          )
+        )
         .then((merged) => new ClassUpdater(connection).withClass(merged).do())
         .then(() => {});
     },
@@ -128,3 +149,29 @@ export interface Config<T> {
    */
   update: (config?: CollectionConfigUpdate) => Promise<void>;
 }
+
+class VectorIndex {
+  static isHNSW(config?: VectorIndexConfig): config is VectorIndexConfigHNSW {
+    return config?.type === 'hnsw';
+  }
+  static isFlat(config?: VectorIndexConfig): config is VectorIndexConfigFlat {
+    return config?.type === 'flat';
+  }
+  static isDynamic(config?: VectorIndexConfig): config is VectorIndexConfigDynamic {
+    return config?.type === 'dynamic';
+  }
+}
+
+class Quantizer {
+  static isPQ(config?: PQConfig | BQConfig): config is PQConfig {
+    return config?.type === 'pq';
+  }
+  static isBQ(config?: PQConfig | BQConfig): config is BQConfig {
+    return config?.type === 'bq';
+  }
+}
+
+export const configGuards = {
+  quantizer: Quantizer,
+  vectorIndex: VectorIndex,
+};

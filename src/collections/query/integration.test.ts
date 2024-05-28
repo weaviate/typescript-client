@@ -551,48 +551,51 @@ describe('Testing of the collection.query methods with a collection with a refer
     beforeAll(async () => {
       client = await weaviate.connectToLocal();
       collection = client.collections.get(collectionName);
-      return client.collections
-        .create<TestCollectionQueryWithMultiVector>({
-          name: collectionName,
-          properties: [
-            {
-              name: 'title',
-              dataType: 'text',
-              vectorizePropertyName: false,
-            },
-          ],
-          vectorizers: [
-            weaviate.configure.vectorizer.text2VecContextionary({
-              name: 'title',
-              sourceProperties: ['title'],
-            }),
-          ],
-        })
-        .then(async () => {
-          id1 = await collection.data.insert({
-            properties: {
-              title: 'test',
-            },
-          });
-          id2 = await collection.data.insert({
-            properties: {
-              title: 'other',
-            },
-          });
-        });
-    });
-
-    it('should query without searching returning named vector', async () => {
       const query = () =>
-        collection.query.fetchObjects({
-          returnProperties: ['title'],
-          includeVector: ['title'],
-        });
+        client.collections
+          .create<TestCollectionQueryWithMultiVector>({
+            name: collectionName,
+            properties: [
+              {
+                name: 'title',
+                dataType: 'text',
+                vectorizePropertyName: false,
+              },
+            ],
+            vectorizers: [
+              weaviate.configure.vectorizer.text2VecContextionary({
+                name: 'title',
+                sourceProperties: ['title'],
+              }),
+            ],
+          })
+          .then(async () => {
+            id1 = await collection.data.insert({
+              properties: {
+                title: 'test',
+              },
+            });
+            id2 = await collection.data.insert({
+              properties: {
+                title: 'other',
+              },
+            });
+          });
       if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 24, 0))) {
         await expect(query()).rejects.toThrow(WeaviateUnsupportedFeatureError);
         return;
       }
-      const ret = await query();
+      return query();
+    });
+
+    it('should query without searching returning named vector', async () => {
+      if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 24, 0))) {
+        return;
+      }
+      const ret = await collection.query.fetchObjects({
+        returnProperties: ['title'],
+        includeVector: ['title'],
+      });
       ret.objects.sort((a, b) => a.properties.title.localeCompare(b.properties.title));
       expect(ret.objects.length).toEqual(2);
       expect(ret.objects[0].properties.title).toEqual('other');
@@ -602,16 +605,13 @@ describe('Testing of the collection.query methods with a collection with a refer
     });
 
     it('should query with a vector search over the named vector space', async () => {
-      const query = () =>
-        collection.query.nearObject(id1, {
-          returnProperties: ['title'],
-          targetVector: 'title',
-        });
       if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 24, 0))) {
-        await expect(query()).rejects.toThrow(WeaviateUnsupportedFeatureError);
         return;
       }
-      const ret = await query();
+      const ret = await collection.query.nearObject(id1, {
+        returnProperties: ['title'],
+        targetVector: 'title',
+      });
       expect(ret.objects.length).toEqual(2);
       expect(ret.objects[0].properties.title).toEqual('test');
       expect(ret.objects[1].properties.title).toEqual('other');
