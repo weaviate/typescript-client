@@ -589,10 +589,16 @@ describe('Testing of the collection.query methods with a collection with a refer
     });
 
     it('should query returning the named vector', async () => {
-      const ret = await collection.query.fetchObjects({
-        returnProperties: ['title'],
-        includeVector: ['title'],
-      });
+      const query = () =>
+        collection.query.fetchObjects({
+          returnProperties: ['title'],
+          includeVector: ['title'],
+        });
+      if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 24, 0))) {
+        await expect(query()).rejects.toThrow(WeaviateUnsupportedFeatureError);
+        return;
+      }
+      const ret = await query();
       ret.objects.sort((a, b) => a.properties.title.localeCompare(b.properties.title));
       expect(ret.objects.length).toEqual(2);
       expect(ret.objects[0].properties.title).toEqual('other');

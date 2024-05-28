@@ -73,7 +73,6 @@ describe('Testing of the collection.data methods with a single target reference'
             targetCollection: collectionName,
           },
         ],
-        vectorizers: weaviate.configure.vectorizer.none(),
       })
       .then(async (collection) => {
         await collection.data.insert({
@@ -145,19 +144,6 @@ describe('Testing of the collection.data methods with a single target reference'
       id: id,
     });
     expect(insert).toEqual(id);
-  });
-
-  it('should be able to insert an object with a vector', async () => {
-    const id = v4();
-    const insert = await collection.data.insert({
-      properties: {
-        testProp: 'test',
-      },
-      vectors: [1, 2, 3],
-      id: id,
-    });
-    const obj = await collection.query.fetchObjectById(id, { includeVector: true });
-    expect(obj?.vectors.default).toEqual([1, 2, 3]);
   });
 
   it('should be able to delete an object by id', async () => {

@@ -40,9 +40,6 @@ jobs:
       fail-fast: false
       matrix:
         versions: [
-          { node: "18.x", weaviate: $WEAVIATE_123},
-          { node: "20.x", weaviate: $WEAVIATE_123},
-          { node: "22.x", weaviate: $WEAVIATE_123},
           { node: "18.x", weaviate: $WEAVIATE_124},
           { node: "20.x", weaviate: $WEAVIATE_124},
           { node: "22.x", weaviate: $WEAVIATE_124},
