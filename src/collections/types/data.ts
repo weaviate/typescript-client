@@ -1,10 +1,11 @@
 import { NonReferenceInputs, ReferenceInputs } from './internal.js';
+import { Vectors } from './query.js';
 
 export type DataObject<T> = {
   id?: string;
   properties?: NonReferenceInputs<T>;
   references?: ReferenceInputs<T>;
-  vector?: number[];
+  vectors?: number[] | Vectors;
 };
 
 export type DeleteManyObject = {

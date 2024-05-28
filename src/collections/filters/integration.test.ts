@@ -315,6 +315,10 @@ describe('Testing of the filter class with complex data types', () => {
             name: 'date',
             dataType: 'date',
           },
+          {
+            name: 'personId',
+            dataType: 'uuid',
+          },
         ],
         vectorizers: weaviate.configure.vectorizer.text2VecContextionary(),
       })

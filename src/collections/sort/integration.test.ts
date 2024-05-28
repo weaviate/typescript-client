@@ -60,6 +60,10 @@ describe('Testing of the Sort class with a simple collection', () => {
             name: 'nullable',
             dataType: 'text',
           },
+          {
+            name: 'isCool',
+            dataType: 'boolean',
+          },
         ],
       })
       .catch((err) => {

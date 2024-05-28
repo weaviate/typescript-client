@@ -83,33 +83,35 @@ type MetricsInput<N extends string> =
   | MetricsDate<N>;
 // | MetricsReference<T>;
 
-type PropertiesMetrics<T> = T extends undefined
+export type PropertiesMetrics<T> = T extends undefined
   ? MetricsInput<string> | MetricsInput<string>[]
   : MetricsInput<keyof T & string> | MetricsInput<keyof T & string>[];
 
-type MetricsBase<N extends string, K extends 'boolean' | 'date' | 'integer' | 'number' | 'text'> = {
+export type MetricsBase<N extends string, K extends 'boolean' | 'date' | 'integer' | 'number' | 'text'> = {
   kind: K;
   propertyName: N;
 };
 
 type Option<A> = { [key in keyof A]: boolean };
 
-type BooleanKeys = 'count' | 'percentageFalse' | 'percentageTrue' | 'totalFalse' | 'totalTrue';
-type DateKeys = 'count' | 'maximum' | 'median' | 'minimum' | 'mode';
-type NumberKeys = 'count' | 'maximum' | 'mean' | 'median' | 'minimum' | 'mode' | 'sum';
+export type BooleanKeys = 'count' | 'percentageFalse' | 'percentageTrue' | 'totalFalse' | 'totalTrue';
+export type DateKeys = 'count' | 'maximum' | 'median' | 'minimum' | 'mode';
+export type NumberKeys = 'count' | 'maximum' | 'mean' | 'median' | 'minimum' | 'mode' | 'sum';
 
-type MetricsBoolean<N extends string> = MetricsBase<N, 'boolean'> &
+export type MetricsBoolean<N extends string> = MetricsBase<N, 'boolean'> &
   Partial<{ [key in BooleanKeys]: boolean }>;
-type MetricsDate<N extends string> = MetricsBase<N, 'date'> & Partial<{ [key in DateKeys]: boolean }>;
-type MetricsInteger<N extends string> = MetricsBase<N, 'integer'> & Partial<{ [key in NumberKeys]: boolean }>;
-type MetricsNumber<N extends string> = MetricsBase<N, 'number'> & Partial<{ [key in NumberKeys]: boolean }>;
+export type MetricsDate<N extends string> = MetricsBase<N, 'date'> & Partial<{ [key in DateKeys]: boolean }>;
+export type MetricsInteger<N extends string> = MetricsBase<N, 'integer'> &
+  Partial<{ [key in NumberKeys]: boolean }>;
+export type MetricsNumber<N extends string> = MetricsBase<N, 'number'> &
+  Partial<{ [key in NumberKeys]: boolean }>;
 // type MetricsReference<T> = {
 //   kind: 'reference';
 //   propertyName: RefKeys<T>;
 //   pointingTo?: boolean;
 //   type?: boolean;
 // };
-type MetricsText<N extends string> = MetricsBase<N, 'text'> & {
+export type MetricsText<N extends string> = MetricsBase<N, 'text'> & {
   count?: boolean;
   topOccurrences?: {
     occurs?: boolean;

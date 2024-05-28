@@ -96,6 +96,7 @@ import {
   Filters as FiltersGRPC,
   Filters_Operator,
   FilterTarget,
+  Vectors as VectorsGrpc,
 } from '../../proto/v1/base.js';
 import { Beacon } from '../references/index.js';
 import { ReferenceGuards } from '../references/classes.js';
@@ -285,7 +286,7 @@ export class DataGuards {
       (obj as DataObject<T>).id !== undefined ||
       (obj as DataObject<T>).properties !== undefined ||
       (obj as DataObject<T>).references !== undefined ||
-      (obj as DataObject<T>).vector !== undefined
+      (obj as DataObject<T>).vectors !== undefined
     );
   };
 }
@@ -1076,7 +1077,7 @@ export class Serialize {
       const object = objects[index];
       const obj = DataGuards.isDataObject(object)
         ? object
-        : { id: undefined, properties: object, references: undefined, vector: undefined };
+        : { id: undefined, properties: object, references: undefined, vectors: undefined };
 
       objs.push(
         BatchObjectGRPC.fromPartial({
@@ -1084,7 +1085,16 @@ export class Serialize {
           properties: Serialize.batchProperties(obj.properties, obj.references),
           tenant: tenant,
           uuid: obj.id ? obj.id : uuidv4(),
-          vector: obj.vector,
+          vectorBytes: Array.isArray(obj.vectors) ? Serialize.vectorToBytes(obj.vectors) : undefined,
+          vectors:
+            obj.vectors !== undefined && !Array.isArray(obj.vectors)
+              ? Object.entries(obj.vectors).map(([k, v]) =>
+                  VectorsGrpc.fromPartial({
+                    vectorBytes: Serialize.vectorToBytes(v),
+                    name: k,
+                  })
+                )
+              : undefined,
         })
       );
 

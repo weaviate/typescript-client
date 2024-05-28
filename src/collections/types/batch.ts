@@ -1,4 +1,4 @@
-import { NonReferenceInputs, ReferenceInputs } from '../index.js';
+import { NonReferenceInputs, ReferenceInputs, Vectors } from '../index.js';
 import { BatchObject as BatchObjectGRPC } from '../../proto/v1/batch.js';
 import { BatchReference } from '../../openapi/types.js';
 
@@ -22,7 +22,7 @@ export type BatchObject<T> = {
   properties?: NonReferenceInputs<T>;
   references?: ReferenceInputs<T>;
   id?: string;
-  vector?: number[];
+  vectors?: number[] | Vectors;
   tenant?: string;
 };
 

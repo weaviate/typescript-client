@@ -6,6 +6,7 @@ import { DataObject, WeaviateObject } from '../types/index.js';
 import { CrossReference, CrossReferences, Reference } from '../references/index.js';
 import { GeoCoordinate, PhoneNumber } from '../../proto/v1/properties.js';
 import { Collection } from '../collection/index.js';
+import { WeaviateUnsupportedFeatureError } from '../../errors.js';
 
 type TestCollectionData = {
   testProp: string;
@@ -41,7 +42,7 @@ describe('Testing of the collection.data methods with a single target reference'
     client = await weaviate.connectToLocal();
     collection = client.collections.get(collectionName);
     await client.collections
-      .create<undefined>({
+      .create<TestCollectionData>({
         name: collectionName,
         properties: [
           {
@@ -54,8 +55,16 @@ describe('Testing of the collection.data methods with a single target reference'
             dataType: 'int',
           },
           {
+            name: 'testProps',
+            dataType: 'text[]',
+          },
+          {
             name: 'geo',
             dataType: 'geoCoordinates',
+          },
+          {
+            name: 'phone',
+            dataType: 'phoneNumber',
           },
         ],
         references: [
@@ -64,6 +73,7 @@ describe('Testing of the collection.data methods with a single target reference'
             targetCollection: collectionName,
           },
         ],
+        vectorizers: weaviate.configure.vectorizer.none(),
       })
       .then(async (collection) => {
         await collection.data.insert({
@@ -135,6 +145,19 @@ describe('Testing of the collection.data methods with a single target reference'
       id: id,
     });
     expect(insert).toEqual(id);
+  });
+
+  it('should be able to insert an object with a vector', async () => {
+    const id = v4();
+    const insert = await collection.data.insert({
+      properties: {
+        testProp: 'test',
+      },
+      vectors: [1, 2, 3],
+      id: id,
+    });
+    const obj = await collection.query.fetchObjectById(id, { includeVector: true });
+    expect(obj?.vectors.default).toEqual([1, 2, 3]);
   });
 
   it('should be able to delete an object by id', async () => {
@@ -525,6 +548,8 @@ describe('Testing of the collection.data methods with a multi target reference',
       .then(() => collectionTwo.data.insert({ two: 'two' }));
   });
 
+  afterAll(() => client.collections.deleteAll());
+
   it('should be able to insert an object with a multi target reference', async () => {
     const id = await collectionTwo.data.insert({
       properties: { two: 'multi1' },
@@ -768,5 +793,138 @@ describe('Testing of the collection.data.insertMany method with all possible typ
       ],
     });
     expect(obj?.references?.self?.objects[0].uuid).toEqual(id);
+  });
+});
+
+describe('Testing of the collection.data methods with bring your own multi vectors', () => {
+  let client: WeaviateClient;
+  let collection: Collection;
+  let uuid: string;
+  beforeAll(async () => {
+    client = await weaviate.connectToLocal();
+    const query = () =>
+      client.collections.create({
+        name: 'TestCollectionDataMultiVectors',
+        properties: [
+          {
+            name: 'text',
+            dataType: 'text',
+          },
+        ],
+        vectorizers: [
+          weaviate.configure.vectorizer.none({ name: 'one' }),
+          weaviate.configure.vectorizer.none({ name: 'two' }),
+        ],
+      });
+    if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 24, 0))) {
+      await expect(query()).rejects.toThrow(WeaviateUnsupportedFeatureError);
+      return;
+    }
+    collection = await query();
+  });
+
+  afterAll(() => client.collections.delete('TestCollectionDataMultiVectors'));
+
+  it('should be able to insert an object with multi vectors', async () => {
+    if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 24, 0))) {
+      return;
+    }
+    uuid = await collection.data.insert({
+      properties: {
+        text: 'test',
+      },
+      vectors: {
+        one: [1, 2, 3],
+        two: [4, 5, 6],
+      },
+    });
+  });
+
+  it('should be able to fetch the object with multi vectors', async () => {
+    if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 24, 0))) {
+      return;
+    }
+    const obj = await collection.query.fetchObjectById(uuid, {
+      includeVector: true,
+    });
+    expect(obj?.vectors?.one).toEqual([1, 2, 3]);
+    expect(obj?.vectors?.two).toEqual([4, 5, 6]);
+  });
+
+  it('should be able to update the vectors of an object', async () => {
+    if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 24, 0))) {
+      return;
+    }
+    await collection.data.update({
+      id: uuid,
+      vectors: {
+        one: [7, 8, 9],
+        two: [10, 11, 12],
+      },
+    });
+    const obj = await collection.query.fetchObjectById(uuid, {
+      includeVector: true,
+    });
+    expect(obj?.vectors?.one).toEqual([7, 8, 9]);
+    expect(obj?.vectors?.two).toEqual([10, 11, 12]);
+  });
+
+  it('should be able to replace the vectors of an object', async () => {
+    if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 24, 0))) {
+      return;
+    }
+    await collection.data.replace({
+      id: uuid,
+      vectors: {
+        one: [7, 8, 9],
+        two: [10, 11, 12],
+      },
+    });
+    const obj = await collection.query.fetchObjectById(uuid, {
+      includeVector: true,
+    });
+    expect(obj?.vectors?.one).toEqual([7, 8, 9]);
+    expect(obj?.vectors?.two).toEqual([10, 11, 12]);
+  });
+
+  it('should be able to insert many objects with multi vectors', async () => {
+    if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 24, 0))) {
+      return;
+    }
+    const objects = [
+      {
+        properties: {
+          text: 'test',
+        },
+        vectors: {
+          one: [1, 2, 3],
+          two: [4, 5, 6],
+        },
+      },
+      {
+        properties: {
+          text: 'test',
+        },
+        vectors: {
+          one: [7, 8, 9],
+          two: [10, 11, 12],
+        },
+      },
+    ];
+    const insert = await collection.data.insertMany(objects);
+    expect(insert.hasErrors).toBeFalsy();
+    expect(insert.allResponses.length).toEqual(2);
+    expect(Object.values(insert.errors).length).toEqual(0);
+    expect(Object.values(insert.uuids).length).toEqual(2);
+    const obj1 = await collection.query.fetchObjectById(insert.uuids[0], {
+      includeVector: true,
+    });
+    expect(obj1?.vectors?.one).toEqual([1, 2, 3]);
+    expect(obj1?.vectors?.two).toEqual([4, 5, 6]);
+    const obj2 = await collection.query.fetchObjectById(insert.uuids[1], {
+      includeVector: true,
+    });
+    expect(obj2?.vectors?.one).toEqual([7, 8, 9]);
+    expect(obj2?.vectors?.two).toEqual([10, 11, 12]);
   });
 });

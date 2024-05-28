@@ -588,6 +588,19 @@ describe('Testing of the collection.query methods with a collection with a refer
       return query();
     });
 
+    it('should query returning the named vector', async () => {
+      const ret = await collection.query.fetchObjects({
+        returnProperties: ['title'],
+        includeVector: ['title'],
+      });
+      ret.objects.sort((a, b) => a.properties.title.localeCompare(b.properties.title));
+      expect(ret.objects.length).toEqual(2);
+      expect(ret.objects[0].properties.title).toEqual('other');
+      expect(ret.objects[0].vectors.title).toBeDefined();
+      expect(ret.objects[1].properties.title).toEqual('test');
+      expect(ret.objects[1].vectors.title).toBeDefined();
+    });
+
     it('should query without searching returning named vector', async () => {
       if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 24, 0))) {
         return;

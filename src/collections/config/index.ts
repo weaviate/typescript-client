@@ -150,7 +150,7 @@ export interface Config<T> {
   update: (config?: CollectionConfigUpdate) => Promise<void>;
 }
 
-class VectorIndex {
+export class VectorIndex {
   static isHNSW(config?: VectorIndexConfig): config is VectorIndexConfigHNSW {
     return config?.type === 'hnsw';
   }
@@ -162,7 +162,7 @@ class VectorIndex {
   }
 }
 
-class Quantizer {
+export class Quantizer {
   static isPQ(config?: PQConfig | BQConfig): config is PQConfig {
     return config?.type === 'pq';
   }
