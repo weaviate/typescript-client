@@ -13,7 +13,7 @@ describe('Journey testing of the client using a WCD cluster', () => {
   };
 
   beforeAll(async () => {
-    client = await weaviate.connectToWCD(
+    client = await weaviate.connectToWeaviateCloud(
       'https://piblpmmdsiknacjnm1ltla.c1.europe-west3.gcp.weaviate.cloud',
       {
         authCredentials: 'NOg5AliYnrN6z7dZDuGv7SLVKhTabAaSTKS7',

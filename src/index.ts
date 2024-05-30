@@ -14,11 +14,13 @@ import {
 } from './connection/auth.js';
 import {
   connectToLocal,
-  connectToWCD,
+  connectToWeaviateCloud,
   ConnectToLocalOptions,
-  ConnectToWCDOptions,
   connectToCustom,
   ConnectToCustomOptions,
+  ConnectToWeaviateCloudOptions,
+  ConnectToWCDOptions,
+  ConnectToWCSOptions,
 } from './connection/helpers.js';
 import { ProxiesParams, TimeoutParams } from './connection/http.js';
 import MetaGetter from './misc/metaGetter.js';
@@ -139,12 +141,39 @@ const app = {
   /**
    * Connect to your own Weaviate Cloud (WCD) instance.
    *
+   * @deprecated Use `connectToWeaviateCloud` instead.
+   *
    * @param {string} clusterURL The URL of your WCD instance. E.g., `https://example.weaviate.network`.
    * @param {ConnectToWCDOptions} [options] Additional options for the connection.
    * @returns {Promise<WeaviateClient>} A Promise that resolves to a client connected to your WCD instance.
    */
   connectToWCD: function (clusterURL: string, options?: ConnectToWCDOptions): Promise<WeaviateClient> {
-    return connectToWCD(clusterURL, this.client, options);
+    return connectToWeaviateCloud(clusterURL, this.client, options);
+  },
+  /**
+   * Connect to your own Weaviate Cloud Service (WCS) instance.
+   *
+   * @deprecated Use `connectToWeaviateCloud` instead.
+   *
+   * @param {string} clusterURL The URL of your WCD instance. E.g., `https://example.weaviate.network`.
+   * @param {ConnectToWCSOptions} [options] Additional options for the connection.
+   * @returns {Promise<WeaviateClient>} A Promise that resolves to a client connected to your WCS instance.
+   */
+  connectToWCS: function (clusterURL: string, options?: ConnectToWCSOptions): Promise<WeaviateClient> {
+    return connectToWeaviateCloud(clusterURL, this.client, options);
+  },
+  /**
+   * Connect to your own Weaviate Cloud (WCD) instance.
+   *
+   * @param {string} clusterURL The URL of your WCD instance. E.g., `https://example.weaviate.network`.
+   * @param {ConnectToWeaviateCloudOptions} [options] Additional options for the connection.
+   * @returns {Promise<WeaviateClient>} A Promise that resolves to a client connected to your WCD instance.
+   */
+  connectToWeaviateCloud: function (
+    clusterURL: string,
+    options?: ConnectToWeaviateCloudOptions
+  ): Promise<WeaviateClient> {
+    return connectToWeaviateCloud(clusterURL, this.client, options);
   },
   client: async function (params: ClientParams): Promise<WeaviateClient> {
     let { host: httpHost } = params.connectionParams.http;

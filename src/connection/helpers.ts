@@ -3,8 +3,8 @@ import { ClientParams, WeaviateClient } from '../index.js';
 import { AuthCredentials } from './auth.js';
 import { ProxiesParams, TimeoutParams } from './http.js';
 
-/** The options available to the `weaviate.connectToWCS` method. */
-export type ConnectToWCDOptions = {
+/** The options available to the `weaviate.connectToWeaviateCloud` method. */
+export type ConnectToWeaviateCloudOptions = {
   /** The authentication credentials to use when connecting to Weaviate, e.g. API key */
   authCredentials?: AuthCredentials;
   /** Additional headers to include in the request */
@@ -15,8 +15,11 @@ export type ConnectToWCDOptions = {
   skipInitChecks?: boolean;
 };
 
-/** @deprecated Use `ConnectToWCDOptions` instead. */
-export type ConnectToWCSOptions = ConnectToWCDOptions;
+/** @deprecated Use `ConnectToWeaviateCloudOptions` instead. */
+export type ConnectToWCDOptions = ConnectToWeaviateCloudOptions;
+
+/** @deprecated Use `ConnectToWeaviateCloudOptions` instead. */
+export type ConnectToWCSOptions = ConnectToWeaviateCloudOptions;
 
 export type ConnectToLocalOptions = {
   /** The host where Weaviate is served. Assumes that the HTTP/1.1 and HTTP/2 servers are served on the same host */
@@ -62,10 +65,10 @@ export type ConnectToCustomOptions = {
   skipInitChecks?: boolean;
 };
 
-export function connectToWCD(
+export function connectToWeaviateCloud(
   clusterURL: string,
   clientMaker: (params: ClientParams) => Promise<WeaviateClient>,
-  options?: ConnectToWCDOptions
+  options?: ConnectToWeaviateCloudOptions
 ): Promise<WeaviateClient> {
   // check if the URL is set
   if (!clusterURL) throw new Error('Missing `clusterURL` parameter');
@@ -101,16 +104,6 @@ export function connectToWCD(
   }).catch((e) => {
     throw new WeaviateStartUpError(`Weaviate failed to startup with message: ${e.message}`);
   });
-}
-
-/** @deprecated Use `connectToWCD` instead. */
-export function connectToWCS(
-  clusterURL: string,
-  clientMaker: (params: ClientParams) => Promise<WeaviateClient>,
-  options?: ConnectToWCSOptions
-): Promise<WeaviateClient> {
-  console.warn('The `connectToWCS` method is deprecated, use `connectToWCD` instead.');
-  return connectToWCD(clusterURL, clientMaker, options);
 }
 
 export function connectToLocal(

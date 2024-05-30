@@ -6,7 +6,7 @@ const WCD_KEY = 'cy4ua772mBlMdfw3YnclqAWzFhQt0RLIN0sl';
 describe('Testing of the connection helper methods', () => {
   it('should connect to a WCS cluster', () => {
     return weaviate
-      .connectToWCD(WCD_URL, {
+      .connectToWeaviateCloud(WCD_URL, {
         authCredentials: new weaviate.ApiKey(WCD_KEY),
       })
       .then((client) => client.getMeta())
