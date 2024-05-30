@@ -215,4 +215,4 @@ const reconfigure = {
   },
 };
 
-export { configure, reconfigure };
+export { configure, dataType, generative, reconfigure, reranker, vectorizer };
