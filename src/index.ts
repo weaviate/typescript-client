@@ -148,6 +148,9 @@ const app = {
    * @returns {Promise<WeaviateClient>} A Promise that resolves to a client connected to your WCD instance.
    */
   connectToWCD: function (clusterURL: string, options?: ConnectToWCDOptions): Promise<WeaviateClient> {
+    console.warn(
+      'The `connectToWCD` method is deprecated. Please use `connectToWeaviateCloud` instead. This method will be removed in a future release.'
+    );
     return connectToWeaviateCloud(clusterURL, this.client, options);
   },
   /**
@@ -160,6 +163,9 @@ const app = {
    * @returns {Promise<WeaviateClient>} A Promise that resolves to a client connected to your WCS instance.
    */
   connectToWCS: function (clusterURL: string, options?: ConnectToWCSOptions): Promise<WeaviateClient> {
+    console.warn(
+      'The `connectToWCS` method is deprecated. Please use `connectToWeaviateCloud` instead. This method will be removed in a future release.'
+    );
     return connectToWeaviateCloud(clusterURL, this.client, options);
   },
   /**
