@@ -51,6 +51,8 @@ export type CollectionConfigCreate<TProperties = undefined, N = string> = {
   invertedIndex?: InvertedIndexConfigCreate;
   /** The configuration for Weaviate's multi-tenancy capabilities. */
   multiTenancy?: MultiTenancyConfigCreate;
+  /** The properties of the objects in the collection. */
+  properties?: PropertyConfigCreate<TProperties>[];
   /** The references of the objects in the collection. */
   references?: ReferenceConfigCreate<TProperties>[];
   /** The configuration for Weaviate's replication strategy. Is mutually exclusive with `sharding`. */
@@ -61,15 +63,7 @@ export type CollectionConfigCreate<TProperties = undefined, N = string> = {
   sharding?: ShardingConfigCreate;
   /** The configuration for Weaviate's vectorizer(s) capabilities. */
   vectorizers?: VectorizersConfigCreate<TProperties>;
-} & (TProperties extends undefined
-  ? {
-      /** The properties of the objects in the collection. */
-      properties?: PropertyConfigCreate<TProperties>[];
-    }
-  : {
-      /** The properties of the objects in the collection. */
-      properties: PropertyConfigCreate<TProperties>[];
-    });
+};
 
 const parseVectorIndex = (module: ModuleConfig<VectorIndexType, VectorIndexConfigCreate>): any => {
   if (module.config === undefined) return undefined;
