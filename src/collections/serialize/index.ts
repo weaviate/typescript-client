@@ -365,7 +365,7 @@ export class Serialize {
   private static isHybridNearTextSearch = <T>(
     vector: BaseHybridOptions<T>['vector']
   ): vector is HybridNearTextSubSearch => {
-    return (vector as HybridNearTextSubSearch)?.text !== undefined;
+    return (vector as HybridNearTextSubSearch)?.query !== undefined;
   };
 
   private static isHybridNearVectorSearch = <T>(
@@ -382,7 +382,7 @@ export class Serialize {
     return Serialize.isHybridNearTextSearch(vector)
       ? Serialize.nearTextSearch({
           ...vector,
-          query: vector.text,
+          query: vector.query,
         })
       : undefined;
   };

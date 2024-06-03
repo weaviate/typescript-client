@@ -110,7 +110,7 @@ export type HybridSubSearchBase = {
 };
 
 export type HybridNearTextSubSearch = HybridSubSearchBase & {
-  text: string | string[];
+  query: string | string[];
   moveTo?: MoveOptions;
   moveAway?: MoveOptions;
 };

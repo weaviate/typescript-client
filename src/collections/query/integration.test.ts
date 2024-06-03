@@ -118,7 +118,7 @@ describe('Testing of the collection.query methods with a simple collection', () 
       collection.query.hybrid('test', {
         limit: 1,
         vector: {
-          text: 'apple',
+          query: 'apple',
           distance: 0.9,
           moveTo: {
             concepts: ['banana'],
