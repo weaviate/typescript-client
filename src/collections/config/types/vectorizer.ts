@@ -24,6 +24,7 @@ export type Vectorizer =
   | 'text2vec-gpt4all'
   | 'text2vec-huggingface'
   | 'text2vec-jina'
+  | 'text2vec-ollama'
   | 'text2vec-openai'
   | 'text2vec-palm'
   | 'text2vec-transformers'
@@ -254,6 +255,20 @@ export type Text2VecJinaConfig = {
 };
 
 /**
+ * The configuration for text vectorization using Ollama.
+ *
+ * See the [documentation](https://weaviate.io/developers/weaviate/modules/retriever-vectorizer-modules/text2vec-ollama) for detailed usage.
+ */
+export type Text2VecOllamaConfig = {
+  /** The base URL to use where API requests should go. */
+  apiEndpoint?: string;
+  /** The model to use. */
+  model?: string;
+  /** Whether to vectorize the collection name. */
+  vectorizeCollectionName?: boolean;
+};
+
+/**
  * The configuration for text vectorization using OpenAI.
  *
  * See the [documentation](https://weaviate.io/developers/weaviate/modules/retriever-vectorizer-modules/text2vec-openai) for detailed usage.
@@ -363,6 +378,8 @@ export type VectorizerConfigType<V> = V extends 'img2vec-neural'
   ? Text2VecHuggingFaceConfig | undefined
   : V extends 'text2vec-jina'
   ? Text2VecJinaConfig | undefined
+  : V extends 'text2vec-ollama'
+  ? Text2VecOllamaConfig | undefined
   : V extends 'text2vec-openai'
   ? Text2VecOpenAIConfig | undefined
   : V extends 'text2vec-azure-openai'

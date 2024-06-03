@@ -11,6 +11,7 @@ import {
   Text2VecGPT4AllConfig,
   Text2VecHuggingFaceConfig,
   Text2VecJinaConfig,
+  Text2VecOllamaConfig,
   Text2VecOpenAIConfig,
   Text2VecPalmConfig,
   Text2VecTransformersConfig,
@@ -143,6 +144,8 @@ export type Text2VecHuggingFaceConfigCreate = Text2VecHuggingFaceConfig;
 
 export type Text2VecJinaConfigCreate = Text2VecJinaConfig;
 
+export type Text2VecOllamaConfigCreate = Text2VecOllamaConfig;
+
 export type Text2VecOpenAIConfigCreate = Text2VecOpenAIConfig;
 
 export type Text2VecPalmConfigCreate = Text2VecPalmConfig;
@@ -173,6 +176,8 @@ export type VectorizerConfigCreateType<V> = V extends 'img2vec-neural'
   ? Text2VecHuggingFaceConfigCreate | undefined
   : V extends 'text2vec-jina'
   ? Text2VecJinaConfigCreate | undefined
+  : V extends 'text2vec-ollama'
+  ? Text2VecOllamaConfigCreate | undefined
   : V extends 'text2vec-openai'
   ? Text2VecOpenAIConfigCreate | undefined
   : V extends 'text2vec-azure-openai'

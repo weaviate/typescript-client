@@ -798,6 +798,45 @@ describe('Unit testing of the vectorizer factory class', () => {
     });
   });
 
+  it('should create the correct Text2VecOllamaConfig type with defaults', () => {
+    const config = configure.vectorizer.text2VecOllama();
+    expect(config).toEqual<VectorConfigCreate<never, undefined, 'hnsw', 'text2vec-ollama'>>({
+      vectorName: undefined,
+      vectorIndex: {
+        name: 'hnsw',
+        config: undefined,
+      },
+      vectorizer: {
+        name: 'text2vec-ollama',
+        config: undefined,
+      },
+    });
+  });
+
+  it('should create the correct Text2VecOllamaConfig type with all values', () => {
+    const config = configure.vectorizer.text2VecOllama({
+      name: 'test',
+      apiEndpoint: 'api-endpoint',
+      model: 'model',
+      vectorizeCollectionName: true,
+    });
+    expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'text2vec-ollama'>>({
+      vectorName: 'test',
+      vectorIndex: {
+        name: 'hnsw',
+        config: undefined,
+      },
+      vectorizer: {
+        name: 'text2vec-ollama',
+        config: {
+          apiEndpoint: 'api-endpoint',
+          model: 'model',
+          vectorizeCollectionName: true,
+        },
+      },
+    });
+  });
+
   it('should create the correct Text2VecOpenAIConfig type with defaults', () => {
     const config = configure.vectorizer.text2VecOpenAI();
     expect(config).toEqual<VectorConfigCreate<never, undefined, 'hnsw', 'text2vec-openai'>>({
