@@ -10,7 +10,7 @@ import {
   Meta,
 } from '../openapi/types.js';
 
-const is125 = (client: WeaviateClient) =>
+const isVer = (client: WeaviateClient, minor: number, patch: number) =>
   client.misc
     .metaGetter()
     .do()
@@ -20,7 +20,7 @@ const is125 = (client: WeaviateClient) =>
         return false;
       }
       const semver = version.split('.').map((v) => parseInt(v, 10));
-      return semver[1] >= 25;
+      return semver[1] >= minor && semver[2] >= patch;
     });
 
 describe('schema', () => {
@@ -29,7 +29,7 @@ describe('schema', () => {
     host: 'localhost:8080',
   });
 
-  const classObjPromise = newClassObject('MyThingClass', is125(client));
+  const classObjPromise = newClassObject('MyThingClass', isVer(client, 25, 0), isVer(client, 25, 2));
 
   it('creates a thing class (implicitly)', async () => {
     const classObj = await classObjPromise;
@@ -174,7 +174,7 @@ describe('schema', () => {
 
   it('updates all shards in a class', async () => {
     const shardCount = 3;
-    const newClass: any = await newClassObject('NewClass', is125(client));
+    const newClass: any = await newClassObject('NewClass', isVer(client, 25, 0), isVer(client, 25, 2));
     newClass.shardingConfig.desiredCount = shardCount;
 
     await client.schema
@@ -217,7 +217,7 @@ describe('schema', () => {
   });
 
   it('has updated values of bm25 config', async () => {
-    const newClass: any = await newClassObject('NewClass', is125(client));
+    const newClass: any = await newClassObject('NewClass', isVer(client, 25, 0), isVer(client, 25, 2));
     const bm25Config = { k1: 1.13, b: 0.222 };
 
     newClass.invertedIndexConfig.bm25 = bm25Config;
@@ -234,7 +234,7 @@ describe('schema', () => {
   });
 
   it('has updated values of stopwords config', async () => {
-    const newClass: any = await newClassObject('SpaceClass', is125(client));
+    const newClass: any = await newClassObject('SpaceClass', isVer(client, 25, 0), isVer(client, 25, 2));
     const stopwordConfig: any = {
       preset: 'en',
       additions: ['star', 'nebula'],
@@ -286,7 +286,7 @@ describe('schema', () => {
 
   it('creates a class with explicit replication config', async () => {
     const replicationFactor = 1;
-    const newClass: any = await newClassObject('SomeClass', is125(client));
+    const newClass: any = await newClassObject('SomeClass', isVer(client, 25, 0), isVer(client, 25, 2));
     newClass.replicationConfig.factor = replicationFactor;
 
     await client.schema
@@ -301,7 +301,7 @@ describe('schema', () => {
   });
 
   it('creates a class with implicit replication config', async () => {
-    const newClass: any = await newClassObject('SomeClass', is125(client));
+    const newClass: any = await newClassObject('SomeClass', isVer(client, 25, 0), isVer(client, 25, 2));
     delete newClass.replicationConfig;
 
     await client.schema
@@ -316,8 +316,16 @@ describe('schema', () => {
   });
 
   it('delete all data from the schema', async () => {
-    const newClass: any = await newClassObject('LetsDeleteThisClass', is125(client));
-    const newClass2: any = await newClassObject('LetsDeleteThisClassToo', is125(client));
+    const newClass: any = await newClassObject(
+      'LetsDeleteThisClass',
+      isVer(client, 25, 0),
+      isVer(client, 25, 2)
+    );
+    const newClass2: any = await newClassObject(
+      'LetsDeleteThisClassToo',
+      isVer(client, 25, 0),
+      isVer(client, 25, 2)
+    );
     const classNames = [newClass.class, newClass2.class];
     Promise.all([
       client.schema.classCreator().withClass(newClass).do(),
@@ -593,6 +601,7 @@ describe('multi tenancy', () => {
     vectorIndexType: 'hnsw',
     vectorizer: 'text2vec-contextionary',
     multiTenancyConfig: {
+      autoTenantActivation: true,
       autoTenantCreation: true,
       enabled: true,
     },
@@ -600,8 +609,11 @@ describe('multi tenancy', () => {
   const tenants: Array<Tenant> = [{ name: 'tenantA' }, { name: 'tenantB' }, { name: 'tenantC' }];
 
   it('creates a MultiTenancy class', async () => {
-    if (!(await is125(client))) {
+    if (!(await isVer(client, 25, 0))) {
       delete classObj.multiTenancyConfig?.autoTenantCreation;
+    }
+    if (!(await isVer(client, 25, 2))) {
+      delete classObj.multiTenancyConfig?.autoTenantActivation;
     }
     return client.schema
       .classCreator()
@@ -651,7 +663,7 @@ describe('multi tenancy', () => {
   });
 
   it('successfully finds an existing tenant for MultiTenancy class', async () => {
-    if (!(await is125(client))) {
+    if (!(await isVer(client, 25, 0))) {
       return Promise.resolve();
     }
     return client.schema
@@ -661,7 +673,7 @@ describe('multi tenancy', () => {
   });
 
   it('successfully fails to find a non-existant tenant for MultiTenancy class', async () => {
-    if (!(await is125(client))) {
+    if (!(await isVer(client, 25, 0))) {
       return Promise.resolve();
     }
     return client.schema
@@ -674,7 +686,11 @@ describe('multi tenancy', () => {
     return deleteClass(client, classObj.class!);
   });
 
-  const classObjWithoutMultiTenancyConfig = newClassObject('NoMultiTenancy', is125(client));
+  const classObjWithoutMultiTenancyConfig = newClassObject(
+    'NoMultiTenancy',
+    isVer(client, 25, 0),
+    isVer(client, 25, 2)
+  );
 
   it('creates a NoMultiTenancy class', async () => {
     return client.schema
@@ -700,7 +716,11 @@ describe('multi tenancy', () => {
   });
 });
 
-async function newClassObject(className: string, is125Promise: Promise<boolean>) {
+async function newClassObject(
+  className: string,
+  is1250Promise: Promise<boolean>,
+  is1252Promise: Promise<boolean>
+) {
   return {
     class: className,
     properties: [
@@ -765,7 +785,8 @@ async function newClassObject(className: string, is125Promise: Promise<boolean>)
       },
     },
     multiTenancyConfig: {
-      autoTenantCreation: (await is125Promise) ? false : undefined,
+      autoTenantActivation: (await is1252Promise) ? false : undefined,
+      autoTenantCreation: (await is1250Promise) ? false : undefined,
       enabled: false,
     },
     shardingConfig: {
