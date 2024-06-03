@@ -55,7 +55,7 @@ describe('Journey testing of the client using a WCD cluster', () => {
       .config.get()
       .then((config) => {
         expect(config).toEqual<CollectionConfig>({
-          name: 'MyTSTestingCollection',
+          name: collectionName,
           generative: {
             name: 'generative-cohere',
             config: {},
