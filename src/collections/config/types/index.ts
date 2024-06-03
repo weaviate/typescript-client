@@ -35,6 +35,7 @@ export type InvertedIndexConfig = {
 };
 
 export type MultiTenancyConfig = {
+  autoTenantActivation: boolean;
   autoTenantCreation: boolean;
   enabled: boolean;
 };

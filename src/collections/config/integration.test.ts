@@ -501,6 +501,27 @@ describe('Testing of the collection.config namespace', () => {
     expect(config.vectorizers.default.vectorizer.name).toEqual('none');
   });
 
+  it('should be able to create and get a collection with multi-tenancy enabled', async () => {
+    const collectionName = 'TestCollectionConfigMultiTenancy';
+    const collection = await client.collections.create({
+      name: collectionName,
+      multiTenancy: weaviate.configure.multiTenancy({
+        autoTenantActivation: true,
+        autoTenantCreation: true,
+      }),
+    });
+    const config = await collection.config.get();
+
+    expect(config.name).toEqual(collectionName);
+    expect(config.multiTenancy.autoTenantActivation).toEqual(
+      await client.getWeaviateVersion().then((ver) => !ver.isLowerThan(1, 25, 2))
+    );
+    expect(config.multiTenancy.autoTenantCreation).toEqual(
+      await client.getWeaviateVersion().then((ver) => !ver.isLowerThan(1, 25, 0))
+    );
+    expect(config.multiTenancy.enabled).toEqual(true);
+  });
+
   // it('should be able update the config of a collection with legacy vectors', async () => {
   //   const collectionName = 'TestCollectionConfigUpdateLegacyVectors';
   //   const collection = await client.collections.create({

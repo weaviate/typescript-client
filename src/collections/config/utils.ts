@@ -252,6 +252,7 @@ class ConfigMapping {
   static multiTenancy(v?: WeaviateMultiTenancyConfig): MultiTenancyConfig {
     if (v === undefined) throw new WeaviateDeserializationError('Multi tenancy was not returned by Weaviate');
     return {
+      autoTenantActivation: v.autoTenantActivation ? v.autoTenantActivation : false,
       autoTenantCreation: v.autoTenantCreation ? v.autoTenantCreation : false,
       enabled: v.enabled ? v.enabled : false,
     };

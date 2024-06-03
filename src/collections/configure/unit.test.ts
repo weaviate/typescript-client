@@ -54,6 +54,7 @@ describe('Unit testing of the configure factory class', () => {
   it('should create the correct MultiTenancyConfig type with defaults', () => {
     const config = configure.multiTenancy();
     expect(config).toEqual<MultiTenancyConfigCreate>({
+      autoTenantActivation: false,
       autoTenantCreation: false,
       enabled: true,
     });
@@ -61,10 +62,12 @@ describe('Unit testing of the configure factory class', () => {
 
   it('should create the correct MultiTenancyConfig type with all values', () => {
     const config = configure.multiTenancy({
+      autoTenantActivation: true,
       autoTenantCreation: true,
       enabled: false,
     });
     expect(config).toEqual<MultiTenancyConfigCreate>({
+      autoTenantActivation: true,
       autoTenantCreation: true,
       enabled: false,
     });

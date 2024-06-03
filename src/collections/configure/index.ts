@@ -105,16 +105,22 @@ const configure = {
   /**
    * Create a `MultiTenancyConfigCreate` object to be used when defining the multi-tenancy configuration of your collection.
    *
+   * @param {boolean} [options.autoTenantActivation] Whether auto-tenant activation is enabled. Default is false.
    * @param {boolean} [options.autoTenantCreation] Whether auto-tenant creation is enabled. Default is false.
    * @param {boolean} [options.enabled] Whether multi-tenancy is enabled. Default is true.
    */
-  multiTenancy: (options?: { autoTenantCreation?: boolean; enabled?: boolean }): MultiTenancyConfigCreate => {
+  multiTenancy: (options?: {
+    autoTenantActivation?: boolean;
+    autoTenantCreation?: boolean;
+    enabled?: boolean;
+  }): MultiTenancyConfigCreate => {
     return options
       ? {
+          autoTenantActivation: parseWithDefault(options.autoTenantActivation, false),
           autoTenantCreation: parseWithDefault(options.autoTenantCreation, false),
           enabled: parseWithDefault(options.enabled, true),
         }
-      : { autoTenantCreation: false, enabled: true };
+      : { autoTenantActivation: false, autoTenantCreation: false, enabled: true };
   },
   /**
    * Create a `ReplicationConfigCreate` object to be used when defining the replication configuration of your collection.

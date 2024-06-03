@@ -76,6 +76,7 @@ describe('Journey testing of the client using a WCD cluster', () => {
             indexTimestamps: false,
           },
           multiTenancy: {
+            autoTenantActivation: false,
             autoTenantCreation: false,
             enabled: false,
           },
