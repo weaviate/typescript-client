@@ -3,7 +3,7 @@ import { GeoCoordinate } from '../proto/v1/properties.js';
 
 describe('Journey testing of the client using a WCD cluster', () => {
   let client: WeaviateClient;
-  const collectionName = 'MyTSTestingCollection';
+  const collectionName = `MyTSTestingCollection_${Date.now()}`;
 
   type MyType = {
     name: string;
