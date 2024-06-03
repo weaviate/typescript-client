@@ -3,8 +3,7 @@
 import { WeaviateUnsupportedFeatureError } from '../../errors.js';
 import weaviate, { WeaviateClient } from '../../index.js';
 import { Collection } from '../collection/index.js';
-import { GroupByOptions } from '../types/index.js';
-import { GenerateOptions } from './types.js';
+import { GenerateOptions, GroupByOptions } from '../types/index.js';
 
 const maybe = process.env.OPENAI_APIKEY ? describe : describe.skip;
 
