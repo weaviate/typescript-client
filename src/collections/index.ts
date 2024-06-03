@@ -1,9 +1,16 @@
 import Connection from '../connection/grpc.js';
+import { WeaviateInvalidInputError, WeaviateUnsupportedFeatureError } from '../errors.js';
+import { WeaviateClass } from '../openapi/types.js';
+import ClassExists from '../schema/classExists.js';
+import { ClassCreator, ClassDeleter, ClassGetter, SchemaGetter } from '../schema/index.js';
 import { DbVersionSupport } from '../utils/dbVersion.js';
 import collection, { Collection } from './collection/index.js';
-import { ClassCreator, ClassDeleter, ClassGetter, SchemaGetter } from '../schema/index.js';
+import { classToCollection, resolveProperty, resolveReference } from './config/utils.js';
+import { QuantizerGuards } from './configure/parsing.js';
+import { configGuards } from './index.js';
 import {
   CollectionConfig,
+  GenerativeConfig,
   GenerativeSearch,
   InvertedIndexConfigCreate,
   ModuleConfig,
@@ -13,26 +20,19 @@ import {
   ReferenceConfigCreate,
   ReplicationConfigCreate,
   Reranker,
-  ShardingConfigCreate,
-  VectorIndexType,
-  Vectorizer,
-  VectorizerConfig,
-  VectorIndexConfigCreate,
-  VectorizersConfigCreate,
-  GenerativeConfig,
   RerankerConfig,
+  ShardingConfigCreate,
+  VectorConfigCreate,
+  VectorIndexConfigCreate,
   VectorIndexConfigDynamicCreate,
   VectorIndexConfigFlatCreate,
   VectorIndexConfigHNSWCreate,
-  VectorConfigCreate,
+  VectorIndexType,
+  Vectorizer,
+  VectorizerConfig,
+  VectorizersConfigCreate,
 } from './types/index.js';
-import ClassExists from '../schema/classExists.js';
-import { classToCollection, resolveProperty, resolveReference } from './config/utils.js';
-import { WeaviateClass } from '../openapi/types.js';
-import { QuantizerGuards } from './configure/parsing.js';
-import { WeaviateInvalidInputError, WeaviateUnsupportedFeatureError } from '../errors.js';
 import { PrimitiveKeys } from './types/internal.js';
-import { configGuards } from './index.js';
 
 /**
  * All the options available when creating a new collection.
@@ -300,6 +300,7 @@ export * from './configure/index.js';
 export * from './data/index.js';
 export * from './filters/index.js';
 export * from './generate/index.js';
+export * from './iterator/index.js';
 export * from './query/index.js';
 export * from './references/index.js';
 export * from './sort/index.js';

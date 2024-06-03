@@ -1,8 +1,8 @@
 import Connection from '../connection/index.js';
-import { BeaconPath } from '../utils/beaconPath.js';
-import { ReferencesPath } from './path.js';
-import { CommandBase } from '../validation/commandBase.js';
 import { Reference } from '../openapi/types.js';
+import { BeaconPath } from '../utils/beaconPath.js';
+import { CommandBase } from '../validation/commandBase.js';
+import { ReferencesPath } from './path.js';
 import { ConsistencyLevel } from './replication.js';
 
 export default class ReferenceReplacer extends CommandBase {

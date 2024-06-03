@@ -4,8 +4,8 @@ import { WeaviateInvalidInputError } from '../../errors.js';
 import ClassExists from '../../schema/classExists.js';
 import { DbVersionSupport } from '../../utils/dbVersion.js';
 
-import aggregate, { metrics, Aggregate, Metrics } from '../aggregate/index.js';
-import { backupCollection, BackupCollection } from '../backup/collection.js';
+import aggregate, { Aggregate, Metrics, metrics } from '../aggregate/index.js';
+import { BackupCollection, backupCollection } from '../backup/collection.js';
 import config, { Config } from '../config/index.js';
 import data, { Data } from '../data/index.js';
 import filter, { Filter } from '../filters/index.js';

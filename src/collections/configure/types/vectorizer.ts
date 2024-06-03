@@ -1,4 +1,3 @@
-import { VectorIndexConfigCreateType, VectorIndexConfigUpdateType } from './vectorIndex.js';
 import {
   Img2VecNeuralConfig,
   ModuleConfig,
@@ -21,6 +20,7 @@ import {
   VectorizerConfigType,
 } from '../../config/types/index.js';
 import { PrimitiveKeys } from '../../types/internal.js';
+import { VectorIndexConfigCreateType, VectorIndexConfigUpdateType } from './vectorIndex.js';
 
 export type VectorizerCreateOptions<P, I, V> = {
   sourceProperties?: P;

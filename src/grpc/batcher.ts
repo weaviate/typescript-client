@@ -1,15 +1,14 @@
-import { isAbortError } from 'abort-controller-x';
 import { Metadata } from 'nice-grpc';
 
 import { ConsistencyLevel } from '../data/index.js';
 
-import { BatchObjectsRequest, BatchObjectsReply, BatchObject } from '../proto/v1/batch.js';
+import { BatchObject, BatchObjectsReply, BatchObjectsRequest } from '../proto/v1/batch.js';
 import { WeaviateClient } from '../proto/v1/weaviate.js';
 
-import Base from './base.js';
-import { BatchDeleteReply, BatchDeleteRequest } from '../proto/v1/batch_delete.js';
+import { WeaviateBatchError, WeaviateDeleteManyError } from '../errors.js';
 import { Filters } from '../proto/v1/base.js';
-import { WeaviateBatchError, WeaviateDeleteManyError, WeaviateRequestTimeoutError } from '../errors.js';
+import { BatchDeleteReply, BatchDeleteRequest } from '../proto/v1/batch_delete.js';
+import Base from './base.js';
 
 export interface Batch {
   withDelete: (args: BatchDeleteArgs) => Promise<BatchDeleteReply>;

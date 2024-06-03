@@ -1,6 +1,6 @@
 import Connection from '../connection/index.js';
-import { CommandBase } from '../validation/commandBase.js';
 import { WeaviateClass } from '../openapi/types.js';
+import { CommandBase } from '../validation/commandBase.js';
 
 export default class ClassCreator extends CommandBase {
   private class!: WeaviateClass;

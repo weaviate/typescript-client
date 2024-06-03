@@ -1,3 +1,4 @@
+import { ModuleConfig, PQEncoderDistribution, PQEncoderType, VectorDistance } from '../config/types/index.js';
 import {
   BQConfigCreate,
   BQConfigUpdate,
@@ -12,9 +13,8 @@ import {
   VectorIndexConfigHNSWCreateOptions,
   VectorIndexConfigHNSWUpdate,
 } from './types/index.js';
-import { ModuleConfig, PQEncoderDistribution, PQEncoderType, VectorDistance } from '../config/types/index.js';
 
-import { parseWithDefault, parseQuantizer } from './parsing.js';
+import { parseQuantizer } from './parsing.js';
 
 const isModuleConfig = <N, C>(config: ModuleConfig<N, C> | C): config is ModuleConfig<N, C> => {
   return config && typeof config === 'object' && 'name' in config && 'config' in config;

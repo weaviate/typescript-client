@@ -1,4 +1,3 @@
-import { configure } from './index.js';
 import {
   GenerativeAWSConfig,
   GenerativeAnyscaleConfig,
@@ -12,6 +11,7 @@ import {
   ModuleConfig,
   VectorConfigCreate,
 } from '../types/index.js';
+import { configure } from './index.js';
 import {
   InvertedIndexConfigCreate,
   MultiTenancyConfigCreate,

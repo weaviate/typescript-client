@@ -1,7 +1,7 @@
-import NearText, { NearTextArgs } from './nearText.js';
-import NearVector, { NearVectorArgs } from './nearVector.js';
+import Connection from '../connection/index.js';
+import { CommandBase } from '../validation/commandBase.js';
+import Ask, { AskArgs } from './ask.js';
 import NearImage, { NearImageArgs } from './nearImage.js';
-import NearObject, { NearObjectArgs } from './nearObject.js';
 import NearMedia, {
   NearAudioArgs,
   NearDepthArgs,
@@ -11,9 +11,9 @@ import NearMedia, {
   NearThermalArgs,
   NearVideoArgs,
 } from './nearMedia.js';
-import Ask, { AskArgs } from './ask.js';
-import Connection from '../connection/index.js';
-import { CommandBase } from '../validation/commandBase.js';
+import NearObject, { NearObjectArgs } from './nearObject.js';
+import NearText, { NearTextArgs } from './nearText.js';
+import NearVector, { NearVectorArgs } from './nearVector.js';
 
 export default class Explorer extends CommandBase {
   private askString?: string;

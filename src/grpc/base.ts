@@ -1,10 +1,10 @@
 import { isAbortError } from 'abort-controller-x';
 import { ConsistencyLevel } from '../data/index.js';
 
-import { WeaviateClient } from '../proto/v1/weaviate.js';
-import { ConsistencyLevel as ConsistencyLevelGRPC } from '../proto/v1/base.js';
 import { Metadata } from 'nice-grpc';
 import { WeaviateRequestTimeoutError } from '../errors.js';
+import { ConsistencyLevel as ConsistencyLevelGRPC } from '../proto/v1/base.js';
+import { WeaviateClient } from '../proto/v1/weaviate.js';
 
 export default class Base {
   protected connection: WeaviateClient;

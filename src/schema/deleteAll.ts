@@ -1,6 +1,6 @@
-import SchemaGetter from './getter.js';
-import ClassDeleter from './classDeleter.js';
 import Connection from '../connection/index.js';
+import ClassDeleter from './classDeleter.js';
+import SchemaGetter from './getter.js';
 
 export default async (client: Connection) => {
   const getter = new SchemaGetter(client);

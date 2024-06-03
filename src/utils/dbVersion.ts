@@ -1,6 +1,5 @@
 import ConnectionGRPC from '../connection/grpc.js';
 import MetaGetter from '../misc/metaGetter.js';
-import { Meta } from '../openapi/types.js';
 
 export class DbVersionSupport {
   private dbVersionProvider: VersionProvider;

@@ -1,9 +1,9 @@
 import { testServer } from '../../test/server.js';
 import {
+  ApiKey,
+  AuthAccessTokenCredentials,
   AuthClientCredentials,
   AuthUserPasswordCredentials,
-  AuthAccessTokenCredentials,
-  ApiKey,
 } from './auth.js';
 import Connection from './index.js';
 

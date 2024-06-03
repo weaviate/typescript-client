@@ -1,5 +1,5 @@
-import { DbVersionProvider } from '../utils/dbVersion.js';
 import Connection from '../connection/index.js';
+import { DbVersionProvider } from '../utils/dbVersion.js';
 import { CommandBase } from '../validation/commandBase.js';
 
 export default class ReadyChecker extends CommandBase {

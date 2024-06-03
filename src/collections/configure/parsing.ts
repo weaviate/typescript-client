@@ -1,4 +1,4 @@
-import { PQConfigCreate, PQConfigUpdate, BQConfigCreate, BQConfigUpdate } from './types/index.js';
+import { BQConfigCreate, BQConfigUpdate, PQConfigCreate, PQConfigUpdate } from './types/index.js';
 
 type QuantizerConfig = PQConfigCreate | PQConfigUpdate | BQConfigCreate | BQConfigUpdate;
 

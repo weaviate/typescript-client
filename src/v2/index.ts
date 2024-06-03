@@ -1,13 +1,7 @@
-import { ConnectionGQL, ConnectionParams } from '../connection/index.js';
-import graphql, { GraphQL } from '../graphql/index.js';
-import schema, { Schema } from '../schema/index.js';
-import data, { Data } from '../data/index.js';
-import classifications, { Classifications } from '../classifications/index.js';
-import batch, { Batch } from '../batch/index.js';
-import misc, { Misc } from '../misc/index.js';
-import c11y, { C11y } from '../c11y/index.js';
-import { DbVersionProvider, DbVersionSupport } from '../utils/dbVersion.js';
 import backup, { Backup } from '../backup/index.js';
+import batch, { Batch } from '../batch/index.js';
+import c11y, { C11y } from '../c11y/index.js';
+import classifications, { Classifications } from '../classifications/index.js';
 import cluster, { Cluster } from '../cluster/index.js';
 import {
   ApiKey,
@@ -16,7 +10,13 @@ import {
   AuthUserPasswordCredentials,
   OidcAuthenticator,
 } from '../connection/auth.js';
+import { ConnectionGQL, InternalConnectionParams as ConnectionParams } from '../connection/index.js';
+import data, { Data } from '../data/index.js';
+import graphql, { GraphQL } from '../graphql/index.js';
+import misc, { Misc } from '../misc/index.js';
 import MetaGetter from '../misc/metaGetter.js';
+import schema, { Schema } from '../schema/index.js';
+import { DbVersionProvider, DbVersionSupport } from '../utils/dbVersion.js';
 
 export interface WeaviateClient {
   graphql: GraphQL;
@@ -82,16 +82,16 @@ function initDbVersionProvider(conn: ConnectionGQL) {
 }
 
 export default app;
-export * from '../openapi/types.js';
-export * from '../graphql/index.js';
-export * from '../schema/index.js';
-export * from '../data/index.js';
-export * from '../classifications/index.js';
-export * from '../batch/index.js';
-export * from '../misc/index.js';
-export * from '../c11y/index.js';
 export * from '../backup/index.js';
+export * from '../batch/index.js';
+export * from '../c11y/index.js';
+export * from '../classifications/index.js';
 export * from '../cluster/index.js';
 export * from '../connection/index.js';
-export * from '../utils/uuid.js';
+export * from '../data/index.js';
+export * from '../graphql/index.js';
+export * from '../misc/index.js';
+export * from '../openapi/types.js';
+export * from '../schema/index.js';
 export * from '../utils/base64.js';
+export * from '../utils/uuid.js';

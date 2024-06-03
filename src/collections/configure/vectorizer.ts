@@ -7,9 +7,9 @@ import {
   Vectorizer,
   VectorizerConfigType,
 } from '../config/types/index.js';
-import { ConfigureNonTextVectorizerOptions, ConfigureTextVectorizerOptions } from './types/index.js';
-import { VectorConfigCreate, VectorizerCreateOptions, VectorIndexConfigCreateType } from '../index.js';
+import { VectorConfigCreate, VectorIndexConfigCreateType, VectorizerCreateOptions } from '../index.js';
 import { PrimitiveKeys } from '../types/internal.js';
+import { ConfigureNonTextVectorizerOptions, ConfigureTextVectorizerOptions } from './types/index.js';
 
 const makeVectorizer = <T, N extends string | undefined, I extends VectorIndexType, V extends Vectorizer>(
   name: N | undefined,

@@ -6,8 +6,8 @@ import {
 } from './auth.js';
 import Connection from './index.js';
 
-import weaviate from '../index.js';
 import { WeaviateStartUpError } from '../errors.js';
+import weaviate from '../index.js';
 
 describe('connection', () => {
   it('makes a logged-in request when client host param has trailing slashes', async () => {

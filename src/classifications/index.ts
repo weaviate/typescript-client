@@ -1,6 +1,6 @@
-import ClassificationsScheduler from './scheduler.js';
-import ClassificationsGetter from './getter.js';
 import Connection from '../connection/index.js';
+import ClassificationsGetter from './getter.js';
+import ClassificationsScheduler from './scheduler.js';
 
 export interface Classifications {
   scheduler: () => ClassificationsScheduler;

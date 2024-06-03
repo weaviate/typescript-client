@@ -5,10 +5,9 @@ import {
   BackupCreator,
   BackupRestoreStatusGetter,
   BackupRestorer,
-  BackupStatus,
 } from '../../backup/index.js';
 import Connection from '../../connection/index.js';
-import { WeaviateBackupFailed, WeaviateDeserializationError } from '../../errors.js';
+import { WeaviateBackupFailed } from '../../errors.js';
 import {
   BackupCreateResponse,
   BackupCreateStatusResponse,

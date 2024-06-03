@@ -1,31 +1,36 @@
-export type { Generate } from './types.js';
 import Connection from '../../connection/grpc.js';
 
-import { DbVersionSupport } from '../../utils/dbVersion.js';
 import { ConsistencyLevel } from '../../data/index.js';
+import { DbVersionSupport } from '../../utils/dbVersion.js';
 
+import { WeaviateInvalidInputError, WeaviateUnsupportedFeatureError } from '../../errors.js';
+import { SearchReply } from '../../proto/v1/search_get.js';
 import { Deserialize } from '../deserialize/index.js';
-import { Serialize } from '../serialize/index.js';
 import {
-  FetchObjectsOptions,
-  Bm25Options,
-  HybridOptions,
-  BaseNearTextOptions,
+  BaseBm25Options,
+  BaseHybridOptions,
   BaseNearOptions,
-  NearMediaType,
-  NearOptions,
+  BaseNearTextOptions,
+  Bm25Options,
+  FetchObjectsOptions,
+  GroupByBm25Options,
+  GroupByHybridOptions,
   GroupByNearOptions,
   GroupByNearTextOptions,
-  BaseHybridOptions,
-  GroupByHybridOptions,
-  BaseBm25Options,
-  GroupByBm25Options,
+  HybridOptions,
+  NearMediaType,
+  NearOptions,
   SearchOptions,
 } from '../query/types.js';
-import { GenerativeReturn, GenerativeGroupByReturn, GroupByOptions } from '../types/index.js';
-import { SearchReply } from '../../proto/v1/search_get.js';
-import { WeaviateInvalidInputError, WeaviateUnsupportedFeatureError } from '../../errors.js';
-import { GenerateOptions, Generate, GenerateReturn } from './types.js';
+import { Serialize } from '../serialize/index.js';
+import {
+  GenerateOptions,
+  GenerateReturn,
+  GenerativeGroupByReturn,
+  GenerativeReturn,
+  GroupByOptions,
+} from '../types/index.js';
+import { Generate } from './types.js';
 
 class GenerateManager<T> implements Generate<T> {
   private connection: Connection;
@@ -341,3 +346,5 @@ class GenerateManager<T> implements Generate<T> {
 }
 
 export default GenerateManager.use;
+
+export { Generate } from './types.js';

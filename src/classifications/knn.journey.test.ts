@@ -1,5 +1,5 @@
-import weaviate, { WeaviateClient } from '../v2/index.js';
 import { Classification } from '../openapi/types.js';
+import weaviate, { WeaviateClient } from '../v2/index.js';
 
 const targetDessertId = 'cd54852a-209d-423b-bf1c-884468215237';
 const targetSavoryId = 'e5da0127-327e-4184-85b8-7b9d1af4a850';

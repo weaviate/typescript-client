@@ -1,18 +1,26 @@
 export * from '../config/types/index.js';
 export * from '../configure/types/index.js';
+export type { CollectionConfigCreate } from '../index.js';
 export * from './batch.js';
 export * from './data.js';
 export * from './generate.js';
-export * from './query.js';
 export type {
+  IsEmptyType,
+  IsNestedField,
+  IsPrimitiveField,
+  IsWeaviateField,
+  NestedKeys,
+  NonRefKeys,
+  NonReferenceInputs,
+  PrimitiveKeys,
   QueryNested,
   QueryProperty,
   QueryReference,
+  RefKeys,
   ReferenceInput,
   ReferenceInputs,
-  NonReferenceInputs,
 } from './internal.js';
-export type { CollectionConfigCreate } from '../index.js';
+export * from './query.js';
 
 import {
   GeoCoordinate as GeoCoordinateGRPC,

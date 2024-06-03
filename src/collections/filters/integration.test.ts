@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
 import weaviate, { WeaviateClient } from '../../index.js';
-import { Filters } from './index.js';
-import { CrossReference, Reference } from '../references/index.js';
 import { Collection } from '../collection/index.js';
+import { CrossReference, Reference } from '../references/index.js';
 import { GeoCoordinate } from '../types/index.js';
+import { Filters } from './index.js';
 
 describe('Testing of the filter class with a simple collection', () => {
   let client: WeaviateClient;

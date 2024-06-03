@@ -1,6 +1,6 @@
 import { ConsistencyLevel } from '../data/index.js';
 
-import { WeaviateClient } from '../proto/v1/weaviate.js';
+import { Metadata } from 'nice-grpc';
 import { Filters } from '../proto/v1/base.js';
 import {
   BM25,
@@ -23,10 +23,10 @@ import {
   SearchRequest,
   SortBy,
 } from '../proto/v1/search_get.js';
-import { Metadata } from 'nice-grpc';
+import { WeaviateClient } from '../proto/v1/weaviate.js';
 
-import Base from './base.js';
 import { WeaviateQueryError } from '../errors.js';
+import Base from './base.js';
 
 export type SearchFetchArgs = {
   limit?: number;

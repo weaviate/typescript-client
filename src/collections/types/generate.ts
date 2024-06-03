@@ -1,4 +1,3 @@
-import { Properties } from './index.js';
 import { GroupByObject, GroupByResult, WeaviateGenericObject, WeaviateNonGenericObject } from './query.js';
 
 export type GenerativeGenericObject<T> = WeaviateGenericObject<T> & {
@@ -41,3 +40,15 @@ export type GenerativeGroupByReturn<T> = {
   /** The LLM-generated output applicable to this query as a whole. */
   generated?: string;
 };
+
+/** Options available when defining queries using methods in the `collection.generate` namespace. */
+export type GenerateOptions<T> = {
+  /** The prompt to use when generating content relevant to each object of the collection individually. */
+  singlePrompt?: string;
+  /** The prompt to use when generating content relevant to objects returned by the query as a whole. */
+  groupedTask?: string;
+  /** The properties to use as context to be injected into the `groupedTask` prompt when performing the grouped generation. */
+  groupedProperties?: T extends undefined ? string[] : (keyof T)[];
+};
+
+export type GenerateReturn<T> = Promise<GenerativeReturn<T>> | Promise<GenerativeGroupByReturn<T>>;

@@ -1,5 +1,5 @@
-import NodesStatusGetter from './nodesStatusGetter.js';
 import Connection from '../connection/index.js';
+import NodesStatusGetter from './nodesStatusGetter.js';
 
 export type NodeStatus = 'HEALTHY' | 'UNHEALTHY' | 'UNAVAILABLE';
 

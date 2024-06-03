@@ -1,39 +1,45 @@
-import { ConnectionGRPC } from './connection/index.js';
-import { DbVersion } from './utils/dbVersion.js';
-import { backup, Backup } from './collections/backup/client.js';
+import { Backend, BackupCompressionLevel, BackupStatus } from './backup/index.js';
+import { Backup, backup } from './collections/backup/client.js';
 import cluster, { Cluster } from './collections/cluster/index.js';
+import { configGuards } from './collections/config/index.js';
+import { configure, reconfigure } from './collections/configure/index.js';
+import collections, { Collections } from './collections/index.js';
 import {
+  AccessTokenCredentialsInput,
   ApiKey,
   AuthAccessTokenCredentials,
   AuthClientCredentials,
-  AuthUserPasswordCredentials,
   AuthCredentials,
+  AuthUserPasswordCredentials,
+  ClientCredentialsInput,
   OidcAuthenticator,
+  UserPasswordCredentialsInput,
   isApiKey,
   mapApiKey,
 } from './connection/auth.js';
 import {
-  connectToLocal,
-  connectToWeaviateCloud,
-  ConnectToLocalOptions,
-  connectToCustom,
   ConnectToCustomOptions,
-  ConnectToWeaviateCloudOptions,
+  ConnectToLocalOptions,
   ConnectToWCDOptions,
   ConnectToWCSOptions,
+  ConnectToWeaviateCloudOptions,
+  connectToCustom,
+  connectToLocal,
+  connectToWeaviateCloud,
 } from './connection/helpers.js';
 import { ProxiesParams, TimeoutParams } from './connection/http.js';
+import { ConnectionGRPC } from './connection/index.js';
 import MetaGetter from './misc/metaGetter.js';
-import collections, { Collections } from './collections/index.js';
-import { configGuards } from './collections/config/index.js';
-import { configure, reconfigure } from './collections/configure/index.js';
 import { Meta } from './openapi/types.js';
+import { DbVersion } from './utils/dbVersion.js';
 
 import { Agent as HttpAgent } from 'http';
 import { Agent as HttpsAgent } from 'https';
 import { LiveChecker, OpenidConfigurationGetter, ReadyChecker } from './misc/index.js';
 
 import weaviateV2 from './v2/index.js';
+
+import { ConsistencyLevel } from './data/replication.js';
 
 export type ProtocolParams = {
   /**
@@ -235,8 +241,24 @@ const app = {
 };
 
 export default app;
-export { weaviateV2 };
 export * from './collections/index.js';
 export * from './connection/index.js';
 export * from './utils/base64.js';
 export * from './utils/uuid.js';
+export {
+  AccessTokenCredentialsInput,
+  ApiKey,
+  AuthAccessTokenCredentials,
+  AuthClientCredentials,
+  AuthCredentials,
+  AuthUserPasswordCredentials,
+  Backend,
+  BackupCompressionLevel,
+  BackupStatus,
+  ClientCredentialsInput,
+  ConsistencyLevel,
+  ProxiesParams,
+  TimeoutParams,
+  UserPasswordCredentialsInput,
+  weaviateV2,
+};

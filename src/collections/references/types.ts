@@ -9,7 +9,7 @@ export type CrossReferenceDefault = {
 
 export type CrossReferences<TProperties extends Properties[]> = ReferenceManager<UnionOf<TProperties>>;
 
-type UnionOf<T> = T extends (infer U)[] ? U : never;
+export type UnionOf<T> = T extends (infer U)[] ? U : never;
 
 export type Beacon = {
   beacon: string;

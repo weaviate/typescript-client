@@ -1,16 +1,15 @@
-import { CrossReference } from '../references/index.js';
-import { ReferenceManager } from '../references/classes.js';
 import {
   NestedProperties,
-  PrimitiveField,
-  RefProperty,
-  ReferenceToMultiTarget,
   PhoneNumber,
   PhoneNumberInput,
-  WeaviateField,
-  Properties,
+  PrimitiveField,
+  RefProperty,
   RefPropertyDefault,
+  ReferenceToMultiTarget,
+  WeaviateField,
 } from '../index.js';
+import { ReferenceManager } from '../references/classes.js';
+import { CrossReference } from '../references/index.js';
 
 export type ExtractCrossReferenceType<T> = T extends CrossReference<infer U> ? U : never;
 
@@ -57,14 +56,15 @@ export type ReferenceInputs<Obj> = Obj extends undefined
       >;
     };
 
-type IsPrimitiveField<T> = T extends PrimitiveField ? T : never;
+export type IsPrimitiveField<T> = T extends PrimitiveField ? T : never;
 
-type IsCrossReference<T> = T extends CrossReference<any> ? T : never;
+export type IsWeaviateField<T> = T extends WeaviateField ? T : never;
 
-type IsWeaviateField<T> = T extends WeaviateField ? T : never;
+export type IsNestedField<T> = T extends NestedProperties | NestedProperties[] ? T : never;
 
-type IsNestedField<T> = T extends NestedProperties | NestedProperties[] ? T : never;
-
+/**
+ * This is an internal type that is used to extract the keys of a user-provided generic type that are primitive fields, e.g. non-nested and non-reference.
+ */
 export type PrimitiveKeys<Obj> = Obj extends undefined
   ? string
   : {
@@ -78,23 +78,17 @@ export type PrimitiveKeys<Obj> = Obj extends undefined
     }[keyof Obj] &
       string;
 
-// export type RefKeys<Obj> = Obj extends undefined ? string : {
-//   [Key in keyof Obj]-?: undefined extends Obj[Key]
-//     ? IsCrossReference<Exclude<Obj[Key], undefined>> extends never
-//       ? never
-//       : Key
-//     : IsCrossReference<Obj[Key]> extends never
-//     ? never
-//     : Key;
-// }[keyof Obj] &
-//   string;
-
+/**
+ * This is an internal type that is used to extract the keys of a user-provided generic type that are references.
+ */
 export type RefKeys<Obj> = {
   [Key in keyof Obj]: Obj[Key] extends CrossReference<any> | undefined ? Key : never;
 }[keyof Obj] &
   string;
 
-// Modified NonRefKey to differentiate optional from required keys
+/**
+ * This is an internal type that is used to extract the keys of a user-provided generic type that are not references.
+ */
 export type NonRefKeys<Obj> = {
   [Key in keyof Obj]-?: undefined extends Obj[Key]
     ? IsWeaviateField<Exclude<Obj[Key], undefined>> extends never
@@ -106,6 +100,9 @@ export type NonRefKeys<Obj> = {
 }[keyof Obj] &
   string;
 
+/**
+ * This is an internal type that is used to extract the keys of a user-provided generic type that are nested properties.
+ */
 export type NestedKeys<Obj> = {
   [Key in keyof Obj]-?: undefined extends Obj[Key]
     ? IsNestedField<Exclude<Obj[Key], undefined>> extends never
@@ -117,7 +114,9 @@ export type NestedKeys<Obj> = {
 }[keyof Obj] &
   string;
 
-// Adjusted NonRefs to correctly map over Obj and preserve optional types
+/**
+ * This is an internal type that is used to extract the allowed inputs for a non-generic type that is not a reference.
+ */
 export type NonReferenceInputs<Obj> = Obj extends undefined
   ? Record<string, WeaviateField>
   : {

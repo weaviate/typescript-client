@@ -1,11 +1,11 @@
-import { Backend } from './index.js';
-import weaviate, { WeaviateClient } from '../v2/index.js';
 import {
   BackupCreateResponse,
   BackupCreateStatusResponse,
   BackupRestoreResponse,
   BackupRestoreStatusResponse,
 } from '../openapi/types.js';
+import weaviate, { WeaviateClient } from '../v2/index.js';
+import { Backend } from './index.js';
 
 const {
   createTestFoodSchemaAndData,

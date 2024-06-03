@@ -1,4 +1,4 @@
-import { VersionProvider, DbVersion } from '../src/utils/dbVersion.js';
+import { DbVersion, VersionProvider } from '../src/utils/dbVersion.js';
 
 export class TestDbVersionProvider implements VersionProvider {
   private version: string;

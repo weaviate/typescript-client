@@ -1,19 +1,19 @@
-import {
-  validateBackend,
-  validateBackupId,
-  validateExcludeClassNames,
-  validateIncludeClassNames,
-} from './validation.js';
 import Connection from '../connection/index.js';
-import BackupRestoreStatusGetter from './backupRestoreStatusGetter.js';
-import { CommandBase } from '../validation/commandBase.js';
 import {
   BackupRestoreRequest,
   BackupRestoreResponse,
   BackupRestoreStatusResponse,
   RestoreConfig,
 } from '../openapi/types.js';
+import { CommandBase } from '../validation/commandBase.js';
+import BackupRestoreStatusGetter from './backupRestoreStatusGetter.js';
 import { Backend } from './index.js';
+import {
+  validateBackend,
+  validateBackupId,
+  validateExcludeClassNames,
+  validateIncludeClassNames,
+} from './validation.js';
 
 const WAIT_INTERVAL = 1000;
 

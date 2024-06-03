@@ -11,7 +11,7 @@ import {
 } from '../../config/types/index.js';
 import { RecursivePartial } from './base.js';
 
-type QuantizerRecursivePartial<T> = {
+export type QuantizerRecursivePartial<T> = {
   [P in keyof T]: P extends 'type' ? T[P] : RecursivePartial<T[P]> | undefined;
 };
 

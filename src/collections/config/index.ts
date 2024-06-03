@@ -1,7 +1,16 @@
 import Connection from '../../connection/index.js';
+import { WeaviateDeserializationError } from '../../errors.js';
 import { WeaviateShardStatus } from '../../openapi/types.js';
+import ClassUpdater from '../../schema/classUpdater.js';
 import { ClassGetter, PropertyCreator, ShardUpdater } from '../../schema/index.js';
 import ShardsGetter from '../../schema/shardsGetter.js';
+import { DbVersionSupport } from '../../utils/dbVersion.js';
+import {
+  PropertyConfigCreate,
+  ReferenceMultiTargetConfigCreate,
+  ReferenceSingleTargetConfigCreate,
+} from '../configure/types/index.js';
+import { MergeWithExisting } from './classes.js';
 import {
   BQConfig,
   CollectionConfig,
@@ -12,16 +21,7 @@ import {
   VectorIndexConfigFlat,
   VectorIndexConfigHNSW,
 } from './types/index.js';
-import {
-  PropertyConfigCreate,
-  ReferenceMultiTargetConfigCreate,
-  ReferenceSingleTargetConfigCreate,
-} from '../configure/types/index.js';
 import { classToCollection, resolveProperty, resolveReference } from './utils.js';
-import ClassUpdater from '../../schema/classUpdater.js';
-import { MergeWithExisting } from './classes.js';
-import { WeaviateDeserializationError } from '../../errors.js';
-import { DbVersionSupport } from '../../utils/dbVersion.js';
 
 const config = <T>(
   connection: Connection,

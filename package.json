@@ -35,7 +35,7 @@
     "format:dist": "prettier --write --no-error-on-unmatched-pattern '**/dist/**/*.{ts,js}'",
     "schema": "./tools/refresh_schema.sh",
     "protos": "./tools/refresh_protos.sh",
-    "docs": "typedoc --plugin typedoc-plugin-extras --favicon public/favicon.ico --out docs/ src/"
+    "docs": "typedoc --plugin typedoc-plugin-extras --favicon public/favicon.ico --out docs/ src/ && npm run format"
   },
   "repository": {
     "type": "git",
@@ -85,6 +85,7 @@
     "nice-grpc": "^2.1.7",
     "openapi-typescript": "^5.4.1",
     "prettier": "^2.8.4",
+    "prettier-plugin-organize-imports": "^3.2.4",
     "protobufjs": "^7.2.6",
     "ts-jest": "^29.0.5",
     "ts-node": "^10.9.2",

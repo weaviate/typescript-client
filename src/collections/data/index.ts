@@ -1,10 +1,12 @@
 import Connection from '../../connection/grpc.js';
 
-import { WeaviateObject, BatchReference, BatchReferenceResponse } from '../../openapi/types.js';
 import { buildRefsPath } from '../../batch/path.js';
-import { ObjectsPath, ReferencesPath } from '../../data/path.js';
-import { DbVersionSupport } from '../../utils/dbVersion.js';
 import { Checker, ConsistencyLevel } from '../../data/index.js';
+import { ObjectsPath, ReferencesPath } from '../../data/path.js';
+import { BatchReference, BatchReferenceResponse, WeaviateObject } from '../../openapi/types.js';
+import { DbVersionSupport } from '../../utils/dbVersion.js';
+import { Deserialize } from '../deserialize/index.js';
+import { FilterValue } from '../filters/index.js';
 import { referenceToBeacons } from '../references/utils.js';
 import { DataGuards, Serialize } from '../serialize/index.js';
 import {
@@ -19,8 +21,6 @@ import {
   ReferenceInputs,
   Vectors,
 } from '../types/index.js';
-import { FilterValue } from '../filters/index.js';
-import { Deserialize } from '../deserialize/index.js';
 
 /** The available options to the `data.deleteMany` method.  */
 export type DeleteManyOptions<V> = {

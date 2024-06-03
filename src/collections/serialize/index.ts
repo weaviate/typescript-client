@@ -7,55 +7,29 @@ import {
   BatchObject_SingleTargetRefProps,
 } from '../../proto/v1/batch.js';
 import {
-  PropertiesRequest,
-  ObjectPropertiesRequest,
-  SortBy as SortByGrpc,
-  MetadataRequest,
-  NearAudioSearch,
-  NearImageSearch,
-  NearObject,
-  NearTextSearch,
-  NearVector,
-  NearVideoSearch,
-  Hybrid,
-  Hybrid_FusionType,
   BM25,
   GenerativeSearch,
   GroupBy,
-  NearThermalSearch,
+  Hybrid,
+  Hybrid_FusionType,
+  MetadataRequest,
+  NearAudioSearch,
   NearDepthSearch,
   NearIMUSearch,
+  NearImageSearch,
+  NearObject,
+  NearTextSearch,
   NearTextSearch_Move,
+  NearThermalSearch,
+  NearVector,
+  NearVideoSearch,
+  ObjectPropertiesRequest,
+  PropertiesRequest,
   Rerank,
+  SortBy as SortByGrpc,
 } from '../../proto/v1/search_get.js';
 
-import { Filters, FilterValue } from '../filters/index.js';
-import { FilterId } from '../filters/classes.js';
-import {
-  FilterValueType,
-  PrimitiveFilterValueType,
-  PrimitiveListFilterValueType,
-  GeoRangeFilter,
-} from '../filters/types.js';
-import {
-  BatchObject,
-  BatchObjects,
-  DataObject,
-  QueryReference,
-  QueryNested,
-  QueryProperty,
-  SortBy,
-  WeaviateField,
-  NestedProperties,
-  GroupByOptions,
-  NonReferenceInputs,
-  GeoCoordinate,
-  PhoneNumberInput,
-  ReferenceInput,
-  QueryMetadata,
-  RerankOptions,
-  MetadataKeys,
-} from '../types/index.js';
+import { WeaviateInvalidInputError, WeaviateSerializationError } from '../../errors.js';
 import {
   BaseSearchArgs,
   SearchBm25Args,
@@ -63,8 +37,8 @@ import {
   SearchHybridArgs,
   SearchNearAudioArgs,
   SearchNearDepthArgs,
-  SearchNearImageArgs,
   SearchNearIMUArgs,
+  SearchNearImageArgs,
   SearchNearObjectArgs,
   SearchNearTextArgs,
   SearchNearThermalArgs,
@@ -72,36 +46,62 @@ import {
   SearchNearVideoArgs,
 } from '../../grpc/searcher.js';
 import {
-  Bm25Options,
-  FetchObjectByIdOptions,
-  FetchObjectsOptions,
-  HybridOptions,
-  NearOptions,
-  SearchOptions,
-  NearTextOptions,
-  BaseNearOptions,
-  BaseHybridOptions,
-  HybridNearTextSubSearch,
-  HybridNearVectorSubSearch,
-} from '../query/types.js';
-import { GenerateOptions } from '../generate/types.js';
-import {
   BooleanArrayProperties,
+  FilterTarget,
+  Filters as FiltersGRPC,
+  Filters_Operator,
   IntArrayProperties,
   NumberArrayProperties,
   ObjectArrayProperties,
   ObjectProperties,
   ObjectPropertiesValue,
   TextArrayProperties,
-  Filters as FiltersGRPC,
-  Filters_Operator,
-  FilterTarget,
   Vectors as VectorsGrpc,
 } from '../../proto/v1/base.js';
-import { Beacon } from '../references/index.js';
+import { FilterId } from '../filters/classes.js';
+import { FilterValue, Filters } from '../filters/index.js';
+import {
+  FilterValueType,
+  GeoRangeFilter,
+  PrimitiveFilterValueType,
+  PrimitiveListFilterValueType,
+} from '../filters/types.js';
+import {
+  BaseHybridOptions,
+  BaseNearOptions,
+  Bm25Options,
+  FetchObjectByIdOptions,
+  FetchObjectsOptions,
+  HybridNearTextSubSearch,
+  HybridNearVectorSubSearch,
+  HybridOptions,
+  NearOptions,
+  NearTextOptions,
+  SearchOptions,
+} from '../query/types.js';
 import { ReferenceGuards } from '../references/classes.js';
+import { Beacon } from '../references/index.js';
 import { uuidToBeacon } from '../references/utils.js';
-import { WeaviateInvalidInputError, WeaviateSerializationError } from '../../errors.js';
+import {
+  BatchObject,
+  BatchObjects,
+  DataObject,
+  GenerateOptions,
+  GeoCoordinate,
+  GroupByOptions,
+  MetadataKeys,
+  NestedProperties,
+  NonReferenceInputs,
+  PhoneNumberInput,
+  QueryMetadata,
+  QueryNested,
+  QueryProperty,
+  QueryReference,
+  ReferenceInput,
+  RerankOptions,
+  SortBy,
+  WeaviateField,
+} from '../types/index.js';
 
 class FilterGuards {
   static isFilters = (

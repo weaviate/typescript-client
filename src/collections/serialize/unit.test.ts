@@ -1,4 +1,3 @@
-import { DataGuards, Serialize } from './index.js';
 import {
   SearchBm25Args,
   SearchFetchArgs,
@@ -37,6 +36,7 @@ import filter from '../filters/index.js';
 import { Reference } from '../references/index.js';
 import sort from '../sort/index.js';
 import { WeaviateField } from '../types/index.js';
+import { DataGuards, Serialize } from './index.js';
 
 describe('Unit testing of Serialize', () => {
   it('should parse args for fetchObjects', () => {

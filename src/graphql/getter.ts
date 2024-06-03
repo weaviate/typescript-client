@@ -1,10 +1,14 @@
-import Where from './where.js';
-import NearText, { NearTextArgs } from './nearText.js';
-import NearVector, { NearVectorArgs } from './nearVector.js';
+import Connection from '../connection/index.js';
+import { ConsistencyLevel } from '../data/index.js';
+import { WhereFilter } from '../openapi/types.js';
+import { CommandBase } from '../validation/commandBase.js';
+import Ask, { AskArgs } from './ask.js';
 import Bm25, { Bm25Args } from './bm25.js';
+import { GenerateArgs, GraphQLGenerate } from './generate.js';
+import Group, { GroupArgs } from './group.js';
+import GroupBy, { GroupByArgs } from './groupBy.js';
 import Hybrid, { HybridArgs } from './hybrid.js';
 import NearImage, { NearImageArgs } from './nearImage.js';
-import NearObject, { NearObjectArgs } from './nearObject.js';
 import NearMedia, {
   NearAudioArgs,
   NearDepthArgs,
@@ -14,15 +18,11 @@ import NearMedia, {
   NearThermalArgs,
   NearVideoArgs,
 } from './nearMedia.js';
-import Ask, { AskArgs } from './ask.js';
-import Group, { GroupArgs } from './group.js';
+import NearObject, { NearObjectArgs } from './nearObject.js';
+import NearText, { NearTextArgs } from './nearText.js';
+import NearVector, { NearVectorArgs } from './nearVector.js';
 import Sort, { SortArgs } from './sort.js';
-import Connection from '../connection/index.js';
-import { CommandBase } from '../validation/commandBase.js';
-import { WhereFilter } from '../openapi/types.js';
-import { GenerateArgs, GraphQLGenerate } from './generate.js';
-import { ConsistencyLevel } from '../data/index.js';
-import GroupBy, { GroupByArgs } from './groupBy.js';
+import Where from './where.js';
 
 export { FusionType } from './hybrid.js';
 export default class GraphQLGetter extends CommandBase {

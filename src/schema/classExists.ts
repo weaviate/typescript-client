@@ -1,7 +1,7 @@
-import { isValidStringProperty } from '../validation/string.js';
 import Connection from '../connection/index.js';
-import { CommandBase } from '../validation/commandBase.js';
 import { WeaviateSchema } from '../openapi/types.js';
+import { CommandBase } from '../validation/commandBase.js';
+import { isValidStringProperty } from '../validation/string.js';
 
 export default class ClassExists extends CommandBase {
   private className?: string;

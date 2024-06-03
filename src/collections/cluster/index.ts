@@ -1,8 +1,8 @@
 import { NodesStatusGetter } from '../../cluster/index.js';
 import Connection from '../../connection/index.js';
-import { BatchStats, NodeStats, NodeShardStatus } from '../../openapi/types.js';
+import { BatchStats, NodeShardStatus, NodeStats } from '../../openapi/types.js';
 
-type Output = 'minimal' | 'verbose' | undefined;
+export type Output = 'minimal' | 'verbose' | undefined;
 
 export type NodesOptions<O extends Output> = {
   /** The name of the collection to get the status of. */

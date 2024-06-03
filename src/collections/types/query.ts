@@ -1,15 +1,15 @@
-import { Properties, WeaviateField } from '../index.js';
+import { WeaviateField } from '../index.js';
 import { CrossReferenceDefault } from '../references/index.js';
 import {
   ExtractCrossReferenceType,
   NonRefKeys,
-  RefKeys,
+  QueryNestedDefault,
   QueryProperty,
   QueryReference,
-  QueryNestedDefault,
+  RefKeys,
 } from './internal.js';
 
-type Metadata = {
+export type Metadata = {
   creationTime: Date;
   updateTime: Date;
   distance: number;
@@ -119,7 +119,7 @@ export type RerankOptions<T> = T extends undefined
       query?: string;
     };
 
-interface BaseRefProperty<T> {
+export interface BaseRefProperty<T> {
   /** The property to link on when defining the references traversal. */
   linkOn: RefKeys<T>;
   /** Whether to return the vector(s) of the referenced objects in the query. */

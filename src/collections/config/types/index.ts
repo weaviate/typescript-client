@@ -5,14 +5,13 @@ export * from './vectorizer.js';
 
 import {
   InvertedIndexConfigUpdate,
-  LegacyVectorizerConfigUpdate,
-  VectorConfigUpdate,
   ReplicationConfigUpdate,
+  VectorConfigUpdate,
 } from '../../configure/types/index.js';
 import { GenerativeConfig } from './generative.js';
 import { RerankerConfig } from './reranker.js';
-import { VectorConfig } from './vectorizer.js';
 import { VectorIndexType } from './vectorIndex.js';
+import { VectorConfig } from './vectorizer.js';
 
 export type ModuleConfig<N, C = undefined> = {
   name: N;

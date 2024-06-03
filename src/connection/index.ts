@@ -4,12 +4,12 @@ import ConnectionREST from './http.js';
 
 export default ConnectionGQL;
 
-export type { ConnectionParams } from './http.js';
-export { ConnectionGQL, ConnectionGRPC, ConnectionREST };
 export type {
   ConnectToCustomOptions,
   ConnectToLocalOptions,
-  ConnectToWeaviateCloudOptions,
   ConnectToWCDOptions,
   ConnectToWCSOptions,
+  ConnectToWeaviateCloudOptions,
 } from './helpers.js';
+export type { InternalConnectionParams } from './http.js';
+export { ConnectionGQL, ConnectionGRPC, ConnectionREST };

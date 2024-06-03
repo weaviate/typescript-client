@@ -1,7 +1,7 @@
-import Base from './base.js';
 import { Metadata } from 'nice-grpc';
-import { WeaviateClient } from '../proto/v1/weaviate.js';
 import { TenantsGetReply, TenantsGetRequest } from '../proto/v1/tenants.js';
+import { WeaviateClient } from '../proto/v1/weaviate.js';
+import Base from './base.js';
 
 export type TenantsGetArgs = {
   names?: string[];

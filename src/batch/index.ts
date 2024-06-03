@@ -1,10 +1,10 @@
-import ObjectsBatcher from './objectsBatcher.js';
-import ObjectsBatchDeleter from './objectsBatchDeleter.js';
-import ReferencesBatcher from './referencesBatcher.js';
-import ReferencePayloadBuilder from './referencePayloadBuilder.js';
+import Connection from '../connection/index.js';
 import { BeaconPath } from '../utils/beaconPath.js';
 import { DbVersionSupport } from '../utils/dbVersion.js';
-import Connection from '../connection/index.js';
+import ObjectsBatchDeleter from './objectsBatchDeleter.js';
+import ObjectsBatcher from './objectsBatcher.js';
+import ReferencePayloadBuilder from './referencePayloadBuilder.js';
+import ReferencesBatcher from './referencesBatcher.js';
 
 export type DeleteOutput = 'verbose' | 'minimal';
 export type DeleteResultStatus = 'SUCCESS' | 'FAILED' | 'DRYRUN';
@@ -28,6 +28,6 @@ const batch = (client: Connection, dbVersionSupport: DbVersionSupport): Batch =>
 };
 
 export default batch;
-export { default as ObjectsBatcher } from './objectsBatcher.js';
 export { default as ObjectsBatchDeleter } from './objectsBatchDeleter.js';
+export { default as ObjectsBatcher } from './objectsBatcher.js';
 export { default as ReferencesBatcher } from './referencesBatcher.js';

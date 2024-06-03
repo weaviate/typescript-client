@@ -7,7 +7,7 @@ import {
   GenerativePaLMConfig,
 } from '../../index.js';
 
-type GenerativeOpenAIConfigBaseCreate = {
+export type GenerativeOpenAIConfigBaseCreate = {
   baseURL?: string;
   frequencyPenalty?: number;
   maxTokens?: number;

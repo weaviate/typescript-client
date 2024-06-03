@@ -2,11 +2,11 @@ import {
   InvertedIndexConfigCreate,
   InvertedIndexConfigUpdate,
   MultiTenancyConfigCreate,
-  VectorConfigUpdate,
-  VectorizerUpdateOptions,
   ReplicationConfigCreate,
   ShardingConfigCreate,
+  VectorConfigUpdate,
   VectorIndexType,
+  VectorizerUpdateOptions,
 } from '../types/index.js';
 
 import generative from './generative.js';
@@ -222,7 +222,7 @@ export {
   reconfigure,
   reranker,
   tokenization,
-  vectorizer,
   vectorDistances,
   configureVectorIndex as vectorIndex,
+  vectorizer,
 };

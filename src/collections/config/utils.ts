@@ -1,17 +1,24 @@
+import { WeaviateDeserializationError } from '../../errors.js';
 import {
+  WeaviateBM25Config,
   WeaviateClass,
   WeaviateInvertedIndexConfig,
-  WeaviateBM25Config,
-  WeaviateStopwordConfig,
   WeaviateModuleConfig,
   WeaviateMultiTenancyConfig,
-  WeaviateReplicationConfig,
-  WeaviateShardingConfig,
-  WeaviateVectorIndexConfig,
   WeaviateNestedProperty,
   WeaviateProperty,
+  WeaviateReplicationConfig,
+  WeaviateShardingConfig,
+  WeaviateStopwordConfig,
+  WeaviateVectorIndexConfig,
   WeaviateVectorsConfig,
 } from '../../openapi/types.js';
+import {
+  PropertyConfigCreate,
+  ReferenceConfigCreate,
+  ReferenceMultiTargetConfigCreate,
+  ReferenceSingleTargetConfigCreate,
+} from '../configure/types/index.js';
 import {
   BQConfig,
   CollectionConfig,
@@ -39,13 +46,6 @@ import {
   VectorIndexConfigType,
   VectorizerConfig,
 } from './types/index.js';
-import {
-  PropertyConfigCreate,
-  ReferenceConfigCreate,
-  ReferenceMultiTargetConfigCreate,
-  ReferenceSingleTargetConfigCreate,
-} from '../configure/types/index.js';
-import { WeaviateDeserializationError } from '../../errors.js';
 
 export class ReferenceTypeGuards {
   static isSingleTarget<T>(ref: ReferenceConfigCreate<T>): ref is ReferenceSingleTargetConfigCreate<T> {

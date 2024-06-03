@@ -1,4 +1,4 @@
-import { Backend, BackupStatus } from '../../backup/index.js';
+import { Backend } from '../../backup/index.js';
 import Connection from '../../connection/index.js';
 import {
   BackupCreateResponse,

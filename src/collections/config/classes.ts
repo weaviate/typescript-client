@@ -3,18 +3,18 @@ import {
   WeaviateClass,
   WeaviateInvertedIndexConfig,
   WeaviateReplicationConfig,
-  WeaviateVectorsConfig,
   WeaviateVectorIndexConfig,
+  WeaviateVectorsConfig,
 } from '../../openapi/types.js';
-import { CollectionConfigUpdate, VectorIndexType } from './types/index.js';
+import { QuantizerGuards } from '../configure/parsing.js';
 import {
   InvertedIndexConfigUpdate,
-  VectorConfigUpdate,
   ReplicationConfigUpdate,
+  VectorConfigUpdate,
   VectorIndexConfigFlatUpdate,
   VectorIndexConfigHNSWUpdate,
 } from '../configure/types/index.js';
-import { QuantizerGuards } from '../configure/parsing.js';
+import { CollectionConfigUpdate, VectorIndexType } from './types/index.js';
 
 export class MergeWithExisting {
   static schema(

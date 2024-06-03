@@ -1,14 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import weaviate, { MetaGetter, WeaviateClient } from '../v2/index.js';
-import {
-  WeaviateClass,
-  Property,
-  WeaviateSchema,
-  ShardStatus,
-  ShardStatusList,
-  Tenant,
-  Meta,
-} from '../openapi/types.js';
+import { Meta, Property, ShardStatus, ShardStatusList, Tenant, WeaviateClass } from '../openapi/types.js';
+import weaviate, { WeaviateClient } from '../v2/index.js';
 
 const isVer = (client: WeaviateClient, minor: number, patch: number) =>
   client.misc

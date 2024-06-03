@@ -1,9 +1,9 @@
-import { buildRefsPath } from './path.js';
-import { BeaconPath } from '../utils/beaconPath.js';
 import Connection from '../connection/index.js';
-import { CommandBase } from '../validation/commandBase.js';
-import { BatchReference, BatchReferenceResponse } from '../openapi/types.js';
 import { ConsistencyLevel } from '../data/replication.js';
+import { BatchReference, BatchReferenceResponse } from '../openapi/types.js';
+import { BeaconPath } from '../utils/beaconPath.js';
+import { CommandBase } from '../validation/commandBase.js';
+import { buildRefsPath } from './path.js';
 
 export default class ReferencesBatcher extends CommandBase {
   private beaconPath: BeaconPath;

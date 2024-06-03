@@ -1,26 +1,25 @@
 import {
-  FetchObjectsOptions,
-  Bm25Options,
+  BaseBm25Options,
   BaseHybridOptions,
-  GroupByHybridOptions,
-  HybridOptions,
-  BaseNearTextOptions,
   BaseNearOptions,
+  BaseNearTextOptions,
+  Bm25Options,
+  FetchObjectsOptions,
+  GroupByBm25Options,
+  GroupByHybridOptions,
+  GroupByNearOptions,
+  GroupByNearTextOptions,
+  HybridOptions,
   NearMediaType,
   NearOptions,
   NearTextOptions,
-  GroupByNearOptions,
-  GroupByNearTextOptions,
-  BaseBm25Options,
-  GroupByBm25Options,
 } from '../query/types.js';
-import { GenerativeReturn, GenerativeGroupByReturn } from '../types/index.js';
-
-export type GenerateOptions<T> = {
-  singlePrompt?: string;
-  groupedTask?: string;
-  groupedProperties?: T extends undefined ? string[] : (keyof T)[];
-};
+import {
+  GenerateOptions,
+  GenerateReturn,
+  GenerativeGroupByReturn,
+  GenerativeReturn,
+} from '../types/index.js';
 
 interface Bm25<T> {
   /**
@@ -371,5 +370,3 @@ export interface Generate<T>
     NearVector<T> {
   fetchObjects: (generate: GenerateOptions<T>, opts?: FetchObjectsOptions<T>) => Promise<GenerativeReturn<T>>;
 }
-
-export type GenerateReturn<T> = Promise<GenerativeReturn<T>> | Promise<GenerativeGroupByReturn<T>>;

@@ -1,15 +1,14 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { DbVersionProvider } from '../utils/dbVersion.js';
 import weaviate, {
+  Meta,
   Reference,
+  ReferenceCreator,
+  Tenant,
+  WeaviateClass,
   WeaviateClient,
   WeaviateError,
   WeaviateObject,
-  WeaviateClass,
-  Tenant,
-  ReferenceCreator,
   WhereFilter,
-  Meta,
 } from '../v2/index.js';
 import { FusionType } from './hybrid.js';
 

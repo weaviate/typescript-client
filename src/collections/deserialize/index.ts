@@ -1,25 +1,25 @@
+import { WeaviateDeserializationError } from '../../errors.js';
+import { BatchObject as BatchObjectGRPC, BatchObjectsReply } from '../../proto/v1/batch.js';
+import { BatchDeleteReply } from '../../proto/v1/batch_delete.js';
+import { ListValue, Properties as PropertiesGrpc, Value } from '../../proto/v1/properties.js';
 import { MetadataResult, PropertiesResult, SearchReply } from '../../proto/v1/search_get.js';
+import { DbVersionSupport } from '../../utils/dbVersion.js';
 import { referenceFromObjects } from '../references/utils.js';
 import {
+  BatchObject,
   BatchObjectsReturn,
-  ReturnMetadata,
-  Properties,
+  DeleteManyReturn,
+  ErrorObject,
+  GenerativeGroupByResult,
+  GenerativeGroupByReturn,
   GenerativeReturn,
-  WeaviateReturn,
   GroupByObject,
   GroupByResult,
   GroupByReturn,
-  ErrorObject,
-  BatchObject,
-  GenerativeGroupByReturn,
-  GenerativeGroupByResult,
-  DeleteManyReturn,
+  Properties,
+  ReturnMetadata,
+  WeaviateReturn,
 } from '../types/index.js';
-import { BatchObject as BatchObjectGRPC, BatchObjectsReply } from '../../proto/v1/batch.js';
-import { ListValue, Properties as PropertiesGrpc, Value } from '../../proto/v1/properties.js';
-import { BatchDeleteReply } from '../../proto/v1/batch_delete.js';
-import { WeaviateDeserializationError } from '../../errors.js';
-import { DbVersionSupport } from '../../utils/dbVersion.js';
 
 export class Deserialize {
   private supports125ListValue: boolean;

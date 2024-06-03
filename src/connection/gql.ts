@@ -1,10 +1,10 @@
 import { GraphQLClient as Client, Variables } from 'graphql-request';
-import ConnectionREST, { ConnectionParams } from './http.js';
+import ConnectionREST, { InternalConnectionParams } from './http.js';
 
 export default class ConnectionGQL extends ConnectionREST {
   private gql: GraphQLClient;
 
-  constructor(params: ConnectionParams) {
+  constructor(params: InternalConnectionParams) {
     super(params);
     this.gql = gqlClient(params);
   }
@@ -33,7 +33,7 @@ export interface GraphQLClient {
   ) => Promise<{ data: T }>;
 }
 
-export const gqlClient = (config: ConnectionParams): GraphQLClient => {
+export const gqlClient = (config: InternalConnectionParams): GraphQLClient => {
   const version = '/v1/graphql';
   const baseUri = `${config.host}${version}`;
   const defaultHeaders = config.headers;

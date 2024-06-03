@@ -1,8 +1,8 @@
-import maker, { FilterValue, Filters } from './index.js';
-import { GeoRangeFilter } from './types.js';
 import { WhereFilter } from '../../openapi/types.js';
 import { CrossReference } from '../references/index.js';
 import { Serialize } from '../serialize/index.js';
+import maker, { FilterValue, Filters } from './index.js';
+import { GeoRangeFilter } from './types.js';
 
 describe('Unit testing of filters', () => {
   type Person = {

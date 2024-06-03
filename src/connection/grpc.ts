@@ -1,24 +1,24 @@
 import { isAbortError } from 'abort-controller-x';
 
 import ConnectionGQL from './gql.js';
-import { ConnectionParams } from './http.js';
+import { InternalConnectionParams } from './http.js';
 
 import { ConsistencyLevel } from '../data/index.js';
 
 import { ChannelCredentials, ChannelOptions, createChannel, createClientFactory, Metadata } from 'nice-grpc';
 import { deadlineMiddleware } from 'nice-grpc-client-middleware-deadline';
 
+import { HealthCheckResponse_ServingStatus, HealthDefinition } from '../proto/google/health/v1/health.js';
 import { WeaviateDefinition } from '../proto/v1/weaviate.js';
-import { HealthDefinition, HealthCheckResponse_ServingStatus } from '../proto/google/health/v1/health.js';
 
 import Batcher, { Batch } from '../grpc/batcher.js';
 import Searcher, { Search } from '../grpc/searcher.js';
-import { DbVersionSupport, initDbVersionProvider } from '../utils/dbVersion.js';
 import TenantsManager, { Tenants } from '../grpc/tenantsManager.js';
+import { DbVersionSupport, initDbVersionProvider } from '../utils/dbVersion.js';
 
 import { WeaviateGRPCUnavailableError, WeaviateUnsupportedFeatureError } from '../errors.js';
 
-export interface GrpcConnectionParams extends ConnectionParams {
+export interface GrpcConnectionParams extends InternalConnectionParams {
   grpcAddress: string;
   grpcSecure: boolean;
 }

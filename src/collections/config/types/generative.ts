@@ -1,4 +1,4 @@
-type GenerativeOpenAIConfigBase = {
+export type GenerativeOpenAIConfigBase = {
   baseURL?: string;
   frequencyPenaltyProperty?: number;
   maxTokensProperty?: number;

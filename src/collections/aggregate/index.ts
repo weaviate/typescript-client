@@ -1,28 +1,28 @@
 import Connection from '../../connection/index.js';
 
-import { DbVersionSupport } from '../../utils/dbVersion.js';
 import { ConsistencyLevel } from '../../data/index.js';
+import { DbVersionSupport } from '../../utils/dbVersion.js';
 
 import { FilterValue } from '../filters/index.js';
 
 import { Aggregator } from '../../graphql/index.js';
 import { Serialize } from '../serialize/index.js';
 
-type AggregateBaseOptions<T, M> = {
+export type AggregateBaseOptions<T, M> = {
   filters?: FilterValue;
   returnMetrics?: M;
 };
 
-type AggregateGroupByOptions<T, M> = AggregateOptions<T, M> & {
+export type AggregateGroupByOptions<T, M> = AggregateOptions<T, M> & {
   groupBy: (keyof T & string) | GroupByAggregate<T>;
 };
 
-type GroupByAggregate<T> = {
+export type GroupByAggregate<T> = {
   property: keyof T & string;
   limit?: number;
 };
 
-type AggregateOptions<T, M> = AggregateBaseOptions<T, M>;
+export type AggregateOptions<T, M> = AggregateBaseOptions<T, M>;
 
 export type AggregateBaseOverAllOptions<T, M> = AggregateBaseOptions<T, M>;
 
@@ -75,7 +75,7 @@ export type AggregateText = {
   }[];
 };
 
-type MetricsInput<N extends string> =
+export type MetricsInput<N extends string> =
   | MetricsBoolean<N>
   | MetricsInteger<N>
   | MetricsNumber<N>
@@ -92,7 +92,7 @@ export type MetricsBase<N extends string, K extends 'boolean' | 'date' | 'intege
   propertyName: N;
 };
 
-type Option<A> = { [key in keyof A]: boolean };
+export type Option<A> = { [key in keyof A]: boolean };
 
 export type BooleanKeys = 'count' | 'percentageFalse' | 'percentageTrue' | 'totalFalse' | 'totalTrue';
 export type DateKeys = 'count' | 'maximum' | 'median' | 'minimum' | 'mode';
@@ -297,7 +297,7 @@ type KindToAggregateType<K> = K extends 'text'
 
 export type AggregateType = AggregateBoolean | AggregateDate | AggregateNumber | AggregateText;
 
-type AggregateResult<T, M extends PropertiesMetrics<T> | undefined = undefined> = {
+export type AggregateResult<T, M extends PropertiesMetrics<T> | undefined = undefined> = {
   properties: T extends undefined
     ? Record<string, AggregateType>
     : M extends MetricsInput<keyof T & string>[]
@@ -312,10 +312,10 @@ type AggregateResult<T, M extends PropertiesMetrics<T> | undefined = undefined> 
   totalCount: number;
 };
 
-type AggregateGroupByResult<T, M extends PropertiesMetrics<T> | undefined = undefined> = AggregateResult<
+export type AggregateGroupByResult<
   T,
-  M
-> & {
+  M extends PropertiesMetrics<T> | undefined = undefined
+> = AggregateResult<T, M> & {
   groupedBy: {
     prop: string;
     value: string;
@@ -624,7 +624,7 @@ export interface Aggregate<T> {
    *
    * This method requires that the objects in the collection have associated vectors.
    *
-   * @param {number[]} vector The vector to search for.
+   * @param {number[]} query The text query to search for.
    * @param {AggregateNearOptions<T, M>} [opts] The options for the request.
    * @returns {Promise<AggregateResult<T, M>[]>} The aggregated metrics for the objects returned by the vector search.
    */

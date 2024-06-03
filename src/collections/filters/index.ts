@@ -1,3 +1,4 @@
+export { Filters } from './classes.js';
 export type {
   Filter,
   FilterByCount,
@@ -5,14 +6,15 @@ export type {
   FilterByProperty,
   FilterByTime,
   FilterValue,
+  GeoRangeFilter,
+  Operator,
 } from './types.js';
-export { Filters } from './classes.js';
 
 import { ExtractCrossReferenceType, NonRefKeys, RefKeys } from '../types/internal.js';
 
 import {
-  FilterCreationTime,
   FilterCount,
+  FilterCreationTime,
   FilterId,
   FilterProperty,
   FilterRef,

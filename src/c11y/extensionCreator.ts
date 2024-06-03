@@ -1,6 +1,6 @@
 import Connection from '../connection/index.js';
-import { CommandBase } from '../validation/commandBase.js';
 import { C11yExtension } from '../openapi/types.js';
+import { CommandBase } from '../validation/commandBase.js';
 
 export default class ExtensionCreator extends CommandBase {
   private concept?: string;

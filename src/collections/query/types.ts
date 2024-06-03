@@ -1,14 +1,14 @@
 import { FilterValue } from '../filters/index.js';
 import { Sorting } from '../sort/classes.js';
 import {
+  GroupByOptions,
+  GroupByReturn,
   QueryMetadata,
-  WeaviateObject,
   QueryProperty,
   QueryReference,
-  WeaviateReturn,
-  GroupByReturn,
-  GroupByOptions,
   RerankOptions,
+  WeaviateObject,
+  WeaviateReturn,
 } from '../types/index.js';
 import { PrimitiveKeys } from '../types/internal.js';
 
@@ -383,7 +383,7 @@ interface NearObject<T> {
    * This overload is for performing a search with a programmatically defined `opts` param.
    *
    * @overload
-   * @param {number[]} vector - The vector to search for.
+   * @param {number[]} id - The UUID of the object to search for.
    * @param {NearOptions<T>} [opts] - The available options for the search.
    * @returns {QueryReturn<T>} - The result of the search within the fetched collection.
    */

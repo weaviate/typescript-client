@@ -1,8 +1,8 @@
-import { isValidStringProperty } from '../validation/string.js';
 import Connection from '../connection/index.js';
-import { ObjectsPath } from './path.js';
-import { CommandBase } from '../validation/commandBase.js';
 import { Properties, WeaviateObject } from '../openapi/types.js';
+import { CommandBase } from '../validation/commandBase.js';
+import { isValidStringProperty } from '../validation/string.js';
+import { ObjectsPath } from './path.js';
 import { ConsistencyLevel } from './replication.js';
 
 export default class Creator extends CommandBase {

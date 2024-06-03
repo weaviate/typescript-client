@@ -1,7 +1,7 @@
 import Connection from '../connection/index.js';
-import { ConsistencyLevel } from './replication.js';
-import { ObjectsPath } from './path.js';
 import { CommandBase } from '../validation/commandBase.js';
+import { ObjectsPath } from './path.js';
+import { ConsistencyLevel } from './replication.js';
 
 export default class Checker extends CommandBase {
   private className!: string;

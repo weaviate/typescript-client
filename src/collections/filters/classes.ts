@@ -1,20 +1,20 @@
 import { WeaviateInvalidInputError } from '../../errors.js';
 import {
-  FilterTarget,
   FilterReferenceCount,
   FilterReferenceMultiTarget,
   FilterReferenceSingleTarget,
+  FilterTarget,
 } from '../../proto/v1/base.js';
 import { ExtractCrossReferenceType, NonRefKeys, RefKeys } from '../types/internal.js';
 import {
   ContainsValue,
-  FilterValue,
   CountRef,
-  FilterTargetInternal,
-  TargetRefs,
   Filter,
-  GeoRangeFilter,
   FilterByProperty,
+  FilterTargetInternal,
+  FilterValue,
+  GeoRangeFilter,
+  TargetRefs,
 } from './types.js';
 import { TargetGuards } from './utils.js';
 

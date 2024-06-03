@@ -22,3 +22,5 @@ const sort = <T>(): Sort<T> => {
 };
 
 export default sort;
+
+export { Sorting };

@@ -1,17 +1,16 @@
-export type { Query, QueryReturn } from './types.js';
-
 import Connection from '../../connection/grpc.js';
 
 import { toBase64FromBlob } from '../../utils/base64.js';
 
-import { DbVersionSupport } from '../../utils/dbVersion.js';
 import { ConsistencyLevel } from '../../data/index.js';
+import { DbVersionSupport } from '../../utils/dbVersion.js';
 
+import { SearchReply } from '../../proto/v1/search_get.js';
 import { Deserialize } from '../deserialize/index.js';
 import { Serialize } from '../serialize/index.js';
-import { WeaviateObject, WeaviateReturn, GroupByReturn, GroupByOptions } from '../types/index.js';
-import { SearchReply } from '../../proto/v1/search_get.js';
+import { GroupByOptions, GroupByReturn, WeaviateObject, WeaviateReturn } from '../types/index.js';
 
+import { WeaviateInvalidInputError, WeaviateUnsupportedFeatureError } from '../../errors.js';
 import {
   BaseBm25Options,
   BaseHybridOptions,
@@ -32,7 +31,6 @@ import {
   QueryReturn,
   SearchOptions,
 } from './types.js';
-import { WeaviateInvalidInputError, WeaviateUnsupportedFeatureError } from '../../errors.js';
 
 class QueryManager<T> implements Query<T> {
   private connection: Connection;
@@ -277,3 +275,28 @@ class QueryManager<T> implements Query<T> {
 }
 
 export default QueryManager.use;
+
+export {
+  BaseBm25Options,
+  BaseHybridOptions,
+  BaseNearOptions,
+  BaseNearTextOptions,
+  Bm25Options,
+  FetchObjectByIdOptions,
+  FetchObjectsOptions,
+  GroupByBm25Options,
+  GroupByHybridOptions,
+  GroupByNearOptions,
+  GroupByNearTextOptions,
+  HybridNearTextSubSearch,
+  HybridNearVectorSubSearch,
+  HybridOptions,
+  HybridSubSearchBase,
+  MoveOptions,
+  NearMediaType,
+  NearOptions,
+  NearTextOptions,
+  Query,
+  QueryReturn,
+  SearchOptions,
+} from './types.js';

@@ -1,8 +1,13 @@
-import { Agent } from 'http';
 import { isAbortError } from 'abort-controller-x';
+import { Agent } from 'http';
 
 import OpenidConfigurationGetter from '../misc/openidConfigurationGetter.js';
 
+import {
+  WeaviateInvalidInputError,
+  WeaviateRequestTimeoutError,
+  WeaviateUnexpectedStatusCodeError,
+} from '../errors.js';
 import {
   ApiKey,
   AuthAccessTokenCredentials,
@@ -10,11 +15,6 @@ import {
   AuthUserPasswordCredentials,
   OidcAuthenticator,
 } from './auth.js';
-import {
-  WeaviateInvalidInputError,
-  WeaviateRequestTimeoutError,
-  WeaviateUnexpectedStatusCodeError,
-} from '../errors.js';
 
 /**
  * You can only specify the gRPC proxy URL at this point in time. This is because ProxiesParams should be used to define tunnelling proxies
@@ -37,7 +37,7 @@ export type TimeoutParams = {
   init?: number;
 };
 
-export type ConnectionParams = {
+export type InternalConnectionParams = {
   authClientSecret?: AuthClientCredentials | AuthAccessTokenCredentials | AuthUserPasswordCredentials;
   apiKey?: ApiKey;
   host: string;
@@ -57,14 +57,14 @@ export default class ConnectionREST {
   public readonly http: HttpClient;
   public oidcAuth?: OidcAuthenticator;
 
-  constructor(params: ConnectionParams) {
+  constructor(params: InternalConnectionParams) {
     params = this.sanitizeParams(params);
     this.host = params.host;
     this.http = httpClient(params);
     this.authEnabled = this.parseAuthParams(params);
   }
 
-  private parseAuthParams(params: ConnectionParams): boolean {
+  private parseAuthParams(params: InternalConnectionParams): boolean {
     if (params.authClientSecret && params.apiKey) {
       throw new WeaviateInvalidInputError(
         'must provide one of authClientSecret (OIDC) or apiKey, cannot provide both'
@@ -81,7 +81,7 @@ export default class ConnectionREST {
     return false;
   }
 
-  private sanitizeParams(params: ConnectionParams) {
+  private sanitizeParams(params: InternalConnectionParams) {
     // Remove trailing slashes from the host
     while (params.host.endsWith('/')) {
       params.host = params.host.slice(0, -1);
@@ -223,7 +223,7 @@ const fetchWithTimeout = (
     .finally(() => clearTimeout(timeoutId));
 };
 
-export const httpClient = (config: ConnectionParams): HttpClient => {
+export const httpClient = (config: InternalConnectionParams): HttpClient => {
   const version = '/v1';
   const baseUri = `${config.host}${version}`;
   const url = makeUrl(baseUri);

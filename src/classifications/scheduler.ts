@@ -1,7 +1,7 @@
-import ClassificationsGetter from './getter.js';
 import Connection from '../connection/index.js';
-import { CommandBase } from '../validation/commandBase.js';
 import { Classification } from '../openapi/types.js';
+import { CommandBase } from '../validation/commandBase.js';
+import ClassificationsGetter from './getter.js';
 
 export default class ClassificationsScheduler extends CommandBase {
   private basedOnProperties?: string[];
