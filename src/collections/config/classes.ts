@@ -40,7 +40,7 @@ export class MergeWithExisting {
       } else if (supportsNamedVectors) {
         const updateVectorizers = {
           ...update.vectorizers,
-          vectorName: 'default',
+          name: 'default',
         };
         current.vectorConfig = MergeWithExisting.vectors(current.vectorConfig, [updateVectorizers]);
       } else {
@@ -82,9 +82,9 @@ export class MergeWithExisting {
     if (current === undefined) throw Error('Vector index config is missing from the class schema.');
     if (update === undefined) return current;
     update.forEach((v) => {
-      const existing = current[v.vectorName];
+      const existing = current[v.name];
       if (existing !== undefined) {
-        current[v.vectorName].vectorIndexConfig =
+        current[v.name].vectorIndexConfig =
           v.vectorIndex.name === 'hnsw'
             ? MergeWithExisting.hnsw(existing.vectorIndexConfig, v.vectorIndex.config)
             : MergeWithExisting.flat(existing.vectorIndexConfig, v.vectorIndex.config);

@@ -136,7 +136,7 @@ describe('Unit testing of the MergeWithExisting class', () => {
   it('should merge a no quantizer HNSW vectorIndexConfig with existing schema', () => {
     const merged = MergeWithExisting.vectors(Object.assign({}, hnswVectorConfig), [
       {
-        vectorName: 'name',
+        name: 'name',
         vectorIndex: {
           name: 'hnsw',
           config: {
@@ -198,7 +198,7 @@ describe('Unit testing of the MergeWithExisting class', () => {
   it('should merge a PQ quantizer HNSW vectorIndexConfig with existing schema', () => {
     const merged = MergeWithExisting.vectors(Object.assign({}, hnswVectorConfig), [
       {
-        vectorName: 'name',
+        name: 'name',
         vectorIndex: {
           name: 'hnsw',
           config: {
@@ -260,7 +260,7 @@ describe('Unit testing of the MergeWithExisting class', () => {
   it('should merge a BQ quantizer HNSW vectorIndexConfig with existing schema', () => {
     const merged = MergeWithExisting.vectors(Object.assign({}, hnswVectorConfig), [
       {
-        vectorName: 'name',
+        name: 'name',
         vectorIndex: {
           name: 'hnsw',
           config: {
@@ -295,7 +295,7 @@ describe('Unit testing of the MergeWithExisting class', () => {
   it('should merge a BQ quantizer Flat vectorIndexConfig with existing schema', () => {
     const merged = MergeWithExisting.vectors(Object.assign({}, flatVectorConfig), [
       {
-        vectorName: 'name',
+        name: 'name',
         vectorIndex: {
           name: 'hnsw',
           config: {

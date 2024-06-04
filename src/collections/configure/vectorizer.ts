@@ -16,7 +16,7 @@ const makeVectorizer = <T, N extends string | undefined, I extends VectorIndexTy
   options?: VectorizerCreateOptions<PrimitiveKeys<T>[], I, V>
 ) => {
   return {
-    vectorName: name as N,
+    name: name as N,
     properties: options?.sourceProperties,
     vectorIndex: options?.vectorIndexConfig
       ? options.vectorIndexConfig
@@ -468,5 +468,3 @@ export const vectorizer = {
     });
   },
 };
-
-const l = vectorizer.text2VecContextionary();

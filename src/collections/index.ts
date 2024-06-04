@@ -143,7 +143,7 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
           : [
               {
                 ...configVectorizers,
-                vectorName: 'default',
+                name: 'default',
               },
             ];
         vectorizersConfig.forEach((v) => {
@@ -160,12 +160,12 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
             properties: v.properties,
             ...parseVectorizerConfig(v.vectorizer.config),
           };
-          if (v.vectorName === undefined) {
+          if (v.name === undefined) {
             throw new WeaviateInvalidInputError(
               'vectorName is required for each vectorizer when specifying more than one vectorizer'
             );
           }
-          vectorsConfig[v.vectorName] = vectorConfig;
+          vectorsConfig[v.name] = vectorConfig;
         });
         return { vectorsConfig, vectorizers };
       };

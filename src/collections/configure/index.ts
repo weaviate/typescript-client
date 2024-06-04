@@ -204,7 +204,7 @@ const reconfigure = {
       options: VectorizerUpdateOptions<N, I>
     ): VectorConfigUpdate<N, I> => {
       return {
-        vectorName: options?.vectorName as N,
+        name: options?.name as N,
         vectorIndex: options.vectorIndexConfig,
       };
     },

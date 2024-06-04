@@ -29,7 +29,7 @@ export type VectorizerCreateOptions<P, I, V> = {
 };
 
 export type VectorizerUpdateOptions<N, I> = {
-  vectorName?: N;
+  name?: N;
   vectorIndexConfig: ModuleConfig<I, VectorIndexConfigUpdateType<I>>;
 };
 
@@ -39,14 +39,14 @@ export type VectorConfigCreate<
   I extends VectorIndexType,
   V extends Vectorizer
 > = {
-  vectorName: N;
+  name: N;
   properties?: P[];
   vectorizer: ModuleConfig<V, VectorizerConfigType<V>>;
   vectorIndex: ModuleConfig<I, VectorIndexConfigCreateType<I>>;
 };
 
 export type VectorConfigUpdate<N extends string | undefined, I extends VectorIndexType> = {
-  vectorName: N;
+  name: N;
   vectorIndex: ModuleConfig<I, VectorIndexConfigUpdateType<I>>;
 };
 
