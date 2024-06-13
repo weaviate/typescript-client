@@ -28,7 +28,7 @@ jobs:
         node-version: ${{ matrix.node }}
     - name: "Run checks"
       run: |
-        npm install
+        npm ci
         npm run lint
         npm run format:check
         npm run docs
@@ -54,7 +54,7 @@ jobs:
         node-version: ${{ matrix.versions.node }}
     - name: "Install dependencies"
       run: |
-        npm install
+        npm ci
         ci/run_dependencies.sh ${{ matrix.versions.weaviate }}
     - name: "Run tests with authentication tests"
       if: ${{ !github.event.pull_request.head.repo.fork }}
@@ -88,11 +88,12 @@ jobs:
         with:
           node-version: '18.x'
           registry-url: 'https://registry.npmjs.org'
-      - run: npm run docs
-      - run: npm ci && npm run build
+      - run: npm ci
+      - run: npm run build
       - run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTOMATION_TOKEN }}
+      - run: npm run docs
       - name: "Upload docs as pages artifact"
         uses: actions/upload-pages-artifact@v3
         with:
