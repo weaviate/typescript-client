@@ -87,11 +87,11 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
       - run: npm run docs
       - name: "Upload docs as pages artifact"
-        uses: actions/upload-pages-artifact
+        uses: actions/upload-pages-artifact@v3
         with:
           path: /docs
       - name: "Deploy the uploaded pages artifact"
-        uses: actions/deploy-pages
+        uses: actions/deploy-pages@v4
 
 
   publish:
@@ -111,11 +111,11 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTOMATION_TOKEN }}
       - name: "Upload docs as pages artifact"
-        uses: actions/upload-pages-artifact
+        uses: actions/upload-pages-artifact@v3
         with:
           path: /docs
       - name: "Deploy the uploaded pages artifact"
-        uses: actions/deploy-pages
+        uses: actions/deploy-pages@v4
       - name: "Create a GitHub release"
         uses: softprops/action-gh-release@v1
         with:
