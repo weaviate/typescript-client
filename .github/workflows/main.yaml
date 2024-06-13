@@ -45,6 +45,7 @@ jobs:
         with:
           node-version: '18.x'
           registry-url: 'https://registry.npmjs.org'
+      - run: npm install
       - run: npm run docs
       - name: "Upload docs as pages artifact"
         uses: actions/upload-pages-artifact@v3
