@@ -31,31 +31,10 @@ jobs:
         npm install
         npm run lint
         npm run format:check
-
-  docs:
-    needs: checks
-    runs-on: ubuntu-latest
-    # Grant GITHUB_TOKEN the permissions required to make a Pages deployment
-    permissions:
-      pages: write      # to deploy to Pages
-      id-token: write   # to verify the deployment originates from an appropriate source
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v3
-        with:
-          node-version: '18.x'
-          registry-url: 'https://registry.npmjs.org'
-      - run: npm install
-      - run: npm run docs
-      - name: "Upload docs as pages artifact"
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: ./docs
-      - name: "Deploy the uploaded pages artifact"
-        uses: actions/deploy-pages@v4
+        npm run docs
 
   tests:
-    needs: docs
+    needs: checks
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
