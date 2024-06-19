@@ -914,3 +914,89 @@ describe('Testing of the collection.data methods with bring your own multi vecto
     expect(obj2?.vectors?.two).toEqual([10, 11, 12]);
   });
 });
+
+describe('Testing of the collection.data methods with a vector index', () => {
+  let client: WeaviateClient;
+  let collection: Collection;
+  let uuid: string;
+  beforeAll(async () => {
+    client = await weaviate.connectToLocal();
+    collection = await client.collections.create({
+      name: 'TestCollectionDataVectorizer',
+      properties: [
+        {
+          name: 'text',
+          dataType: 'text',
+        },
+      ],
+      vectorizers: weaviate.configure.vectorizer.none(),
+    });
+  });
+
+  afterAll(() => client.collections.delete('TestCollectionDataVectorizer'));
+
+  it('should be able to insert an object with a vector without specifying the name', async () => {
+    uuid = await collection.data.insert({
+      properties: {
+        text: 'test',
+      },
+      vectors: [1, 2, 3, 4],
+    });
+    const obj = await collection.query.fetchObjectById(uuid, {
+      includeVector: true,
+    });
+    expect(obj?.vectors.default).toEqual([1, 2, 3, 4]);
+  });
+
+  it('should be able to update the vector of an object without specifying the name', async () => {
+    await collection.data.update({
+      id: uuid,
+      vectors: [5, 6, 7, 8],
+    });
+    const obj = await collection.query.fetchObjectById(uuid, {
+      includeVector: true,
+    });
+    expect(obj?.vectors.default).toEqual([5, 6, 7, 8]);
+  });
+
+  it('should be able to replace the vector of an object without specifying the name', async () => {
+    await collection.data.replace({
+      id: uuid,
+      vectors: [9, 10, 11, 12],
+    });
+    const obj = await collection.query.fetchObjectById(uuid, {
+      includeVector: true,
+    });
+    expect(obj?.vectors.default).toEqual([9, 10, 11, 12]);
+  });
+
+  it('should be able to insert many objects with a vector without specifying the name', async () => {
+    const objects = [
+      {
+        properties: {
+          text: 'test',
+        },
+        vectors: [1, 2, 3, 4],
+      },
+      {
+        properties: {
+          text: 'test',
+        },
+        vectors: [5, 6, 7, 8],
+      },
+    ];
+    const insert = await collection.data.insertMany(objects);
+    expect(insert.hasErrors).toBeFalsy();
+    expect(insert.allResponses.length).toEqual(2);
+    expect(Object.values(insert.errors).length).toEqual(0);
+    expect(Object.values(insert.uuids).length).toEqual(2);
+    const obj1 = await collection.query.fetchObjectById(insert.uuids[0], {
+      includeVector: true,
+    });
+    expect(obj1?.vectors.default).toEqual([1, 2, 3, 4]);
+    const obj2 = await collection.query.fetchObjectById(insert.uuids[1], {
+      includeVector: true,
+    });
+    expect(obj2?.vectors.default).toEqual([5, 6, 7, 8]);
+  });
+});

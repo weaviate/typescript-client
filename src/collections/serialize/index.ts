@@ -1058,6 +1058,7 @@ export class Serialize {
   public static batchObjects = <T>(
     collection: string,
     objects: (DataObject<T> | NonReferenceInputs<T>)[],
+    usesNamedVectors: boolean,
     tenant?: string
   ): Promise<BatchObjects<T>> => {
     const objs: BatchObjectGRPC[] = [];
@@ -1079,22 +1080,34 @@ export class Serialize {
         ? object
         : { id: undefined, properties: object, references: undefined, vectors: undefined };
 
+      let vectorBytes: Uint8Array | undefined;
+      let vectors: VectorsGrpc[] | undefined;
+      if (obj.vectors !== undefined && !Array.isArray(obj.vectors)) {
+        vectors = Object.entries(obj.vectors).map(([k, v]) =>
+          VectorsGrpc.fromPartial({
+            vectorBytes: Serialize.vectorToBytes(v),
+            name: k,
+          })
+        );
+      } else if (Array.isArray(obj.vectors) && usesNamedVectors) {
+        vectors = [
+          VectorsGrpc.fromPartial({
+            vectorBytes: Serialize.vectorToBytes(obj.vectors),
+            name: 'default',
+          }),
+        ];
+      } else if (obj.vectors !== undefined) {
+        vectorBytes = Serialize.vectorToBytes(obj.vectors);
+      }
+
       objs.push(
         BatchObjectGRPC.fromPartial({
           collection: collection,
           properties: Serialize.batchProperties(obj.properties, obj.references),
           tenant: tenant,
           uuid: obj.id ? obj.id : uuidv4(),
-          vectorBytes: Array.isArray(obj.vectors) ? Serialize.vectorToBytes(obj.vectors) : undefined,
-          vectors:
-            obj.vectors !== undefined && !Array.isArray(obj.vectors)
-              ? Object.entries(obj.vectors).map(([k, v]) =>
-                  VectorsGrpc.fromPartial({
-                    vectorBytes: Serialize.vectorToBytes(v),
-                    name: k,
-                  })
-                )
-              : undefined,
+          vectorBytes,
+          vectors,
         })
       );
 

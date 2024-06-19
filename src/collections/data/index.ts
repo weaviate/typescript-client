@@ -180,7 +180,7 @@ const data = <T>(
   const objectsPath = new ObjectsPath(dbVersionSupport);
   const referencesPath = new ReferencesPath(dbVersionSupport);
 
-  const parseObject = (object?: InsertObject<any>): WeaviateObject<T> => {
+  const parseObject = async (object?: InsertObject<any>): Promise<WeaviateObject<T>> => {
     if (!object) {
       return {} as WeaviateObject<T>;
     }
@@ -191,7 +191,12 @@ const data = <T>(
         : undefined,
     };
     if (Array.isArray(object.vectors)) {
-      obj.vector = object.vectors;
+      const supportsNamedVectors = await dbVersionSupport.supportsNamedVectors();
+      if (supportsNamedVectors.supports) {
+        obj.vectors = { default: object.vectors };
+      } else {
+        obj.vector = object.vectors;
+      }
     } else if (object.vectors) {
       obj.vectors = object.vectors;
     }
@@ -225,21 +230,24 @@ const data = <T>(
         tenant
       ).do(),
     insert: (obj?: InsertObject<T> | NonReferenceInputs<T>): Promise<string> =>
-      objectsPath
-        .buildCreate(consistencyLevel)
-        .then((path) =>
-          connection.postReturn<WeaviateObject<T>, Required<WeaviateObject<T>>>(path, {
+      Promise.all([
+        objectsPath.buildCreate(consistencyLevel),
+        parseObject(
+          obj ? (DataGuards.isDataObject(obj) ? obj : ({ properties: obj } as InsertObject<T>)) : obj
+        ),
+      ]).then(([path, object]) =>
+        connection
+          .postReturn<WeaviateObject<T>, Required<WeaviateObject<T>>>(path, {
             class: name,
             tenant: tenant,
-            ...parseObject(
-              obj ? (DataGuards.isDataObject(obj) ? obj : ({ properties: obj } as InsertObject<T>)) : obj
-            ),
+            ...object,
           })
-        )
-        .then((obj) => obj.id),
+          .then((obj) => obj.id)
+      ),
     insertMany: (objects: (DataObject<T> | NonReferenceInputs<T>)[]): Promise<BatchObjectsReturn<T>> =>
       connection.batch(name, consistencyLevel).then(async (batch) => {
-        const serialized = await Serialize.batchObjects(name, objects, tenant);
+        const supportsNamedVectors = await dbVersionSupport.supportsNamedVectors();
+        const serialized = await Serialize.batchObjects(name, objects, supportsNamedVectors.supports, tenant);
         const start = Date.now();
         const reply = await batch.withObjects({ objects: serialized.mapped });
         const end = Date.now();
@@ -301,20 +309,22 @@ const data = <T>(
         .build(args.fromUuid, name, args.fromProperty, consistencyLevel, tenant)
         .then((path) => connection.put(path, referenceToBeacons(args.to), false)),
     replace: (obj: ReplaceObject<T>): Promise<void> =>
-      objectsPath.buildUpdate(obj.id, name, consistencyLevel).then((path) =>
-        connection.put(path, {
-          class: name,
-          tenant: tenant,
-          ...parseObject(obj),
-        })
+      Promise.all([objectsPath.buildUpdate(obj.id, name, consistencyLevel), parseObject(obj)]).then(
+        ([path, object]) =>
+          connection.put(path, {
+            class: name,
+            tenant: tenant,
+            ...object,
+          })
       ),
     update: (obj: UpdateObject<T>): Promise<void> =>
-      objectsPath.buildUpdate(obj.id, name, consistencyLevel).then((path) =>
-        connection.patch(path, {
-          class: name,
-          tenant: tenant,
-          ...parseObject(obj),
-        })
+      Promise.all([objectsPath.buildUpdate(obj.id, name, consistencyLevel), parseObject(obj)]).then(
+        ([path, object]) =>
+          connection.patch(path, {
+            class: name,
+            tenant: tenant,
+            ...object,
+          })
       ),
   };
 };
