@@ -5,6 +5,7 @@ import { DbVersionSupport } from '../../utils/dbVersion.js';
 
 import { FilterValue } from '../filters/index.js';
 
+import { WeaviateQueryError } from '../../errors.js';
 import { Aggregator } from '../../graphql/index.js';
 import { Serialize } from '../serialize/index.js';
 
@@ -444,6 +445,9 @@ class AggregateManager<T> implements Aggregate<T> {
     if (filters) {
       builder = builder.withWhere(Serialize.filtersREST(filters));
     }
+    if (this.tenant) {
+      builder = builder.withTenant(this.tenant);
+    }
     return builder;
   }
 
@@ -556,31 +560,41 @@ class AggregateManager<T> implements Aggregate<T> {
   do = <M extends PropertiesMetrics<T> | undefined = undefined>(
     query: Aggregator
   ): Promise<AggregateResult<T, M>> => {
-    return query.do().then(({ data }: any) => {
-      const { meta, ...rest } = data.Aggregate[this.name][0];
-      return {
-        properties: rest,
-        totalCount: meta?.count,
-      };
-    });
+    return query
+      .do()
+      .then(({ data }: any) => {
+        const { meta, ...rest } = data.Aggregate[this.name][0];
+        return {
+          properties: rest,
+          totalCount: meta?.count,
+        };
+      })
+      .catch((err: Error) => {
+        throw new WeaviateQueryError(err.message, 'GraphQL');
+      });
   };
 
   doGroupBy = <M extends PropertiesMetrics<T> | undefined = undefined>(
     query: Aggregator
   ): Promise<AggregateGroupByResult<T, M>[]> => {
-    return query.do().then(({ data }: any) =>
-      data.Aggregate[this.name].map((item: any) => {
-        const { groupedBy, meta, ...rest } = item;
-        return {
-          groupedBy: {
-            prop: groupedBy.path[0],
-            value: groupedBy.value,
-          },
-          properties: rest.length > 0 ? rest : undefined,
-          totalCount: meta?.count,
-        };
-      })
-    );
+    return query
+      .do()
+      .then(({ data }: any) =>
+        data.Aggregate[this.name].map((item: any) => {
+          const { groupedBy, meta, ...rest } = item;
+          return {
+            groupedBy: {
+              prop: groupedBy.path[0],
+              value: groupedBy.value,
+            },
+            properties: rest.length > 0 ? rest : undefined,
+            totalCount: meta?.count,
+          };
+        })
+      )
+      .catch((err: Error) => {
+        throw new WeaviateQueryError(err.message, 'GraphQL');
+      });
   };
 }
 

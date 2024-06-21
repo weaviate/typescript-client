@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
-import { WeaviateUnsupportedFeatureError } from '../../errors.js';
+import { WeaviateQueryError, WeaviateUnsupportedFeatureError } from '../../errors.js';
 import weaviate, { AggregateText, WeaviateClient } from '../../index.js';
 import { Collection } from '../collection/index.js';
 import { CrossReference } from '../references/index.js';
@@ -330,4 +330,53 @@ describe('Testing of the collection.aggregate methods with named vectors', () =>
     const result = await collection.aggregate.nearText('test', { certainty: 0.9, targetVector: 'text' });
     expect(result.totalCount).toEqual(0);
   });
+});
+
+describe('Testing of collection.aggregate.overAll with a multi-tenancy collection', () => {
+  let client: WeaviateClient;
+  let collection: Collection;
+  const collectionName = 'TestCollectionAggregate';
+
+  afterAll(async () => {
+    return (await client).collections.delete(collectionName).catch((err) => {
+      console.error(err);
+      throw err;
+    });
+  });
+
+  beforeAll(async () => {
+    client = await weaviate.connectToLocal();
+    return client.collections
+      .create({
+        name: collectionName,
+        properties: [
+          {
+            name: 'text',
+            dataType: 'text',
+          },
+        ],
+        multiTenancy: { enabled: true },
+      })
+      .then(async (created) => {
+        const tenants = await created.tenants.create({ name: 'test' });
+        collection = created.withTenant(tenants[0].name);
+        const data: Array<any> = [];
+        for (let i = 0; i < 100; i++) {
+          data.push({
+            properties: {
+              text: 'test',
+            },
+          });
+        }
+        await collection.data.insertMany(data);
+      });
+  });
+
+  it('should aggregate data without a search and no property metrics over the tenant', () =>
+    collection.aggregate.overAll().then((result) => expect(result.totalCount).toEqual(100)));
+
+  it('should throw an error for a non-existant tenant', () =>
+    expect(collection.withTenant('non-existing-tenant').aggregate.overAll()).rejects.toThrow(
+      WeaviateQueryError
+    ));
 });
