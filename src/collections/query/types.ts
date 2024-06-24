@@ -173,7 +173,6 @@ interface Bm25<T> {
    *
    * This overload is for performing a search without the `groupBy` param.
    *
-   * @overload
    * @param {string} query - The query to search for.
    * @param {BaseBm25Options<T>} [opts] - The available options for the search excluding the `groupBy` param.
    * @returns {Promise<WeaviateReturn<T>>} - The result of the search within the fetched collection.
@@ -186,7 +185,6 @@ interface Bm25<T> {
    *
    * This overload is for performing a search with the `groupBy` param.
    *
-   * @overload
    * @param {string} query - The query to search for.
    * @param {GroupByBm25Options<T>} opts - The available options for the search including the `groupBy` param.
    * @returns {Promise<GroupByReturn<T>>} - The result of the search within the fetched collection.
@@ -199,7 +197,6 @@ interface Bm25<T> {
    *
    * This overload is for performing a search with a programmatically defined `opts` param.
    *
-   * @overload
    * @param {string} query - The query to search for.
    * @param {Bm25Options<T>} [opts] - The available options for the search including the `groupBy` param.
    * @returns {Promise<GroupByReturn<T>>} - The result of the search within the fetched collection.
@@ -215,7 +212,6 @@ interface Hybrid<T> {
    *
    * This overload is for performing a search without the `groupBy` param.
    *
-   * @overload
    * @param {string} query - The query to search for.
    * @param {BaseHybridOptions<T>} [opts] - The available options for the search excluding the `groupBy` param.
    * @returns {Promise<WeaviateReturn<T>>} - The result of the search within the fetched collection.
@@ -228,7 +224,6 @@ interface Hybrid<T> {
    *
    * This overload is for performing a search with the `groupBy` param.
    *
-   * @overload
    * @param {string} query - The query to search for.
    * @param {GroupByHybridOptions<T>} opts - The available options for the search including the `groupBy` param.
    * @returns {Promise<GroupByReturn<T>>} - The result of the search within the fetched collection.
@@ -241,7 +236,6 @@ interface Hybrid<T> {
    *
    * This overload is for performing a search with a programmatically defined `opts` param.
    *
-   * @overload
    * @param {string} query - The query to search for.
    * @param {HybridOptions<T>} [opts] - The available options for the search including the `groupBy` param.
    * @returns {Promise<QueryReturn<T>>} - The result of the search within the fetched collection.
@@ -259,12 +253,11 @@ interface NearImage<T> {
    *
    * This overload is for performing a search without the `groupBy` param.
    *
-   * @overload
-   * @param {string | Blob} image - The image to search for.
+   * @param {string | Buffer} image - The image to search on. This can be a base64 string, a file path string, or a buffer.
    * @param {BaseNearOptions<T>} [opts] - The available options for the search excluding the `groupBy` param.
    * @returns {Promise<WeaviateReturn<T>>} - The result of the search within the fetched collection.
    */
-  nearImage(image: string | Blob, opts?: BaseNearOptions<T>): Promise<WeaviateReturn<T>>;
+  nearImage(image: string | Buffer, opts?: BaseNearOptions<T>): Promise<WeaviateReturn<T>>;
   /**
    * Search for objects by image in this collection using an image-capable vectorization module and vector-based similarity search.
    * You must have an image-capable vectorization module installed in order to use this method,
@@ -274,12 +267,11 @@ interface NearImage<T> {
    *
    * This overload is for performing a search with the `groupBy` param.
    *
-   * @overload
-   * @param {string | Blob} image - The image to search for.
+   * @param {string | Buffer} image - The image to search on. This can be a base64 string, a file path string, or a buffer.
    * @param {GroupByNearOptions<T>} opts - The available options for the search including the `groupBy` param.
    * @returns {Promise<GroupByReturn<T>>} - The group by result of the search within the fetched collection.
    */
-  nearImage(image: string | Blob, opts: GroupByNearOptions<T>): Promise<GroupByReturn<T>>;
+  nearImage(image: string | Buffer, opts: GroupByNearOptions<T>): Promise<GroupByReturn<T>>;
   /**
    * Search for objects by image in this collection using an image-capable vectorization module and vector-based similarity search.
    * You must have an image-capable vectorization module installed in order to use this method,
@@ -289,11 +281,11 @@ interface NearImage<T> {
    *
    * This overload is for performing a search with a programmatically defined `opts` param.
    *
-   * @param {string | Blob} image - The image to search for.
+   * @param {string | Buffer} image - The image to search on. This can be a base64 string, a file path string, or a buffer.
    * @param {NearOptions<T>} [opts] - The available options for the search.
    * @returns {QueryReturn<T>} - The result of the search within the fetched collection.
    */
-  nearImage(image: string | Blob, opts?: NearOptions<T>): QueryReturn<T>;
+  nearImage(image: string | Buffer, opts?: NearOptions<T>): QueryReturn<T>;
 }
 
 interface NearMedia<T> {
@@ -305,13 +297,16 @@ interface NearMedia<T> {
    *
    * This overload is for performing a search without the `groupBy` param.
    *
-   * @overload
-   * @param {string | Blob} media - The media to search for.
+   * @param {string | Buffer} media - The media to search on. This can be a base64 string, a file path string, or a buffer.
    * @param {NearMediaType} type - The type of media to search for, e.g. 'audio'.
    * @param {BaseNearOptions<T>} [opts] - The available options for the search excluding the `groupBy` param.
    * @returns {Promise<WeaviateReturn<T>>} - The result of the search within the fetched collection.
    */
-  nearMedia(media: string | Blob, type: NearMediaType, opts?: BaseNearOptions<T>): Promise<WeaviateReturn<T>>;
+  nearMedia(
+    media: string | Buffer,
+    type: NearMediaType,
+    opts?: BaseNearOptions<T>
+  ): Promise<WeaviateReturn<T>>;
   /**
    * Search for objects by image in this collection using an image-capable vectorization module and vector-based similarity search.
    * You must have a multi-media-capable vectorization module installed in order to use this method, e.g. `multi2vec-bind` or `multi2vec-palm`.
@@ -320,14 +315,13 @@ interface NearMedia<T> {
    *
    * This overload is for performing a search with the `groupBy` param.
    *
-   * @overload
-   * @param {string | Blob} media - The media to search for.
+   * @param {string | Buffer} media - The media to search on. This can be a base64 string, a file path string, or a buffer.
    * @param {NearMediaType} type - The type of media to search for, e.g. 'audio'.
    * @param {GroupByNearOptions<T>} opts - The available options for the search including the `groupBy` param.
    * @returns {Promise<GroupByReturn<T>>} - The group by result of the search within the fetched collection.
    */
   nearMedia(
-    media: string | Blob,
+    media: string | Buffer,
     type: NearMediaType,
     opts: GroupByNearOptions<T>
   ): Promise<GroupByReturn<T>>;
@@ -339,13 +333,12 @@ interface NearMedia<T> {
    *
    * This overload is for performing a search with a programmatically defined `opts` param.
    *
-   * @overload
-   * @param {string | Blob} media - The media to search for.
+   * @param {string | Buffer} media - The media to search on. This can be a base64 string, a file path string, or a buffer.
    * @param {NearMediaType} type - The type of media to search for, e.g. 'audio'.
    * @param {NearOptions<T>} [opts] - The available options for the search.
    * @returns {QueryReturn<T>} - The result of the search within the fetched collection.
    */
-  nearMedia(media: string | Blob, type: NearMediaType, opts?: NearOptions<T>): QueryReturn<T>;
+  nearMedia(media: string | Buffer, type: NearMediaType, opts?: NearOptions<T>): QueryReturn<T>;
 }
 
 interface NearObject<T> {
@@ -356,7 +349,6 @@ interface NearObject<T> {
    *
    * This overload is for performing a search without the `groupBy` param.
    *
-   * @overload
    * @param {string} id - The UUID of the object to search for.
    * @param {BaseNearOptions<T>} [opts] - The available options for the search excluding the `groupBy` param.
    * @returns {Promise<WeaviateReturn<T>>} - The result of the search within the fetched collection.
@@ -369,7 +361,6 @@ interface NearObject<T> {
    *
    * This overload is for performing a search with the `groupBy` param.
    *
-   * @overload
    * @param {string} id - The UUID of the object to search for.
    * @param {GroupByNearOptions<T>} opts - The available options for the search including the `groupBy` param.
    * @returns {Promise<GroupByReturn<T>>} - The group by result of the search within the fetched collection.
@@ -382,7 +373,6 @@ interface NearObject<T> {
    *
    * This overload is for performing a search with a programmatically defined `opts` param.
    *
-   * @overload
    * @param {number[]} id - The UUID of the object to search for.
    * @param {NearOptions<T>} [opts] - The available options for the search.
    * @returns {QueryReturn<T>} - The result of the search within the fetched collection.
@@ -400,7 +390,6 @@ interface NearText<T> {
    *
    * This overload is for performing a search without the `groupBy` param.
    *
-   * @overload
    * @param {string | string[]} query - The text query to search for.
    * @param {BaseNearTextOptions<T>} [opts] - The available options for the search excluding the `groupBy` param.
    * @returns {Promise<WeaviateReturn<T>>} - The result of the search within the fetched collection.
@@ -415,7 +404,6 @@ interface NearText<T> {
    *
    * This overload is for performing a search with the `groupBy` param.
    *
-   * @overload
    * @param {string | string[]} query - The text query to search for.
    * @param {GroupByNearTextOptions<T>} opts - The available options for the search including the `groupBy` param.
    * @returns {Promise<GroupByReturn<T>>} - The group by result of the search within the fetched collection.
@@ -430,7 +418,6 @@ interface NearText<T> {
    *
    * This overload is for performing a search with a programmatically defined `opts` param.
    *
-   * @overload
    * @param {string | string[]} query - The text query to search for.
    * @param {NearTextOptions<T>} [opts] - The available options for the search.
    * @returns {QueryReturn<T>} - The result of the search within the fetched collection.
@@ -446,7 +433,6 @@ interface NearVector<T> {
    *
    * This overload is for performing a search without the `groupBy` param.
    *
-   * @overload
    * @param {number[]} vector - The vector to search for.
    * @param {BaseNearOptions<T>} [opts] - The available options for the search excluding the `groupBy` param.
    * @returns {Promise<WeaviateReturn<T>>} - The result of the search within the fetched collection.
@@ -459,7 +445,6 @@ interface NearVector<T> {
    *
    * This overload is for performing a search with the `groupBy` param.
    *
-   * @overload
    * @param {number[]} vector - The vector to search for.
    * @param {GroupByNearOptions<T>} opts - The available options for the search including the `groupBy` param.
    * @returns {Promise<GroupByReturn<T>>} - The group by result of the search within the fetched collection.

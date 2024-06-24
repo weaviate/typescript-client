@@ -1,6 +1,6 @@
 import Connection from '../../connection/grpc.js';
 
-import { toBase64FromBlob } from '../../utils/base64.js';
+import { toBase64FromMedia } from '../../utils/base64.js';
 
 import { ConsistencyLevel } from '../../data/index.js';
 import { DbVersionSupport } from '../../utils/dbVersion.js';
@@ -151,14 +151,13 @@ class QueryManager<T> implements Query<T> {
       .then((reply) => this.parseGroupByReply(opts, reply));
   }
 
-  public nearImage(image: string | Blob, opts?: BaseNearOptions<T>): Promise<WeaviateReturn<T>>;
-  public nearImage(image: string | Blob, opts: GroupByNearOptions<T>): Promise<GroupByReturn<T>>;
-  public nearImage(image: string | Blob, opts?: NearOptions<T>): QueryReturn<T> {
+  public nearImage(image: string | Buffer, opts?: BaseNearOptions<T>): Promise<WeaviateReturn<T>>;
+  public nearImage(image: string | Buffer, opts: GroupByNearOptions<T>): Promise<GroupByReturn<T>>;
+  public nearImage(image: string | Buffer, opts?: NearOptions<T>): QueryReturn<T> {
     return this.checkSupportForNamedVectors(opts)
       .then(() => this.connection.search(this.name, this.consistencyLevel, this.tenant))
       .then((search) => {
-        const imagePromise = typeof image === 'string' ? Promise.resolve(image) : toBase64FromBlob(image);
-        return imagePromise.then((image) =>
+        return toBase64FromMedia(image).then((image) =>
           search.withNearImage({
             ...Serialize.nearImage({ image, ...(opts ? opts : {}) }),
             groupBy: Serialize.isGroupBy<GroupByNearOptions<T>>(opts)
@@ -171,49 +170,48 @@ class QueryManager<T> implements Query<T> {
   }
 
   public nearMedia(
-    media: string | Blob,
+    media: string | Buffer,
     type: NearMediaType,
     opts?: BaseNearOptions<T>
   ): Promise<WeaviateReturn<T>>;
   public nearMedia(
-    media: string | Blob,
+    media: string | Buffer,
     type: NearMediaType,
     opts: GroupByNearOptions<T>
   ): Promise<GroupByReturn<T>>;
-  public nearMedia(media: string | Blob, type: NearMediaType, opts?: NearOptions<T>): QueryReturn<T> {
-    const mediaPromise = typeof media === 'string' ? Promise.resolve(media) : toBase64FromBlob(media);
+  public nearMedia(media: string | Buffer, type: NearMediaType, opts?: NearOptions<T>): QueryReturn<T> {
     return this.checkSupportForNamedVectors(opts)
       .then(() => this.connection.search(this.name, this.consistencyLevel, this.tenant))
       .then((search) => {
         let reply: Promise<SearchReply>;
         switch (type) {
           case 'audio':
-            reply = mediaPromise.then((media) =>
+            reply = toBase64FromMedia(media).then((media) =>
               search.withNearAudio(Serialize.nearAudio({ audio: media, ...(opts ? opts : {}) }))
             );
             break;
           case 'depth':
-            reply = mediaPromise.then((media) =>
+            reply = toBase64FromMedia(media).then((media) =>
               search.withNearDepth(Serialize.nearDepth({ depth: media, ...(opts ? opts : {}) }))
             );
             break;
           case 'image':
-            reply = mediaPromise.then((media) =>
+            reply = toBase64FromMedia(media).then((media) =>
               search.withNearImage(Serialize.nearImage({ image: media, ...(opts ? opts : {}) }))
             );
             break;
           case 'imu':
-            reply = mediaPromise.then((media) =>
+            reply = toBase64FromMedia(media).then((media) =>
               search.withNearIMU(Serialize.nearIMU({ imu: media, ...(opts ? opts : {}) }))
             );
             break;
           case 'thermal':
-            reply = mediaPromise.then((media) =>
+            reply = toBase64FromMedia(media).then((media) =>
               search.withNearThermal(Serialize.nearThermal({ thermal: media, ...(opts ? opts : {}) }))
             );
             break;
           case 'video':
-            reply = mediaPromise.then((media) =>
+            reply = toBase64FromMedia(media).then((media) =>
               search.withNearVideo(Serialize.nearVideo({ video: media, ...(opts ? opts : {}) }))
             );
             break;

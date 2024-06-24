@@ -7,6 +7,7 @@ import { FilterValue } from '../filters/index.js';
 
 import { WeaviateQueryError } from '../../errors.js';
 import { Aggregator } from '../../graphql/index.js';
+import { toBase64FromMedia } from '../../index.js';
 import { Serialize } from '../serialize/index.js';
 
 export type AggregateBaseOptions<T, M> = {
@@ -345,12 +346,12 @@ class AggregateManager<T> implements Aggregate<T> {
     this.tenant = tenant;
 
     this.groupBy = {
-      nearImage: <M extends PropertiesMetrics<T> | undefined = undefined>(
-        image: string,
+      nearImage: async <M extends PropertiesMetrics<T> | undefined = undefined>(
+        image: string | Buffer,
         opts?: AggregateGroupByNearOptions<T, M>
       ): Promise<AggregateGroupByResult<T, M>[]> => {
         const builder = this.base(opts?.returnMetrics, opts?.filters, opts?.groupBy).withNearImage({
-          image: image,
+          image: await toBase64FromMedia(image),
           certainty: opts?.certainty,
           distance: opts?.distance,
           targetVectors: opts?.targetVector ? [opts.targetVector] : undefined,
@@ -488,12 +489,12 @@ class AggregateManager<T> implements Aggregate<T> {
     return new AggregateManager<T>(connection, name, dbVersionSupport, consistencyLevel, tenant);
   }
 
-  nearImage<M extends PropertiesMetrics<T>>(
-    image: string,
+  async nearImage<M extends PropertiesMetrics<T>>(
+    image: string | Buffer,
     opts?: AggregateNearOptions<T, M>
   ): Promise<AggregateResult<T, M>> {
     const builder = this.base(opts?.returnMetrics, opts?.filters).withNearImage({
-      image: image,
+      image: await toBase64FromMedia(image),
       certainty: opts?.certainty,
       distance: opts?.distance,
       targetVectors: opts?.targetVector ? [opts.targetVector] : undefined,
@@ -608,12 +609,12 @@ export interface Aggregate<T> {
    *
    * This method requires a vectorizer capable of handling base64-encoded images, e.g. `img2vec-neural`, `multi2vec-clip`, and `multi2vec-bind`.
    *
-   * @param {string} image The base64-encoded image to search for.
+   * @param {string | Buffer} image The image to search on. This can be a base64 string, a file path string, or a buffer.
    * @param {AggregateNearOptions<T, M>} [opts] The options for the request.
    * @returns {Promise<AggregateResult<T, M>[]>} The aggregated metrics for the objects returned by the vector search.
    */
   nearImage<M extends PropertiesMetrics<T>>(
-    image: string,
+    image: string | Buffer,
     opts?: AggregateNearOptions<T, M>
   ): Promise<AggregateResult<T, M>>;
   /**
@@ -678,12 +679,12 @@ export interface AggregateGroupBy<T> {
    *
    * This method requires a vectorizer capable of handling base64-encoded images, e.g. `img2vec-neural`, `multi2vec-clip`, and `multi2vec-bind`.
    *
-   * @param {string} image The base64-encoded image to search for.
+   * @param {string | Buffer} image The image to search on. This can be a base64 string, a file path string, or a buffer.
    * @param {AggregateGroupByNearOptions<T, M>} [opts] The options for the request.
    * @returns {Promise<AggregateGroupByResult<T, M>[]>} The aggregated metrics for the objects returned by the vector search.
    */
   nearImage<M extends PropertiesMetrics<T>>(
-    image: string,
+    image: string | Buffer,
     opts?: AggregateGroupByNearOptions<T, M>
   ): Promise<AggregateGroupByResult<T, M>[]>;
   /**

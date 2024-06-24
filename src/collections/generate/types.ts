@@ -29,7 +29,6 @@ interface Bm25<T> {
    *
    * This overload is for performing a search without the `groupBy` param.
    *
-   * @overload
    * @param {string} query - The query to search for.
    * @param {GenerateOptions<T>} generate - The available options for performing the generation.
    * @param {BaseBm25Options<T>} [opts] - The available options for performing the BM25 search.
@@ -43,7 +42,6 @@ interface Bm25<T> {
    *
    * This overload is for performing a search with the `groupBy` param.
    *
-   * @overload
    * @param {string} query - The query to search for.
    * @param {GenerateOptions<T>} generate - The available options for performing the generation.
    * @param {GroupByBm25Options<T>} opts - The available options for performing the BM25 search.
@@ -61,7 +59,6 @@ interface Bm25<T> {
    *
    * This overload is for performing a search with a programmatically defined `opts` param.
    *
-   * @overload
    * @param {string} query - The query to search for.
    * @param {GenerateOptions<T>} generate - The available options for performing the generation.
    * @param {Bm25Options<T>} [opts] - The available options for performing the BM25 search.
@@ -78,7 +75,6 @@ interface Hybrid<T> {
    *
    * This overload is for performing a search without the `groupBy` param.
    *
-   * @overload
    * @param {string} query - The query to search for.
    * @param {GenerateOptions<T>} generate - The available options for performing the generation.
    * @param {BaseHybridOptions<T>} [opts] - The available options for performing the hybrid search.
@@ -96,7 +92,6 @@ interface Hybrid<T> {
    *
    * This overload is for performing a search with the `groupBy` param.
    *
-   * @overload
    * @param {string} query - The query to search for.
    * @param {GenerateOptions<T>} generate - The available options for performing the generation.
    * @param {GroupByHybridOptions<T>} opts - The available options for performing the hybrid search.
@@ -114,7 +109,6 @@ interface Hybrid<T> {
    *
    * This overload is for performing a search with a programmatically defined `opts` param.
    *
-   * @overload
    * @param {string} query - The query to search for.
    * @param {GenerateOptions<T>} generate - The available options for performing the generation.
    * @param {HybridOptions<T>} [opts] - The available options for performing the hybrid search.
@@ -133,15 +127,14 @@ interface NearMedia<T> {
    *
    * This overload is for performing a search without the `groupBy` param.
    *
-   * @overload
-   * @param {string} media - The media file to search for.
-   * @param {NearMediaType} type - The type of media to search for.
+   * @param {string | Buffer} media - The media file to search on. This can be a base64 string, a file path string, or a buffer.
+   * @param {NearMediaType} type - The type of media to search on.
    * @param {GenerateOptions<T>} generate - The available options for performing the generation.
    * @param {BaseNearOptions<T>} [opts] - The available options for performing the near-media search.
    * @return {Promise<GenerativeReturn<T>>} - The results of the search including the generated data.
    */
   nearMedia(
-    media: string,
+    media: string | Buffer,
     type: NearMediaType,
     generate: GenerateOptions<T>,
     opts?: BaseNearOptions<T>
@@ -155,15 +148,14 @@ interface NearMedia<T> {
    *
    * This overload is for performing a search with the `groupBy` param.
    *
-   * @overload
-   * @param {string} media - The media file to search for.
-   * @param {NearMediaType} type - The type of media to search for.
+   * @param {string | Buffer} media - The media file to search on. This can be a base64 string, a file path string, or a buffer.
+   * @param {NearMediaType} type - The type of media to search on.
    * @param {GenerateOptions<T>} generate - The available options for performing the generation.
    * @param {GroupByNearOptions<T>} opts - The available options for performing the near-media search.
    * @return {Promise<GenerativeGroupByReturn<T>>} - The results of the search including the generated data grouped by the specified properties.
    */
   nearMedia(
-    media: string,
+    media: string | Buffer,
     type: NearMediaType,
     generate: GenerateOptions<T>,
     opts: GroupByNearOptions<T>
@@ -177,15 +169,14 @@ interface NearMedia<T> {
    *
    * This overload is for performing a search with a programmatically defined `opts` param.
    *
-   * @overload
-   * @param {string} media - The media file to search for.
-   * @param {NearMediaType} type - The type of media to search for.
+   * @param {string | Buffer} media - The media to search on. This can be a base64 string, a file path string, or a buffer.
+   * @param {NearMediaType} type - The type of media to search on.
    * @param {GenerateOptions<T>} generate - The available options for performing the generation.
    * @param {NearOptions<T>} [opts] - The available options for performing the near-media search.
    * @return {GenerateReturn<T>} - The results of the search including the generated data.
    */
   nearMedia(
-    media: string,
+    media: string | Buffer,
     type: NearMediaType,
     generate: GenerateOptions<T>,
     opts?: NearOptions<T>
@@ -200,7 +191,6 @@ interface NearObject<T> {
    *
    * This overload is for performing a search without the `groupBy` param.
    *
-   * @overload
    * @param {string} id - The ID of the object to search for.
    * @param {GenerateOptions<T>} generate - The available options for performing the generation.
    * @param {BaseNearOptions<T>} [opts] - The available options for performing the near-object search.
@@ -218,7 +208,6 @@ interface NearObject<T> {
    *
    * This overload is for performing a search with the `groupBy` param.
    *
-   * @overload
    * @param {string} id - The ID of the object to search for.
    * @param {GenerateOptions<T>} generate - The available options for performing the generation.
    * @param {GroupByNearOptions<T>} opts - The available options for performing the near-object search.
@@ -236,7 +225,6 @@ interface NearObject<T> {
    *
    * This overload is for performing a search with a programmatically defined `opts` param.
    *
-   * @overload
    * @param {string} id - The ID of the object to search for.
    * @param {GenerateOptions<T>} generate - The available options for performing the generation.
    * @param {NearOptions<T>} [opts] - The available options for performing the near-object search.
@@ -255,7 +243,6 @@ interface NearText<T> {
    *
    * This overload is for performing a search without the `groupBy` param.
    *
-   * @overload
    * @param {string | string[]} query - The query to search for.
    * @param {GenerateOptions<T>} generate - The available options for performing the generation.
    * @param {BaseNearTextOptions<T>} [opts] - The available options for performing the near-text search.
@@ -275,7 +262,6 @@ interface NearText<T> {
    *
    * This overload is for performing a search with the `groupBy` param.
    *
-   * @overload
    * @param {string | string[]} query - The query to search for.
    * @param {GenerateOptions<T>} generate - The available options for performing the generation.
    * @param {GroupByNearTextOptions<T>} opts - The available options for performing the near-text search.
@@ -295,7 +281,6 @@ interface NearText<T> {
    *
    * This overload is for performing a search with a programmatically defined `opts` param.
    *
-   * @overload
    * @param {string | string[]} query - The query to search for.
    * @param {GenerateOptions<T>} generate - The available options for performing the generation.
    * @param {NearTextOptions<T>} [opts] - The available options for performing the near-text search.
@@ -316,7 +301,6 @@ interface NearVector<T> {
    *
    * This overload is for performing a search without the `groupBy` param.
    *
-   * @overload
    * @param {number[]} vector - The vector to search for.
    * @param {GenerateOptions<T>} generate - The available options for performing the generation.
    * @param {BaseNearOptions<T>} [opts] - The available options for performing the near-vector search.
@@ -334,7 +318,6 @@ interface NearVector<T> {
    *
    * This overload is for performing a search with the `groupBy` param.
    *
-   * @overload
    * @param {number[]} vector - The vector to search for.
    * @param {GenerateOptions<T>} generate - The available options for performing the generation.
    * @param {GroupByNearOptions<T>} opts - The available options for performing the near-vector search.
@@ -352,7 +335,6 @@ interface NearVector<T> {
    *
    * This overload is for performing a search with a programmatically defined `opts` param.
    *
-   * @overload
    * @param {number[]} vector - The vector to search for.
    * @param {GenerateOptions<T>} generate - The available options for performing the generation.
    * @param {NearOptions<T>} [opts] - The available options for performing the near-vector search.

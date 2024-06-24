@@ -1,47 +1,41 @@
+import fs from 'fs';
+
+const isFilePromise = (file: string | Buffer): Promise<boolean> =>
+  new Promise((resolve, reject) => {
+    if (file instanceof Buffer) {
+      resolve(false);
+    }
+    fs.stat(file, (err, stats) => {
+      if (err) {
+        reject(err);
+      }
+      resolve(stats.isFile());
+    });
+  });
+
+const isBuffer = (file: string | Buffer): file is Buffer => file instanceof Buffer;
+
+const fileToBase64 = (file: string | Buffer): Promise<string> =>
+  isFilePromise(file).then((isFile) =>
+    isFile
+      ? new Promise((resolve, reject) => {
+          fs.readFile(file, (err, data) => {
+            if (err) {
+              reject(err);
+            }
+            resolve(data.toString('base64'));
+          });
+        })
+      : isBuffer(file)
+      ? Promise.resolve(file.toString('base64'))
+      : Promise.resolve(file)
+  );
+
 /**
- * This function converts a file blob into a base64 string so that it can be
+ * This function converts a file buffer into a base64 string so that it can be
  * sent to Weaviate and stored as a media field.
  *
- * This specific function is only applicable within the browser since it depends on
- * the FileReader API. It will throw an error if it is called in a Node environment.
- *
- * @param {Blob} blob The file blob to convert
+ * @param {string | Buffer} file The media to convert either as a base64 string, a file path string, or as a buffer. If you passed a base64 string, the function does nothing and returns the string as is.
  * @returns {string} The base64 string
- * @throws An error if the function is called outside of the browser
- *
- * @example
- * // Vanilla JS
- * const file = document.querySelector('input[type="file"]').files[0];
- * toBase64FromBlob(file).then((base64) => console.log(base64));
- *
- * // React
- * const [base64, setBase64] = useState('');
- * const onChange = (event) => toBase64FromBlob(event.target.files[0]).then(setBase64);
- *
- * // Submit
- * const onSubmit = (blob: Blob) => client.data
- *     .creator()
- *     .withClassName('MyClass')
- *     .withProperties({ myMediaField: toBase64FromBlob(base64) })
- *     .do();
- *
  */
-export function toBase64FromBlob(blob: Blob): Promise<string> {
-  if (typeof window !== 'undefined') {
-    const reader = new FileReader();
-    return new Promise((resolve, reject) => {
-      reader.onload = resolve;
-      reader.onerror = reject;
-      reader.readAsDataURL(blob);
-    }).then(() => {
-      if (typeof reader.result !== 'string') {
-        throw new Error(
-          `Unexpected result when converting blob to base64 (result is not a string): ${reader.result}`
-        );
-      }
-      return reader.result;
-    });
-  } else {
-    throw new Error('This function is only available in the browser');
-  }
-}
+export const toBase64FromMedia = (media: string | Buffer): Promise<string> => fileToBase64(media);

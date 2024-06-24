@@ -4,6 +4,7 @@ import { ConsistencyLevel } from '../../data/index.js';
 import { DbVersionSupport } from '../../utils/dbVersion.js';
 
 import { WeaviateInvalidInputError, WeaviateUnsupportedFeatureError } from '../../errors.js';
+import { toBase64FromMedia } from '../../index.js';
 import { SearchReply } from '../../proto/v1/search_get.js';
 import { Deserialize } from '../deserialize/index.js';
 import {
@@ -160,26 +161,32 @@ class GenerateManager<T> implements Generate<T> {
   }
 
   public nearImage(
-    image: string,
+    image: string | Buffer,
     generate: GenerateOptions<T>,
     opts?: BaseNearOptions<T>
   ): Promise<GenerativeReturn<T>>;
   public nearImage(
-    image: string,
+    image: string | Buffer,
     generate: GenerateOptions<T>,
     opts: GroupByNearOptions<T>
   ): Promise<GenerativeGroupByReturn<T>>;
-  public nearImage(image: string, generate: GenerateOptions<T>, opts?: NearOptions<T>): GenerateReturn<T> {
+  public nearImage(
+    image: string | Buffer,
+    generate: GenerateOptions<T>,
+    opts?: NearOptions<T>
+  ): GenerateReturn<T> {
     return this.checkSupportForNamedVectors(opts)
       .then(() => this.connection.search(this.name, this.consistencyLevel, this.tenant))
       .then((search) =>
-        search.withNearImage({
-          ...Serialize.nearImage({ image, ...(opts ? opts : {}) }),
-          generative: Serialize.generative(generate),
-          groupBy: Serialize.isGroupBy<GroupByNearOptions<T>>(opts)
-            ? Serialize.groupBy(opts.groupBy)
-            : undefined,
-        })
+        toBase64FromMedia(image).then((image) =>
+          search.withNearImage({
+            ...Serialize.nearImage({ image, ...(opts ? opts : {}) }),
+            generative: Serialize.generative(generate),
+            groupBy: Serialize.isGroupBy<GroupByNearOptions<T>>(opts)
+              ? Serialize.groupBy(opts.groupBy)
+              : undefined,
+          })
+        )
       )
       .then((reply) => this.parseGroupByReply(opts, reply));
   }
@@ -268,19 +275,19 @@ class GenerateManager<T> implements Generate<T> {
   }
 
   public nearMedia(
-    media: string,
+    media: string | Buffer,
     type: NearMediaType,
     generate: GenerateOptions<T>,
     opts?: BaseNearOptions<T>
   ): Promise<GenerativeReturn<T>>;
   public nearMedia(
-    media: string,
+    media: string | Buffer,
     type: NearMediaType,
     generate: GenerateOptions<T>,
     opts: GroupByNearOptions<T>
   ): Promise<GenerativeGroupByReturn<T>>;
   public nearMedia(
-    media: string,
+    media: string | Buffer,
     type: NearMediaType,
     generate: GenerateOptions<T>,
     opts?: NearOptions<T>
@@ -295,46 +302,58 @@ class GenerateManager<T> implements Generate<T> {
           : undefined;
         switch (type) {
           case 'audio':
-            reply = search.withNearAudio({
-              ...Serialize.nearAudio({ audio: media, ...(opts ? opts : {}) }),
-              generative,
-              groupBy,
-            });
+            reply = toBase64FromMedia(media).then((media) =>
+              search.withNearAudio({
+                ...Serialize.nearAudio({ audio: media, ...(opts ? opts : {}) }),
+                generative,
+                groupBy,
+              })
+            );
             break;
           case 'depth':
-            reply = search.withNearDepth({
-              ...Serialize.nearDepth({ depth: media, ...(opts ? opts : {}) }),
-              generative,
-              groupBy,
-            });
+            reply = toBase64FromMedia(media).then((media) =>
+              search.withNearDepth({
+                ...Serialize.nearDepth({ depth: media, ...(opts ? opts : {}) }),
+                generative,
+                groupBy,
+              })
+            );
             break;
           case 'image':
-            reply = search.withNearImage({
-              ...Serialize.nearImage({ image: media, ...(opts ? opts : {}) }),
-              generative,
-              groupBy,
-            });
+            reply = toBase64FromMedia(media).then((media) =>
+              search.withNearImage({
+                ...Serialize.nearImage({ image: media, ...(opts ? opts : {}) }),
+                generative,
+                groupBy,
+              })
+            );
             break;
           case 'imu':
-            reply = search.withNearIMU({
-              ...Serialize.nearIMU({ imu: media, ...(opts ? opts : {}) }),
-              generative,
-              groupBy,
-            });
+            reply = toBase64FromMedia(media).then((media) =>
+              search.withNearIMU({
+                ...Serialize.nearIMU({ imu: media, ...(opts ? opts : {}) }),
+                generative,
+                groupBy,
+              })
+            );
             break;
           case 'thermal':
-            reply = search.withNearThermal({
-              ...Serialize.nearThermal({ thermal: media, ...(opts ? opts : {}) }),
-              generative,
-              groupBy,
-            });
+            reply = toBase64FromMedia(media).then((media) =>
+              search.withNearThermal({
+                ...Serialize.nearThermal({ thermal: media, ...(opts ? opts : {}) }),
+                generative,
+                groupBy,
+              })
+            );
             break;
           case 'video':
-            reply = search.withNearVideo({
-              ...Serialize.nearVideo({ video: media, ...(opts ? opts : {}) }),
-              generative,
-              groupBy,
-            });
+            reply = toBase64FromMedia(media).then((media) =>
+              search.withNearVideo({
+                ...Serialize.nearVideo({ video: media, ...(opts ? opts : {}) }),
+                generative,
+                groupBy,
+              })
+            );
             break;
           default:
             throw new WeaviateInvalidInputError(`Invalid media type: ${type}`);
