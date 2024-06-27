@@ -8,7 +8,7 @@ on:
 
 env:
   WEAVIATE_124: 1.24.19
-  WEAVIATE_125: 1.25.4
+  WEAVIATE_125: 1.25.5
 
 jobs:
   checks:
