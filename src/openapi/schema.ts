@@ -371,6 +371,8 @@ export interface definitions {
     enabled?: boolean;
     /** @description Nonexistent tenants should (not) be created implicitly */
     autoTenantCreation?: boolean;
+    /** @description Existing tenants should (not) be turned HOT implicitly when they are accessed and in another activity status */
+    autoTenantActivation?: boolean;
   };
   /** @description JSON object value. */
   JsonObject: { [key: string]: unknown };

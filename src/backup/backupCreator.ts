@@ -1,19 +1,19 @@
+import Connection from '../connection/index.js';
+import {
+  BackupConfig,
+  BackupCreateRequest,
+  BackupCreateResponse,
+  BackupCreateStatusResponse,
+} from '../openapi/types.js';
+import { CommandBase } from '../validation/commandBase.js';
+import BackupCreateStatusGetter from './backupCreateStatusGetter.js';
+import { Backend } from './index.js';
 import {
   validateBackend,
   validateBackupId,
   validateExcludeClassNames,
   validateIncludeClassNames,
-} from './validation';
-import BackupCreateStatusGetter from './backupCreateStatusGetter';
-import Connection from '../connection';
-import { CommandBase } from '../validation/commandBase';
-import {
-  BackupCreateRequest,
-  BackupCreateResponse,
-  BackupCreateStatusResponse,
-  BackupConfig,
-} from '../openapi/types';
-import { Backend } from '.';
+} from './validation.js';
 
 const WAIT_INTERVAL = 1000;
 
@@ -98,7 +98,7 @@ export default class BackupCreator extends CommandBase {
   };
 
   _create = (payload: BackupCreateRequest): Promise<BackupCreateResponse> => {
-    return this.client.post(this._path(), payload) as Promise<BackupCreateResponse>;
+    return this.client.postReturn(this._path(), payload) as Promise<BackupCreateResponse>;
   };
 
   _createAndWaitForCompletion = (payload: BackupCreateRequest): Promise<BackupCreateResponse> => {

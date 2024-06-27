@@ -1,5 +1,3 @@
-import { isValidStringArray, isValidStringProperty } from '../validation/string';
-
 export interface Bm25Args {
   properties?: string[];
   query: string;

@@ -1,7 +1,7 @@
-import ClassificationsGetter from './getter';
-import Connection from '../connection';
-import { CommandBase } from '../validation/commandBase';
-import { Classification } from '../openapi/types';
+import Connection from '../connection/index.js';
+import { Classification } from '../openapi/types.js';
+import { CommandBase } from '../validation/commandBase.js';
+import ClassificationsGetter from './getter.js';
 
 export default class ClassificationsScheduler extends CommandBase {
   private basedOnProperties?: string[];
@@ -128,7 +128,7 @@ export default class ClassificationsScheduler extends CommandBase {
     this.validate();
 
     const path = `/classifications`;
-    return this.client.post(path, this.payload()).then((res: any) => {
+    return this.client.postReturn(path, this.payload()).then((res: any) => {
       if (!this.waitForCompletion) {
         return Promise.resolve(res);
       }

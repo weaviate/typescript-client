@@ -1,6 +1,6 @@
-import Connection from '../connection';
-import { CommandBase } from '../validation/commandBase';
-import { C11yExtension } from '../openapi/types';
+import Connection from '../connection/index.js';
+import { C11yExtension } from '../openapi/types.js';
+import { CommandBase } from '../validation/commandBase.js';
 
 export default class ExtensionCreator extends CommandBase {
   private concept?: string;
@@ -51,6 +51,6 @@ export default class ExtensionCreator extends CommandBase {
     }
 
     const path = `/modules/text2vec-contextionary/extensions`;
-    return this.client.post(path, this.payload());
+    return this.client.postReturn(path, this.payload());
   };
 }

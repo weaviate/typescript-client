@@ -1,19 +1,19 @@
-import {
-  validateBackend,
-  validateBackupId,
-  validateExcludeClassNames,
-  validateIncludeClassNames,
-} from './validation';
-import Connection from '../connection';
-import BackupRestoreStatusGetter from './backupRestoreStatusGetter';
-import { CommandBase } from '../validation/commandBase';
+import Connection from '../connection/index.js';
 import {
   BackupRestoreRequest,
   BackupRestoreResponse,
   BackupRestoreStatusResponse,
   RestoreConfig,
-} from '../openapi/types';
-import { Backend } from '.';
+} from '../openapi/types.js';
+import { CommandBase } from '../validation/commandBase.js';
+import BackupRestoreStatusGetter from './backupRestoreStatusGetter.js';
+import { Backend } from './index.js';
+import {
+  validateBackend,
+  validateBackupId,
+  validateExcludeClassNames,
+  validateIncludeClassNames,
+} from './validation.js';
 
 const WAIT_INTERVAL = 1000;
 
@@ -97,7 +97,7 @@ export default class BackupRestorer extends CommandBase {
   };
 
   _restore = (payload: BackupRestoreRequest): Promise<BackupRestoreResponse> => {
-    return this.client.post(this._path(), payload);
+    return this.client.postReturn(this._path(), payload);
   };
 
   _restoreAndWaitForCompletion = (payload: BackupRestoreRequest): Promise<BackupRestoreResponse> => {

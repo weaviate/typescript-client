@@ -1,6 +1,6 @@
-import { Application } from '@curveball/core';
 import bodyParser from '@curveball/bodyparser';
-import { Server, IncomingMessage, ServerResponse } from 'http';
+import { Application } from '@curveball/core';
+import { IncomingMessage, Server, ServerResponse } from 'http';
 
 export interface IServerCache {
   server: Server<typeof IncomingMessage, typeof ServerResponse>;
@@ -22,7 +22,7 @@ export function testServer() {
   let lastRequest: any = null;
   const app = new Application();
 
-  app.use(bodyParser());
+  app.use((bodyParser as any)());
   app.use((ctx, next) => {
     lastRequest = ctx.request;
     return next();

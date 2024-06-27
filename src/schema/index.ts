@@ -1,25 +1,27 @@
-import ClassCreator from './classCreator';
-import ClassDeleter from './classDeleter';
-import ClassExists from './classExists';
-import ClassGetter from './classGetter';
-import PropertyCreator from './propertyCreator';
-import SchemaGetter from './getter';
-import ShardsGetter from './shardsGetter';
-import ShardUpdater from './shardUpdater';
-import ShardsUpdater from './shardsUpdater';
-import TenantsCreator from './tenantsCreator';
-import TenantsGetter from './tenantsGetter';
-import TenantsUpdater from './tenantsUpdater';
-import TenantsDeleter from './tenantsDeleter';
-import Connection from '../connection';
-import deleteAll from './deleteAll';
-import { Tenant } from '../openapi/types';
-import TenantsExists from './tenantsExists';
+import Connection from '../connection/index.js';
+import { Tenant } from '../openapi/types.js';
+import ClassCreator from './classCreator.js';
+import ClassDeleter from './classDeleter.js';
+import ClassExists from './classExists.js';
+import ClassGetter from './classGetter.js';
+import ClassUpdater from './classUpdater.js';
+import deleteAll from './deleteAll.js';
+import SchemaGetter from './getter.js';
+import PropertyCreator from './propertyCreator.js';
+import ShardUpdater from './shardUpdater.js';
+import ShardsGetter from './shardsGetter.js';
+import ShardsUpdater from './shardsUpdater.js';
+import TenantsCreator from './tenantsCreator.js';
+import TenantsDeleter from './tenantsDeleter.js';
+import TenantsExists from './tenantsExists.js';
+import TenantsGetter from './tenantsGetter.js';
+import TenantsUpdater from './tenantsUpdater.js';
 
 export interface Schema {
   classCreator: () => ClassCreator;
   classDeleter: () => ClassDeleter;
   classGetter: () => ClassGetter;
+  classUpdater: () => ClassUpdater;
   exists: (className: string) => Promise<boolean>;
   getter: () => SchemaGetter;
   propertyCreator: () => PropertyCreator;
@@ -39,6 +41,7 @@ const schema = (client: Connection): Schema => {
     classCreator: () => new ClassCreator(client),
     classDeleter: () => new ClassDeleter(client),
     classGetter: () => new ClassGetter(client),
+    classUpdater: () => new ClassUpdater(client),
     exists: (className: string) => new ClassExists(client).withClassName(className).do(),
     getter: () => new SchemaGetter(client),
     propertyCreator: () => new PropertyCreator(client),
@@ -58,15 +61,15 @@ const schema = (client: Connection): Schema => {
 };
 
 export default schema;
-export { default as ClassCreator } from './classCreator';
-export { default as ClassDeleter } from './classDeleter';
-export { default as ClassGetter } from './classGetter';
-export { default as PropertyCreator } from './propertyCreator';
-export { default as SchemaGetter } from './getter';
-export { default as ShardUpdater } from './shardUpdater';
-export { default as ShardsUpdater } from './shardsUpdater';
-export { default as TenantsCreator } from './tenantsCreator';
-export { default as TenantsUpdater } from './tenantsUpdater';
-export { default as TenantsGetter } from './tenantsGetter';
-export { default as TenantsDeleter } from './tenantsDeleter';
-export { default as TenantsExists } from './tenantsExists';
+export { default as ClassCreator } from './classCreator.js';
+export { default as ClassDeleter } from './classDeleter.js';
+export { default as ClassGetter } from './classGetter.js';
+export { default as SchemaGetter } from './getter.js';
+export { default as PropertyCreator } from './propertyCreator.js';
+export { default as ShardUpdater } from './shardUpdater.js';
+export { default as ShardsUpdater } from './shardsUpdater.js';
+export { default as TenantsCreator } from './tenantsCreator.js';
+export { default as TenantsDeleter } from './tenantsDeleter.js';
+export { default as TenantsExists } from './tenantsExists.js';
+export { default as TenantsGetter } from './tenantsGetter.js';
+export { default as TenantsUpdater } from './tenantsUpdater.js';

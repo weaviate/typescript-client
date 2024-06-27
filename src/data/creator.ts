@@ -1,9 +1,9 @@
-import { isValidStringProperty } from '../validation/string';
-import Connection from '../connection';
-import { ObjectsPath } from './path';
-import { CommandBase } from '../validation/commandBase';
-import { Properties, WeaviateObject } from '../openapi/types';
-import { ConsistencyLevel } from './replication';
+import Connection from '../connection/index.js';
+import { Properties, WeaviateObject } from '../openapi/types.js';
+import { CommandBase } from '../validation/commandBase.js';
+import { isValidStringProperty } from '../validation/string.js';
+import { ObjectsPath } from './path.js';
+import { ConsistencyLevel } from './replication.js';
 
 export default class Creator extends CommandBase {
   private className?: string;
@@ -82,6 +82,6 @@ export default class Creator extends CommandBase {
 
     return this.objectsPath
       .buildCreate(this.consistencyLevel)
-      .then((path: string) => this.client.post(path, this.payload()));
+      .then((path: string) => this.client.postReturn(path, this.payload()));
   };
 }

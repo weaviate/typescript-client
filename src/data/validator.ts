@@ -1,7 +1,7 @@
-import { isValidStringProperty } from '../validation/string';
-import Connection from '../connection';
-import { CommandBase } from '../validation/commandBase';
-import { Properties } from '../openapi/types';
+import Connection from '../connection/index.js';
+import { Properties } from '../openapi/types.js';
+import { CommandBase } from '../validation/commandBase.js';
+import { isValidStringProperty } from '../validation/string.js';
 
 export default class Validator extends CommandBase {
   private className?: string;
@@ -49,6 +49,6 @@ export default class Validator extends CommandBase {
       return Promise.reject(new Error('invalid usage: ' + this.errors.join(', ')));
     }
     const path = `/objects/validate`;
-    return this.client.post(path, this.payload(), false).then(() => true);
+    return this.client.postEmpty(path, this.payload()).then(() => true);
   };
 }

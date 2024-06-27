@@ -1,6 +1,5 @@
-import Connection from '../connection';
-import { CommandBase } from '../validation/commandBase';
-import { Tenant } from '../openapi/types';
+import Connection from '../connection/index.js';
+import { CommandBase } from '../validation/commandBase.js';
 
 export default class TenantsExists extends CommandBase {
   private className: string;

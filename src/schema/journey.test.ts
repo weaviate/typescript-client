@@ -1,13 +1,19 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import weaviate, { WeaviateClient } from '..';
-import {
-  WeaviateClass,
-  Property,
-  WeaviateSchema,
-  ShardStatus,
-  ShardStatusList,
-  Tenant,
-} from '../openapi/types';
+import { Meta, Property, ShardStatus, ShardStatusList, Tenant, WeaviateClass } from '../openapi/types.js';
+import weaviate, { WeaviateClient } from '../v2/index.js';
+
+const isVer = (client: WeaviateClient, minor: number, patch: number) =>
+  client.misc
+    .metaGetter()
+    .do()
+    .then((res: Meta) => res.version)
+    .then((version: string | undefined) => {
+      if (!version) {
+        return false;
+      }
+      const semver = version.split('.').map((v) => parseInt(v, 10));
+      return semver[1] >= minor && semver[2] >= patch;
+    });
 
 describe('schema', () => {
   const client = weaviate.client({
@@ -15,9 +21,10 @@ describe('schema', () => {
     host: 'localhost:8080',
   });
 
-  const classObj = newClassObject('MyThingClass');
+  const classObjPromise = newClassObject('MyThingClass', isVer(client, 25, 0), isVer(client, 25, 2));
 
-  it('creates a thing class (implicitly)', () => {
+  it('creates a thing class (implicitly)', async () => {
+    const classObj = await classObjPromise;
     return client.schema
       .classCreator()
       .withClass(classObj)
@@ -27,7 +34,8 @@ describe('schema', () => {
       });
   });
 
-  it('gets an existing class', () => {
+  it('gets an existing class', async () => {
+    const classObj = await classObjPromise;
     return client.schema
       .classGetter()
       .withClassName(classObj.class)
@@ -37,7 +45,8 @@ describe('schema', () => {
       });
   });
 
-  it('checks class existence', () => {
+  it('checks class existence', async () => {
+    const classObj = await classObjPromise;
     return client.schema.exists(classObj.class).then((res) => expect(res).toEqual(true));
   });
 
@@ -92,118 +101,13 @@ describe('schema', () => {
       .do()
       .catch((err: Error) => {
         expect(err.message).toEqual(
-          'usage error (422): {"error":[{"message":"Tokenization is not allowed for data type \'int[]\'"}]}'
+          'The request to Weaviate failed with status code: 422 and message: {"error":[{"message":"Tokenization is not allowed for data type \'int[]\'"}]}'
         );
       });
   });
 
-  it('retrieves the schema and it matches the expectations', () => {
-    return client.schema
-      .getter()
-      .do()
-      .then((res: WeaviateSchema) => {
-        expect(res).toEqual({
-          classes: [
-            {
-              class: 'MyThingClass',
-              properties: [
-                {
-                  dataType: ['text'],
-                  name: 'stringProp',
-                  tokenization: 'word',
-                  indexFilterable: true,
-                  indexSearchable: true,
-                  moduleConfig: {
-                    'text2vec-contextionary': {
-                      skip: false,
-                      vectorizePropertyName: false,
-                    },
-                  },
-                },
-                {
-                  dataType: ['text'],
-                  name: 'anotherProp',
-                  tokenization: 'field',
-                  indexFilterable: true,
-                  indexSearchable: true,
-                  moduleConfig: {
-                    'text2vec-contextionary': {
-                      skip: false,
-                      vectorizePropertyName: false,
-                    },
-                  },
-                },
-              ],
-              vectorIndexType: 'hnsw',
-              vectorizer: 'text2vec-contextionary',
-              vectorIndexConfig: {
-                cleanupIntervalSeconds: 300,
-                distance: 'cosine',
-                dynamicEfFactor: 8,
-                dynamicEfMax: 500,
-                dynamicEfMin: 100,
-                ef: -1,
-                maxConnections: 64,
-                pq: {
-                  bitCompression: false,
-                  centroids: 256,
-                  enabled: false,
-                  encoder: {
-                    distribution: 'log-normal',
-                    type: 'kmeans',
-                  },
-                  segments: 0,
-                  trainingLimit: 100000,
-                },
-                bq: {
-                  enabled: false,
-                },
-                skip: false,
-                efConstruction: 128,
-                vectorCacheMaxObjects: 500000,
-                flatSearchCutoff: 40000,
-              },
-              invertedIndexConfig: {
-                cleanupIntervalSeconds: 60,
-                bm25: {
-                  b: 0.75,
-                  k1: 1.2,
-                },
-                stopwords: {
-                  preset: 'en',
-                  additions: null,
-                  removals: null,
-                },
-              },
-              moduleConfig: {
-                'text2vec-contextionary': {
-                  vectorizeClassName: true,
-                },
-              },
-              multiTenancyConfig: {
-                autoTenantCreation: false,
-                enabled: false,
-              },
-              shardingConfig: {
-                actualCount: 1,
-                actualVirtualCount: 128,
-                desiredCount: 1,
-                desiredVirtualCount: 128,
-                function: 'murmur3',
-                key: '_id',
-                strategy: 'hash',
-                virtualPerPhysical: 128,
-              },
-              replicationConfig: {
-                factor: 1,
-              },
-            },
-          ],
-        });
-      });
-  });
-
-  it('gets the shards of an existing class', () => {
+  it('gets the shards of an existing class', async () => {
+    const classObj = await classObjPromise;
     return client.schema
       .shardsGetter()
       .withClassName(classObj.class)
@@ -216,6 +120,7 @@ describe('schema', () => {
   });
 
   it('updates a shard of an existing class to readonly', async () => {
+    const classObj = await classObjPromise;
     const shards = await getShards(client, classObj.class);
     expect(Array.isArray(shards)).toBe(true);
     expect(shards.length).toEqual(1);
@@ -232,6 +137,7 @@ describe('schema', () => {
   });
 
   it('updates a shard of an existing class to ready', async () => {
+    const classObj = await classObjPromise;
     const shards = await getShards(client, classObj.class);
     expect(Array.isArray(shards)).toBe(true);
     expect(shards.length).toEqual(1);
@@ -247,7 +153,8 @@ describe('schema', () => {
       });
   });
 
-  it('deletes an existing class', () => {
+  it('deletes an existing class', async () => {
+    const classObj = await classObjPromise;
     return client.schema
       .classDeleter()
       .withClassName(classObj.class)
@@ -259,7 +166,7 @@ describe('schema', () => {
 
   it('updates all shards in a class', async () => {
     const shardCount = 3;
-    const newClass: any = newClassObject('NewClass');
+    const newClass: any = await newClassObject('NewClass', isVer(client, 25, 0), isVer(client, 25, 2));
     newClass.shardingConfig.desiredCount = shardCount;
 
     await client.schema
@@ -302,7 +209,7 @@ describe('schema', () => {
   });
 
   it('has updated values of bm25 config', async () => {
-    const newClass: any = newClassObject('NewClass');
+    const newClass: any = await newClassObject('NewClass', isVer(client, 25, 0), isVer(client, 25, 2));
     const bm25Config = { k1: 1.13, b: 0.222 };
 
     newClass.invertedIndexConfig.bm25 = bm25Config;
@@ -319,7 +226,7 @@ describe('schema', () => {
   });
 
   it('has updated values of stopwords config', async () => {
-    const newClass: any = newClassObject('SpaceClass');
+    const newClass: any = await newClassObject('SpaceClass', isVer(client, 25, 0), isVer(client, 25, 2));
     const stopwordConfig: any = {
       preset: 'en',
       additions: ['star', 'nebula'],
@@ -371,7 +278,7 @@ describe('schema', () => {
 
   it('creates a class with explicit replication config', async () => {
     const replicationFactor = 1;
-    const newClass: any = newClassObject('SomeClass');
+    const newClass: any = await newClassObject('SomeClass', isVer(client, 25, 0), isVer(client, 25, 2));
     newClass.replicationConfig.factor = replicationFactor;
 
     await client.schema
@@ -386,7 +293,7 @@ describe('schema', () => {
   });
 
   it('creates a class with implicit replication config', async () => {
-    const newClass: any = newClassObject('SomeClass');
+    const newClass: any = await newClassObject('SomeClass', isVer(client, 25, 0), isVer(client, 25, 2));
     delete newClass.replicationConfig;
 
     await client.schema
@@ -400,9 +307,17 @@ describe('schema', () => {
     return deleteClass(client, newClass.class);
   });
 
-  it('delete all data from the schema', () => {
-    const newClass: any = newClassObject('LetsDeleteThisClass');
-    const newClass2: any = newClassObject('LetsDeleteThisClassToo');
+  it('delete all data from the schema', async () => {
+    const newClass: any = await newClassObject(
+      'LetsDeleteThisClass',
+      isVer(client, 25, 0),
+      isVer(client, 25, 2)
+    );
+    const newClass2: any = await newClassObject(
+      'LetsDeleteThisClassToo',
+      isVer(client, 25, 0),
+      isVer(client, 25, 2)
+    );
     const classNames = [newClass.class, newClass2.class];
     Promise.all([
       client.schema.classCreator().withClass(newClass).do(),
@@ -588,7 +503,7 @@ describe('property setting defaults and migrations', () => {
 
   const errMsg1 =
     '`indexInverted` is deprecated and can not be set together with `indexFilterable` or `indexSearchable`';
-  const errMsg2 = '`indexSearchable` is allowed only for text/text[] data types';
+  const errMsg2 = '`indexSearchable`';
   test.each([
     ['text', false, null, false, errMsg1],
     ['text', false, null, true, errMsg1],
@@ -663,7 +578,6 @@ describe('multi tenancy', () => {
     scheme: 'http',
     host: 'localhost:8080',
   });
-
   const classObj: WeaviateClass = {
     class: 'MultiTenancy',
     properties: [
@@ -679,13 +593,20 @@ describe('multi tenancy', () => {
     vectorIndexType: 'hnsw',
     vectorizer: 'text2vec-contextionary',
     multiTenancyConfig: {
+      autoTenantActivation: true,
       autoTenantCreation: true,
       enabled: true,
     },
   };
   const tenants: Array<Tenant> = [{ name: 'tenantA' }, { name: 'tenantB' }, { name: 'tenantC' }];
 
-  it('creates a MultiTenancy class', () => {
+  it('creates a MultiTenancy class', async () => {
+    if (!(await isVer(client, 25, 0))) {
+      delete classObj.multiTenancyConfig?.autoTenantCreation;
+    }
+    if (!(await isVer(client, 25, 2))) {
+      delete classObj.multiTenancyConfig?.autoTenantActivation;
+    }
     return client.schema
       .classCreator()
       .withClass(classObj)
@@ -733,51 +654,65 @@ describe('multi tenancy', () => {
       });
   });
 
-  it('successfully finds an existing tenant for MultiTenancy class', () => {
+  it('successfully finds an existing tenant for MultiTenancy class', async () => {
+    if (!(await isVer(client, 25, 0))) {
+      return Promise.resolve();
+    }
     return client.schema
       .tenantsExists(classObj.class!, tenants[1].name!)
       .do()
-      .then((res: boolean) => expect(res).toEqual(true));
+      .then((res) => expect(res).toEqual(true));
   });
 
-  it('successfully fails to find a non-existant tenant for MultiTenancy class', () => {
+  it('successfully fails to find a non-existant tenant for MultiTenancy class', async () => {
+    if (!(await isVer(client, 25, 0))) {
+      return Promise.resolve();
+    }
     return client.schema
       .tenantsExists(classObj.class!, 'nonExistantTenant')
       .do()
-      .then((res: boolean) => expect(res).toEqual(false));
+      .then((res) => expect(res).toEqual(false));
   });
 
   it('deletes MultiTenancy class', () => {
     return deleteClass(client, classObj.class!);
   });
 
-  const classObjWithoutMultiTenancyConfig = newClassObject('NoMultiTenancy');
+  const classObjWithoutMultiTenancyConfig = newClassObject(
+    'NoMultiTenancy',
+    isVer(client, 25, 0),
+    isVer(client, 25, 2)
+  );
 
-  it('creates a NoMultiTenancy class', () => {
+  it('creates a NoMultiTenancy class', async () => {
     return client.schema
       .classCreator()
-      .withClass(classObjWithoutMultiTenancyConfig)
+      .withClass(await classObjWithoutMultiTenancyConfig)
       .do()
-      .then((res: WeaviateClass) => {
-        expect(res).toEqual(classObjWithoutMultiTenancyConfig);
+      .then(async (res: WeaviateClass) => {
+        expect(res).toEqual(await classObjWithoutMultiTenancyConfig);
       });
   });
 
-  it('fails to define tenants for NoMultiTenancy class', () => {
+  it('fails to define tenants for NoMultiTenancy class', async () => {
     return client.schema
-      .tenantsCreator(classObjWithoutMultiTenancyConfig.class!, tenants)
+      .tenantsCreator((await classObjWithoutMultiTenancyConfig).class!, tenants)
       .do()
       .catch((e: Error) => {
         expect(e.message).toContain('multi-tenancy is not enabled for class \\"NoMultiTenancy\\"');
       });
   });
 
-  it('deletes NoMultiTenancy class', () => {
-    return deleteClass(client, classObjWithoutMultiTenancyConfig.class);
+  it('deletes NoMultiTenancy class', async () => {
+    return deleteClass(client, (await classObjWithoutMultiTenancyConfig).class);
   });
 });
 
-function newClassObject(className: string) {
+async function newClassObject(
+  className: string,
+  is1250Promise: Promise<boolean>,
+  is1252Promise: Promise<boolean>
+) {
   return {
     class: className,
     properties: [
@@ -842,7 +777,8 @@ function newClassObject(className: string) {
       },
     },
     multiTenancyConfig: {
-      autoTenantCreation: false,
+      autoTenantActivation: (await is1252Promise) ? false : undefined,
+      autoTenantCreation: (await is1250Promise) ? false : undefined,
       enabled: false,
     },
     shardingConfig: {

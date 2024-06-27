@@ -1,7 +1,7 @@
-import { isValidStringProperty } from '../validation/string';
-import Connection from '../connection';
-import { CommandBase } from '../validation/commandBase';
-import { Reference } from '../openapi/types';
+import Connection from '../connection/index.js';
+import { Reference } from '../openapi/types.js';
+import { CommandBase } from '../validation/commandBase.js';
+import { isValidStringProperty } from '../validation/string.js';
 
 export default class ReferencePayloadBuilder extends CommandBase {
   private className?: string;

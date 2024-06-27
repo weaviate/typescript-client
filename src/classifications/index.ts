@@ -1,6 +1,6 @@
-import ClassificationsScheduler from './scheduler';
-import ClassificationsGetter from './getter';
-import Connection from '../connection';
+import Connection from '../connection/index.js';
+import ClassificationsGetter from './getter.js';
+import ClassificationsScheduler from './scheduler.js';
 
 export interface Classifications {
   scheduler: () => ClassificationsScheduler;
@@ -15,5 +15,5 @@ const data = (client: Connection): Classifications => {
 };
 
 export default data;
-export { default as ClassificationsGetter } from './getter';
-export { default as ClassificationsScheduler } from './scheduler';
+export { default as ClassificationsGetter } from './getter.js';
+export { default as ClassificationsScheduler } from './scheduler.js';

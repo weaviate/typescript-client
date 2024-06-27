@@ -1,24 +1,30 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import weaviate, {
+  Meta,
   Reference,
+  ReferenceCreator,
+  Tenant,
+  WeaviateClass,
   WeaviateClient,
   WeaviateError,
   WeaviateObject,
-  WeaviateClass,
-  Tenant,
-  ReferenceCreator,
   WhereFilter,
-} from '..';
-import { FusionType } from './hybrid';
+} from '../v2/index.js';
+import { FusionType } from './hybrid.js';
 
 describe('the graphql journey', () => {
   let client: WeaviateClient;
+  let versionLessThan125: boolean;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     client = weaviate.client({
       scheme: 'http',
       host: 'localhost:8080',
     });
+    versionLessThan125 = await client.misc
+      .metaGetter()
+      .do()
+      .then((res: Meta) => res.version!.localeCompare('1.25.0') < 0);
   });
 
   it('creates a schema class', () => {
@@ -445,6 +451,9 @@ describe('the graphql journey', () => {
   });
 
   test('graphql get hybrid with query and groupby', () => {
+    if (versionLessThan125) {
+      return Promise.resolve();
+    }
     return client.graphql
       .get()
       .withClassName('Article')
@@ -465,6 +474,9 @@ describe('the graphql journey', () => {
   });
 
   test('graphql get hybrid with query and nearText subsearch', () => {
+    if (versionLessThan125) {
+      return Promise.resolve();
+    }
     return client.graphql
       .get()
       .withClassName('Article')
@@ -530,6 +542,10 @@ describe('the graphql journey', () => {
       0.16178907, 0.39356324, -0.03106238, 0.09375929, 0.17185533, 0.10400415, -0.36850816, 0.18424486,
       -0.081376314, 0.23645392, 0.05198973, 0.09471436,
     ];
+
+    if (versionLessThan125) {
+      return Promise.resolve();
+    }
 
     return client.graphql
       .get()
@@ -2244,7 +2260,7 @@ describe('named vectors test', () => {
     });
   });
 
-  const className = 'NamedVectorTest';
+  const className = 'VectorTest';
   const oneUUID = 'abefd256-8574-442b-9293-9205193737e1';
 
   describe('setup', () => {
@@ -2285,7 +2301,7 @@ describe('named vectors test', () => {
       return client.schema.classCreator().withClass(namedVectorTest).do();
     });
 
-    it('should insert NamedVectorTest data', () => {
+    it('should insert VectorTest data', () => {
       const objects: WeaviateObject[] = [
         {
           class: className,
@@ -2328,8 +2344,8 @@ describe('named vectors test', () => {
         .withFields('title')
         .do()
         .then((res) => {
-          expect(res.data.Get.NamedVectorTest).toHaveLength(3);
-          expect(res.data.Get.NamedVectorTest[0].title).toBe('Two');
+          expect(res.data.Get.VectorTest).toHaveLength(3);
+          expect(res.data.Get.VectorTest[0].title).toBe('Two');
         });
     });
 
@@ -2344,8 +2360,8 @@ describe('named vectors test', () => {
         .withFields('rating')
         .do()
         .then((res) => {
-          expect(res.data.Get.NamedVectorTest).toHaveLength(3);
-          expect(res.data.Get.NamedVectorTest[0].rating).toBe('Good');
+          expect(res.data.Get.VectorTest).toHaveLength(3);
+          expect(res.data.Get.VectorTest[0].rating).toBe('Good');
         });
     });
   });
@@ -2369,8 +2385,8 @@ describe('named vectors test', () => {
           .do()
       )
       .then((res) => {
-        expect(res.data.Get.NamedVectorTest).toHaveLength(3);
-        expect(res.data.Get.NamedVectorTest[0].title).toBe('One');
+        expect(res.data.Get.VectorTest).toHaveLength(3);
+        expect(res.data.Get.VectorTest[0].title).toBe('One');
       });
   });
 
@@ -2385,13 +2401,13 @@ describe('named vectors test', () => {
       .withFields('rating')
       .do()
       .then((res) => {
-        expect(res.data.Get.NamedVectorTest).toHaveLength(3);
-        expect(res.data.Get.NamedVectorTest[0].rating).toBe('Best');
+        expect(res.data.Get.VectorTest).toHaveLength(3);
+        expect(res.data.Get.VectorTest[0].rating).toBe('Best');
       });
   });
 
   describe('destroy', () => {
-    it('tears down NamedVectorTest class', () => {
+    it('tears down VectorTest class', () => {
       return client.schema.classDeleter().withClassName(className).do();
     });
   });

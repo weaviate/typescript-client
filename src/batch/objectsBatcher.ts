@@ -1,8 +1,8 @@
-import { buildObjectsPath } from './path';
-import Connection from '../connection';
-import { CommandBase } from '../validation/commandBase';
-import { BatchRequest, WeaviateObject, WeaviateObjectsGet } from '../openapi/types';
-import { ConsistencyLevel } from '../data/replication';
+import Connection from '../connection/index.js';
+import { ConsistencyLevel } from '../data/replication.js';
+import { BatchRequest, WeaviateObject, WeaviateObjectsGet } from '../openapi/types.js';
+import { CommandBase } from '../validation/commandBase.js';
+import { buildObjectsPath } from './path.js';
 
 export default class ObjectsBatcher extends CommandBase {
   private consistencyLevel?: ConsistencyLevel;
@@ -62,6 +62,6 @@ export default class ObjectsBatcher extends CommandBase {
       params.set('consistency_level', this.consistencyLevel);
     }
     const path = buildObjectsPath(params);
-    return this.client.post(path, this.payload());
+    return this.client.postReturn(path, this.payload());
   };
 }

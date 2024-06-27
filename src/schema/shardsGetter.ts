@@ -1,10 +1,11 @@
-import { isValidStringProperty } from '../validation/string';
-import Connection from '../connection';
-import { CommandBase } from '../validation/commandBase';
-import { ShardStatusList } from '../openapi/types';
+import Connection from '../connection/index.js';
+import { ShardStatusList } from '../openapi/types.js';
+import { CommandBase } from '../validation/commandBase.js';
+import { isValidStringProperty } from '../validation/string.js';
 
 export default class ShardsGetter extends CommandBase {
   private className?: string;
+  private tenant?: string;
 
   constructor(client: Connection) {
     super(client);
@@ -12,6 +13,11 @@ export default class ShardsGetter extends CommandBase {
 
   withClassName = (className: string) => {
     this.className = className;
+    return this;
+  };
+
+  withTenant = (tenant: string) => {
+    this.tenant = tenant;
     return this;
   };
 
@@ -31,11 +37,11 @@ export default class ShardsGetter extends CommandBase {
       return Promise.reject(new Error(`invalid usage: ${this.errors.join(', ')}`));
     }
 
-    return getShards(this.client, this.className);
+    return getShards(this.client, this.className, this.tenant);
   };
 }
 
-export function getShards(client: Connection, className: any) {
-  const path = `/schema/${className}/shards`;
+export function getShards(client: Connection, className: any, tenant?: string) {
+  const path = `/schema/${className}/shards${tenant ? `?tenant=${tenant}` : ''}`;
   return client.get(path);
 }

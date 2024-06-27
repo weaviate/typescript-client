@@ -1,9 +1,9 @@
-import { buildRefsPath } from './path';
-import { BeaconPath } from '../utils/beaconPath';
-import Connection from '../connection';
-import { CommandBase } from '../validation/commandBase';
-import { BatchReference, BatchReferenceResponse } from '../openapi/types';
-import { ConsistencyLevel } from '../data/replication';
+import Connection from '../connection/index.js';
+import { ConsistencyLevel } from '../data/replication.js';
+import { BatchReference, BatchReferenceResponse } from '../openapi/types.js';
+import { BeaconPath } from '../utils/beaconPath.js';
+import { CommandBase } from '../validation/commandBase.js';
+import { buildRefsPath } from './path.js';
 
 export default class ReferencesBatcher extends CommandBase {
   private beaconPath: BeaconPath;
@@ -65,7 +65,7 @@ export default class ReferencesBatcher extends CommandBase {
     const path = buildRefsPath(params);
     const payloadPromise = Promise.all(this.references.map((ref) => this.rebuildReferencePromise(ref)));
 
-    return payloadPromise.then((payload) => this.client.post(path, payload));
+    return payloadPromise.then((payload) => this.client.postReturn(path, payload));
   };
 
   rebuildReferencePromise = (reference: BatchReference): Promise<BatchReference> => {

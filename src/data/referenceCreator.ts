@@ -1,9 +1,9 @@
-import { BeaconPath } from '../utils/beaconPath';
-import { ReferencesPath } from './path';
-import Connection from '../connection';
-import { CommandBase } from '../validation/commandBase';
-import { Reference } from '../openapi/types';
-import { ConsistencyLevel } from './replication';
+import Connection from '../connection/index.js';
+import { Reference } from '../openapi/types.js';
+import { BeaconPath } from '../utils/beaconPath.js';
+import { CommandBase } from '../validation/commandBase.js';
+import { ReferencesPath } from './path.js';
+import { ConsistencyLevel } from './replication.js';
 
 export default class ReferenceCreator extends CommandBase {
   private beaconPath: BeaconPath;
@@ -80,7 +80,7 @@ export default class ReferenceCreator extends CommandBase {
     ]).then((results) => {
       const path = results[0];
       const beacon = results[1];
-      return this.client.post(path, { beacon }, false);
+      return this.client.postEmpty(path, { beacon });
     });
   };
 }

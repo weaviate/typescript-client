@@ -1,6 +1,6 @@
-import Connection from '../connection';
-import { CommandBase } from '../validation/commandBase';
-import { Tenant } from '../openapi/types';
+import Connection from '../connection/index.js';
+import { Tenant } from '../openapi/types.js';
+import { CommandBase } from '../validation/commandBase.js';
 
 export default class TenantsCreator extends CommandBase {
   private className: string;
@@ -17,6 +17,6 @@ export default class TenantsCreator extends CommandBase {
   };
 
   do = (): Promise<Array<Tenant>> => {
-    return this.client.post(`/schema/${this.className}/tenants`, this.tenants);
+    return this.client.postReturn(`/schema/${this.className}/tenants`, this.tenants);
   };
 }

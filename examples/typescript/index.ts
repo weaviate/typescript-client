@@ -1,8 +1,8 @@
 import weaviate, {
-  AuthClientCredentials,
-  AuthUserPasswordCredentials,
   ApiKey,
   AuthAccessTokenCredentials,
+  AuthClientCredentials,
+  AuthUserPasswordCredentials,
   generateUuid5,
 } from 'weaviate-ts-client';
 

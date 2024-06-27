@@ -1,6 +1,6 @@
-import ExtensionCreator from './extensionCreator';
-import ConceptsGetter from './conceptsGetter';
-import Connection from '../connection';
+import Connection from '../connection/index.js';
+import ConceptsGetter from './conceptsGetter.js';
+import ExtensionCreator from './extensionCreator.js';
 
 export interface C11y {
   conceptsGetter: () => ConceptsGetter;
@@ -15,5 +15,5 @@ const c11y = (client: Connection): C11y => {
 };
 
 export default c11y;
-export { default as ExtensionCreator } from './extensionCreator';
-export { default as ConceptsGetter } from './conceptsGetter';
+export { default as ConceptsGetter } from './conceptsGetter.js';
+export { default as ExtensionCreator } from './extensionCreator.js';

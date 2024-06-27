@@ -1,4 +1,31 @@
-import { HttpClient } from './httpClient';
+import { HttpClient } from './http.js';
+
+/**
+ * The allowed authentication credentials. See [the docs](https://weaviate.io/developers/weaviate/configuration/authentication) for more information.
+ *
+ * The following types are allowed:
+ * - `AuthUserPasswordCredentials`
+ * - `AuthAccessTokenCredentials`
+ * - `AuthClientCredentials`
+ * - `ApiKey`
+ * - `string`
+ *
+ * A string is interpreted as an API key.
+ */
+export type AuthCredentials =
+  | AuthUserPasswordCredentials
+  | AuthAccessTokenCredentials
+  | AuthClientCredentials
+  | ApiKey
+  | string;
+
+export const isApiKey = (creds?: AuthCredentials): creds is ApiKey | string => {
+  return typeof creds === 'string' || creds instanceof ApiKey;
+};
+
+export const mapApiKey = (creds: ApiKey | string): ApiKey => {
+  return creds instanceof ApiKey ? creds : new ApiKey(creds);
+};
 
 interface AuthenticatorResult {
   accessToken: string;

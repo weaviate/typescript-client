@@ -1,4 +1,4 @@
-import { Move, parseMove } from './nearText';
+import { Move, parseMove } from './nearText.js';
 
 export interface HybridArgs {
   alpha?: number;

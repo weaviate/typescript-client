@@ -1,0 +1,1404 @@
+/* eslint-disable */
+import Long from "long";
+import _m0 from "protobufjs/minimal.js";
+import { NullValue, nullValueFromJSON, nullValueToJSON } from "../google/protobuf/struct.js";
+
+export const protobufPackage = "weaviate.v1";
+
+export interface Properties {
+  fields: { [key: string]: Value };
+}
+
+export interface Properties_FieldsEntry {
+  key: string;
+  value: Value | undefined;
+}
+
+export interface Value {
+  numberValue?:
+    | number
+    | undefined;
+  /** @deprecated */
+  stringValue?: string | undefined;
+  boolValue?: boolean | undefined;
+  objectValue?: Properties | undefined;
+  listValue?: ListValue | undefined;
+  dateValue?: string | undefined;
+  uuidValue?: string | undefined;
+  intValue?: number | undefined;
+  geoValue?: GeoCoordinate | undefined;
+  blobValue?: string | undefined;
+  phoneValue?: PhoneNumber | undefined;
+  nullValue?: NullValue | undefined;
+  textValue?: string | undefined;
+}
+
+export interface ListValue {
+  /** @deprecated */
+  values: Value[];
+  numberValues?: NumberValues | undefined;
+  boolValues?: BoolValues | undefined;
+  objectValues?: ObjectValues | undefined;
+  dateValues?: DateValues | undefined;
+  uuidValues?: UuidValues | undefined;
+  intValues?: IntValues | undefined;
+  textValues?: TextValues | undefined;
+}
+
+export interface NumberValues {
+  /**
+   * The values are stored as a byte array, where each 8 bytes represent a single float64 value.
+   * The byte array is stored in little-endian order using uint64 encoding.
+   */
+  values: Uint8Array;
+}
+
+export interface TextValues {
+  values: string[];
+}
+
+export interface BoolValues {
+  values: boolean[];
+}
+
+export interface ObjectValues {
+  values: Properties[];
+}
+
+export interface DateValues {
+  values: string[];
+}
+
+export interface UuidValues {
+  values: string[];
+}
+
+export interface IntValues {
+  /**
+   * The values are stored as a byte array, where each 8 bytes represent a single int64 value.
+   * The byte array is stored in little-endian order using uint64 encoding.
+   */
+  values: Uint8Array;
+}
+
+export interface GeoCoordinate {
+  longitude: number;
+  latitude: number;
+}
+
+export interface PhoneNumber {
+  countryCode: number;
+  defaultCountry: string;
+  input: string;
+  internationalFormatted: string;
+  national: number;
+  nationalFormatted: string;
+  valid: boolean;
+}
+
+function createBaseProperties(): Properties {
+  return { fields: {} };
+}
+
+export const Properties = {
+  encode(message: Properties, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    Object.entries(message.fields).forEach(([key, value]) => {
+      Properties_FieldsEntry.encode({ key: key as any, value }, writer.uint32(10).fork()).ldelim();
+    });
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): Properties {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseProperties();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          const entry1 = Properties_FieldsEntry.decode(reader, reader.uint32());
+          if (entry1.value !== undefined) {
+            message.fields[entry1.key] = entry1.value;
+          }
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): Properties {
+    return {
+      fields: isObject(object.fields)
+        ? Object.entries(object.fields).reduce<{ [key: string]: Value }>((acc, [key, value]) => {
+          acc[key] = Value.fromJSON(value);
+          return acc;
+        }, {})
+        : {},
+    };
+  },
+
+  toJSON(message: Properties): unknown {
+    const obj: any = {};
+    if (message.fields) {
+      const entries = Object.entries(message.fields);
+      if (entries.length > 0) {
+        obj.fields = {};
+        entries.forEach(([k, v]) => {
+          obj.fields[k] = Value.toJSON(v);
+        });
+      }
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<Properties>): Properties {
+    return Properties.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<Properties>): Properties {
+    const message = createBaseProperties();
+    message.fields = Object.entries(object.fields ?? {}).reduce<{ [key: string]: Value }>((acc, [key, value]) => {
+      if (value !== undefined) {
+        acc[key] = Value.fromPartial(value);
+      }
+      return acc;
+    }, {});
+    return message;
+  },
+};
+
+function createBaseProperties_FieldsEntry(): Properties_FieldsEntry {
+  return { key: "", value: undefined };
+}
+
+export const Properties_FieldsEntry = {
+  encode(message: Properties_FieldsEntry, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.key !== "") {
+      writer.uint32(10).string(message.key);
+    }
+    if (message.value !== undefined) {
+      Value.encode(message.value, writer.uint32(18).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): Properties_FieldsEntry {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseProperties_FieldsEntry();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.key = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.value = Value.decode(reader, reader.uint32());
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): Properties_FieldsEntry {
+    return {
+      key: isSet(object.key) ? globalThis.String(object.key) : "",
+      value: isSet(object.value) ? Value.fromJSON(object.value) : undefined,
+    };
+  },
+
+  toJSON(message: Properties_FieldsEntry): unknown {
+    const obj: any = {};
+    if (message.key !== "") {
+      obj.key = message.key;
+    }
+    if (message.value !== undefined) {
+      obj.value = Value.toJSON(message.value);
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<Properties_FieldsEntry>): Properties_FieldsEntry {
+    return Properties_FieldsEntry.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<Properties_FieldsEntry>): Properties_FieldsEntry {
+    const message = createBaseProperties_FieldsEntry();
+    message.key = object.key ?? "";
+    message.value = (object.value !== undefined && object.value !== null) ? Value.fromPartial(object.value) : undefined;
+    return message;
+  },
+};
+
+function createBaseValue(): Value {
+  return {
+    numberValue: undefined,
+    stringValue: undefined,
+    boolValue: undefined,
+    objectValue: undefined,
+    listValue: undefined,
+    dateValue: undefined,
+    uuidValue: undefined,
+    intValue: undefined,
+    geoValue: undefined,
+    blobValue: undefined,
+    phoneValue: undefined,
+    nullValue: undefined,
+    textValue: undefined,
+  };
+}
+
+export const Value = {
+  encode(message: Value, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.numberValue !== undefined) {
+      writer.uint32(9).double(message.numberValue);
+    }
+    if (message.stringValue !== undefined) {
+      writer.uint32(18).string(message.stringValue);
+    }
+    if (message.boolValue !== undefined) {
+      writer.uint32(24).bool(message.boolValue);
+    }
+    if (message.objectValue !== undefined) {
+      Properties.encode(message.objectValue, writer.uint32(34).fork()).ldelim();
+    }
+    if (message.listValue !== undefined) {
+      ListValue.encode(message.listValue, writer.uint32(42).fork()).ldelim();
+    }
+    if (message.dateValue !== undefined) {
+      writer.uint32(50).string(message.dateValue);
+    }
+    if (message.uuidValue !== undefined) {
+      writer.uint32(58).string(message.uuidValue);
+    }
+    if (message.intValue !== undefined) {
+      writer.uint32(64).int64(message.intValue);
+    }
+    if (message.geoValue !== undefined) {
+      GeoCoordinate.encode(message.geoValue, writer.uint32(74).fork()).ldelim();
+    }
+    if (message.blobValue !== undefined) {
+      writer.uint32(82).string(message.blobValue);
+    }
+    if (message.phoneValue !== undefined) {
+      PhoneNumber.encode(message.phoneValue, writer.uint32(90).fork()).ldelim();
+    }
+    if (message.nullValue !== undefined) {
+      writer.uint32(96).int32(message.nullValue);
+    }
+    if (message.textValue !== undefined) {
+      writer.uint32(106).string(message.textValue);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): Value {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseValue();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 9) {
+            break;
+          }
+
+          message.numberValue = reader.double();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.stringValue = reader.string();
+          continue;
+        case 3:
+          if (tag !== 24) {
+            break;
+          }
+
+          message.boolValue = reader.bool();
+          continue;
+        case 4:
+          if (tag !== 34) {
+            break;
+          }
+
+          message.objectValue = Properties.decode(reader, reader.uint32());
+          continue;
+        case 5:
+          if (tag !== 42) {
+            break;
+          }
+
+          message.listValue = ListValue.decode(reader, reader.uint32());
+          continue;
+        case 6:
+          if (tag !== 50) {
+            break;
+          }
+
+          message.dateValue = reader.string();
+          continue;
+        case 7:
+          if (tag !== 58) {
+            break;
+          }
+
+          message.uuidValue = reader.string();
+          continue;
+        case 8:
+          if (tag !== 64) {
+            break;
+          }
+
+          message.intValue = longToNumber(reader.int64() as Long);
+          continue;
+        case 9:
+          if (tag !== 74) {
+            break;
+          }
+
+          message.geoValue = GeoCoordinate.decode(reader, reader.uint32());
+          continue;
+        case 10:
+          if (tag !== 82) {
+            break;
+          }
+
+          message.blobValue = reader.string();
+          continue;
+        case 11:
+          if (tag !== 90) {
+            break;
+          }
+
+          message.phoneValue = PhoneNumber.decode(reader, reader.uint32());
+          continue;
+        case 12:
+          if (tag !== 96) {
+            break;
+          }
+
+          message.nullValue = reader.int32() as any;
+          continue;
+        case 13:
+          if (tag !== 106) {
+            break;
+          }
+
+          message.textValue = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): Value {
+    return {
+      numberValue: isSet(object.numberValue) ? globalThis.Number(object.numberValue) : undefined,
+      stringValue: isSet(object.stringValue) ? globalThis.String(object.stringValue) : undefined,
+      boolValue: isSet(object.boolValue) ? globalThis.Boolean(object.boolValue) : undefined,
+      objectValue: isSet(object.objectValue) ? Properties.fromJSON(object.objectValue) : undefined,
+      listValue: isSet(object.listValue) ? ListValue.fromJSON(object.listValue) : undefined,
+      dateValue: isSet(object.dateValue) ? globalThis.String(object.dateValue) : undefined,
+      uuidValue: isSet(object.uuidValue) ? globalThis.String(object.uuidValue) : undefined,
+      intValue: isSet(object.intValue) ? globalThis.Number(object.intValue) : undefined,
+      geoValue: isSet(object.geoValue) ? GeoCoordinate.fromJSON(object.geoValue) : undefined,
+      blobValue: isSet(object.blobValue) ? globalThis.String(object.blobValue) : undefined,
+      phoneValue: isSet(object.phoneValue) ? PhoneNumber.fromJSON(object.phoneValue) : undefined,
+      nullValue: isSet(object.nullValue) ? nullValueFromJSON(object.nullValue) : undefined,
+      textValue: isSet(object.textValue) ? globalThis.String(object.textValue) : undefined,
+    };
+  },
+
+  toJSON(message: Value): unknown {
+    const obj: any = {};
+    if (message.numberValue !== undefined) {
+      obj.numberValue = message.numberValue;
+    }
+    if (message.stringValue !== undefined) {
+      obj.stringValue = message.stringValue;
+    }
+    if (message.boolValue !== undefined) {
+      obj.boolValue = message.boolValue;
+    }
+    if (message.objectValue !== undefined) {
+      obj.objectValue = Properties.toJSON(message.objectValue);
+    }
+    if (message.listValue !== undefined) {
+      obj.listValue = ListValue.toJSON(message.listValue);
+    }
+    if (message.dateValue !== undefined) {
+      obj.dateValue = message.dateValue;
+    }
+    if (message.uuidValue !== undefined) {
+      obj.uuidValue = message.uuidValue;
+    }
+    if (message.intValue !== undefined) {
+      obj.intValue = Math.round(message.intValue);
+    }
+    if (message.geoValue !== undefined) {
+      obj.geoValue = GeoCoordinate.toJSON(message.geoValue);
+    }
+    if (message.blobValue !== undefined) {
+      obj.blobValue = message.blobValue;
+    }
+    if (message.phoneValue !== undefined) {
+      obj.phoneValue = PhoneNumber.toJSON(message.phoneValue);
+    }
+    if (message.nullValue !== undefined) {
+      obj.nullValue = nullValueToJSON(message.nullValue);
+    }
+    if (message.textValue !== undefined) {
+      obj.textValue = message.textValue;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<Value>): Value {
+    return Value.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<Value>): Value {
+    const message = createBaseValue();
+    message.numberValue = object.numberValue ?? undefined;
+    message.stringValue = object.stringValue ?? undefined;
+    message.boolValue = object.boolValue ?? undefined;
+    message.objectValue = (object.objectValue !== undefined && object.objectValue !== null)
+      ? Properties.fromPartial(object.objectValue)
+      : undefined;
+    message.listValue = (object.listValue !== undefined && object.listValue !== null)
+      ? ListValue.fromPartial(object.listValue)
+      : undefined;
+    message.dateValue = object.dateValue ?? undefined;
+    message.uuidValue = object.uuidValue ?? undefined;
+    message.intValue = object.intValue ?? undefined;
+    message.geoValue = (object.geoValue !== undefined && object.geoValue !== null)
+      ? GeoCoordinate.fromPartial(object.geoValue)
+      : undefined;
+    message.blobValue = object.blobValue ?? undefined;
+    message.phoneValue = (object.phoneValue !== undefined && object.phoneValue !== null)
+      ? PhoneNumber.fromPartial(object.phoneValue)
+      : undefined;
+    message.nullValue = object.nullValue ?? undefined;
+    message.textValue = object.textValue ?? undefined;
+    return message;
+  },
+};
+
+function createBaseListValue(): ListValue {
+  return {
+    values: [],
+    numberValues: undefined,
+    boolValues: undefined,
+    objectValues: undefined,
+    dateValues: undefined,
+    uuidValues: undefined,
+    intValues: undefined,
+    textValues: undefined,
+  };
+}
+
+export const ListValue = {
+  encode(message: ListValue, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    for (const v of message.values) {
+      Value.encode(v!, writer.uint32(10).fork()).ldelim();
+    }
+    if (message.numberValues !== undefined) {
+      NumberValues.encode(message.numberValues, writer.uint32(18).fork()).ldelim();
+    }
+    if (message.boolValues !== undefined) {
+      BoolValues.encode(message.boolValues, writer.uint32(26).fork()).ldelim();
+    }
+    if (message.objectValues !== undefined) {
+      ObjectValues.encode(message.objectValues, writer.uint32(34).fork()).ldelim();
+    }
+    if (message.dateValues !== undefined) {
+      DateValues.encode(message.dateValues, writer.uint32(42).fork()).ldelim();
+    }
+    if (message.uuidValues !== undefined) {
+      UuidValues.encode(message.uuidValues, writer.uint32(50).fork()).ldelim();
+    }
+    if (message.intValues !== undefined) {
+      IntValues.encode(message.intValues, writer.uint32(58).fork()).ldelim();
+    }
+    if (message.textValues !== undefined) {
+      TextValues.encode(message.textValues, writer.uint32(66).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ListValue {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseListValue();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.values.push(Value.decode(reader, reader.uint32()));
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.numberValues = NumberValues.decode(reader, reader.uint32());
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.boolValues = BoolValues.decode(reader, reader.uint32());
+          continue;
+        case 4:
+          if (tag !== 34) {
+            break;
+          }
+
+          message.objectValues = ObjectValues.decode(reader, reader.uint32());
+          continue;
+        case 5:
+          if (tag !== 42) {
+            break;
+          }
+
+          message.dateValues = DateValues.decode(reader, reader.uint32());
+          continue;
+        case 6:
+          if (tag !== 50) {
+            break;
+          }
+
+          message.uuidValues = UuidValues.decode(reader, reader.uint32());
+          continue;
+        case 7:
+          if (tag !== 58) {
+            break;
+          }
+
+          message.intValues = IntValues.decode(reader, reader.uint32());
+          continue;
+        case 8:
+          if (tag !== 66) {
+            break;
+          }
+
+          message.textValues = TextValues.decode(reader, reader.uint32());
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ListValue {
+    return {
+      values: globalThis.Array.isArray(object?.values) ? object.values.map((e: any) => Value.fromJSON(e)) : [],
+      numberValues: isSet(object.numberValues) ? NumberValues.fromJSON(object.numberValues) : undefined,
+      boolValues: isSet(object.boolValues) ? BoolValues.fromJSON(object.boolValues) : undefined,
+      objectValues: isSet(object.objectValues) ? ObjectValues.fromJSON(object.objectValues) : undefined,
+      dateValues: isSet(object.dateValues) ? DateValues.fromJSON(object.dateValues) : undefined,
+      uuidValues: isSet(object.uuidValues) ? UuidValues.fromJSON(object.uuidValues) : undefined,
+      intValues: isSet(object.intValues) ? IntValues.fromJSON(object.intValues) : undefined,
+      textValues: isSet(object.textValues) ? TextValues.fromJSON(object.textValues) : undefined,
+    };
+  },
+
+  toJSON(message: ListValue): unknown {
+    const obj: any = {};
+    if (message.values?.length) {
+      obj.values = message.values.map((e) => Value.toJSON(e));
+    }
+    if (message.numberValues !== undefined) {
+      obj.numberValues = NumberValues.toJSON(message.numberValues);
+    }
+    if (message.boolValues !== undefined) {
+      obj.boolValues = BoolValues.toJSON(message.boolValues);
+    }
+    if (message.objectValues !== undefined) {
+      obj.objectValues = ObjectValues.toJSON(message.objectValues);
+    }
+    if (message.dateValues !== undefined) {
+      obj.dateValues = DateValues.toJSON(message.dateValues);
+    }
+    if (message.uuidValues !== undefined) {
+      obj.uuidValues = UuidValues.toJSON(message.uuidValues);
+    }
+    if (message.intValues !== undefined) {
+      obj.intValues = IntValues.toJSON(message.intValues);
+    }
+    if (message.textValues !== undefined) {
+      obj.textValues = TextValues.toJSON(message.textValues);
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<ListValue>): ListValue {
+    return ListValue.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<ListValue>): ListValue {
+    const message = createBaseListValue();
+    message.values = object.values?.map((e) => Value.fromPartial(e)) || [];
+    message.numberValues = (object.numberValues !== undefined && object.numberValues !== null)
+      ? NumberValues.fromPartial(object.numberValues)
+      : undefined;
+    message.boolValues = (object.boolValues !== undefined && object.boolValues !== null)
+      ? BoolValues.fromPartial(object.boolValues)
+      : undefined;
+    message.objectValues = (object.objectValues !== undefined && object.objectValues !== null)
+      ? ObjectValues.fromPartial(object.objectValues)
+      : undefined;
+    message.dateValues = (object.dateValues !== undefined && object.dateValues !== null)
+      ? DateValues.fromPartial(object.dateValues)
+      : undefined;
+    message.uuidValues = (object.uuidValues !== undefined && object.uuidValues !== null)
+      ? UuidValues.fromPartial(object.uuidValues)
+      : undefined;
+    message.intValues = (object.intValues !== undefined && object.intValues !== null)
+      ? IntValues.fromPartial(object.intValues)
+      : undefined;
+    message.textValues = (object.textValues !== undefined && object.textValues !== null)
+      ? TextValues.fromPartial(object.textValues)
+      : undefined;
+    return message;
+  },
+};
+
+function createBaseNumberValues(): NumberValues {
+  return { values: new Uint8Array(0) };
+}
+
+export const NumberValues = {
+  encode(message: NumberValues, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.values.length !== 0) {
+      writer.uint32(10).bytes(message.values);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): NumberValues {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseNumberValues();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.values = reader.bytes();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): NumberValues {
+    return { values: isSet(object.values) ? bytesFromBase64(object.values) : new Uint8Array(0) };
+  },
+
+  toJSON(message: NumberValues): unknown {
+    const obj: any = {};
+    if (message.values.length !== 0) {
+      obj.values = base64FromBytes(message.values);
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<NumberValues>): NumberValues {
+    return NumberValues.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<NumberValues>): NumberValues {
+    const message = createBaseNumberValues();
+    message.values = object.values ?? new Uint8Array(0);
+    return message;
+  },
+};
+
+function createBaseTextValues(): TextValues {
+  return { values: [] };
+}
+
+export const TextValues = {
+  encode(message: TextValues, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    for (const v of message.values) {
+      writer.uint32(10).string(v!);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): TextValues {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseTextValues();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.values.push(reader.string());
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): TextValues {
+    return {
+      values: globalThis.Array.isArray(object?.values) ? object.values.map((e: any) => globalThis.String(e)) : [],
+    };
+  },
+
+  toJSON(message: TextValues): unknown {
+    const obj: any = {};
+    if (message.values?.length) {
+      obj.values = message.values;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<TextValues>): TextValues {
+    return TextValues.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<TextValues>): TextValues {
+    const message = createBaseTextValues();
+    message.values = object.values?.map((e) => e) || [];
+    return message;
+  },
+};
+
+function createBaseBoolValues(): BoolValues {
+  return { values: [] };
+}
+
+export const BoolValues = {
+  encode(message: BoolValues, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    writer.uint32(10).fork();
+    for (const v of message.values) {
+      writer.bool(v);
+    }
+    writer.ldelim();
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): BoolValues {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseBoolValues();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag === 8) {
+            message.values.push(reader.bool());
+
+            continue;
+          }
+
+          if (tag === 10) {
+            const end2 = reader.uint32() + reader.pos;
+            while (reader.pos < end2) {
+              message.values.push(reader.bool());
+            }
+
+            continue;
+          }
+
+          break;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): BoolValues {
+    return {
+      values: globalThis.Array.isArray(object?.values) ? object.values.map((e: any) => globalThis.Boolean(e)) : [],
+    };
+  },
+
+  toJSON(message: BoolValues): unknown {
+    const obj: any = {};
+    if (message.values?.length) {
+      obj.values = message.values;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<BoolValues>): BoolValues {
+    return BoolValues.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<BoolValues>): BoolValues {
+    const message = createBaseBoolValues();
+    message.values = object.values?.map((e) => e) || [];
+    return message;
+  },
+};
+
+function createBaseObjectValues(): ObjectValues {
+  return { values: [] };
+}
+
+export const ObjectValues = {
+  encode(message: ObjectValues, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    for (const v of message.values) {
+      Properties.encode(v!, writer.uint32(10).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ObjectValues {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseObjectValues();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.values.push(Properties.decode(reader, reader.uint32()));
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ObjectValues {
+    return {
+      values: globalThis.Array.isArray(object?.values) ? object.values.map((e: any) => Properties.fromJSON(e)) : [],
+    };
+  },
+
+  toJSON(message: ObjectValues): unknown {
+    const obj: any = {};
+    if (message.values?.length) {
+      obj.values = message.values.map((e) => Properties.toJSON(e));
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<ObjectValues>): ObjectValues {
+    return ObjectValues.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<ObjectValues>): ObjectValues {
+    const message = createBaseObjectValues();
+    message.values = object.values?.map((e) => Properties.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseDateValues(): DateValues {
+  return { values: [] };
+}
+
+export const DateValues = {
+  encode(message: DateValues, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    for (const v of message.values) {
+      writer.uint32(10).string(v!);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): DateValues {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseDateValues();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.values.push(reader.string());
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): DateValues {
+    return {
+      values: globalThis.Array.isArray(object?.values) ? object.values.map((e: any) => globalThis.String(e)) : [],
+    };
+  },
+
+  toJSON(message: DateValues): unknown {
+    const obj: any = {};
+    if (message.values?.length) {
+      obj.values = message.values;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<DateValues>): DateValues {
+    return DateValues.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<DateValues>): DateValues {
+    const message = createBaseDateValues();
+    message.values = object.values?.map((e) => e) || [];
+    return message;
+  },
+};
+
+function createBaseUuidValues(): UuidValues {
+  return { values: [] };
+}
+
+export const UuidValues = {
+  encode(message: UuidValues, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    for (const v of message.values) {
+      writer.uint32(10).string(v!);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): UuidValues {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseUuidValues();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.values.push(reader.string());
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): UuidValues {
+    return {
+      values: globalThis.Array.isArray(object?.values) ? object.values.map((e: any) => globalThis.String(e)) : [],
+    };
+  },
+
+  toJSON(message: UuidValues): unknown {
+    const obj: any = {};
+    if (message.values?.length) {
+      obj.values = message.values;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<UuidValues>): UuidValues {
+    return UuidValues.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<UuidValues>): UuidValues {
+    const message = createBaseUuidValues();
+    message.values = object.values?.map((e) => e) || [];
+    return message;
+  },
+};
+
+function createBaseIntValues(): IntValues {
+  return { values: new Uint8Array(0) };
+}
+
+export const IntValues = {
+  encode(message: IntValues, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.values.length !== 0) {
+      writer.uint32(10).bytes(message.values);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): IntValues {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseIntValues();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.values = reader.bytes();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): IntValues {
+    return { values: isSet(object.values) ? bytesFromBase64(object.values) : new Uint8Array(0) };
+  },
+
+  toJSON(message: IntValues): unknown {
+    const obj: any = {};
+    if (message.values.length !== 0) {
+      obj.values = base64FromBytes(message.values);
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<IntValues>): IntValues {
+    return IntValues.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<IntValues>): IntValues {
+    const message = createBaseIntValues();
+    message.values = object.values ?? new Uint8Array(0);
+    return message;
+  },
+};
+
+function createBaseGeoCoordinate(): GeoCoordinate {
+  return { longitude: 0, latitude: 0 };
+}
+
+export const GeoCoordinate = {
+  encode(message: GeoCoordinate, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.longitude !== 0) {
+      writer.uint32(13).float(message.longitude);
+    }
+    if (message.latitude !== 0) {
+      writer.uint32(21).float(message.latitude);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): GeoCoordinate {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGeoCoordinate();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 13) {
+            break;
+          }
+
+          message.longitude = reader.float();
+          continue;
+        case 2:
+          if (tag !== 21) {
+            break;
+          }
+
+          message.latitude = reader.float();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GeoCoordinate {
+    return {
+      longitude: isSet(object.longitude) ? globalThis.Number(object.longitude) : 0,
+      latitude: isSet(object.latitude) ? globalThis.Number(object.latitude) : 0,
+    };
+  },
+
+  toJSON(message: GeoCoordinate): unknown {
+    const obj: any = {};
+    if (message.longitude !== 0) {
+      obj.longitude = message.longitude;
+    }
+    if (message.latitude !== 0) {
+      obj.latitude = message.latitude;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<GeoCoordinate>): GeoCoordinate {
+    return GeoCoordinate.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<GeoCoordinate>): GeoCoordinate {
+    const message = createBaseGeoCoordinate();
+    message.longitude = object.longitude ?? 0;
+    message.latitude = object.latitude ?? 0;
+    return message;
+  },
+};
+
+function createBasePhoneNumber(): PhoneNumber {
+  return {
+    countryCode: 0,
+    defaultCountry: "",
+    input: "",
+    internationalFormatted: "",
+    national: 0,
+    nationalFormatted: "",
+    valid: false,
+  };
+}
+
+export const PhoneNumber = {
+  encode(message: PhoneNumber, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.countryCode !== 0) {
+      writer.uint32(8).uint64(message.countryCode);
+    }
+    if (message.defaultCountry !== "") {
+      writer.uint32(18).string(message.defaultCountry);
+    }
+    if (message.input !== "") {
+      writer.uint32(26).string(message.input);
+    }
+    if (message.internationalFormatted !== "") {
+      writer.uint32(34).string(message.internationalFormatted);
+    }
+    if (message.national !== 0) {
+      writer.uint32(40).uint64(message.national);
+    }
+    if (message.nationalFormatted !== "") {
+      writer.uint32(50).string(message.nationalFormatted);
+    }
+    if (message.valid === true) {
+      writer.uint32(56).bool(message.valid);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): PhoneNumber {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBasePhoneNumber();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 8) {
+            break;
+          }
+
+          message.countryCode = longToNumber(reader.uint64() as Long);
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.defaultCountry = reader.string();
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.input = reader.string();
+          continue;
+        case 4:
+          if (tag !== 34) {
+            break;
+          }
+
+          message.internationalFormatted = reader.string();
+          continue;
+        case 5:
+          if (tag !== 40) {
+            break;
+          }
+
+          message.national = longToNumber(reader.uint64() as Long);
+          continue;
+        case 6:
+          if (tag !== 50) {
+            break;
+          }
+
+          message.nationalFormatted = reader.string();
+          continue;
+        case 7:
+          if (tag !== 56) {
+            break;
+          }
+
+          message.valid = reader.bool();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): PhoneNumber {
+    return {
+      countryCode: isSet(object.countryCode) ? globalThis.Number(object.countryCode) : 0,
+      defaultCountry: isSet(object.defaultCountry) ? globalThis.String(object.defaultCountry) : "",
+      input: isSet(object.input) ? globalThis.String(object.input) : "",
+      internationalFormatted: isSet(object.internationalFormatted)
+        ? globalThis.String(object.internationalFormatted)
+        : "",
+      national: isSet(object.national) ? globalThis.Number(object.national) : 0,
+      nationalFormatted: isSet(object.nationalFormatted) ? globalThis.String(object.nationalFormatted) : "",
+      valid: isSet(object.valid) ? globalThis.Boolean(object.valid) : false,
+    };
+  },
+
+  toJSON(message: PhoneNumber): unknown {
+    const obj: any = {};
+    if (message.countryCode !== 0) {
+      obj.countryCode = Math.round(message.countryCode);
+    }
+    if (message.defaultCountry !== "") {
+      obj.defaultCountry = message.defaultCountry;
+    }
+    if (message.input !== "") {
+      obj.input = message.input;
+    }
+    if (message.internationalFormatted !== "") {
+      obj.internationalFormatted = message.internationalFormatted;
+    }
+    if (message.national !== 0) {
+      obj.national = Math.round(message.national);
+    }
+    if (message.nationalFormatted !== "") {
+      obj.nationalFormatted = message.nationalFormatted;
+    }
+    if (message.valid === true) {
+      obj.valid = message.valid;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<PhoneNumber>): PhoneNumber {
+    return PhoneNumber.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<PhoneNumber>): PhoneNumber {
+    const message = createBasePhoneNumber();
+    message.countryCode = object.countryCode ?? 0;
+    message.defaultCountry = object.defaultCountry ?? "";
+    message.input = object.input ?? "";
+    message.internationalFormatted = object.internationalFormatted ?? "";
+    message.national = object.national ?? 0;
+    message.nationalFormatted = object.nationalFormatted ?? "";
+    message.valid = object.valid ?? false;
+    return message;
+  },
+};
+
+function bytesFromBase64(b64: string): Uint8Array {
+  if ((globalThis as any).Buffer) {
+    return Uint8Array.from(globalThis.Buffer.from(b64, "base64"));
+  } else {
+    const bin = globalThis.atob(b64);
+    const arr = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; ++i) {
+      arr[i] = bin.charCodeAt(i);
+    }
+    return arr;
+  }
+}
+
+function base64FromBytes(arr: Uint8Array): string {
+  if ((globalThis as any).Buffer) {
+    return globalThis.Buffer.from(arr).toString("base64");
+  } else {
+    const bin: string[] = [];
+    arr.forEach((byte) => {
+      bin.push(globalThis.String.fromCharCode(byte));
+    });
+    return globalThis.btoa(bin.join(""));
+  }
+}
+
+type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
+
+export type DeepPartial<T> = T extends Builtin ? T
+  : T extends globalThis.Array<infer U> ? globalThis.Array<DeepPartial<U>>
+  : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
+  : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
+  : Partial<T>;
+
+function longToNumber(long: Long): number {
+  if (long.gt(globalThis.Number.MAX_SAFE_INTEGER)) {
+    throw new globalThis.Error("Value is larger than Number.MAX_SAFE_INTEGER");
+  }
+  return long.toNumber();
+}
+
+if (_m0.util.Long !== Long) {
+  _m0.util.Long = Long as any;
+  _m0.configure();
+}
+
+function isObject(value: any): boolean {
+  return typeof value === "object" && value !== null;
+}
+
+function isSet(value: any): boolean {
+  return value !== null && value !== undefined;
+}

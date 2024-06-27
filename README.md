@@ -1,10 +1,11 @@
-# Weaviate TypeScript client <img alt='Weaviate logo' src='https://weaviate.io/img/site/weaviate-logo-light.png' width='148' align='right' />
+# Weaviate JS/TS client <img alt='Weaviate logo' src='https://weaviate.io/img/site/weaviate-logo-light.png' width='148' align='right' />
 
-Official TypeScript client for easy interaction with a Weaviate instance.
+Official JS/TS client for easy interaction with a Weaviate instance.
 
 ## Documentation
 
-- [Documentation](https://weaviate.io/developers/weaviate/client-libraries/typescript).
+- [General Documentation](https://weaviate.io/developers/weaviate/client-libraries/typescript).
+- [Client-specific Documentation](https://weaviate.github.io/typescript-client/)
 
 ## Support
 

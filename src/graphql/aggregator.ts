@@ -1,20 +1,20 @@
-import Where from './where';
+import Connection from '../connection/index.js';
+import { WhereFilter } from '../openapi/types.js';
+import { CommandBase } from '../validation/commandBase.js';
+import { isValidPositiveIntProperty } from '../validation/number.js';
 import NearMedia, {
-  NearMediaArgs,
-  NearVideoArgs,
   NearAudioArgs,
   NearDepthArgs,
   NearIMUArgs,
+  NearMediaArgs,
   NearMediaBase,
   NearMediaType,
-} from './nearMedia';
-import NearText, { NearTextArgs } from './nearText';
-import NearVector, { NearVectorArgs } from './nearVector';
-import NearObject, { NearObjectArgs } from './nearObject';
-import { isValidPositiveIntProperty } from '../validation/number';
-import Connection from '../connection';
-import { CommandBase } from '../validation/commandBase';
-import { WhereFilter } from '../openapi/types';
+  NearVideoArgs,
+} from './nearMedia.js';
+import NearObject, { NearObjectArgs } from './nearObject.js';
+import NearText, { NearTextArgs } from './nearText.js';
+import NearVector, { NearVectorArgs } from './nearVector.js';
+import Where from './where.js';
 
 interface NearImageArgs extends NearMediaBase {
   image: string;
