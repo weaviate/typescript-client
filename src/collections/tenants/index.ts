@@ -6,6 +6,11 @@ import { DbVersionSupport } from '../../utils/dbVersion.js';
 
 export type Tenant = {
   name: string;
+  activityStatus: 'COLD' | 'HOT' | 'FREEZING' | 'FROZEN' | 'UNFREEZING' | 'UNFROZEN';
+};
+
+export type TenantInput = {
+  name: string;
   activityStatus?: 'COLD' | 'HOT';
 };
 
@@ -14,12 +19,20 @@ export type TenantsGetOptions = {
 };
 
 class ActivityStatusMapper {
-  static from(status: TenantActivityStatus): 'COLD' | 'HOT' {
+  static from(
+    status: TenantActivityStatus
+  ): 'COLD' | 'HOT' | 'FROZEN' | 'FREEZING' | 'UNFREEZING' | 'UNFROZEN' {
     switch (status) {
       case TenantActivityStatus.TENANT_ACTIVITY_STATUS_COLD:
         return 'COLD';
       case TenantActivityStatus.TENANT_ACTIVITY_STATUS_HOT:
         return 'HOT';
+      case TenantActivityStatus.TENANT_ACTIVITY_STATUS_FREEZING:
+        return 'FREEZING';
+      case TenantActivityStatus.TENANT_ACTIVITY_STATUS_FROZEN:
+        return 'FROZEN';
+      case TenantActivityStatus.TENANT_ACTIVITY_STATUS_UNFREEZING:
+        return 'UNFREEZING';
       default:
         throw new Error(`Unsupported tenant activity status: ${status}`);
     }
@@ -42,10 +55,11 @@ const checkSupportForGRPCTenantsGetEndpoint = async (dbVersionSupport: DbVersion
   if (!check.supports) throw new WeaviateUnsupportedFeatureError(check.message);
 };
 
-const parseTenantOrTenantArray = (tenants: Tenant | Tenant[]) =>
+const parseTenantOrTenantArray = (tenants: TenantInput | TenantInput[]) =>
   Array.isArray(tenants) ? tenants : [tenants];
 
-const parseStringOrTenant = (tenant: string | Tenant) => (typeof tenant === 'string' ? tenant : tenant.name);
+const parseStringOrTenant = (tenant: string | TenantInput) =>
+  typeof tenant === 'string' ? tenant : tenant.name;
 
 const tenants = (
   connection: ConnectionGRPC,
@@ -67,24 +81,24 @@ const tenants = (
       return result;
     });
   return {
-    create: (tenants: Tenant | Tenant[]) =>
+    create: (tenants: TenantInput | TenantInput[]) =>
       new TenantsCreator(connection, collection, parseTenantOrTenantArray(tenants)).do() as Promise<Tenant[]>,
     get: async function () {
       const check = await dbVersionSupport.supportsTenantsGetGRPCMethod();
       return check.supports ? getGRPC() : getREST();
     },
-    getByNames: (tenants: (string | Tenant)[]) => getGRPC(tenants.map(parseStringOrTenant)),
-    getByName: (tenant: string | Tenant) => {
+    getByNames: (tenants: (string | TenantInput)[]) => getGRPC(tenants.map(parseStringOrTenant)),
+    getByName: (tenant: string | TenantInput) => {
       const tenantName = parseStringOrTenant(tenant);
       return getGRPC([tenantName]).then((tenants) => tenants[tenantName] || null);
     },
-    remove: (tenants: Tenant | Tenant[]) =>
+    remove: (tenants: TenantInput | TenantInput[]) =>
       new TenantsDeleter(
         connection,
         collection,
         parseTenantOrTenantArray(tenants).map((t) => t.name)
       ).do(),
-    update: (tenants: Tenant | Tenant[]) =>
+    update: (tenants: TenantInput | TenantInput[]) =>
       new TenantsUpdater(connection, collection, parseTenantOrTenantArray(tenants)).do() as Promise<Tenant[]>,
   };
 };
@@ -104,10 +118,10 @@ export interface Tenants {
    *
    * The collection must have been created with multi-tenancy enabled.
    *
-   * @param {Tenant | Tenant[]} tenants The tenant or tenants to create.
+   * @param {TenantInput | TenantInput[]} tenants The tenant or tenants to create.
    * @returns {Promise<Tenant[]>} The created tenant(s) as a list of Tenant.
    */
-  create: (tenants: Tenant | Tenant[]) => Promise<Tenant[]>;
+  create: (tenants: TenantInput | TenantInput[]) => Promise<Tenant[]>;
   /**
    * Return all tenants currently associated with a collection in Weaviate.
    *
@@ -121,19 +135,19 @@ export interface Tenants {
    *
    * The collection must have been created with multi-tenancy enabled.
    *
-   * @param {(string | Tenant)[]} names The tenants to retrieve.
+   * @param {(string | TenantInput)[]} names The tenants to retrieve.
    * @returns {Promise<Tenant[]>} The list of tenants. If the tenant does not exist, it will not be included in the list.
    */
-  getByNames: (names: (string | Tenant)[]) => Promise<Record<string, Tenant>>;
+  getByNames: (names: (string | TenantInput)[]) => Promise<Record<string, Tenant>>;
   /**
    * Return the specified tenant from a collection in Weaviate.
    *
    * The collection must have been created with multi-tenancy enabled.
    *
-   * @param {string | Tenant} name The name of the tenant to retrieve.
+   * @param {string | TenantInput} name The name of the tenant to retrieve.
    * @returns {Promise<Tenant | null>} The tenant as a Tenant type, or null if the tenant does not exist.
    */
-  getByName: (name: string | Tenant) => Promise<Tenant | null>;
+  getByName: (name: string | TenantInput) => Promise<Tenant | null>;
   /**
    * Remove the specified tenants from a collection in Weaviate.
    *
@@ -142,14 +156,14 @@ export interface Tenants {
    * @param {Tenant | Tenant[]} tenants The tenant or tenants to remove.
    * @returns {Promise<void>} An empty promise.
    */
-  remove: (tenants: Tenant | Tenant[]) => Promise<void>;
+  remove: (tenants: TenantInput | TenantInput[]) => Promise<void>;
   /**
    * Update the specified tenants for a collection in Weaviate.
    *
    * The collection must have been created with multi-tenancy enabled.
    *
-   * @param {Tenant | Tenant[]} tenants The tenant or tenants to update.
+   * @param {TenantInput | TenantInput[]} tenants The tenant or tenants to update.
    * @returns {Promise<Tenant[]>} The updated tenant(s) as a list of Tenant.
    */
-  update: (tenants: Tenant | Tenant[]) => Promise<Tenant[]>;
+  update: (tenants: TenantInput | TenantInput[]) => Promise<Tenant[]>;
 }

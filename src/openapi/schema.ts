@@ -342,6 +342,8 @@ export interface definitions {
   ReplicationConfig: {
     /** @description Number of times a class is replicated */
     factor?: number;
+    /** @description Enable asynchronous replication */
+    asyncEnabled?: boolean;
   };
   /** @description tuning parameters for the BM25 algorithm */
   BM25Config: {
@@ -510,6 +512,8 @@ export interface definitions {
     indexFilterable?: boolean;
     /** @description Optional. Should this property be indexed in the inverted index. Defaults to true. Applicable only to properties of data type text and text[]. If you choose false, you will not be able to use this property in bm25 or hybrid search. This property has no affect on vectorization decisions done by modules */
     indexSearchable?: boolean;
+    /** @description Optional. TODO roaring-set-range */
+    indexRangeable?: boolean;
     /**
      * @description Determines tokenization of the property as separate words or whole field. Optional. Applies to text and text[] data types. Allowed values are `word` (default; splits on any non-alphanumerical, lowercases), `lowercase` (splits on white spaces, lowercases), `whitespace` (splits on white spaces), `field` (trims). Not supported for remaining data types
      * @enum {string}
@@ -532,6 +536,7 @@ export interface definitions {
     name?: string;
     indexFilterable?: boolean;
     indexSearchable?: boolean;
+    indexRangeable?: boolean;
     /** @enum {string} */
     tokenization?: 'word' | 'lowercase' | 'whitespace' | 'field';
     nestedProperties?: definitions['NestedProperty'][];
@@ -1284,10 +1289,10 @@ export interface definitions {
     /** @description name of the tenant */
     name?: string;
     /**
-     * @description activity status of the tenant's shard. Optional for creating tenant (implicit `HOT`) and required for updating tenant. Allowed values are `HOT` - tenant is fully active, `WARM` - tenant is active, some restrictions are imposed (TBD; not supported yet), `COLD` - tenant is inactive; no actions can be performed on tenant, tenant's files are stored locally, `FROZEN` - as COLD, but files are stored on cloud storage (not supported yet)
+     * @description activity status of the tenant's shard. Optional for creating tenant (implicit `HOT`) and required for updating tenant. Allowed values are `HOT` - tenant is fully active, `COLD` - tenant is inactive; no actions can be performed on tenant, tenant's files are stored locally, `FROZEN` - as COLD, but files are stored on cloud storage
      * @enum {string}
      */
-    activityStatus?: 'HOT' | 'WARM' | 'COLD' | 'FROZEN';
+    activityStatus?: 'HOT' | 'COLD' | 'FROZEN';
   };
 }
 

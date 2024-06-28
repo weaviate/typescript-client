@@ -41,6 +41,7 @@ export type MultiTenancyConfig = {
 };
 
 export type ReplicationConfig = {
+  asyncEnabled: boolean;
   factor: number;
 };
 

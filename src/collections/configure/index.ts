@@ -129,10 +129,11 @@ const configure = {
    *
    * See [the docs](https://weaviate.io/developers/weaviate/concepts/replication-architecture#replication-vs-sharding) for more details.
    *
-   * @param {number} options.factor The replication factor. Default is 1.
+   * @param {boolean} [options.asyncEnabled] Whether asynchronous replication is enabled. Default is false.
+   * @param {number} [options.factor] The replication factor. Default is 1.
    */
-  replication: (options: { factor?: number }): ReplicationConfigCreate => {
-    return { factor: options.factor };
+  replication: (options: { asyncEnabled?: boolean; factor?: number }): ReplicationConfigCreate => {
+    return { asyncEnabled: options.asyncEnabled, factor: options.factor };
   },
   /**
    * Create a `ShardingConfigCreate` object to be used when defining the sharding configuration of your collection.
@@ -214,10 +215,11 @@ const reconfigure = {
    *
    * See [the docs](https://weaviate.io/developers/weaviate/concepts/replication-architecture#replication-vs-sharding) for more details.
    *
+   * @param {boolean} [options.asyncEnabled] Whether asynchronous replication is enabled.
    * @param {number} [options.factor] The replication factor.
    */
-  replication: (options: { factor?: number }): ReplicationConfigCreate => {
-    return { factor: options.factor };
+  replication: (options: { asyncEnabled?: boolean; factor?: number }): ReplicationConfigCreate => {
+    return { asyncEnabled: options.asyncEnabled, factor: options.factor };
   },
 };
 

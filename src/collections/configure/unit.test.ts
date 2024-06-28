@@ -75,9 +75,11 @@ describe('Unit testing of the configure factory class', () => {
 
   it('should create the correct ReplicationConfig type with all values', () => {
     const config = configure.replication({
+      asyncEnabled: true,
       factor: 2,
     });
     expect(config).toEqual<ReplicationConfigCreate>({
+      asyncEnabled: true,
       factor: 2,
     });
   });
