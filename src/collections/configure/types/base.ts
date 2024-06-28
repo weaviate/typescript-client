@@ -129,6 +129,7 @@ export type ReferenceConfigCreate<T> =
 export type ReplicationConfigCreate = RecursivePartial<ReplicationConfig>;
 
 export type ReplicationConfigUpdate = {
+  asyncEnabled?: boolean;
   factor?: number;
 };
 

@@ -263,6 +263,7 @@ class ConfigMapping {
       throw new WeaviateDeserializationError('Replication factor was not returned by Weaviate');
     return {
       factor: v.factor,
+      asyncEnabled: v.asyncEnabled ? v.asyncEnabled : false,
     };
   }
   static sharding(v?: WeaviateShardingConfig): ShardingConfig {
