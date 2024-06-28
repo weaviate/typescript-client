@@ -62,14 +62,14 @@ describe('schema', () => {
     return client.schema.exists('NonExistingClass').then((res) => expect(res).toEqual(false));
   });
 
-  it('extends the thing class with a new property', () => {
+  it('extends the thing class with a new property', async () => {
     const className = 'MyThingClass';
     const prop: Property = {
       dataType: ['text'],
       name: 'anotherProp',
       tokenization: 'field',
       indexFilterable: true,
-      indexRangeable: false,
+      indexRangeable: (await isVer(client, 26, 0)) ? false : undefined,
       indexSearchable: true,
       moduleConfig: {
         'text2vec-contextionary': {
@@ -537,9 +537,12 @@ describe('property setting defaults and migrations', () => {
     }
   );
 
-  const errMsg1 =
-    '`indexInverted` is deprecated and can not be set together with `indexFilterable`, `indexSearchable` or `indexRangeable`';
-  const errMsg2 = '`indexSearchable`';
+  const errMsg1 = isVer(client, 26, 0).then((yes) =>
+    yes
+      ? '`indexInverted` is deprecated and can not be set together with `indexFilterable`, `indexSearchable` or `indexRangeable`'
+      : '`indexInverted` is deprecated and can not be set together with `indexFilterable` or `indexSearchable`'
+  );
+  const errMsg2 = Promise.resolve('`indexSearchable`');
   test.each([
     ['text', false, null, false, errMsg1],
     ['text', false, null, true, errMsg1],
@@ -585,7 +588,7 @@ describe('property setting defaults and migrations', () => {
       inverted: boolean | null,
       filterable: boolean | null,
       searchable: boolean | null,
-      errMsg: string
+      errMsg: Promise<string>
     ) => {
       await client.schema
         .classCreator()
@@ -602,8 +605,8 @@ describe('property setting defaults and migrations', () => {
           ],
         })
         .do()
-        .catch((e: Error) => {
-          expect(e.message).toContain(errMsg);
+        .catch(async (e: Error) => {
+          expect(e.message).toContain(await errMsg);
         });
     }
   );
@@ -759,7 +762,7 @@ async function newClassObject(
         name: 'stringProp',
         tokenization: 'word',
         indexFilterable: true,
-        indexRangeable: false,
+        indexRangeable: (await is1260Promise) ? false : undefined,
         indexSearchable: true,
         moduleConfig: {
           'text2vec-contextionary': {
@@ -793,11 +796,13 @@ async function newClassObject(
       bq: {
         enabled: false,
       },
-      sq: {
-        enabled: false,
-        rescoreLimit: 20,
-        trainingLimit: 100000,
-      },
+      sq: (await is1260Promise)
+        ? {
+            enabled: false,
+            rescoreLimit: 20,
+            trainingLimit: 100000,
+          }
+        : undefined,
       skip: false,
       efConstruction: 128,
       vectorCacheMaxObjects: 500000,
