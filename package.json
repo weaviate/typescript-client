@@ -55,7 +55,7 @@
     "graphql-request": "^6.1.0",
     "long": "^5.2.3",
     "nice-grpc": "^2.1.7",
-    "nice-grpc-client-middleware-deadline": "^2.0.11",
+    "nice-grpc-client-middleware-deadline": "^2.0.12",
     "uuid": "^9.0.1"
   },
   "devDependencies": {
