@@ -140,6 +140,7 @@ describe('Journey testing of the client using a WCD cluster', () => {
           ],
           references: [],
           replication: {
+            asyncEnabled: false,
             factor: 1,
           },
           reranker: {
