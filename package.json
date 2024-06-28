@@ -45,6 +45,7 @@
   },
   "homepage": "https://github.com/weaviate/typescript-client#readme",
   "dependencies": {
+    "graphql": "^16.8.1",
     "graphql-request": "^5.2.0",
     "uuid": "^9.0.1"
   },
