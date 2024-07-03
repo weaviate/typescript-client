@@ -8,6 +8,7 @@ import {
 } from '../../proto/v1/batch.js';
 import {
   BM25,
+  CombinationMethod,
   GenerativeSearch,
   GroupBy,
   Hybrid,
@@ -27,6 +28,7 @@ import {
   PropertiesRequest,
   Rerank,
   SortBy as SortByGrpc,
+  Targets,
 } from '../../proto/v1/search_get.js';
 
 import { WeaviateInvalidInputError, WeaviateSerializationError } from '../../errors.js';
@@ -66,6 +68,7 @@ import {
   PrimitiveFilterValueType,
   PrimitiveListFilterValueType,
 } from '../filters/types.js';
+import { MultiTargetVectorJoin } from '../index.js';
 import {
   BaseHybridOptions,
   BaseNearOptions,
@@ -77,8 +80,11 @@ import {
   HybridOptions,
   NearOptions,
   NearTextOptions,
+  NearVectorInputType,
   SearchOptions,
+  TargetVectorInputType,
 } from '../query/types.js';
+import { NearVectorInputGuards, TargetVectorInputGuards } from '../query/utils.js';
 import { ReferenceGuards } from '../references/classes.js';
 import { Beacon } from '../references/index.js';
 import { uuidToBeacon } from '../references/utils.js';
@@ -406,7 +412,7 @@ export class Serialize {
           return Hybrid_FusionType.FUSION_TYPE_UNSPECIFIED;
       }
     };
-
+    const { targets, targetVectors } = Serialize.targetVector(args.targetVector);
     return {
       ...Serialize.common(args),
       hybridSearch: Hybrid.fromPartial({
@@ -415,7 +421,8 @@ export class Serialize {
         properties: args.queryProperties,
         vectorBytes: Serialize.hybridVector(args.vector),
         fusionType: fusionType(args.fusionType),
-        targetVectors: args.targetVector ? [args.targetVector] : undefined,
+        targetVectors,
+        targets,
         nearText: Serialize.hybridNearText(args.vector),
         nearVector: Serialize.hybridNearVector(args.vector),
       }),
@@ -424,65 +431,75 @@ export class Serialize {
   };
 
   public static nearAudio = <T>(args: { audio: string } & NearOptions<T>): SearchNearAudioArgs => {
+    const { targets, targetVectors } = Serialize.targetVector(args.targetVector);
     return {
       ...Serialize.common(args),
       nearAudio: NearAudioSearch.fromPartial({
         audio: args.audio,
         certainty: args.certainty,
         distance: args.distance,
-        targetVectors: args.targetVector ? [args.targetVector] : undefined,
+        targetVectors,
+        targets,
       }),
       autocut: args.autoLimit,
     };
   };
 
   public static nearDepth = <T>(args: { depth: string } & NearOptions<T>): SearchNearDepthArgs => {
+    const { targets, targetVectors } = Serialize.targetVector(args.targetVector);
     return {
       ...Serialize.common(args),
       nearDepth: NearDepthSearch.fromPartial({
         depth: args.depth,
         certainty: args.certainty,
         distance: args.distance,
-        targetVectors: args.targetVector ? [args.targetVector] : undefined,
+        targetVectors,
+        targets,
       }),
       autocut: args.autoLimit,
     };
   };
 
   public static nearImage = <T>(args: { image: string } & NearOptions<T>): SearchNearImageArgs => {
+    const { targets, targetVectors } = Serialize.targetVector(args.targetVector);
     return {
       ...Serialize.common(args),
       nearImage: NearImageSearch.fromPartial({
         image: args.image,
         certainty: args.certainty,
         distance: args.distance,
-        targetVectors: args.targetVector ? [args.targetVector] : undefined,
+        targetVectors,
+        targets,
       }),
       autocut: args.autoLimit,
     };
   };
 
   public static nearIMU = <T>(args: { imu: string } & NearOptions<T>): SearchNearIMUArgs => {
+    const { targets, targetVectors } = Serialize.targetVector(args.targetVector);
     return {
       ...Serialize.common(args),
       nearIMU: NearIMUSearch.fromPartial({
         imu: args.imu,
         certainty: args.certainty,
         distance: args.distance,
-        targetVectors: args.targetVector ? [args.targetVector] : undefined,
+        targetVectors,
+        targets,
       }),
       autocut: args.autoLimit,
     };
   };
 
   public static nearObject = <T>(args: { id: string } & NearOptions<T>): SearchNearObjectArgs => {
+    const { targets, targetVectors } = Serialize.targetVector(args.targetVector);
     return {
       ...Serialize.common(args),
       nearObject: NearObject.fromPartial({
         id: args.id,
         certainty: args.certainty,
         distance: args.distance,
-        targetVectors: args.targetVector ? [args.targetVector] : undefined,
+        targetVectors,
+        targets,
       }),
       autocut: args.autoLimit,
     };
@@ -496,11 +513,13 @@ export class Serialize {
     moveAway?: { concepts?: string[]; force?: number; objects?: string[] };
     moveTo?: { concepts?: string[]; force?: number; objects?: string[] };
   }) => {
+    const { targets, targetVectors } = Serialize.targetVector(args.targetVector);
     return NearTextSearch.fromPartial({
       query: typeof args.query === 'string' ? [args.query] : args.query,
       certainty: args.certainty,
       distance: args.distance,
-      targetVectors: args.targetVector ? [args.targetVector] : undefined,
+      targetVectors,
+      targets,
       moveAway: args.moveAway
         ? NearTextSearch_Move.fromPartial({
             concepts: args.moveAway.concepts,
@@ -529,13 +548,15 @@ export class Serialize {
   };
 
   public static nearThermal = <T>(args: { thermal: string } & NearOptions<T>): SearchNearThermalArgs => {
+    const { targets, targetVectors } = Serialize.targetVector(args.targetVector);
     return {
       ...Serialize.common(args),
       nearThermal: NearThermalSearch.fromPartial({
         thermal: args.thermal,
         certainty: args.certainty,
         distance: args.distance,
-        targetVectors: args.targetVector ? [args.targetVector] : undefined,
+        targetVectors,
+        targets,
       }),
       autocut: args.autoLimit,
     };
@@ -546,20 +567,124 @@ export class Serialize {
   };
 
   private static nearVectorSearch = (args: {
-    vector: number[];
+    vector: NearVectorInputType;
     certainty?: number;
     distance?: number;
-    targetVector?: string;
+    targetVector?: TargetVectorInputType;
   }) => {
-    return NearVector.fromPartial({
-      vectorBytes: Serialize.vectorToBytes(args.vector),
-      certainty: args.certainty,
-      distance: args.distance,
-      targetVectors: args.targetVector ? [args.targetVector] : undefined,
-    });
+    const invalidNearVectorError = new WeaviateInvalidInputError(`near vector argument can be:
+          - an array of numbers
+          - an array of arrays of numbers for multi target search
+          - an object with target names as keys and arrays of numbers as values
+    received: ${args.vector}`);
+
+    const { targets, targetVectors } = Serialize.targetVector(args.targetVector);
+    if (NearVectorInputGuards.isObject(args.vector)) {
+      if (targets === undefined || targets.targetVectors.length != Object.keys(args.vector).length) {
+        throw new WeaviateInvalidInputError(
+          'The number of target vectors must be equal to the number of search vectors.'
+        );
+      }
+      const vectorPerTarget: Record<string, Uint8Array> = {};
+      Object.entries(args.vector).forEach(([k, v]) => {
+        vectorPerTarget[k] = Serialize.vectorToBytes(v);
+      });
+      return NearVector.fromPartial({
+        certainty: args.certainty,
+        distance: args.distance,
+        targetVectors,
+        targets,
+        vectorPerTarget: vectorPerTarget,
+      });
+    } else {
+      if (args.vector.length === 0) {
+        throw invalidNearVectorError;
+      }
+      if (NearVectorInputGuards.is1DArray(args.vector)) {
+        const vectorBytes = Serialize.vectorToBytes(args.vector);
+        return NearVector.fromPartial({
+          certainty: args.certainty,
+          distance: args.distance,
+          targetVectors,
+          targets,
+          vectorBytes,
+        });
+      }
+      if (NearVectorInputGuards.is2DArray(args.vector)) {
+        if (targets === undefined || targets.targetVectors.length != args.vector.length) {
+          throw new WeaviateInvalidInputError(
+            'The number of target vectors must be equal to the number of search vectors.'
+          );
+        }
+        const vectorPerTarget: Record<string, Uint8Array> = {};
+        args.vector.forEach((v, i) => {
+          vectorPerTarget[targets.targetVectors[i]] = Serialize.vectorToBytes(v);
+        });
+        return NearVector.fromPartial({
+          certainty: args.certainty,
+          distance: args.distance,
+          targetVectors,
+          targets,
+          vectorPerTarget,
+        });
+      }
+      throw invalidNearVectorError;
+    }
   };
 
-  public static nearVector = <T>(args: { vector: number[] } & NearOptions<T>): SearchNearVectorArgs => {
+  private static targetVector = (
+    targetVector?: TargetVectorInputType
+  ): { targets?: Targets; targetVectors?: string[] } => {
+    if (targetVector === undefined) {
+      return {};
+    } else if (TargetVectorInputGuards.isSingle(targetVector)) {
+      return {
+        targets: Targets.fromPartial({
+          targetVectors: [targetVector],
+        }),
+      };
+    } else if (TargetVectorInputGuards.isMulti(targetVector)) {
+      return {
+        targets: Targets.fromPartial({
+          targetVectors: targetVector,
+        }),
+      };
+    } else {
+      return Serialize.targets(targetVector);
+    }
+  };
+
+  private static targets = (targets: MultiTargetVectorJoin) => {
+    let combination: CombinationMethod;
+    switch (targets.combination) {
+      case 'sum':
+        combination = CombinationMethod.COMBINATION_METHOD_TYPE_SUM;
+        break;
+      case 'average':
+        combination = CombinationMethod.COMBINATION_METHOD_TYPE_AVERAGE;
+        break;
+      case 'minimum':
+        combination = CombinationMethod.COMBINATION_METHOD_TYPE_MIN;
+        break;
+      case 'relative-score':
+        combination = CombinationMethod.COMBINATION_METHOD_TYPE_RELATIVE_SCORE;
+        break;
+      case 'manual-weights':
+        combination = CombinationMethod.COMBINATION_METHOD_TYPE_MANUAL;
+        break;
+      default:
+        throw new Error('Invalid combination method');
+    }
+    return {
+      combination,
+      targetVectors: targets.targetVectors,
+      weights: targets.weights ? targets.weights : {},
+    };
+  };
+
+  public static nearVector = <T>(
+    args: { vector: NearVectorInputType } & NearOptions<T>
+  ): SearchNearVectorArgs => {
     return {
       ...Serialize.common(args),
       nearVector: Serialize.nearVectorSearch(args),
@@ -568,13 +693,15 @@ export class Serialize {
   };
 
   public static nearVideo = <T>(args: { video: string } & NearOptions<T>): SearchNearVideoArgs => {
+    const { targets, targetVectors } = Serialize.targetVector(args.targetVector);
     return {
       ...Serialize.common(args),
       nearVideo: NearVideoSearch.fromPartial({
         video: args.video,
         certainty: args.certainty,
         distance: args.distance,
-        targetVectors: args.targetVector ? [args.targetVector] : undefined,
+        targetVectors,
+        targets,
       }),
       autocut: args.autoLimit,
     };

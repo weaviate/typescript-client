@@ -27,6 +27,7 @@ import {
   NearMediaType,
   NearOptions,
   NearTextOptions,
+  NearVectorInputType,
   Query,
   QueryReturn,
   SearchOptions,
@@ -255,9 +256,9 @@ class QueryManager<T> implements Query<T> {
       .then((reply) => this.parseGroupByReply(opts, reply));
   }
 
-  public nearVector(vector: number[], opts?: BaseNearOptions<T>): Promise<WeaviateReturn<T>>;
-  public nearVector(vector: number[], opts: GroupByNearOptions<T>): Promise<GroupByReturn<T>>;
-  public nearVector(vector: number[], opts?: NearOptions<T>): QueryReturn<T> {
+  public nearVector(vector: NearVectorInputType, opts?: BaseNearOptions<T>): Promise<WeaviateReturn<T>>;
+  public nearVector(vector: NearVectorInputType, opts: GroupByNearOptions<T>): Promise<GroupByReturn<T>>;
+  public nearVector(vector: NearVectorInputType, opts?: NearOptions<T>): QueryReturn<T> {
     return this.checkSupportForNamedVectors(opts)
       .then(() => this.connection.search(this.name, this.consistencyLevel, this.tenant))
       .then((search) =>
