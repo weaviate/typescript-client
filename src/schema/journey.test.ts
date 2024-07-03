@@ -52,6 +52,7 @@ describe('schema', () => {
       name: 'anotherProp',
       tokenization: 'field',
       indexFilterable: true,
+      indexRangeable: false,
       indexSearchable: true,
       moduleConfig: {
         'text2vec-contextionary': {
@@ -112,6 +113,7 @@ describe('schema', () => {
                   name: 'stringProp',
                   tokenization: 'word',
                   indexFilterable: true,
+                  indexRangeable: false,
                   indexSearchable: true,
                   moduleConfig: {
                     'text2vec-contextionary': {
@@ -125,6 +127,7 @@ describe('schema', () => {
                   name: 'anotherProp',
                   tokenization: 'field',
                   indexFilterable: true,
+                  indexRangeable: false,
                   indexSearchable: true,
                   moduleConfig: {
                     'text2vec-contextionary': {
@@ -158,6 +161,11 @@ describe('schema', () => {
                 bq: {
                   enabled: false,
                 },
+                sq: {
+                  enabled: false,
+                  rescoreLimit: 20,
+                  trainingLimit: 100000,
+                },
                 skip: false,
                 efConstruction: 128,
                 vectorCacheMaxObjects: 500000,
@@ -181,6 +189,7 @@ describe('schema', () => {
                 },
               },
               multiTenancyConfig: {
+                autoTenantActivation: false,
                 autoTenantCreation: false,
                 enabled: false,
               },
@@ -195,6 +204,7 @@ describe('schema', () => {
                 virtualPerPhysical: 128,
               },
               replicationConfig: {
+                asyncEnabled: true,
                 factor: 1,
               },
             },
@@ -587,7 +597,7 @@ describe('property setting defaults and migrations', () => {
   );
 
   const errMsg1 =
-    '`indexInverted` is deprecated and can not be set together with `indexFilterable` or `indexSearchable`';
+    '`indexInverted` is deprecated and can not be set together with `indexFilterable`, `indexSearchable` or `indexRangeable`';
   const errMsg2 = '`indexSearchable` is allowed only for text/text[] data types';
   test.each([
     ['text', false, null, false, errMsg1],
@@ -679,6 +689,7 @@ describe('multi tenancy', () => {
     vectorIndexType: 'hnsw',
     vectorizer: 'text2vec-contextionary',
     multiTenancyConfig: {
+      autoTenantActivation: true,
       autoTenantCreation: true,
       enabled: true,
     },
@@ -786,6 +797,7 @@ function newClassObject(className: string) {
         name: 'stringProp',
         tokenization: 'word',
         indexFilterable: true,
+        indexRangeable: false,
         indexSearchable: true,
         moduleConfig: {
           'text2vec-contextionary': {
@@ -819,6 +831,11 @@ function newClassObject(className: string) {
       bq: {
         enabled: false,
       },
+      sq: {
+        enabled: false,
+        rescoreLimit: 20,
+        trainingLimit: 100000,
+      },
       skip: false,
       efConstruction: 128,
       vectorCacheMaxObjects: 500000,
@@ -842,6 +859,7 @@ function newClassObject(className: string) {
       },
     },
     multiTenancyConfig: {
+      autoTenantActivation: false,
       autoTenantCreation: false,
       enabled: false,
     },
@@ -856,6 +874,7 @@ function newClassObject(className: string) {
       virtualPerPhysical: 128,
     },
     replicationConfig: {
+      asyncEnabled: true,
       factor: 1,
     },
   };
