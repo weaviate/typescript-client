@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import weaviate, { WeaviateClient } from '..';
 import {
+  Properties,
+  Tenant,
+  WeaviateClass,
+  WeaviateError,
   WeaviateObject,
   WeaviateObjectsList,
-  WeaviateError,
-  Properties,
-  WeaviateClass,
-  Tenant,
 } from '../openapi/types';
 
 const thingClassName = 'DataJourneyTestThing';

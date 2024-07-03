@@ -1,8 +1,8 @@
+import Connection from '../connection';
+import { Properties, WeaviateObject } from '../openapi/types';
+import { CommandBase } from '../validation/commandBase';
 import { isValidStringProperty } from '../validation/string';
 import { ObjectsPath } from './path';
-import Connection from '../connection';
-import { CommandBase } from '../validation/commandBase';
-import { Properties, WeaviateObject } from '../openapi/types';
 import { ConsistencyLevel } from './replication';
 
 export default class Updater extends CommandBase {

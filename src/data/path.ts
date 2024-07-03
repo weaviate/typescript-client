@@ -1,7 +1,7 @@
-import { isValidStringProperty } from '../validation/string';
 import { DbVersionSupport } from '../utils/dbVersion';
-import { ConsistencyLevel } from './replication';
+import { isValidStringProperty } from '../validation/string';
 import { isValidWeaviateVersion } from '../validation/version';
+import { ConsistencyLevel } from './replication';
 
 const objectsPathPrefix = '/objects';
 

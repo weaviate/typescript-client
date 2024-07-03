@@ -1,7 +1,7 @@
-import { isValidStringProperty } from '../validation/string';
 import Connection from '../connection';
-import { CommandBase } from '../validation/commandBase';
 import { Properties } from '../openapi/types';
+import { CommandBase } from '../validation/commandBase';
+import { isValidStringProperty } from '../validation/string';
 
 export default class Validator extends CommandBase {
   private className?: string;

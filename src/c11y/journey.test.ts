@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import weaviate from '..';
-import { C11yWordsResponse, C11yExtension } from '../openapi/types';
+import { C11yExtension, C11yWordsResponse } from '../openapi/types';
 
 describe('c11y endpoints', () => {
   const client = weaviate.client({

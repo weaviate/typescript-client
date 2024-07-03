@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import weaviate, { WeaviateClient } from '..';
 import {
-  WeaviateClass,
   Property,
-  WeaviateSchema,
   ShardStatus,
   ShardStatusList,
   Tenant,
+  WeaviateClass,
+  WeaviateSchema,
 } from '../openapi/types';
 
 describe('schema', () => {

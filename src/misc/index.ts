@@ -1,9 +1,9 @@
-import LiveChecker from './liveChecker';
-import ReadyChecker from './readyChecker';
-import MetaGetter from './metaGetter';
-import OpenidConfigurationGetter from './openidConfigurationGetter';
 import Connection from '../connection';
 import { DbVersionProvider } from '../utils/dbVersion';
+import LiveChecker from './liveChecker';
+import MetaGetter from './metaGetter';
+import OpenidConfigurationGetter from './openidConfigurationGetter';
+import ReadyChecker from './readyChecker';
 
 export interface Misc {
   liveChecker: () => LiveChecker;
@@ -23,6 +23,6 @@ const misc = (client: Connection, dbVersionProvider: DbVersionProvider): Misc =>
 
 export default misc;
 export { default as LiveChecker } from './liveChecker';
-export { default as ReadyChecker } from './readyChecker';
 export { default as MetaGetter } from './metaGetter';
 export { default as OpenidConfigurationGetter } from './openidConfigurationGetter';
+export { default as ReadyChecker } from './readyChecker';

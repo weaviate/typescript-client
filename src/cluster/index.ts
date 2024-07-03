@@ -1,5 +1,5 @@
-import NodesStatusGetter from './nodesStatusGetter';
 import Connection from '../connection';
+import NodesStatusGetter from './nodesStatusGetter';
 
 export type NodeStatus = 'HEALTHY' | 'UNHEALTHY' | 'UNAVAILABLE';
 

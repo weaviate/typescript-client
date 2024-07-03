@@ -1,6 +1,6 @@
 import Connection from '../connection';
-import { CommandBase } from '../validation/commandBase';
 import { C11yExtension } from '../openapi/types';
+import { CommandBase } from '../validation/commandBase';
 
 export default class ExtensionCreator extends CommandBase {
   private concept?: string;

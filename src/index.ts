@@ -1,14 +1,9 @@
-import Connection from './connection';
-import graphql, { GraphQL } from './graphql';
-import schema, { Schema } from './schema';
-import data, { Data } from './data';
-import classifications, { Classifications } from './classifications';
-import batch, { Batch } from './batch';
-import misc, { Misc } from './misc';
-import c11y, { C11y } from './c11y';
-import { DbVersionProvider, DbVersionSupport } from './utils/dbVersion';
 import backup, { Backup } from './backup';
+import batch, { Batch } from './batch';
+import c11y, { C11y } from './c11y';
+import classifications, { Classifications } from './classifications';
 import cluster, { Cluster } from './cluster';
+import Connection from './connection';
 import {
   ApiKey,
   AuthAccessTokenCredentials,
@@ -16,7 +11,12 @@ import {
   AuthUserPasswordCredentials,
   OidcAuthenticator,
 } from './connection/auth';
+import data, { Data } from './data';
+import graphql, { GraphQL } from './graphql';
+import misc, { Misc } from './misc';
 import MetaGetter from './misc/metaGetter';
+import schema, { Schema } from './schema';
+import { DbVersionProvider, DbVersionSupport } from './utils/dbVersion';
 
 export interface ConnectionParams {
   authClientSecret?: AuthClientCredentials | AuthAccessTokenCredentials | AuthUserPasswordCredentials;
@@ -90,16 +90,16 @@ function initDbVersionProvider(conn: Connection) {
 }
 
 export default app;
-export * from './openapi/types';
-export * from './graphql';
-export * from './schema';
-export * from './data';
-export * from './classifications';
-export * from './batch';
-export * from './misc';
-export * from './c11y';
 export * from './backup';
+export * from './batch';
+export * from './c11y';
+export * from './classifications';
 export * from './cluster';
 export * from './connection';
-export * from './utils/uuid';
+export * from './data';
+export * from './graphql';
+export * from './misc';
+export * from './openapi/types';
+export * from './schema';
 export * from './utils/base64';
+export * from './utils/uuid';

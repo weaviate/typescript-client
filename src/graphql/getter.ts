@@ -1,10 +1,14 @@
-import Where from './where';
-import NearText, { NearTextArgs } from './nearText';
-import NearVector, { NearVectorArgs } from './nearVector';
+import Connection from '../connection';
+import { ConsistencyLevel } from '../data';
+import { WhereFilter } from '../openapi/types';
+import { CommandBase } from '../validation/commandBase';
+import Ask, { AskArgs } from './ask';
 import Bm25, { Bm25Args } from './bm25';
+import { GenerateArgs, GraphQLGenerate } from './generate';
+import Group, { GroupArgs } from './group';
+import GroupBy, { GroupByArgs } from './groupBy';
 import Hybrid, { HybridArgs } from './hybrid';
 import NearImage, { NearImageArgs } from './nearImage';
-import NearObject, { NearObjectArgs } from './nearObject';
 import NearMedia, {
   NearAudioArgs,
   NearDepthArgs,
@@ -14,15 +18,11 @@ import NearMedia, {
   NearThermalArgs,
   NearVideoArgs,
 } from './nearMedia';
-import Ask, { AskArgs } from './ask';
-import Group, { GroupArgs } from './group';
+import NearObject, { NearObjectArgs } from './nearObject';
+import NearText, { NearTextArgs } from './nearText';
+import NearVector, { NearVectorArgs } from './nearVector';
 import Sort, { SortArgs } from './sort';
-import Connection from '../connection';
-import { CommandBase } from '../validation/commandBase';
-import { WhereFilter } from '../openapi/types';
-import { GenerateArgs, GraphQLGenerate } from './generate';
-import { ConsistencyLevel } from '../data';
-import GroupBy, { GroupByArgs } from './groupBy';
+import Where from './where';
 
 export { FusionType } from './hybrid';
 export default class GraphQLGetter extends CommandBase {

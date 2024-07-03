@@ -1,8 +1,8 @@
-import { isValidStringProperty } from '../validation/string';
 import Connection from '../connection';
-import { ObjectsPath } from './path';
-import { CommandBase } from '../validation/commandBase';
 import { Properties, WeaviateObject } from '../openapi/types';
+import { CommandBase } from '../validation/commandBase';
+import { isValidStringProperty } from '../validation/string';
+import { ObjectsPath } from './path';
 import { ConsistencyLevel } from './replication';
 
 export default class Creator extends CommandBase {

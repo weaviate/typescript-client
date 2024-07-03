@@ -1,8 +1,8 @@
-import Aggregator from './aggregator';
-import GraphQLGetter from './getter';
-import Explorer from './explorer';
-import Raw from './raw';
 import Connection from '../connection';
+import Aggregator from './aggregator';
+import Explorer from './explorer';
+import GraphQLGetter from './getter';
+import Raw from './raw';
 
 export interface GraphQL {
   get: () => GraphQLGetter;
@@ -22,7 +22,6 @@ const graphql = (client: Connection): GraphQL => {
 
 export default graphql;
 export { default as Aggregator } from './aggregator';
-export { default as GraphQLGetter } from './getter';
 export { default as Explorer } from './explorer';
+export { FusionType, default as GraphQLGetter } from './getter';
 export { default as Raw } from './raw';
-export { FusionType } from './getter';

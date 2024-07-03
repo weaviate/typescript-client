@@ -1,10 +1,10 @@
 import weaviate, { NodesStatusResponse } from '..';
 
 import {
-  createTestFoodSchemaAndData,
-  cleanupTestFood,
   PIZZA_CLASS_NAME,
   SOUP_CLASS_NAME,
+  cleanupTestFood,
+  createTestFoodSchemaAndData,
 } from '../utils/testData';
 
 describe('cluster nodes endpoint', () => {

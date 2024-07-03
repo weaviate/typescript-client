@@ -1,8 +1,8 @@
-import { validateBackend } from './validation';
-import Connection from '../connection';
-import { CommandBase } from '../validation/commandBase';
-import { BackupCreateResponse } from '../openapi/types';
 import { Backend } from '.';
+import Connection from '../connection';
+import { BackupCreateResponse } from '../openapi/types';
+import { CommandBase } from '../validation/commandBase';
+import { validateBackend } from './validation';
 
 export default class BackupGetter extends CommandBase {
   private backend?: Backend;

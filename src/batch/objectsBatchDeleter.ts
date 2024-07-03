@@ -1,10 +1,10 @@
+import { DeleteOutput } from '.';
+import Connection from '../connection';
+import { ConsistencyLevel } from '../data/replication';
+import { BatchDelete, BatchDeleteResponse, WhereFilter } from '../openapi/types';
+import { CommandBase } from '../validation/commandBase';
 import { isValidStringProperty } from '../validation/string';
 import { buildObjectsPath } from './path';
-import Connection from '../connection';
-import { CommandBase } from '../validation/commandBase';
-import { BatchDelete, BatchDeleteResponse, WhereFilter } from '../openapi/types';
-import { ConsistencyLevel } from '../data/replication';
-import { DeleteOutput } from '.';
 
 export default class ObjectsBatchDeleter extends CommandBase {
   private className?: string;

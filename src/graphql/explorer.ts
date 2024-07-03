@@ -1,7 +1,7 @@
-import NearText, { NearTextArgs } from './nearText';
-import NearVector, { NearVectorArgs } from './nearVector';
+import Connection from '../connection';
+import { CommandBase } from '../validation/commandBase';
+import Ask, { AskArgs } from './ask';
 import NearImage, { NearImageArgs } from './nearImage';
-import NearObject, { NearObjectArgs } from './nearObject';
 import NearMedia, {
   NearAudioArgs,
   NearDepthArgs,
@@ -11,9 +11,9 @@ import NearMedia, {
   NearThermalArgs,
   NearVideoArgs,
 } from './nearMedia';
-import Ask, { AskArgs } from './ask';
-import Connection from '../connection';
-import { CommandBase } from '../validation/commandBase';
+import NearObject, { NearObjectArgs } from './nearObject';
+import NearText, { NearTextArgs } from './nearText';
+import NearVector, { NearVectorArgs } from './nearVector';
 
 export default class Explorer extends CommandBase {
   private askString?: string;

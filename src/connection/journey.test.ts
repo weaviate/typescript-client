@@ -1,10 +1,10 @@
+import Connection from '.';
 import {
   ApiKey,
   AuthAccessTokenCredentials,
   AuthClientCredentials,
   AuthUserPasswordCredentials,
 } from './auth';
-import Connection from '.';
 
 import weaviate from '..';
 

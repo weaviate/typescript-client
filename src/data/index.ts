@@ -1,19 +1,19 @@
-import Creator from './creator';
-import Validator from './validator';
-import Updater from './updater';
-import Merger from './merger';
-import Getter from './getter';
-import GetterById from './getterById';
-import Deleter from './deleter';
-import Checker from './checker';
-import ReferenceCreator from './referenceCreator';
-import ReferenceReplacer from './referenceReplacer';
-import ReferenceDeleter from './referenceDeleter';
-import ReferencePayloadBuilder from './referencePayloadBuilder';
-import { ObjectsPath, ReferencesPath } from './path';
+import Connection from '../connection';
 import { BeaconPath } from '../utils/beaconPath';
 import { DbVersionSupport } from '../utils/dbVersion';
-import Connection from '../connection';
+import Checker from './checker';
+import Creator from './creator';
+import Deleter from './deleter';
+import Getter from './getter';
+import GetterById from './getterById';
+import Merger from './merger';
+import { ObjectsPath, ReferencesPath } from './path';
+import ReferenceCreator from './referenceCreator';
+import ReferenceDeleter from './referenceDeleter';
+import ReferencePayloadBuilder from './referencePayloadBuilder';
+import ReferenceReplacer from './referenceReplacer';
+import Updater from './updater';
+import Validator from './validator';
 
 export interface Data {
   creator: () => Creator;
@@ -52,17 +52,17 @@ const data = (client: Connection, dbVersionSupport: DbVersionSupport): Data => {
 };
 
 export default data;
+export { default as Checker } from './checker';
 export { default as Creator } from './creator';
-export { default as Validator } from './validator';
-export { default as Updater } from './updater';
-export { default as Merger } from './merger';
+export { default as Deleter } from './deleter';
 export { default as Getter } from './getter';
 export { default as GetterById } from './getterById';
-export { default as Deleter } from './deleter';
-export { default as Checker } from './checker';
+export { default as Merger } from './merger';
 export { default as ReferenceCreator } from './referenceCreator';
-export { default as ReferenceReplacer } from './referenceReplacer';
 export { default as ReferenceDeleter } from './referenceDeleter';
 export { default as ReferencePayloadBuilder } from './referencePayloadBuilder';
+export { default as ReferenceReplacer } from './referenceReplacer';
+export { default as Updater } from './updater';
+export { default as Validator } from './validator';
 
 export type { ConsistencyLevel } from './replication';

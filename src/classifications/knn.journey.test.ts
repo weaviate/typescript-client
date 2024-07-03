@@ -1,5 +1,4 @@
 import weaviate, { WeaviateClient } from '..';
-import Connection from '../connection';
 import { Classification } from '../openapi/types';
 
 const targetDessertId = 'cd54852a-209d-423b-bf1c-884468215237';

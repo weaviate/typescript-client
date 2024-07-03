@@ -1,6 +1,6 @@
-import ClassificationsScheduler from './scheduler';
-import ClassificationsGetter from './getter';
 import Connection from '../connection';
+import ClassificationsGetter from './getter';
+import ClassificationsScheduler from './scheduler';
 
 export interface Classifications {
   scheduler: () => ClassificationsScheduler;

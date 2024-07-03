@@ -1,6 +1,6 @@
 import Connection from '../connection';
-import { CommandBase } from '../validation/commandBase';
 import { Classification } from '../openapi/types';
+import { CommandBase } from '../validation/commandBase';
 
 export default class ClassificationsGetter extends CommandBase {
   private id?: string;

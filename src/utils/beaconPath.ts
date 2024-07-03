@@ -1,6 +1,6 @@
 import { isValidStringProperty } from '../validation/string';
-import { DbVersionSupport } from './dbVersion';
 import { isValidWeaviateVersion } from '../validation/version';
+import { DbVersionSupport } from './dbVersion';
 
 const beaconPathPrefix = 'weaviate://localhost';
 

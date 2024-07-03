@@ -1,9 +1,9 @@
-import { isValidStringProperty } from '../validation/string';
-import { getShards } from './shardsGetter';
-import { updateShard } from './shardUpdater';
 import Connection from '../connection';
+import { ShardStatusList } from '../openapi/types';
 import { CommandBase } from '../validation/commandBase';
-import { ShardStatus, ShardStatusList } from '../openapi/types';
+import { isValidStringProperty } from '../validation/string';
+import { updateShard } from './shardUpdater';
+import { getShards } from './shardsGetter';
 
 export default class ShardsUpdater extends CommandBase {
   private className!: string;

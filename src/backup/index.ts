@@ -1,8 +1,8 @@
-import BackupCreator from './backupCreator';
-import BackupCreateStatusGetter from './backupCreateStatusGetter';
-import BackupRestorer from './backupRestorer';
-import BackupRestoreStatusGetter from './backupRestoreStatusGetter';
 import Connection from '../connection';
+import BackupCreateStatusGetter from './backupCreateStatusGetter';
+import BackupCreator from './backupCreator';
+import BackupRestoreStatusGetter from './backupRestoreStatusGetter';
+import BackupRestorer from './backupRestorer';
 
 export type Backend = 'filesystem' | 's3' | 'gcs' | 'azure';
 export type BackupStatus = 'STARTED' | 'TRANSFERRING' | 'TRANSFERRED' | 'SUCCESS' | 'FAILED';
@@ -24,7 +24,7 @@ const backup = (client: Connection): Backup => {
 };
 
 export default backup;
-export { default as BackupCreator } from './backupCreator';
 export { default as BackupCreateStatusGetter } from './backupCreateStatusGetter';
-export { default as BackupRestorer } from './backupRestorer';
+export { default as BackupCreator } from './backupCreator';
 export { default as BackupRestoreStatusGetter } from './backupRestoreStatusGetter';
+export { default as BackupRestorer } from './backupRestorer';

@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import weaviate, {
   Reference,
+  ReferenceCreator,
+  Tenant,
+  WeaviateClass,
   WeaviateClient,
   WeaviateError,
   WeaviateObject,
-  WeaviateClass,
-  Tenant,
-  ReferenceCreator,
   WhereFilter,
 } from '..';
 import { FusionType } from './hybrid';
