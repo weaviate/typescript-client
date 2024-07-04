@@ -69,7 +69,7 @@ describe('schema', () => {
       name: 'anotherProp',
       tokenization: 'field',
       indexFilterable: true,
-      indexRangeable: (await isVer(client, 26, 0)) ? false : undefined,
+      indexRangeFilters: (await isVer(client, 26, 0)) ? false : undefined,
       indexSearchable: true,
       moduleConfig: {
         'text2vec-contextionary': {
@@ -539,7 +539,7 @@ describe('property setting defaults and migrations', () => {
 
   const errMsg1 = isVer(client, 26, 0).then((yes) =>
     yes
-      ? '`indexInverted` is deprecated and can not be set together with `indexFilterable`, `indexSearchable` or `indexRangeable`'
+      ? '`indexInverted` is deprecated and can not be set together with `indexFilterable`, `indexSearchable` or `indexRangeFilters`'
       : '`indexInverted` is deprecated and can not be set together with `indexFilterable` or `indexSearchable`'
   );
   const errMsg2 = Promise.resolve('`indexSearchable`');
@@ -762,7 +762,7 @@ async function newClassObject(
         name: 'stringProp',
         tokenization: 'word',
         indexFilterable: true,
-        indexRangeable: (await is1260Promise) ? false : undefined,
+        indexRangeFilters: (await is1260Promise) ? false : undefined,
         indexSearchable: true,
         moduleConfig: {
           'text2vec-contextionary': {
