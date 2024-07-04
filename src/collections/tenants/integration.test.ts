@@ -26,7 +26,7 @@ describe('Testing of the collection.tenants methods', () => {
       .then(() =>
         collection.tenants.create([
           { name: 'hot', activityStatus: 'HOT' },
-          { name: 'cold-old', activityStatus: 'COLD' },
+          { name: 'cold', activityStatus: 'COLD' },
           { name: 'cold-new', activityStatus: 'COLD' },
           { name: 'remove-me', activityStatus: 'HOT' },
         ])
@@ -69,7 +69,7 @@ describe('Testing of the collection.tenants methods', () => {
   });
 
   it('should be able to update a tenant with old nomenclature', async () => {
-    const result = await collection.tenants.update([{ name: 'cold-old', activityStatus: 'HOT' }]);
+    const result = await collection.tenants.update([{ name: 'cold', activityStatus: 'HOT' }]);
     expect(result.length).toBe(1);
     expect(result[0].name).toBe('cold');
     expect(result[0].activityStatus).toBe('HOT');
@@ -78,7 +78,7 @@ describe('Testing of the collection.tenants methods', () => {
   it('should be able to update a tenant with new nomenclature', async () => {
     const result = await collection.tenants.update([{ name: 'cold-new', activityStatus: 'ACTIVE' }]);
     expect(result.length).toBe(1);
-    expect(result[0].name).toBe('cold');
+    expect(result[0].name).toBe('cold-new');
     expect(result[0].activityStatus).toBe('HOT');
   });
 
