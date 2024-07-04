@@ -9,7 +9,7 @@ on:
 env:
   WEAVIATE_124: 1.24.19
   WEAVIATE_125: 1.25.5
-  WEAVIATE_126: preview--13e65f1
+  WEAVIATE_126: preview--4e2eb3a
 
 jobs:
   checks:
