@@ -76,6 +76,24 @@ class GenerateManager<T> implements Generate<T> {
     if (!check.supports) throw new WeaviateUnsupportedFeatureError(check.message(query));
   };
 
+  private checkSupportForMultiTargetVectorSearch = async (opts?: BaseNearOptions<T>) => {
+    if (!Serialize.isMultiTargetVector(opts)) return false;
+    const check = await this.dbVersionSupport.supportsMultiTargetVectorSearch();
+    if (!check.supports) throw new WeaviateUnsupportedFeatureError(check.message);
+    return check.supports;
+  };
+
+  private nearSearch = async (opts?: BaseNearOptions<T>) => {
+    const [_, supportsTargets] = await Promise.all([
+      this.checkSupportForNamedVectors(opts),
+      this.checkSupportForMultiTargetVectorSearch(opts),
+    ]);
+    return {
+      search: await this.connection.search(this.name, this.consistencyLevel, this.tenant),
+      supportsTargets,
+    };
+  };
+
   private async parseReply(reply: SearchReply) {
     const deserialize = await Deserialize.use(this.dbVersionSupport);
     return deserialize.generate<T>(reply);
@@ -150,7 +168,7 @@ class GenerateManager<T> implements Generate<T> {
       .then(() => this.connection.search(this.name, this.consistencyLevel, this.tenant))
       .then((search) =>
         search.withHybrid({
-          ...Serialize.hybrid({ query, ...opts }),
+          ...Serialize.hybrid({ query, supportsTargets: false, ...opts }),
           generative: Serialize.generative(generate),
           groupBy: Serialize.isGroupBy<GroupByHybridOptions<T>>(opts)
             ? Serialize.groupBy(opts.groupBy)
@@ -175,12 +193,11 @@ class GenerateManager<T> implements Generate<T> {
     generate: GenerateOptions<T>,
     opts?: NearOptions<T>
   ): GenerateReturn<T> {
-    return this.checkSupportForNamedVectors(opts)
-      .then(() => this.connection.search(this.name, this.consistencyLevel, this.tenant))
-      .then((search) =>
+    return this.nearSearch(opts)
+      .then(({ search, supportsTargets }) =>
         toBase64FromMedia(image).then((image) =>
           search.withNearImage({
-            ...Serialize.nearImage({ image, ...(opts ? opts : {}) }),
+            ...Serialize.nearImage({ image, supportsTargets, ...(opts ? opts : {}) }),
             generative: Serialize.generative(generate),
             groupBy: Serialize.isGroupBy<GroupByNearOptions<T>>(opts)
               ? Serialize.groupBy(opts.groupBy)
@@ -202,11 +219,10 @@ class GenerateManager<T> implements Generate<T> {
     opts: GroupByNearOptions<T>
   ): Promise<GenerativeGroupByReturn<T>>;
   public nearObject(id: string, generate: GenerateOptions<T>, opts?: NearOptions<T>): GenerateReturn<T> {
-    return this.checkSupportForNamedVectors(opts)
-      .then(() => this.connection.search(this.name, this.consistencyLevel, this.tenant))
-      .then((search) =>
+    return this.nearSearch(opts)
+      .then(({ search, supportsTargets }) =>
         search.withNearObject({
-          ...Serialize.nearObject({ id, ...(opts ? opts : {}) }),
+          ...Serialize.nearObject({ id, supportsTargets, ...(opts ? opts : {}) }),
           generative: Serialize.generative(generate),
           groupBy: Serialize.isGroupBy<GroupByNearOptions<T>>(opts)
             ? Serialize.groupBy(opts.groupBy)
@@ -231,11 +247,10 @@ class GenerateManager<T> implements Generate<T> {
     generate: GenerateOptions<T>,
     opts?: NearOptions<T>
   ): GenerateReturn<T> {
-    return this.checkSupportForNamedVectors(opts)
-      .then(() => this.connection.search(this.name, this.consistencyLevel, this.tenant))
-      .then((search) =>
+    return this.nearSearch(opts)
+      .then(({ search, supportsTargets }) =>
         search.withNearText({
-          ...Serialize.nearText({ query, ...(opts ? opts : {}) }),
+          ...Serialize.nearText({ query, supportsTargets, ...(opts ? opts : {}) }),
           generative: Serialize.generative(generate),
           groupBy: Serialize.isGroupBy<GroupByNearOptions<T>>(opts)
             ? Serialize.groupBy(opts.groupBy)
@@ -260,11 +275,10 @@ class GenerateManager<T> implements Generate<T> {
     generate: GenerateOptions<T>,
     opts?: NearOptions<T>
   ): GenerateReturn<T> {
-    return this.checkSupportForNamedVectors(opts)
-      .then(() => this.connection.search(this.name, this.consistencyLevel, this.tenant))
-      .then((search) =>
+    return this.nearSearch(opts)
+      .then(({ search, supportsTargets }) =>
         search.withNearVector({
-          ...Serialize.nearVector({ vector, ...(opts ? opts : {}) }),
+          ...Serialize.nearVector({ vector, supportsTargets, ...(opts ? opts : {}) }),
           generative: Serialize.generative(generate),
           groupBy: Serialize.isGroupBy<GroupByNearOptions<T>>(opts)
             ? Serialize.groupBy(opts.groupBy)
@@ -292,10 +306,10 @@ class GenerateManager<T> implements Generate<T> {
     generate: GenerateOptions<T>,
     opts?: NearOptions<T>
   ): GenerateReturn<T> {
-    return this.checkSupportForNamedVectors(opts)
-      .then(() => this.connection.search(this.name, this.consistencyLevel, this.tenant))
-      .then((search) => {
+    return this.nearSearch(opts)
+      .then(({ search, supportsTargets }) => {
         let reply: Promise<SearchReply>;
+        const args = { supportsTargets, ...(opts ? opts : {}) };
         const generative = Serialize.generative(generate);
         const groupBy = Serialize.isGroupBy<GroupByNearOptions<T>>(opts)
           ? Serialize.groupBy(opts.groupBy)
@@ -304,7 +318,7 @@ class GenerateManager<T> implements Generate<T> {
           case 'audio':
             reply = toBase64FromMedia(media).then((media) =>
               search.withNearAudio({
-                ...Serialize.nearAudio({ audio: media, ...(opts ? opts : {}) }),
+                ...Serialize.nearAudio({ audio: media, ...args }),
                 generative,
                 groupBy,
               })
@@ -313,7 +327,7 @@ class GenerateManager<T> implements Generate<T> {
           case 'depth':
             reply = toBase64FromMedia(media).then((media) =>
               search.withNearDepth({
-                ...Serialize.nearDepth({ depth: media, ...(opts ? opts : {}) }),
+                ...Serialize.nearDepth({ depth: media, ...args }),
                 generative,
                 groupBy,
               })
@@ -322,7 +336,7 @@ class GenerateManager<T> implements Generate<T> {
           case 'image':
             reply = toBase64FromMedia(media).then((media) =>
               search.withNearImage({
-                ...Serialize.nearImage({ image: media, ...(opts ? opts : {}) }),
+                ...Serialize.nearImage({ image: media, ...args }),
                 generative,
                 groupBy,
               })
@@ -331,7 +345,7 @@ class GenerateManager<T> implements Generate<T> {
           case 'imu':
             reply = toBase64FromMedia(media).then((media) =>
               search.withNearIMU({
-                ...Serialize.nearIMU({ imu: media, ...(opts ? opts : {}) }),
+                ...Serialize.nearIMU({ imu: media, ...args }),
                 generative,
                 groupBy,
               })
@@ -340,7 +354,7 @@ class GenerateManager<T> implements Generate<T> {
           case 'thermal':
             reply = toBase64FromMedia(media).then((media) =>
               search.withNearThermal({
-                ...Serialize.nearThermal({ thermal: media, ...(opts ? opts : {}) }),
+                ...Serialize.nearThermal({ thermal: media, ...args }),
                 generative,
                 groupBy,
               })
@@ -349,7 +363,7 @@ class GenerateManager<T> implements Generate<T> {
           case 'video':
             reply = toBase64FromMedia(media).then((media) =>
               search.withNearVideo({
-                ...Serialize.nearVideo({ video: media, ...(opts ? opts : {}) }),
+                ...Serialize.nearVideo({ video: media, ...args }),
                 generative,
                 groupBy,
               })

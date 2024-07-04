@@ -529,7 +529,7 @@ describe('Testing of the collection.query methods with a collection with a refer
     });
   });
 
-  describe('Testing of the collection.query methods with a collection with multiple vectors', () => {
+  describe('Testing of the collection.query methods with a collection with a multiple vectors', () => {
     let client: WeaviateClient;
     let collection: Collection<TestCollectionQueryWithMultiVector, 'TestCollectionQueryWithMultiVector'>;
     const collectionName = 'TestCollectionQueryWithMultiVector';
@@ -567,6 +567,10 @@ describe('Testing of the collection.query methods with a collection with a refer
                 name: 'title',
                 sourceProperties: ['title'],
               }),
+              weaviate.configure.vectorizer.text2VecContextionary({
+                name: 'title2',
+                sourceProperties: ['title'],
+              }),
             ],
           })
           .then(async () => {
@@ -588,7 +592,7 @@ describe('Testing of the collection.query methods with a collection with a refer
       return query();
     });
 
-    it('should query returning the named vector', async () => {
+    it('should query returning a named vector', async () => {
       const query = () =>
         collection.query.fetchObjects({
           returnProperties: ['title'],
@@ -607,7 +611,7 @@ describe('Testing of the collection.query methods with a collection with a refer
       expect(ret.objects[1].vectors.title).toBeDefined();
     });
 
-    it('should query without searching returning named vector', async () => {
+    it('should query without searching returning a named vector', async () => {
       if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 24, 0))) {
         return;
       }
@@ -634,6 +638,38 @@ describe('Testing of the collection.query methods with a collection with a refer
       expect(ret.objects.length).toEqual(2);
       expect(ret.objects[0].properties.title).toEqual('test');
       expect(ret.objects[1].properties.title).toEqual('other');
+    });
+
+    it('should query a multi-target vector search over the named vector spaces', async () => {
+      if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 26, 0))) {
+        return;
+      }
+      const ret = await collection.query.nearObject(id1, {
+        returnProperties: ['title'],
+        targetVector: ['title', 'title2'],
+      });
+      expect(ret.objects.length).toEqual(2);
+      expect(ret.objects[0].properties.title).toEqual('test');
+      expect(ret.objects[1].properties.title).toEqual('other');
+    });
+
+    it('should query a weighted multi-target vector search over the named vector spaces', async () => {
+      const query = () =>
+        collection.query.nearObject(id1, {
+          distance: 0.01,
+          returnProperties: ['title'],
+          targetVector: collection.multiTargetVector.manualWeights({
+            title: 5,
+            title2: 0.1,
+          }),
+        });
+      if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 26, 0))) {
+        await expect(query()).rejects.toThrow(WeaviateUnsupportedFeatureError);
+        return;
+      }
+      const ret = await query();
+      expect(ret.objects.length).toEqual(1);
+      expect(ret.objects[0].properties.title).toEqual('test');
     });
   });
 });

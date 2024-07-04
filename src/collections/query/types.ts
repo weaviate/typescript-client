@@ -136,7 +136,7 @@ export type BaseNearOptions<T> = SearchOptions<T> & {
   /** The maximum distance to search. Incompatible with the `certainty` param. */
   distance?: number;
   /** Specify which vector to search on if using named vectors. */
-  targetVector?: string;
+  targetVector?: TargetVectorInputType;
 };
 
 /** Options available in the near search queries when specifying the `groupBy` parameter. */
@@ -166,8 +166,23 @@ export type GroupByNearTextOptions<T> = BaseNearTextOptions<T> & {
 /** The type of the media to search for in the `query.nearMedia` method */
 export type NearMediaType = 'audio' | 'depth' | 'image' | 'imu' | 'thermal' | 'video';
 
+/**
+ * The vector(s) to search for in the `query.nearVector` method. One of:
+ * - a single vector, in which case pass a single number array.
+ * - multiple unnamed vectors, in which case pass an array of number arrays.
+ * - multiple named vectors, in which case pass an object of type `Record<string, number[]>`.
+ *
+ * If you pass multiple unnamed vectors here then you must specify the names of the vector spaces in the `targetVector` parameter.
+ * If these two arrays are of different lengths, the method will throw an error.
+ */
 export type NearVectorInputType = number[] | number[][] | Record<string, number[]>;
 
+/**
+ * Over which vector spaces to perform the vector search query in the `nearX` search method. One of:
+ * - a single vector space search, in which case pass a string with the name of the vector space to search in.
+ * - a multi-vector space search, in which case pass an array of strings with the names of the vector spaces to search in.
+ * - a weighted multi-vector space search, in which case pass an object of type `MultiTargetVectorJoin` detailing the vector spaces to search in.
+ */
 export type TargetVectorInputType = string | string[] | MultiTargetVectorJoin;
 
 interface Bm25<T> {

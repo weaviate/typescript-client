@@ -316,6 +316,10 @@ export class Serialize {
     return Array.isArray(opts?.includeVector) || opts?.targetVector !== undefined;
   };
 
+  public static isMultiTargetVector = <T>(opts?: BaseNearOptions<T>): boolean => {
+    return opts?.targetVector !== undefined && !TargetVectorInputGuards.isSingle(opts.targetVector);
+  };
+
   private static common = <T>(args?: SearchOptions<T>): BaseSearchArgs => {
     const out: BaseSearchArgs = {
       limit: args?.limit,
@@ -388,6 +392,7 @@ export class Serialize {
     return Serialize.isHybridNearTextSearch(vector)
       ? Serialize.nearTextSearch({
           ...vector,
+          supportsTargets: false,
           query: vector.query,
         })
       : undefined;
@@ -401,7 +406,9 @@ export class Serialize {
       : undefined;
   };
 
-  public static hybrid = <T>(args: { query: string } & HybridOptions<T>): SearchHybridArgs => {
+  public static hybrid = <T>(
+    args: { query: string; supportsTargets: boolean } & HybridOptions<T>
+  ): SearchHybridArgs => {
     const fusionType = (fusionType?: string): Hybrid_FusionType => {
       switch (fusionType) {
         case 'Ranked':
@@ -412,7 +419,7 @@ export class Serialize {
           return Hybrid_FusionType.FUSION_TYPE_UNSPECIFIED;
       }
     };
-    const { targets, targetVectors } = Serialize.targetVector(args.targetVector);
+    const { targets, targetVectors } = Serialize.targetVector(args.supportsTargets, args.targetVector);
     return {
       ...Serialize.common(args),
       hybridSearch: Hybrid.fromPartial({
@@ -430,8 +437,10 @@ export class Serialize {
     };
   };
 
-  public static nearAudio = <T>(args: { audio: string } & NearOptions<T>): SearchNearAudioArgs => {
-    const { targets, targetVectors } = Serialize.targetVector(args.targetVector);
+  public static nearAudio = <T>(
+    args: { audio: string; supportsTargets: boolean } & NearOptions<T>
+  ): SearchNearAudioArgs => {
+    const { targets, targetVectors } = Serialize.targetVector(args.supportsTargets, args.targetVector);
     return {
       ...Serialize.common(args),
       nearAudio: NearAudioSearch.fromPartial({
@@ -445,8 +454,10 @@ export class Serialize {
     };
   };
 
-  public static nearDepth = <T>(args: { depth: string } & NearOptions<T>): SearchNearDepthArgs => {
-    const { targets, targetVectors } = Serialize.targetVector(args.targetVector);
+  public static nearDepth = <T>(
+    args: { depth: string; supportsTargets: boolean } & NearOptions<T>
+  ): SearchNearDepthArgs => {
+    const { targets, targetVectors } = Serialize.targetVector(args.supportsTargets, args.targetVector);
     return {
       ...Serialize.common(args),
       nearDepth: NearDepthSearch.fromPartial({
@@ -460,8 +471,10 @@ export class Serialize {
     };
   };
 
-  public static nearImage = <T>(args: { image: string } & NearOptions<T>): SearchNearImageArgs => {
-    const { targets, targetVectors } = Serialize.targetVector(args.targetVector);
+  public static nearImage = <T>(
+    args: { image: string; supportsTargets: boolean } & NearOptions<T>
+  ): SearchNearImageArgs => {
+    const { targets, targetVectors } = Serialize.targetVector(args.supportsTargets, args.targetVector);
     return {
       ...Serialize.common(args),
       nearImage: NearImageSearch.fromPartial({
@@ -475,8 +488,10 @@ export class Serialize {
     };
   };
 
-  public static nearIMU = <T>(args: { imu: string } & NearOptions<T>): SearchNearIMUArgs => {
-    const { targets, targetVectors } = Serialize.targetVector(args.targetVector);
+  public static nearIMU = <T>(
+    args: { imu: string; supportsTargets: boolean } & NearOptions<T>
+  ): SearchNearIMUArgs => {
+    const { targets, targetVectors } = Serialize.targetVector(args.supportsTargets, args.targetVector);
     return {
       ...Serialize.common(args),
       nearIMU: NearIMUSearch.fromPartial({
@@ -490,8 +505,11 @@ export class Serialize {
     };
   };
 
-  public static nearObject = <T>(args: { id: string } & NearOptions<T>): SearchNearObjectArgs => {
-    const { targets, targetVectors } = Serialize.targetVector(args.targetVector);
+  public static nearObject = <T>(
+    args: { id: string; supportsTargets: boolean } & NearOptions<T>
+  ): SearchNearObjectArgs => {
+    const { targets, targetVectors } = Serialize.targetVector(args.supportsTargets, args.targetVector);
+    console.log(targets, targetVectors);
     return {
       ...Serialize.common(args),
       nearObject: NearObject.fromPartial({
@@ -507,13 +525,14 @@ export class Serialize {
 
   private static nearTextSearch = (args: {
     query: string | string[];
+    supportsTargets: boolean;
     certainty?: number;
     distance?: number;
-    targetVector?: string;
+    targetVector?: TargetVectorInputType;
     moveAway?: { concepts?: string[]; force?: number; objects?: string[] };
     moveTo?: { concepts?: string[]; force?: number; objects?: string[] };
   }) => {
-    const { targets, targetVectors } = Serialize.targetVector(args.targetVector);
+    const { targets, targetVectors } = Serialize.targetVector(args.supportsTargets, args.targetVector);
     return NearTextSearch.fromPartial({
       query: typeof args.query === 'string' ? [args.query] : args.query,
       certainty: args.certainty,
@@ -538,7 +557,7 @@ export class Serialize {
   };
 
   public static nearText = <T>(
-    args: { query: string | string[] } & NearTextOptions<T>
+    args: { query: string | string[]; supportsTargets: boolean } & NearTextOptions<T>
   ): SearchNearTextArgs => {
     return {
       ...Serialize.common(args),
@@ -547,8 +566,10 @@ export class Serialize {
     };
   };
 
-  public static nearThermal = <T>(args: { thermal: string } & NearOptions<T>): SearchNearThermalArgs => {
-    const { targets, targetVectors } = Serialize.targetVector(args.targetVector);
+  public static nearThermal = <T>(
+    args: { thermal: string; supportsTargets: boolean } & NearOptions<T>
+  ): SearchNearThermalArgs => {
+    const { targets, targetVectors } = Serialize.targetVector(args.supportsTargets, args.targetVector);
     return {
       ...Serialize.common(args),
       nearThermal: NearThermalSearch.fromPartial({
@@ -568,6 +589,7 @@ export class Serialize {
 
   private static nearVectorSearch = (args: {
     vector: NearVectorInputType;
+    supportsTargets: boolean;
     certainty?: number;
     distance?: number;
     targetVector?: TargetVectorInputType;
@@ -578,7 +600,7 @@ export class Serialize {
           - an object with target names as keys and arrays of numbers as values
     received: ${args.vector}`);
 
-    const { targets, targetVectors } = Serialize.targetVector(args.targetVector);
+    const { targets, targetVectors } = Serialize.targetVector(args.supportsTargets, args.targetVector);
     if (NearVectorInputGuards.isObject(args.vector)) {
       if (targets === undefined || targets.targetVectors.length != Object.keys(args.vector).length) {
         throw new WeaviateInvalidInputError(
@@ -633,24 +655,29 @@ export class Serialize {
   };
 
   private static targetVector = (
+    supportsTargets: boolean,
     targetVector?: TargetVectorInputType
   ): { targets?: Targets; targetVectors?: string[] } => {
     if (targetVector === undefined) {
       return {};
     } else if (TargetVectorInputGuards.isSingle(targetVector)) {
-      return {
-        targets: Targets.fromPartial({
-          targetVectors: [targetVector],
-        }),
-      };
+      return supportsTargets
+        ? {
+            targets: Targets.fromPartial({
+              targetVectors: [targetVector],
+            }),
+          }
+        : { targetVectors: [targetVector] };
     } else if (TargetVectorInputGuards.isMulti(targetVector)) {
-      return {
-        targets: Targets.fromPartial({
-          targetVectors: targetVector,
-        }),
-      };
+      return supportsTargets
+        ? {
+            targets: Targets.fromPartial({
+              targetVectors: targetVector,
+            }),
+          }
+        : { targetVectors: targetVector };
     } else {
-      return Serialize.targets(targetVector);
+      return { targets: Serialize.targets(targetVector) };
     }
   };
 
@@ -683,7 +710,7 @@ export class Serialize {
   };
 
   public static nearVector = <T>(
-    args: { vector: NearVectorInputType } & NearOptions<T>
+    args: { vector: NearVectorInputType; supportsTargets: boolean } & NearOptions<T>
   ): SearchNearVectorArgs => {
     return {
       ...Serialize.common(args),
@@ -692,8 +719,10 @@ export class Serialize {
     };
   };
 
-  public static nearVideo = <T>(args: { video: string } & NearOptions<T>): SearchNearVideoArgs => {
-    const { targets, targetVectors } = Serialize.targetVector(args.targetVector);
+  public static nearVideo = <T>(
+    args: { video: string; supportsTargets: boolean } & NearOptions<T>
+  ): SearchNearVideoArgs => {
+    const { targets, targetVectors } = Serialize.targetVector(args.supportsTargets, args.targetVector);
     return {
       ...Serialize.common(args),
       nearVideo: NearVideoSearch.fromPartial({

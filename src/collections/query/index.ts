@@ -85,6 +85,24 @@ class QueryManager<T> implements Query<T> {
     if (!check.supports) throw new WeaviateUnsupportedFeatureError(check.message);
   };
 
+  private checkSupportForMultiTargetVectorSearch = async (opts?: BaseNearOptions<T>) => {
+    if (!Serialize.isMultiTargetVector(opts)) return false;
+    const check = await this.dbVersionSupport.supportsMultiTargetVectorSearch();
+    if (!check.supports) throw new WeaviateUnsupportedFeatureError(check.message);
+    return check.supports;
+  };
+
+  private nearSearch = async (opts?: BaseNearOptions<T>) => {
+    const [_, supportsTargets] = await Promise.all([
+      this.checkSupportForNamedVectors(opts),
+      this.checkSupportForMultiTargetVectorSearch(opts),
+    ]);
+    return {
+      search: await this.connection.search(this.name, this.consistencyLevel, this.tenant),
+      supportsTargets,
+    };
+  };
+
   private async parseReply(reply: SearchReply) {
     const deserialize = await Deserialize.use(this.dbVersionSupport);
     return deserialize.query<T>(reply);
@@ -143,7 +161,7 @@ class QueryManager<T> implements Query<T> {
       .then(() => this.connection.search(this.name, this.consistencyLevel, this.tenant))
       .then((search) =>
         search.withHybrid({
-          ...Serialize.hybrid({ query, ...opts }),
+          ...Serialize.hybrid({ query, supportsTargets: false, ...opts }),
           groupBy: Serialize.isGroupBy<GroupByHybridOptions<T>>(opts)
             ? Serialize.groupBy(opts.groupBy)
             : undefined,
@@ -155,12 +173,11 @@ class QueryManager<T> implements Query<T> {
   public nearImage(image: string | Buffer, opts?: BaseNearOptions<T>): Promise<WeaviateReturn<T>>;
   public nearImage(image: string | Buffer, opts: GroupByNearOptions<T>): Promise<GroupByReturn<T>>;
   public nearImage(image: string | Buffer, opts?: NearOptions<T>): QueryReturn<T> {
-    return this.checkSupportForNamedVectors(opts)
-      .then(() => this.connection.search(this.name, this.consistencyLevel, this.tenant))
-      .then((search) => {
+    return this.nearSearch(opts)
+      .then(({ search, supportsTargets }) => {
         return toBase64FromMedia(image).then((image) =>
           search.withNearImage({
-            ...Serialize.nearImage({ image, ...(opts ? opts : {}) }),
+            ...Serialize.nearImage({ image, supportsTargets, ...(opts ? opts : {}) }),
             groupBy: Serialize.isGroupBy<GroupByNearOptions<T>>(opts)
               ? Serialize.groupBy(opts.groupBy)
               : undefined,
@@ -181,39 +198,39 @@ class QueryManager<T> implements Query<T> {
     opts: GroupByNearOptions<T>
   ): Promise<GroupByReturn<T>>;
   public nearMedia(media: string | Buffer, type: NearMediaType, opts?: NearOptions<T>): QueryReturn<T> {
-    return this.checkSupportForNamedVectors(opts)
-      .then(() => this.connection.search(this.name, this.consistencyLevel, this.tenant))
-      .then((search) => {
+    return this.nearSearch(opts)
+      .then(({ search, supportsTargets }) => {
+        const args = { supportsTargets, ...(opts ? opts : {}) };
         let reply: Promise<SearchReply>;
         switch (type) {
           case 'audio':
             reply = toBase64FromMedia(media).then((media) =>
-              search.withNearAudio(Serialize.nearAudio({ audio: media, ...(opts ? opts : {}) }))
+              search.withNearAudio(Serialize.nearAudio({ audio: media, ...args }))
             );
             break;
           case 'depth':
             reply = toBase64FromMedia(media).then((media) =>
-              search.withNearDepth(Serialize.nearDepth({ depth: media, ...(opts ? opts : {}) }))
+              search.withNearDepth(Serialize.nearDepth({ depth: media, ...args }))
             );
             break;
           case 'image':
             reply = toBase64FromMedia(media).then((media) =>
-              search.withNearImage(Serialize.nearImage({ image: media, ...(opts ? opts : {}) }))
+              search.withNearImage(Serialize.nearImage({ image: media, ...args }))
             );
             break;
           case 'imu':
             reply = toBase64FromMedia(media).then((media) =>
-              search.withNearIMU(Serialize.nearIMU({ imu: media, ...(opts ? opts : {}) }))
+              search.withNearIMU(Serialize.nearIMU({ imu: media, ...args }))
             );
             break;
           case 'thermal':
             reply = toBase64FromMedia(media).then((media) =>
-              search.withNearThermal(Serialize.nearThermal({ thermal: media, ...(opts ? opts : {}) }))
+              search.withNearThermal(Serialize.nearThermal({ thermal: media, ...args }))
             );
             break;
           case 'video':
             reply = toBase64FromMedia(media).then((media) =>
-              search.withNearVideo(Serialize.nearVideo({ video: media, ...(opts ? opts : {}) }))
+              search.withNearVideo(Serialize.nearVideo({ video: media, ...args }))
             );
             break;
           default:
@@ -227,11 +244,10 @@ class QueryManager<T> implements Query<T> {
   public nearObject(id: string, opts?: BaseNearOptions<T>): Promise<WeaviateReturn<T>>;
   public nearObject(id: string, opts: GroupByNearOptions<T>): Promise<GroupByReturn<T>>;
   public nearObject(id: string, opts?: NearOptions<T>): QueryReturn<T> {
-    return this.checkSupportForNamedVectors(opts)
-      .then(() => this.connection.search(this.name, this.consistencyLevel, this.tenant))
-      .then((search) =>
+    return this.nearSearch(opts)
+      .then(({ search, supportsTargets }) =>
         search.withNearObject({
-          ...Serialize.nearObject({ id, ...(opts ? opts : {}) }),
+          ...Serialize.nearObject({ id, supportsTargets, ...(opts ? opts : {}) }),
           groupBy: Serialize.isGroupBy<GroupByNearOptions<T>>(opts)
             ? Serialize.groupBy(opts.groupBy)
             : undefined,
@@ -243,11 +259,10 @@ class QueryManager<T> implements Query<T> {
   public nearText(query: string | string[], opts?: BaseNearTextOptions<T>): Promise<WeaviateReturn<T>>;
   public nearText(query: string | string[], opts: GroupByNearTextOptions<T>): Promise<GroupByReturn<T>>;
   public nearText(query: string | string[], opts?: NearTextOptions<T>): QueryReturn<T> {
-    return this.checkSupportForNamedVectors(opts)
-      .then(() => this.connection.search(this.name, this.consistencyLevel, this.tenant))
-      .then((search) =>
+    return this.nearSearch(opts)
+      .then(({ search, supportsTargets }) =>
         search.withNearText({
-          ...Serialize.nearText({ query, ...(opts ? opts : {}) }),
+          ...Serialize.nearText({ query, supportsTargets, ...(opts ? opts : {}) }),
           groupBy: Serialize.isGroupBy<GroupByNearOptions<T>>(opts)
             ? Serialize.groupBy(opts.groupBy)
             : undefined,
@@ -259,11 +274,10 @@ class QueryManager<T> implements Query<T> {
   public nearVector(vector: NearVectorInputType, opts?: BaseNearOptions<T>): Promise<WeaviateReturn<T>>;
   public nearVector(vector: NearVectorInputType, opts: GroupByNearOptions<T>): Promise<GroupByReturn<T>>;
   public nearVector(vector: NearVectorInputType, opts?: NearOptions<T>): QueryReturn<T> {
-    return this.checkSupportForNamedVectors(opts)
-      .then(() => this.connection.search(this.name, this.consistencyLevel, this.tenant))
-      .then((search) =>
+    return this.nearSearch(opts)
+      .then(({ search, supportsTargets }) =>
         search.withNearVector({
-          ...Serialize.nearVector({ vector, ...(opts ? opts : {}) }),
+          ...Serialize.nearVector({ vector, supportsTargets, ...(opts ? opts : {}) }),
           groupBy: Serialize.isGroupBy<GroupByNearOptions<T>>(opts)
             ? Serialize.groupBy(opts.groupBy)
             : undefined,

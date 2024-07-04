@@ -147,6 +147,16 @@ export class DbVersionSupport {
       };
     });
   };
+
+  supportsMultiTargetVectorSearch = () => {
+    return this.dbVersionProvider.getVersion().then((version) => {
+      return {
+        version: version,
+        supports: version.isAtLeast(1, 26, 0),
+        message: this.errorMessage('Multi-target vector search', version.show(), '1.26.0'),
+      };
+    });
+  };
 }
 
 const EMPTY_VERSION = '';
