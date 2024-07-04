@@ -38,7 +38,15 @@ export type WeaviateSchema = definitions['Schema'];
 export type WeaviateClass = definitions['Class'];
 export type ShardStatus = definitions['ShardStatus'];
 export type ShardStatusList = definitions['ShardStatusList'];
-export type Tenant = definitions['Tenant'];
 export type SchemaClusterStatus = definitions['SchemaClusterStatus'];
+export type Tenant = definitions['Tenant'];
+export type TenantCreate = {
+  name: string;
+  activityStatus?: 'HOT' | 'COLD';
+};
+export type TenantUpdate = {
+  name: string;
+  activityStatus: 'HOT' | 'COLD' | 'FROZEN';
+};
 // Nodes
 export type NodesStatusResponse = definitions['NodesStatusResponse'];
