@@ -53,7 +53,7 @@ describe('Journey testing of the client using a WCD cluster', () => {
     return client.collections
       .get(collectionName)
       .config.get()
-      .then((config) => {
+      .then(async (config) => {
         expect(config).toEqual<CollectionConfig>({
           name: collectionName,
           generative: {
@@ -172,7 +172,9 @@ describe('Journey testing of the client using a WCD cluster', () => {
                 ef: -1,
                 efConstruction: 128,
                 flatSearchCutoff: 40000,
-                maxConnections: 64,
+                maxConnections: (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 26, 0)))
+                  ? 64
+                  : 32,
                 skip: false,
                 vectorCacheMaxObjects: 1000000000000,
                 quantizer: undefined,

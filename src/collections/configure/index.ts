@@ -43,6 +43,7 @@ const tokenization = {
   FIELD: 'field' as const,
   TRIGRAM: 'trigram' as const,
   GSE: 'gse' as const,
+  KAGOME_KR: 'kagome_kr' as const,
 };
 
 const vectorDistances = {
