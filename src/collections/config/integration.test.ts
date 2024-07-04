@@ -53,7 +53,7 @@ describe('Testing of the collection.config namespace', () => {
     expect(config.vectorizers.default.indexConfig).toEqual<VectorIndexConfigHNSW>({
       skip: false,
       cleanupIntervalSeconds: 300,
-      maxConnections: 64,
+      maxConnections: (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 26, 0))) ? 64 : 32,
       efConstruction: 128,
       ef: -1,
       dynamicEfMin: 100,
@@ -106,7 +106,7 @@ describe('Testing of the collection.config namespace', () => {
     expect(config.vectorizers.default.indexConfig).toEqual<VectorIndexConfigHNSW>({
       skip: false,
       cleanupIntervalSeconds: 300,
-      maxConnections: 64,
+      maxConnections: (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 26, 0))) ? 64 : 32,
       efConstruction: 128,
       ef: -1,
       dynamicEfMin: 100,
@@ -475,7 +475,7 @@ describe('Testing of the collection.config namespace', () => {
     expect(config.vectorizers.default.indexConfig).toEqual<VectorIndexConfigHNSW>({
       skip: false,
       cleanupIntervalSeconds: 300,
-      maxConnections: 64,
+      maxConnections: (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 26, 0))) ? 64 : 32,
       efConstruction: 128,
       ef: 4,
       dynamicEfMin: 100,
