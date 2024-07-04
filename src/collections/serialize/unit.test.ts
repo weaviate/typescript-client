@@ -149,6 +149,7 @@ describe('Unit testing of Serialize', () => {
       vector: [1, 2, 3],
       targetVector: 'title',
       fusionType: 'Ranked',
+      supportsTargets: false,
     });
     expect(args).toEqual<SearchHybridArgs>({
       hybridSearch: Hybrid.fromPartial({
@@ -169,6 +170,7 @@ describe('Unit testing of Serialize', () => {
       certainty: 0.6,
       distance: 0.4,
       targetVector: 'audio',
+      supportsTargets: false,
     });
     expect(args).toEqual<SearchNearAudioArgs>({
       nearAudio: NearAudioSearch.fromPartial({
@@ -184,6 +186,7 @@ describe('Unit testing of Serialize', () => {
   it('should parse args for nearDepth', () => {
     const args = Serialize.nearDepth({
       depth: 'depth',
+      supportsTargets: false,
     });
     expect(args).toEqual<SearchNearDepthArgs>({
       nearDepth: NearDepthSearch.fromPartial({
@@ -196,6 +199,7 @@ describe('Unit testing of Serialize', () => {
   it('should parse args for nearIMU', () => {
     const args = Serialize.nearIMU({
       imu: 'imu',
+      supportsTargets: false,
     });
     expect(args).toEqual<SearchNearIMUArgs>({
       nearIMU: NearIMUSearch.fromPartial({
@@ -208,6 +212,7 @@ describe('Unit testing of Serialize', () => {
   it('should parse args for nearImage', () => {
     const args = Serialize.nearImage({
       image: 'image',
+      supportsTargets: false,
     });
     expect(args).toEqual<SearchNearImageArgs>({
       nearImage: NearImageSearch.fromPartial({
@@ -220,6 +225,7 @@ describe('Unit testing of Serialize', () => {
   it('should parse args for nearObject', () => {
     const args = Serialize.nearObject({
       id: 'id',
+      supportsTargets: false,
     });
     expect(args).toEqual<SearchNearObjectArgs>({
       nearObject: NearObject.fromPartial({
@@ -242,6 +248,7 @@ describe('Unit testing of Serialize', () => {
         concepts: ['good'],
         force: 0.6,
       },
+      supportsTargets: false,
     });
     expect(args).toEqual<SearchNearTextArgs>({
       nearText: NearTextSearch.fromPartial({
@@ -264,6 +271,7 @@ describe('Unit testing of Serialize', () => {
   it('should parse args for nearThermal', () => {
     const args = Serialize.nearThermal({
       thermal: 'thermal',
+      supportsTargets: false,
     });
     expect(args).toEqual<SearchNearThermalArgs>({
       nearThermal: NearThermalSearch.fromPartial({
@@ -276,6 +284,7 @@ describe('Unit testing of Serialize', () => {
   it('should parse args for nearVector', () => {
     const args = Serialize.nearVector({
       vector: [1, 2, 3],
+      supportsTargets: false,
     });
     expect(args).toEqual<SearchNearVectorArgs>({
       nearVector: NearVector.fromPartial({
@@ -288,6 +297,7 @@ describe('Unit testing of Serialize', () => {
   it('should parse args for nearVideo', () => {
     const args = Serialize.nearVideo({
       video: 'video',
+      supportsTargets: false,
     });
     expect(args).toEqual<SearchNearVideoArgs>({
       nearVideo: NearVideoSearch.fromPartial({

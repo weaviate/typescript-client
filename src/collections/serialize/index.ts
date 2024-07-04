@@ -509,7 +509,6 @@ export class Serialize {
     args: { id: string; supportsTargets: boolean } & NearOptions<T>
   ): SearchNearObjectArgs => {
     const { targets, targetVectors } = Serialize.targetVector(args.supportsTargets, args.targetVector);
-    console.log(targets, targetVectors);
     return {
       ...Serialize.common(args),
       nearObject: NearObject.fromPartial({
