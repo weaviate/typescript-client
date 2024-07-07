@@ -653,6 +653,24 @@ describe('Testing of the collection.query methods with a collection with a refer
       expect(ret.objects[1].properties.title).toEqual('other');
     });
 
+    it('should group-by query a multi-target vector search over the named vector spaces', async () => {
+      if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 26, 0))) {
+        return;
+      }
+      const ret = await collection.query.nearObject(id1, {
+        returnProperties: ['title'],
+        targetVector: ['title', 'title2'],
+        groupBy: {
+          numberOfGroups: 2,
+          objectsPerGroup: 1,
+          property: 'title',
+        },
+      });
+      expect(ret.objects.length).toEqual(2);
+      expect(ret.objects[0].belongsToGroup).toEqual('test');
+      expect(ret.objects[1].belongsToGroup).toEqual('other');
+    });
+
     it('should query a weighted multi-target vector search over the named vector spaces', async () => {
       const query = () =>
         collection.query.nearObject(id1, {
@@ -670,6 +688,80 @@ describe('Testing of the collection.query methods with a collection with a refer
       const ret = await query();
       expect(ret.objects.length).toEqual(1);
       expect(ret.objects[0].properties.title).toEqual('test');
+    });
+
+    it('should group-by query a weighted multi-target vector search over the named vector spaces', async () => {
+      const query = () =>
+        collection.query.nearObject(id1, {
+          returnProperties: ['title'],
+          targetVector: collection.multiTargetVector.sum(['title', 'title2']),
+          groupBy: {
+            numberOfGroups: 2,
+            objectsPerGroup: 1,
+            property: 'title',
+          },
+        });
+      if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 26, 0))) {
+        await expect(query()).rejects.toThrow(WeaviateUnsupportedFeatureError);
+        return;
+      }
+      const ret = await query();
+      expect(ret.objects.length).toEqual(2);
+      expect(ret.objects[0].belongsToGroup).toEqual('test');
+      expect(ret.objects[1].belongsToGroup).toEqual('other');
+    });
+
+    it('should perform a hybrid query over the named vector spaces', async () => {
+      const query = () =>
+        collection.query.hybrid('test', {
+          returnProperties: ['title'],
+          targetVector: ['title', 'title2'],
+        });
+      if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 26, 0))) {
+        await expect(query()).rejects.toThrow(WeaviateUnsupportedFeatureError);
+        return;
+      }
+      const ret = await query();
+      expect(ret.objects.length).toEqual(2);
+      expect(ret.objects[0].properties.title).toEqual('test');
+      expect(ret.objects[1].properties.title).toEqual('other');
+    });
+
+    it('should perform a group-by hybrid query over the named vector spaces', async () => {
+      const query = () =>
+        collection.query.hybrid('test', {
+          returnProperties: ['title'],
+          targetVector: ['title', 'title2'],
+          groupBy: {
+            numberOfGroups: 2,
+            objectsPerGroup: 1,
+            property: 'title',
+          },
+        });
+      if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 26, 0))) {
+        await expect(query()).rejects.toThrow(WeaviateUnsupportedFeatureError);
+        return;
+      }
+      const ret = await query();
+      expect(ret.objects.length).toEqual(2);
+      expect(ret.objects[0].belongsToGroup).toEqual('test');
+      expect(ret.objects[1].belongsToGroup).toEqual('other');
+    });
+
+    it('should perform a weighted hybrid query over the named vector spaces', async () => {
+      const query = () =>
+        collection.query.hybrid('test', {
+          returnProperties: ['title'],
+          targetVector: collection.multiTargetVector.sum(['title', 'title2']),
+        });
+      if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 26, 0))) {
+        await expect(query()).rejects.toThrow(WeaviateUnsupportedFeatureError);
+        return;
+      }
+      const ret = await query();
+      expect(ret.objects.length).toEqual(2);
+      expect(ret.objects[0].properties.title).toEqual('test');
+      expect(ret.objects[1].properties.title).toEqual('other');
     });
   });
 });

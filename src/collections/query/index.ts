@@ -93,9 +93,22 @@ class QueryManager<T> implements Query<T> {
   };
 
   private nearSearch = async (opts?: BaseNearOptions<T>) => {
-    const [_, supportsTargets] = await Promise.all([
-      this.checkSupportForNamedVectors(opts),
+    const [supportsTargets] = await Promise.all([
       this.checkSupportForMultiTargetVectorSearch(opts),
+      this.checkSupportForNamedVectors(opts),
+    ]);
+    return {
+      search: await this.connection.search(this.name, this.consistencyLevel, this.tenant),
+      supportsTargets,
+    };
+  };
+
+  private hybridSearch = async (opts?: BaseHybridOptions<T>) => {
+    const [supportsTargets] = await Promise.all([
+      this.checkSupportForMultiTargetVectorSearch(opts),
+      this.checkSupportForNamedVectors(opts),
+      this.checkSupportForBm25AndHybridGroupByQueries('Hybrid', opts),
+      this.checkSupportForHybridNearTextAndNearVectorSubSearches(opts),
     ]);
     return {
       search: await this.connection.search(this.name, this.consistencyLevel, this.tenant),
@@ -153,15 +166,10 @@ class QueryManager<T> implements Query<T> {
   public hybrid(query: string, opts?: BaseHybridOptions<T>): Promise<WeaviateReturn<T>>;
   public hybrid(query: string, opts: GroupByHybridOptions<T>): Promise<GroupByReturn<T>>;
   public hybrid(query: string, opts?: HybridOptions<T>): QueryReturn<T> {
-    return Promise.all([
-      this.checkSupportForNamedVectors(opts),
-      this.checkSupportForBm25AndHybridGroupByQueries('Hybrid', opts),
-      this.checkSupportForHybridNearTextAndNearVectorSubSearches(opts),
-    ])
-      .then(() => this.connection.search(this.name, this.consistencyLevel, this.tenant))
-      .then((search) =>
+    return this.hybridSearch(opts)
+      .then(({ search, supportsTargets }) =>
         search.withHybrid({
-          ...Serialize.hybrid({ query, supportsTargets: false, ...opts }),
+          ...Serialize.hybrid({ query, supportsTargets, ...opts }),
           groupBy: Serialize.isGroupBy<GroupByHybridOptions<T>>(opts)
             ? Serialize.groupBy(opts.groupBy)
             : undefined,

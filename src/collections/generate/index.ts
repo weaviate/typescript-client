@@ -76,6 +76,12 @@ class GenerateManager<T> implements Generate<T> {
     if (!check.supports) throw new WeaviateUnsupportedFeatureError(check.message(query));
   };
 
+  private checkSupportForHybridNearTextAndNearVectorSubSearches = async (opts?: HybridOptions<T>) => {
+    if (opts?.vector === undefined || Array.isArray(opts.vector)) return;
+    const check = await this.dbVersionSupport.supportsHybridNearTextAndNearVectorSubsearchQueries();
+    if (!check.supports) throw new WeaviateUnsupportedFeatureError(check.message);
+  };
+
   private checkSupportForMultiTargetVectorSearch = async (opts?: BaseNearOptions<T>) => {
     if (!Serialize.isMultiTargetVector(opts)) return false;
     const check = await this.dbVersionSupport.supportsMultiTargetVectorSearch();
@@ -87,6 +93,19 @@ class GenerateManager<T> implements Generate<T> {
     const [_, supportsTargets] = await Promise.all([
       this.checkSupportForNamedVectors(opts),
       this.checkSupportForMultiTargetVectorSearch(opts),
+    ]);
+    return {
+      search: await this.connection.search(this.name, this.consistencyLevel, this.tenant),
+      supportsTargets,
+    };
+  };
+
+  private hybridSearch = async (opts?: BaseHybridOptions<T>) => {
+    const [supportsTargets] = await Promise.all([
+      this.checkSupportForMultiTargetVectorSearch(opts),
+      this.checkSupportForNamedVectors(opts),
+      this.checkSupportForBm25AndHybridGroupByQueries('Hybrid', opts),
+      this.checkSupportForHybridNearTextAndNearVectorSubSearches(opts),
     ]);
     return {
       search: await this.connection.search(this.name, this.consistencyLevel, this.tenant),
@@ -161,14 +180,10 @@ class GenerateManager<T> implements Generate<T> {
     opts: GroupByHybridOptions<T>
   ): Promise<GenerativeGroupByReturn<T>>;
   public hybrid(query: string, generate: GenerateOptions<T>, opts?: HybridOptions<T>): GenerateReturn<T> {
-    return Promise.all([
-      this.checkSupportForNamedVectors(opts),
-      this.checkSupportForBm25AndHybridGroupByQueries('Bm25', opts),
-    ])
-      .then(() => this.connection.search(this.name, this.consistencyLevel, this.tenant))
-      .then((search) =>
+    return this.hybridSearch(opts)
+      .then(({ search, supportsTargets }) =>
         search.withHybrid({
-          ...Serialize.hybrid({ query, supportsTargets: false, ...opts }),
+          ...Serialize.hybrid({ query, supportsTargets, ...opts }),
           generative: Serialize.generative(generate),
           groupBy: Serialize.isGroupBy<GroupByHybridOptions<T>>(opts)
             ? Serialize.groupBy(opts.groupBy)
