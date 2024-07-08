@@ -512,8 +512,8 @@ export interface definitions {
     indexFilterable?: boolean;
     /** @description Optional. Should this property be indexed in the inverted index. Defaults to true. Applicable only to properties of data type text and text[]. If you choose false, you will not be able to use this property in bm25 or hybrid search. This property has no affect on vectorization decisions done by modules */
     indexSearchable?: boolean;
-    /** @description Optional. TODO roaring-set-range */
-    indexRangeable?: boolean;
+    /** @description Optional. Should this property be indexed in the inverted index. Defaults to false. Provides better performance for range queries compared to filterable index in large datasets. Applicable only to properties of data type int, number, date. */
+    indexRangeFilters?: boolean;
     /**
      * @description Determines tokenization of the property as separate words or whole field. Optional. Applies to text and text[] data types. Allowed values are `word` (default; splits on any non-alphanumerical, lowercases), `lowercase` (splits on white spaces, lowercases), `whitespace` (splits on white spaces), `field` (trims). Not supported for remaining data types
      * @enum {string}
@@ -536,7 +536,7 @@ export interface definitions {
     name?: string;
     indexFilterable?: boolean;
     indexSearchable?: boolean;
-    indexRangeable?: boolean;
+    indexRangeFilters?: boolean;
     /** @enum {string} */
     tokenization?: 'word' | 'lowercase' | 'whitespace' | 'field';
     nestedProperties?: definitions['NestedProperty'][];
