@@ -1,5 +1,5 @@
 import Connection from '../connection';
-import { Tenant, TenantCreate, TenantUpdate } from '../openapi/types';
+import { Tenant } from '../openapi/types';
 import ClassCreator from './classCreator';
 import ClassDeleter from './classDeleter';
 import ClassExists from './classExists';
@@ -27,9 +27,9 @@ export interface Schema {
   shardsGetter: () => ShardsGetter;
   shardUpdater: () => ShardUpdater;
   shardsUpdater: () => ShardsUpdater;
-  tenantsCreator: (className: string, tenants: Array<Tenant | TenantCreate>) => TenantsCreator;
+  tenantsCreator: (className: string, tenants: Array<Tenant>) => TenantsCreator;
   tenantsGetter: (className: string) => TenantsGetter;
-  tenantsUpdater: (className: string, tenants: Array<Tenant | TenantUpdate>) => TenantsUpdater;
+  tenantsUpdater: (className: string, tenants: Array<Tenant>) => TenantsUpdater;
   tenantsDeleter: (className: string, tenants: Array<string>) => TenantsDeleter;
   tenantsExists: (className: string, tenant: string) => TenantsExists;
 }
@@ -46,10 +46,10 @@ const schema = (client: Connection): Schema => {
     shardsGetter: () => new ShardsGetter(client),
     shardUpdater: () => new ShardUpdater(client),
     shardsUpdater: () => new ShardsUpdater(client),
-    tenantsCreator: (className: string, tenants: Array<Tenant | TenantCreate>) =>
+    tenantsCreator: (className: string, tenants: Array<Tenant>) =>
       new TenantsCreator(client, className, tenants),
     tenantsGetter: (className: string) => new TenantsGetter(client, className),
-    tenantsUpdater: (className: string, tenants: Array<Tenant | TenantUpdate>) =>
+    tenantsUpdater: (className: string, tenants: Array<Tenant>) =>
       new TenantsUpdater(client, className, tenants),
     tenantsDeleter: (className: string, tenants: Array<string>) =>
       new TenantsDeleter(client, className, tenants),

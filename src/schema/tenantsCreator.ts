@@ -1,12 +1,12 @@
 import Connection from '../connection';
-import { Tenant, TenantCreate } from '../openapi/types';
+import { Tenant } from '../openapi/types';
 import { CommandBase } from '../validation/commandBase';
 
 export default class TenantsCreator extends CommandBase {
   private className: string;
-  private tenants: Array<Tenant | TenantCreate>;
+  private tenants: Array<Tenant>;
 
-  constructor(client: Connection, className: string, tenants: Array<Tenant | TenantCreate>) {
+  constructor(client: Connection, className: string, tenants: Array<Tenant>) {
     super(client);
     this.className = className;
     this.tenants = tenants;
