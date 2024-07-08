@@ -23,17 +23,20 @@ export type TenantsGetOptions = {
 
 /**
  * The expected type returned by all tenant methods.
- *
- * WARNING: The `COLD` and `HOT` statuses are deprecated and will be replaced in a future release.
- * See the docstring for the `activityStatus` field in this type for more information.
  */
 export type Tenant = TenantBase & {
-  /**
-   * `COLD` and `HOT` are included for backwards compatability purposes and are deprecated.
-   *
-   * In a future release, these will be removed in favour of the new statuses as so:
-   * - `HOT` -> `ACTIVE`
-   * - `COLD` -> `INACTIVE`
+  /** There are two statuses that are immutable: `OFFLOADED` and `ONLOADING, which are set by the server:
+   * - `ONLOADING`, which means the tenant is transitioning from the `OFFLOADED` status to `ACTIVE/INACTIVE`.
+   * - `OFFLOADING`, which means the tenant is transitioning from `ACTIVE/INACTIVE` to the `OFFLOADED` status.
+   * The other three statuses are mutable within the `.create` and `.update`, methods:
+   * - `ACTIVE`, which means loaded fully into memory and ready for use.
+   * - `INACTIVE`, which means not loaded into memory with files stored on disk.
+   * - `OFFLOADED`, which means not loaded into memory with files stored on the cloud.
    */
-  activityStatus: 'COLD' | 'HOT' | 'OFFLOADED' | 'OFFLOADING' | 'ONLOADING';
+  activityStatus: 'ACTIVE' | 'INACTIVE' | 'OFFLOADED' | 'OFFLOADING' | 'ONLOADING';
+};
+
+/** This is the type of the Tenant as defined in Weaviate's OpenAPI schema. It is included here for Backwards Compatibility. */
+export type TenantBC = TenantBase & {
+  activityStatus?: 'HOT' | 'COLD' | 'FROZEN';
 };

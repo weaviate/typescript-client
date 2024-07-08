@@ -1,10 +1,11 @@
 import { ConnectionGRPC } from '../../connection/index.js';
 import { WeaviateUnsupportedFeatureError } from '../../errors.js';
+import { Tenant as TenantREST } from '../../openapi/types.js';
 import { TenantsCreator, TenantsDeleter, TenantsGetter, TenantsUpdater } from '../../schema/index.js';
 import { DbVersionSupport } from '../../utils/dbVersion.js';
 import { Deserialize } from '../deserialize/index.js';
 import { Serialize } from '../serialize/index.js';
-import { Tenant, TenantBase, TenantCreate, TenantUpdate } from './types.js';
+import { Tenant, TenantBC, TenantBase, TenantCreate, TenantUpdate } from './types.js';
 
 const checkSupportForGRPCTenantsGetEndpoint = async (dbVersionSupport: DbVersionSupport) => {
   const check = await dbVersionSupport.supportsTenantsGetGRPCMethod();
@@ -15,6 +16,13 @@ const parseValueOrValueArray = <V>(value: V | V[]) => (Array.isArray(value) ? va
 
 const parseStringOrTenant = <T extends TenantBase>(tenant: string | T) =>
   typeof tenant === 'string' ? tenant : tenant.name;
+
+const parseTenantREST = (tenant: TenantREST): Tenant => {
+  return {
+    name: tenant.name!,
+    activityStatus: Deserialize.activityStatusREST(tenant.activityStatus),
+  };
+};
 
 const tenants = (
   connection: ConnectionGRPC,
@@ -31,20 +39,15 @@ const tenants = (
       const result: Record<string, Tenant> = {};
       tenants.forEach((tenant) => {
         if (!tenant.name) return;
-        result[tenant.name] = {
-          name: tenant.name!,
-          activityStatus: Deserialize.activityStatusREST(tenant.activityStatus),
-        };
+        result[tenant.name] = parseTenantREST(tenant);
       });
       return result;
     });
   return {
-    create: (tenants: Tenant | TenantCreate | (Tenant | TenantCreate)[]) =>
-      new TenantsCreator(
-        connection,
-        collection,
-        parseValueOrValueArray(tenants).map(Serialize.tenantsCreate)
-      ).do() as Promise<Tenant[]>,
+    create: (tenants: TenantBC | TenantCreate | (TenantBC | TenantCreate)[]) =>
+      new TenantsCreator(connection, collection, parseValueOrValueArray(tenants).map(Serialize.tenantsCreate))
+        .do()
+        .then((res) => res.map(parseTenantREST)),
     get: async function () {
       const check = await dbVersionSupport.supportsTenantsGetGRPCMethod();
       return check.supports ? getGRPC() : getREST();
@@ -60,12 +63,10 @@ const tenants = (
         collection,
         parseValueOrValueArray(tenants).map(parseStringOrTenant)
       ).do(),
-    update: (tenants: Tenant | TenantUpdate | (Tenant | TenantUpdate)[]) =>
-      new TenantsUpdater(
-        connection,
-        collection,
-        parseValueOrValueArray(tenants).map(Serialize.tenantUpdate)
-      ).do() as Promise<Tenant[]>,
+    update: (tenants: TenantBC | TenantUpdate | (TenantBC | TenantUpdate)[]) =>
+      new TenantsUpdater(connection, collection, parseValueOrValueArray(tenants).map(Serialize.tenantUpdate))
+        .do()
+        .then((res) => res.map(parseTenantREST)),
   };
 };
 
@@ -97,10 +98,10 @@ export interface Tenants {
    *
    * For details on the new activity statuses, see the docstring for the `Tenants` interface type.
    *
-   * @param {Tenant | TenantCreate | (Tenant | TenantCreate)[]} tenants The tenant or tenants to create.
+   * @param {TenantCreate | TenantCreate[]} tenants The tenant or tenants to create.
    * @returns {Promise<Tenant[]>} The created tenant(s) as a list of Tenant.
    */
-  create: (tenants: Tenant | TenantCreate | (Tenant | TenantCreate)[]) => Promise<Tenant[]>;
+  create: (tenants: TenantBC | TenantCreate | (TenantBC | TenantCreate)[]) => Promise<Tenant[]>;
   /**
    * Return all tenants currently associated with a collection in Weaviate.
    * The collection must have been created with multi-tenancy enabled.
@@ -152,5 +153,5 @@ export interface Tenants {
    * @param {TenantInput | TenantInput[]} tenants The tenant or tenants to update.
    * @returns {Promise<Tenant[]>} The updated tenant(s) as a list of Tenant.
    */
-  update: (tenants: Tenant | TenantUpdate | (Tenant | TenantUpdate)[]) => Promise<Tenant[]>;
+  update: (tenants: TenantBC | TenantUpdate | (TenantBC | TenantUpdate)[]) => Promise<Tenant[]>;
 }

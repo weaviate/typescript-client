@@ -84,8 +84,8 @@ describe('Mock testing of tenants.get() method with a REST server', () => {
     const collection = client.collections.get(TENANTS_COLLECTION_NAME);
     const tenants = await collection.tenants.get();
     expect(tenants).toEqual<Record<string, Tenant>>({
-      hot: { name: 'hot', activityStatus: 'HOT' },
-      cold: { name: 'cold', activityStatus: 'COLD' },
+      hot: { name: 'hot', activityStatus: 'ACTIVE' },
+      cold: { name: 'cold', activityStatus: 'INACTIVE' },
       frozen: { name: 'frozen', activityStatus: 'OFFLOADED' },
       freezing: { name: 'freezing', activityStatus: 'OFFLOADING' },
       unfreezing: { name: 'unfreezing', activityStatus: 'ONLOADING' },
@@ -110,8 +110,8 @@ describe('Mock testing of tenants.get() method with a gRPC server', () => {
     const collection = client.collections.get(TENANTS_COLLECTION_NAME);
     const tenants = await collection.tenants.get();
     expect(tenants).toEqual<Record<string, Tenant>>({
-      hot: { name: 'hot', activityStatus: 'HOT' },
-      cold: { name: 'cold', activityStatus: 'COLD' },
+      hot: { name: 'hot', activityStatus: 'ACTIVE' },
+      cold: { name: 'cold', activityStatus: 'INACTIVE' },
       frozen: { name: 'frozen', activityStatus: 'OFFLOADED' },
       freezing: { name: 'freezing', activityStatus: 'OFFLOADING' },
       unfreezing: { name: 'unfreezing', activityStatus: 'ONLOADING' },

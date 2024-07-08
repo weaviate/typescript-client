@@ -38,7 +38,7 @@ describe('Testing of the collection.tenants methods', () => {
     const result = await collection.tenants.create([{ name: tenant, activityStatus: 'HOT' }]);
     expect(result.length).toBe(1);
     expect(result[0].name).toBe(tenant);
-    expect(result[0].activityStatus).toBe('HOT');
+    expect(result[0].activityStatus).toBe('ACTIVE');
   });
 
   it('should be able to create a tenant with new nomenclature', async () => {
@@ -46,7 +46,7 @@ describe('Testing of the collection.tenants methods', () => {
     const result = await collection.tenants.create([{ name: tenant, activityStatus: 'ACTIVE' }]);
     expect(result.length).toBe(1);
     expect(result[0].name).toBe(tenant);
-    expect(result[0].activityStatus).toBe('HOT');
+    expect(result[0].activityStatus).toBe('ACTIVE');
   });
 
   it('should be able to get existing tenants', async () => {
@@ -54,7 +54,7 @@ describe('Testing of the collection.tenants methods', () => {
 
     expect(result).toHaveProperty('hot');
     expect(result.hot.name).toBe('hot');
-    expect(result.hot.activityStatus).toBe('HOT');
+    expect(result.hot.activityStatus).toBe('ACTIVE');
 
     expect(result).toHaveProperty('cold');
     expect(result.cold.name).toBe('cold');
@@ -72,14 +72,14 @@ describe('Testing of the collection.tenants methods', () => {
     const result = await collection.tenants.update([{ name: 'cold', activityStatus: 'HOT' }]);
     expect(result.length).toBe(1);
     expect(result[0].name).toBe('cold');
-    expect(result[0].activityStatus).toBe('HOT');
+    expect(result[0].activityStatus).toBe('ACTIVE');
   });
 
   it('should be able to update a tenant with new nomenclature', async () => {
     const result = await collection.tenants.update([{ name: 'cold-new', activityStatus: 'ACTIVE' }]);
     expect(result.length).toBe(1);
     expect(result[0].name).toBe('cold-new');
-    expect(result[0].activityStatus).toBe('HOT');
+    expect(result[0].activityStatus).toBe('ACTIVE');
   });
 
   describe('getByName and getByNames', () => {
@@ -91,7 +91,7 @@ describe('Testing of the collection.tenants methods', () => {
       }
       const result = await query();
       expect(result).toHaveProperty('name', 'hot');
-      expect(result).toHaveProperty('activityStatus', 'HOT');
+      expect(result).toHaveProperty('activityStatus', 'ACTIVE');
     });
 
     it('should be able to get a tenant by tenant object', async () => {
@@ -102,7 +102,7 @@ describe('Testing of the collection.tenants methods', () => {
       }
       const result = await query();
       expect(result).toHaveProperty('name', 'hot');
-      expect(result).toHaveProperty('activityStatus', 'HOT');
+      expect(result).toHaveProperty('activityStatus', 'ACTIVE');
     });
 
     it('should fail to get a non-existing tenant', async () => {

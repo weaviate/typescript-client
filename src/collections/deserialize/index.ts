@@ -305,9 +305,9 @@ export class Deserialize {
   private static activityStatusGRPC(status: TenantActivityStatus): Tenant['activityStatus'] {
     switch (status) {
       case TenantActivityStatus.TENANT_ACTIVITY_STATUS_COLD:
-        return 'COLD';
+        return 'INACTIVE';
       case TenantActivityStatus.TENANT_ACTIVITY_STATUS_HOT:
-        return 'HOT';
+        return 'ACTIVE';
       case TenantActivityStatus.TENANT_ACTIVITY_STATUS_FROZEN:
         return 'OFFLOADED';
       case TenantActivityStatus.TENANT_ACTIVITY_STATUS_FREEZING:
@@ -322,15 +322,17 @@ export class Deserialize {
   public static activityStatusREST(status: TenantREST['activityStatus']): Tenant['activityStatus'] {
     switch (status) {
       case 'COLD':
-        return 'COLD';
+        return 'INACTIVE';
       case 'HOT':
-        return 'HOT';
+        return 'ACTIVE';
       case 'FROZEN':
         return 'OFFLOADED';
       case 'FREEZING':
         return 'OFFLOADING';
       case 'UNFREEZING':
         return 'ONLOADING';
+      case undefined:
+        return 'ACTIVE';
       default:
         throw new Error(`Unsupported tenant activity status: ${status}`);
     }

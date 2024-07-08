@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
-import { TenantActivityStatus, WhereFilter } from '../../openapi/types.js';
+import { WhereFilter } from '../../openapi/types.js';
 import {
   BatchObject as BatchObjectGRPC,
   BatchObject_MultiTargetRefProps,
@@ -82,7 +82,7 @@ import {
 import { ReferenceGuards } from '../references/classes.js';
 import { Beacon } from '../references/index.js';
 import { uuidToBeacon } from '../references/utils.js';
-import { Tenant, TenantCreate, TenantUpdate } from '../tenants/types.js';
+import { TenantBC, TenantCreate, TenantUpdate } from '../tenants/types.js';
 import {
   BatchObject,
   BatchObjects,
@@ -1137,11 +1137,11 @@ export class Serialize {
     });
   };
 
-  public static tenantsCreate(tenant: Tenant | TenantCreate): {
+  public static tenantsCreate(tenant: TenantBC | TenantCreate): {
     name: string;
     activityStatus?: 'HOT' | 'COLD';
   } {
-    let activityStatus: TenantActivityStatus;
+    let activityStatus: 'HOT' | 'COLD' | undefined;
     switch (tenant.activityStatus) {
       case 'ACTIVE':
         activityStatus = 'HOT';
@@ -1154,17 +1154,13 @@ export class Serialize {
       case undefined:
         activityStatus = tenant.activityStatus;
         break;
-      case 'OFFLOADED':
+      case 'FROZEN':
         throw new WeaviateInvalidInputError(
-          'Cannot create a tenant with activity status OFFLOADED. Add objects to the tenant first and then you can update it to OFFLOADED.'
+          'Invalid activity status. Please provide one of the following: ACTIVE, INACTIVE, HOT, COLD.'
         );
-      case 'OFFLOADING':
+      default:
         throw new WeaviateInvalidInputError(
-          'Cannot create a tenant with activity status OFFLOADING. This status is a read-only value that the server sets in the processing of making a tenant OFFLOADED.'
-        );
-      case 'ONLOADING':
-        throw new WeaviateInvalidInputError(
-          'Cannot create a tenant with activity status ONLOADING. This status is a read-only value that the server sets in the processing of making a tenant HOT.'
+          'Invalid activity status. Please provide one of the following: ACTIVE, INACTIVE, HOT, COLD.'
         );
     }
     return {
@@ -1174,9 +1170,9 @@ export class Serialize {
   }
 
   public static tenantUpdate = (
-    tenant: Tenant | TenantUpdate
+    tenant: TenantBC | TenantUpdate
   ): { name: string; activityStatus: 'HOT' | 'COLD' | 'FROZEN' } => {
-    let activityStatus: TenantActivityStatus;
+    let activityStatus: 'HOT' | 'COLD' | 'FROZEN';
     switch (tenant.activityStatus) {
       case 'ACTIVE':
         activityStatus = 'HOT';
@@ -1189,15 +1185,12 @@ export class Serialize {
         break;
       case 'HOT':
       case 'COLD':
+      case 'FROZEN':
         activityStatus = tenant.activityStatus;
         break;
-      case 'OFFLOADING':
+      default:
         throw new WeaviateInvalidInputError(
-          'Cannot create a tenant with activity status OFFLOADING. This status is a read-only value that the server sets in the processing of making a tenant OFFLOADED.'
-        );
-      case 'ONLOADING':
-        throw new WeaviateInvalidInputError(
-          'Cannot create a tenant with activity status ONLOADING. This status is a read-only value that the server sets in the processing of making a tenant HOT.'
+          'Invalid activity status. Please provide one of the following: ACTIVE, INACTIVE, HOT, COLD, OFFLOADED.'
         );
     }
     return {
