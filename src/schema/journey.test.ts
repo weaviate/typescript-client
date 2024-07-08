@@ -52,7 +52,7 @@ describe('schema', () => {
       name: 'anotherProp',
       tokenization: 'field',
       indexFilterable: true,
-      indexRangeable: false,
+      indexRangeFilters: false,
       indexSearchable: true,
       moduleConfig: {
         'text2vec-contextionary': {
@@ -113,7 +113,7 @@ describe('schema', () => {
                   name: 'stringProp',
                   tokenization: 'word',
                   indexFilterable: true,
-                  indexRangeable: false,
+                  indexRangeFilters: false,
                   indexSearchable: true,
                   moduleConfig: {
                     'text2vec-contextionary': {
@@ -127,7 +127,7 @@ describe('schema', () => {
                   name: 'anotherProp',
                   tokenization: 'field',
                   indexFilterable: true,
-                  indexRangeable: false,
+                  indexRangeFilters: false,
                   indexSearchable: true,
                   moduleConfig: {
                     'text2vec-contextionary': {
@@ -597,7 +597,7 @@ describe('property setting defaults and migrations', () => {
   );
 
   const errMsg1 =
-    '`indexInverted` is deprecated and can not be set together with `indexFilterable`, `indexSearchable` or `indexRangeable`';
+    '`indexInverted` is deprecated and can not be set together with `indexFilterable`, `indexSearchable` or `indexRangeFilters`';
   const errMsg2 = '`indexSearchable` is allowed only for text/text[] data types';
   test.each([
     ['text', false, null, false, errMsg1],
@@ -797,7 +797,7 @@ function newClassObject(className: string) {
         name: 'stringProp',
         tokenization: 'word',
         indexFilterable: true,
-        indexRangeable: false,
+        indexRangeFilters: false,
         indexSearchable: true,
         moduleConfig: {
           'text2vec-contextionary': {
