@@ -10,7 +10,7 @@ import weaviate, {
   WhereFilter,
 } from '..';
 import { FusionType } from './hybrid';
-import { NearVectorTargets } from './nearVector';
+import { MultiVectorTargets } from './nearVector';
 
 describe('the graphql journey', () => {
   let client: WeaviateClient;
@@ -2391,6 +2391,54 @@ describe('named vectors test', () => {
       });
   });
 
+  it('should perform a hybrid query with multi vectors and average combination', () => {
+    return client.graphql
+      .get()
+      .withClassName(className)
+      .withHybrid({
+        query: 'Best',
+        targetVectors: MultiVectorTargets.sum(['title', 'rating']),
+      })
+      .withFields('rating')
+      .do()
+      .then((res) => {
+        expect(res.data.Get.NamedVectorTest).toHaveLength(3);
+        expect(res.data.Get.NamedVectorTest[0].rating).toBe('Best');
+      });
+  });
+
+  // it('should perform a hybrid nearVector subsearch query with multi vectors and average combination', () => {
+  //   return client.data
+  //     .getterById()
+  //     .withClassName(className)
+  //     .withId(oneUUID)
+  //     .withVector()
+  //     .do()
+  //     .then((res) => res.vectors!)
+  //     .then((vectors) =>
+  //       client.graphql
+  //         .get()
+  //         .withClassName(className)
+  //         .withHybrid({
+  //           query: 'Best',
+  //           searches: [
+  //             {
+  //               nearVector: {
+  //                 vector: vectors,
+  //                 targetVectors: MultiVectorTargets.average(['title', 'rating']),
+  //               },
+  //             },
+  //           ],
+  //         })
+  //         .withFields('rating')
+  //         .do()
+  //         .then((res) => {
+  //           expect(res.data.Get.NamedVectorTest).toHaveLength(3);
+  //           expect(res.data.Get.NamedVectorTest[0].rating).toBe('Good');
+  //         })
+  //     );
+  // });
+
   it('should perform a nearVector query with multi vectors and implicit vector spaces', () => {
     return client.data
       .getterById()
@@ -2429,7 +2477,7 @@ describe('named vectors test', () => {
           .withClassName(className)
           .withNearVector({
             vector,
-            targetVectors: NearVectorTargets.average(['title', 'rating']),
+            targetVectors: MultiVectorTargets.average(['title', 'rating']),
           })
           .withFields('title')
           .do()
@@ -2454,7 +2502,7 @@ describe('named vectors test', () => {
           .withClassName(className)
           .withNearVector({
             vector,
-            targetVectors: NearVectorTargets.manualWeights({
+            targetVectors: MultiVectorTargets.manualWeights({
               title: 5,
               rating: 0.1,
             }),

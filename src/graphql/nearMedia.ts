@@ -1,7 +1,9 @@
+import { NearVectorTargetsType, parseTargetVectors } from './nearVector';
+
 export interface NearMediaBase {
   certainty?: number;
   distance?: number;
-  targetVectors?: string[];
+  targetVectors?: string[] | NearVectorTargetsType;
 }
 export interface NearMediaArgs extends NearMediaBase {
   media: string;
@@ -40,7 +42,7 @@ export default class GraphQLNearMedia {
   private distance?: number;
   private media: string;
   private type: NearMediaType;
-  private targetVectors?: string[];
+  private targetVectors?: string[] | NearVectorTargetsType;
 
   constructor(args: NearMediaArgs) {
     this.certainty = args.certainty;
@@ -67,9 +69,7 @@ export default class GraphQLNearMedia {
       args = [...args, `distance:${this.distance}`];
     }
 
-    if (this.targetVectors && this.targetVectors.length > 0) {
-      args = [...args, `targetVectors:${JSON.stringify(this.targetVectors)}`];
-    }
+    args = parseTargetVectors(args, this.targetVectors);
 
     if (!wrap) {
       return `${args.join(',')}`;

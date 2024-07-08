@@ -1,11 +1,12 @@
 import { Move, parseMove } from './nearText';
+import { NearVectorTargetsType, parseTargetVectors, parseVector } from './nearVector';
 
 export interface HybridArgs {
   alpha?: number;
   query: string;
-  vector?: number[];
+  vector?: number[] | Record<string, number[]>;
   properties?: string[];
-  targetVectors?: string[];
+  targetVectors?: string[] | NearVectorTargetsType;
   fusionType?: FusionType;
   searches?: HybridSubSearch[];
 }
@@ -19,7 +20,7 @@ export interface NearTextSubSearch {
 }
 
 export interface NearVectorSubSearch {
-  vector: number[];
+  vector: number[] | Record<string, number[]>;
   certainty?: number;
   distance?: number;
   targetVectors?: string[];
@@ -63,7 +64,7 @@ class GraphQLHybridSubSearch {
       outer = [...outer, `nearText:{${inner.join(',')}}`];
     }
     if (this.nearVector !== undefined) {
-      let inner = [`vector:${JSON.stringify(this.nearVector.vector)}`];
+      let inner = parseVector([], this.nearVector.vector);
       if (this.nearVector.certainty) {
         inner = [...inner, `certainty:${this.nearVector.certainty}`];
       }
@@ -82,9 +83,9 @@ class GraphQLHybridSubSearch {
 export default class GraphQLHybrid {
   private alpha?: number;
   private query: string;
-  private vector?: number[];
+  private vector?: number[] | Record<string, number[]>;
   private properties?: string[];
-  private targetVectors?: string[];
+  private targetVectors?: string[] | NearVectorTargetsType;
   private fusionType?: FusionType;
   private searches?: GraphQLHybridSubSearch[];
 
@@ -105,16 +106,12 @@ export default class GraphQLHybrid {
       args = [...args, `alpha:${JSON.stringify(this.alpha)}`];
     }
 
-    if (this.vector !== undefined) {
-      args = [...args, `vector:${JSON.stringify(this.vector)}`];
-    }
+    args = parseVector(args, this.vector);
+
+    args = parseTargetVectors(args, this.targetVectors);
 
     if (this.properties && this.properties.length > 0) {
       args = [...args, `properties:${JSON.stringify(this.properties)}`];
-    }
-
-    if (this.targetVectors && this.targetVectors.length > 0) {
-      args = [...args, `targetVectors:${JSON.stringify(this.targetVectors)}`];
     }
 
     if (this.fusionType !== undefined) {

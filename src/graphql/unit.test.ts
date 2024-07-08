@@ -1,4 +1,4 @@
-import GraphQLNearVector, { NearVectorTargets } from './nearVector';
+import GraphQLNearVector, { MultiVectorTargets } from './nearVector';
 
 describe('Unit testing of the builder classes', () => {
   describe('GraphQLNearVector', () => {
@@ -17,7 +17,7 @@ describe('Unit testing of the builder classes', () => {
     it('should successfully pass sum targets', () => {
       const nearVector = new GraphQLNearVector({
         vector: [1, 2, 3],
-        targetVectors: NearVectorTargets.sum(['one', 'two']),
+        targetVectors: MultiVectorTargets.sum(['one', 'two']),
       });
       expect(nearVector.toString()).toEqual(
         '{vector:[1,2,3],targets:{combinationMethod:sum,targetVectors:["one","two"]}}'
@@ -27,7 +27,7 @@ describe('Unit testing of the builder classes', () => {
     it('should successfully pass weighted targets', () => {
       const nearVector = new GraphQLNearVector({
         vector: [1, 2, 3],
-        targetVectors: NearVectorTargets.manualWeights({ one: 0.5, two: 0.5 }),
+        targetVectors: MultiVectorTargets.manualWeights({ one: 0.5, two: 0.5 }),
       });
       expect(nearVector.toString()).toEqual(
         '{vector:[1,2,3],targets:{combinationMethod:manualWeights,targetVectors:["one","two"],weights:{one:0.5,two:0.5}}}'
