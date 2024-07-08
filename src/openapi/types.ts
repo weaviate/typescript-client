@@ -36,9 +36,9 @@ export type WhereFilter = definitions['WhereFilter'];
 // Schema
 export type WeaviateSchema = definitions['Schema'];
 export type WeaviateClass = definitions['Class'];
+export type Tenant = definitions['Tenant'];
 export type ShardStatus = definitions['ShardStatus'];
 export type ShardStatusList = definitions['ShardStatusList'];
-export type Tenant = definitions['Tenant'];
 export type SchemaClusterStatus = definitions['SchemaClusterStatus'];
 // Nodes
 export type NodesStatusResponse = definitions['NodesStatusResponse'];

@@ -16,7 +16,5 @@ export default class TenantsUpdater extends CommandBase {
     // nothing to validate
   };
 
-  do = (): Promise<Array<Tenant>> => {
-    return this.client.put(`/schema/${this.className}/tenants`, this.tenants);
-  };
+  do = (): Promise<Array<Tenant>> => this.client.put(`/schema/${this.className}/tenants`, this.tenants);
 }

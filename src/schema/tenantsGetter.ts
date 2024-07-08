@@ -14,7 +14,5 @@ export default class TenantsGetter extends CommandBase {
     // nothing to validate
   };
 
-  do = (): Promise<Array<Tenant>> => {
-    return this.client.get(`/schema/${this.className}/tenants`);
-  };
+  do = (): Promise<Array<Tenant>> => this.client.get(`/schema/${this.className}/tenants`);
 }

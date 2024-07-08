@@ -16,7 +16,5 @@ export default class TenantsCreator extends CommandBase {
     // nothing to validate
   };
 
-  do = (): Promise<Array<Tenant>> => {
-    return this.client.post(`/schema/${this.className}/tenants`, this.tenants);
-  };
+  do = (): Promise<Array<Tenant>> => this.client.post(`/schema/${this.className}/tenants`, this.tenants);
 }
