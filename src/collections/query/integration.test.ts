@@ -909,7 +909,7 @@ describe('Testing of the collection.query methods with a multi-tenancy collectio
     expect(obj2.objects[0].uuid).toEqual(id2);
   });
 
-  it.skip('should find the objects in their tenants by nearObject', async () => {
+  it('should find the objects in their tenants by nearObject', async () => {
     const obj1 = await collection.withTenant(tenantOne).query.nearObject(id1);
     const obj2 = await collection.withTenant(tenantTwo).query.nearObject(id2);
     expect(obj1.objects.length).toEqual(1);

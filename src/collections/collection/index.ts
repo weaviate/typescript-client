@@ -13,7 +13,7 @@ import generate, { Generate } from '../generate/index.js';
 import { Iterator } from '../iterator/index.js';
 import query, { Query } from '../query/index.js';
 import sort, { Sort } from '../sort/index.js';
-import tenants, { TenantInput, Tenants } from '../tenants/index.js';
+import tenants, { TenantBase, Tenants } from '../tenants/index.js';
 import { QueryMetadata, QueryProperty, QueryReference } from '../types/index.js';
 
 export interface Collection<T = undefined, N = string> {
@@ -78,10 +78,11 @@ export interface Collection<T = undefined, N = string> {
    *
    * This method does not send a request to Weaviate. It only returns a new collection object that is specific to the tenant you specify.
    *
-   * @param {string | TenantInput} tenant The tenant name or tenant object to use.
+   * @typedef {TenantBase} TT A type that extends TenantBase.
+   * @param {string | TT} tenant The tenant name or tenant object to use.
    * @returns {Collection<T, N>} A new collection object specific to the tenant you specified.
    */
-  withTenant: (tenant: string | TenantInput) => Collection<T, N>;
+  withTenant: <TT extends TenantBase>(tenant: string | TT) => Collection<T, N>;
 }
 
 export type IteratorOptions<T> = {
@@ -136,7 +137,7 @@ const collection = <T, N>(
       ),
     withConsistency: (consistencyLevel: ConsistencyLevel) =>
       collection<T, N>(connection, capitalizedName, dbVersionSupport, consistencyLevel, tenant),
-    withTenant: (tenant: string | TenantInput) =>
+    withTenant: <TT extends TenantBase>(tenant: string | TT) =>
       collection<T, N>(
         connection,
         capitalizedName,

@@ -14,11 +14,11 @@ import { WeaviateDefinition, WeaviateServiceImplementation } from '../../proto/v
 
 import weaviate, { Tenant } from '../../index';
 
-const TENANTS_GET_COLLECTION_NAME = 'TestCollectionTenants';
+const TENANTS_COLLECTION_NAME = 'TestCollectionTenants';
 
 const makeRestApp = (version: string) => {
   const httpApp = express();
-  httpApp.get(`/v1/schema/${TENANTS_GET_COLLECTION_NAME}/tenants`, (req, res) =>
+  httpApp.get(`/v1/schema/${TENANTS_COLLECTION_NAME}/tenants`, (req, res) =>
     res.send([
       { name: 'hot', activityStatus: 'HOT' },
       { name: 'cold', activityStatus: 'COLD' },
@@ -81,14 +81,14 @@ describe('Mock testing of tenants.get() method with a REST server', () => {
 
   it('should get mocked tenants', async () => {
     const client = await weaviate.connectToLocal({ port: 8954, grpcPort: 8955 });
-    const collection = client.collections.get(TENANTS_GET_COLLECTION_NAME);
+    const collection = client.collections.get(TENANTS_COLLECTION_NAME);
     const tenants = await collection.tenants.get();
     expect(tenants).toEqual<Record<string, Tenant>>({
-      hot: { name: 'hot', activityStatus: 'HOT' },
-      cold: { name: 'cold', activityStatus: 'COLD' },
-      frozen: { name: 'frozen', activityStatus: 'FROZEN' },
-      freezing: { name: 'freezing', activityStatus: 'FREEZING' },
-      unfreezing: { name: 'unfreezing', activityStatus: 'UNFREEZING' },
+      hot: { name: 'hot', activityStatus: 'ACTIVE' },
+      cold: { name: 'cold', activityStatus: 'INACTIVE' },
+      frozen: { name: 'frozen', activityStatus: 'OFFLOADED' },
+      freezing: { name: 'freezing', activityStatus: 'OFFLOADING' },
+      unfreezing: { name: 'unfreezing', activityStatus: 'ONLOADING' },
     });
   });
 
@@ -107,14 +107,14 @@ describe('Mock testing of tenants.get() method with a gRPC server', () => {
 
   it('should get the mocked tenants', async () => {
     const client = await weaviate.connectToLocal({ port: 8956, grpcPort: 8957 });
-    const collection = client.collections.get(TENANTS_GET_COLLECTION_NAME);
+    const collection = client.collections.get(TENANTS_COLLECTION_NAME);
     const tenants = await collection.tenants.get();
     expect(tenants).toEqual<Record<string, Tenant>>({
-      hot: { name: 'hot', activityStatus: 'HOT' },
-      cold: { name: 'cold', activityStatus: 'COLD' },
-      frozen: { name: 'frozen', activityStatus: 'FROZEN' },
-      freezing: { name: 'freezing', activityStatus: 'FREEZING' },
-      unfreezing: { name: 'unfreezing', activityStatus: 'UNFREEZING' },
+      hot: { name: 'hot', activityStatus: 'ACTIVE' },
+      cold: { name: 'cold', activityStatus: 'INACTIVE' },
+      frozen: { name: 'frozen', activityStatus: 'OFFLOADED' },
+      freezing: { name: 'freezing', activityStatus: 'OFFLOADING' },
+      unfreezing: { name: 'unfreezing', activityStatus: 'ONLOADING' },
     });
   });
 

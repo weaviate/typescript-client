@@ -82,6 +82,7 @@ import {
 import { ReferenceGuards } from '../references/classes.js';
 import { Beacon } from '../references/index.js';
 import { uuidToBeacon } from '../references/utils.js';
+import { TenantBC, TenantCreate, TenantUpdate } from '../tenants/types.js';
 import {
   BatchObject,
   BatchObjects,
@@ -1134,5 +1135,67 @@ export class Serialize {
     return waitFor().then(() => {
       return { batch: batch, mapped: objs };
     });
+  };
+
+  public static tenantsCreate(tenant: TenantBC | TenantCreate): {
+    name: string;
+    activityStatus?: 'HOT' | 'COLD';
+  } {
+    let activityStatus: 'HOT' | 'COLD' | undefined;
+    switch (tenant.activityStatus) {
+      case 'ACTIVE':
+        activityStatus = 'HOT';
+        break;
+      case 'INACTIVE':
+        activityStatus = 'COLD';
+        break;
+      case 'HOT':
+      case 'COLD':
+      case undefined:
+        activityStatus = tenant.activityStatus;
+        break;
+      case 'FROZEN':
+        throw new WeaviateInvalidInputError(
+          'Invalid activity status. Please provide one of the following: ACTIVE, INACTIVE, HOT, COLD.'
+        );
+      default:
+        throw new WeaviateInvalidInputError(
+          'Invalid activity status. Please provide one of the following: ACTIVE, INACTIVE, HOT, COLD.'
+        );
+    }
+    return {
+      name: tenant.name,
+      activityStatus,
+    };
+  }
+
+  public static tenantUpdate = (
+    tenant: TenantBC | TenantUpdate
+  ): { name: string; activityStatus: 'HOT' | 'COLD' | 'FROZEN' } => {
+    let activityStatus: 'HOT' | 'COLD' | 'FROZEN';
+    switch (tenant.activityStatus) {
+      case 'ACTIVE':
+        activityStatus = 'HOT';
+        break;
+      case 'INACTIVE':
+        activityStatus = 'COLD';
+        break;
+      case 'OFFLOADED':
+        activityStatus = 'FROZEN';
+        break;
+      case 'HOT':
+      case 'COLD':
+      case 'FROZEN':
+        activityStatus = tenant.activityStatus;
+        break;
+      default:
+        throw new WeaviateInvalidInputError(
+          'Invalid activity status. Please provide one of the following: ACTIVE, INACTIVE, HOT, COLD, OFFLOADED.'
+        );
+    }
+    return {
+      name: tenant.name,
+      activityStatus,
+    };
   };
 }
