@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
 import { v4 } from 'uuid';
 import { WeaviateUnsupportedFeatureError } from '../../errors.js';
-import weaviate, { WeaviateClient } from '../../index.js';
+import weaviate, { WeaviateClient, weaviateV2 } from '../../index.js';
 import { GeoCoordinate, PhoneNumber } from '../../proto/v1/properties.js';
 import { Collection } from '../collection/index.js';
 import { CrossReference, CrossReferences, Reference } from '../references/index.js';
@@ -998,5 +998,42 @@ describe('Testing of the collection.data methods with a vector index', () => {
       includeVector: true,
     });
     expect(obj2?.vectors.default).toEqual([5, 6, 7, 8]);
+  });
+});
+
+describe('Testing of BYOV insertion with legacy vectorizer', () => {
+  const collectionName = 'TestBYOVEdgeCase';
+  const oldClient = weaviateV2.client({ scheme: 'http', host: 'localhost:8080' });
+
+  beforeAll(() =>
+    oldClient.schema
+      .classCreator()
+      .withClass({
+        class: collectionName,
+        vectorizer: 'none',
+      })
+      .do()
+  );
+
+  afterAll(() => oldClient.schema.classDeleter().withClassName(collectionName).do());
+
+  it('should insert and retrieve many vectors using the new client', async () => {
+    const client = await weaviate.connectToLocal();
+    const collection = client.collections.get(collectionName);
+    const { uuids } = await collection.data.insertMany([{ vectors: [1, 2, 3] }, { vectors: [4, 5, 6] }]);
+    await collection.query
+      .fetchObjectById(uuids[0], { includeVector: true })
+      .then((res) => expect(res?.vectors.default).toEqual([1, 2, 3]));
+    await collection.query
+      .fetchObjectById(uuids[1], { includeVector: true })
+      .then((res) => expect(res?.vectors.default).toEqual([4, 5, 6]));
+  });
+
+  it('should insert and retrieve single vectors using the new client', async () => {
+    const client = await weaviate.connectToLocal();
+    const collection = client.collections.get(collectionName);
+    const id = await collection.data.insert({ vectors: [7, 8, 9] });
+    const object = await collection.query.fetchObjectById(id, { includeVector: true });
+    expect(object?.vectors.default).toEqual([7, 8, 9]);
   });
 });
