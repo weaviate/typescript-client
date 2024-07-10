@@ -193,6 +193,7 @@ const data = <T>(
     if (Array.isArray(object.vectors)) {
       const supportsNamedVectors = await dbVersionSupport.supportsNamedVectors();
       if (supportsNamedVectors.supports) {
+        obj.vector = object.vectors;
         obj.vectors = { default: object.vectors };
       } else {
         obj.vector = object.vectors;
