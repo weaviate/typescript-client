@@ -8,7 +8,7 @@ on:
 
 
 env:
-  WEAVIATE_VERSION: preview-merge-stable-v1-26-into-main-5593f06
+  WEAVIATE_VERSION: preview--df167b7
 
 jobs:
   checks:
