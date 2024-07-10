@@ -8,7 +8,7 @@ export type VectorIndexConfigHNSW = {
   ef: number;
   flatSearchCutoff: number;
   maxConnections: number;
-  quantizer: PQConfig | BQConfig | undefined;
+  quantizer: PQConfig | BQConfig | SQConfig | undefined;
   skip: boolean;
   vectorCacheMaxObjects: number;
   type: 'hnsw';
@@ -43,6 +43,12 @@ export type BQConfig = {
   cache: boolean;
   rescoreLimit: number;
   type: 'bq';
+};
+
+export type SQConfig = {
+  rescoreLimit: number;
+  trainingLimit: number;
+  type: 'sq';
 };
 
 export type PQConfig = {

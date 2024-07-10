@@ -4,6 +4,7 @@ import {
   PQConfig,
   PQEncoderDistribution,
   PQEncoderType,
+  SQConfig,
   VectorDistance,
   VectorIndexConfigDynamic,
   VectorIndexConfigFlat,
@@ -36,6 +37,14 @@ export type BQConfigUpdate = {
   type: 'bq';
 };
 
+export type SQConfigCreate = QuantizerRecursivePartial<SQConfig>;
+
+export type SQConfigUpdate = {
+  rescoreLimit?: number;
+  trainingLimit?: number;
+  type: 'sq';
+};
+
 export type VectorIndexConfigHNSWCreate = RecursivePartial<VectorIndexConfigHNSW>;
 
 export type VectorIndexConfigDynamicCreate = RecursivePartial<VectorIndexConfigDynamic>;
@@ -48,7 +57,7 @@ export type VectorIndexConfigHNSWUpdate = {
   dynamicEfFactor?: number;
   ef?: number;
   flatSearchCutoff?: number;
-  quantizer?: PQConfigUpdate | BQConfigUpdate;
+  quantizer?: PQConfigUpdate | BQConfigUpdate | SQConfigUpdate;
   vectorCacheMaxObjects?: number;
 };
 
@@ -118,7 +127,7 @@ export type VectorIndexConfigHNSWCreateOptions = {
   /** The maximum number of connections. Default is 64. */
   maxConnections?: number;
   /** The quantizer configuration to use. Use `vectorIndex.quantizer.bq` or `vectorIndex.quantizer.pq` to make one. */
-  quantizer?: PQConfigCreate | BQConfigCreate;
+  quantizer?: PQConfigCreate | BQConfigCreate | SQConfigCreate;
   /** Whether to skip the index. Default is false. */
   skip?: boolean;
   /** The maximum number of objects to cache in the vector cache. Default is 1000000000000. */

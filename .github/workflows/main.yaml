@@ -7,9 +7,9 @@ on:
   pull_request:
 
 env:
-  WEAVIATE_124: 1.24.19
-  WEAVIATE_125: 1.25.5
-  WEAVIATE_126: preview--c2bfc40
+  WEAVIATE_124: 1.24.20
+  WEAVIATE_125: 1.25.7
+  WEAVIATE_126: preview--30d0b3d
 
 jobs:
   checks:
@@ -83,7 +83,7 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
       - run: npm ci
       - run: npm run build
-      - run: npm publish
+      - run: npm publish --tag next
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTOMATION_TOKEN }}
       - run: npm run docs

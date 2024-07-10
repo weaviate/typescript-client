@@ -1,6 +1,19 @@
-import { BQConfigCreate, BQConfigUpdate, PQConfigCreate, PQConfigUpdate } from './types/index.js';
+import {
+  BQConfigCreate,
+  BQConfigUpdate,
+  PQConfigCreate,
+  PQConfigUpdate,
+  SQConfigCreate,
+  SQConfigUpdate,
+} from './types/index.js';
 
-type QuantizerConfig = PQConfigCreate | PQConfigUpdate | BQConfigCreate | BQConfigUpdate;
+type QuantizerConfig =
+  | PQConfigCreate
+  | PQConfigUpdate
+  | BQConfigCreate
+  | BQConfigUpdate
+  | SQConfigCreate
+  | SQConfigUpdate;
 
 export class QuantizerGuards {
   static isPQCreate(config?: QuantizerConfig): config is PQConfigCreate {
@@ -14,6 +27,12 @@ export class QuantizerGuards {
   }
   static isBQUpdate(config?: QuantizerConfig): config is BQConfigUpdate {
     return (config as BQConfigUpdate)?.type === 'bq';
+  }
+  static isSQCreate(config?: QuantizerConfig): config is SQConfigCreate {
+    return (config as SQConfigCreate)?.type === 'sq';
+  }
+  static isSQUpdate(config?: QuantizerConfig): config is SQConfigUpdate {
+    return (config as SQConfigUpdate)?.type === 'sq';
   }
 }
 

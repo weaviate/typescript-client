@@ -91,6 +91,7 @@ describe('Testing of the collection.aggregate methods', () => {
         ],
         vectorizers: weaviate.configure.vectorizer.text2VecContextionary({
           vectorizeCollectionName: false,
+          vectorIndexConfig: weaviate.configure.vectorIndex.hnsw({ maxConnections: 64 }),
         }),
       })
       .then(async () => {

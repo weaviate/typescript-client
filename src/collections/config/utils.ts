@@ -37,6 +37,7 @@ import {
   ReplicationConfig,
   Reranker,
   RerankerConfig,
+  SQConfig,
   ShardingConfig,
   VectorConfig,
   VectorDistance,
@@ -356,11 +357,13 @@ class ConfigMapping {
       throw new WeaviateDeserializationError(
         'Vector index vector cache max objects was not returned by Weaviate'
       );
-    let quantizer: PQConfig | BQConfig | undefined;
+    let quantizer: PQConfig | BQConfig | SQConfig | undefined;
     if (exists<Record<string, any>>(v.pq) && v.pq.enabled === true) {
       quantizer = ConfigMapping.pq(v.pq);
     } else if (exists<Record<string, any>>(v.bq) && v.bq.enabled === true) {
       quantizer = ConfigMapping.bq(v.bq);
+    } else if (exists<Record<string, any>>(v.sq) && v.sq.enabled === true) {
+      quantizer = ConfigMapping.sq(v.sq);
     } else {
       quantizer = undefined;
     }
@@ -391,6 +394,19 @@ class ConfigMapping {
       cache,
       rescoreLimit,
       type: 'bq',
+    };
+  }
+  static sq(v?: Record<string, unknown>): SQConfig | undefined {
+    if (v === undefined) throw new WeaviateDeserializationError('SQ was not returned by Weaviate');
+    if (!exists<boolean>(v.enabled))
+      throw new WeaviateDeserializationError('SQ enabled was not returned by Weaviate');
+    if (v.enabled === false) return undefined;
+    const rescoreLimit = v.rescoreLimit === undefined ? 1000 : (v.rescoreLimit as number);
+    const trainingLimit = v.trainingLimit === undefined ? 100000 : (v.trainingLimit as number);
+    return {
+      rescoreLimit,
+      trainingLimit,
+      type: 'sq',
     };
   }
   static vectorIndexFlat(v: WeaviateVectorIndexConfig): VectorIndexConfigFlat {
