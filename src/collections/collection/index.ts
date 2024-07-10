@@ -15,6 +15,7 @@ import query, { Query } from '../query/index.js';
 import sort, { Sort } from '../sort/index.js';
 import tenants, { TenantBase, Tenants } from '../tenants/index.js';
 import { QueryMetadata, QueryProperty, QueryReference } from '../types/index.js';
+import multiTargetVector, { MultiTargetVector } from '../vectors/multiTargetVector.js';
 
 export interface Collection<T = undefined, N = string> {
   /** This namespace includes all the querying methods available to you when using Weaviate's standard aggregation capabilities. */
@@ -39,6 +40,8 @@ export interface Collection<T = undefined, N = string> {
   sort: Sort<T>;
   /** This namespace includes all the CRUD methods available to you when modifying the tenants of a multi-tenancy-enabled collection in Weaviate. */
   tenants: Tenants;
+  /** This namespaces includes the methods by which you cna create the `MultiTargetVectorJoin` values for use when performing multi-target vector searches over your collection. */
+  multiTargetVector: MultiTargetVector;
   /**
    * Use this method to check if the collection exists in Weaviate.
    *
@@ -117,6 +120,7 @@ const collection = <T, N>(
     filter: filter<T extends undefined ? any : T>(),
     generate: generate<T>(connection, capitalizedName, dbVersionSupport, consistencyLevel, tenant),
     metrics: metrics<T>(),
+    multiTargetVector: multiTargetVector(),
     name: name,
     query: queryCollection,
     sort: sort<T>(),

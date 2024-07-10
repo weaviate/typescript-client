@@ -13,6 +13,7 @@ import {
   NearMediaType,
   NearOptions,
   NearTextOptions,
+  NearVectorInputType,
 } from '../query/types.js';
 import {
   GenerateOptions,
@@ -301,13 +302,13 @@ interface NearVector<T> {
    *
    * This overload is for performing a search without the `groupBy` param.
    *
-   * @param {number[]} vector - The vector to search for.
+   * @param {NearVectorInputType} vector - The vector(s) to search for.
    * @param {GenerateOptions<T>} generate - The available options for performing the generation.
    * @param {BaseNearOptions<T>} [opts] - The available options for performing the near-vector search.
    * @return {Promise<GenerativeReturn<T>>} - The results of the search including the generated data.
    */
   nearVector(
-    vector: number[],
+    vector: NearVectorInputType,
     generate: GenerateOptions<T>,
     opts?: BaseNearOptions<T>
   ): Promise<GenerativeReturn<T>>;
@@ -318,13 +319,13 @@ interface NearVector<T> {
    *
    * This overload is for performing a search with the `groupBy` param.
    *
-   * @param {number[]} vector - The vector to search for.
+   * @param {NearVectorInputType} vector - The vector(s) to search for.
    * @param {GenerateOptions<T>} generate - The available options for performing the generation.
    * @param {GroupByNearOptions<T>} opts - The available options for performing the near-vector search.
    * @return {Promise<GenerativeGroupByReturn<T>>} - The results of the search including the generated data grouped by the specified properties.
    */
   nearVector(
-    vector: number[],
+    vector: NearVectorInputType,
     generate: GenerateOptions<T>,
     opts: GroupByNearOptions<T>
   ): Promise<GenerativeGroupByReturn<T>>;
@@ -335,12 +336,16 @@ interface NearVector<T> {
    *
    * This overload is for performing a search with a programmatically defined `opts` param.
    *
-   * @param {number[]} vector - The vector to search for.
+   * @param {NearVectorInputType} vector - The vector(s) to search for.
    * @param {GenerateOptions<T>} generate - The available options for performing the generation.
    * @param {NearOptions<T>} [opts] - The available options for performing the near-vector search.
    * @return {GenerateReturn<T>} - The results of the search including the generated data.
    */
-  nearVector(vector: number[], generate: GenerateOptions<T>, opts?: NearOptions<T>): GenerateReturn<T>;
+  nearVector(
+    vector: NearVectorInputType,
+    generate: GenerateOptions<T>,
+    opts?: NearOptions<T>
+  ): GenerateReturn<T>;
 }
 
 export interface Generate<T>

@@ -136,8 +136,8 @@ export default class Searcher extends Base implements Search {
   public withNearVector = (args: SearchNearVectorArgs) => this.call(SearchRequest.fromPartial(args));
   public withNearVideo = (args: SearchNearVideoArgs) => this.call(SearchRequest.fromPartial(args));
 
-  private call(message: SearchRequest) {
-    return this.sendWithTimeout((signal: AbortSignal) =>
+  private call = (message: SearchRequest) =>
+    this.sendWithTimeout((signal: AbortSignal) =>
       this.connection
         .search(
           {
@@ -157,5 +157,4 @@ export default class Searcher extends Base implements Search {
           throw new WeaviateQueryError(err.message, 'gRPC');
         })
     );
-  }
 }

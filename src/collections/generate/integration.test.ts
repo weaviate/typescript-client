@@ -7,6 +7,15 @@ import { GenerateOptions, GroupByOptions } from '../types/index.js';
 
 const maybe = process.env.OPENAI_APIKEY ? describe : describe.skip;
 
+const makeOpenAIClient = () =>
+  weaviate.connectToLocal({
+    port: 8086,
+    grpcPort: 50057,
+    headers: {
+      'X-Openai-Api-Key': process.env.OPENAI_APIKEY!,
+    },
+  });
+
 maybe('Testing of the collection.generate methods with a simple collection', () => {
   let client: WeaviateClient;
   let collection: Collection<TestCollectionGenerateSimple, 'TestCollectionGenerateSimple'>;
@@ -32,13 +41,7 @@ maybe('Testing of the collection.generate methods with a simple collection', () 
   });
 
   beforeAll(async () => {
-    client = await weaviate.connectToLocal({
-      port: 8086,
-      grpcPort: 50057,
-      headers: {
-        'X-Openai-Api-Key': process.env.OPENAI_APIKEY!,
-      },
-    });
+    client = await makeOpenAIClient();
     collection = client.collections.get(collectionName);
     id = await client.collections
       .create({
@@ -179,13 +182,7 @@ maybe('Testing of the groupBy collection.generate methods with a simple collecti
   });
 
   beforeAll(async () => {
-    client = await weaviate.connectToLocal({
-      port: 8086,
-      grpcPort: 50057,
-      headers: {
-        'X-Openai-Api-Key': process.env.OPENAI_APIKEY!,
-      },
-    });
+    client = await makeOpenAIClient();
     collection = client.collections.get(collectionName);
     id = await client.collections
       .create({
@@ -312,5 +309,118 @@ maybe('Testing of the groupBy collection.generate methods with a simple collecti
     expect(ret.objects[0].properties.testProp).toEqual('test');
     expect(ret.objects[0].uuid).toEqual(id);
     expect(ret.objects[0].belongsToGroup).toEqual('test');
+  });
+});
+
+maybe('Testing of the collection.generate methods with a multi vector collection', () => {
+  let client: WeaviateClient;
+  let collection: Collection;
+  const collectionName = 'TestCollectionQueryWithMultiVector';
+
+  let id1: string;
+  let id2: string;
+  let titleVector: number[];
+  let title2Vector: number[];
+
+  afterAll(() => {
+    return client.collections.delete(collectionName).catch((err) => {
+      console.error(err);
+      throw err;
+    });
+  });
+
+  beforeAll(async () => {
+    client = await makeOpenAIClient();
+    collection = client.collections.get(collectionName);
+    const query = () =>
+      client.collections
+        .create({
+          name: collectionName,
+          properties: [
+            {
+              name: 'title',
+              dataType: 'text',
+              vectorizePropertyName: false,
+            },
+          ],
+          vectorizers: [
+            weaviate.configure.vectorizer.text2VecOpenAI({
+              name: 'title',
+              sourceProperties: ['title'],
+            }),
+            weaviate.configure.vectorizer.text2VecOpenAI({
+              name: 'title2',
+              sourceProperties: ['title'],
+            }),
+          ],
+        })
+        .then(async () => {
+          id1 = await collection.data.insert({
+            properties: {
+              title: 'test',
+            },
+          });
+          id2 = await collection.data.insert({
+            properties: {
+              title: 'other',
+            },
+          });
+          const res = await collection.query.fetchObjectById(id1, { includeVector: true });
+          titleVector = res!.vectors.title!;
+          title2Vector = res!.vectors.title2!;
+        });
+    if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 24, 0))) {
+      await expect(query()).rejects.toThrow(WeaviateUnsupportedFeatureError);
+      return;
+    }
+    return query();
+  });
+
+  it('should generate with a near vector search on multi vectors', async () => {
+    const query = () =>
+      collection.generate.nearVector(
+        [titleVector, title2Vector],
+        {
+          groupedTask: 'What is the value of title here? {title}',
+          groupedProperties: ['title'],
+          singlePrompt: 'Write a haiku about ducks for {title}',
+        },
+        {
+          targetVector: ['title', 'title2'],
+        }
+      );
+    if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 26, 0))) {
+      await expect(query()).rejects.toThrow(WeaviateUnsupportedFeatureError);
+      return;
+    }
+    const ret = await query();
+    expect(ret.objects.length).toEqual(2);
+    expect(ret.generated).toBeDefined();
+    expect(ret.objects[0].generated).toBeDefined();
+    expect(ret.objects[1].generated).toBeDefined();
+  });
+
+  it('should generate with a near vector search on multi vectors', async () => {
+    const query = () =>
+      collection.generate.nearVector(
+        { title: titleVector, title2: title2Vector },
+        {
+          groupedTask: 'What is the value of title here? {title}',
+          groupedProperties: ['title'],
+          singlePrompt: 'Write a haiku about ducks for {title}',
+        },
+        {
+          targetVector: ['title', 'title2'],
+        }
+      );
+    if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 26, 0))) {
+      await expect(query()).rejects.toThrow(WeaviateUnsupportedFeatureError);
+      return;
+    }
+    const ret = await query();
+    expect(ret.objects.length).toEqual(2);
+    expect(ret.generated).toBeDefined();
+    expect(ret.objects[0].generated).toBeDefined();
+    expect(ret.objects[1].generated).toBeDefined();
   });
 });
