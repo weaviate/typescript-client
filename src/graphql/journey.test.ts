@@ -10,6 +10,7 @@ import weaviate, {
   WhereFilter,
 } from '..';
 import { FusionType } from './hybrid';
+import { MultiVectorTargets } from './nearVector';
 
 describe('the graphql journey', () => {
   let client: WeaviateClient;
@@ -2387,6 +2388,131 @@ describe('named vectors test', () => {
       .then((res) => {
         expect(res.data.Get.NamedVectorTest).toHaveLength(3);
         expect(res.data.Get.NamedVectorTest[0].rating).toBe('Best');
+      });
+  });
+
+  it('should perform a hybrid query with multi vectors and average combination', () => {
+    return client.graphql
+      .get()
+      .withClassName(className)
+      .withHybrid({
+        query: 'Best',
+        targetVectors: MultiVectorTargets.sum(['title', 'rating']),
+      })
+      .withFields('rating')
+      .do()
+      .then((res) => {
+        expect(res.data.Get.NamedVectorTest).toHaveLength(3);
+        expect(res.data.Get.NamedVectorTest[0].rating).toBe('Best');
+      });
+  });
+
+  // it('should perform a hybrid nearVector subsearch query with multi vectors and average combination', () => {
+  //   return client.data
+  //     .getterById()
+  //     .withClassName(className)
+  //     .withId(oneUUID)
+  //     .withVector()
+  //     .do()
+  //     .then((res) => res.vectors!)
+  //     .then((vectors) =>
+  //       client.graphql
+  //         .get()
+  //         .withClassName(className)
+  //         .withHybrid({
+  //           query: 'Best',
+  //           searches: [
+  //             {
+  //               nearVector: {
+  //                 vector: vectors,
+  //                 targetVectors: MultiVectorTargets.average(['title', 'rating']),
+  //               },
+  //             },
+  //           ],
+  //         })
+  //         .withFields('rating')
+  //         .do()
+  //         .then((res) => {
+  //           expect(res.data.Get.NamedVectorTest).toHaveLength(3);
+  //           expect(res.data.Get.NamedVectorTest[0].rating).toBe('Good');
+  //         })
+  //     );
+  // });
+
+  it('should perform a nearVector query with multi vectors and implicit vector spaces', () => {
+    return client.data
+      .getterById()
+      .withClassName(className)
+      .withId(oneUUID)
+      .withVector()
+      .do()
+      .then((res) => res.vectors!)
+      .then((vectors) =>
+        client.graphql
+          .get()
+          .withClassName(className)
+          .withNearVector({
+            vector: vectors,
+          })
+          .withFields('title')
+          .do()
+      )
+      .then((res) => {
+        expect(res.data.Get.NamedVectorTest).toHaveLength(3);
+        expect(res.data.Get.NamedVectorTest[0].title).toBe('One');
+      });
+  });
+
+  it('should perform a nearVector query with one vector and multi vector spaces', () => {
+    return client.data
+      .getterById()
+      .withClassName(className)
+      .withId(oneUUID)
+      .withVector()
+      .do()
+      .then((res) => res.vectors!.title)
+      .then((vector) =>
+        client.graphql
+          .get()
+          .withClassName(className)
+          .withNearVector({
+            vector,
+            targetVectors: MultiVectorTargets.average(['title', 'rating']),
+          })
+          .withFields('title')
+          .do()
+      )
+      .then((res) => {
+        expect(res.data.Get.NamedVectorTest).toHaveLength(3);
+        expect(res.data.Get.NamedVectorTest[0].title).toBe('One');
+      });
+  });
+
+  it('should perform a nearVector query with one vector and multi weighted vector spaces', () => {
+    return client.data
+      .getterById()
+      .withClassName(className)
+      .withId(oneUUID)
+      .withVector()
+      .do()
+      .then((res) => res.vectors!.title)
+      .then((vector) =>
+        client.graphql
+          .get()
+          .withClassName(className)
+          .withNearVector({
+            vector,
+            targetVectors: MultiVectorTargets.manualWeights({
+              title: 5,
+              rating: 0.1,
+            }),
+          })
+          .withFields('title')
+          .do()
+      )
+      .then((res) => {
+        expect(res.data.Get.NamedVectorTest).toHaveLength(3);
+        expect(res.data.Get.NamedVectorTest[0].title).toBe('One');
       });
   });
 

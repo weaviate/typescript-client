@@ -1,9 +1,11 @@
+import { NearVectorTargetsType, parseTargetVectors } from './nearVector';
+
 export interface NearObjectArgs {
   beacon?: string;
   certainty?: number;
   distance?: number;
   id?: string;
-  targetVectors?: string[];
+  targetVectors?: string[] | NearVectorTargetsType;
 }
 
 export default class GraphQLNearObject {
@@ -11,7 +13,7 @@ export default class GraphQLNearObject {
   private certainty?: number;
   private distance?: number;
   private id?: string;
-  private targetVectors?: string[];
+  private targetVectors?: string[] | NearVectorTargetsType;
 
   constructor(args: NearObjectArgs) {
     this.beacon = args.beacon;
@@ -42,9 +44,7 @@ export default class GraphQLNearObject {
       args = [...args, `distance:${this.distance}`];
     }
 
-    if (this.targetVectors && this.targetVectors.length > 0) {
-      args = [...args, `targetVectors:${JSON.stringify(this.targetVectors)}`];
-    }
+    args = parseTargetVectors(args, this.targetVectors);
 
     if (!wrap) {
       return `${args.join(',')}`;

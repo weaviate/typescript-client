@@ -24,4 +24,5 @@ export default graphql;
 export { default as Aggregator } from './aggregator';
 export { default as Explorer } from './explorer';
 export { FusionType, default as GraphQLGetter } from './getter';
+export { MultiVectorTargets } from './nearVector';
 export { default as Raw } from './raw';
