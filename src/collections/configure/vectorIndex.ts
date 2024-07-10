@@ -4,6 +4,8 @@ import {
   BQConfigUpdate,
   PQConfigCreate,
   PQConfigUpdate,
+  SQConfigCreate,
+  SQConfigUpdate,
   VectorIndexConfigDynamicCreate,
   VectorIndexConfigDynamicCreateOptions,
   VectorIndexConfigFlatCreate,
@@ -93,11 +95,11 @@ const configure = {
    */
   quantizer: {
     /**
-     * Create a `BQConfigCreate` object to be used when defining the quantizer configuration of a vector index.
+     * Create an object of type `BQConfigCreate` to be used when defining the quantizer configuration of a vector index.
      *
      * @param {boolean} [options.cache] Whether to cache the quantizer. Default is false.
      * @param {number} [options.rescoreLimit] The rescore limit. Default is 1000.
-     * @returns {BQConfigCreate} The `BQConfigCreate` object.
+     * @returns {BQConfigCreate} The object of type `BQConfigCreate`.
      */
     bq: (options?: { cache?: boolean; rescoreLimit?: number }): BQConfigCreate => {
       return {
@@ -107,7 +109,7 @@ const configure = {
       };
     },
     /**
-     * Create a `PQConfigCreate` object to be used when defining the quantizer configuration of a vector index.
+     * Create an object of type `PQConfigCreate` to be used when defining the quantizer configuration of a vector index.
      *
      * @param {boolean} [options.bitCompression] Whether to use bit compression.
      * @param {number} [options.centroids] The number of centroids[.
@@ -115,7 +117,7 @@ const configure = {
      * @param {PQEncoderType} [options.encoder.type] The encoder type.
      * @param {number} [options.segments] The number of segments.
      * @param {number} [options.trainingLimit] The training limit.
-     * @returns {PQConfigCreate} The `PQConfigCreate` object.
+     * @returns {PQConfigCreate} The object of type `PQConfigCreate`.
      */
     pq: (options?: {
       bitCompression?: boolean;
@@ -139,6 +141,20 @@ const configure = {
         segments: options?.segments,
         trainingLimit: options?.trainingLimit,
         type: 'pq',
+      };
+    },
+    /**
+     * Create an object of type `SQConfigCreate` to be used when defining the quantizer configuration of a vector index.
+     *
+     * @param {number} [options.rescoreLimit] The rescore limit.
+     * @param {number} [options.trainingLimit] The training limit.
+     * @returns {SQConfigCreate} The object of type `SQConfigCreate`.
+     */
+    sq: (options?: { rescoreLimit?: number; trainingLimit?: number }): SQConfigCreate => {
+      return {
+        rescoreLimit: options?.rescoreLimit,
+        trainingLimit: options?.trainingLimit,
+        type: 'sq',
       };
     },
   },
@@ -187,7 +203,7 @@ const reconfigure = {
     dynamicEfMin?: number;
     ef?: number;
     flatSearchCutoff?: number;
-    quantizer?: PQConfigUpdate | BQConfigUpdate;
+    quantizer?: PQConfigUpdate | BQConfigUpdate | SQConfigUpdate;
     vectorCacheMaxObjects?: number;
   }): ModuleConfig<'hnsw', VectorIndexConfigHNSWUpdate> => {
     return {
@@ -200,7 +216,10 @@ const reconfigure = {
    */
   quantizer: {
     /**
-     * Create a `BQConfigUpdate` object to be used when defining the quantizer configuration of a vector index.
+     * Create an object of type `BQConfigUpdate` to be used when updating the quantizer configuration of a vector index.
+     *
+     * NOTE: If the vector index already has a quantizer configured, you cannot change its quantizer type; only its values.
+     * So if you want to change the quantizer type, you must recreate the collection.
      *
      * @param {boolean} [options.cache] Whether to cache the quantizer. Default is false.
      * @param {number} [options.rescoreLimit] The rescore limit. Default is 1000.
@@ -213,7 +232,10 @@ const reconfigure = {
       };
     },
     /**
-     * Create a `PQConfigCreate` object to be used when defining the quantizer configuration of a vector index.
+     * Create an object of type `PQConfigUpdate` to be used when updating the quantizer configuration of a vector index.
+     *
+     * NOTE: If the vector index already has a quantizer configured, you cannot change its quantizer type; only its values.
+     * So if you want to change the quantizer type, you must recreate the collection.
      *
      * @param {number} [options.centroids] The number of centroids. Default is 256.
      * @param {PQEncoderDistribution} [options.pqEncoderDistribution] The encoder distribution. Default is 'log-normal'.
@@ -240,6 +262,22 @@ const reconfigure = {
               }
             : undefined,
         type: 'pq',
+      };
+    },
+    /**
+     * Create an object of type `SQConfigUpdate` to be used when updating the quantizer configuration of a vector index.
+     *
+     * NOTE: If the vector index already has a quantizer configured, you cannot change its quantizer type; only its values.
+     * So if you want to change the quantizer type, you must recreate the collection.
+     *
+     * @param {number} [options.rescoreLimit] The rescore limit. Default is 1000.
+     * @param {number} [options.trainingLimit] The training limit. Default is 100000.
+     * @returns {SQConfigUpdate} The configuration object.
+     */
+    sq: (options?: { rescoreLimit?: number; trainingLimit?: number }): SQConfigUpdate => {
+      return {
+        ...options,
+        type: 'sq',
       };
     },
   },

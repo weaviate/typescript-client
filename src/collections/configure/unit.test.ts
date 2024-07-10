@@ -198,6 +198,25 @@ describe('Unit testing of the configure factory class', () => {
       },
     });
   });
+
+  it('should create an hnsw VectorIndexConfig type with SQ quantizer', () => {
+    const config = configure.vectorIndex.hnsw({
+      quantizer: configure.vectorIndex.quantizer.sq({
+        rescoreLimit: 100,
+        trainingLimit: 200,
+      }),
+    });
+    expect(config).toEqual<ModuleConfig<'hnsw', VectorIndexConfigHNSWCreate>>({
+      name: 'hnsw',
+      config: {
+        quantizer: {
+          rescoreLimit: 100,
+          trainingLimit: 200,
+          type: 'sq',
+        },
+      },
+    });
+  });
 });
 
 describe('Unit testing of the vectorizer factory class', () => {

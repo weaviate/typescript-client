@@ -43,6 +43,9 @@ describe('Unit testing of the MergeWithExisting class', () => {
         bq: {
           enabled: false,
         },
+        sq: {
+          enabled: false,
+        },
       },
       vectorIndexType: 'hnsw',
       vectorizer: {
@@ -55,7 +58,7 @@ describe('Unit testing of the MergeWithExisting class', () => {
   };
 
   it('should merge a full invertedIndexUpdate with existing schema', () => {
-    const merged = MergeWithExisting.invertedIndex(Object.assign({}, invertedIndex), {
+    const merged = MergeWithExisting.invertedIndex(JSON.parse(JSON.stringify(invertedIndex)), {
       bm25: {
         b: 0.9,
         k1: 1.4,
@@ -110,7 +113,7 @@ describe('Unit testing of the MergeWithExisting class', () => {
   };
 
   it('should merge a partial invertedIndexUpdate with existing schema', () => {
-    const merged = MergeWithExisting.invertedIndex(Object.assign({}, invertedIndex), {
+    const merged = MergeWithExisting.invertedIndex(JSON.parse(JSON.stringify(invertedIndex)), {
       bm25: {
         b: 0.9,
       },
@@ -134,7 +137,7 @@ describe('Unit testing of the MergeWithExisting class', () => {
   });
 
   it('should merge a no quantizer HNSW vectorIndexConfig with existing schema', () => {
-    const merged = MergeWithExisting.vectors(Object.assign({}, hnswVectorConfig), [
+    const merged = MergeWithExisting.vectors(JSON.parse(JSON.stringify(hnswVectorConfig)), [
       {
         name: 'name',
         vectorIndex: {
@@ -158,6 +161,7 @@ describe('Unit testing of the MergeWithExisting class', () => {
     expect(merged).toEqual({
       name: {
         vectorIndexConfig: {
+          ...hnswVectorConfig.name.vectorIndexConfig,
           skip: true,
           cleanupIntervalSeconds: 301,
           maxConnections: 65,
@@ -169,20 +173,6 @@ describe('Unit testing of the MergeWithExisting class', () => {
           vectorCacheMaxObjects: 1000000000001,
           flatSearchCutoff: 40001,
           distance: 'euclidean',
-          pq: {
-            enabled: false,
-            bitCompression: false,
-            segments: 0,
-            centroids: 256,
-            trainingLimit: 100000,
-            encoder: {
-              type: 'kmeans',
-              distribution: 'log-normal',
-            },
-          },
-          bq: {
-            enabled: false,
-          },
         },
         vectorIndexType: 'hnsw',
         vectorizer: {
@@ -196,7 +186,7 @@ describe('Unit testing of the MergeWithExisting class', () => {
   });
 
   it('should merge a PQ quantizer HNSW vectorIndexConfig with existing schema', () => {
-    const merged = MergeWithExisting.vectors(Object.assign({}, hnswVectorConfig), [
+    const merged = MergeWithExisting.vectors(JSON.parse(JSON.stringify(hnswVectorConfig)), [
       {
         name: 'name',
         vectorIndex: {
@@ -220,17 +210,7 @@ describe('Unit testing of the MergeWithExisting class', () => {
     expect(merged).toEqual({
       name: {
         vectorIndexConfig: {
-          skip: true,
-          cleanupIntervalSeconds: 301,
-          maxConnections: 65,
-          efConstruction: 129,
-          ef: -2,
-          dynamicEfMin: 101,
-          dynamicEfMax: 501,
-          dynamicEfFactor: 9,
-          vectorCacheMaxObjects: 1000000000001,
-          flatSearchCutoff: 40001,
-          distance: 'euclidean',
+          ...hnswVectorConfig.name.vectorIndexConfig,
           pq: {
             enabled: true,
             bitCompression: true,
@@ -241,9 +221,6 @@ describe('Unit testing of the MergeWithExisting class', () => {
               type: 'kmeans',
               distribution: 'normal',
             },
-          },
-          bq: {
-            enabled: false,
           },
         },
         vectorIndexType: 'hnsw',
@@ -258,7 +235,7 @@ describe('Unit testing of the MergeWithExisting class', () => {
   });
 
   it('should merge a BQ quantizer HNSW vectorIndexConfig with existing schema', () => {
-    const merged = MergeWithExisting.vectors(Object.assign({}, hnswVectorConfig), [
+    const merged = MergeWithExisting.vectors(JSON.parse(JSON.stringify(hnswVectorConfig)), [
       {
         name: 'name',
         vectorIndex: {
@@ -292,8 +269,45 @@ describe('Unit testing of the MergeWithExisting class', () => {
     });
   });
 
+  it('should merge a SQ quantizer HNSW vectorIndexConfig with existing schema', () => {
+    const merged = MergeWithExisting.vectors(JSON.parse(JSON.stringify(hnswVectorConfig)), [
+      {
+        name: 'name',
+        vectorIndex: {
+          name: 'hnsw',
+          config: {
+            quantizer: {
+              type: 'sq',
+              rescoreLimit: 1000,
+              trainingLimit: 10000,
+            },
+          },
+        },
+      },
+    ]);
+    expect(merged).toEqual({
+      name: {
+        vectorIndexConfig: {
+          ...hnswVectorConfig.name.vectorIndexConfig,
+          sq: {
+            enabled: true,
+            rescoreLimit: 1000,
+            trainingLimit: 10000,
+          },
+        },
+        vectorIndexType: 'hnsw',
+        vectorizer: {
+          'text2vec-contextionary': {
+            properties: ['name'],
+            vectorizeCollectionName: false,
+          },
+        },
+      },
+    });
+  });
+
   it('should merge a BQ quantizer Flat vectorIndexConfig with existing schema', () => {
-    const merged = MergeWithExisting.vectors(Object.assign({}, flatVectorConfig), [
+    const merged = MergeWithExisting.vectors(JSON.parse(JSON.stringify(flatVectorConfig)), [
       {
         name: 'name',
         vectorIndex: {
