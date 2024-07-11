@@ -16,7 +16,12 @@ export enum TenantActivityStatus {
   TENANT_ACTIVITY_STATUS_FROZEN = 4,
   TENANT_ACTIVITY_STATUS_UNFREEZING = 5,
   TENANT_ACTIVITY_STATUS_FREEZING = 6,
-  TENANT_ACTIVITY_STATUS_UNFROZEN = 7,
+  /** TENANT_ACTIVITY_STATUS_ACTIVE - not used yet - added to let the clients already add code to handle this in the future */
+  TENANT_ACTIVITY_STATUS_ACTIVE = 7,
+  TENANT_ACTIVITY_STATUS_INACTIVE = 8,
+  TENANT_ACTIVITY_STATUS_OFFLOADED = 9,
+  TENANT_ACTIVITY_STATUS_OFFLOADING = 10,
+  TENANT_ACTIVITY_STATUS_ONLOADING = 11,
   UNRECOGNIZED = -1,
 }
 
@@ -41,8 +46,20 @@ export function tenantActivityStatusFromJSON(object: any): TenantActivityStatus 
     case "TENANT_ACTIVITY_STATUS_FREEZING":
       return TenantActivityStatus.TENANT_ACTIVITY_STATUS_FREEZING;
     case 7:
-    case "TENANT_ACTIVITY_STATUS_UNFROZEN":
-      return TenantActivityStatus.TENANT_ACTIVITY_STATUS_UNFROZEN;
+    case "TENANT_ACTIVITY_STATUS_ACTIVE":
+      return TenantActivityStatus.TENANT_ACTIVITY_STATUS_ACTIVE;
+    case 8:
+    case "TENANT_ACTIVITY_STATUS_INACTIVE":
+      return TenantActivityStatus.TENANT_ACTIVITY_STATUS_INACTIVE;
+    case 9:
+    case "TENANT_ACTIVITY_STATUS_OFFLOADED":
+      return TenantActivityStatus.TENANT_ACTIVITY_STATUS_OFFLOADED;
+    case 10:
+    case "TENANT_ACTIVITY_STATUS_OFFLOADING":
+      return TenantActivityStatus.TENANT_ACTIVITY_STATUS_OFFLOADING;
+    case 11:
+    case "TENANT_ACTIVITY_STATUS_ONLOADING":
+      return TenantActivityStatus.TENANT_ACTIVITY_STATUS_ONLOADING;
     case -1:
     case "UNRECOGNIZED":
     default:
@@ -64,8 +81,16 @@ export function tenantActivityStatusToJSON(object: TenantActivityStatus): string
       return "TENANT_ACTIVITY_STATUS_UNFREEZING";
     case TenantActivityStatus.TENANT_ACTIVITY_STATUS_FREEZING:
       return "TENANT_ACTIVITY_STATUS_FREEZING";
-    case TenantActivityStatus.TENANT_ACTIVITY_STATUS_UNFROZEN:
-      return "TENANT_ACTIVITY_STATUS_UNFROZEN";
+    case TenantActivityStatus.TENANT_ACTIVITY_STATUS_ACTIVE:
+      return "TENANT_ACTIVITY_STATUS_ACTIVE";
+    case TenantActivityStatus.TENANT_ACTIVITY_STATUS_INACTIVE:
+      return "TENANT_ACTIVITY_STATUS_INACTIVE";
+    case TenantActivityStatus.TENANT_ACTIVITY_STATUS_OFFLOADED:
+      return "TENANT_ACTIVITY_STATUS_OFFLOADED";
+    case TenantActivityStatus.TENANT_ACTIVITY_STATUS_OFFLOADING:
+      return "TENANT_ACTIVITY_STATUS_OFFLOADING";
+    case TenantActivityStatus.TENANT_ACTIVITY_STATUS_ONLOADING:
+      return "TENANT_ACTIVITY_STATUS_ONLOADING";
     case TenantActivityStatus.UNRECOGNIZED:
     default:
       return "UNRECOGNIZED";
