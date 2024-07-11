@@ -1287,6 +1287,8 @@ export class Serialize {
             name: 'default',
           }),
         ];
+        vectorBytes = Serialize.vectorToBytes(obj.vectors);
+        // required in case collection was made with <1.24.0 and has since been migrated to >=1.24.0
       } else if (obj.vectors !== undefined) {
         vectorBytes = Serialize.vectorToBytes(obj.vectors);
       }

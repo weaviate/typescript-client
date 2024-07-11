@@ -822,6 +822,45 @@ describe('Unit testing of the vectorizer factory class', () => {
     });
   });
 
+  it('should create the correct Text2VecOctoAIConfig type with defaults', () => {
+    const config = configure.vectorizer.text2VecOctoAI();
+    expect(config).toEqual<VectorConfigCreate<never, undefined, 'hnsw', 'text2vec-octoai'>>({
+      name: undefined,
+      vectorIndex: {
+        name: 'hnsw',
+        config: undefined,
+      },
+      vectorizer: {
+        name: 'text2vec-octoai',
+        config: undefined,
+      },
+    });
+  });
+
+  it('should create the correct Text2VecOctoAIConfig type with all values', () => {
+    const config = configure.vectorizer.text2VecOctoAI({
+      name: 'test',
+      baseURL: 'base-url',
+      model: 'model',
+      vectorizeCollectionName: true,
+    });
+    expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'text2vec-octoai'>>({
+      name: 'test',
+      vectorIndex: {
+        name: 'hnsw',
+        config: undefined,
+      },
+      vectorizer: {
+        name: 'text2vec-octoai',
+        config: {
+          baseURL: 'base-url',
+          model: 'model',
+          vectorizeCollectionName: true,
+        },
+      },
+    });
+  });
+
   it('should create the correct Text2VecOllamaConfig type with defaults', () => {
     const config = configure.vectorizer.text2VecOllama();
     expect(config).toEqual<VectorConfigCreate<never, undefined, 'hnsw', 'text2vec-ollama'>>({
@@ -1256,14 +1295,10 @@ describe('Unit testing of the generative factory class', () => {
   });
 
   it('should create the correct GenerativePaLMConfig type with required & default values', () => {
-    const config = configure.generative.palm({
-      projectId: 'project-id',
-    });
-    expect(config).toEqual<ModuleConfig<'generative-palm', GenerativePaLMConfig>>({
+    const config = configure.generative.palm();
+    expect(config).toEqual<ModuleConfig<'generative-palm', undefined>>({
       name: 'generative-palm',
-      config: {
-        projectId: 'project-id',
-      },
+      config: undefined,
     });
   });
 

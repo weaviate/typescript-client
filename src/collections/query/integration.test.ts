@@ -1077,7 +1077,7 @@ describe('Testing of the collection.query methods with a multi-tenancy collectio
   });
 });
 
-// const maybe = process.env.COHERE_APIKEY ? describe : describe.skip;
+// const maybe = process.env.OPENAI_APIKEY ? describe : describe.skip;
 
 // maybe('Testing of collection.query using rerank functionality', () => {
 //   let client: WeaviateClient;
@@ -1094,15 +1094,13 @@ describe('Testing of the collection.query methods with a multi-tenancy collectio
 //   });
 
 //   beforeAll(async () => {
-//     client = await weaviate.connectToWeaviateCloud(
-//       'https://piblpmmdsiknacjnm1ltla.c1.europe-west3.gcp.weaviate.cloud',
-//       {
-//         authCredentials: 'NOg5AliYnrN6z7dZDuGv7SLVKhTabAaSTKS7',
-//         headers: {
-//           'X-Cohere-Api-Key': process.env.COHERE_APIKEY as string,
-//         },
-//       }
-//     );
+//     client = await weaviate.connectToLocal({
+//       port: 8079,
+//       grpcPort: 50050,
+//       headers: {
+//         'X-OpenAI-Api-Key': process.env.OPENAI_APIKEY as string,
+//       },
+//     });
 //     collection = client.collections.get(collectionName);
 //     [id1, id2] = await client.collections
 //       .create({
@@ -1113,8 +1111,8 @@ describe('Testing of the collection.query methods with a multi-tenancy collectio
 //             dataType: 'text',
 //           },
 //         ],
-//         reranker: weaviate.configure.reranker.cohere(),
-//         vectorizers: weaviate.configure.vectorizer.text2VecCohere(),
+//         reranker: weaviate.configure.reranker.transformers(),
+//         vectorizers: weaviate.configure.vectorizer.text2VecOpenAI(),
 //       })
 //       .then(() =>
 //         Promise.all([
@@ -1162,7 +1160,7 @@ describe('Testing of the collection.query methods with a multi-tenancy collectio
 //     expect(objects[1].properties.text).toEqual('This is a test');
 //   });
 
-//   it('should rerank the results in a nearObject query', async () => {
+//   it.skip('should rerank the results in a nearObject query', async () => {
 //     const ret = await collection.query.nearObject(id1, {
 //       rerank: {
 //         property: 'text',
@@ -1192,7 +1190,7 @@ describe('Testing of the collection.query methods with a multi-tenancy collectio
 //     expect(objects[1].properties.text).toEqual('This is a test');
 //   });
 
-//   it('should rerank the results in a nearObject query', async () => {
+//   it.skip('should rerank the results in a nearObject query', async () => {
 //     const obj = await collection.query.fetchObjectById(id1, { includeVector: true });
 //     const ret = await collection.query.nearVector(obj?.vectors.default!, {
 //       rerank: {
