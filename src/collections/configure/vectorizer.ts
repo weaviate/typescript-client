@@ -363,6 +363,22 @@ export const vectorizer = {
     });
   },
   /**
+   *
+   */
+  text2VecOctoAI: <T, N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
+    opts?: ConfigureTextVectorizerOptions<T, N, I, 'text2vec-octoai'>
+  ): VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2vec-octoai'> => {
+    const { name, sourceProperties, vectorIndexConfig, ...config } = opts || {};
+    return makeVectorizer(name, {
+      sourceProperties,
+      vectorIndexConfig,
+      vectorizerConfig: {
+        name: 'text2vec-octoai',
+        config: Object.keys(config).length === 0 ? undefined : config,
+      },
+    });
+  },
+  /**
    * Create a `VectorConfigCreate` object with the vectorizer set to `'text2vec-openai'`.
    *
    * See the [documentation](https://weaviate.io/developers/weaviate/modules/retriever-vectorizer-modules/text2vec-openai) for detailed usage.

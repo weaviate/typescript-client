@@ -59,7 +59,7 @@ export type GenerativePaLMConfig = {
   apiEndpoint?: string;
   maxOutputTokens?: number;
   modelId?: string;
-  projectId: string;
+  projectId?: string;
   temperature?: number;
   topK?: number;
   topP?: number;
