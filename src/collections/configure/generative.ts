@@ -182,10 +182,12 @@ export default {
    *
    * See the [documentation](https://weaviate.io/developers/weaviate/modules/reader-generator-modules/generative-palm) for detailed usage.
    *
-   * @param {GenerativePaLMConfigCreate} config The configuration for the `generative-palm` module.
+   * @param {GenerativePaLMConfigCreate} [config] The configuration for the `generative-palm` module.
    * @returns {ModuleConfig<'generative-palm', GenerativePaLMConfig>} The configuration object.
    */
-  palm: (config: GenerativePaLMConfigCreate): ModuleConfig<'generative-palm', GenerativePaLMConfig> => {
+  palm: (
+    config?: GenerativePaLMConfigCreate
+  ): ModuleConfig<'generative-palm', GenerativePaLMConfig | undefined> => {
     return {
       name: 'generative-palm',
       config,

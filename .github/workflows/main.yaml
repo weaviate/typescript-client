@@ -7,8 +7,8 @@ on:
   pull_request:
 
 env:
-  WEAVIATE_124: 1.24.19
-  WEAVIATE_125: 1.25.5
+  WEAVIATE_124: 1.24.20
+  WEAVIATE_125: 1.25.7
 
 jobs:
   checks:
