@@ -160,7 +160,7 @@ describe('Testing of the collections.create method', () => {
   });
 
   it('should be able to create a simple collection without a generic and no properties', async () => {
-    const collectionName = 'TestCollectionSimpleNonGeneric';
+    const collectionName = 'TestCollectionSimpleNonGenericNoProperties';
     const response = await contextionary.collections
       .create({
         name: collectionName,
