@@ -480,6 +480,7 @@ class ConfigMapping {
           description: prop.description,
           indexFilterable: prop.indexFilterable ? prop.indexFilterable : false,
           indexInverted: prop.indexInverted ? prop.indexInverted : false,
+          indexRangeFilters: prop.indexRangeFilters ? prop.indexRangeFilters : false,
           indexSearchable: prop.indexSearchable ? prop.indexSearchable : false,
           vectorizerConfig: prop.moduleConfig
             ? 'none' in prop.moduleConfig
