@@ -86,6 +86,7 @@ describe('Journey testing of the client using a WCD cluster', () => {
               dataType: 'text',
               indexFilterable: true,
               indexInverted: false,
+              indexRangeFilters: false,
               indexSearchable: true,
               vectorizerConfig: {
                 'text2vec-cohere': {
@@ -100,6 +101,7 @@ describe('Journey testing of the client using a WCD cluster', () => {
               dataType: 'int',
               indexFilterable: true,
               indexInverted: false,
+              indexRangeFilters: false,
               indexSearchable: false,
               vectorizerConfig: {
                 'text2vec-cohere': {
@@ -114,6 +116,7 @@ describe('Journey testing of the client using a WCD cluster', () => {
               dataType: 'geoCoordinates',
               indexFilterable: true,
               indexInverted: false,
+              indexRangeFilters: false,
               indexSearchable: false,
               vectorizerConfig: {
                 'text2vec-cohere': {
@@ -128,6 +131,7 @@ describe('Journey testing of the client using a WCD cluster', () => {
               dataType: 'date',
               indexFilterable: true,
               indexInverted: false,
+              indexRangeFilters: false,
               indexSearchable: false,
               vectorizerConfig: {
                 'text2vec-cohere': {

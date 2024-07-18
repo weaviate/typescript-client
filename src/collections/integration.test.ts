@@ -5,14 +5,11 @@ import {
   GeoCoordinate,
   PQConfig,
   PhoneNumber,
+  PropertyConfig,
   Text2VecContextionaryConfig,
   Text2VecOpenAIConfig,
   VectorIndexConfigHNSW,
 } from './types/index';
-
-const fail = (msg: string) => {
-  throw new Error(msg);
-};
 
 describe('Testing of the collections.create method', () => {
   let cluster: WeaviateClient;
@@ -33,6 +30,14 @@ describe('Testing of the collections.create method', () => {
       grpcPort: 50051,
     });
   });
+
+  afterAll(() =>
+    Promise.all([
+      cluster.collections.deleteAll(),
+      contextionary.collections.deleteAll(),
+      openai.collections.deleteAll(),
+    ])
+  );
 
   it('should be able to create a simple collection with a generic', async () => {
     const collectionName = 'TestCollectionSimpleGeneric';
@@ -57,8 +62,6 @@ describe('Testing of the collections.create method', () => {
     expect(response.vectorizers.default.indexConfig).toBeDefined();
     expect(response.vectorizers.default.indexType).toEqual('hnsw');
     expect(response.vectorizers.default.vectorizer.name).toEqual('text2vec-contextionary');
-
-    await contextionary.collections.delete(collectionName);
   });
 
   it('should be able to create a simple collection without a generic', async () => {
@@ -81,12 +84,83 @@ describe('Testing of the collections.create method', () => {
     expect(response.vectorizers.default.indexConfig).toBeDefined();
     expect(response.vectorizers.default.indexType).toEqual('hnsw');
     expect(response.vectorizers.default.vectorizer.name).toEqual('text2vec-contextionary');
+  });
 
-    await contextionary.collections.delete(collectionName);
+  it('should be able to create a collection with one fully customised text property', () => {
+    return contextionary.collections
+      .create({
+        name: 'TestCollectionTextProperty',
+        properties: [
+          {
+            name: 'text',
+            dataType: 'text',
+            indexFilterable: true,
+            indexSearchable: true,
+            skipVectorization: true,
+            tokenization: 'field',
+            vectorizePropertyName: true,
+          },
+        ],
+        vectorizers: weaviate.configure.vectorizer.text2VecContextionary(),
+      })
+      .then((collection) => collection.config.get())
+      .then((config) =>
+        expect(config.properties[0]).toEqual<PropertyConfig>({
+          name: 'text',
+          dataType: 'text',
+          indexFilterable: true,
+          indexInverted: false,
+          indexRangeFilters: false,
+          indexSearchable: true,
+          tokenization: 'field',
+          vectorizerConfig: {
+            'text2vec-contextionary': {
+              skip: true,
+              vectorizePropertyName: true,
+            },
+          },
+        })
+      );
+  });
+
+  it('should be able to create a collection with one fully customised int property', () => {
+    return contextionary.collections
+      .create({
+        name: 'TestCollectionIntProperty',
+        properties: [
+          {
+            name: 'int',
+            dataType: 'int',
+            indexFilterable: true,
+            indexRangeFilters: true,
+            skipVectorization: true,
+            vectorizePropertyName: true,
+          },
+        ],
+        vectorizers: weaviate.configure.vectorizer.text2VecContextionary(),
+      })
+      .then((collection) => collection.config.get())
+      .then(async (config) =>
+        expect(config.properties[0]).toEqual<PropertyConfig>({
+          name: 'int',
+          dataType: 'int',
+          indexFilterable: true,
+          indexInverted: false,
+          indexRangeFilters: await contextionary.getWeaviateVersion().then((ver) => ver.isAtLeast(1, 26, 0)),
+          indexSearchable: false,
+          tokenization: 'none',
+          vectorizerConfig: {
+            'text2vec-contextionary': {
+              skip: true,
+              vectorizePropertyName: true,
+            },
+          },
+        })
+      );
   });
 
   it('should be able to create a simple collection without a generic and no properties', async () => {
-    const collectionName = 'TestCollectionSimpleNonGeneric';
+    const collectionName = 'TestCollectionSimpleNonGenericNoProperties';
     const response = await contextionary.collections
       .create({
         name: collectionName,
@@ -97,8 +171,6 @@ describe('Testing of the collections.create method', () => {
     expect(response.vectorizers.default.indexConfig).toBeDefined();
     expect(response.vectorizers.default.indexType).toEqual('hnsw');
     expect(response.vectorizers.default.vectorizer.name).toEqual('text2vec-contextionary');
-
-    await contextionary.collections.delete(collectionName);
   });
 
   it('should be able to create a simple collection without a generic using a schema var', async () => {
@@ -123,8 +195,6 @@ describe('Testing of the collections.create method', () => {
     expect(response.vectorizers.default.indexConfig).toBeDefined();
     expect(response.vectorizers.default.indexType).toEqual('hnsw');
     expect(response.vectorizers.default.vectorizer.name).toEqual('text2vec-contextionary');
-
-    await contextionary.collections.delete(collectionName);
   });
 
   it('should be able to create a simple collection with a generic using a schema var with const', async () => {
@@ -152,8 +222,6 @@ describe('Testing of the collections.create method', () => {
     expect(response.vectorizers.default.indexConfig).toBeDefined();
     expect(response.vectorizers.default.indexType).toEqual('hnsw');
     expect(response.vectorizers.default.vectorizer.name).toEqual('text2vec-contextionary');
-
-    await contextionary.collections.delete(collectionName);
   });
 
   it('should be able to create a simple collection with a generic using a schema var with type', async () => {
@@ -181,8 +249,6 @@ describe('Testing of the collections.create method', () => {
     expect(response.vectorizers.default.indexConfig).toBeDefined();
     expect(response.vectorizers.default.indexType).toEqual('hnsw');
     expect(response.vectorizers.default.vectorizer.name).toEqual('text2vec-contextionary');
-
-    await contextionary.collections.delete(collectionName);
   });
 
   it('should be able to create a nested collection', async () => {
@@ -219,8 +285,6 @@ describe('Testing of the collections.create method', () => {
     expect(response.vectorizers.default.indexConfig).toBeDefined();
     expect(response.vectorizers.default.indexType).toEqual('hnsw');
     expect(response.vectorizers.default.vectorizer.name).toEqual('text2vec-contextionary');
-
-    await contextionary.collections.delete(collectionName);
   });
 
   it('should be able to create a collection with generic properties', () => {
@@ -248,7 +312,7 @@ describe('Testing of the collections.create method', () => {
       phoneNumber: PhoneNumber;
     };
 
-    cluster.collections.create<TestCollectionGenericProperties, 'TestCollectionGenericProperties'>({
+    return cluster.collections.create<TestCollectionGenericProperties, 'TestCollectionGenericProperties'>({
       name: collectionName,
       properties: [
         {
@@ -539,8 +603,6 @@ describe('Testing of the collections.create method', () => {
     expect(response.vectorizers.default.indexType).toEqual('hnsw');
 
     expect(response.vectorizers.default.vectorizer.name).toEqual('text2vec-contextionary');
-
-    await cluster.collections.delete(collectionName);
   });
 
   it('should be able to create a collection with the contextionary vectorizer using configure.vectorizer', async () => {
@@ -569,8 +631,6 @@ describe('Testing of the collections.create method', () => {
     expect(
       (response.vectorizers.default.vectorizer.config as Text2VecContextionaryConfig).vectorizeCollectionName
     ).toEqual(true);
-
-    await contextionary.collections.delete(collectionName);
   });
 
   it('should be able to create a collection with an openai vectorizer with configure.vectorizer', async () => {
@@ -599,8 +659,6 @@ describe('Testing of the collections.create method', () => {
     expect(
       (response.vectorizers.default.vectorizer.config as Text2VecOpenAIConfig).vectorizeCollectionName
     ).toEqual(true);
-
-    await openai.collections.delete(collectionName);
   });
 
   it('should be able to create a collection with the openai generative with configure.Generative', async () => {
@@ -626,7 +684,5 @@ describe('Testing of the collections.create method', () => {
       name: 'generative-openai',
       config: {},
     });
-
-    await openai.collections.delete(collectionName);
   });
 });
