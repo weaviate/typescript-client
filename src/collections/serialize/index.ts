@@ -1329,7 +1329,19 @@ export class Serialize {
     });
   };
 
-  public static tenantsCreate(tenant: TenantBC | TenantCreate): {
+  public static tenants<T, M>(tenants: T[], mapper: (tenant: T) => M): M[][] {
+    const mapped = [];
+    const batches = Math.ceil(tenants.length / 100);
+    for (let i = 0; i < batches; i++) {
+      const batch = tenants.slice(i * 100, (i + 1) * 100);
+      mapped.push(batch.map(mapper));
+    }
+    return mapped;
+  }
+
+  public static tenantCreate<T extends TenantBC | TenantCreate>(
+    tenant: T
+  ): {
     name: string;
     activityStatus?: 'HOT' | 'COLD';
   } {
@@ -1361,9 +1373,9 @@ export class Serialize {
     };
   }
 
-  public static tenantUpdate = (
-    tenant: TenantBC | TenantUpdate
-  ): { name: string; activityStatus: 'HOT' | 'COLD' | 'FROZEN' } => {
+  public static tenantUpdate<T extends TenantBC | TenantUpdate>(
+    tenant: T
+  ): { name: string; activityStatus: 'HOT' | 'COLD' | 'FROZEN' } {
     let activityStatus: 'HOT' | 'COLD' | 'FROZEN';
     switch (tenant.activityStatus) {
       case 'ACTIVE':
@@ -1389,5 +1401,5 @@ export class Serialize {
       name: tenant.name,
       activityStatus,
     };
-  };
+  }
 }

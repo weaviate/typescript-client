@@ -7,9 +7,9 @@ on:
   pull_request:
 
 env:
-  WEAVIATE_124: 1.24.20
-  WEAVIATE_125: 1.25.7
-  WEAVIATE_126: preview--3aca6c5
+  WEAVIATE_124: 1.24.21
+  WEAVIATE_125: 1.25.8
+  WEAVIATE_126: preview--caba86b
 
 jobs:
   checks:

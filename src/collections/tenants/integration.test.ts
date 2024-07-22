@@ -160,4 +160,22 @@ describe('Testing of the collection.tenants methods', () => {
       expect(result).not.toHaveProperty('non-existing');
     });
   });
+
+  it('should be able to create and update 1000 tenants', async () => {
+    const howManyToAdd = 1000;
+    const howManyPreExisting = Object.entries(await collection.tenants.get()).length;
+    const howMany = howManyToAdd + howManyPreExisting;
+    const tenants = Array.from({ length: howManyToAdd }, (_, i) => ({
+      name: `tenant-${i}`,
+    }));
+    await collection.tenants.create(tenants);
+    const getTenants = await collection.tenants.get();
+    expect(Object.entries(getTenants).length).toBe(howMany);
+    expect(Object.values(getTenants).every((tenant) => tenant.activityStatus === 'ACTIVE')).toBe(true);
+    const updated = await collection.tenants.update(
+      Object.values(getTenants).map((tenant) => ({ name: tenant.name, activityStatus: 'INACTIVE' }))
+    );
+    expect(Object.entries(updated).length).toBe(howMany);
+    expect(Object.values(updated).every((tenant) => tenant.activityStatus === 'INACTIVE')).toBe(true);
+  });
 });

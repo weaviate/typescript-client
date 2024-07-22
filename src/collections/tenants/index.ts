@@ -44,10 +44,16 @@ const tenants = (
       return result;
     });
   return {
-    create: (tenants: TenantBC | TenantCreate | (TenantBC | TenantCreate)[]) =>
-      new TenantsCreator(connection, collection, parseValueOrValueArray(tenants).map(Serialize.tenantsCreate))
-        .do()
-        .then((res) => res.map(parseTenantREST)),
+    create: async (tenants: TenantBC | TenantCreate | (TenantBC | TenantCreate)[]) => {
+      const out: Tenant[] = [];
+      for await (const res of Serialize.tenants(parseValueOrValueArray(tenants), Serialize.tenantCreate).map(
+        (tenants) =>
+          new TenantsCreator(connection, collection, tenants).do().then((res) => res.map(parseTenantREST))
+      )) {
+        out.push(...res);
+      }
+      return out;
+    },
     get: async function () {
       const check = await dbVersionSupport.supportsTenantsGetGRPCMethod();
       return check.supports ? getGRPC() : getREST();
@@ -63,10 +69,16 @@ const tenants = (
         collection,
         parseValueOrValueArray(tenants).map(parseStringOrTenant)
       ).do(),
-    update: (tenants: TenantBC | TenantUpdate | (TenantBC | TenantUpdate)[]) =>
-      new TenantsUpdater(connection, collection, parseValueOrValueArray(tenants).map(Serialize.tenantUpdate))
-        .do()
-        .then((res) => res.map(parseTenantREST)),
+    update: async (tenants: TenantBC | TenantUpdate | (TenantBC | TenantUpdate)[]) => {
+      const out: Tenant[] = [];
+      for await (const res of Serialize.tenants(parseValueOrValueArray(tenants), Serialize.tenantUpdate).map(
+        (tenants) =>
+          new TenantsUpdater(connection, collection, tenants).do().then((res) => res.map(parseTenantREST))
+      )) {
+        out.push(...res);
+      }
+      return out;
+    },
   };
 };
 
