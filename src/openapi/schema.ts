@@ -342,6 +342,8 @@ export interface definitions {
   ReplicationConfig: {
     /** @description Number of times a class is replicated */
     factor?: number;
+    /** @description Enable asynchronous replication */
+    asyncEnabled?: boolean;
   };
   /** @description tuning parameters for the BM25 algorithm */
   BM25Config: {
@@ -510,11 +512,13 @@ export interface definitions {
     indexFilterable?: boolean;
     /** @description Optional. Should this property be indexed in the inverted index. Defaults to true. Applicable only to properties of data type text and text[]. If you choose false, you will not be able to use this property in bm25 or hybrid search. This property has no affect on vectorization decisions done by modules */
     indexSearchable?: boolean;
+    /** @description Optional. Should this property be indexed in the inverted index. Defaults to false. Provides better performance for range queries compared to filterable index in large datasets. Applicable only to properties of data type int, number, date. */
+    indexRangeFilters?: boolean;
     /**
      * @description Determines tokenization of the property as separate words or whole field. Optional. Applies to text and text[] data types. Allowed values are `word` (default; splits on any non-alphanumerical, lowercases), `lowercase` (splits on white spaces, lowercases), `whitespace` (splits on white spaces), `field` (trims). Not supported for remaining data types
      * @enum {string}
      */
-    tokenization?: 'word' | 'lowercase' | 'whitespace' | 'field' | 'trigram' | 'gse';
+    tokenization?: 'word' | 'lowercase' | 'whitespace' | 'field' | 'trigram' | 'gse' | 'kagome_kr';
     /** @description The properties of the nested object(s). Applies to object and object[] data types. */
     nestedProperties?: definitions['NestedProperty'][];
   };
@@ -532,6 +536,7 @@ export interface definitions {
     name?: string;
     indexFilterable?: boolean;
     indexSearchable?: boolean;
+    indexRangeFilters?: boolean;
     /** @enum {string} */
     tokenization?: 'word' | 'lowercase' | 'whitespace' | 'field';
     nestedProperties?: definitions['NestedProperty'][];
@@ -1284,10 +1289,20 @@ export interface definitions {
     /** @description name of the tenant */
     name?: string;
     /**
-     * @description activity status of the tenant's shard. Optional for creating tenant (implicit `HOT`) and required for updating tenant. Allowed values are `HOT` - tenant is fully active, `WARM` - tenant is active, some restrictions are imposed (TBD; not supported yet), `COLD` - tenant is inactive; no actions can be performed on tenant, tenant's files are stored locally, `FROZEN` - as COLD, but files are stored on cloud storage (not supported yet)
+     * @description activity status of the tenant's shard. Optional for creating tenant (implicit `ACTIVE`) and required for updating tenant. For creation, allowed values are `ACTIVE` - tenant is fully active and `INACTIVE` - tenant is inactive; no actions can be performed on tenant, tenant's files are stored locally. For updating, `ACTIVE`, `INACTIVE` and also `OFFLOADED` - as INACTIVE, but files are stored on cloud storage. The following values are read-only and are set by the server for internal use: `OFFLOADING` - tenant is transitioning from ACTIVE/INACTIVE to OFFLOADED, `ONLOADING` - tenant is transitioning from OFFLOADED to ACTIVE/INACTIVE. We still accept deprecated names `HOT` (now `ACTIVE`), `COLD` (now `INACTIVE`), `FROZEN` (now `OFFLOADED`), `FREEZING` (now `OFFLOADING`), `UNFREEZING` (now `ONLOADING`).
      * @enum {string}
      */
-    activityStatus?: 'HOT' | 'WARM' | 'COLD' | 'FROZEN';
+    activityStatus?:
+      | 'ACTIVE'
+      | 'INACTIVE'
+      | 'OFFLOADED'
+      | 'OFFLOADING'
+      | 'ONLOADING'
+      | 'HOT'
+      | 'COLD'
+      | 'FROZEN'
+      | 'FREEZING'
+      | 'UNFREEZING';
   };
 }
 

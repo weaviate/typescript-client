@@ -41,6 +41,7 @@ export type MultiTenancyConfig = {
 };
 
 export type ReplicationConfig = {
+  asyncEnabled: boolean;
   factor: number;
 };
 
@@ -58,6 +59,7 @@ export type PropertyConfig = {
   description?: string;
   indexInverted: boolean;
   indexFilterable: boolean;
+  indexRangeFilters: boolean;
   indexSearchable: boolean;
   nestedProperties?: PropertyConfig[];
   tokenization: string;

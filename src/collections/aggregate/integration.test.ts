@@ -91,6 +91,7 @@ describe('Testing of the collection.aggregate methods', () => {
         ],
         vectorizers: weaviate.configure.vectorizer.text2VecContextionary({
           vectorizeCollectionName: false,
+          vectorIndexConfig: weaviate.configure.vectorIndex.hnsw({ maxConnections: 64 }),
         }),
       })
       .then(async () => {
@@ -145,7 +146,7 @@ describe('Testing of the collection.aggregate methods', () => {
   it('should aggregate grouped by data with a near text search and no property metrics', async () => {
     const result = await collection.aggregate.groupBy.nearText('test', {
       groupBy: 'text',
-      certainty: 0.1,
+      certainty: 0.01,
     });
     expect(result.length).toEqual(1);
     expect(result[0].totalCount).toEqual(100);

@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
+import { WeaviateInvalidInputError } from '../../errors.js';
 import {
   WeaviateClass,
   WeaviateInvertedIndexConfig,
@@ -118,10 +119,14 @@ export class MergeWithExisting {
   ): WeaviateVectorIndexConfig {
     if (update === undefined) return current;
     if (
-      (QuantizerGuards.isBQUpdate(update.quantizer) && ((current?.bq as any) || {}).enabled) ||
-      (QuantizerGuards.isPQUpdate(update.quantizer) && ((current?.pq as any) || {}).enabled)
+      (QuantizerGuards.isBQUpdate(update.quantizer) &&
+        (((current?.pq as any) || {}).enabled || ((current?.sq as any) || {}).enabled)) ||
+      (QuantizerGuards.isPQUpdate(update.quantizer) &&
+        (((current?.bq as any) || {}).enabled || ((current?.sq as any) || {}).enabled)) ||
+      (QuantizerGuards.isSQUpdate(update.quantizer) &&
+        (((current?.pq as any) || {}).enabled || ((current?.bq as any) || {}).enabled))
     )
-      throw Error(`Cannot update the quantizer type of an enabled vector index.`);
+      throw new WeaviateInvalidInputError(`Cannot update the quantizer type of an enabled vector index.`);
     const { quantizer, ...rest } = update;
     const merged: WeaviateVectorIndexConfig = { ...current, ...rest };
     if (QuantizerGuards.isBQUpdate(quantizer)) {
@@ -131,6 +136,10 @@ export class MergeWithExisting {
     if (QuantizerGuards.isPQUpdate(quantizer)) {
       const { type, ...quant } = quantizer;
       merged.pq = { ...current!.pq!, ...quant, enabled: true };
+    }
+    if (QuantizerGuards.isSQUpdate(quantizer)) {
+      const { type, ...quant } = quantizer;
+      merged.sq = { ...current!.sq!, ...quant, enabled: true };
     }
     return merged;
   }

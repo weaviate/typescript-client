@@ -1,10 +1,13 @@
 import { WeaviateDeserializationError } from '../../errors.js';
+import { Tenant as TenantREST } from '../../openapi/types.js';
 import { BatchObject as BatchObjectGRPC, BatchObjectsReply } from '../../proto/v1/batch.js';
 import { BatchDeleteReply } from '../../proto/v1/batch_delete.js';
 import { ListValue, Properties as PropertiesGrpc, Value } from '../../proto/v1/properties.js';
 import { MetadataResult, PropertiesResult, SearchReply } from '../../proto/v1/search_get.js';
+import { TenantActivityStatus, TenantsGetReply } from '../../proto/v1/tenants.js';
 import { DbVersionSupport } from '../../utils/dbVersion.js';
 import { referenceFromObjects } from '../references/utils.js';
+import { Tenant } from '../tenants/index.js';
 import {
   BatchObject,
   BatchObjectsReturn,
@@ -297,5 +300,57 @@ export class Deserialize {
           })
         : (undefined as any),
     };
+  }
+
+  private static activityStatusGRPC(status: TenantActivityStatus): Tenant['activityStatus'] {
+    switch (status) {
+      case TenantActivityStatus.TENANT_ACTIVITY_STATUS_COLD:
+      case TenantActivityStatus.TENANT_ACTIVITY_STATUS_INACTIVE:
+        return 'INACTIVE';
+      case TenantActivityStatus.TENANT_ACTIVITY_STATUS_HOT:
+      case TenantActivityStatus.TENANT_ACTIVITY_STATUS_ACTIVE:
+        return 'ACTIVE';
+      case TenantActivityStatus.TENANT_ACTIVITY_STATUS_FROZEN:
+      case TenantActivityStatus.TENANT_ACTIVITY_STATUS_OFFLOADED:
+        return 'OFFLOADED';
+      case TenantActivityStatus.TENANT_ACTIVITY_STATUS_FREEZING:
+      case TenantActivityStatus.TENANT_ACTIVITY_STATUS_OFFLOADING:
+        return 'OFFLOADING';
+      case TenantActivityStatus.TENANT_ACTIVITY_STATUS_UNFREEZING:
+      case TenantActivityStatus.TENANT_ACTIVITY_STATUS_ONLOADING:
+        return 'ONLOADING';
+      default:
+        throw new Error(`Unsupported tenant activity status: ${status}`);
+    }
+  }
+
+  public static activityStatusREST(status: TenantREST['activityStatus']): Tenant['activityStatus'] {
+    switch (status) {
+      case 'COLD':
+        return 'INACTIVE';
+      case 'HOT':
+        return 'ACTIVE';
+      case 'FROZEN':
+        return 'OFFLOADED';
+      case 'FREEZING':
+        return 'OFFLOADING';
+      case 'UNFREEZING':
+        return 'ONLOADING';
+      case undefined:
+        return 'ACTIVE';
+      default:
+        return status;
+    }
+  }
+
+  public static tenantsGet(reply: TenantsGetReply) {
+    const tenants: Record<string, Tenant> = {};
+    reply.tenants.forEach((t) => {
+      tenants[t.name] = {
+        name: t.name,
+        activityStatus: Deserialize.activityStatusGRPC(t.activityStatus),
+      };
+    });
+    return tenants;
   }
 }

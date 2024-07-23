@@ -11,8 +11,11 @@ const isVer = (client: WeaviateClient, minor: number, patch: number) =>
       if (!version) {
         return false;
       }
-      const semver = version.split('.').map((v) => parseInt(v, 10));
-      return semver[1] >= minor && semver[2] >= patch;
+      const semver = version
+        .split('-')[0]
+        .split('.')
+        .map((v) => parseInt(v, 10));
+      return semver[1] > minor ? true : semver[1] === minor && semver[2] >= patch;
     });
 
 describe('schema', () => {
@@ -21,7 +24,12 @@ describe('schema', () => {
     host: 'localhost:8080',
   });
 
-  const classObjPromise = newClassObject('MyThingClass', isVer(client, 25, 0), isVer(client, 25, 2));
+  const classObjPromise = newClassObject(
+    'MyThingClass',
+    isVer(client, 25, 0),
+    isVer(client, 25, 2),
+    isVer(client, 26, 0)
+  );
 
   it('creates a thing class (implicitly)', async () => {
     const classObj = await classObjPromise;
@@ -54,13 +62,14 @@ describe('schema', () => {
     return client.schema.exists('NonExistingClass').then((res) => expect(res).toEqual(false));
   });
 
-  it('extends the thing class with a new property', () => {
+  it('extends the thing class with a new property', async () => {
     const className = 'MyThingClass';
     const prop: Property = {
       dataType: ['text'],
       name: 'anotherProp',
       tokenization: 'field',
       indexFilterable: true,
+      indexRangeFilters: (await isVer(client, 26, 0)) ? false : undefined,
       indexSearchable: true,
       moduleConfig: {
         'text2vec-contextionary': {
@@ -166,7 +175,12 @@ describe('schema', () => {
 
   it('updates all shards in a class', async () => {
     const shardCount = 3;
-    const newClass: any = await newClassObject('NewClass', isVer(client, 25, 0), isVer(client, 25, 2));
+    const newClass: any = await newClassObject(
+      'NewClass',
+      isVer(client, 25, 0),
+      isVer(client, 25, 2),
+      isVer(client, 26, 0)
+    );
     newClass.shardingConfig.desiredCount = shardCount;
 
     await client.schema
@@ -209,7 +223,12 @@ describe('schema', () => {
   });
 
   it('has updated values of bm25 config', async () => {
-    const newClass: any = await newClassObject('NewClass', isVer(client, 25, 0), isVer(client, 25, 2));
+    const newClass: any = await newClassObject(
+      'NewClass',
+      isVer(client, 25, 0),
+      isVer(client, 25, 2),
+      isVer(client, 26, 0)
+    );
     const bm25Config = { k1: 1.13, b: 0.222 };
 
     newClass.invertedIndexConfig.bm25 = bm25Config;
@@ -226,7 +245,12 @@ describe('schema', () => {
   });
 
   it('has updated values of stopwords config', async () => {
-    const newClass: any = await newClassObject('SpaceClass', isVer(client, 25, 0), isVer(client, 25, 2));
+    const newClass: any = await newClassObject(
+      'SpaceClass',
+      isVer(client, 25, 0),
+      isVer(client, 25, 2),
+      isVer(client, 26, 0)
+    );
     const stopwordConfig: any = {
       preset: 'en',
       additions: ['star', 'nebula'],
@@ -278,7 +302,12 @@ describe('schema', () => {
 
   it('creates a class with explicit replication config', async () => {
     const replicationFactor = 1;
-    const newClass: any = await newClassObject('SomeClass', isVer(client, 25, 0), isVer(client, 25, 2));
+    const newClass: any = await newClassObject(
+      'SomeClass',
+      isVer(client, 25, 0),
+      isVer(client, 25, 2),
+      isVer(client, 26, 0)
+    );
     newClass.replicationConfig.factor = replicationFactor;
 
     await client.schema
@@ -293,7 +322,12 @@ describe('schema', () => {
   });
 
   it('creates a class with implicit replication config', async () => {
-    const newClass: any = await newClassObject('SomeClass', isVer(client, 25, 0), isVer(client, 25, 2));
+    const newClass: any = await newClassObject(
+      'SomeClass',
+      isVer(client, 25, 0),
+      isVer(client, 25, 2),
+      isVer(client, 26, 0)
+    );
     delete newClass.replicationConfig;
 
     await client.schema
@@ -311,12 +345,14 @@ describe('schema', () => {
     const newClass: any = await newClassObject(
       'LetsDeleteThisClass',
       isVer(client, 25, 0),
-      isVer(client, 25, 2)
+      isVer(client, 25, 2),
+      isVer(client, 26, 0)
     );
     const newClass2: any = await newClassObject(
       'LetsDeleteThisClassToo',
       isVer(client, 25, 0),
-      isVer(client, 25, 2)
+      isVer(client, 25, 2),
+      isVer(client, 26, 0)
     );
     const classNames = [newClass.class, newClass2.class];
     Promise.all([
@@ -501,9 +537,12 @@ describe('property setting defaults and migrations', () => {
     }
   );
 
-  const errMsg1 =
-    '`indexInverted` is deprecated and can not be set together with `indexFilterable` or `indexSearchable`';
-  const errMsg2 = '`indexSearchable`';
+  const errMsg1 = isVer(client, 26, 0).then((yes) =>
+    yes
+      ? '`indexInverted` is deprecated and can not be set together with `indexFilterable`, `indexSearchable` or `indexRangeFilters`'
+      : '`indexInverted` is deprecated and can not be set together with `indexFilterable` or `indexSearchable`'
+  );
+  const errMsg2 = Promise.resolve('`indexSearchable`');
   test.each([
     ['text', false, null, false, errMsg1],
     ['text', false, null, true, errMsg1],
@@ -549,7 +588,7 @@ describe('property setting defaults and migrations', () => {
       inverted: boolean | null,
       filterable: boolean | null,
       searchable: boolean | null,
-      errMsg: string
+      errMsg: Promise<string>
     ) => {
       await client.schema
         .classCreator()
@@ -566,8 +605,8 @@ describe('property setting defaults and migrations', () => {
           ],
         })
         .do()
-        .catch((e: Error) => {
-          expect(e.message).toContain(errMsg);
+        .catch(async (e: Error) => {
+          expect(e.message).toContain(await errMsg);
         });
     }
   );
@@ -681,7 +720,8 @@ describe('multi tenancy', () => {
   const classObjWithoutMultiTenancyConfig = newClassObject(
     'NoMultiTenancy',
     isVer(client, 25, 0),
-    isVer(client, 25, 2)
+    isVer(client, 25, 2),
+    isVer(client, 26, 0)
   );
 
   it('creates a NoMultiTenancy class', async () => {
@@ -711,7 +751,8 @@ describe('multi tenancy', () => {
 async function newClassObject(
   className: string,
   is1250Promise: Promise<boolean>,
-  is1252Promise: Promise<boolean>
+  is1252Promise: Promise<boolean>,
+  is1260Promise: Promise<boolean>
 ) {
   return {
     class: className,
@@ -721,6 +762,7 @@ async function newClassObject(
         name: 'stringProp',
         tokenization: 'word',
         indexFilterable: true,
+        indexRangeFilters: (await is1260Promise) ? false : undefined,
         indexSearchable: true,
         moduleConfig: {
           'text2vec-contextionary': {
@@ -754,6 +796,13 @@ async function newClassObject(
       bq: {
         enabled: false,
       },
+      sq: (await is1260Promise)
+        ? {
+            enabled: false,
+            rescoreLimit: 20,
+            trainingLimit: 100000,
+          }
+        : undefined,
       skip: false,
       efConstruction: 128,
       vectorCacheMaxObjects: 500000,
@@ -792,6 +841,7 @@ async function newClassObject(
       virtualPerPhysical: 128,
     },
     replicationConfig: {
+      asyncEnabled: (await is1260Promise) ? false : undefined,
       factor: 1,
     },
   };

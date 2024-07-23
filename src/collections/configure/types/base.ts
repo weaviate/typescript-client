@@ -61,6 +61,7 @@ export type PropertyConfigCreateBase = {
   description?: string;
   indexInverted?: boolean;
   indexFilterable?: boolean;
+  indexRangeFilters?: boolean;
   indexSearchable?: boolean;
   tokenization?: WeaviateProperty['tokenization'];
   skipVectorization?: boolean;
@@ -71,6 +72,7 @@ export type NestedPropertyConfigCreateBase = {
   description?: string;
   indexInverted?: boolean;
   indexFilterable?: boolean;
+  indexRangeFilters?: boolean;
   indexSearchable?: boolean;
   tokenization?: WeaviateNestedProperty['tokenization'];
 };
@@ -83,6 +85,7 @@ export type PropertyConfigCreate<T> = T extends undefined
       nestedProperties?: NestedPropertyConfigCreate<T, DataType>[];
       indexInverted?: boolean;
       indexFilterable?: boolean;
+      indexRangeFilters?: boolean;
       indexSearchable?: boolean;
       tokenization?: WeaviateProperty['tokenization'];
       skipVectorization?: boolean;
@@ -129,6 +132,7 @@ export type ReferenceConfigCreate<T> =
 export type ReplicationConfigCreate = RecursivePartial<ReplicationConfig>;
 
 export type ReplicationConfigUpdate = {
+  asyncEnabled?: boolean;
   factor?: number;
 };
 

@@ -13,8 +13,9 @@ import generate, { Generate } from '../generate/index.js';
 import { Iterator } from '../iterator/index.js';
 import query, { Query } from '../query/index.js';
 import sort, { Sort } from '../sort/index.js';
-import tenants, { Tenant, Tenants } from '../tenants/index.js';
+import tenants, { TenantBase, Tenants } from '../tenants/index.js';
 import { QueryMetadata, QueryProperty, QueryReference } from '../types/index.js';
+import multiTargetVector, { MultiTargetVector } from '../vectors/multiTargetVector.js';
 
 export interface Collection<T = undefined, N = string> {
   /** This namespace includes all the querying methods available to you when using Weaviate's standard aggregation capabilities. */
@@ -39,6 +40,8 @@ export interface Collection<T = undefined, N = string> {
   sort: Sort<T>;
   /** This namespace includes all the CRUD methods available to you when modifying the tenants of a multi-tenancy-enabled collection in Weaviate. */
   tenants: Tenants;
+  /** This namespaces includes the methods by which you cna create the `MultiTargetVectorJoin` values for use when performing multi-target vector searches over your collection. */
+  multiTargetVector: MultiTargetVector;
   /**
    * Use this method to check if the collection exists in Weaviate.
    *
@@ -78,10 +81,11 @@ export interface Collection<T = undefined, N = string> {
    *
    * This method does not send a request to Weaviate. It only returns a new collection object that is specific to the tenant you specify.
    *
-   * @param {string | Tenant} tenant The tenant name or tenant object to use.
+   * @typedef {TenantBase} TT A type that extends TenantBase.
+   * @param {string | TT} tenant The tenant name or tenant object to use.
    * @returns {Collection<T, N>} A new collection object specific to the tenant you specified.
    */
-  withTenant: (tenant: string | Tenant) => Collection<T, N>;
+  withTenant: <TT extends TenantBase>(tenant: string | TT) => Collection<T, N>;
 }
 
 export type IteratorOptions<T> = {
@@ -101,27 +105,22 @@ const collection = <T, N>(
   name: N,
   dbVersionSupport: DbVersionSupport,
   consistencyLevel?: ConsistencyLevel,
-  tenant?: Tenant
+  tenant?: string
 ): Collection<T, N> => {
   if (!isString(name)) {
     throw new WeaviateInvalidInputError(`The collection name must be a string, got: ${typeof name}`);
   }
   const capitalizedName = capitalizeCollectionName(name);
-  const queryCollection = query<T>(
-    connection,
-    capitalizedName,
-    dbVersionSupport,
-    consistencyLevel,
-    tenant?.name
-  );
+  const queryCollection = query<T>(connection, capitalizedName, dbVersionSupport, consistencyLevel, tenant);
   return {
-    aggregate: aggregate<T>(connection, capitalizedName, dbVersionSupport, consistencyLevel, tenant?.name),
+    aggregate: aggregate<T>(connection, capitalizedName, dbVersionSupport, consistencyLevel, tenant),
     backup: backupCollection(connection, capitalizedName),
-    config: config<T>(connection, capitalizedName, dbVersionSupport, tenant?.name),
-    data: data<T>(connection, capitalizedName, dbVersionSupport, consistencyLevel, tenant?.name),
+    config: config<T>(connection, capitalizedName, dbVersionSupport, tenant),
+    data: data<T>(connection, capitalizedName, dbVersionSupport, consistencyLevel, tenant),
     filter: filter<T extends undefined ? any : T>(),
-    generate: generate<T>(connection, capitalizedName, dbVersionSupport, consistencyLevel, tenant?.name),
+    generate: generate<T>(connection, capitalizedName, dbVersionSupport, consistencyLevel, tenant),
     metrics: metrics<T>(),
+    multiTargetVector: multiTargetVector(),
     name: name,
     query: queryCollection,
     sort: sort<T>(),
@@ -142,13 +141,13 @@ const collection = <T, N>(
       ),
     withConsistency: (consistencyLevel: ConsistencyLevel) =>
       collection<T, N>(connection, capitalizedName, dbVersionSupport, consistencyLevel, tenant),
-    withTenant: (tenant: string | Tenant) =>
+    withTenant: <TT extends TenantBase>(tenant: string | TT) =>
       collection<T, N>(
         connection,
         capitalizedName,
         dbVersionSupport,
         consistencyLevel,
-        typeof tenant === 'string' ? { name: tenant } : tenant
+        typeof tenant === 'string' ? tenant : tenant.name
       ),
   };
 };

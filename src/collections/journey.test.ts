@@ -53,7 +53,7 @@ describe('Journey testing of the client using a WCD cluster', () => {
     return client.collections
       .get(collectionName)
       .config.get()
-      .then((config) => {
+      .then(async (config) => {
         expect(config).toEqual<CollectionConfig>({
           name: collectionName,
           generative: {
@@ -86,6 +86,7 @@ describe('Journey testing of the client using a WCD cluster', () => {
               dataType: 'text',
               indexFilterable: true,
               indexInverted: false,
+              indexRangeFilters: false,
               indexSearchable: true,
               vectorizerConfig: {
                 'text2vec-cohere': {
@@ -100,6 +101,7 @@ describe('Journey testing of the client using a WCD cluster', () => {
               dataType: 'int',
               indexFilterable: true,
               indexInverted: false,
+              indexRangeFilters: false,
               indexSearchable: false,
               vectorizerConfig: {
                 'text2vec-cohere': {
@@ -114,6 +116,7 @@ describe('Journey testing of the client using a WCD cluster', () => {
               dataType: 'geoCoordinates',
               indexFilterable: true,
               indexInverted: false,
+              indexRangeFilters: false,
               indexSearchable: false,
               vectorizerConfig: {
                 'text2vec-cohere': {
@@ -128,6 +131,7 @@ describe('Journey testing of the client using a WCD cluster', () => {
               dataType: 'date',
               indexFilterable: true,
               indexInverted: false,
+              indexRangeFilters: false,
               indexSearchable: false,
               vectorizerConfig: {
                 'text2vec-cohere': {
@@ -140,6 +144,7 @@ describe('Journey testing of the client using a WCD cluster', () => {
           ],
           references: [],
           replication: {
+            asyncEnabled: false,
             factor: 1,
           },
           reranker: {
@@ -171,7 +176,9 @@ describe('Journey testing of the client using a WCD cluster', () => {
                 ef: -1,
                 efConstruction: 128,
                 flatSearchCutoff: 40000,
-                maxConnections: 64,
+                maxConnections: (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 26, 0)))
+                  ? 64
+                  : 32,
                 skip: false,
                 vectorCacheMaxObjects: 1000000000000,
                 quantizer: undefined,

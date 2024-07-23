@@ -27,17 +27,26 @@ describe('Testing of the collection.tenants methods', () => {
         collection.tenants.create([
           { name: 'hot', activityStatus: 'HOT' },
           { name: 'cold', activityStatus: 'COLD' },
+          { name: 'cold-new', activityStatus: 'COLD' },
           { name: 'remove-me', activityStatus: 'HOT' },
         ])
       );
   });
 
-  it('should be able to create a tenant', async () => {
+  it('should be able to create a tenant with old nomenclature', async () => {
     const tenant = 'tenant';
     const result = await collection.tenants.create([{ name: tenant, activityStatus: 'HOT' }]);
     expect(result.length).toBe(1);
     expect(result[0].name).toBe(tenant);
-    expect(result[0].activityStatus).toBe('HOT');
+    expect(result[0].activityStatus).toBe('ACTIVE');
+  });
+
+  it('should be able to create a tenant with new nomenclature', async () => {
+    const tenant = 'tenant';
+    const result = await collection.tenants.create([{ name: tenant, activityStatus: 'ACTIVE' }]);
+    expect(result.length).toBe(1);
+    expect(result[0].name).toBe(tenant);
+    expect(result[0].activityStatus).toBe('ACTIVE');
   });
 
   it('should be able to get existing tenants', async () => {
@@ -45,7 +54,7 @@ describe('Testing of the collection.tenants methods', () => {
 
     expect(result).toHaveProperty('hot');
     expect(result.hot.name).toBe('hot');
-    expect(result.hot.activityStatus).toBe('HOT');
+    expect(result.hot.activityStatus).toBe('ACTIVE');
 
     expect(result).toHaveProperty('cold');
     expect(result.cold.name).toBe('cold');
@@ -59,11 +68,18 @@ describe('Testing of the collection.tenants methods', () => {
     expect(result).not.toHaveProperty('remove-me');
   });
 
-  it('should be able to update a tenant', async () => {
+  it('should be able to update a tenant with old nomenclature', async () => {
     const result = await collection.tenants.update([{ name: 'cold', activityStatus: 'HOT' }]);
     expect(result.length).toBe(1);
     expect(result[0].name).toBe('cold');
-    expect(result[0].activityStatus).toBe('HOT');
+    expect(result[0].activityStatus).toBe('ACTIVE');
+  });
+
+  it('should be able to update a tenant with new nomenclature', async () => {
+    const result = await collection.tenants.update([{ name: 'cold-new', activityStatus: 'ACTIVE' }]);
+    expect(result.length).toBe(1);
+    expect(result[0].name).toBe('cold-new');
+    expect(result[0].activityStatus).toBe('ACTIVE');
   });
 
   describe('getByName and getByNames', () => {
@@ -75,7 +91,7 @@ describe('Testing of the collection.tenants methods', () => {
       }
       const result = await query();
       expect(result).toHaveProperty('name', 'hot');
-      expect(result).toHaveProperty('activityStatus', 'HOT');
+      expect(result).toHaveProperty('activityStatus', 'ACTIVE');
     });
 
     it('should be able to get a tenant by tenant object', async () => {
@@ -86,7 +102,7 @@ describe('Testing of the collection.tenants methods', () => {
       }
       const result = await query();
       expect(result).toHaveProperty('name', 'hot');
-      expect(result).toHaveProperty('activityStatus', 'HOT');
+      expect(result).toHaveProperty('activityStatus', 'ACTIVE');
     });
 
     it('should fail to get a non-existing tenant', async () => {
@@ -143,5 +159,23 @@ describe('Testing of the collection.tenants methods', () => {
       expect(result).not.toHaveProperty('cold');
       expect(result).not.toHaveProperty('non-existing');
     });
+  });
+
+  it('should be able to create and update 1000 tenants', async () => {
+    const howManyToAdd = 1000;
+    const howManyPreExisting = Object.entries(await collection.tenants.get()).length;
+    const howMany = howManyToAdd + howManyPreExisting;
+    const tenants = Array.from({ length: howManyToAdd }, (_, i) => ({
+      name: `tenant-${i}`,
+    }));
+    await collection.tenants.create(tenants);
+    const getTenants = await collection.tenants.get();
+    expect(Object.entries(getTenants).length).toBe(howMany);
+    expect(Object.values(getTenants).every((tenant) => tenant.activityStatus === 'ACTIVE')).toBe(true);
+    const updated = await collection.tenants.update(
+      Object.values(getTenants).map((tenant) => ({ name: tenant.name, activityStatus: 'INACTIVE' }))
+    );
+    expect(Object.entries(updated).length).toBe(howMany);
+    expect(Object.values(updated).every((tenant) => tenant.activityStatus === 'INACTIVE')).toBe(true);
   });
 });
