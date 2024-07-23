@@ -44,16 +44,10 @@ const tenants = (
       return result;
     });
   return {
-    create: async (tenants: TenantBC | TenantCreate | (TenantBC | TenantCreate)[]) => {
-      const out: Tenant[] = [];
-      for await (const res of Serialize.tenants(parseValueOrValueArray(tenants), Serialize.tenantCreate).map(
-        (tenants) =>
-          new TenantsCreator(connection, collection, tenants).do().then((res) => res.map(parseTenantREST))
-      )) {
-        out.push(...res);
-      }
-      return out;
-    },
+    create: (tenants: TenantBC | TenantCreate | (TenantBC | TenantCreate)[]) =>
+      new TenantsCreator(connection, collection, parseValueOrValueArray(tenants).map(Serialize.tenantCreate))
+        .do()
+        .then((res) => res.map(parseTenantREST)),
     get: async function () {
       const check = await dbVersionSupport.supportsTenantsGetGRPCMethod();
       return check.supports ? getGRPC() : getREST();
