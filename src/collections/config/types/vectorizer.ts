@@ -179,7 +179,7 @@ export type Text2VecAzureOpenAIConfig = {
   /** The base URL to use where API requests should go. */
   baseURL?: string;
   /** The deployment ID to use */
-  deploymentID: string;
+  deploymentId: string;
   /** The resource name to use. */
   resourceName: string;
   /** Whether to vectorize the collection name. */
