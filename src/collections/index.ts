@@ -155,8 +155,10 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
             vectorIndexType: v.vectorIndex.name,
             vectorizer: {},
           };
-          vectorizers = [...vectorizers, v.vectorizer.name];
-          vectorConfig.vectorizer[v.vectorizer.name] = {
+          const vectorizer =
+            v.vectorizer.name === 'text2vec-azure-openai' ? 'text2vec-openai' : v.vectorizer.name;
+          vectorizers = [...vectorizers, vectorizer];
+          vectorConfig.vectorizer[vectorizer] = {
             properties: v.properties,
             ...parseVectorizerConfig(v.vectorizer.config),
           };
@@ -173,7 +175,10 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
       const makeLegacyVectorizer = (
         configVectorizers: VectorConfigCreate<PrimitiveKeys<TProperties>, undefined, string, Vectorizer>
       ) => {
-        const vectorizer = configVectorizers.vectorizer.name;
+        const vectorizer =
+          configVectorizers.vectorizer.name === 'text2vec-azure-openai'
+            ? 'text2vec-openai'
+            : configVectorizers.vectorizer.name;
         const moduleConfig: any = {};
         moduleConfig[vectorizer] = parseVectorizerConfig(configVectorizers.vectorizer.config);
 
