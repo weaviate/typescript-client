@@ -580,7 +580,7 @@ describe('Unit testing of the vectorizer factory class', () => {
 
   it('should create the correct Text2VecAzureOpenAIConfig type with defaults', () => {
     const config = configure.vectorizer.text2VecAzureOpenAI({
-      deploymentID: 'deployment-id',
+      deploymentId: 'deployment-id',
       resourceName: 'resource-name',
     });
     expect(config).toEqual<VectorConfigCreate<never, undefined, 'hnsw', 'text2vec-azure-openai'>>({
@@ -592,7 +592,7 @@ describe('Unit testing of the vectorizer factory class', () => {
       vectorizer: {
         name: 'text2vec-azure-openai',
         config: {
-          deploymentID: 'deployment-id',
+          deploymentId: 'deployment-id',
           resourceName: 'resource-name',
         },
       },
@@ -603,7 +603,7 @@ describe('Unit testing of the vectorizer factory class', () => {
     const config = configure.vectorizer.text2VecAzureOpenAI({
       name: 'test',
       baseURL: 'base-url',
-      deploymentID: 'deployment-id',
+      deploymentId: 'deployment-id',
       resourceName: 'resource-name',
       vectorizeCollectionName: true,
     });
@@ -617,7 +617,7 @@ describe('Unit testing of the vectorizer factory class', () => {
         name: 'text2vec-azure-openai',
         config: {
           baseURL: 'base-url',
-          deploymentID: 'deployment-id',
+          deploymentId: 'deployment-id',
           resourceName: 'resource-name',
           vectorizeCollectionName: true,
         },
