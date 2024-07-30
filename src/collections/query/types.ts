@@ -76,10 +76,18 @@ export type SearchOptions<T> = {
   returnReferences?: QueryReference<T>[];
 };
 
+/** Which property of the collection to perform the keyword search on. */
+export type Bm25QueryProperty<T> = {
+  /** The property name to search on. */
+  name: PrimitiveKeys<T>;
+  /** The weight to provide to the keyword search for this property. */
+  weight: number;
+};
+
 /** Base options available in the `query.bm25` method */
 export type BaseBm25Options<T> = SearchOptions<T> & {
   /** Which properties of the collection to perform the keyword search on. */
-  queryProperties?: PrimitiveKeys<T>[];
+  queryProperties?: (PrimitiveKeys<T> | Bm25QueryProperty<T>)[];
 };
 
 /** Options available in the `query.bm25` method when specifying the `groupBy` parameter. */
@@ -98,7 +106,7 @@ export type BaseHybridOptions<T> = SearchOptions<T> & {
   /** The specific vector to search for or a specific vector subsearch. If not specified, the query is vectorized and used in the similarity search. */
   vector?: NearVectorInputType | HybridNearTextSubSearch | HybridNearVectorSubSearch;
   /** The properties to search in. If not specified, all properties are searched. */
-  queryProperties?: PrimitiveKeys<T>[];
+  queryProperties?: (PrimitiveKeys<T> | Bm25QueryProperty<T>)[];
   /** The type of fusion to apply. If not specified, the default fusion type specified by the server is used. */
   fusionType?: 'Ranked' | 'RelativeScore';
   /** Specify which vector(s) to search on if using named vectors. */

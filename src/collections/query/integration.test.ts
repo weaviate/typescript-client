@@ -94,6 +94,38 @@ describe('Testing of the collection.query methods with a simple collection', () 
     expect(ret.objects[0].uuid).toEqual(id);
   });
 
+  it('should query with bm25 and weighted query properties', async () => {
+    const ret = await collection.query.bm25('test', {
+      queryProperties: [
+        {
+          name: 'testProp',
+          weight: 2,
+        },
+        'testProp2',
+      ],
+    });
+    expect(ret.objects.length).toEqual(1);
+    expect(ret.objects[0].properties.testProp).toEqual('test');
+    expect(ret.objects[0].properties.testProp2).toEqual('test2');
+    expect(ret.objects[0].uuid).toEqual(id);
+  });
+
+  it('should query with bm25 and weighted query properties with a non-generic collection', async () => {
+    const ret = await client.collections.get(collectionName).query.bm25('test', {
+      queryProperties: [
+        {
+          name: 'testProp',
+          weight: 2,
+        },
+        'testProp2',
+      ],
+    });
+    expect(ret.objects.length).toEqual(1);
+    expect(ret.objects[0].properties.testProp).toEqual('test');
+    expect(ret.objects[0].properties.testProp2).toEqual('test2');
+    expect(ret.objects[0].uuid).toEqual(id);
+  });
+
   it('should query with hybrid', async () => {
     const ret = await collection.query.hybrid('test', { limit: 1 });
     expect(ret.objects.length).toEqual(1);
