@@ -68,11 +68,12 @@ import {
   PrimitiveFilterValueType,
   PrimitiveListFilterValueType,
 } from '../filters/types.js';
-import { MultiTargetVectorJoin } from '../index.js';
+import { MultiTargetVectorJoin, PrimitiveKeys } from '../index.js';
 import {
   BaseHybridOptions,
   BaseNearOptions,
   Bm25Options,
+  Bm25QueryProperty,
   FetchObjectByIdOptions,
   FetchObjectsOptions,
   HybridNearTextSubSearch,
@@ -358,12 +359,24 @@ export class Serialize {
     };
   };
 
+  private static bm25QueryProperties = <T>(
+    properties?: (PrimitiveKeys<T> | Bm25QueryProperty<T>)[]
+  ): string[] | undefined => {
+    return properties?.map((property) => {
+      if (typeof property === 'string') {
+        return property;
+      } else {
+        return `${property.name}^${property.weight}`;
+      }
+    });
+  };
+
   public static bm25 = <T>(args: { query: string } & Bm25Options<T>): SearchBm25Args => {
     return {
       ...Serialize.common(args),
       bm25Search: BM25.fromPartial({
         query: args.query,
-        properties: args.queryProperties,
+        properties: this.bm25QueryProperties(args.queryProperties),
       }),
       autocut: args.autoLimit,
     };
@@ -448,7 +461,7 @@ export class Serialize {
       hybridSearch: Hybrid.fromPartial({
         query: args.query,
         alpha: args.alpha ? args.alpha : 0.5,
-        properties: args.queryProperties,
+        properties: this.bm25QueryProperties(args.queryProperties),
         vectorBytes: vectorBytes,
         fusionType: fusionType(args.fusionType),
         targetVectors,
