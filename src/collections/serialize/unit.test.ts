@@ -32,6 +32,7 @@ import {
   NearVideoSearch,
   PropertiesRequest,
 } from '../../proto/v1/search_get.js';
+import { Filters as FiltersFactory } from '../filters/classes.js';
 import filter from '../filters/index.js';
 import { Reference } from '../references/index.js';
 import sort from '../sort/index.js';
@@ -487,6 +488,225 @@ describe('Unit testing of Serialize', () => {
         { beacon: 'weaviate://localhost/L/31' },
         { beacon: 'weaviate://localhost/L/32' },
       ],
+    });
+  });
+
+  describe('.filtersGRPC', () => {
+    it('should parse a text property', () => {
+      const f = filter<any>().byProperty('name').equal('test');
+      const args = Serialize.filtersGRPC(f);
+      expect(args).toEqual<Filters>({
+        operator: Filters_Operator.OPERATOR_EQUAL,
+        on: [],
+        filters: [],
+        target: {
+          property: 'name',
+        },
+        valueText: 'test',
+      });
+    });
+    it('should parse a text array property', () => {
+      const f = filter<any>().byProperty('name').equal(['test1', 'test2']);
+      const args = Serialize.filtersGRPC(f);
+      expect(args).toEqual<Filters>({
+        operator: Filters_Operator.OPERATOR_EQUAL,
+        on: [],
+        filters: [],
+        target: {
+          property: 'name',
+        },
+        valueTextArray: { values: ['test1', 'test2'] },
+      });
+    });
+    it('should parse an int property', () => {
+      const f = filter<any>().byProperty('age').equal(10);
+      const args = Serialize.filtersGRPC(f);
+      expect(args).toEqual<Filters>({
+        operator: Filters_Operator.OPERATOR_EQUAL,
+        on: [],
+        filters: [],
+        target: {
+          property: 'age',
+        },
+        valueInt: 10,
+      });
+    });
+    it('should parse an int array property', () => {
+      const f = filter<any>().byProperty('age').equal([10, 20]);
+      const args = Serialize.filtersGRPC(f);
+      expect(args).toEqual<Filters>({
+        operator: Filters_Operator.OPERATOR_EQUAL,
+        on: [],
+        filters: [],
+        target: {
+          property: 'age',
+        },
+        valueIntArray: { values: [10, 20] },
+      });
+    });
+    it('should parse a float property', () => {
+      const f = filter<any>().byProperty('height').equal(1.8);
+      const args = Serialize.filtersGRPC(f);
+      expect(args).toEqual<Filters>({
+        operator: Filters_Operator.OPERATOR_EQUAL,
+        on: [],
+        filters: [],
+        target: {
+          property: 'height',
+        },
+        valueNumber: 1.8,
+      });
+    });
+    it('should parse a float array property', () => {
+      const f = filter<any>().byProperty('height').equal([1.8, 2.8]);
+      const args = Serialize.filtersGRPC(f);
+      expect(args).toEqual<Filters>({
+        operator: Filters_Operator.OPERATOR_EQUAL,
+        on: [],
+        filters: [],
+        target: {
+          property: 'height',
+        },
+        valueNumberArray: { values: [1.8, 2.8] },
+      });
+    });
+    it('should parse a boolean property', () => {
+      const f = filter<any>().byProperty('isHappy').equal(true);
+      const args = Serialize.filtersGRPC(f);
+      expect(args).toEqual<Filters>({
+        operator: Filters_Operator.OPERATOR_EQUAL,
+        on: [],
+        filters: [],
+        target: {
+          property: 'isHappy',
+        },
+        valueBoolean: true,
+      });
+    });
+    it('should parse a boolean array property', () => {
+      const f = filter<any>().byProperty('isHappy').equal([true, false]);
+      const args = Serialize.filtersGRPC(f);
+      expect(args).toEqual<Filters>({
+        operator: Filters_Operator.OPERATOR_EQUAL,
+        on: [],
+        filters: [],
+        target: {
+          property: 'isHappy',
+        },
+        valueBooleanArray: { values: [true, false] },
+      });
+    });
+    it('should parse a date property', () => {
+      const date = new Date();
+      const f = filter<any>().byProperty('birthday').equal(date);
+      const args = Serialize.filtersGRPC(f);
+      expect(args).toEqual<Filters>({
+        operator: Filters_Operator.OPERATOR_EQUAL,
+        on: [],
+        filters: [],
+        target: {
+          property: 'birthday',
+        },
+        valueText: date.toISOString(),
+      });
+    });
+    it('should parse a date array property', () => {
+      const date1 = new Date();
+      const date2 = new Date();
+      const f = filter<any>().byProperty('birthday').equal([date1, date2]);
+      const args = Serialize.filtersGRPC(f);
+      expect(args).toEqual<Filters>({
+        operator: Filters_Operator.OPERATOR_EQUAL,
+        on: [],
+        filters: [],
+        target: {
+          property: 'birthday',
+        },
+        valueTextArray: { values: [date1.toISOString(), date2.toISOString()] },
+      });
+    });
+    it('should parse a geo property', () => {
+      const f = filter<any>()
+        .byProperty('location')
+        .withinGeoRange({ latitude: 1, longitude: 1, distance: 1 });
+      const args = Serialize.filtersGRPC(f);
+      expect(args).toEqual<Filters>({
+        operator: Filters_Operator.OPERATOR_WITHIN_GEO_RANGE,
+        on: [],
+        filters: [],
+        target: {
+          property: 'location',
+        },
+        valueGeo: {
+          distance: 1,
+          latitude: 1,
+          longitude: 1,
+        },
+      });
+    });
+    it('should parse several filters in a Filters.and', () => {
+      const f = FiltersFactory.and(
+        filter<any>().byProperty('name').equal('test'),
+        filter<any>().byProperty('age').equal(10)
+      );
+      const args = Serialize.filtersGRPC(f);
+      expect(args).toEqual<Filters>({
+        operator: Filters_Operator.OPERATOR_AND,
+        on: [],
+        target: undefined,
+        filters: [
+          {
+            operator: Filters_Operator.OPERATOR_EQUAL,
+            on: [],
+            filters: [],
+            target: {
+              property: 'name',
+            },
+            valueText: 'test',
+          },
+          {
+            operator: Filters_Operator.OPERATOR_EQUAL,
+            on: [],
+            filters: [],
+            target: {
+              property: 'age',
+            },
+            valueInt: 10,
+          },
+        ],
+      });
+    });
+    it('should parse several filters in a Filters.or', () => {
+      const f = FiltersFactory.or(
+        filter<any>().byProperty('name').equal('test'),
+        filter<any>().byProperty('age').equal(10)
+      );
+      const args = Serialize.filtersGRPC(f);
+      expect(args).toEqual<Filters>({
+        operator: Filters_Operator.OPERATOR_OR,
+        on: [],
+        target: undefined,
+        filters: [
+          {
+            operator: Filters_Operator.OPERATOR_EQUAL,
+            on: [],
+            filters: [],
+            target: {
+              property: 'name',
+            },
+            valueText: 'test',
+          },
+          {
+            operator: Filters_Operator.OPERATOR_EQUAL,
+            on: [],
+            filters: [],
+            target: {
+              property: 'age',
+            },
+            valueInt: 10,
+          },
+        ],
+      });
     });
   });
 });
