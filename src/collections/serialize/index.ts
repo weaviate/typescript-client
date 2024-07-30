@@ -140,7 +140,7 @@ class FilterGuards {
   };
 
   static isFloat = (argument?: FilterValueType): argument is number => {
-    return typeof argument === 'number';
+    return typeof argument === 'number' && !Number.isInteger(argument);
   };
 
   static isFloatArray = (argument?: FilterValueType): argument is number[] => {
@@ -793,8 +793,8 @@ export class Serialize {
         return FiltersGRPC.fromPartial({
           operator: Serialize.operator(filters.operator),
           target: filters.target,
-          valueText: FilterGuards.isText(value) ? value : undefined,
-          valueTextArray: FilterGuards.isTextArray(value) ? { values: value } : undefined,
+          valueText: this.filtersGRPCValueText(value),
+          valueTextArray: this.filtersGRPCValueTextArray(value),
           valueInt: FilterGuards.isInt(value) ? value : undefined,
           valueIntArray: FilterGuards.isIntArray(value) ? { values: value } : undefined,
           valueNumber: FilterGuards.isFloat(value) ? value : undefined,
@@ -803,6 +803,26 @@ export class Serialize {
           valueBooleanArray: FilterGuards.isBooleanArray(value) ? { values: value } : undefined,
           valueGeo: FilterGuards.isGeoRange(value) ? value : undefined,
         });
+    }
+  };
+
+  private static filtersGRPCValueText = (value: any) => {
+    if (FilterGuards.isText(value)) {
+      return value;
+    } else if (FilterGuards.isDate(value)) {
+      return value.toISOString();
+    } else {
+      return undefined;
+    }
+  };
+
+  private static filtersGRPCValueTextArray = (value: any) => {
+    if (FilterGuards.isTextArray(value)) {
+      return { values: value };
+    } else if (FilterGuards.isDateArray(value)) {
+      return { values: value.map((v) => v.toISOString()) };
+    } else {
+      return undefined;
     }
   };
 
