@@ -146,18 +146,18 @@ describe('Testing of the filter class with a simple collection', () => {
     });
     expect(res.objects.length).toEqual(2);
 
-    const obj1 = res.objects[0];
-    const obj2 = res.objects[1];
+    // Return of fetch not necessarily in order due to filter
+    expect(res.objects.map((o) => o.properties.text)).toContain('two');
+    expect(res.objects.map((o) => o.properties.text)).toContain('three');
 
-    expect(obj1.properties.text).toEqual('two');
-    expect(obj1.properties.int).toEqual(2);
-    expect(obj1.properties.float).toEqual(2.2);
-    expect(obj1.uuid).toEqual(ids[1]);
+    expect(res.objects.map((o) => o.properties.int)).toContain(2);
+    expect(res.objects.map((o) => o.properties.int)).toContain(3);
 
-    expect(obj2.properties.text).toEqual('three');
-    expect(obj2.properties.int).toEqual(3);
-    expect(obj2.properties.float).toEqual(3.3);
-    expect(obj2.uuid).toEqual(ids[2]);
+    expect(res.objects.map((o) => o.properties.float)).toContain(2.2);
+    expect(res.objects.map((o) => o.properties.float)).toContain(3.3);
+
+    expect(res.objects.map((o) => o.uuid)).toContain(ids[1]);
+    expect(res.objects.map((o) => o.uuid)).toContain(ids[2]);
   });
 
   it('should filter a fetch objects query with a reference filter', async () => {
