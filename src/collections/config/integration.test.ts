@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { WeaviateUnsupportedFeatureError } from '../../errors.js';
-import weaviate, { WeaviateClient } from '../../index.js';
+import weaviate, { WeaviateClient, weaviateV2 } from '../../index.js';
 import { PropertyConfig, VectorIndexConfigDynamic, VectorIndexConfigHNSW } from './types/index.js';
 
 const fail = (msg: string) => {
@@ -526,71 +526,59 @@ describe('Testing of the collection.config namespace', () => {
     expect(config.multiTenancy.enabled).toEqual(true);
   });
 
-  // it('should be able update the config of a collection with legacy vectors', async () => {
-  //   const collectionName = 'TestCollectionConfigUpdateLegacyVectors';
-  //   const collection = await client.collections.create({
-  //     name: collectionName,
-  //     properties: [
-  //       {
-  //         name: 'testProp',
-  //         dataType: 'text',
-  //       },
-  //     ],
-  //     vectorizer: {
-  //       name: 'none',
-  //       config: {},
-  //     },
-  //   });
-  //   const config = await collection.config
-  //     .update({
-  //       vectorizers: weaviate.reconfigure.vectorIndex.hnsw({
-  //         quantizer: weaviate.reconfigure.vectorIndex.quantizer.pq(),
-  //         ef: 4,
-  //       }),
-  //     })
-  //     .then(() => collection.config.get());
+  it('should be able update the config of a collection with legacy vectors', async () => {
+    const clientV2 = weaviateV2.client({
+      host: 'http://localhost:8080',
+    });
+    const collectionName = 'TestCollectionConfigUpdateLegacyVectors';
+    await clientV2.schema
+      .classCreator()
+      .withClass({
+        class: collectionName,
+        vectorizer: 'none',
+      })
+      .do();
+    const collection = client.collections.get(collectionName);
+    const config = await collection.config
+      .update({
+        vectorizers: weaviate.reconfigure.vectorizer.update({
+          vectorIndexConfig: weaviate.reconfigure.vectorIndex.hnsw({
+            quantizer: weaviate.reconfigure.vectorIndex.quantizer.pq(),
+            ef: 4,
+          }),
+        }),
+      })
+      .then(() => collection.config.get());
 
-  //   expect(config.name).toEqual(collectionName);
-  //   expect(config.properties).toEqual<PropertyConfig[]>([
-  //     {
-  //       name: 'testProp',
-  //       dataType: 'text',
-  //       description: undefined,
-  //       indexSearchable: true,
-  //       indexFilterable: true,
-  //       indexInverted: false,
-  //       vectorizerConfig: undefined,
-  //       nestedProperties: undefined,
-  //       tokenization: 'word',
-  //     },
-  //   ]);
-  //   expect(config.generative).toBeUndefined();
-  //   expect(config.reranker).toBeUndefined();
-  //   expect(config.vectorizers.default.indexConfig).toEqual<VectorIndexConfigHNSW>({
-  //     skip: false,
-  //     cleanupIntervalSeconds: 300,
-  //     maxConnections: 64,
-  //     efConstruction: 128,
-  //     ef: 4,
-  //     dynamicEfMin: 100,
-  //     dynamicEfMax: 500,
-  //     dynamicEfFactor: 8,
-  //     vectorCacheMaxObjects: 1000000000000,
-  //     flatSearchCutoff: 40000,
-  //     distance: 'cosine',
-  //     quantizer: {
-  //       bitCompression: false,
-  //       segments: 0,
-  //       centroids: 256,
-  //       trainingLimit: 100000,
-  //       encoder: {
-  //         type: 'kmeans',
-  //         distribution: 'log-normal',
-  //       },
-  //       type: 'pq',
-  //     },
-  //   });
-  //   expect(config.vectorizers.default.indexType).toEqual('hnsw');
-  //   expect(config.vectorizers.default.vectorizer.name).toEqual('none');
-  // });
+    expect(config.name).toEqual(collectionName);
+    expect(config.generative).toBeUndefined();
+    expect(config.reranker).toBeUndefined();
+    expect(config.vectorizers.default.indexConfig).toEqual<VectorIndexConfigHNSW>({
+      skip: false,
+      cleanupIntervalSeconds: 300,
+      maxConnections: (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 26, 0))) ? 64 : 32,
+      efConstruction: 128,
+      ef: 4,
+      dynamicEfMin: 100,
+      dynamicEfMax: 500,
+      dynamicEfFactor: 8,
+      vectorCacheMaxObjects: 1000000000000,
+      flatSearchCutoff: 40000,
+      distance: 'cosine',
+      type: 'hnsw',
+      quantizer: {
+        bitCompression: false,
+        segments: 0,
+        centroids: 256,
+        trainingLimit: 100000,
+        encoder: {
+          type: 'kmeans',
+          distribution: 'log-normal',
+        },
+        type: 'pq',
+      },
+    });
+    expect(config.vectorizers.default.indexType).toEqual('hnsw');
+    expect(config.vectorizers.default.vectorizer.name).toEqual('none');
+  });
 });
