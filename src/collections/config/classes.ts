@@ -38,7 +38,7 @@ export class MergeWithExisting {
     if (update.vectorizers !== undefined) {
       if (Array.isArray(update.vectorizers)) {
         current.vectorConfig = MergeWithExisting.vectors(current.vectorConfig, update.vectorizers);
-      } else if (supportsNamedVectors) {
+      } else if (supportsNamedVectors && current.vectorConfig !== undefined) {
         const updateVectorizers = {
           ...update.vectorizers,
           name: 'default',
