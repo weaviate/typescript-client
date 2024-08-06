@@ -1,4 +1,9 @@
-import { ModuleConfig, RerankerCohereConfig, RerankerVoyageAIConfig } from '../config/types/index.js';
+import {
+  ModuleConfig,
+  RerankerCohereConfig,
+  RerankerJinaAIConfig,
+  RerankerVoyageAIConfig,
+} from '../config/types/index.js';
 
 export default {
   /**
@@ -14,6 +19,22 @@ export default {
   ): ModuleConfig<'reranker-cohere', RerankerCohereConfig | undefined> => {
     return {
       name: 'reranker-cohere',
+      config: config,
+    };
+  },
+  /**
+   * Create a `ModuleConfig<'reranker-jinaai', RerankerJinaAIConfig>` object for use when reranking using the `reranker-jinaai` module.
+   *
+   * See the [documentation](https://weaviate.io/developers/weaviate/modules/retriever-vectorizer-modules/reranker-jinaai) for detailed usage.
+   *
+   * @param {RerankerJinaAIConfig} [config] The configuration for the `reranker-jinaai` module.
+   * @returns {ModuleConfig<'reranker-jinaai', RerankerJinaAIConfig | undefined>} The configuration object.
+   */
+  jinaai: (
+    config?: RerankerJinaAIConfig
+  ): ModuleConfig<'reranker-jinaai', RerankerJinaAIConfig | undefined> => {
+    return {
+      name: 'reranker-jinaai',
       config: config,
     };
   },
