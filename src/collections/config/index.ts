@@ -16,6 +16,8 @@ import {
   CollectionConfig,
   CollectionConfigUpdate,
   PQConfig,
+  QuantizerConfig,
+  SQConfig,
   VectorIndexConfig,
   VectorIndexConfigDynamic,
   VectorIndexConfigFlat,
@@ -163,11 +165,14 @@ export class VectorIndex {
 }
 
 export class Quantizer {
-  static isPQ(config?: PQConfig | BQConfig): config is PQConfig {
+  static isPQ(config?: QuantizerConfig): config is PQConfig {
     return config?.type === 'pq';
   }
-  static isBQ(config?: PQConfig | BQConfig): config is BQConfig {
+  static isBQ(config?: QuantizerConfig): config is BQConfig {
     return config?.type === 'bq';
+  }
+  static isSQ(config?: QuantizerConfig): config is SQConfig {
+    return config?.type === 'sq';
   }
 }
 

@@ -73,3 +73,5 @@ export type PQEncoderDistribution = 'log-normal' | 'normal';
 export type VectorIndexType = 'hnsw' | 'flat' | 'dynamic' | string;
 
 export type VectorIndexConfig = VectorIndexConfigHNSW | VectorIndexConfigFlat | VectorIndexConfigDynamic;
+
+export type QuantizerConfig = PQConfig | BQConfig | SQConfig;

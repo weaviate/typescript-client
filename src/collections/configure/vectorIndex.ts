@@ -16,8 +16,6 @@ import {
   VectorIndexConfigHNSWUpdate,
 } from './types/index.js';
 
-import { parseQuantizer } from './parsing.js';
-
 const isModuleConfig = <N, C>(config: ModuleConfig<N, C> | C): config is ModuleConfig<N, C> => {
   return config && typeof config === 'object' && 'name' in config && 'config' in config;
 };
@@ -40,7 +38,7 @@ const configure = {
       config: {
         distance,
         vectorCacheMaxObjects,
-        quantizer: parseQuantizer(quantizer),
+        quantizer: quantizer,
       },
     };
   },
@@ -62,7 +60,7 @@ const configure = {
         ? {
             ...rest,
             distance: distanceMetric,
-            quantizer: parseQuantizer(rest.quantizer),
+            quantizer: rest.quantizer,
           }
         : undefined,
     };
@@ -177,10 +175,7 @@ const reconfigure = {
   }): ModuleConfig<'flat', VectorIndexConfigFlatUpdate> => {
     return {
       name: 'flat',
-      config: {
-        vectorCacheMaxObjects: options.vectorCacheMaxObjects,
-        quantizer: parseQuantizer(options.quantizer),
-      },
+      config: options,
     };
   },
   /**
@@ -221,8 +216,8 @@ const reconfigure = {
      * NOTE: If the vector index already has a quantizer configured, you cannot change its quantizer type; only its values.
      * So if you want to change the quantizer type, you must recreate the collection.
      *
-     * @param {boolean} [options.cache] Whether to cache the quantizer. Default is false.
-     * @param {number} [options.rescoreLimit] The rescore limit. Default is 1000.
+     * @param {boolean} [options.cache] Whether to cache the quantizer.
+     * @param {number} [options.rescoreLimit] The new rescore limit.
      * @returns {BQConfigCreate} The configuration object.
      */
     bq: (options?: { cache?: boolean; rescoreLimit?: number }): BQConfigUpdate => {
@@ -237,11 +232,11 @@ const reconfigure = {
      * NOTE: If the vector index already has a quantizer configured, you cannot change its quantizer type; only its values.
      * So if you want to change the quantizer type, you must recreate the collection.
      *
-     * @param {number} [options.centroids] The number of centroids. Default is 256.
-     * @param {PQEncoderDistribution} [options.pqEncoderDistribution] The encoder distribution. Default is 'log-normal'.
-     * @param {PQEncoderType} [options.pqEncoderType] The encoder type. Default is 'kmeans'.
-     * @param {number} [options.segments] The number of segments. Default is 0.
-     * @param {number} [options.trainingLimit] The training limit. Default is 100000.
+     * @param {number} [options.centroids] The new number of centroids.
+     * @param {PQEncoderDistribution} [options.pqEncoderDistribution] The new encoder distribution.
+     * @param {PQEncoderType} [options.pqEncoderType] The new encoder type.
+     * @param {number} [options.segments] The new number of segments.
+     * @param {number} [options.trainingLimit] The new training limit.
      * @returns {PQConfigUpdate} The configuration object.
      */
     pq: (options?: {
@@ -270,8 +265,8 @@ const reconfigure = {
      * NOTE: If the vector index already has a quantizer configured, you cannot change its quantizer type; only its values.
      * So if you want to change the quantizer type, you must recreate the collection.
      *
-     * @param {number} [options.rescoreLimit] The rescore limit. Default is 1000.
-     * @param {number} [options.trainingLimit] The training limit. Default is 100000.
+     * @param {number} [options.rescoreLimit] The rescore limit.
+     * @param {number} [options.trainingLimit] The training limit.
      * @returns {SQConfigUpdate} The configuration object.
      */
     sq: (options?: { rescoreLimit?: number; trainingLimit?: number }): SQConfigUpdate => {
