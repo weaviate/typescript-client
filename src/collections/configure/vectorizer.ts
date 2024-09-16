@@ -64,7 +64,7 @@ export const vectorizer = {
   /**
    * Create a `VectorConfigCreate` object with the vectorizer set to `'img2vec-neural'`.
    *
-   * See the [documentation](https://weaviate.io/developers/weaviate/modules/retriever-vectorizer-modules/img2vec-neural) for detailed usage.
+   * See the [documentation](https://weaviate.io/developers/weaviate/modules/img2vec-neural) for detailed usage.
    *
    * @param {ConfigureNonTextVectorizerOptions<N, I, 'img2vec-neural'>} [opts] The configuration options for the `img2vec-neural` vectorizer.
    * @returns {VectorConfigCreate<PrimitiveKeys<T>[], N, I, 'img2vec-neural'>} The configuration object.
@@ -84,7 +84,7 @@ export const vectorizer = {
   /**
    * Create a `VectorConfigCreate` object with the vectorizer set to `'multi2vec-bind'`.
    *
-   * See the [documentation](https://weaviate.io/developers/weaviate/modules/retriever-vectorizer-modules/multi2vec-bind) for detailed usage.
+   * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/imagebind/embeddings-multimodal) for detailed usage.
    *
    * @param {ConfigureNonTextVectorizerOptions<N, I, 'multi2vec-bind'>} [opts] The configuration options for the `multi2vec-bind` vectorizer.
    * @returns {VectorConfigCreate<PrimitiveKeys<T>[], N, I, 'multi2vec-bind'>} The configuration object.
@@ -132,7 +132,7 @@ export const vectorizer = {
   /**
    * Create a `VectorConfigCreate` object with the vectorizer set to `'multi2vec-clip'`.
    *
-   * See the [documentation](https://weaviate.io/developers/weaviate/modules/retriever-vectorizer-modules/multi2vec-clip) for detailed usage.
+   * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/transformers/embeddings-multimodal) for detailed usage.
    *
    * @param {ConfigureNonTextVectorizerOptions<N, I, 'multi2vec-clip'>} [opts] The configuration options for the `multi2vec-clip` vectorizer.
    * @returns {VectorConfigCreate<PrimitiveKeys<T>[], N, I, 'multi2vec-clip'>} The configuration object.
@@ -165,7 +165,7 @@ export const vectorizer = {
   /**
    * Create a `VectorConfigCreate` object with the vectorizer set to `'multi2vec-palm'`.
    *
-   * See the [documentation](https://weaviate.io/developers/weaviate/modules/retriever-vectorizer-modules/multi2vec-palm) for detailed usage.
+   * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/google/embeddings-multimodal) for detailed usage.
    *
    * @param {ConfigureNonTextVectorizerOptions<N, I, 'multi2vec-palm'>} opts The configuration options for the `multi2vec-palm` vectorizer.
    * @returns {VectorConfigCreate<PrimitiveKeys<T>[], N, I, 'multi2vec-palm'>} The configuration object.
@@ -198,7 +198,7 @@ export const vectorizer = {
   /**
    * Create a `VectorConfigCreate` object with the vectorizer set to `'ref2vec-centroid'`.
    *
-   * See the [documentation](https://weaviate.io/developers/weaviate/modules/retriever-vectorizer-modules/ref2vec-centroid) for detailed usage.
+   * See the [documentation](https://weaviate.io/developers/weaviate/modules/ref2vec-centroid) for detailed usage.
    *
    * @param {ConfigureNonTextVectorizerOptions<N, I, 'ref2vec-centroid'>} opts The configuration options for the `ref2vec-centroid` vectorizer.
    * @returns {VectorConfigCreate<never, N, I, 'ref2vec-centroid'>} The configuration object.
@@ -218,7 +218,7 @@ export const vectorizer = {
   /**
    * Create a `VectorConfigCreate` object with the vectorizer set to `'text2vec-aws'`.
    *
-   * See the [documentation](https://weaviate.io/developers/weaviate/modules/retriever-vectorizer-modules/text2vec-aws) for detailed usage.
+   * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/aws/embeddings) for detailed usage.
    *
    * @param {ConfigureTextVectorizerOptions<N, T, I, 'text2vec-aws'>} opts The configuration options for the `text2vec-aws` vectorizer.
    * @returns { VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2vec-aws'>} The configuration object.
@@ -239,7 +239,7 @@ export const vectorizer = {
   /**
    * Create a `VectorConfigCreate` object with the vectorizer set to `'text2vec-azure-openai'`.
    *
-   * See the [documentation](https://weaviate.io/developers/weaviate/modules/retriever-vectorizer-modules/text2vec-openai) for detailed usage.
+   * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/openai/embeddings) for detailed usage.
    *
    * @param {ConfigureTextVectorizerOptions<T, N, I, 'text2vec-azure-openai'>} opts The configuration options for the `text2vec-azure-openai` vectorizer.
    * @returns {VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2vec-azure-openai'>} The configuration object.
@@ -260,7 +260,7 @@ export const vectorizer = {
   /**
    * Create a `VectorConfigCreate` object with the vectorizer set to `'text2vec-cohere'`.
    *
-   * See the [documentation](https://weaviate.io/developers/weaviate/modules/retriever-vectorizer-modules/text2vec-cohere) for detailed usage.
+   * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/cohere/embeddings) for detailed usage.
    *
    * @param {ConfigureTextVectorizerOptions<T, N, I, 'text2vec-cohere'>} [opts] The configuration options for the `text2vec-cohere` vectorizer.
    * @returns {VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2vec-cohere'>} The configuration object.
@@ -281,7 +281,7 @@ export const vectorizer = {
   /**
    * Create a `VectorConfigCreate` object with the vectorizer set to `'text2vec-contextionary'`.
    *
-   * See the [documentation](https://weaviate.io/developers/weaviate/modules/retriever-vectorizer-modules/text2vec-contextionary) for detailed usage.
+   * See the [documentation](https://weaviate.io/developers/weaviate/modules/text2vec-contextionary) for detailed usage.
    *
    * @param {ConfigureTextVectorizerOptions<T, N, I, 'text2vec-contextionary'>} [opts] The configuration for the `text2vec-contextionary` vectorizer.
    * @returns {VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2vec-contextionary'>} The configuration object.
@@ -300,9 +300,30 @@ export const vectorizer = {
     });
   },
   /**
+   * Create a `VectorConfigCreate` object with the vectorizer set to `'text2vec-databricks'`.
+   *
+   * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/databricks/embeddings) for detailed usage.
+   *
+   * @param {ConfigureTextVectorizerOptions<T, N, I, 'text2vec-databricks'>} opts The configuration for the `text2vec-databricks` vectorizer.
+   * @returns {VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2vec-databricks'>} The configuration object.
+   */
+  text2VecDatabricks: <T, N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
+    opts: ConfigureTextVectorizerOptions<T, N, I, 'text2vec-databricks'>
+  ): VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2vec-databricks'> => {
+    const { name, sourceProperties, vectorIndexConfig, ...config } = opts;
+    return makeVectorizer(name, {
+      sourceProperties,
+      vectorIndexConfig,
+      vectorizerConfig: {
+        name: 'text2vec-databricks',
+        config: config,
+      },
+    });
+  },
+  /**
    * Create a `VectorConfigCreate` object with the vectorizer set to `'text2vec-gpt4all'`.
    *
-   * See the [documentation](https://weaviate.io/developers/weaviate/modules/retriever-vectorizer-modules/text2vec-gpt4all) for detailed usage.
+   * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/gpt4all/embeddings) for detailed usage.
    *
    * @param {ConfigureTextVectorizerOptions<T, N, I, 'text2vec-gpt4all'>} [opts] The configuration for the `text2vec-contextionary` vectorizer.
    * @returns {VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2vec-gpt4all'>} The configuration object.
@@ -323,7 +344,7 @@ export const vectorizer = {
   /**
    * Create a `VectorConfigCreate` object with the vectorizer set to `'text2vec-huggingface'`.
    *
-   * See the [documentation](https://weaviate.io/developers/weaviate/modules/retriever-vectorizer-modules/text2vec-huggingface) for detailed usage.
+   * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/huggingface/embeddings) for detailed usage.
    *
    * @param {ConfigureTextVectorizerOptions<T, N, I, 'text2vec-huggingface'>} [opts] The configuration for the `text2vec-contextionary` vectorizer.
    * @returns {VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2vec-huggingface'>} The configuration object.
@@ -344,7 +365,7 @@ export const vectorizer = {
   /**
    * Create a `VectorConfigCreate` object with the vectorizer set to `'text2vec-jina'`.
    *
-   * See the [documentation](https://weaviate.io/developers/weaviate/modules/retriever-vectorizer-modules/text2vec-jina) for detailed usage.
+   * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/jinaai/embeddings) for detailed usage.
    *
    * @param {ConfigureTextVectorizerOptions<T, N, I, 'text2vec-jina'>} [opts] The configuration for the `text2vec-jina` vectorizer.
    * @returns {VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2vec-jina'>} The configuration object.
@@ -363,7 +384,33 @@ export const vectorizer = {
     });
   },
   /**
+   * Create a `VectorConfigCreate` object with the vectorizer set to `'text2vec-mistral'`.
    *
+   * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/mistral/embeddings) for detailed usage.
+   *
+   * @param {ConfigureTextVectorizerOptions<T, N, I, 'text2vec-mistral'>} [opts] The configuration for the `text2vec-mistral` vectorizer.
+   * @returns {VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2vec-mistral'>} The configuration object.
+   */
+  text2VecMistral: <T, N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
+    opts?: ConfigureTextVectorizerOptions<T, N, I, 'text2vec-mistral'>
+  ): VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2vec-mistral'> => {
+    const { name, sourceProperties, vectorIndexConfig, ...config } = opts || {};
+    return makeVectorizer(name, {
+      sourceProperties,
+      vectorIndexConfig,
+      vectorizerConfig: {
+        name: 'text2vec-mistral',
+        config: Object.keys(config).length === 0 ? undefined : config,
+      },
+    });
+  },
+  /**
+   * Create a `VectorConfigCreate` object with the vectorizer set to `'text2vec-octoai'`.
+   *
+   * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/octoai/embeddings) for detailed usage.
+   *
+   * @param {ConfigureTextVectorizerOptions<T, N, I, 'text2vec-octoai'>} [opts] The configuration for the `text2vec-octoai` vectorizer.
+   * @returns {VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2vec-octoai'>} The configuration object.
    */
   text2VecOctoAI: <T, N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
     opts?: ConfigureTextVectorizerOptions<T, N, I, 'text2vec-octoai'>
@@ -381,7 +428,7 @@ export const vectorizer = {
   /**
    * Create a `VectorConfigCreate` object with the vectorizer set to `'text2vec-openai'`.
    *
-   * See the [documentation](https://weaviate.io/developers/weaviate/modules/retriever-vectorizer-modules/text2vec-openai) for detailed usage.
+   * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/openai/embeddings) for detailed usage.
    *
    * @param {ConfigureTextVectorizerOptions<T, N, I, 'text2vec-openai'>} [opts] The configuration for the `text2vec-openai` vectorizer.
    * @returns {VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2vec-openai'>} The configuration object.
@@ -402,7 +449,7 @@ export const vectorizer = {
   /**
    * Create a `VectorConfigCreate` object with the vectorizer set to `'text2vec-ollama'`.
    *
-   * See the [documentation](https://weaviate.io/developers/weaviate/modules/retriever-vectorizer-modules/text2vec-ollama) for detailed usage.
+   * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/ollama/embeddings) for detailed usage.
    *
    * @param {ConfigureTextVectorizerOptions<T, N, I, 'text2vec-ollama'>} [opts] The configuration for the `text2vec-ollama` vectorizer.
    * @returns {VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2vec-ollama'>} The configuration object.
@@ -423,7 +470,7 @@ export const vectorizer = {
   /**
    * Create a `VectorConfigCreate` object with the vectorizer set to `'text2vec-palm'`.
    *
-   * See the [documentation](https://weaviate.io/developers/weaviate/modules/retriever-vectorizer-modules/text2vec-palm) for detailed usage.
+   * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/google/embeddings) for detailed usage.
    *
    * @param {ConfigureTextVectorizerOptions<T, N, I, 'text2vec-palm'>} opts The configuration for the `text2vec-palm` vectorizer.
    * @returns {VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2vec-palm'>} The configuration object.
@@ -444,7 +491,7 @@ export const vectorizer = {
   /**
    * Create a `VectorConfigCreate` object with the vectorizer set to `'text2vec-transformers'`.
    *
-   * See the [documentation](https://weaviate.io/developers/weaviate/modules/retriever-vectorizer-modules/text2vec-transformers) for detailed usage.
+   * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/transformers/embeddings) for detailed usage.
    *
    * @param {ConfigureTextVectorizerOptions<T, N, I, 'text2vec-transformers'>} [opts] The configuration for the `text2vec-transformers` vectorizer.
    * @returns {VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2vec-transformers'>} The configuration object.
@@ -465,7 +512,7 @@ export const vectorizer = {
   /**
    * Create a `VectorConfigCreate` object with the vectorizer set to `'text2vec-voyageai'`.
    *
-   * See the [documentation](https://weaviate.io/developers/weaviate/modules/retriever-vectorizer-modules/text2vec-voyageai) for detailed usage.
+   * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/voyageai/embeddings) for detailed usage.
    *
    * @param {ConfigureTextVectorizerOptions<T, N, I, 'text2vec-voyageai'>} [opts] The configuration for the `text2vec-voyageai` vectorizer.
    * @returns {VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2vec-voyageai'>} The configuration object.

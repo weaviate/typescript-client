@@ -1,8 +1,11 @@
 import {
   GenerativeAWSConfig,
+  GenerativeAnthropicConfig,
   GenerativeAnyscaleConfig,
   GenerativeAzureOpenAIConfig,
   GenerativeCohereConfig,
+  GenerativeDatabricksConfig,
+  GenerativeFriendliAIConfig,
   GenerativeMistralConfig,
   GenerativeOctoAIConfig,
   GenerativeOllamaConfig,
@@ -701,6 +704,50 @@ describe('Unit testing of the vectorizer factory class', () => {
     });
   });
 
+  it('should create the correct Text2VecDatabricksConfig type with required & defaults', () => {
+    const config = configure.vectorizer.text2VecDatabricks({
+      name: 'test',
+      endpoint: 'endpoint',
+    });
+    expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'text2vec-databricks'>>({
+      name: 'test',
+      vectorIndex: {
+        name: 'hnsw',
+        config: undefined,
+      },
+      vectorizer: {
+        name: 'text2vec-databricks',
+        config: {
+          endpoint: 'endpoint',
+        },
+      },
+    });
+  });
+
+  it('should create the correct Text2VecDatabricksConfig type with all values', () => {
+    const config = configure.vectorizer.text2VecDatabricks({
+      name: 'test',
+      endpoint: 'endpoint',
+      instruction: 'instruction',
+      vectorizeCollectionName: true,
+    });
+    expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'text2vec-databricks'>>({
+      name: 'test',
+      vectorIndex: {
+        name: 'hnsw',
+        config: undefined,
+      },
+      vectorizer: {
+        name: 'text2vec-databricks',
+        config: {
+          endpoint: 'endpoint',
+          instruction: 'instruction',
+          vectorizeCollectionName: true,
+        },
+      },
+    });
+  });
+
   it('should create the correct Text2VecGPT4AllConfig type with defaults', () => {
     const config = configure.vectorizer.text2VecGPT4All();
     expect(config).toEqual<VectorConfigCreate<never, undefined, 'hnsw', 'text2vec-gpt4all'>>({
@@ -814,6 +861,43 @@ describe('Unit testing of the vectorizer factory class', () => {
       },
       vectorizer: {
         name: 'text2vec-jina',
+        config: {
+          model: 'model',
+          vectorizeCollectionName: true,
+        },
+      },
+    });
+  });
+
+  it('should create the correct Text2VecMistralConfig type with defaults', () => {
+    const config = configure.vectorizer.text2VecMistral();
+    expect(config).toEqual<VectorConfigCreate<never, undefined, 'hnsw', 'text2vec-mistral'>>({
+      name: undefined,
+      vectorIndex: {
+        name: 'hnsw',
+        config: undefined,
+      },
+      vectorizer: {
+        name: 'text2vec-mistral',
+        config: undefined,
+      },
+    });
+  });
+
+  it('should create the correct Text2VecMistralConfig type with all values', () => {
+    const config = configure.vectorizer.text2VecMistral({
+      name: 'test',
+      model: 'model',
+      vectorizeCollectionName: true,
+    });
+    expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'text2vec-mistral'>>({
+      name: 'test',
+      vectorIndex: {
+        name: 'hnsw',
+        config: undefined,
+      },
+      vectorizer: {
+        name: 'text2vec-mistral',
         config: {
           model: 'model',
           vectorizeCollectionName: true,
@@ -1066,6 +1150,36 @@ describe('Unit testing of the vectorizer factory class', () => {
 });
 
 describe('Unit testing of the generative factory class', () => {
+  it('should create the correct GenerativeAnthropicConfig type with required & default values', () => {
+    const config = configure.generative.anthropic();
+    expect(config).toEqual<ModuleConfig<'generative-anthropic', GenerativeAnthropicConfig | undefined>>({
+      name: 'generative-anthropic',
+      config: undefined,
+    });
+  });
+
+  it('should create the correct GenerativeAnthropicConfig type with all values', () => {
+    const config = configure.generative.anthropic({
+      maxTokens: 100,
+      model: 'model',
+      stopSequences: ['stop1', 'stop2'],
+      temperature: 0.5,
+      topK: 10,
+      topP: 0.8,
+    });
+    expect(config).toEqual<ModuleConfig<'generative-anthropic', GenerativeAnthropicConfig>>({
+      name: 'generative-anthropic',
+      config: {
+        maxTokens: 100,
+        model: 'model',
+        stopSequences: ['stop1', 'stop2'],
+        temperature: 0.5,
+        topK: 10,
+        topP: 0.8,
+      },
+    });
+  });
+
   it('should create the correct GenerativeAnyscaleConfig type with required & default values', () => {
     const config = configure.generative.anyscale();
     expect(config).toEqual<ModuleConfig<'generative-anyscale', GenerativeAnyscaleConfig | undefined>>({
@@ -1186,6 +1300,64 @@ describe('Unit testing of the generative factory class', () => {
         returnLikelihoodsProperty: 'return-likelihoods',
         stopSequencesProperty: ['stop1', 'stop2'],
         temperatureProperty: 0.5,
+      },
+    });
+  });
+
+  it('should create the correct GenerativeDatabricksConfig type with required & default values', () => {
+    const config = configure.generative.databricks({
+      endpoint: 'endpoint',
+    });
+    expect(config).toEqual<ModuleConfig<'generative-databricks', GenerativeDatabricksConfig>>({
+      name: 'generative-databricks',
+      config: {
+        endpoint: 'endpoint',
+      },
+    });
+  });
+
+  it('should create the correct GenerativeDatabricksConfig type with all values', () => {
+    const config = configure.generative.databricks({
+      endpoint: 'endpoint',
+      maxTokens: 100,
+      temperature: 0.5,
+      topK: 10,
+      topP: 0.8,
+    });
+    expect(config).toEqual<ModuleConfig<'generative-databricks', GenerativeDatabricksConfig>>({
+      name: 'generative-databricks',
+      config: {
+        endpoint: 'endpoint',
+        maxTokens: 100,
+        temperature: 0.5,
+        topK: 10,
+        topP: 0.8,
+      },
+    });
+  });
+
+  it('should create the correct GenerativeFriendliAIConfig type with required & default values', () => {
+    const config = configure.generative.friendliai();
+    expect(config).toEqual<ModuleConfig<'generative-friendliai', GenerativeFriendliAIConfig | undefined>>({
+      name: 'generative-friendliai',
+      config: undefined,
+    });
+  });
+
+  it('should create the correct GenerativeFriendliAIConfig type with all values', () => {
+    const config = configure.generative.friendliai({
+      baseURL: 'base-url',
+      maxTokens: 100,
+      model: 'model',
+      temperature: 0.5,
+    });
+    expect(config).toEqual<ModuleConfig<'generative-friendliai', GenerativeFriendliAIConfig | undefined>>({
+      name: 'generative-friendliai',
+      config: {
+        baseURL: 'base-url',
+        maxTokens: 100,
+        model: 'model',
+        temperature: 0.5,
       },
     });
   });

@@ -7,9 +7,11 @@ import {
   Text2VecAzureOpenAIConfig,
   Text2VecCohereConfig,
   Text2VecContextionaryConfig,
+  Text2VecDatabricksConfig,
   Text2VecGPT4AllConfig,
   Text2VecHuggingFaceConfig,
   Text2VecJinaConfig,
+  Text2VecMistralConfig,
   Text2VecOctoAIConfig,
   Text2VecOllamaConfig,
   Text2VecOpenAIConfig,
@@ -139,11 +141,15 @@ export type Text2VecCohereConfigCreate = Text2VecCohereConfig;
 
 export type Text2VecContextionaryConfigCreate = Text2VecContextionaryConfig;
 
+export type Text2VecDatabricksConfigCreate = Text2VecDatabricksConfig;
+
 export type Text2VecGPT4AllConfigCreate = Text2VecGPT4AllConfig;
 
 export type Text2VecHuggingFaceConfigCreate = Text2VecHuggingFaceConfig;
 
 export type Text2VecJinaConfigCreate = Text2VecJinaConfig;
+
+export type Text2VecMistralConfigCreate = Text2VecMistralConfig;
 
 export type Text2VecOctoAIConfigCreate = Text2VecOctoAIConfig;
 
@@ -173,12 +179,16 @@ export type VectorizerConfigCreateType<V> = V extends 'img2vec-neural'
   ? Text2VecContextionaryConfigCreate | undefined
   : V extends 'text2vec-cohere'
   ? Text2VecCohereConfigCreate | undefined
+  : V extends 'text2vec-databricks'
+  ? Text2VecDatabricksConfigCreate
   : V extends 'text2vec-gpt4all'
   ? Text2VecGPT4AllConfigCreate | undefined
   : V extends 'text2vec-huggingface'
   ? Text2VecHuggingFaceConfigCreate | undefined
   : V extends 'text2vec-jina'
   ? Text2VecJinaConfigCreate | undefined
+  : V extends 'text2vec-mistral'
+  ? Text2VecMistralConfigCreate | undefined
   : V extends 'text2vec-octoai'
   ? Text2VecOctoAIConfigCreate | undefined
   : V extends 'text2vec-ollama'
