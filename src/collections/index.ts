@@ -129,7 +129,9 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
 
       const moduleConfig: any = {};
       if (config.generative) {
-        moduleConfig[config.generative.name] = config.generative.config ? config.generative.config : {};
+        const generative =
+          config.generative.name === 'generative-azure-openai' ? 'generative-openai' : config.generative.name;
+        moduleConfig[generative] = config.generative.config ? config.generative.config : {};
       }
       if (config.reranker) {
         moduleConfig[config.reranker.name] = config.reranker.config ? config.reranker.config : {};

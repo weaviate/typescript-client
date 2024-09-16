@@ -28,6 +28,13 @@ export type GenerativeAnyscaleConfig = {
   temperature?: number;
 };
 
+export type GenerativeFriendliAIConfig = {
+  baseURL?: string;
+  maxTokens?: number;
+  model?: string;
+  temperature?: number;
+};
+
 export type GenerativeMistralConfig = {
   maxTokens?: number;
   model?: string;
@@ -75,15 +82,36 @@ export type GenerativePaLMConfig = {
 };
 
 export type GenerativeConfig =
-  | GenerativeOpenAIConfig
+  | GenerativeAnthropicConfig
+  | GenerativeAnyscaleConfig
+  | GenerativeAWSConfig
+  | GenerativeAzureOpenAIConfig
   | GenerativeCohereConfig
+  | GenerativeMistralConfig
+  | GenerativeOctoAIConfig
+  | GenerativeOllamaConfig
+  | GenerativeOpenAIConfig
   | GenerativePaLMConfig
   | Record<string, any>
   | undefined;
 
-export type GenerativeConfigType<G> = G extends 'generative-openai'
+export type GenerativeConfigType<G> = G extends 'generative-anthropic'
+  ? GenerativeAnthropicConfig
+  : G extends 'generative-anyscale'
+  ? GenerativeAnyscaleConfig
+  : G extends 'generative-aws'
+  ? GenerativeAWSConfig
+  : G extends 'generative-azure-openai'
   ? GenerativeOpenAIConfig
   : G extends 'generative-cohere'
+  ? GenerativeAzureOpenAIConfig
+  : G extends 'generative-mistral'
+  ? GenerativeMistralConfig
+  : G extends 'generative-octoai'
+  ? GenerativeOctoAIConfig
+  : G extends 'generative-ollama'
+  ? GenerativeOllamaConfig
+  : G extends 'generative-openai'
   ? GenerativeCohereConfig
   : G extends 'generative-palm'
   ? GenerativePaLMConfig
@@ -95,6 +123,7 @@ export type GenerativeSearch =
   | 'generative-anthropic'
   | 'generative-anyscale'
   | 'generative-aws'
+  | 'generative-azure-openai'
   | 'generative-mistral'
   | 'generative-octoai'
   | 'generative-ollama'

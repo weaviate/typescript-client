@@ -2,6 +2,7 @@ import {
   GenerativeAWSConfig,
   GenerativeAnthropicConfig,
   GenerativeAnyscaleConfig,
+  GenerativeFriendliAIConfig,
   GenerativeMistralConfig,
   GenerativeOctoAIConfig,
   GenerativeOllamaConfig,
@@ -17,11 +18,11 @@ export type GenerativeOpenAIConfigBaseCreate = {
   topP?: number;
 };
 
-export type GenerativeOpenAIConfigCreate = GenerativeOpenAIConfigBaseCreate & {
-  model?: string;
-};
-
 export type GenerativeAnthropicConfigCreate = GenerativeAnthropicConfig;
+
+export type GenerativeAnyscaleConfigCreate = GenerativeAnyscaleConfig;
+
+export type GenerativeAWSConfigCreate = GenerativeAWSConfig;
 
 export type GenerativeAzureOpenAIConfigCreate = GenerativeOpenAIConfigBaseCreate & {
   resourceName: string;
@@ -37,9 +38,7 @@ export type GenerativeCohereConfigCreate = {
   temperature?: number;
 };
 
-export type GenerativeAnyscaleConfigCreate = GenerativeAnyscaleConfig;
-
-export type GenerativeAWSConfigCreate = GenerativeAWSConfig;
+export type GenerativeFriendliAIConfigCreate = GenerativeFriendliAIConfig;
 
 export type GenerativeMistralConfigCreate = GenerativeMistralConfig;
 
@@ -47,19 +46,45 @@ export type GenerativeOctoAIConfigCreate = GenerativeOctoAIConfig;
 
 export type GenerativeOllamaConfigCreate = GenerativeOllamaConfig;
 
+export type GenerativeOpenAIConfigCreate = GenerativeOpenAIConfigBaseCreate & {
+  model?: string;
+};
+
 export type GenerativePaLMConfigCreate = GenerativePaLMConfig;
 
 export type GenerativeConfigCreate =
-  | GenerativeOpenAIConfigCreate
+  | GenerativeAnthropicConfigCreate
+  | GenerativeAnyscaleConfigCreate
+  | GenerativeAWSConfigCreate
+  | GenerativeAzureOpenAIConfigCreate
   | GenerativeCohereConfigCreate
+  | GenerativeFriendliAIConfigCreate
+  | GenerativeMistralConfigCreate
+  | GenerativeOctoAIConfigCreate
+  | GenerativeOllamaConfigCreate
+  | GenerativeOpenAIConfigCreate
   | GenerativePaLMConfigCreate
   | Record<string, any>
   | undefined;
 
-export type GenerativeConfigCreateType<G> = G extends 'generative-openai'
-  ? GenerativeOpenAIConfigCreate
+export type GenerativeConfigCreateType<G> = G extends 'generative-anthropic'
+  ? GenerativeAnthropicConfigCreate
+  : G extends 'generative-aws'
+  ? GenerativeAWSConfigCreate
+  : G extends 'generative-azure-openai'
+  ? GenerativeAzureOpenAIConfigCreate
   : G extends 'generative-cohere'
   ? GenerativeCohereConfigCreate
+  : G extends 'generative-friendliai'
+  ? GenerativeFriendliAIConfigCreate
+  : G extends 'generative-mistral'
+  ? GenerativeMistralConfigCreate
+  : G extends 'generative-octoai'
+  ? GenerativeOctoAIConfigCreate
+  : G extends 'generative-ollama'
+  ? GenerativeOllamaConfigCreate
+  : G extends 'generative-openai'
+  ? GenerativeOpenAIConfigCreate
   : G extends 'generative-palm'
   ? GenerativePaLMConfigCreate
   : G extends 'none'

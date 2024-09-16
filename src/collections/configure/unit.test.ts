@@ -4,6 +4,7 @@ import {
   GenerativeAnyscaleConfig,
   GenerativeAzureOpenAIConfig,
   GenerativeCohereConfig,
+  GenerativeFriendliAIConfig,
   GenerativeMistralConfig,
   GenerativeOctoAIConfig,
   GenerativeOllamaConfig,
@@ -1254,6 +1255,32 @@ describe('Unit testing of the generative factory class', () => {
         returnLikelihoodsProperty: 'return-likelihoods',
         stopSequencesProperty: ['stop1', 'stop2'],
         temperatureProperty: 0.5,
+      },
+    });
+  });
+
+  it('should create the correct GenerativeFriendliAIConfig type with required & default values', () => {
+    const config = configure.generative.friendliai();
+    expect(config).toEqual<ModuleConfig<'generative-friendliai', GenerativeFriendliAIConfig | undefined>>({
+      name: 'generative-friendliai',
+      config: undefined,
+    });
+  });
+
+  it('should create the correct GenerativeFriendliAIConfig type with all values', () => {
+    const config = configure.generative.friendliai({
+      baseURL: 'base-url',
+      maxTokens: 100,
+      model: 'model',
+      temperature: 0.5,
+    });
+    expect(config).toEqual<ModuleConfig<'generative-friendliai', GenerativeFriendliAIConfig | undefined>>({
+      name: 'generative-friendliai',
+      config: {
+        baseURL: 'base-url',
+        maxTokens: 100,
+        model: 'model',
+        temperature: 0.5,
       },
     });
   });

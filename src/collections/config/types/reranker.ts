@@ -20,6 +20,7 @@ export type RerankerJinaAIConfig = {
 
 export type RerankerConfig =
   | RerankerCohereConfig
+  | RerankerJinaAIConfig
   | RerankerTransformersConfig
   | RerankerVoyageAIConfig
   | Record<string, any>

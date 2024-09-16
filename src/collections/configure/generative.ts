@@ -4,6 +4,7 @@ import {
   GenerativeAnyscaleConfig,
   GenerativeAzureOpenAIConfig,
   GenerativeCohereConfig,
+  GenerativeFriendliAIConfig,
   GenerativeMistralConfig,
   GenerativeOctoAIConfig,
   GenerativeOllamaConfig,
@@ -17,6 +18,7 @@ import {
   GenerativeAnyscaleConfigCreate,
   GenerativeAzureOpenAIConfigCreate,
   GenerativeCohereConfigCreate,
+  GenerativeFriendliAIConfigCreate,
   GenerativeMistralConfigCreate,
   GenerativeOctoAIConfigCreate,
   GenerativeOllamaConfigCreate,
@@ -119,6 +121,19 @@ export default {
             temperatureProperty: config.temperature,
           }
         : undefined,
+    };
+  },
+  /**
+   * Create a `ModuleConfig<'generative-friendliai', GenerativeFriendliAIConfig | undefined>` object for use when performing AI generation using the `generative-friendliai` module.
+   *
+   * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/friendliai/generative) for detailed usage.
+   */
+  friendliai(
+    config?: GenerativeFriendliAIConfigCreate
+  ): ModuleConfig<'generative-friendliai', GenerativeFriendliAIConfig | undefined> {
+    return {
+      name: 'generative-friendliai',
+      config,
     };
   },
   /**
