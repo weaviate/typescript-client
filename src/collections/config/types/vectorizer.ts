@@ -24,6 +24,7 @@ export type Vectorizer =
   | 'text2vec-gpt4all'
   | 'text2vec-huggingface'
   | 'text2vec-jina'
+  | 'text2vec-mistral'
   | 'text2vec-octoai'
   | 'text2vec-ollama'
   | 'text2vec-openai'
@@ -256,6 +257,18 @@ export type Text2VecJinaConfig = {
 };
 
 /**
+ * The configuration for text vectorization using Mistral.
+ *
+ * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/mistral/embeddings) for detailed usage.
+ */
+export type Text2VecMistralConfig = {
+  /** The model to use. */
+  model?: 'mistral-embed' | string;
+  /** Whether to vectorize the collection name. */
+  vectorizeCollectionName?: boolean;
+};
+
+/**
  * The configuration for text vectorization using OctoAI.
  *
  * See the [documentation](https://weaviate.io/developers/weaviate/modules/retriever-vectorizer-modules/text2vec-octoai) for detailed usage.
@@ -393,6 +406,8 @@ export type VectorizerConfigType<V> = V extends 'img2vec-neural'
   ? Text2VecHuggingFaceConfig | undefined
   : V extends 'text2vec-jina'
   ? Text2VecJinaConfig | undefined
+  : V extends 'text2vec-mistral'
+  ? Text2VecMistralConfig | undefined
   : V extends 'text2vec-octoai'
   ? Text2VecOctoAIConfig | undefined
   : V extends 'text2vec-ollama'

@@ -363,6 +363,27 @@ export const vectorizer = {
     });
   },
   /**
+   * Create a `VectorConfigCreate` object with the vectorizer set to `'text2vec-mistral'`.
+   *
+   * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/mistral/embeddings) for detailed usage.
+   *
+   * @param {ConfigureTextVectorizerOptions<T, N, I, 'text2vec-mistral'>} [opts] The configuration for the `text2vec-mistral` vectorizer.
+   * @returns {VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2vec-mistral'>} The configuration object.
+   */
+  text2VecMistral: <T, N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
+    opts?: ConfigureTextVectorizerOptions<T, N, I, 'text2vec-mistral'>
+  ): VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2vec-mistral'> => {
+    const { name, sourceProperties, vectorIndexConfig, ...config } = opts || {};
+    return makeVectorizer(name, {
+      sourceProperties,
+      vectorIndexConfig,
+      vectorizerConfig: {
+        name: 'text2vec-mistral',
+        config: Object.keys(config).length === 0 ? undefined : config,
+      },
+    });
+  },
+  /**
    *
    */
   text2VecOctoAI: <T, N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(

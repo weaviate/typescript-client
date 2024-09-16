@@ -823,6 +823,43 @@ describe('Unit testing of the vectorizer factory class', () => {
     });
   });
 
+  it('should create the correct Text2VecMistralConfig type with defaults', () => {
+    const config = configure.vectorizer.text2VecMistral();
+    expect(config).toEqual<VectorConfigCreate<never, undefined, 'hnsw', 'text2vec-mistral'>>({
+      name: undefined,
+      vectorIndex: {
+        name: 'hnsw',
+        config: undefined,
+      },
+      vectorizer: {
+        name: 'text2vec-mistral',
+        config: undefined,
+      },
+    });
+  });
+
+  it('should create the correct Text2VecMistralConfig type with all values', () => {
+    const config = configure.vectorizer.text2VecMistral({
+      name: 'test',
+      model: 'model',
+      vectorizeCollectionName: true,
+    });
+    expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'text2vec-mistral'>>({
+      name: 'test',
+      vectorIndex: {
+        name: 'hnsw',
+        config: undefined,
+      },
+      vectorizer: {
+        name: 'text2vec-mistral',
+        config: {
+          model: 'model',
+          vectorizeCollectionName: true,
+        },
+      },
+    });
+  });
+
   it('should create the correct Text2VecOctoAIConfig type with defaults', () => {
     const config = configure.vectorizer.text2VecOctoAI();
     expect(config).toEqual<VectorConfigCreate<never, undefined, 'hnsw', 'text2vec-octoai'>>({
