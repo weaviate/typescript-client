@@ -28,7 +28,7 @@ export default {
   /**
    * Create a `ModuleConfig<'generative-anthropic', GenerativeAnthropicConfig | undefined>` object for use when performing AI generation using the `generative-anthropic` module.
    *
-   * See the [documentation](https://weaviate.io/developers/weaviate/modules/reader-generator-modules/generative-anthropic) for detailed usage.
+   * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/anthropic/generative) for detailed usage.
    *
    * @param {GenerativeAnthropicConfigCreate} [config] The configuration for the `generative-anthropic` module.
    * @returns {ModuleConfig<'generative-anthropic', GenerativeAnthropicConfig | undefined>} The configuration object.
@@ -44,7 +44,7 @@ export default {
   /**
    * Create a `ModuleConfig<'generative-anyscale', GenerativeAnyscaleConfig | undefined>` object for use when performing AI generation using the `generative-anyscale` module.
    *
-   * See the [documentation](https://weaviate.io/developers/weaviate/modules/reader-generator-modules/generative-anyscale) for detailed usage.
+   * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/anyscale/generative) for detailed usage.
    *
    * @param {GenerativeAnyscaleConfigCreate} [config] The configuration for the `generative-aws` module.
    * @returns {ModuleConfig<'generative-anyscale', GenerativeAnyscaleConfig | undefined>} The configuration object.
@@ -60,7 +60,7 @@ export default {
   /**
    * Create a `ModuleConfig<'generative-aws', GenerativeAWSConfig>` object for use when performing AI generation using the `generative-aws` module.
    *
-   * See the [documentation](https://weaviate.io/developers/weaviate/modules/reader-generator-modules/generative-aws) for detailed usage.
+   * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/aws/generative) for detailed usage.
    *
    * @param {GenerativeAWSConfigCreate} config The configuration for the `generative-aws` module.
    * @returns {ModuleConfig<'generative-aws', GenerativeAWSConfig>} The configuration object.
@@ -74,7 +74,7 @@ export default {
   /**
    * Create a `ModuleConfig<'generative-openai', GenerativeAzureOpenAIConfig>` object for use when performing AI generation using the `generative-openai` module.
    *
-   * See the [documentation](https://weaviate.io/developers/weaviate/modules/reader-generator-modules/generative-openai) for detailed usage.
+   * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/openai/generative) for detailed usage.
    *
    * @param {GenerativeAzureOpenAIConfigCreate} config The configuration for the `generative-openai` module.
    * @returns {ModuleConfig<'generative-openai', GenerativeAzureOpenAIConfig>} The configuration object.
@@ -99,7 +99,7 @@ export default {
   /**
    * Create a `ModuleConfig<'generative-cohere', GenerativeCohereConfig>` object for use when performing AI generation using the `generative-cohere` module.
    *
-   * See the [documentation](https://weaviate.io/developers/weaviate/modules/reader-generator-modules/generative-cohere) for detailed usage.
+   * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/cohere/generative) for detailed usage.
    *
    * @param {GenerativeCohereConfigCreate} [config] The configuration for the `generative-cohere` module.
    * @returns {ModuleConfig<'generative-cohere', GenerativeCohereConfig>} The configuration object.
@@ -124,7 +124,7 @@ export default {
   /**
    * Create a `ModuleConfig<'generative-mistral', GenerativeMistralConfig | undefined>` object for use when performing AI generation using the `generative-mistral` module.
    *
-   * See the [documentation](https://weaviate.io/developers/weaviate/modules/reader-generator-modules/generative-mistral) for detailed usage.
+   * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/mistral/generative) for detailed usage.
    *
    * @param {GenerativeMistralConfigCreate} [config] The configuration for the `generative-mistral` module.
    * @returns {ModuleConfig<'generative-mistral', GenerativeMistralConfig | undefined>} The configuration object.
@@ -140,7 +140,7 @@ export default {
   /**
    * Create a `ModuleConfig<'generative-octoai', GenerativeOpenAIConfig | undefined>` object for use when performing AI generation using the `generative-octoai` module.
    *
-   * See the [documentation](https://weaviate.io/developers/weaviate/modules/reader-generator-modules/generative-octoai) for detailed usage.
+   * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/octoai/generative) for detailed usage.
    *
    * @param {GenerativeOctoAIConfigCreate} [config] The configuration for the `generative-octoai` module.
    * @returns {ModuleConfig<'generative-octoai', GenerativeOctoAIConfig | undefined>} The configuration object.
@@ -156,7 +156,7 @@ export default {
   /**
    * Create a `ModuleConfig<'generative-ollama', GenerativeOllamaConfig | undefined>` object for use when performing AI generation using the `generative-ollama` module.
    *
-   * See the [documentation](https://weaviate.io/developers/weaviate/modules/reader-generator-modules/generative-ollama) for detailed usage.
+   * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/ollama/generative) for detailed usage.
    *
    * @param {GenerativeOllamaConfigCreate} [config] The configuration for the `generative-openai` module.
    * @returns {ModuleConfig<'generative-ollama', GenerativeOllamaConfig | undefined>} The configuration object.
@@ -172,7 +172,7 @@ export default {
   /**
    * Create a `ModuleConfig<'generative-openai', GenerativeOpenAIConfig | undefined>` object for use when performing AI generation using the `generative-openai` module.
    *
-   * See the [documentation](https://weaviate.io/developers/weaviate/modules/reader-generator-modules/generative-openai) for detailed usage.
+   * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/openai/generative) for detailed usage.
    *
    * @param {GenerativeOpenAIConfigCreate} [config] The configuration for the `generative-openai` module.
    * @returns {ModuleConfig<'generative-openai', GenerativeOpenAIConfig | undefined>} The configuration object.
@@ -198,7 +198,7 @@ export default {
   /**
    * Create a `ModuleConfig<'generative-palm', GenerativePaLMConfig>` object for use when performing AI generation using the `generative-palm` module.
    *
-   * See the [documentation](https://weaviate.io/developers/weaviate/modules/reader-generator-modules/generative-palm) for detailed usage.
+   * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/google/generative) for detailed usage.
    *
    * @param {GenerativePaLMConfigCreate} [config] The configuration for the `generative-palm` module.
    * @returns {ModuleConfig<'generative-palm', GenerativePaLMConfig>} The configuration object.
