@@ -2,6 +2,7 @@ import {
   GenerativeAWSConfig,
   GenerativeAnthropicConfig,
   GenerativeAnyscaleConfig,
+  GenerativeDatabricksConfig,
   GenerativeFriendliAIConfig,
   GenerativeMistralConfig,
   GenerativeOctoAIConfig,
@@ -38,6 +39,8 @@ export type GenerativeCohereConfigCreate = {
   temperature?: number;
 };
 
+export type GenerativeDatabricksConfigCreate = GenerativeDatabricksConfig;
+
 export type GenerativeFriendliAIConfigCreate = GenerativeFriendliAIConfig;
 
 export type GenerativeMistralConfigCreate = GenerativeMistralConfig;
@@ -58,6 +61,7 @@ export type GenerativeConfigCreate =
   | GenerativeAWSConfigCreate
   | GenerativeAzureOpenAIConfigCreate
   | GenerativeCohereConfigCreate
+  | GenerativeDatabricksConfigCreate
   | GenerativeFriendliAIConfigCreate
   | GenerativeMistralConfigCreate
   | GenerativeOctoAIConfigCreate
@@ -75,6 +79,8 @@ export type GenerativeConfigCreateType<G> = G extends 'generative-anthropic'
   ? GenerativeAzureOpenAIConfigCreate
   : G extends 'generative-cohere'
   ? GenerativeCohereConfigCreate
+  : G extends 'generative-databricks'
+  ? GenerativeDatabricksConfigCreate
   : G extends 'generative-friendliai'
   ? GenerativeFriendliAIConfigCreate
   : G extends 'generative-mistral'

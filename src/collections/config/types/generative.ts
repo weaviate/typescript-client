@@ -28,6 +28,23 @@ export type GenerativeAnyscaleConfig = {
   temperature?: number;
 };
 
+export type GenerativeCohereConfig = {
+  kProperty?: number;
+  model?: string;
+  maxTokensProperty?: number;
+  returnLikelihoodsProperty?: string;
+  stopSequencesProperty?: string[];
+  temperatureProperty?: number;
+};
+
+export type GenerativeDatabricksConfig = {
+  endpoint: string;
+  maxTokens?: number;
+  temperature?: number;
+  topK?: number;
+  topP?: number;
+};
+
 export type GenerativeFriendliAIConfig = {
   baseURL?: string;
   maxTokens?: number;
@@ -60,15 +77,6 @@ export type GenerativeOpenAIConfig = GenerativeOpenAIConfigBase & {
 export type GenerativeAzureOpenAIConfig = GenerativeOpenAIConfigBase & {
   resourceName: string;
   deploymentId: string;
-};
-
-export type GenerativeCohereConfig = {
-  kProperty?: number;
-  model?: string;
-  maxTokensProperty?: number;
-  returnLikelihoodsProperty?: string;
-  stopSequencesProperty?: string[];
-  temperatureProperty?: number;
 };
 
 export type GenerativePaLMConfig = {
@@ -105,6 +113,10 @@ export type GenerativeConfigType<G> = G extends 'generative-anthropic'
   ? GenerativeOpenAIConfig
   : G extends 'generative-cohere'
   ? GenerativeAzureOpenAIConfig
+  : G extends 'generative-databricks'
+  ? GenerativeDatabricksConfig
+  : G extends 'generative-friendliai'
+  ? GenerativeFriendliAIConfig
   : G extends 'generative-mistral'
   ? GenerativeMistralConfig
   : G extends 'generative-octoai'
@@ -112,8 +124,6 @@ export type GenerativeConfigType<G> = G extends 'generative-anthropic'
   : G extends 'generative-ollama'
   ? GenerativeOllamaConfig
   : G extends 'generative-openai'
-  ? GenerativeCohereConfig
-  : G extends 'generative-palm'
   ? GenerativePaLMConfig
   : G extends 'none'
   ? undefined
@@ -124,11 +134,13 @@ export type GenerativeSearch =
   | 'generative-anyscale'
   | 'generative-aws'
   | 'generative-azure-openai'
+  | 'generative-cohere'
+  | 'generative-databricks'
+  | 'generative-friendliai'
   | 'generative-mistral'
   | 'generative-octoai'
   | 'generative-ollama'
   | 'generative-openai'
-  | 'generative-cohere'
   | 'generative-palm'
   | 'none'
   | string;

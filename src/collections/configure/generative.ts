@@ -4,6 +4,7 @@ import {
   GenerativeAnyscaleConfig,
   GenerativeAzureOpenAIConfig,
   GenerativeCohereConfig,
+  GenerativeDatabricksConfig,
   GenerativeFriendliAIConfig,
   GenerativeMistralConfig,
   GenerativeOctoAIConfig,
@@ -18,6 +19,7 @@ import {
   GenerativeAnyscaleConfigCreate,
   GenerativeAzureOpenAIConfigCreate,
   GenerativeCohereConfigCreate,
+  GenerativeDatabricksConfigCreate,
   GenerativeFriendliAIConfigCreate,
   GenerativeMistralConfigCreate,
   GenerativeOctoAIConfigCreate,
@@ -104,7 +106,7 @@ export default {
    * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/cohere/generative) for detailed usage.
    *
    * @param {GenerativeCohereConfigCreate} [config] The configuration for the `generative-cohere` module.
-   * @returns {ModuleConfig<'generative-cohere', GenerativeCohereConfig>} The configuration object.
+   * @returns {ModuleConfig<'generative-cohere', GenerativeCohereConfig | undefined>} The configuration object.
    */
   cohere: (
     config?: GenerativeCohereConfigCreate
@@ -121,6 +123,22 @@ export default {
             temperatureProperty: config.temperature,
           }
         : undefined,
+    };
+  },
+  /**
+   * Create a `ModuleConfig<'generative-databricks', GenerativeDatabricksConfig>` object for use when performing AI generation using the `generative-databricks` module.
+   *
+   * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/databricks/generative) for detailed usage.
+   *
+   * @param {GenerativeDatabricksConfigCreate} config The configuration for the `generative-databricks` module.
+   * @returns {ModuleConfig<'generative-databricks', GenerativeDatabricksConfig>} The configuration object.
+   */
+  databricks: (
+    config: GenerativeDatabricksConfigCreate
+  ): ModuleConfig<'generative-databricks', GenerativeDatabricksConfig> => {
+    return {
+      name: 'generative-databricks',
+      config,
     };
   },
   /**

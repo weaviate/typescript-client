@@ -4,6 +4,7 @@ import {
   GenerativeAnyscaleConfig,
   GenerativeAzureOpenAIConfig,
   GenerativeCohereConfig,
+  GenerativeDatabricksConfig,
   GenerativeFriendliAIConfig,
   GenerativeMistralConfig,
   GenerativeOctoAIConfig,
@@ -1255,6 +1256,38 @@ describe('Unit testing of the generative factory class', () => {
         returnLikelihoodsProperty: 'return-likelihoods',
         stopSequencesProperty: ['stop1', 'stop2'],
         temperatureProperty: 0.5,
+      },
+    });
+  });
+
+  it('should create the correct GenerativeDatabricksConfig type with required & default values', () => {
+    const config = configure.generative.databricks({
+      endpoint: 'endpoint',
+    });
+    expect(config).toEqual<ModuleConfig<'generative-databricks', GenerativeDatabricksConfig>>({
+      name: 'generative-databricks',
+      config: {
+        endpoint: 'endpoint',
+      },
+    });
+  });
+
+  it('should create the correct GenerativeDatabricksConfig type with all values', () => {
+    const config = configure.generative.databricks({
+      endpoint: 'endpoint',
+      maxTokens: 100,
+      temperature: 0.5,
+      topK: 10,
+      topP: 0.8,
+    });
+    expect(config).toEqual<ModuleConfig<'generative-databricks', GenerativeDatabricksConfig>>({
+      name: 'generative-databricks',
+      config: {
+        endpoint: 'endpoint',
+        maxTokens: 100,
+        temperature: 0.5,
+        topK: 10,
+        topP: 0.8,
       },
     });
   });
