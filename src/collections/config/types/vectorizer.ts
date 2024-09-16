@@ -21,6 +21,7 @@ export type Vectorizer =
   | 'text2vec-azure-openai'
   | 'text2vec-cohere'
   | 'text2vec-contextionary'
+  | 'text2vec-databricks'
   | 'text2vec-gpt4all'
   | 'text2vec-huggingface'
   | 'text2vec-jina'
@@ -33,9 +34,9 @@ export type Vectorizer =
   | 'text2vec-voyageai'
   | 'none';
 
-/** The configuration for image vectorization using a neural network.
+/** The configuration for image vectorization using a neural network module.
  *
- * See the [documentation](https://weaviate.io/developers/weaviate/modules/retriever-vectorizer-modules/img2vec-neural) for detailed usage.
+ * See the [documentation](https://weaviate.io/developers/weaviate/modules/img2vec-neural) for detailed usage.
  */
 export type Img2VecNeuralConfig = {
   /** The image fields used when vectorizing. This is a required field and must match the property fields of the collection that are defined as `DataType.BLOB`. */
@@ -50,9 +51,9 @@ export type Multi2VecField = {
   weight?: number;
 };
 
-/** The configuration for multi-media vectorization using CLIP.
+/** The configuration for multi-media vectorization using the CLIP module.
  *
- * See the [documentation](https://weaviate.io/developers/weaviate/modules/retriever-vectorizer-modules/multi2vec-clip) for detailed usage.
+ * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/transformers/embeddings-multimodal) for detailed usage.
  */
 export type Multi2VecClipConfig = {
   /** The image fields used when vectorizing. */
@@ -72,9 +73,9 @@ export type Multi2VecClipConfig = {
   };
 };
 
-/** The configuration for multi-media vectorization using Bind.
+/** The configuration for multi-media vectorization using the Bind module.
  *
- * See the [documentation](https://weaviate.io/developers/weaviate/modules/retriever-vectorizer-modules/multi2vec-bind) for detailed usage.
+ * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/imagebind/embeddings-multimodal) for detailed usage.
  */
 export type Multi2VecBindConfig = {
   /** The audio fields used when vectorizing. */
@@ -112,9 +113,9 @@ export type Multi2VecBindConfig = {
   };
 };
 
-/** The configuration for multi-media vectorization using Palm.
+/** The configuration for multi-media vectorization using the PaLM model.
  *
- * See the [documentation](https://weaviate.io/developers/weaviate/modules/retriever-vectorizer-modules/text2vec-palm) for detailed usage.
+ * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/google/embeddings) for detailed usage.
  */
 export type Multi2VecPalmConfig = {
   /** The project ID of the Palm model. */
@@ -144,9 +145,9 @@ export type Multi2VecPalmConfig = {
   };
 };
 
-/** The configuration for reference-based vectorization using centroids.
+/** The configuration for reference-based vectorization using the centroid method.
  *
- * See the [documentation](https://weaviate.io/developers/weaviate/modules/retriever-vectorizer-modules/ref2vec-centroid) for detailed usage.
+ * See the [documentation](https://weaviate.io/developers/weaviate/modules/ref2vec-centroid) for detailed usage.
  */
 export type Ref2VecCentroidConfig = {
   /** The properties used as reference points for vectorization. */
@@ -155,7 +156,7 @@ export type Ref2VecCentroidConfig = {
   method: 'mean' | string;
 };
 
-/** The configuration for text vectorization using AWS.
+/** The configuration for text vectorization using the AWS module.
  *
  * See the [documentation](https://weaviate.io/developers/weaviate/modules/retriever-vectorizer-modules/text2vec-aws) for detailed usage.
  */
@@ -172,9 +173,9 @@ export type Text2VecAWSConfig = {
   vectorizeCollectionName?: boolean;
 };
 
-/** The configuration for text vectorization using Azure OpenAI.
+/** The configuration for text vectorization using the OpenAI module with Azure.
  *
- * See the [documentation](https://weaviate.io/developers/weaviate/modules/retriever-vectorizer-modules/text2vec-azure-openai) for detailed usage.
+ * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/openai/embeddings) for detailed usage.
  */
 export type Text2VecAzureOpenAIConfig = {
   /** The base URL to use where API requests should go. */
@@ -187,9 +188,9 @@ export type Text2VecAzureOpenAIConfig = {
   vectorizeCollectionName?: boolean;
 };
 
-/** The configuration for text vectorization using Cohere.
+/** The configuration for text vectorization using the Cohere module.
  *
- * See the [documentation](https://weaviate.io/developers/weaviate/modules/retriever-vectorizer-modules/text2vec-cohere) for detailed usage.
+ * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/cohere/embeddings) for detailed usage.
  */
 export type Text2VecCohereConfig = {
   /** The base URL to use where API requests should go. */
@@ -202,18 +203,28 @@ export type Text2VecCohereConfig = {
   vectorizeCollectionName?: boolean;
 };
 
-/** The configuration for text vectorization using Contextionary.
+/** The configuration for text vectorization using the Contextionary module.
  *
- * See the [documentation](https://weaviate.io/developers/weaviate/modules/retriever-vectorizer-modules/text2vec-contextionary) for detailed usage.
+ * See the [documentation](https://weaviate.io/developers/weaviate/modules/text2vec-contextionary) for detailed usage.
  */
 export type Text2VecContextionaryConfig = {
   /** Whether to vectorize the collection name. */
   vectorizeCollectionName?: boolean;
 };
 
-/** The configuration for text vectorization using GPT4All.
+/** The configuration for text vectorization using the Databricks module.
  *
- * See the [documentation](https://weaviate.io/developers/weaviate/modules/retriever-vectorizer-modules/text2vec-gpt4all) for detailed usage.
+ * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/databricks/embeddings) for detailed usage.
+ */
+export type Text2VecDatabricksConfig = {
+  endpoint: string;
+  instruction?: string;
+  vectorizeCollectionName?: boolean;
+};
+
+/** The configuration for text vectorization using the GPT-4-All module.
+ *
+ * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/gpt4all/embeddings) for detailed usage.
  */
 export type Text2VecGPT4AllConfig = {
   /** Whether to vectorize the collection name. */
@@ -221,9 +232,9 @@ export type Text2VecGPT4AllConfig = {
 };
 
 /**
- * The configuration for text vectorization using Hugging Face.
+ * The configuration for text vectorization using the HuggingFace module.
  *
- * See the [documentation](https://weaviate.io/developers/weaviate/modules/retriever-vectorizer-modules/text2vec-huggingface) for detailed usage.
+ * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/huggingface/embeddings) for detailed usage.
  */
 export type Text2VecHuggingFaceConfig = {
   /** The endpoint URL to use. */
@@ -245,9 +256,9 @@ export type Text2VecHuggingFaceConfig = {
 };
 
 /**
- * The configuration for text vectorization using Jina.
+ * The configuration for text vectorization using the Jina module.
  *
- * See the [documentation](https://weaviate.io/developers/weaviate/modules/retriever-vectorizer-modules/text2vec-jina) for detailed usage.
+ * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/jinaai/embeddings) for detailed usage.
  */
 export type Text2VecJinaConfig = {
   /** The model to use. */
@@ -257,7 +268,7 @@ export type Text2VecJinaConfig = {
 };
 
 /**
- * The configuration for text vectorization using Mistral.
+ * The configuration for text vectorization using the Mistral module.
  *
  * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/mistral/embeddings) for detailed usage.
  */
@@ -269,9 +280,9 @@ export type Text2VecMistralConfig = {
 };
 
 /**
- * The configuration for text vectorization using OctoAI.
+ * The configuration for text vectorization using the OctoAI module.
  *
- * See the [documentation](https://weaviate.io/developers/weaviate/modules/retriever-vectorizer-modules/text2vec-octoai) for detailed usage.
+ * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/octoai/embeddings) for detailed usage.
  */
 export type Text2VecOctoAIConfig = {
   /** The base URL to use where API requests should go. */
@@ -283,9 +294,9 @@ export type Text2VecOctoAIConfig = {
 };
 
 /**
- * The configuration for text vectorization using Ollama.
+ * The configuration for text vectorization using the Ollama module.
  *
- * See the [documentation](https://weaviate.io/developers/weaviate/modules/retriever-vectorizer-modules/text2vec-ollama) for detailed usage.
+ * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/ollama/embeddings) for detailed usage.
  */
 export type Text2VecOllamaConfig = {
   /** The base URL to use where API requests should go. */
@@ -297,9 +308,9 @@ export type Text2VecOllamaConfig = {
 };
 
 /**
- * The configuration for text vectorization using OpenAI.
+ * The configuration for text vectorization using the OpenAI module.
  *
- * See the [documentation](https://weaviate.io/developers/weaviate/modules/retriever-vectorizer-modules/text2vec-openai) for detailed usage.
+ * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/openai/embeddings) for detailed usage.
  */
 export type Text2VecOpenAIConfig = {
   /** The base URL to use where API requests should go. */
@@ -317,9 +328,9 @@ export type Text2VecOpenAIConfig = {
 };
 
 /**
- * The configuration for text vectorization using Palm.
+ * The configuration for text vectorization using the PaLM module.
  *
- * See the [documentation](https://weaviate.io/developers/weaviate/modules/retriever-vectorizer-modules/text2vec-palm) for detailed usage.
+ * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/google/embeddings) for detailed usage.
  */
 export type Text2VecPalmConfig = {
   /** The API endpoint to use without a leading scheme such as `http://`. */
@@ -334,6 +345,11 @@ export type Text2VecPalmConfig = {
   vectorizeCollectionName?: boolean;
 };
 
+/**
+ * The configuration for text vectorization using the Transformers module.
+ *
+ * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/transformers/embeddings) for detailed usage.
+ */
 export type Text2VecTransformersConfig = {
   /** The inference url to use where API requests should go. You can use either this OR (`passage_inference_url` & `query_inference_url`). */
   inferenceUrl?: string;
@@ -348,9 +364,9 @@ export type Text2VecTransformersConfig = {
 };
 
 /**
- * The configuration for text vectorization using Voyage AI.
+ * The configuration for text vectorization using the VoyageAI module.
  *
- * See the [documentation](https://weaviate.io/developers/weaviate/modules/retriever-vectorizer-modules/text2vec-voyageai) for detailed usage.
+ * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/voyageai/embeddings) for detailed usage.
  */
 export type Text2VecVoyageAIConfig = {
   /** The base URL to use where API requests should go. */
@@ -375,6 +391,7 @@ export type VectorizerConfig =
   | Text2VecAzureOpenAIConfig
   | Text2VecContextionaryConfig
   | Text2VecCohereConfig
+  | Text2VecDatabricksConfig
   | Text2VecGPT4AllConfig
   | Text2VecHuggingFaceConfig
   | Text2VecJinaConfig
@@ -400,6 +417,8 @@ export type VectorizerConfigType<V> = V extends 'img2vec-neural'
   ? Text2VecContextionaryConfig | undefined
   : V extends 'text2vec-cohere'
   ? Text2VecCohereConfig | undefined
+  : V extends 'text2vec-databricks'
+  ? Text2VecDatabricksConfig
   : V extends 'text2vec-gpt4all'
   ? Text2VecGPT4AllConfig | undefined
   : V extends 'text2vec-huggingface'

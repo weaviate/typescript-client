@@ -300,6 +300,27 @@ export const vectorizer = {
     });
   },
   /**
+   * Create a `VectorConfigCreate` object with the vectorizer set to `'text2vec-databricks'`.
+   *
+   * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/databricks/embeddings) for detailed usage.
+   *
+   * @param {ConfigureTextVectorizerOptions<T, N, I, 'text2vec-databricks'>} opts The configuration for the `text2vec-databricks` vectorizer.
+   * @returns {VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2vec-databricks'>} The configuration object.
+   */
+  text2VecDatabricks: <T, N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
+    opts: ConfigureTextVectorizerOptions<T, N, I, 'text2vec-databricks'>
+  ): VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2vec-databricks'> => {
+    const { name, sourceProperties, vectorIndexConfig, ...config } = opts;
+    return makeVectorizer(name, {
+      sourceProperties,
+      vectorIndexConfig,
+      vectorizerConfig: {
+        name: 'text2vec-databricks',
+        config: config,
+      },
+    });
+  },
+  /**
    * Create a `VectorConfigCreate` object with the vectorizer set to `'text2vec-gpt4all'`.
    *
    * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/gpt4all/embeddings) for detailed usage.

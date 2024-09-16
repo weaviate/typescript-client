@@ -704,6 +704,50 @@ describe('Unit testing of the vectorizer factory class', () => {
     });
   });
 
+  it('should create the correct Text2VecDatabricksConfig type with required & defaults', () => {
+    const config = configure.vectorizer.text2VecDatabricks({
+      name: 'test',
+      endpoint: 'endpoint',
+    });
+    expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'text2vec-databricks'>>({
+      name: 'test',
+      vectorIndex: {
+        name: 'hnsw',
+        config: undefined,
+      },
+      vectorizer: {
+        name: 'text2vec-databricks',
+        config: {
+          endpoint: 'endpoint',
+        },
+      },
+    });
+  });
+
+  it('should create the correct Text2VecDatabricksConfig type with all values', () => {
+    const config = configure.vectorizer.text2VecDatabricks({
+      name: 'test',
+      endpoint: 'endpoint',
+      instruction: 'instruction',
+      vectorizeCollectionName: true,
+    });
+    expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'text2vec-databricks'>>({
+      name: 'test',
+      vectorIndex: {
+        name: 'hnsw',
+        config: undefined,
+      },
+      vectorizer: {
+        name: 'text2vec-databricks',
+        config: {
+          endpoint: 'endpoint',
+          instruction: 'instruction',
+          vectorizeCollectionName: true,
+        },
+      },
+    });
+  });
+
   it('should create the correct Text2VecGPT4AllConfig type with defaults', () => {
     const config = configure.vectorizer.text2VecGPT4All();
     expect(config).toEqual<VectorConfigCreate<never, undefined, 'hnsw', 'text2vec-gpt4all'>>({
