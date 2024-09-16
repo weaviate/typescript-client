@@ -1,5 +1,6 @@
 import {
   GenerativeAWSConfig,
+  GenerativeAnthropicConfig,
   GenerativeAnyscaleConfig,
   GenerativeAzureOpenAIConfig,
   GenerativeCohereConfig,
@@ -1066,6 +1067,36 @@ describe('Unit testing of the vectorizer factory class', () => {
 });
 
 describe('Unit testing of the generative factory class', () => {
+  it('should create the correct GenerativeAnthropicConfig type with required & default values', () => {
+    const config = configure.generative.anthropic();
+    expect(config).toEqual<ModuleConfig<'generative-anthropic', GenerativeAnthropicConfig | undefined>>({
+      name: 'generative-anthropic',
+      config: undefined,
+    });
+  });
+
+  it('should create the correct GenerativeAnthropicConfig type with all values', () => {
+    const config = configure.generative.anthropic({
+      maxTokens: 100,
+      model: 'model',
+      stopSequences: ['stop1', 'stop2'],
+      temperature: 0.5,
+      topK: 10,
+      topP: 0.8,
+    });
+    expect(config).toEqual<ModuleConfig<'generative-anthropic', GenerativeAnthropicConfig>>({
+      name: 'generative-anthropic',
+      config: {
+        maxTokens: 100,
+        model: 'model',
+        stopSequences: ['stop1', 'stop2'],
+        temperature: 0.5,
+        topK: 10,
+        topP: 0.8,
+      },
+    });
+  });
+
   it('should create the correct GenerativeAnyscaleConfig type with required & default values', () => {
     const config = configure.generative.anyscale();
     expect(config).toEqual<ModuleConfig<'generative-anyscale', GenerativeAnyscaleConfig | undefined>>({

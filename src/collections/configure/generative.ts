@@ -1,5 +1,6 @@
 import {
   GenerativeAWSConfig,
+  GenerativeAnthropicConfig,
   GenerativeAnyscaleConfig,
   GenerativeAzureOpenAIConfig,
   GenerativeCohereConfig,
@@ -12,6 +13,7 @@ import {
 } from '../config/types/index.js';
 import {
   GenerativeAWSConfigCreate,
+  GenerativeAnthropicConfigCreate,
   GenerativeAnyscaleConfigCreate,
   GenerativeAzureOpenAIConfigCreate,
   GenerativeCohereConfigCreate,
@@ -24,11 +26,27 @@ import {
 
 export default {
   /**
+   * Create a `ModuleConfig<'generative-anthropic', GenerativeAnthropicConfig | undefined>` object for use when performing AI generation using the `generative-anthropic` module.
+   *
+   * See the [documentation](https://weaviate.io/developers/weaviate/modules/reader-generator-modules/generative-anthropic) for detailed usage.
+   *
+   * @param {GenerativeAnthropicConfigCreate} [config] The configuration for the `generative-anthropic` module.
+   * @returns {ModuleConfig<'generative-anthropic', GenerativeAnthropicConfig | undefined>} The configuration object.
+   */
+  anthropic(
+    config?: GenerativeAnthropicConfigCreate
+  ): ModuleConfig<'generative-anthropic', GenerativeAnthropicConfig | undefined> {
+    return {
+      name: 'generative-anthropic',
+      config,
+    };
+  },
+  /**
    * Create a `ModuleConfig<'generative-anyscale', GenerativeAnyscaleConfig | undefined>` object for use when performing AI generation using the `generative-anyscale` module.
    *
    * See the [documentation](https://weaviate.io/developers/weaviate/modules/reader-generator-modules/generative-anyscale) for detailed usage.
    *
-   * @param {GenerativeAnyscaleConfigCreate} config The configuration for the `generative-aws` module.
+   * @param {GenerativeAnyscaleConfigCreate} [config] The configuration for the `generative-aws` module.
    * @returns {ModuleConfig<'generative-anyscale', GenerativeAnyscaleConfig | undefined>} The configuration object.
    */
   anyscale(

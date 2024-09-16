@@ -1,5 +1,6 @@
 import {
   GenerativeAWSConfig,
+  GenerativeAnthropicConfig,
   GenerativeAnyscaleConfig,
   GenerativeMistralConfig,
   GenerativeOctoAIConfig,
@@ -19,6 +20,8 @@ export type GenerativeOpenAIConfigBaseCreate = {
 export type GenerativeOpenAIConfigCreate = GenerativeOpenAIConfigBaseCreate & {
   model?: string;
 };
+
+export type GenerativeAnthropicConfigCreate = GenerativeAnthropicConfig;
 
 export type GenerativeAzureOpenAIConfigCreate = GenerativeOpenAIConfigBaseCreate & {
   resourceName: string;

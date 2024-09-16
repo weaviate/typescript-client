@@ -14,6 +14,15 @@ export type GenerativeAWSConfig = {
   endpoint?: string;
 };
 
+export type GenerativeAnthropicConfig = {
+  maxTokens?: number;
+  model?: string;
+  stopSequences?: string[];
+  temperature?: number;
+  topK?: number;
+  topP?: number;
+};
+
 export type GenerativeAnyscaleConfig = {
   model?: string;
   temperature?: number;
@@ -83,6 +92,7 @@ export type GenerativeConfigType<G> = G extends 'generative-openai'
   : Record<string, any> | undefined;
 
 export type GenerativeSearch =
+  | 'generative-anthropic'
   | 'generative-anyscale'
   | 'generative-aws'
   | 'generative-mistral'
