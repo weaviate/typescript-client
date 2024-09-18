@@ -1261,6 +1261,7 @@ describe('Unit testing of the generative factory class', () => {
     expect(config).toEqual<ModuleConfig<'generative-openai', GenerativeAzureOpenAIConfig>>({
       name: 'generative-openai',
       config: {
+        isAzure: true,
         resourceName: 'resource-name',
         deploymentId: 'deployment-id',
       },
@@ -1281,6 +1282,7 @@ describe('Unit testing of the generative factory class', () => {
     expect(config).toEqual<ModuleConfig<'generative-openai', GenerativeAzureOpenAIConfig>>({
       name: 'generative-openai',
       config: {
+        isAzure: true,
         resourceName: 'resource-name',
         deploymentId: 'deployment-id',
         baseURL: 'base-url',
