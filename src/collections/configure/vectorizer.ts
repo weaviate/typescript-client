@@ -253,7 +253,10 @@ export const vectorizer = {
       vectorIndexConfig,
       vectorizerConfig: {
         name: 'text2vec-azure-openai',
-        config,
+        config: {
+          ...config,
+          isAzure: true,
+        },
       },
     });
   },

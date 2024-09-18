@@ -180,10 +180,12 @@ export type Text2VecAWSConfig = {
 export type Text2VecAzureOpenAIConfig = {
   /** The base URL to use where API requests should go. */
   baseURL?: string;
-  /** The deployment ID to use */
-  deploymentId: string;
-  /** The resource name to use. */
-  resourceName: string;
+  /** The deployment ID to use. If left empty, must be provided via X-Azure-Deployment-Id header  */
+  deploymentId?: string;
+  /** The resource name to use. If left empty, must be provided via X-Azure-Resource-Name header */
+  resourceName?: string;
+  /** Will automatically be set to true. You don't need to set this manually. */
+  isAzure?: true;
   /** Whether to vectorize the collection name. */
   vectorizeCollectionName?: boolean;
 };
