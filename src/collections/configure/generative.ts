@@ -89,6 +89,7 @@ export default {
     return {
       name: 'generative-openai',
       config: {
+        isAzure: true,
         deploymentId: config.deploymentId,
         resourceName: config.resourceName,
         baseURL: config.baseURL,

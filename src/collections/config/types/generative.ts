@@ -75,8 +75,9 @@ export type GenerativeOpenAIConfig = GenerativeOpenAIConfigBase & {
 };
 
 export type GenerativeAzureOpenAIConfig = GenerativeOpenAIConfigBase & {
-  resourceName: string;
-  deploymentId: string;
+  resourceName?: string;
+  deploymentId?: string;
+  isAzure?: true;
 };
 
 export type GenerativePaLMConfig = {

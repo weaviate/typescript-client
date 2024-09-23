@@ -196,7 +196,7 @@ export type VectorizerConfigCreateType<V> = V extends 'img2vec-neural'
   : V extends 'text2vec-openai'
   ? Text2VecOpenAIConfigCreate | undefined
   : V extends 'text2vec-azure-openai'
-  ? Text2VecAzureOpenAIConfigCreate
+  ? Text2VecAzureOpenAIConfigCreate | undefined
   : V extends 'text2vec-palm'
   ? Text2VecPalmConfigCreate | undefined
   : V extends 'text2vec-transformers'
