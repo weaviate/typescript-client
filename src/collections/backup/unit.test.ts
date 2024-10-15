@@ -26,7 +26,7 @@ class CancelMock {
     this.http = http;
   }
 
-  public static use = async (version: string, port: number) => {
+  public static use = async (version: string, httpPort: number, grpcPort: number) => {
     const httpApp = express();
     // Meta endpoint required for client instantiation
     httpApp.get('/v1/meta', (req, res) => res.send({ version }));
@@ -94,8 +94,10 @@ class CancelMock {
     const grpc = createServer();
     grpc.add(HealthDefinition, healthMockImpl);
 
-    await grpc.listen(`localhost:${port + 1}`);
-    const http = await httpApp.listen(port);
+    httpApp.on('error', (error) => console.error('HTTP Server Error:', error));
+
+    await grpc.listen(`localhost:${grpcPort}`);
+    const http = await httpApp.listen(httpPort);
     return new CancelMock(grpc, http);
   };
 
@@ -107,8 +109,8 @@ describe('Mock testing of backup cancellation', () => {
   let mock: CancelMock;
 
   beforeAll(async () => {
-    mock = await CancelMock.use('1.27.0', 8954);
-    client = await weaviate.connectToLocal({ port: 8954, grpcPort: 8955 });
+    mock = await CancelMock.use('1.27.0', 8958, 8959);
+    client = await weaviate.connectToLocal({ port: 8958, grpcPort: 8959 });
   });
 
   it('should throw while waiting for creation if backup is cancelled in the meantime', async () => {
