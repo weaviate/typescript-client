@@ -40,8 +40,11 @@ export type MultiTenancyConfig = {
   enabled: boolean;
 };
 
+export type ReplicationDeletionStrategy = 'DeleteOnConflict' | 'NoAutomatedResolution';
+
 export type ReplicationConfig = {
   asyncEnabled: boolean;
+  deletionStrategy: ReplicationDeletionStrategy;
   factor: number;
 };
 
