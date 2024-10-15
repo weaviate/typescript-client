@@ -147,12 +147,16 @@ export interface paths {
     head: operations['tenant.exists'];
   };
   '/backups/{backend}': {
+    /** [Coming soon] List all backups in progress not implemented yet. */
+    get: operations['backups.list'];
     /** Starts a process of creating a backup for a set of classes */
     post: operations['backups.create'];
   };
   '/backups/{backend}/{id}': {
     /** Returns status of backup creation attempt for a set of classes */
     get: operations['backups.create.status'];
+    /** Cancel created backup with specified ID */
+    delete: operations['backups.cancel'];
   };
   '/backups/{backend}/{id}/restore': {
     /** Returns status of a backup restoration attempt for a set of classes */
@@ -344,6 +348,11 @@ export interface definitions {
     factor?: number;
     /** @description Enable asynchronous replication */
     asyncEnabled?: boolean;
+    /**
+     * @description Conflict resolution strategy for deleted objects
+     * @enum {string}
+     */
+    deletionStrategy?: 'NoAutomatedResolution' | 'DeleteOnConflict';
   };
   /** @description tuning parameters for the BM25 algorithm */
   BM25Config: {
@@ -572,7 +581,7 @@ export interface definitions {
      * @default STARTED
      * @enum {string}
      */
-    status?: 'STARTED' | 'TRANSFERRING' | 'TRANSFERRED' | 'SUCCESS' | 'FAILED';
+    status?: 'STARTED' | 'TRANSFERRING' | 'TRANSFERRED' | 'SUCCESS' | 'FAILED' | 'CANCELED';
   };
   /** @description The definition of a backup restore metadata */
   BackupRestoreStatusResponse: {
@@ -589,7 +598,7 @@ export interface definitions {
      * @default STARTED
      * @enum {string}
      */
-    status?: 'STARTED' | 'TRANSFERRING' | 'TRANSFERRED' | 'SUCCESS' | 'FAILED';
+    status?: 'STARTED' | 'TRANSFERRING' | 'TRANSFERRED' | 'SUCCESS' | 'FAILED' | 'CANCELED';
   };
   /** @description Backup custom configuration */
   BackupConfig: {
@@ -646,8 +655,22 @@ export interface definitions {
      * @default STARTED
      * @enum {string}
      */
-    status?: 'STARTED' | 'TRANSFERRING' | 'TRANSFERRED' | 'SUCCESS' | 'FAILED';
+    status?: 'STARTED' | 'TRANSFERRING' | 'TRANSFERRED' | 'SUCCESS' | 'FAILED' | 'CANCELED';
   };
+  /** @description The definition of a backup create response body */
+  BackupListResponse: {
+    /** @description The ID of the backup. Must be URL-safe and work as a filesystem path, only lowercase, numbers, underscore, minus characters allowed. */
+    id?: string;
+    /** @description destination path of backup files proper to selected backend */
+    path?: string;
+    /** @description The list of classes for which the existed backup process */
+    classes?: string[];
+    /**
+     * @description status of backup process
+     * @enum {string}
+     */
+    status?: 'STARTED' | 'TRANSFERRING' | 'TRANSFERRED' | 'SUCCESS' | 'FAILED' | 'CANCELED';
+  }[];
   /** @description Request body for restoring a backup for a set of classes */
   BackupRestoreRequest: {
     /** @description Custom configuration for the backup restoration process */
@@ -676,7 +699,7 @@ export interface definitions {
      * @default STARTED
      * @enum {string}
      */
-    status?: 'STARTED' | 'TRANSFERRING' | 'TRANSFERRED' | 'SUCCESS' | 'FAILED';
+    status?: 'STARTED' | 'TRANSFERRING' | 'TRANSFERRED' | 'SUCCESS' | 'FAILED' | 'CANCELED';
   };
   /** @description The summary of Weaviate's statistics. */
   NodeStats: {
@@ -2685,6 +2708,35 @@ export interface operations {
       };
     };
   };
+  /** [Coming soon] List all backups in progress not implemented yet. */
+  'backups.list': {
+    parameters: {
+      path: {
+        /** Backup backend name e.g. filesystem, gcs, s3. */
+        backend: string;
+      };
+    };
+    responses: {
+      /** Existed backups */
+      200: {
+        schema: definitions['BackupListResponse'];
+      };
+      /** Unauthorized or invalid credentials. */
+      401: unknown;
+      /** Forbidden */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Invalid backup list. */
+      422: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
   /** Starts a process of creating a backup for a set of classes */
   'backups.create': {
     parameters: {
@@ -2743,6 +2795,35 @@ export interface operations {
         schema: definitions['ErrorResponse'];
       };
       /** Invalid backup restoration status attempt. */
+      422: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
+  /** Cancel created backup with specified ID */
+  'backups.cancel': {
+    parameters: {
+      path: {
+        /** Backup backend name e.g. filesystem, gcs, s3. */
+        backend: string;
+        /** The ID of a backup. Must be URL-safe and work as a filesystem path, only lowercase, numbers, underscore, minus characters allowed. */
+        id: string;
+      };
+    };
+    responses: {
+      /** Successfully deleted. */
+      204: never;
+      /** Unauthorized or invalid credentials. */
+      401: unknown;
+      /** Forbidden */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Invalid backup cancellation attempt. */
       422: {
         schema: definitions['ErrorResponse'];
       };
