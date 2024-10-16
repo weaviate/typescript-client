@@ -3,6 +3,8 @@ import {
   InvertedIndexConfigUpdate,
   MultiTenancyConfigCreate,
   ReplicationConfigCreate,
+  ReplicationConfigUpdate,
+  ReplicationDeletionStrategy,
   ShardingConfigCreate,
   VectorConfigUpdate,
   VectorIndexType,
@@ -131,10 +133,19 @@ const configure = {
    * See [the docs](https://weaviate.io/developers/weaviate/concepts/replication-architecture#replication-vs-sharding) for more details.
    *
    * @param {boolean} [options.asyncEnabled] Whether asynchronous replication is enabled. Default is false.
+   * @param {ReplicationDeletionStrategy} [options.deletionStrategy] The deletion strategy when replication conflicts are detected between deletes and reads.
    * @param {number} [options.factor] The replication factor. Default is 1.
    */
-  replication: (options: { asyncEnabled?: boolean; factor?: number }): ReplicationConfigCreate => {
-    return { asyncEnabled: options.asyncEnabled, factor: options.factor };
+  replication: (options: {
+    asyncEnabled?: boolean;
+    deletionStrategy?: ReplicationDeletionStrategy;
+    factor?: number;
+  }): ReplicationConfigCreate => {
+    return {
+      asyncEnabled: options.asyncEnabled,
+      deletionStrategy: options.deletionStrategy,
+      factor: options.factor,
+    };
   },
   /**
    * Create a `ShardingConfigCreate` object to be used when defining the sharding configuration of your collection.
@@ -217,10 +228,19 @@ const reconfigure = {
    * See [the docs](https://weaviate.io/developers/weaviate/concepts/replication-architecture#replication-vs-sharding) for more details.
    *
    * @param {boolean} [options.asyncEnabled] Whether asynchronous replication is enabled.
+   * @param {ReplicationDeletionStrategy} [options.deletionStrategy] The deletion strategy when replication conflicts are detected between deletes and reads.
    * @param {number} [options.factor] The replication factor.
    */
-  replication: (options: { asyncEnabled?: boolean; factor?: number }): ReplicationConfigCreate => {
-    return { asyncEnabled: options.asyncEnabled, factor: options.factor };
+  replication: (options: {
+    asyncEnabled?: boolean;
+    deletionStrategy?: ReplicationDeletionStrategy;
+    factor?: number;
+  }): ReplicationConfigUpdate => {
+    return {
+      asyncEnabled: options.asyncEnabled,
+      deletionStrategy: options.deletionStrategy,
+      factor: options.factor,
+    };
   },
 };
 
