@@ -72,7 +72,7 @@ describe('Integration testing of backups', () => {
       waitForCompletion: true,
     });
     expect(res.status).toBe('SUCCESS');
-    expect(res.classes).toEqual(['TestBackupCollection']);
+    expect(res.collections).toEqual(['TestBackupCollection']);
     return collection;
   };
 
@@ -82,7 +82,7 @@ describe('Integration testing of backups', () => {
       backend: 'filesystem',
     });
     expect(res.status).toBe('STARTED');
-    expect(res.classes).toEqual(['TestBackupCollection']);
+    expect(res.collections).toEqual(['TestBackupCollection']);
     const status = await collection.backup.getCreateStatus({
       backupId: res.id as string,
       backend: res.backend as 'filesystem',

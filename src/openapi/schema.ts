@@ -598,7 +598,7 @@ export interface definitions {
      * @default STARTED
      * @enum {string}
      */
-    status?: 'STARTED' | 'TRANSFERRING' | 'TRANSFERRED' | 'SUCCESS' | 'FAILED';
+    status?: 'STARTED' | 'TRANSFERRING' | 'TRANSFERRED' | 'SUCCESS' | 'FAILED' | 'CANCELED';
   };
   /** @description Backup custom configuration */
   BackupConfig: {
@@ -655,7 +655,7 @@ export interface definitions {
      * @default STARTED
      * @enum {string}
      */
-    status?: 'STARTED' | 'TRANSFERRING' | 'TRANSFERRED' | 'SUCCESS' | 'FAILED';
+    status?: 'STARTED' | 'TRANSFERRING' | 'TRANSFERRED' | 'SUCCESS' | 'FAILED' | 'CANCELED';
   };
   /** @description The definition of a backup create response body */
   BackupListResponse: {
@@ -699,7 +699,7 @@ export interface definitions {
      * @default STARTED
      * @enum {string}
      */
-    status?: 'STARTED' | 'TRANSFERRING' | 'TRANSFERRED' | 'SUCCESS' | 'FAILED';
+    status?: 'STARTED' | 'TRANSFERRING' | 'TRANSFERRED' | 'SUCCESS' | 'FAILED' | 'CANCELED';
   };
   /** @description The summary of Weaviate's statistics. */
   NodeStats: {
