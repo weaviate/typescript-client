@@ -140,7 +140,7 @@ export type ReplicationConfigCreate = RecursivePartial<ReplicationConfig>;
 
 export type ReplicationConfigUpdate = {
   asyncEnabled?: boolean;
-  deletionStragey?: ReplicationDeletionStrategy;
+  deletionStrategy?: ReplicationDeletionStrategy;
   factor?: number;
 };
 

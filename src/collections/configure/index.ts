@@ -3,6 +3,7 @@ import {
   InvertedIndexConfigUpdate,
   MultiTenancyConfigCreate,
   ReplicationConfigCreate,
+  ReplicationConfigUpdate,
   ReplicationDeletionStrategy,
   ShardingConfigCreate,
   VectorConfigUpdate,
@@ -234,7 +235,7 @@ const reconfigure = {
     asyncEnabled?: boolean;
     deletionStrategy?: ReplicationDeletionStrategy;
     factor?: number;
-  }): ReplicationConfigCreate => {
+  }): ReplicationConfigUpdate => {
     return {
       asyncEnabled: options.asyncEnabled,
       deletionStrategy: options.deletionStrategy,
