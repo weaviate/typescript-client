@@ -14,17 +14,18 @@ import {
   ModuleConfig,
   VectorConfigCreate,
 } from '../types/index.js';
-import { configure } from './index.js';
+import { configure, reconfigure } from './index.js';
 import {
   InvertedIndexConfigCreate,
   MultiTenancyConfigCreate,
   ReplicationConfigCreate,
+  ReplicationConfigUpdate,
   ShardingConfigCreate,
   VectorIndexConfigFlatCreate,
   VectorIndexConfigHNSWCreate,
 } from './types/index.js';
 
-describe('Unit testing of the configure factory class', () => {
+describe('Unit testing of the configure & reconfigure factory classes', () => {
   it('should create the correct InvertedIndexConfig type with all values', () => {
     const config = configure.invertedIndex({
       bm25b: 0.5,
@@ -76,13 +77,28 @@ describe('Unit testing of the configure factory class', () => {
     });
   });
 
-  it('should create the correct ReplicationConfig type with all values', () => {
+  it('should create the correct ReplicationConfigCreate type with all values', () => {
     const config = configure.replication({
       asyncEnabled: true,
+      deletionStrategy: 'DeleteOnConflict',
       factor: 2,
     });
     expect(config).toEqual<ReplicationConfigCreate>({
       asyncEnabled: true,
+      deletionStrategy: 'DeleteOnConflict',
+      factor: 2,
+    });
+  });
+
+  it('should create the correct ReplicationConfigUpdate type with all values', () => {
+    const config = reconfigure.replication({
+      asyncEnabled: true,
+      deletionStrategy: 'DeleteOnConflict',
+      factor: 2,
+    });
+    expect(config).toEqual<ReplicationConfigUpdate>({
+      asyncEnabled: true,
+      deletionStrategy: 'DeleteOnConflict',
       factor: 2,
     });
   });

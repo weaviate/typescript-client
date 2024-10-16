@@ -1,4 +1,5 @@
 import Connection from '../connection/index.js';
+import { WeaviateInvalidInputError } from '../errors.js';
 import {
   BackupRestoreRequest,
   BackupRestoreResponse,
@@ -81,7 +82,7 @@ export default class BackupRestorer extends CommandBase {
   do = (): Promise<BackupRestoreResponse> => {
     this.validate();
     if (this.errors.length > 0) {
-      return Promise.reject(new Error('invalid usage: ' + this.errors.join(', ')));
+      return Promise.reject(new WeaviateInvalidInputError('invalid usage: ' + this.errors.join(', ')));
     }
 
     const payload = {

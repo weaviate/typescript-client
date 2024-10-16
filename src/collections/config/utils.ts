@@ -265,6 +265,7 @@ class ConfigMapping {
     return {
       factor: v.factor,
       asyncEnabled: v.asyncEnabled ? v.asyncEnabled : false,
+      deletionStrategy: v.deletionStrategy ? v.deletionStrategy : 'NoAutomatedResolution',
     };
   }
   static sharding(v?: WeaviateShardingConfig): ShardingConfig {

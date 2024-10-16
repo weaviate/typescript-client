@@ -1,12 +1,8 @@
 import { Backend } from '../../backup/index.js';
 import Connection from '../../connection/index.js';
-import {
-  BackupCreateResponse,
-  BackupCreateStatusResponse,
-  BackupRestoreResponse,
-  BackupRestoreStatusResponse,
-} from '../../openapi/types.js';
-import { BackupStatusArgs, backup } from './client.js';
+import { WeaviateInvalidInputError } from '../../errors.js';
+import { backup } from './client.js';
+import { BackupReturn, BackupStatusArgs, BackupStatusReturn } from './types.js';
 
 /** The arguments required to create and restore backups. */
 export type BackupCollectionArgs = {
@@ -41,28 +37,36 @@ export interface BackupCollection {
    * Create a backup of this collection.
    *
    * @param {BackupArgs} args The arguments for the request.
-   * @returns {Promise<BackupCreateResponse>} The response from Weaviate.
+   * @returns {Promise<BackupReturn>} The response from Weaviate.
+   * @throws {WeaviateInvalidInputError} If the input is invalid.
+   * @throws {WeaviateBackupFailed} If the backup creation fails.
+   * @throws {WeaviateBackupCanceled} If the backup creation is canceled.
    */
-  create(args: BackupCollectionArgs): Promise<BackupCreateResponse>;
+  create(args: BackupCollectionArgs): Promise<BackupReturn>;
   /**
    * Get the status of a backup.
    *
    * @param {BackupStatusArgs} args The arguments for the request.
-   * @returns {Promise<BackupCreateStatusResponse>} The status of the backup.
+   * @returns {Promise<BackupStatusReturn>} The status of the backup.
+   * @throws {WeaviateInvalidInputError} If the input is invalid.
    */
-  getCreateStatus(args: BackupStatusArgs): Promise<BackupCreateStatusResponse>;
+  getCreateStatus(args: BackupStatusArgs): Promise<BackupStatusReturn>;
   /**
    * Get the status of a restore.
    *
    * @param {BackupStatusArgs} args The arguments for the request.
-   * @returns {Promise<BackupRestoreStatusResponse>} The status of the restore.
+   * @returns {Promise<BackupStatusReturn>} The status of the restore.
+   * @throws {WeaviateInvalidInputError} If the input is invalid.
    */
-  getRestoreStatus(args: BackupStatusArgs): Promise<BackupRestoreStatusResponse>;
+  getRestoreStatus(args: BackupStatusArgs): Promise<BackupStatusReturn>;
   /**
    * Restore a backup of this collection.
    *
    * @param {BackupArgs} args The arguments for the request.
-   * @returns {Promise<BackupRestoreResponse>} The response from Weaviate.
+   * @returns {Promise<BackupReturn>} The response from Weaviate.
+   * @throws {WeaviateInvalidInputError} If the input is invalid.
+   * @throws {WeaviateBackupFailed} If the backup restoration fails.
+   * @throws {WeaviateBackupCanceled} If the backup restoration is canceled.
    */
-  restore(args: BackupCollectionArgs): Promise<BackupRestoreResponse>;
+  restore(args: BackupCollectionArgs): Promise<BackupReturn>;
 }

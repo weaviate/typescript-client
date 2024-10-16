@@ -1,11 +1,18 @@
 import { WeaviateNestedProperty, WeaviateProperty } from '../../../openapi/types.js';
-import { InvertedIndexConfig, MultiTenancyConfig, ReplicationConfig } from '../../config/types/index.js';
+import {
+  InvertedIndexConfig,
+  MultiTenancyConfig,
+  ReplicationConfig,
+  ReplicationDeletionStrategy,
+} from '../../config/types/index.js';
 import { DataType } from '../../types/index.js';
 import { NonRefKeys, RefKeys } from '../../types/internal.js';
 
-export type RecursivePartial<T> = {
-  [P in keyof T]?: RecursivePartial<T[P]>;
-};
+export type RecursivePartial<T> = T extends object
+  ? {
+      [P in keyof T]?: RecursivePartial<T[P]>;
+    }
+  : T;
 
 export type InvertedIndexConfigCreate = RecursivePartial<InvertedIndexConfig>;
 
@@ -133,6 +140,7 @@ export type ReplicationConfigCreate = RecursivePartial<ReplicationConfig>;
 
 export type ReplicationConfigUpdate = {
   asyncEnabled?: boolean;
+  deletionStrategy?: ReplicationDeletionStrategy;
   factor?: number;
 };
 

@@ -96,12 +96,33 @@ export class WeaviateUnexpectedStatusCodeError extends WeaviateError {
   }
 }
 
+export class WeaviateUnexpectedResponseError extends WeaviateError {
+  constructor(message: string) {
+    super(`The response from Weaviate was unexpected: ${message}`);
+  }
+}
+
 /**
  * Is thrown when a backup creation or restoration fails.
  */
 export class WeaviateBackupFailed extends WeaviateError {
   constructor(message: string, kind: 'creation' | 'restoration') {
     super(`Backup ${kind} failed with message: ${message}`);
+  }
+}
+
+/**
+ * Is thrown when a backup creation or restoration fails.
+ */
+export class WeaviateBackupCanceled extends WeaviateError {
+  constructor(kind: 'creation' | 'restoration') {
+    super(`Backup ${kind} was canceled`);
+  }
+}
+
+export class WeaviateBackupCancellationError extends WeaviateError {
+  constructor(message: string) {
+    super(`Backup cancellation failed with message: ${message}`);
   }
 }
 
