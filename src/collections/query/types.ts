@@ -175,15 +175,11 @@ export type GroupByNearTextOptions<T> = BaseNearTextOptions<T> & {
 export type NearMediaType = 'audio' | 'depth' | 'image' | 'imu' | 'thermal' | 'video';
 
 /**
- * The vector(s) to search for in the `query.nearVector` method. One of:
+ * The vector(s) to search for in the `query/generate.nearVector` and `query/generate.hybrid` methods. One of:
  * - a single vector, in which case pass a single number array.
- * - multiple unnamed vectors, in which case pass an array of number arrays.
- * - multiple named vectors, in which case pass an object of type `Record<string, number[]>`.
- *
- * If you pass multiple unnamed vectors here then you must specify the names of the vector spaces in the `targetVector` parameter.
- * If these two arrays are of different lengths, the method will throw an error.
+ * - multiple named vectors, in which case pass an object of type `Record<string, number[] | number[][]>`.
  */
-export type NearVectorInputType = number[] | number[][] | Record<string, number[]>;
+export type NearVectorInputType = number[] | Record<string, number[] | number[][]>;
 
 /**
  * Over which vector spaces to perform the vector search query in the `nearX` search method. One of:
@@ -240,7 +236,7 @@ interface Hybrid<T> {
    *
    * This overload is for performing a search without the `groupBy` param.
    *
-   * @param {string} query - The query to search for.
+   * @param {string} query - The query to search for in the BM25 keyword search..
    * @param {BaseHybridOptions<T>} [opts] - The available options for the search excluding the `groupBy` param.
    * @returns {Promise<WeaviateReturn<T>>} - The result of the search within the fetched collection.
    */
@@ -252,7 +248,7 @@ interface Hybrid<T> {
    *
    * This overload is for performing a search with the `groupBy` param.
    *
-   * @param {string} query - The query to search for.
+   * @param {string} query - The query to search for in the BM25 keyword search..
    * @param {GroupByHybridOptions<T>} opts - The available options for the search including the `groupBy` param.
    * @returns {Promise<GroupByReturn<T>>} - The result of the search within the fetched collection.
    */
@@ -264,7 +260,7 @@ interface Hybrid<T> {
    *
    * This overload is for performing a search with a programmatically defined `opts` param.
    *
-   * @param {string} query - The query to search for.
+   * @param {string} query - The query to search for in the BM25 keyword search..
    * @param {HybridOptions<T>} [opts] - The available options for the search including the `groupBy` param.
    * @returns {Promise<QueryReturn<T>>} - The result of the search within the fetched collection.
    */

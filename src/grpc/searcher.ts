@@ -4,7 +4,6 @@ import { Metadata } from 'nice-grpc';
 import { Filters } from '../proto/v1/base.js';
 import {
   BM25,
-  GenerativeSearch,
   GroupBy,
   Hybrid,
   MetadataRequest,
@@ -26,6 +25,7 @@ import {
 import { WeaviateClient } from '../proto/v1/weaviate.js';
 
 import { WeaviateQueryError } from '../errors.js';
+import { GenerativeSearch } from '../proto/v1/generative.js';
 import Base from './base.js';
 
 export type SearchFetchArgs = {

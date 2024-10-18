@@ -379,14 +379,11 @@ maybe('Testing of the collection.generate methods with a multi vector collection
   it('should generate with a near vector search on multi vectors', async () => {
     const query = () =>
       collection.generate.nearVector(
-        [titleVector, title2Vector],
+        { title: titleVector, title2: title2Vector },
         {
           groupedTask: 'What is the value of title here? {title}',
           groupedProperties: ['title'],
           singlePrompt: 'Write a haiku about ducks for {title}',
-        },
-        {
-          targetVector: ['title', 'title2'],
         }
       );
     if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 26, 0))) {

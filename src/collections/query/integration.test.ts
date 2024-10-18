@@ -35,10 +35,12 @@ describe('Testing of the collection.query methods with a simple collection', () 
           {
             name: 'testProp',
             dataType: 'text',
+            vectorizePropertyName: false,
           },
           {
             name: 'testProp2',
             dataType: 'text',
+            vectorizePropertyName: false,
           },
         ],
         vectorizers: weaviate.configure.vectorizer.text2VecContextionary({
@@ -54,8 +56,8 @@ describe('Testing of the collection.query methods with a simple collection', () 
         });
         return collection.data.insert({
           properties: {
-            testProp: 'test',
-            testProp2: 'test2',
+            testProp: 'carrot',
+            testProp2: 'parsnip',
           },
         });
       });
@@ -65,7 +67,7 @@ describe('Testing of the collection.query methods with a simple collection', () 
 
   it('should fetch an object by its id', async () => {
     const object = await collection.query.fetchObjectById(id);
-    expect(object?.properties.testProp).toEqual('test');
+    expect(object?.properties.testProp).toEqual('carrot');
     expect(object?.uuid).toEqual(id);
   });
 
@@ -87,15 +89,14 @@ describe('Testing of the collection.query methods with a simple collection', () 
   });
 
   it('should query with bm25', async () => {
-    const ret = await collection.query.bm25('test');
+    const ret = await collection.query.bm25('carrot');
     expect(ret.objects.length).toEqual(1);
-    expect(ret.objects[0].properties.testProp).toEqual('test');
-    expect(ret.objects[0].properties.testProp2).toEqual('test2');
+    expect(ret.objects[0].properties.testProp).toEqual('carrot');
     expect(ret.objects[0].uuid).toEqual(id);
   });
 
   it('should query with bm25 and weighted query properties', async () => {
-    const ret = await collection.query.bm25('test', {
+    const ret = await collection.query.bm25('carrot', {
       queryProperties: [
         {
           name: 'testProp',
@@ -105,13 +106,12 @@ describe('Testing of the collection.query methods with a simple collection', () 
       ],
     });
     expect(ret.objects.length).toEqual(1);
-    expect(ret.objects[0].properties.testProp).toEqual('test');
-    expect(ret.objects[0].properties.testProp2).toEqual('test2');
+    expect(ret.objects[0].properties.testProp).toEqual('carrot');
     expect(ret.objects[0].uuid).toEqual(id);
   });
 
   it('should query with bm25 and weighted query properties with a non-generic collection', async () => {
-    const ret = await client.collections.get(collectionName).query.bm25('test', {
+    const ret = await client.collections.get(collectionName).query.bm25('carrot', {
       queryProperties: [
         {
           name: 'testProp',
@@ -121,33 +121,30 @@ describe('Testing of the collection.query methods with a simple collection', () 
       ],
     });
     expect(ret.objects.length).toEqual(1);
-    expect(ret.objects[0].properties.testProp).toEqual('test');
-    expect(ret.objects[0].properties.testProp2).toEqual('test2');
+    expect(ret.objects[0].properties.testProp).toEqual('carrot');
     expect(ret.objects[0].uuid).toEqual(id);
   });
 
   it('should query with hybrid', async () => {
-    const ret = await collection.query.hybrid('test', { limit: 1 });
+    const ret = await collection.query.hybrid('carrot', { limit: 1 });
     expect(ret.objects.length).toEqual(1);
-    expect(ret.objects[0].properties.testProp).toEqual('test');
-    expect(ret.objects[0].properties.testProp2).toEqual('test2');
+    expect(ret.objects[0].properties.testProp).toEqual('carrot');
     expect(ret.objects[0].uuid).toEqual(id);
   });
 
   it('should query with hybrid and vector', async () => {
-    const ret = await collection.query.hybrid('test', {
+    const ret = await collection.query.hybrid('carrot', {
       limit: 1,
       vector: vector,
     });
     expect(ret.objects.length).toEqual(1);
-    expect(ret.objects[0].properties.testProp).toEqual('test');
-    expect(ret.objects[0].properties.testProp2).toEqual('test2');
+    expect(ret.objects[0].properties.testProp).toEqual('carrot');
     expect(ret.objects[0].uuid).toEqual(id);
   });
 
   it('should query with hybrid and near text subsearch', async () => {
     const query = () =>
-      collection.query.hybrid('test', {
+      collection.query.hybrid('carrot', {
         limit: 1,
         vector: {
           query: 'apple',
@@ -157,7 +154,7 @@ describe('Testing of the collection.query methods with a simple collection', () 
             force: 0.9,
           },
           moveAway: {
-            concepts: ['test'],
+            concepts: ['carrot'],
             force: 0.1,
           },
         },
@@ -169,12 +166,11 @@ describe('Testing of the collection.query methods with a simple collection', () 
     const ret = await query();
     expect(ret.objects.length).toEqual(1);
     expect(ret.objects[0].properties.testProp).toEqual('apple');
-    expect(ret.objects[0].properties.testProp2).toEqual('banana');
   });
 
   it('should query with hybrid and near vector subsearch', async () => {
     const query = () =>
-      collection.query.hybrid('test', {
+      collection.query.hybrid('carrot', {
         limit: 1,
         vector: {
           vector: vector,
@@ -187,31 +183,27 @@ describe('Testing of the collection.query methods with a simple collection', () 
     }
     const ret = await query();
     expect(ret.objects.length).toEqual(1);
-    expect(ret.objects[0].properties.testProp).toEqual('test');
-    expect(ret.objects[0].properties.testProp2).toEqual('test2');
+    expect(ret.objects[0].properties.testProp).toEqual('carrot');
   });
 
   it.skip('should query with nearObject', async () => {
     const ret = await collection.query.nearObject(id, { limit: 1 });
     expect(ret.objects.length).toEqual(1);
-    expect(ret.objects[0].properties.testProp).toEqual('test');
-    expect(ret.objects[0].properties.testProp2).toEqual('test2');
+    expect(ret.objects[0].properties.testProp).toEqual('carrot');
     expect(ret.objects[0].uuid).toEqual(id);
   });
 
   it('should query with nearText', async () => {
-    const ret = await collection.query.nearText(['test'], { limit: 1 });
+    const ret = await collection.query.nearText(['carrot'], { limit: 1 });
     expect(ret.objects.length).toEqual(1);
-    expect(ret.objects[0].properties.testProp).toEqual('test');
-    expect(ret.objects[0].properties.testProp2).toEqual('test2');
+    expect(ret.objects[0].properties.testProp).toEqual('carrot');
     expect(ret.objects[0].uuid).toEqual(id);
   });
 
   it('should query with nearVector', async () => {
     const ret = await collection.query.nearVector(vector, { limit: 1 });
     expect(ret.objects.length).toEqual(1);
-    expect(ret.objects[0].properties.testProp).toEqual('test');
-    expect(ret.objects[0].properties.testProp2).toEqual('test2');
+    expect(ret.objects[0].properties.testProp).toEqual('carrot');
     expect(ret.objects[0].uuid).toEqual(id);
   });
 });
@@ -425,271 +417,363 @@ describe('Testing of the collection.query methods with a collection with a refer
       ).toEqual('test');
     });
   });
+});
 
-  describe('Testing of the collection.query methods with a collection with a nested property', () => {
-    let client: WeaviateClient;
-    let collection: Collection<TestCollectionQueryWithNestedProps, 'TestCollectionQueryWithNestedProps'>;
-    const collectionName = 'TestCollectionQueryWithNestedProps';
+describe('Testing of the collection.query methods with a collection with a nested property', () => {
+  let client: WeaviateClient;
+  let collection: Collection<TestCollectionQueryWithNestedProps, 'TestCollectionQueryWithNestedProps'>;
+  const collectionName = 'TestCollectionQueryWithNestedProps';
 
-    let id1: string;
-    let id2: string;
+  let id1: string;
+  let id2: string;
 
-    type TestCollectionQueryWithNestedProps = {
-      testProp: string;
-      nestedProp?: {
-        one: string;
-        two: string;
-        again?: {
-          three: string;
-        };
-        onceMore?: {
-          four: string;
-        };
+  type TestCollectionQueryWithNestedProps = {
+    testProp: string;
+    nestedProp?: {
+      one: string;
+      two: string;
+      again?: {
+        three: string;
+      };
+      onceMore?: {
+        four: string;
       };
     };
+  };
 
-    afterAll(() => {
-      return client.collections.delete(collectionName).catch((err) => {
-        console.error(err);
-        throw err;
-      });
+  afterAll(() => {
+    return client.collections.delete(collectionName).catch((err) => {
+      console.error(err);
+      throw err;
     });
+  });
 
-    beforeAll(async () => {
-      client = await weaviate.connectToLocal();
-      collection = client.collections.get(collectionName);
-      return client.collections
-        .create<TestCollectionQueryWithNestedProps>({
-          name: collectionName,
-          properties: [
-            {
-              name: 'testProp',
-              dataType: 'text',
-              vectorizePropertyName: false,
-            },
-            {
-              name: 'nestedProp',
-              dataType: 'object',
-              vectorizePropertyName: false,
-              nestedProperties: [
-                {
-                  name: 'one',
-                  dataType: 'text',
-                },
-                {
-                  name: 'two',
-                  dataType: 'text',
-                },
-                {
-                  name: 'again',
-                  dataType: 'object',
-                  nestedProperties: [
-                    {
-                      name: 'three',
-                      dataType: 'text',
-                    },
-                  ],
-                },
-                {
-                  name: 'onceMore',
-                  dataType: 'object',
-                  nestedProperties: [
-                    {
-                      name: 'four',
-                      dataType: 'text',
-                    },
-                  ],
-                },
-              ],
-            },
-          ],
-          vectorizers: weaviate.configure.vectorizer.text2VecContextionary(),
-        })
-        .then(async () => {
-          id1 = await collection.data.insert({
-            properties: {
-              testProp: 'test',
-            },
-          });
-          id2 = await collection.data.insert({
-            properties: {
-              testProp: 'other',
-              nestedProp: {
-                one: 'test',
-                two: 'test',
-                again: {
-                  three: 'test',
-                },
-                onceMore: {
-                  four: 'test',
-                },
-              },
-            },
-          });
-        });
-    });
-
-    it('should query without searching returning the nested object', async () => {
-      const ret = await collection.query.fetchObjects({
-        returnProperties: [
-          'testProp',
+  beforeAll(async () => {
+    client = await weaviate.connectToLocal();
+    collection = client.collections.get(collectionName);
+    return client.collections
+      .create<TestCollectionQueryWithNestedProps>({
+        name: collectionName,
+        properties: [
+          {
+            name: 'testProp',
+            dataType: 'text',
+            vectorizePropertyName: false,
+          },
           {
             name: 'nestedProp',
-            properties: [
-              'one',
+            dataType: 'object',
+            vectorizePropertyName: false,
+            nestedProperties: [
+              {
+                name: 'one',
+                dataType: 'text',
+              },
+              {
+                name: 'two',
+                dataType: 'text',
+              },
               {
                 name: 'again',
-                properties: ['three'],
+                dataType: 'object',
+                nestedProperties: [
+                  {
+                    name: 'three',
+                    dataType: 'text',
+                  },
+                ],
               },
               {
                 name: 'onceMore',
-                properties: ['four'],
+                dataType: 'object',
+                nestedProperties: [
+                  {
+                    name: 'four',
+                    dataType: 'text',
+                  },
+                ],
               },
             ],
           },
         ],
+        vectorizers: weaviate.configure.vectorizer.text2VecContextionary(),
+      })
+      .then(async () => {
+        id1 = await collection.data.insert({
+          properties: {
+            testProp: 'test',
+          },
+        });
+        id2 = await collection.data.insert({
+          properties: {
+            testProp: 'other',
+            nestedProp: {
+              one: 'test',
+              two: 'test',
+              again: {
+                three: 'test',
+              },
+              onceMore: {
+                four: 'test',
+              },
+            },
+          },
+        });
       });
-      ret.objects.sort((a, b) => a.properties.testProp.localeCompare(b.properties.testProp));
-      expect(ret.objects.length).toEqual(2);
-      expect(ret.objects[0].properties.testProp).toEqual('other');
-      expect(ret.objects[0].properties.nestedProp?.one).toEqual('test');
-      expect(ret.objects[0].properties.nestedProp?.two).toBeUndefined();
-      expect(ret.objects[0].properties.nestedProp?.again?.three).toEqual('test');
-      expect(ret.objects[0].properties.nestedProp?.onceMore?.four).toEqual('test');
-      expect(ret.objects[1].properties.testProp).toEqual('test');
-      expect(ret.objects[1].properties.nestedProp).toBeUndefined();
+  });
+
+  it('should query without searching returning the nested object', async () => {
+    const ret = await collection.query.fetchObjects({
+      returnProperties: [
+        'testProp',
+        {
+          name: 'nestedProp',
+          properties: [
+            'one',
+            {
+              name: 'again',
+              properties: ['three'],
+            },
+            {
+              name: 'onceMore',
+              properties: ['four'],
+            },
+          ],
+        },
+      ],
+    });
+    ret.objects.sort((a, b) => a.properties.testProp.localeCompare(b.properties.testProp));
+    expect(ret.objects.length).toEqual(2);
+    expect(ret.objects[0].properties.testProp).toEqual('other');
+    expect(ret.objects[0].properties.nestedProp?.one).toEqual('test');
+    expect(ret.objects[0].properties.nestedProp?.two).toBeUndefined();
+    expect(ret.objects[0].properties.nestedProp?.again?.three).toEqual('test');
+    expect(ret.objects[0].properties.nestedProp?.onceMore?.four).toEqual('test');
+    expect(ret.objects[1].properties.testProp).toEqual('test');
+    expect(ret.objects[1].properties.nestedProp).toBeUndefined();
+  });
+});
+
+describe('Testing of the collection.query methods with a collection with a multiple vectors', () => {
+  let client: WeaviateClient;
+  let collection: Collection<TestCollectionQueryWithMultiVector, 'TestCollectionQueryWithMultiVector'>;
+  const collectionName = 'TestCollectionQueryWithMultiVector';
+
+  let id1: string;
+  let id2: string;
+
+  type TestCollectionQueryWithMultiVector = {
+    title: string;
+  };
+
+  afterAll(() => {
+    return client.collections.delete(collectionName).catch((err) => {
+      console.error(err);
+      throw err;
     });
   });
 
-  describe('Testing of the collection.query methods with a collection with a multiple vectors', () => {
-    let client: WeaviateClient;
-    let collection: Collection<TestCollectionQueryWithMultiVector, 'TestCollectionQueryWithMultiVector'>;
-    const collectionName = 'TestCollectionQueryWithMultiVector';
-
-    let id1: string;
-    let id2: string;
-
-    type TestCollectionQueryWithMultiVector = {
-      title: string;
-    };
-
-    afterAll(() => {
-      return client.collections.delete(collectionName).catch((err) => {
-        console.error(err);
-        throw err;
-      });
-    });
-
-    beforeAll(async () => {
-      client = await weaviate.connectToLocal();
-      collection = client.collections.get(collectionName);
-      const query = () =>
-        client.collections
-          .create<TestCollectionQueryWithMultiVector>({
-            name: collectionName,
-            properties: [
-              {
-                name: 'title',
-                dataType: 'text',
-                vectorizePropertyName: false,
-              },
-            ],
-            vectorizers: [
-              weaviate.configure.vectorizer.text2VecContextionary({
-                name: 'title',
-                sourceProperties: ['title'],
-              }),
-              weaviate.configure.vectorizer.text2VecContextionary({
-                name: 'title2',
-                sourceProperties: ['title'],
-              }),
-            ],
-          })
-          .then(async () => {
-            id1 = await collection.data.insert({
-              properties: {
-                title: 'test',
-              },
-            });
-            id2 = await collection.data.insert({
-              properties: {
-                title: 'other',
-              },
-            });
+  beforeAll(async () => {
+    client = await weaviate.connectToLocal();
+    collection = client.collections.get(collectionName);
+    const query = () =>
+      client.collections
+        .create<TestCollectionQueryWithMultiVector>({
+          name: collectionName,
+          properties: [
+            {
+              name: 'title',
+              dataType: 'text',
+              vectorizePropertyName: false,
+            },
+          ],
+          vectorizers: [
+            weaviate.configure.vectorizer.text2VecContextionary({
+              name: 'title',
+              sourceProperties: ['title'],
+            }),
+            weaviate.configure.vectorizer.text2VecContextionary({
+              name: 'title2',
+              sourceProperties: ['title'],
+            }),
+          ],
+        })
+        .then(async () => {
+          id1 = await collection.data.insert({
+            properties: {
+              title: 'test',
+            },
           });
-      if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 24, 0))) {
-        await expect(query()).rejects.toThrow(WeaviateUnsupportedFeatureError);
-        return;
-      }
-      return query();
-    });
-
-    it('should query returning a named vector', async () => {
-      const query = () =>
-        collection.query.fetchObjects({
-          returnProperties: ['title'],
-          includeVector: ['title'],
+          id2 = await collection.data.insert({
+            properties: {
+              title: 'other',
+            },
+          });
         });
-      if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 24, 0))) {
-        await expect(query()).rejects.toThrow(WeaviateUnsupportedFeatureError);
-        return;
-      }
-      const ret = await query();
-      ret.objects.sort((a, b) => a.properties.title.localeCompare(b.properties.title));
-      expect(ret.objects.length).toEqual(2);
-      expect(ret.objects[0].properties.title).toEqual('other');
-      expect(ret.objects[0].vectors.title).toBeDefined();
-      expect(ret.objects[1].properties.title).toEqual('test');
-      expect(ret.objects[1].vectors.title).toBeDefined();
-    });
+    if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 24, 0))) {
+      await expect(query()).rejects.toThrow(WeaviateUnsupportedFeatureError);
+      return;
+    }
+    return query();
+  });
 
-    it('should query without searching returning a named vector', async () => {
-      if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 24, 0))) {
-        return;
-      }
-      const ret = await collection.query.fetchObjects({
+  it('should query returning a named vector', async () => {
+    const query = () =>
+      collection.query.fetchObjects({
         returnProperties: ['title'],
         includeVector: ['title'],
       });
-      ret.objects.sort((a, b) => a.properties.title.localeCompare(b.properties.title));
-      expect(ret.objects.length).toEqual(2);
-      expect(ret.objects[0].properties.title).toEqual('other');
-      expect(ret.objects[0].vectors.title).toBeDefined();
-      expect(ret.objects[1].properties.title).toEqual('test');
-      expect(ret.objects[1].vectors.title).toBeDefined();
-    });
+    if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 24, 0))) {
+      await expect(query()).rejects.toThrow(WeaviateUnsupportedFeatureError);
+      return;
+    }
+    const ret = await query();
+    ret.objects.sort((a, b) => a.properties.title.localeCompare(b.properties.title));
+    expect(ret.objects.length).toEqual(2);
+    expect(ret.objects[0].properties.title).toEqual('other');
+    expect(ret.objects[0].vectors.title).toBeDefined();
+    expect(ret.objects[1].properties.title).toEqual('test');
+    expect(ret.objects[1].vectors.title).toBeDefined();
+  });
 
-    it('should query with a vector search over the named vector space', async () => {
-      if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 24, 0))) {
-        return;
-      }
-      const ret = await collection.query.nearObject(id1, {
+  it('should query without searching returning a named vector', async () => {
+    if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 24, 0))) {
+      return;
+    }
+    const ret = await collection.query.fetchObjects({
+      returnProperties: ['title'],
+      includeVector: ['title'],
+    });
+    ret.objects.sort((a, b) => a.properties.title.localeCompare(b.properties.title));
+    expect(ret.objects.length).toEqual(2);
+    expect(ret.objects[0].properties.title).toEqual('other');
+    expect(ret.objects[0].vectors.title).toBeDefined();
+    expect(ret.objects[1].properties.title).toEqual('test');
+    expect(ret.objects[1].vectors.title).toBeDefined();
+  });
+
+  it('should query with a vector search over the named vector space', async () => {
+    if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 24, 0))) {
+      return;
+    }
+    const ret = await collection.query.nearObject(id1, {
+      returnProperties: ['title'],
+      targetVector: 'title',
+    });
+    expect(ret.objects.length).toEqual(2);
+    expect(ret.objects[0].properties.title).toEqual('test');
+    expect(ret.objects[1].properties.title).toEqual('other');
+  });
+
+  it('should query a nearObject multi-target vector search over the named vector spaces', async () => {
+    if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 26, 0))) {
+      return;
+    }
+    const ret = await collection.query.nearObject(id1, {
+      returnProperties: ['title'],
+      targetVector: ['title', 'title2'],
+    });
+    expect(ret.objects.length).toEqual(2);
+    expect(ret.objects[0].properties.title).toEqual('test');
+    expect(ret.objects[1].properties.title).toEqual('other');
+  });
+
+  it('should group-by query a nearObject multi-target vector search over the named vector spaces', async () => {
+    if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 26, 0))) {
+      return;
+    }
+    const ret = await collection.query.nearObject(id1, {
+      returnProperties: ['title'],
+      targetVector: ['title', 'title2'],
+      groupBy: {
+        numberOfGroups: 2,
+        objectsPerGroup: 1,
+        property: 'title',
+      },
+    });
+    expect(ret.objects.length).toEqual(2);
+    expect(ret.objects[0].belongsToGroup).toEqual('test');
+    expect(ret.objects[1].belongsToGroup).toEqual('other');
+  });
+
+  it('should query a weighted multi-target nearObject vector search over the named vector spaces', async () => {
+    const query = () =>
+      collection.query.nearObject(id1, {
+        distance: 0.01,
         returnProperties: ['title'],
-        targetVector: 'title',
+        targetVector: collection.multiTargetVector.manualWeights({
+          title: 5,
+          title2: 0.1,
+        }),
       });
-      expect(ret.objects.length).toEqual(2);
-      expect(ret.objects[0].properties.title).toEqual('test');
-      expect(ret.objects[1].properties.title).toEqual('other');
-    });
+    if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 26, 0))) {
+      await expect(query()).rejects.toThrow(WeaviateUnsupportedFeatureError);
+      return;
+    }
+    const ret = await query();
+    expect(ret.objects.length).toEqual(1);
+    expect(ret.objects[0].properties.title).toEqual('test');
+  });
 
-    it('should query a multi-target vector search over the named vector spaces', async () => {
-      if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 26, 0))) {
-        return;
-      }
-      const ret = await collection.query.nearObject(id1, {
+  it('should query a weighted multi-target nearObject vector search with multiple weights over the named vector spaces', async () => {
+    const query = () =>
+      collection.query.nearObject(id1, {
+        distance: 0.01,
+        returnProperties: ['title'],
+        targetVector: collection.multiTargetVector.manualWeights({
+          title: 5,
+          title2: [0.1, 0.2],
+        }),
+      });
+    if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 27, 0))) {
+      await expect(query()).rejects.toThrow(WeaviateUnsupportedFeatureError);
+      return;
+    }
+    const ret = await query();
+    expect(ret.objects.length).toEqual(1);
+    expect(ret.objects[0].properties.title).toEqual('test');
+  });
+
+  it('should group-by query a weighted multi-target nearObject vector search over the named vector spaces', async () => {
+    const query = () =>
+      collection.query.nearObject(id1, {
+        returnProperties: ['title'],
+        targetVector: collection.multiTargetVector.sum(['title', 'title2']),
+        groupBy: {
+          numberOfGroups: 2,
+          objectsPerGroup: 1,
+          property: 'title',
+        },
+      });
+    if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 26, 0))) {
+      await expect(query()).rejects.toThrow(WeaviateUnsupportedFeatureError);
+      return;
+    }
+    const ret = await query();
+    expect(ret.objects.length).toEqual(2);
+    expect(ret.objects[0].belongsToGroup).toEqual('test');
+    expect(ret.objects[1].belongsToGroup).toEqual('other');
+  });
+
+  it('should perform a hybrid query over the named vector spaces', async () => {
+    const query = () =>
+      collection.query.hybrid('test', {
         returnProperties: ['title'],
         targetVector: ['title', 'title2'],
       });
-      expect(ret.objects.length).toEqual(2);
-      expect(ret.objects[0].properties.title).toEqual('test');
-      expect(ret.objects[1].properties.title).toEqual('other');
-    });
+    if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 26, 0))) {
+      await expect(query()).rejects.toThrow(WeaviateUnsupportedFeatureError);
+      return;
+    }
+    const ret = await query();
+    expect(ret.objects.length).toEqual(2);
+    expect(ret.objects[0].properties.title).toEqual('test');
+    expect(ret.objects[1].properties.title).toEqual('other');
+  });
 
-    it('should group-by query a multi-target vector search over the named vector spaces', async () => {
-      if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 26, 0))) {
-        return;
-      }
-      const ret = await collection.query.nearObject(id1, {
+  it('should perform a group-by hybrid query over the named vector spaces', async () => {
+    const query = () =>
+      collection.query.hybrid('test', {
         returnProperties: ['title'],
         targetVector: ['title', 'title2'],
         groupBy: {
@@ -698,103 +782,187 @@ describe('Testing of the collection.query methods with a collection with a refer
           property: 'title',
         },
       });
-      expect(ret.objects.length).toEqual(2);
-      expect(ret.objects[0].belongsToGroup).toEqual('test');
-      expect(ret.objects[1].belongsToGroup).toEqual('other');
-    });
+    if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 26, 0))) {
+      await expect(query()).rejects.toThrow(WeaviateUnsupportedFeatureError);
+      return;
+    }
+    const ret = await query();
+    expect(ret.objects.length).toEqual(2);
+    expect(ret.objects[0].belongsToGroup).toEqual('test');
+    expect(ret.objects[1].belongsToGroup).toEqual('other');
+  });
 
-    it('should query a weighted multi-target vector search over the named vector spaces', async () => {
-      const query = () =>
-        collection.query.nearObject(id1, {
-          distance: 0.01,
+  it('should perform a weighted hybrid query over the named vector spaces', async () => {
+    const query = () =>
+      collection.query.hybrid('test', {
+        returnProperties: ['title'],
+        targetVector: collection.multiTargetVector.sum(['title', 'title2']),
+      });
+    if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 26, 0))) {
+      await expect(query()).rejects.toThrow(WeaviateUnsupportedFeatureError);
+      return;
+    }
+    const ret = await query();
+    expect(ret.objects.length).toEqual(2);
+    expect(ret.objects[0].properties.title).toEqual('test');
+    expect(ret.objects[1].properties.title).toEqual('other');
+  });
+
+  it('should perform a multi hybrid vector search over the named vector spaces', async () => {
+    const obj = await collection.query.fetchObjectById(id1, { includeVector: true });
+    const one = obj?.vectors?.title.sort((a, b) => 0.5 - Math.random())!; // shuffles array
+    const two = obj?.vectors?.title.sort((a, b) => 0.5 - Math.random())!; // shuffles array
+
+    const query = () =>
+      collection.query.hybrid('', {
+        alpha: 1,
+        returnProperties: ['title'],
+        vector: {
+          title: [one, two],
+        },
+      });
+
+    if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 27, 0))) {
+      await expect(query()).rejects.toThrow(WeaviateUnsupportedFeatureError);
+      return;
+    }
+    const ret = await query();
+    expect(ret.objects.length).toEqual(2);
+    // Since no bm25, the order is not guaranteed since we're searching on both vectors equally
+    // expect(ret.objects[0].properties.title).toEqual('test');
+    // expect(ret.objects[1].properties.title).toEqual('other');
+  });
+
+  it('should perform a multi hybrid vector search with weights over the named vector spaces', async () => {
+    const one = await collection.query.fetchObjectById(id1, { includeVector: true });
+    const two = await collection.query.fetchObjectById(id2, { includeVector: true });
+
+    const query = () =>
+      collection.query.hybrid('', {
+        alpha: 1,
+        returnProperties: ['title'],
+        vector: {
+          title: [one?.vectors.title!, two?.vectors.title!],
+        },
+        targetVector: collection.multiTargetVector.manualWeights({
+          title: [0.1, 0.9],
+        }),
+      });
+
+    if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 27, 0))) {
+      await expect(query()).rejects.toThrow(WeaviateUnsupportedFeatureError);
+      return;
+    }
+    const ret = await query();
+    expect(ret.objects.length).toEqual(2);
+    // We are weighted the second vector higher, so we expect the second object to be returned first
+    expect(ret.objects[0].properties.title).toEqual('other');
+    expect(ret.objects[1].properties.title).toEqual('test');
+  });
+
+  it.only('should perform a nearVector vector search over two named vector spaces', async () => {
+    const one = await collection.query.fetchObjectById(id1, { includeVector: true });
+    const two = await collection.query.fetchObjectById(id2, { includeVector: true });
+
+    const query = () =>
+      collection.query.nearVector(
+        {
+          title: one?.vectors.title!,
+          title2: one?.vectors.title2!,
+        },
+        {
+          returnProperties: ['title'],
+        }
+      );
+
+    if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 27, 0))) {
+      await expect(query()).rejects.toThrow(WeaviateUnsupportedFeatureError);
+      return;
+    }
+    const ret = await query();
+    expect(ret.objects.length).toEqual(2);
+    // Since no bm25, the order is not guaranteed since we're searching on both vectors equally
+    expect(ret.objects[0].properties.title).toEqual('test');
+    expect(ret.objects[1].properties.title).toEqual('other');
+  });
+
+  it('should perform a multi nearVector vector search over one named vector space', async () => {
+    const one = await collection.query.fetchObjectById(id1, { includeVector: true });
+    const two = await collection.query.fetchObjectById(id2, { includeVector: true });
+
+    const query = () =>
+      collection.query.nearVector(
+        {
+          title: [one?.vectors.title!, two?.vectors.title!],
+        },
+        {
+          returnProperties: ['title'],
+        }
+      );
+
+    if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 27, 0))) {
+      await expect(query()).rejects.toThrow(WeaviateUnsupportedFeatureError);
+      return;
+    }
+    const ret = await query();
+    expect(ret.objects.length).toEqual(2);
+    // Since no bm25, the order is not guaranteed since we're searching on both vectors equally
+    // expect(ret.objects[0].properties.title).toEqual('test');
+    // expect(ret.objects[1].properties.title).toEqual('other');
+  });
+
+  it('should perform a multi nearVector vector search over two named vector spaces', async () => {
+    const one = await collection.query.fetchObjectById(id1, { includeVector: true });
+    const two = await collection.query.fetchObjectById(id2, { includeVector: true });
+
+    const query = () =>
+      collection.query.nearVector(
+        {
+          title: two?.vectors.title!,
+          title2: two?.vectors.title2!,
+        },
+        {
+          returnProperties: ['title'],
+        }
+      );
+
+    if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 27, 0))) {
+      await expect(query()).rejects.toThrow(WeaviateUnsupportedFeatureError);
+      return;
+    }
+    const ret = await query();
+    expect(ret.objects.length).toEqual(2);
+    // Since no bm25, the order is not guaranteed since we're searching on both vectors equally
+    expect(ret.objects[0].properties.title).toEqual('other');
+    expect(ret.objects[1].properties.title).toEqual('test');
+  });
+
+  it('should perform a multi nearVector vector search over the named vector spaces with weights', async () => {
+    const one = await collection.query.fetchObjectById(id1, { includeVector: true });
+    const two = await collection.query.fetchObjectById(id2, { includeVector: true });
+
+    const query = () =>
+      collection.query.nearVector(
+        {
+          title: [one?.vectors.title!, two?.vectors.title!],
+        },
+        {
           returnProperties: ['title'],
           targetVector: collection.multiTargetVector.manualWeights({
-            title: 5,
-            title2: 0.1,
+            title: [0.1, 0.9],
           }),
-        });
-      if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 26, 0))) {
-        await expect(query()).rejects.toThrow(WeaviateUnsupportedFeatureError);
-        return;
-      }
-      const ret = await query();
-      expect(ret.objects.length).toEqual(1);
-      expect(ret.objects[0].properties.title).toEqual('test');
-    });
+        }
+      );
 
-    it('should group-by query a weighted multi-target vector search over the named vector spaces', async () => {
-      const query = () =>
-        collection.query.nearObject(id1, {
-          returnProperties: ['title'],
-          targetVector: collection.multiTargetVector.sum(['title', 'title2']),
-          groupBy: {
-            numberOfGroups: 2,
-            objectsPerGroup: 1,
-            property: 'title',
-          },
-        });
-      if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 26, 0))) {
-        await expect(query()).rejects.toThrow(WeaviateUnsupportedFeatureError);
-        return;
-      }
-      const ret = await query();
-      expect(ret.objects.length).toEqual(2);
-      expect(ret.objects[0].belongsToGroup).toEqual('test');
-      expect(ret.objects[1].belongsToGroup).toEqual('other');
-    });
-
-    it('should perform a hybrid query over the named vector spaces', async () => {
-      const query = () =>
-        collection.query.hybrid('test', {
-          returnProperties: ['title'],
-          targetVector: ['title', 'title2'],
-        });
-      if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 26, 0))) {
-        await expect(query()).rejects.toThrow(WeaviateUnsupportedFeatureError);
-        return;
-      }
-      const ret = await query();
-      expect(ret.objects.length).toEqual(2);
-      expect(ret.objects[0].properties.title).toEqual('test');
-      expect(ret.objects[1].properties.title).toEqual('other');
-    });
-
-    it('should perform a group-by hybrid query over the named vector spaces', async () => {
-      const query = () =>
-        collection.query.hybrid('test', {
-          returnProperties: ['title'],
-          targetVector: ['title', 'title2'],
-          groupBy: {
-            numberOfGroups: 2,
-            objectsPerGroup: 1,
-            property: 'title',
-          },
-        });
-      if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 26, 0))) {
-        await expect(query()).rejects.toThrow(WeaviateUnsupportedFeatureError);
-        return;
-      }
-      const ret = await query();
-      expect(ret.objects.length).toEqual(2);
-      expect(ret.objects[0].belongsToGroup).toEqual('test');
-      expect(ret.objects[1].belongsToGroup).toEqual('other');
-    });
-
-    it('should perform a weighted hybrid query over the named vector spaces', async () => {
-      const query = () =>
-        collection.query.hybrid('test', {
-          returnProperties: ['title'],
-          targetVector: collection.multiTargetVector.sum(['title', 'title2']),
-        });
-      if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 26, 0))) {
-        await expect(query()).rejects.toThrow(WeaviateUnsupportedFeatureError);
-        return;
-      }
-      const ret = await query();
-      expect(ret.objects.length).toEqual(2);
-      expect(ret.objects[0].properties.title).toEqual('test');
-      expect(ret.objects[1].properties.title).toEqual('other');
-    });
+    if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 27, 0))) {
+      await expect(query()).rejects.toThrow(WeaviateUnsupportedFeatureError);
+      return;
+    }
+    const ret = await query();
+    expect(ret.objects.length).toEqual(2);
+    // We are weighted the second vector higher, so we expect the second object to be returned first
+    expect(ret.objects[0].properties.title).toEqual('other');
+    expect(ret.objects[1].properties.title).toEqual('test');
   });
 });
 
