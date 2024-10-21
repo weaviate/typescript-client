@@ -71,6 +71,7 @@ export class Check<T> {
   private checkSupportForMultiVectorSearch = async (
     vec?: NearVectorInputType | HybridNearVectorSubSearch | HybridNearTextSubSearch
   ) => {
+    if (vec === undefined || Serialize.isHybridNearTextSearch(vec)) return false;
     if (Serialize.isHybridNearVectorSearch(vec) && !Serialize.isMultiVector(vec.vector)) return false;
     if (Serialize.isHybridVectorSearch(vec) && !Serialize.isMultiVector(vec)) return false;
     const check = await this.dbVersionSupport.supportsMultiVectorSearch();
