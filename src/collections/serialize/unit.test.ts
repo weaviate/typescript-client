@@ -1,4 +1,3 @@
-import { WeaviateUnsupportedFeatureError } from '../../errors.js';
 import {
   SearchBm25Args,
   SearchFetchArgs,
@@ -385,23 +384,6 @@ describe('Unit testing of Serialize', () => {
       }),
       metadata: MetadataRequest.fromPartial({ uuid: true }),
     });
-  });
-
-  it('should throw error for nearVector with two named vectors and supportsTargets (<1.27.0)', () => {
-    expect(() =>
-      Serialize.nearVector({
-        vector: {
-          a: [
-            [1, 2, 3],
-            [4, 5, 6],
-          ],
-          b: [7, 8, 9],
-        },
-        supportsTargets: true,
-        supportsVectorsForTargets: false,
-        supportsWeightsForTargets: false,
-      })
-    ).toThrow(WeaviateUnsupportedFeatureError);
   });
 
   it('should parse args for nearVector with two named vectors and all supports (==1.27.x)', () => {

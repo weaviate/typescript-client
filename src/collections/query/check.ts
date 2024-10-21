@@ -10,6 +10,8 @@ import {
   BaseNearOptions,
   FetchObjectByIdOptions,
   FetchObjectsOptions,
+  HybridNearTextSubSearch,
+  HybridNearVectorSubSearch,
   HybridOptions,
   NearVectorInputType,
   SearchOptions,
@@ -66,8 +68,11 @@ export class Check<T> {
     return check.supports;
   };
 
-  private checkSupportForMultiVectorSearch = async (vec?: NearVectorInputType) => {
-    if (!Serialize.isMultiVector(vec)) return false;
+  private checkSupportForMultiVectorSearch = async (
+    vec?: NearVectorInputType | HybridNearVectorSubSearch | HybridNearTextSubSearch
+  ) => {
+    if (Serialize.isHybridNearVectorSearch(vec) && !Serialize.isMultiVector(vec.vector)) return false;
+    if (Serialize.isHybridVectorSearch(vec) && !Serialize.isMultiVector(vec)) return false;
     const check = await this.dbVersionSupport.supportsMultiVectorSearch();
     if (!check.supports) throw new WeaviateUnsupportedFeatureError(check.message);
     return check.supports;
@@ -80,8 +85,13 @@ export class Check<T> {
     return check.supports;
   };
 
-  private checkSupportForMultiVectorPerTargetSearch = async (vec?: NearVectorInputType) => {
-    if (!Serialize.isMultiVectorPerTarget(vec)) return false;
+  private checkSupportForMultiVectorPerTargetSearch = async (
+    vec?: NearVectorInputType | HybridNearVectorSubSearch | HybridNearTextSubSearch
+  ) => {
+    if (vec === undefined || Serialize.isHybridNearTextSearch(vec)) return false;
+    if (Serialize.isHybridNearVectorSearch(vec) && !Serialize.isMultiVectorPerTarget(vec.vector))
+      return false;
+    if (Serialize.isHybridVectorSearch(vec) && !Serialize.isMultiVectorPerTarget(vec)) return false;
     const check = await this.dbVersionSupport.supportsMultiVectorPerTargetSearch();
     if (!check.supports) throw new WeaviateUnsupportedFeatureError(check.message);
     return check.supports;
@@ -94,7 +104,9 @@ export class Check<T> {
       this.checkSupportForMultiWeightPerTargetSearch(opts),
       this.checkSupportForNamedVectors(opts),
     ]).then(([search, supportsTargets, supportsWeightsForTargets]) => {
-      return { search, supportsTargets, supportsWeightsForTargets };
+      const is126 = supportsTargets;
+      const is127 = supportsWeightsForTargets;
+      return { search, supportsTargets: is126 || is127, supportsWeightsForTargets: is127 };
     });
   };
 
@@ -110,15 +122,17 @@ export class Check<T> {
       ([
         search,
         supportsMultiTarget,
-        supportMultiVector,
+        supportsMultiVector,
         supportsVectorsForTargets,
         supportsWeightsForTargets,
       ]) => {
+        const is126 = supportsMultiTarget || supportsMultiVector;
+        const is127 = supportsVectorsForTargets || supportsWeightsForTargets;
         return {
           search,
-          supportsTargets: supportsMultiTarget || supportMultiVector,
-          supportsVectorsForTargets,
-          supportsWeightsForTargets,
+          supportsTargets: is126 || is127,
+          supportsVectorsForTargets: is127,
+          supportsWeightsForTargets: is127,
         };
       }
     );
@@ -128,12 +142,8 @@ export class Check<T> {
     return Promise.all([
       this.getSearcher(),
       this.checkSupportForMultiTargetSearch(opts),
-      this.checkSupportForMultiVectorSearch(
-        Serialize.isHybridVectorSearch(opts?.vector) ? opts?.vector : undefined
-      ),
-      this.checkSupportForMultiVectorPerTargetSearch(
-        Serialize.isHybridVectorSearch(opts?.vector) ? opts?.vector : undefined
-      ),
+      this.checkSupportForMultiVectorSearch(opts?.vector),
+      this.checkSupportForMultiVectorPerTargetSearch(opts?.vector),
       this.checkSupportForMultiWeightPerTargetSearch(opts),
       this.checkSupportForNamedVectors(opts),
       this.checkSupportForBm25AndHybridGroupByQueries('Hybrid', opts),
@@ -142,15 +152,17 @@ export class Check<T> {
       ([
         search,
         supportsMultiTarget,
-        supportMultiVector,
+        supportsMultiVector,
         supportsWeightsForTargets,
         supportsVectorsForTargets,
       ]) => {
+        const is126 = supportsMultiTarget || supportsMultiVector;
+        const is127 = supportsVectorsForTargets || supportsWeightsForTargets;
         return {
           search,
-          supportsTargets: supportsMultiTarget || supportMultiVector,
-          supportsWeightsForTargets,
-          supportsVectorsForTargets,
+          supportsTargets: is126 || is127,
+          supportsWeightsForTargets: is127,
+          supportsVectorsForTargets: is127,
         };
       }
     );

@@ -338,7 +338,11 @@ export class Serialize {
   };
 
   public static isMultiVector = (vec?: NearVectorInputType): boolean => {
-    return vec !== undefined && !Array.isArray(vec) && Object.values(vec).every(ArrayInputGuards.is1DArray);
+    return (
+      vec !== undefined &&
+      !Array.isArray(vec) &&
+      Object.values(vec).some(ArrayInputGuards.is1DArray || ArrayInputGuards.is2DArray)
+    );
   };
 
   public static isMultiVectorPerTarget = (vec?: NearVectorInputType): boolean => {
@@ -415,13 +419,13 @@ export class Serialize {
     );
   };
 
-  private static isHybridNearTextSearch = <T>(
+  public static isHybridNearTextSearch = <T>(
     vector: BaseHybridOptions<T>['vector']
   ): vector is HybridNearTextSubSearch => {
     return (vector as HybridNearTextSubSearch)?.query !== undefined;
   };
 
-  private static isHybridNearVectorSearch = <T>(
+  public static isHybridNearVectorSearch = <T>(
     vector: BaseHybridOptions<T>['vector']
   ): vector is HybridNearVectorSubSearch => {
     return (vector as HybridNearVectorSubSearch)?.vector !== undefined;
@@ -451,11 +455,7 @@ export class Serialize {
             }),
           };
     } else if (Serialize.isHybridNearTextSearch(vector)) {
-      const { targetVectors, targets } = Serialize.vectors({
-        ...args,
-        argumentName: 'vector',
-        vector: undefined,
-      });
+      const { targetVectors, targets } = Serialize.targetVector(args);
       return {
         targets,
         targetVectors,
@@ -785,17 +785,10 @@ export class Serialize {
               vectorForTargets,
             };
       } else {
-        if (!args.supportsTargets) {
-          throw new WeaviateUnsupportedFeatureError(
-            'Multi-vector search is not supported in this Weaviate version. Please upgrade to at least Weaviate 1.26.0'
-          );
-        }
         const vectorPerTarget: Record<string, Uint8Array> = {};
         Object.entries(args.vector).forEach(([k, v]) => {
           if (ArrayInputGuards.is2DArray(v)) {
-            throw new WeaviateUnsupportedFeatureError(
-              'Multiple vectors per target are not supported in this Weaviate version. Please upgrade to at least Weaviate 1.27.0.'
-            );
+            return;
           }
           vectorPerTarget[k] = Serialize.vectorToBytes(v);
         });

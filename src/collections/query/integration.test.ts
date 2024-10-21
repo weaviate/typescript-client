@@ -186,7 +186,7 @@ describe('Testing of the collection.query methods with a simple collection', () 
     expect(ret.objects[0].properties.testProp).toEqual('carrot');
   });
 
-  it.skip('should query with nearObject', async () => {
+  it('should query with nearObject', async () => {
     const ret = await collection.query.nearObject(id, { limit: 1 });
     expect(ret.objects.length).toEqual(1);
     expect(ret.objects[0].properties.testProp).toEqual('carrot');
@@ -365,7 +365,7 @@ describe('Testing of the collection.query methods with a collection with a refer
       ).toEqual('test');
     });
 
-    it.skip('should query with nearObject returning the referenced object', async () => {
+    it('should query with nearObject returning the referenced object', async () => {
       const ret = await collection.query.nearObject(id2, {
         returnProperties: ['testProp'],
         returnReferences: [
@@ -1076,7 +1076,7 @@ describe('Testing of the groupBy collection.query methods with a simple collecti
     expect(ret.objects[0].belongsToGroup).toEqual('test');
   });
 
-  it.skip('should groupBy with nearObject', async () => {
+  it('should groupBy with nearObject', async () => {
     const ret = await collection.query.nearObject(id, {
       groupBy: groupByArgs,
     });
