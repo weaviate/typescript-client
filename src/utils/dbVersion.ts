@@ -162,13 +162,23 @@ export class DbVersionSupport {
     return this.dbVersionProvider.getVersion().then((version) => {
       return {
         version: version,
-        supports: version.isAtLeast(1, 27, 0),
-        message: this.errorMessage('Multi-vector search', version.show(), '1.27.0'),
+        supports: version.isAtLeast(1, 26, 0),
+        message: this.errorMessage('Multi-vector search', version.show(), '1.26.0'),
       };
     });
   };
 
-  supportsMultiTargetVectorSearchMultiWeights = () => {
+  supportsMultiVectorPerTargetSearch = () => {
+    return this.dbVersionProvider.getVersion().then((version) => {
+      return {
+        version: version,
+        supports: version.isAtLeast(1, 27, 0),
+        message: this.errorMessage('Multi-vector-per-target search', version.show(), '1.27.0'),
+      };
+    });
+  };
+
+  supportsMultiWeightsPerTargetSearch = () => {
     return this.dbVersionProvider.getVersion().then((version) => {
       return {
         version: version,

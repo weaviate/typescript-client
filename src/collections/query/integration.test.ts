@@ -860,9 +860,8 @@ describe('Testing of the collection.query methods with a collection with a multi
     expect(ret.objects[1].properties.title).toEqual('test');
   });
 
-  it.only('should perform a nearVector vector search over two named vector spaces', async () => {
+  it('should perform a nearVector vector search over two named vector spaces', async () => {
     const one = await collection.query.fetchObjectById(id1, { includeVector: true });
-    const two = await collection.query.fetchObjectById(id2, { includeVector: true });
 
     const query = () =>
       collection.query.nearVector(
@@ -875,7 +874,7 @@ describe('Testing of the collection.query methods with a collection with a multi
         }
       );
 
-    if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 27, 0))) {
+    if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 26, 0))) {
       await expect(query()).rejects.toThrow(WeaviateUnsupportedFeatureError);
       return;
     }
@@ -886,7 +885,7 @@ describe('Testing of the collection.query methods with a collection with a multi
     expect(ret.objects[1].properties.title).toEqual('other');
   });
 
-  it('should perform a multi nearVector vector search over one named vector space', async () => {
+  it('should perform a multi-per-target nearVector vector search over one named vector space', async () => {
     const one = await collection.query.fetchObjectById(id1, { includeVector: true });
     const two = await collection.query.fetchObjectById(id2, { includeVector: true });
 
@@ -926,7 +925,7 @@ describe('Testing of the collection.query methods with a collection with a multi
         }
       );
 
-    if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 27, 0))) {
+    if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 26, 0))) {
       await expect(query()).rejects.toThrow(WeaviateUnsupportedFeatureError);
       return;
     }

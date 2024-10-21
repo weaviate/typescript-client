@@ -328,7 +328,7 @@ export class Serialize {
     return opts?.targetVector !== undefined && !TargetVectorInputGuards.isSingle(opts.targetVector);
   };
 
-  public static isMultiTargetMultiWeights = <T>(opts?: BaseNearOptions<T>): boolean => {
+  public static isMultiWeightPerTarget = <T>(opts?: BaseNearOptions<T>): boolean => {
     return (
       opts?.targetVector !== undefined &&
       TargetVectorInputGuards.isMultiJoin(opts.targetVector) &&
@@ -338,6 +338,10 @@ export class Serialize {
   };
 
   public static isMultiVector = (vec?: NearVectorInputType): boolean => {
+    return vec !== undefined && !Array.isArray(vec) && Object.values(vec).every(ArrayInputGuards.is1DArray);
+  };
+
+  public static isMultiVectorPerTarget = (vec?: NearVectorInputType): boolean => {
     return vec !== undefined && !Array.isArray(vec) && Object.values(vec).some(ArrayInputGuards.is2DArray);
   };
 
@@ -781,6 +785,11 @@ export class Serialize {
               vectorForTargets,
             };
       } else {
+        if (!args.supportsTargets) {
+          throw new WeaviateUnsupportedFeatureError(
+            'Multi-vector search is not supported in this Weaviate version. Please upgrade to at least Weaviate 1.26.0'
+          );
+        }
         const vectorPerTarget: Record<string, Uint8Array> = {};
         Object.entries(args.vector).forEach(([k, v]) => {
           if (ArrayInputGuards.is2DArray(v)) {
@@ -798,13 +807,17 @@ export class Serialize {
             vectorPerTarget,
           };
         } else {
-          const targets = Targets.fromPartial({
-            targetVectors: Object.keys(vectorPerTarget),
-          });
-          return {
-            targets,
-            vectorPerTarget,
-          };
+          return args.supportsTargets
+            ? {
+                targets: Targets.fromPartial({
+                  targetVectors: Object.keys(vectorPerTarget),
+                }),
+                vectorPerTarget,
+              }
+            : {
+                targetVectors: Object.keys(vectorPerTarget),
+                vectorPerTarget,
+              };
         }
       }
     } else {
@@ -902,13 +915,11 @@ export class Serialize {
       supportsWeightsForTargets: boolean;
     } & NearOptions<T>
   ): SearchNearVectorArgs => {
-    const o = {
+    return {
       ...Serialize.common(args),
       nearVector: Serialize.nearVectorSearch(args),
       autocut: args.autoLimit,
     };
-    console.log(o.nearVector);
-    return o;
   };
 
   public static nearVideo = <T>(
