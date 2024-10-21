@@ -581,7 +581,9 @@ describe('Testing of the collections.create method', () => {
 
     expect(response.replication.asyncEnabled).toEqual(false);
     expect(response.replication.deletionStrategy).toEqual<ReplicationDeletionStrategy>(
-      'NoAutomatedResolution'
+      (await cluster.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 25, 0)))
+        ? 'NoAutomatedResolution'
+        : 'DeleteOnConflict'
     );
     expect(response.replication.factor).toEqual(2);
 
