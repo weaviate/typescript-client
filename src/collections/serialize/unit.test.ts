@@ -629,24 +629,24 @@ describe('Unit testing of Serialize', () => {
     });
   });
 
-  it('should parse isMultiTargetMultiWeights', () => {
+  it('should parse isMultiWeightPerTarget', () => {
     expect(
-      Serialize.isMultiTargetMultiWeights({
+      Serialize.isMultiWeightPerTarget({
         targetVector: 'a',
       })
     ).toEqual(false);
     expect(
-      Serialize.isMultiTargetMultiWeights({
+      Serialize.isMultiWeightPerTarget({
         targetVector: ['a'],
       })
     ).toEqual(false);
     expect(
-      Serialize.isMultiTargetMultiWeights({
+      Serialize.isMultiWeightPerTarget({
         targetVector: multiTargetVector().manualWeights({ a: 0.5, b: 0.5 }),
       })
     ).toEqual(false);
     expect(
-      Serialize.isMultiTargetMultiWeights({
+      Serialize.isMultiWeightPerTarget({
         targetVector: multiTargetVector().manualWeights({ a: [0.5, 0.5], b: 0.5 }),
       })
     ).toEqual(true);
