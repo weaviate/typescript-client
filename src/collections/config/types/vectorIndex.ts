@@ -6,6 +6,7 @@ export type VectorIndexConfigHNSW = {
   dynamicEfFactor: number;
   efConstruction: number;
   ef: number;
+  filteringStrategy: VectorIndexFilteringStrategy;
   flatSearchCutoff: number;
   maxConnections: number;
   quantizer: PQConfig | BQConfig | SQConfig | undefined;
@@ -71,6 +72,8 @@ export type PQEncoderType = 'kmeans' | 'tile';
 export type PQEncoderDistribution = 'log-normal' | 'normal';
 
 export type VectorIndexType = 'hnsw' | 'flat' | 'dynamic' | string;
+
+export type VectorIndexFilteringStrategy = 'sweeping' | 'acorn';
 
 export type VectorIndexConfig = VectorIndexConfigHNSW | VectorIndexConfigFlat | VectorIndexConfigDynamic;
 
