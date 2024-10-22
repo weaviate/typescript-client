@@ -896,7 +896,7 @@ describe('Testing of the collection.query methods with a collection with a multi
         targetVector: collection.multiTargetVector.sum(['title', 'title2']),
       });
 
-    if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 27, 0))) {
+    if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 26, 0))) {
       await expect(query()).rejects.toThrow(WeaviateUnsupportedFeatureError);
       return;
     }
