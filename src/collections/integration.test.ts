@@ -504,7 +504,7 @@ describe('Testing of the collections.create method', () => {
               dynamicEfMin: 10,
               ef: -2,
               efConstruction: 100,
-              filteringStrategy: 'acorn',
+              filterStrategy: 'acorn',
               flatSearchCutoff: 41000,
               maxConnections: 72,
               quantizer: {
@@ -597,7 +597,7 @@ describe('Testing of the collections.create method', () => {
     expect(indexConfig.dynamicEfMin).toEqual(10);
     expect(indexConfig.ef).toEqual(-2);
     expect(indexConfig.efConstruction).toEqual(100);
-    expect(indexConfig.filteringStrategy).toEqual(
+    expect(indexConfig.filterStrategy).toEqual(
       (await cluster.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 27, 0))) ? 'sweeping' : 'acorn'
     );
     expect(indexConfig.flatSearchCutoff).toEqual(41000);

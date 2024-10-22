@@ -45,7 +45,7 @@ import {
   VectorIndexConfigFlat,
   VectorIndexConfigHNSW,
   VectorIndexConfigType,
-  VectorIndexFilteringStrategy,
+  VectorIndexFilterStrategy,
   VectorizerConfig,
 } from './types/index.js';
 
@@ -377,9 +377,7 @@ class ConfigMapping {
       dynamicEfFactor: v.dynamicEfFactor,
       ef: v.ef,
       efConstruction: v.efConstruction,
-      filteringStrategy: exists<VectorIndexFilteringStrategy>(v.filteringStrategy)
-        ? v.filteringStrategy
-        : 'sweeping',
+      filterStrategy: exists<VectorIndexFilterStrategy>(v.filterStrategy) ? v.filterStrategy : 'sweeping',
       flatSearchCutoff: v.flatSearchCutoff,
       maxConnections: v.maxConnections,
       quantizer: quantizer,

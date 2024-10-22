@@ -9,7 +9,7 @@ import {
   VectorIndexConfigDynamic,
   VectorIndexConfigFlat,
   VectorIndexConfigHNSW,
-  VectorIndexFilteringStrategy,
+  VectorIndexFilterStrategy,
 } from '../../config/types/index.js';
 import { RecursivePartial } from './base.js';
 
@@ -57,7 +57,7 @@ export type VectorIndexConfigHNSWUpdate = {
   dynamicEfMax?: number;
   dynamicEfFactor?: number;
   ef?: number;
-  filteringStrategy?: VectorIndexFilteringStrategy;
+  filterStrategy?: VectorIndexFilterStrategy;
   flatSearchCutoff?: number;
   quantizer?: PQConfigUpdate | BQConfigUpdate | SQConfigUpdate;
   vectorCacheMaxObjects?: number;
