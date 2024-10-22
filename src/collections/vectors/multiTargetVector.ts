@@ -21,23 +21,23 @@ export type MultiTargetVectorJoin = {
 
 export default () => {
   return {
-    sum: (targetVectors: string[]) => {
+    sum: (targetVectors: string[]): MultiTargetVectorJoin => {
       return { combination: 'sum' as MultiTargetVectorJoinCombination, targetVectors };
     },
-    average: (targetVectors: string[]) => {
+    average: (targetVectors: string[]): MultiTargetVectorJoin => {
       return { combination: 'average' as MultiTargetVectorJoinCombination, targetVectors };
     },
-    minimum: (targetVectors: string[]) => {
+    minimum: (targetVectors: string[]): MultiTargetVectorJoin => {
       return { combination: 'minimum' as MultiTargetVectorJoinCombination, targetVectors };
     },
-    relativeScore: (weights: MultiTargetVectorWeights) => {
+    relativeScore: (weights: MultiTargetVectorWeights): MultiTargetVectorJoin => {
       return {
         combination: 'relative-score' as MultiTargetVectorJoinCombination,
         targetVectors: Object.keys(weights),
         weights,
       };
     },
-    manualWeights: (weights: MultiTargetVectorWeights) => {
+    manualWeights: (weights: MultiTargetVectorWeights): MultiTargetVectorJoin => {
       return {
         combination: 'manual-weights' as MultiTargetVectorJoinCombination,
         targetVectors: Object.keys(weights),
