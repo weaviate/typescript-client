@@ -6,12 +6,17 @@ export class NearVectorInputGuards {
     return Array.isArray(input) && input.length > 0 && !Array.isArray(input[0]);
   }
 
-  public static is2DArray(input: NearVectorInputType): input is number[][] {
-    return Array.isArray(input) && input.length > 0 && Array.isArray(input[0]);
-  }
-
-  public static isObject(input: NearVectorInputType): input is Record<string, number[]> {
+  public static isObject(input: NearVectorInputType): input is Record<string, number[] | number[][]> {
     return !Array.isArray(input);
+  }
+}
+
+export class ArrayInputGuards {
+  public static is1DArray<U, T extends U[]>(input: U | T): input is T {
+    return Array.isArray(input) && input.length > 0 && !Array.isArray(input[0]);
+  }
+  public static is2DArray<U, T extends U[]>(input: U | T): input is T {
+    return Array.isArray(input) && input.length > 0 && Array.isArray(input[0]);
   }
 }
 
@@ -25,6 +30,7 @@ export class TargetVectorInputGuards {
   }
 
   public static isMultiJoin(input: TargetVectorInputType): input is MultiTargetVectorJoin {
-    return (input as MultiTargetVectorJoin).combination !== undefined;
+    const i = input as MultiTargetVectorJoin;
+    return i.combination !== undefined && i.targetVectors !== undefined;
   }
 }
