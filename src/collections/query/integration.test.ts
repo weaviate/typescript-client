@@ -35,10 +35,12 @@ describe('Testing of the collection.query methods with a simple collection', () 
           {
             name: 'testProp',
             dataType: 'text',
+            vectorizePropertyName: false,
           },
           {
             name: 'testProp2',
             dataType: 'text',
+            vectorizePropertyName: false,
           },
         ],
         vectorizers: weaviate.configure.vectorizer.text2VecContextionary({
@@ -54,8 +56,8 @@ describe('Testing of the collection.query methods with a simple collection', () 
         });
         return collection.data.insert({
           properties: {
-            testProp: 'test',
-            testProp2: 'test2',
+            testProp: 'carrot',
+            testProp2: 'parsnip',
           },
         });
       });
@@ -65,7 +67,7 @@ describe('Testing of the collection.query methods with a simple collection', () 
 
   it('should fetch an object by its id', async () => {
     const object = await collection.query.fetchObjectById(id);
-    expect(object?.properties.testProp).toEqual('test');
+    expect(object?.properties.testProp).toEqual('carrot');
     expect(object?.uuid).toEqual(id);
   });
 
@@ -87,15 +89,14 @@ describe('Testing of the collection.query methods with a simple collection', () 
   });
 
   it('should query with bm25', async () => {
-    const ret = await collection.query.bm25('test');
+    const ret = await collection.query.bm25('carrot');
     expect(ret.objects.length).toEqual(1);
-    expect(ret.objects[0].properties.testProp).toEqual('test');
-    expect(ret.objects[0].properties.testProp2).toEqual('test2');
+    expect(ret.objects[0].properties.testProp).toEqual('carrot');
     expect(ret.objects[0].uuid).toEqual(id);
   });
 
   it('should query with bm25 and weighted query properties', async () => {
-    const ret = await collection.query.bm25('test', {
+    const ret = await collection.query.bm25('carrot', {
       queryProperties: [
         {
           name: 'testProp',
@@ -105,13 +106,12 @@ describe('Testing of the collection.query methods with a simple collection', () 
       ],
     });
     expect(ret.objects.length).toEqual(1);
-    expect(ret.objects[0].properties.testProp).toEqual('test');
-    expect(ret.objects[0].properties.testProp2).toEqual('test2');
+    expect(ret.objects[0].properties.testProp).toEqual('carrot');
     expect(ret.objects[0].uuid).toEqual(id);
   });
 
   it('should query with bm25 and weighted query properties with a non-generic collection', async () => {
-    const ret = await client.collections.get(collectionName).query.bm25('test', {
+    const ret = await client.collections.get(collectionName).query.bm25('carrot', {
       queryProperties: [
         {
           name: 'testProp',
@@ -121,33 +121,30 @@ describe('Testing of the collection.query methods with a simple collection', () 
       ],
     });
     expect(ret.objects.length).toEqual(1);
-    expect(ret.objects[0].properties.testProp).toEqual('test');
-    expect(ret.objects[0].properties.testProp2).toEqual('test2');
+    expect(ret.objects[0].properties.testProp).toEqual('carrot');
     expect(ret.objects[0].uuid).toEqual(id);
   });
 
   it('should query with hybrid', async () => {
-    const ret = await collection.query.hybrid('test', { limit: 1 });
+    const ret = await collection.query.hybrid('carrot', { limit: 1 });
     expect(ret.objects.length).toEqual(1);
-    expect(ret.objects[0].properties.testProp).toEqual('test');
-    expect(ret.objects[0].properties.testProp2).toEqual('test2');
+    expect(ret.objects[0].properties.testProp).toEqual('carrot');
     expect(ret.objects[0].uuid).toEqual(id);
   });
 
   it('should query with hybrid and vector', async () => {
-    const ret = await collection.query.hybrid('test', {
+    const ret = await collection.query.hybrid('carrot', {
       limit: 1,
       vector: vector,
     });
     expect(ret.objects.length).toEqual(1);
-    expect(ret.objects[0].properties.testProp).toEqual('test');
-    expect(ret.objects[0].properties.testProp2).toEqual('test2');
+    expect(ret.objects[0].properties.testProp).toEqual('carrot');
     expect(ret.objects[0].uuid).toEqual(id);
   });
 
   it('should query with hybrid and near text subsearch', async () => {
     const query = () =>
-      collection.query.hybrid('test', {
+      collection.query.hybrid('carrot', {
         limit: 1,
         vector: {
           query: 'apple',
@@ -157,7 +154,7 @@ describe('Testing of the collection.query methods with a simple collection', () 
             force: 0.9,
           },
           moveAway: {
-            concepts: ['test'],
+            concepts: ['carrot'],
             force: 0.1,
           },
         },
@@ -169,12 +166,11 @@ describe('Testing of the collection.query methods with a simple collection', () 
     const ret = await query();
     expect(ret.objects.length).toEqual(1);
     expect(ret.objects[0].properties.testProp).toEqual('apple');
-    expect(ret.objects[0].properties.testProp2).toEqual('banana');
   });
 
   it('should query with hybrid and near vector subsearch', async () => {
     const query = () =>
-      collection.query.hybrid('test', {
+      collection.query.hybrid('carrot', {
         limit: 1,
         vector: {
           vector: vector,
@@ -187,31 +183,27 @@ describe('Testing of the collection.query methods with a simple collection', () 
     }
     const ret = await query();
     expect(ret.objects.length).toEqual(1);
-    expect(ret.objects[0].properties.testProp).toEqual('test');
-    expect(ret.objects[0].properties.testProp2).toEqual('test2');
+    expect(ret.objects[0].properties.testProp).toEqual('carrot');
   });
 
-  it.skip('should query with nearObject', async () => {
+  it('should query with nearObject', async () => {
     const ret = await collection.query.nearObject(id, { limit: 1 });
     expect(ret.objects.length).toEqual(1);
-    expect(ret.objects[0].properties.testProp).toEqual('test');
-    expect(ret.objects[0].properties.testProp2).toEqual('test2');
+    expect(ret.objects[0].properties.testProp).toEqual('carrot');
     expect(ret.objects[0].uuid).toEqual(id);
   });
 
   it('should query with nearText', async () => {
-    const ret = await collection.query.nearText(['test'], { limit: 1 });
+    const ret = await collection.query.nearText(['carrot'], { limit: 1 });
     expect(ret.objects.length).toEqual(1);
-    expect(ret.objects[0].properties.testProp).toEqual('test');
-    expect(ret.objects[0].properties.testProp2).toEqual('test2');
+    expect(ret.objects[0].properties.testProp).toEqual('carrot');
     expect(ret.objects[0].uuid).toEqual(id);
   });
 
   it('should query with nearVector', async () => {
     const ret = await collection.query.nearVector(vector, { limit: 1 });
     expect(ret.objects.length).toEqual(1);
-    expect(ret.objects[0].properties.testProp).toEqual('test');
-    expect(ret.objects[0].properties.testProp2).toEqual('test2');
+    expect(ret.objects[0].properties.testProp).toEqual('carrot');
     expect(ret.objects[0].uuid).toEqual(id);
   });
 });

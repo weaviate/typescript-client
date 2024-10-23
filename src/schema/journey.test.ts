@@ -24,12 +24,7 @@ describe('schema', () => {
     host: 'localhost:8080',
   });
 
-  const classObjPromise = newClassObject(
-    'MyThingClass',
-    isVer(client, 25, 0),
-    isVer(client, 25, 2),
-    isVer(client, 26, 0)
-  );
+  const classObjPromise = newClassObject('MyThingClass', client);
 
   it('creates a thing class (implicitly)', async () => {
     const classObj = await classObjPromise;
@@ -46,7 +41,7 @@ describe('schema', () => {
     const classObj = await classObjPromise;
     return client.schema
       .classGetter()
-      .withClassName(classObj.class)
+      .withClassName(classObj.class!)
       .do()
       .then((res: WeaviateClass) => {
         expect(res).toEqual(classObj);
@@ -55,7 +50,7 @@ describe('schema', () => {
 
   it('checks class existence', async () => {
     const classObj = await classObjPromise;
-    return client.schema.exists(classObj.class).then((res) => expect(res).toEqual(true));
+    return client.schema.exists(classObj.class!).then((res) => expect(res).toEqual(true));
   });
 
   it('checks class non-existence', () => {
@@ -119,7 +114,7 @@ describe('schema', () => {
     const classObj = await classObjPromise;
     return client.schema
       .shardsGetter()
-      .withClassName(classObj.class)
+      .withClassName(classObj.class!)
       .do()
       .then((res: ShardStatusList) => {
         res.forEach((shard: ShardStatus) => {
@@ -130,13 +125,13 @@ describe('schema', () => {
 
   it('updates a shard of an existing class to readonly', async () => {
     const classObj = await classObjPromise;
-    const shards = await getShards(client, classObj.class);
+    const shards = await getShards(client, classObj.class!);
     expect(Array.isArray(shards)).toBe(true);
     expect(shards.length).toEqual(1);
 
     return client.schema
       .shardUpdater()
-      .withClassName(classObj.class)
+      .withClassName(classObj.class!)
       .withShardName(shards[0].name!)
       .withStatus('READONLY')
       .do()
@@ -147,13 +142,13 @@ describe('schema', () => {
 
   it('updates a shard of an existing class to ready', async () => {
     const classObj = await classObjPromise;
-    const shards = await getShards(client, classObj.class);
+    const shards = await getShards(client, classObj.class!);
     expect(Array.isArray(shards)).toBe(true);
     expect(shards.length).toEqual(1);
 
     return client.schema
       .shardUpdater()
-      .withClassName(classObj.class)
+      .withClassName(classObj.class!)
       .withShardName(shards[0].name!)
       .withStatus('READY')
       .do()
@@ -166,7 +161,7 @@ describe('schema', () => {
     const classObj = await classObjPromise;
     return client.schema
       .classDeleter()
-      .withClassName(classObj.class)
+      .withClassName(classObj.class!)
       .do()
       .then((res: void) => {
         expect(res).toEqual(undefined);
@@ -175,12 +170,7 @@ describe('schema', () => {
 
   it('updates all shards in a class', async () => {
     const shardCount = 3;
-    const newClass: any = await newClassObject(
-      'NewClass',
-      isVer(client, 25, 0),
-      isVer(client, 25, 2),
-      isVer(client, 26, 0)
-    );
+    const newClass: any = await newClassObject('NewClass', client);
     newClass.shardingConfig.desiredCount = shardCount;
 
     await client.schema
@@ -223,12 +213,7 @@ describe('schema', () => {
   });
 
   it('has updated values of bm25 config', async () => {
-    const newClass: any = await newClassObject(
-      'NewClass',
-      isVer(client, 25, 0),
-      isVer(client, 25, 2),
-      isVer(client, 26, 0)
-    );
+    const newClass: any = await newClassObject('NewClass', client);
     const bm25Config = { k1: 1.13, b: 0.222 };
 
     newClass.invertedIndexConfig.bm25 = bm25Config;
@@ -245,12 +230,7 @@ describe('schema', () => {
   });
 
   it('has updated values of stopwords config', async () => {
-    const newClass: any = await newClassObject(
-      'SpaceClass',
-      isVer(client, 25, 0),
-      isVer(client, 25, 2),
-      isVer(client, 26, 0)
-    );
+    const newClass: any = await newClassObject('SpaceClass', client);
     const stopwordConfig: any = {
       preset: 'en',
       additions: ['star', 'nebula'],
@@ -302,12 +282,7 @@ describe('schema', () => {
 
   it('creates a class with explicit replication config', async () => {
     const replicationFactor = 1;
-    const newClass: any = await newClassObject(
-      'SomeClass',
-      isVer(client, 25, 0),
-      isVer(client, 25, 2),
-      isVer(client, 26, 0)
-    );
+    const newClass: any = await newClassObject('SomeClass', client);
     newClass.replicationConfig.factor = replicationFactor;
 
     await client.schema
@@ -322,12 +297,7 @@ describe('schema', () => {
   });
 
   it('creates a class with implicit replication config', async () => {
-    const newClass: any = await newClassObject(
-      'SomeClass',
-      isVer(client, 25, 0),
-      isVer(client, 25, 2),
-      isVer(client, 26, 0)
-    );
+    const newClass: any = await newClassObject('SomeClass', client);
     delete newClass.replicationConfig;
 
     await client.schema
@@ -342,18 +312,8 @@ describe('schema', () => {
   });
 
   it('delete all data from the schema', async () => {
-    const newClass: any = await newClassObject(
-      'LetsDeleteThisClass',
-      isVer(client, 25, 0),
-      isVer(client, 25, 2),
-      isVer(client, 26, 0)
-    );
-    const newClass2: any = await newClassObject(
-      'LetsDeleteThisClassToo',
-      isVer(client, 25, 0),
-      isVer(client, 25, 2),
-      isVer(client, 26, 0)
-    );
+    const newClass: any = await newClassObject('LetsDeleteThisClass', client);
+    const newClass2: any = await newClassObject('LetsDeleteThisClassToo', client);
     const classNames = [newClass.class, newClass2.class];
     Promise.all([
       client.schema.classCreator().withClass(newClass).do(),
@@ -717,12 +677,7 @@ describe('multi tenancy', () => {
     return deleteClass(client, classObj.class!);
   });
 
-  const classObjWithoutMultiTenancyConfig = newClassObject(
-    'NoMultiTenancy',
-    isVer(client, 25, 0),
-    isVer(client, 25, 2),
-    isVer(client, 26, 0)
-  );
+  const classObjWithoutMultiTenancyConfig = newClassObject('NoMultiTenancy', client);
 
   it('creates a NoMultiTenancy class', async () => {
     return client.schema
@@ -744,16 +699,11 @@ describe('multi tenancy', () => {
   });
 
   it('deletes NoMultiTenancy class', async () => {
-    return deleteClass(client, (await classObjWithoutMultiTenancyConfig).class);
+    return deleteClass(client, (await classObjWithoutMultiTenancyConfig).class!);
   });
 });
 
-async function newClassObject(
-  className: string,
-  is1250Promise: Promise<boolean>,
-  is1252Promise: Promise<boolean>,
-  is1260Promise: Promise<boolean>
-) {
+async function newClassObject(className: string, client: WeaviateClient): Promise<WeaviateClass> {
   return {
     class: className,
     properties: [
@@ -762,7 +712,7 @@ async function newClassObject(
         name: 'stringProp',
         tokenization: 'word',
         indexFilterable: true,
-        indexRangeFilters: (await is1260Promise) ? false : undefined,
+        indexRangeFilters: (await isVer(client, 26, 0)) ? false : undefined,
         indexSearchable: true,
         moduleConfig: {
           'text2vec-contextionary': {
@@ -796,7 +746,7 @@ async function newClassObject(
       bq: {
         enabled: false,
       },
-      sq: (await is1260Promise)
+      sq: (await isVer(client, 26, 0))
         ? {
             enabled: false,
             rescoreLimit: 20,
@@ -807,6 +757,7 @@ async function newClassObject(
       efConstruction: 128,
       vectorCacheMaxObjects: 500000,
       flatSearchCutoff: 40000,
+      filterStrategy: (await isVer(client, 27, 0)) ? 'sweeping' : undefined,
     },
     invertedIndexConfig: {
       cleanupIntervalSeconds: 60,
@@ -816,8 +767,8 @@ async function newClassObject(
       },
       stopwords: {
         preset: 'en',
-        additions: null,
-        removals: null,
+        additions: null as unknown as undefined, // hack to deal with weird typing
+        removals: null as unknown as undefined, // hack to deal with weird typing
       },
     },
     moduleConfig: {
@@ -826,8 +777,8 @@ async function newClassObject(
       },
     },
     multiTenancyConfig: {
-      autoTenantActivation: (await is1252Promise) ? false : undefined,
-      autoTenantCreation: (await is1250Promise) ? false : undefined,
+      autoTenantActivation: (await isVer(client, 25, 2)) ? false : undefined,
+      autoTenantCreation: (await isVer(client, 25, 0)) ? false : undefined,
       enabled: false,
     },
     shardingConfig: {
@@ -841,7 +792,8 @@ async function newClassObject(
       virtualPerPhysical: 128,
     },
     replicationConfig: {
-      asyncEnabled: (await is1260Promise) ? false : undefined,
+      asyncEnabled: (await isVer(client, 26, 0)) ? false : undefined,
+      deletionStrategy: 'DeleteOnConflict',
       factor: 1,
     },
   };
