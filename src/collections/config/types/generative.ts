@@ -79,7 +79,10 @@ export type GenerativeAzureOpenAIConfig = GenerativeOpenAIConfigBase & {
   deploymentId: string;
 };
 
-export type GenerativePaLMConfig = {
+/** @deprecated Use `GenerativeGoogleConfig` instead. */
+export type GenerativePaLMConfig = GenerativeGoogleConfig;
+
+export type GenerativeGoogleConfig = {
   apiEndpoint?: string;
   maxOutputTokens?: number;
   modelId?: string;
@@ -95,6 +98,9 @@ export type GenerativeConfig =
   | GenerativeAWSConfig
   | GenerativeAzureOpenAIConfig
   | GenerativeCohereConfig
+  | GenerativeDatabricksConfig
+  | GenerativeGoogleConfig
+  | GenerativeFriendliAIConfig
   | GenerativeMistralConfig
   | GenerativeOctoAIConfig
   | GenerativeOllamaConfig
@@ -110,11 +116,13 @@ export type GenerativeConfigType<G> = G extends 'generative-anthropic'
   : G extends 'generative-aws'
   ? GenerativeAWSConfig
   : G extends 'generative-azure-openai'
-  ? GenerativeOpenAIConfig
-  : G extends 'generative-cohere'
   ? GenerativeAzureOpenAIConfig
+  : G extends 'generative-cohere'
+  ? GenerativeCohereConfig
   : G extends 'generative-databricks'
   ? GenerativeDatabricksConfig
+  : G extends 'generative-google'
+  ? GenerativeGoogleConfig
   : G extends 'generative-friendliai'
   ? GenerativeFriendliAIConfig
   : G extends 'generative-mistral'
@@ -124,10 +132,15 @@ export type GenerativeConfigType<G> = G extends 'generative-anthropic'
   : G extends 'generative-ollama'
   ? GenerativeOllamaConfig
   : G extends 'generative-openai'
+  ? GenerativeOpenAIConfig
+  : G extends GenerativePalm
   ? GenerativePaLMConfig
   : G extends 'none'
   ? undefined
   : Record<string, any> | undefined;
+
+/** @deprecated Use `generative-google` instead. */
+type GenerativePalm = 'generative-palm';
 
 export type GenerativeSearch =
   | 'generative-anthropic'
@@ -136,11 +149,12 @@ export type GenerativeSearch =
   | 'generative-azure-openai'
   | 'generative-cohere'
   | 'generative-databricks'
+  | 'generative-google'
   | 'generative-friendliai'
   | 'generative-mistral'
   | 'generative-octoai'
   | 'generative-ollama'
   | 'generative-openai'
-  | 'generative-palm'
+  | GenerativePalm
   | 'none'
   | string;

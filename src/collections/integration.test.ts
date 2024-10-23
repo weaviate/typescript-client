@@ -495,7 +495,7 @@ describe('Testing of the collections.create method', () => {
         },
         vectorizers: weaviate.configure.vectorizer.text2VecContextionary({
           vectorIndexConfig: {
-            name: 'hnsw',
+            name: 'hnsw' as const,
             config: {
               cleanupIntervalSeconds: 10,
               distance: 'dot',
@@ -504,6 +504,7 @@ describe('Testing of the collections.create method', () => {
               dynamicEfMin: 10,
               ef: -2,
               efConstruction: 100,
+              filterStrategy: 'acorn',
               flatSearchCutoff: 41000,
               maxConnections: 72,
               quantizer: {
@@ -596,6 +597,9 @@ describe('Testing of the collections.create method', () => {
     expect(indexConfig.dynamicEfMin).toEqual(10);
     expect(indexConfig.ef).toEqual(-2);
     expect(indexConfig.efConstruction).toEqual(100);
+    expect(indexConfig.filterStrategy).toEqual(
+      (await cluster.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 27, 0))) ? 'sweeping' : 'acorn'
+    );
     expect(indexConfig.flatSearchCutoff).toEqual(41000);
     expect(indexConfig.maxConnections).toEqual(72);
     expect(quantizer.bitCompression).toEqual(true);
