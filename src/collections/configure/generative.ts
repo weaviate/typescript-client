@@ -6,6 +6,7 @@ import {
   GenerativeCohereConfig,
   GenerativeDatabricksConfig,
   GenerativeFriendliAIConfig,
+  GenerativeGoogleConfig,
   GenerativeMistralConfig,
   GenerativeOctoAIConfig,
   GenerativeOllamaConfig,
@@ -235,12 +236,30 @@ export default {
    *
    * @param {GenerativePaLMConfigCreate} [config] The configuration for the `generative-palm` module.
    * @returns {ModuleConfig<'generative-palm', GenerativePaLMConfig>} The configuration object.
+   * @deprecated Use `google` instead.
    */
   palm: (
     config?: GenerativePaLMConfigCreate
   ): ModuleConfig<'generative-palm', GenerativePaLMConfig | undefined> => {
+    console.warn('The `generative-palm` module is deprecated. Use `generative-google` instead.');
     return {
       name: 'generative-palm',
+      config,
+    };
+  },
+  /**
+   * Create a `ModuleConfig<'generative-google', GenerativeGoogleConfig>` object for use when performing AI generation using the `generative-google` module.
+   *
+   * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/google/generative) for detailed usage.
+   *
+   * @param {GenerativePaLMConfigCreate} [config] The configuration for the `generative-palm` module.
+   * @returns {ModuleConfig<'generative-palm', GenerativePaLMConfig>} The configuration object.
+   */
+  google: (
+    config?: GenerativePaLMConfigCreate
+  ): ModuleConfig<'generative-google', GenerativeGoogleConfig | undefined> => {
+    return {
+      name: 'generative-google',
       config,
     };
   },

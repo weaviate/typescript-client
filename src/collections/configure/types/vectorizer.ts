@@ -9,13 +9,13 @@ import {
   Text2VecContextionaryConfig,
   Text2VecDatabricksConfig,
   Text2VecGPT4AllConfig,
+  Text2VecGoogleConfig,
   Text2VecHuggingFaceConfig,
   Text2VecJinaConfig,
   Text2VecMistralConfig,
   Text2VecOctoAIConfig,
   Text2VecOllamaConfig,
   Text2VecOpenAIConfig,
-  Text2VecPalmConfig,
   Text2VecTransformersConfig,
   Text2VecVoyageAIConfig,
   VectorIndexType,
@@ -111,9 +111,12 @@ export type Multi2VecBindConfigCreate = {
   vectorizeCollectionName?: boolean;
 };
 
-/** The configuration for the `multi2vec-palm` vectorizer. */
-export type Multi2VecPalmConfigCreate = {
-  /** The project id of the palm model. */
+/** @deprecated Use `Multi2VecGoogleConfigCreate` instead.*/
+export type Multi2VecPalmConfigCreate = Multi2VecGoogleConfigCreate;
+
+/** The configuration for the `multi2vec-google` vectorizer. */
+export type Multi2VecGoogleConfigCreate = {
+  /** The project id of the model in GCP. */
   projectId: string;
   /** Where the model runs */
   location: string;
@@ -157,7 +160,10 @@ export type Text2VecOllamaConfigCreate = Text2VecOllamaConfig;
 
 export type Text2VecOpenAIConfigCreate = Text2VecOpenAIConfig;
 
-export type Text2VecPalmConfigCreate = Text2VecPalmConfig;
+/** @deprecated Use `Text2VecGoogleConfigCreate` instead. */
+export type Text2VecPalmConfigCreate = Text2VecGoogleConfig;
+
+export type Text2VecGoogleConfigCreate = Text2VecGoogleConfig;
 
 export type Text2VecTransformersConfigCreate = Text2VecTransformersConfig;
 
@@ -171,6 +177,8 @@ export type VectorizerConfigCreateType<V> = V extends 'img2vec-neural'
   ? Multi2VecBindConfigCreate | undefined
   : V extends 'multi2vec-palm'
   ? Multi2VecPalmConfigCreate
+  : V extends 'multi2vec-google'
+  ? Multi2VecGoogleConfigCreate
   : V extends 'ref2vec-centroid'
   ? Ref2VecCentroidConfigCreate
   : V extends 'text2vec-aws'
@@ -199,6 +207,8 @@ export type VectorizerConfigCreateType<V> = V extends 'img2vec-neural'
   ? Text2VecAzureOpenAIConfigCreate
   : V extends 'text2vec-palm'
   ? Text2VecPalmConfigCreate | undefined
+  : V extends 'text2vec-google'
+  ? Text2VecGoogleConfigCreate | undefined
   : V extends 'text2vec-transformers'
   ? Text2VecTransformersConfigCreate | undefined
   : V extends 'text2vec-voyageai'
