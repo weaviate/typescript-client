@@ -21,6 +21,7 @@ import {
   TextArrayProperties,
   Vectors,
 } from "./base.js";
+import { GenerativeReply, GenerativeResult, GenerativeSearch } from "./generative.js";
 import { Properties } from "./properties.js";
 
 export const protobufPackage = "weaviate.v1";
@@ -122,7 +123,9 @@ export interface SearchRequest {
     | undefined;
   /** @deprecated */
   uses123Api: boolean;
+  /** @deprecated */
   uses125Api: boolean;
+  uses127Api: boolean;
 }
 
 export interface GroupBy {
@@ -145,12 +148,6 @@ export interface SortBy {
    * protolint:disable:next REPEATED_FIELD_NAMES_PLURALIZED
    */
   path: string[];
-}
-
-export interface GenerativeSearch {
-  singleResponsePrompt: string;
-  groupedResponseTask: string;
-  groupedProperties: string[];
 }
 
 export interface MetadataRequest {
@@ -179,10 +176,21 @@ export interface ObjectPropertiesRequest {
   objectProperties: ObjectPropertiesRequest[];
 }
 
+export interface WeightsForTarget {
+  target: string;
+  weight: number;
+}
+
 export interface Targets {
   targetVectors: string[];
   combination: CombinationMethod;
+  /**
+   * deprecated in 1.26.2 - use weights_for_targets
+   *
+   * @deprecated
+   */
   weights: { [key: string]: number };
+  weightsForTargets: WeightsForTarget[];
 }
 
 export interface Targets_WeightsEntry {
@@ -215,6 +223,7 @@ export interface Hybrid {
   /** same as above. Use the target vector in the hybrid message */
   nearVector: NearVector | undefined;
   targets: Targets | undefined;
+  vectorDistance?: number | undefined;
 }
 
 export enum Hybrid_FusionType {
@@ -382,6 +391,11 @@ export interface RefPropertiesRequest {
   targetCollection: string;
 }
 
+export interface VectorForTarget {
+  name: string;
+  vectorBytes: Uint8Array;
+}
+
 export interface NearVector {
   /**
    * protolint:disable:next REPEATED_FIELD_NAMES_PLURALIZED
@@ -398,8 +412,16 @@ export interface NearVector {
    * @deprecated
    */
   targetVectors: string[];
-  targets: Targets | undefined;
+  targets:
+    | Targets
+    | undefined;
+  /**
+   * deprecated in 1.26.2 - use vector_for_targets
+   *
+   * @deprecated
+   */
   vectorPerTarget: { [key: string]: Uint8Array };
+  vectorForTargets: VectorForTarget[];
 }
 
 export interface NearVector_VectorPerTargetEntry {
@@ -430,16 +452,14 @@ export interface Rerank {
 export interface SearchReply {
   took: number;
   results: SearchResult[];
+  /** @deprecated */
   generativeGroupedResult?: string | undefined;
   groupByResults: GroupByResult[];
+  generativeGroupedResults?: GenerativeResult | undefined;
 }
 
 export interface RerankReply {
   score: number;
-}
-
-export interface GenerativeReply {
-  result: string;
 }
 
 export interface GroupByResult {
@@ -448,13 +468,18 @@ export interface GroupByResult {
   maxDistance: number;
   numberOfObjects: number;
   objects: SearchResult[];
-  rerank?: RerankReply | undefined;
+  rerank?:
+    | RerankReply
+    | undefined;
+  /** @deprecated */
   generative?: GenerativeReply | undefined;
+  generativeResult?: GenerativeResult | undefined;
 }
 
 export interface SearchResult {
   properties: PropertiesResult | undefined;
   metadata: MetadataResult | undefined;
+  generative?: GenerativeResult | undefined;
 }
 
 export interface MetadataResult {
@@ -477,8 +502,12 @@ export interface MetadataResult {
   scorePresent: boolean;
   explainScore: string;
   explainScorePresent: boolean;
-  isConsistent?: boolean | undefined;
+  isConsistent?:
+    | boolean
+    | undefined;
+  /** @deprecated */
   generative: string;
+  /** @deprecated */
   generativePresent: boolean;
   isConsistentPresent: boolean;
   vectorBytes: Uint8Array;
@@ -546,6 +575,7 @@ function createBaseSearchRequest(): SearchRequest {
     rerank: undefined,
     uses123Api: false,
     uses125Api: false,
+    uses127Api: false,
   };
 }
 
@@ -631,6 +661,9 @@ export const SearchRequest = {
     }
     if (message.uses125Api !== false) {
       writer.uint32(808).bool(message.uses125Api);
+    }
+    if (message.uses127Api !== false) {
+      writer.uint32(816).bool(message.uses127Api);
     }
     return writer;
   },
@@ -831,6 +864,13 @@ export const SearchRequest = {
 
           message.uses125Api = reader.bool();
           continue;
+        case 102:
+          if (tag !== 816) {
+            break;
+          }
+
+          message.uses127Api = reader.bool();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -869,6 +909,7 @@ export const SearchRequest = {
       rerank: isSet(object.rerank) ? Rerank.fromJSON(object.rerank) : undefined,
       uses123Api: isSet(object.uses123Api) ? globalThis.Boolean(object.uses123Api) : false,
       uses125Api: isSet(object.uses125Api) ? globalThis.Boolean(object.uses125Api) : false,
+      uses127Api: isSet(object.uses127Api) ? globalThis.Boolean(object.uses127Api) : false,
     };
   },
 
@@ -955,6 +996,9 @@ export const SearchRequest = {
     if (message.uses125Api !== false) {
       obj.uses125Api = message.uses125Api;
     }
+    if (message.uses127Api !== false) {
+      obj.uses127Api = message.uses127Api;
+    }
     return obj;
   },
 
@@ -1024,6 +1068,7 @@ export const SearchRequest = {
       : undefined;
     message.uses123Api = object.uses123Api ?? false;
     message.uses125Api = object.uses125Api ?? false;
+    message.uses127Api = object.uses127Api ?? false;
     return message;
   },
 };
@@ -1187,97 +1232,6 @@ export const SortBy = {
     const message = createBaseSortBy();
     message.ascending = object.ascending ?? false;
     message.path = object.path?.map((e) => e) || [];
-    return message;
-  },
-};
-
-function createBaseGenerativeSearch(): GenerativeSearch {
-  return { singleResponsePrompt: "", groupedResponseTask: "", groupedProperties: [] };
-}
-
-export const GenerativeSearch = {
-  encode(message: GenerativeSearch, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.singleResponsePrompt !== "") {
-      writer.uint32(10).string(message.singleResponsePrompt);
-    }
-    if (message.groupedResponseTask !== "") {
-      writer.uint32(18).string(message.groupedResponseTask);
-    }
-    for (const v of message.groupedProperties) {
-      writer.uint32(26).string(v!);
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): GenerativeSearch {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseGenerativeSearch();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          if (tag !== 10) {
-            break;
-          }
-
-          message.singleResponsePrompt = reader.string();
-          continue;
-        case 2:
-          if (tag !== 18) {
-            break;
-          }
-
-          message.groupedResponseTask = reader.string();
-          continue;
-        case 3:
-          if (tag !== 26) {
-            break;
-          }
-
-          message.groupedProperties.push(reader.string());
-          continue;
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): GenerativeSearch {
-    return {
-      singleResponsePrompt: isSet(object.singleResponsePrompt) ? globalThis.String(object.singleResponsePrompt) : "",
-      groupedResponseTask: isSet(object.groupedResponseTask) ? globalThis.String(object.groupedResponseTask) : "",
-      groupedProperties: globalThis.Array.isArray(object?.groupedProperties)
-        ? object.groupedProperties.map((e: any) => globalThis.String(e))
-        : [],
-    };
-  },
-
-  toJSON(message: GenerativeSearch): unknown {
-    const obj: any = {};
-    if (message.singleResponsePrompt !== "") {
-      obj.singleResponsePrompt = message.singleResponsePrompt;
-    }
-    if (message.groupedResponseTask !== "") {
-      obj.groupedResponseTask = message.groupedResponseTask;
-    }
-    if (message.groupedProperties?.length) {
-      obj.groupedProperties = message.groupedProperties;
-    }
-    return obj;
-  },
-
-  create(base?: DeepPartial<GenerativeSearch>): GenerativeSearch {
-    return GenerativeSearch.fromPartial(base ?? {});
-  },
-  fromPartial(object: DeepPartial<GenerativeSearch>): GenerativeSearch {
-    const message = createBaseGenerativeSearch();
-    message.singleResponsePrompt = object.singleResponsePrompt ?? "";
-    message.groupedResponseTask = object.groupedResponseTask ?? "";
-    message.groupedProperties = object.groupedProperties?.map((e) => e) || [];
     return message;
   },
 };
@@ -1692,8 +1646,82 @@ export const ObjectPropertiesRequest = {
   },
 };
 
+function createBaseWeightsForTarget(): WeightsForTarget {
+  return { target: "", weight: 0 };
+}
+
+export const WeightsForTarget = {
+  encode(message: WeightsForTarget, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.target !== "") {
+      writer.uint32(10).string(message.target);
+    }
+    if (message.weight !== 0) {
+      writer.uint32(21).float(message.weight);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): WeightsForTarget {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseWeightsForTarget();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.target = reader.string();
+          continue;
+        case 2:
+          if (tag !== 21) {
+            break;
+          }
+
+          message.weight = reader.float();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): WeightsForTarget {
+    return {
+      target: isSet(object.target) ? globalThis.String(object.target) : "",
+      weight: isSet(object.weight) ? globalThis.Number(object.weight) : 0,
+    };
+  },
+
+  toJSON(message: WeightsForTarget): unknown {
+    const obj: any = {};
+    if (message.target !== "") {
+      obj.target = message.target;
+    }
+    if (message.weight !== 0) {
+      obj.weight = message.weight;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<WeightsForTarget>): WeightsForTarget {
+    return WeightsForTarget.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<WeightsForTarget>): WeightsForTarget {
+    const message = createBaseWeightsForTarget();
+    message.target = object.target ?? "";
+    message.weight = object.weight ?? 0;
+    return message;
+  },
+};
+
 function createBaseTargets(): Targets {
-  return { targetVectors: [], combination: 0, weights: {} };
+  return { targetVectors: [], combination: 0, weights: {}, weightsForTargets: [] };
 }
 
 export const Targets = {
@@ -1707,6 +1735,9 @@ export const Targets = {
     Object.entries(message.weights).forEach(([key, value]) => {
       Targets_WeightsEntry.encode({ key: key as any, value }, writer.uint32(26).fork()).ldelim();
     });
+    for (const v of message.weightsForTargets) {
+      WeightsForTarget.encode(v!, writer.uint32(34).fork()).ldelim();
+    }
     return writer;
   },
 
@@ -1741,6 +1772,13 @@ export const Targets = {
             message.weights[entry3.key] = entry3.value;
           }
           continue;
+        case 4:
+          if (tag !== 34) {
+            break;
+          }
+
+          message.weightsForTargets.push(WeightsForTarget.decode(reader, reader.uint32()));
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1762,6 +1800,9 @@ export const Targets = {
           return acc;
         }, {})
         : {},
+      weightsForTargets: globalThis.Array.isArray(object?.weightsForTargets)
+        ? object.weightsForTargets.map((e: any) => WeightsForTarget.fromJSON(e))
+        : [],
     };
   },
 
@@ -1782,6 +1823,9 @@ export const Targets = {
         });
       }
     }
+    if (message.weightsForTargets?.length) {
+      obj.weightsForTargets = message.weightsForTargets.map((e) => WeightsForTarget.toJSON(e));
+    }
     return obj;
   },
 
@@ -1798,6 +1842,7 @@ export const Targets = {
       }
       return acc;
     }, {});
+    message.weightsForTargets = object.weightsForTargets?.map((e) => WeightsForTarget.fromPartial(e)) || [];
     return message;
   },
 };
@@ -1888,6 +1933,7 @@ function createBaseHybrid(): Hybrid {
     nearText: undefined,
     nearVector: undefined,
     targets: undefined,
+    vectorDistance: undefined,
   };
 }
 
@@ -1924,6 +1970,9 @@ export const Hybrid = {
     }
     if (message.targets !== undefined) {
       Targets.encode(message.targets, writer.uint32(82).fork()).ldelim();
+    }
+    if (message.vectorDistance !== undefined) {
+      writer.uint32(165).float(message.vectorDistance);
     }
     return writer;
   },
@@ -2015,6 +2064,13 @@ export const Hybrid = {
 
           message.targets = Targets.decode(reader, reader.uint32());
           continue;
+        case 20:
+          if (tag !== 165) {
+            break;
+          }
+
+          message.vectorDistance = reader.float();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -2040,6 +2096,7 @@ export const Hybrid = {
       nearText: isSet(object.nearText) ? NearTextSearch.fromJSON(object.nearText) : undefined,
       nearVector: isSet(object.nearVector) ? NearVector.fromJSON(object.nearVector) : undefined,
       targets: isSet(object.targets) ? Targets.fromJSON(object.targets) : undefined,
+      vectorDistance: isSet(object.vectorDistance) ? globalThis.Number(object.vectorDistance) : undefined,
     };
   },
 
@@ -2075,6 +2132,9 @@ export const Hybrid = {
     if (message.targets !== undefined) {
       obj.targets = Targets.toJSON(message.targets);
     }
+    if (message.vectorDistance !== undefined) {
+      obj.vectorDistance = message.vectorDistance;
+    }
     return obj;
   },
 
@@ -2099,6 +2159,7 @@ export const Hybrid = {
     message.targets = (object.targets !== undefined && object.targets !== null)
       ? Targets.fromPartial(object.targets)
       : undefined;
+    message.vectorDistance = object.vectorDistance ?? undefined;
     return message;
   },
 };
@@ -3279,6 +3340,80 @@ export const RefPropertiesRequest = {
   },
 };
 
+function createBaseVectorForTarget(): VectorForTarget {
+  return { name: "", vectorBytes: new Uint8Array(0) };
+}
+
+export const VectorForTarget = {
+  encode(message: VectorForTarget, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.name !== "") {
+      writer.uint32(10).string(message.name);
+    }
+    if (message.vectorBytes.length !== 0) {
+      writer.uint32(18).bytes(message.vectorBytes);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): VectorForTarget {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseVectorForTarget();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.name = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.vectorBytes = reader.bytes();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): VectorForTarget {
+    return {
+      name: isSet(object.name) ? globalThis.String(object.name) : "",
+      vectorBytes: isSet(object.vectorBytes) ? bytesFromBase64(object.vectorBytes) : new Uint8Array(0),
+    };
+  },
+
+  toJSON(message: VectorForTarget): unknown {
+    const obj: any = {};
+    if (message.name !== "") {
+      obj.name = message.name;
+    }
+    if (message.vectorBytes.length !== 0) {
+      obj.vectorBytes = base64FromBytes(message.vectorBytes);
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<VectorForTarget>): VectorForTarget {
+    return VectorForTarget.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<VectorForTarget>): VectorForTarget {
+    const message = createBaseVectorForTarget();
+    message.name = object.name ?? "";
+    message.vectorBytes = object.vectorBytes ?? new Uint8Array(0);
+    return message;
+  },
+};
+
 function createBaseNearVector(): NearVector {
   return {
     vector: [],
@@ -3288,6 +3423,7 @@ function createBaseNearVector(): NearVector {
     targetVectors: [],
     targets: undefined,
     vectorPerTarget: {},
+    vectorForTargets: [],
   };
 }
 
@@ -3316,6 +3452,9 @@ export const NearVector = {
     Object.entries(message.vectorPerTarget).forEach(([key, value]) => {
       NearVector_VectorPerTargetEntry.encode({ key: key as any, value }, writer.uint32(58).fork()).ldelim();
     });
+    for (const v of message.vectorForTargets) {
+      VectorForTarget.encode(v!, writer.uint32(66).fork()).ldelim();
+    }
     return writer;
   },
 
@@ -3388,6 +3527,13 @@ export const NearVector = {
             message.vectorPerTarget[entry7.key] = entry7.value;
           }
           continue;
+        case 8:
+          if (tag !== 66) {
+            break;
+          }
+
+          message.vectorForTargets.push(VectorForTarget.decode(reader, reader.uint32()));
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -3413,6 +3559,9 @@ export const NearVector = {
           return acc;
         }, {})
         : {},
+      vectorForTargets: globalThis.Array.isArray(object?.vectorForTargets)
+        ? object.vectorForTargets.map((e: any) => VectorForTarget.fromJSON(e))
+        : [],
     };
   },
 
@@ -3445,6 +3594,9 @@ export const NearVector = {
         });
       }
     }
+    if (message.vectorForTargets?.length) {
+      obj.vectorForTargets = message.vectorForTargets.map((e) => VectorForTarget.toJSON(e));
+    }
     return obj;
   },
 
@@ -3470,6 +3622,7 @@ export const NearVector = {
       },
       {},
     );
+    message.vectorForTargets = object.vectorForTargets?.map((e) => VectorForTarget.fromPartial(e)) || [];
     return message;
   },
 };
@@ -3746,7 +3899,13 @@ export const Rerank = {
 };
 
 function createBaseSearchReply(): SearchReply {
-  return { took: 0, results: [], generativeGroupedResult: undefined, groupByResults: [] };
+  return {
+    took: 0,
+    results: [],
+    generativeGroupedResult: undefined,
+    groupByResults: [],
+    generativeGroupedResults: undefined,
+  };
 }
 
 export const SearchReply = {
@@ -3762,6 +3921,9 @@ export const SearchReply = {
     }
     for (const v of message.groupByResults) {
       GroupByResult.encode(v!, writer.uint32(34).fork()).ldelim();
+    }
+    if (message.generativeGroupedResults !== undefined) {
+      GenerativeResult.encode(message.generativeGroupedResults, writer.uint32(42).fork()).ldelim();
     }
     return writer;
   },
@@ -3801,6 +3963,13 @@ export const SearchReply = {
 
           message.groupByResults.push(GroupByResult.decode(reader, reader.uint32()));
           continue;
+        case 5:
+          if (tag !== 42) {
+            break;
+          }
+
+          message.generativeGroupedResults = GenerativeResult.decode(reader, reader.uint32());
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -3822,6 +3991,9 @@ export const SearchReply = {
       groupByResults: globalThis.Array.isArray(object?.groupByResults)
         ? object.groupByResults.map((e: any) => GroupByResult.fromJSON(e))
         : [],
+      generativeGroupedResults: isSet(object.generativeGroupedResults)
+        ? GenerativeResult.fromJSON(object.generativeGroupedResults)
+        : undefined,
     };
   },
 
@@ -3839,6 +4011,9 @@ export const SearchReply = {
     if (message.groupByResults?.length) {
       obj.groupByResults = message.groupByResults.map((e) => GroupByResult.toJSON(e));
     }
+    if (message.generativeGroupedResults !== undefined) {
+      obj.generativeGroupedResults = GenerativeResult.toJSON(message.generativeGroupedResults);
+    }
     return obj;
   },
 
@@ -3851,6 +4026,10 @@ export const SearchReply = {
     message.results = object.results?.map((e) => SearchResult.fromPartial(e)) || [];
     message.generativeGroupedResult = object.generativeGroupedResult ?? undefined;
     message.groupByResults = object.groupByResults?.map((e) => GroupByResult.fromPartial(e)) || [];
+    message.generativeGroupedResults =
+      (object.generativeGroupedResults !== undefined && object.generativeGroupedResults !== null)
+        ? GenerativeResult.fromPartial(object.generativeGroupedResults)
+        : undefined;
     return message;
   },
 };
@@ -3912,63 +4091,6 @@ export const RerankReply = {
   },
 };
 
-function createBaseGenerativeReply(): GenerativeReply {
-  return { result: "" };
-}
-
-export const GenerativeReply = {
-  encode(message: GenerativeReply, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.result !== "") {
-      writer.uint32(10).string(message.result);
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): GenerativeReply {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseGenerativeReply();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          if (tag !== 10) {
-            break;
-          }
-
-          message.result = reader.string();
-          continue;
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): GenerativeReply {
-    return { result: isSet(object.result) ? globalThis.String(object.result) : "" };
-  },
-
-  toJSON(message: GenerativeReply): unknown {
-    const obj: any = {};
-    if (message.result !== "") {
-      obj.result = message.result;
-    }
-    return obj;
-  },
-
-  create(base?: DeepPartial<GenerativeReply>): GenerativeReply {
-    return GenerativeReply.fromPartial(base ?? {});
-  },
-  fromPartial(object: DeepPartial<GenerativeReply>): GenerativeReply {
-    const message = createBaseGenerativeReply();
-    message.result = object.result ?? "";
-    return message;
-  },
-};
-
 function createBaseGroupByResult(): GroupByResult {
   return {
     name: "",
@@ -3978,6 +4100,7 @@ function createBaseGroupByResult(): GroupByResult {
     objects: [],
     rerank: undefined,
     generative: undefined,
+    generativeResult: undefined,
   };
 }
 
@@ -4003,6 +4126,9 @@ export const GroupByResult = {
     }
     if (message.generative !== undefined) {
       GenerativeReply.encode(message.generative, writer.uint32(58).fork()).ldelim();
+    }
+    if (message.generativeResult !== undefined) {
+      GenerativeResult.encode(message.generativeResult, writer.uint32(66).fork()).ldelim();
     }
     return writer;
   },
@@ -4063,6 +4189,13 @@ export const GroupByResult = {
 
           message.generative = GenerativeReply.decode(reader, reader.uint32());
           continue;
+        case 8:
+          if (tag !== 66) {
+            break;
+          }
+
+          message.generativeResult = GenerativeResult.decode(reader, reader.uint32());
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -4083,6 +4216,7 @@ export const GroupByResult = {
         : [],
       rerank: isSet(object.rerank) ? RerankReply.fromJSON(object.rerank) : undefined,
       generative: isSet(object.generative) ? GenerativeReply.fromJSON(object.generative) : undefined,
+      generativeResult: isSet(object.generativeResult) ? GenerativeResult.fromJSON(object.generativeResult) : undefined,
     };
   },
 
@@ -4109,6 +4243,9 @@ export const GroupByResult = {
     if (message.generative !== undefined) {
       obj.generative = GenerativeReply.toJSON(message.generative);
     }
+    if (message.generativeResult !== undefined) {
+      obj.generativeResult = GenerativeResult.toJSON(message.generativeResult);
+    }
     return obj;
   },
 
@@ -4128,12 +4265,15 @@ export const GroupByResult = {
     message.generative = (object.generative !== undefined && object.generative !== null)
       ? GenerativeReply.fromPartial(object.generative)
       : undefined;
+    message.generativeResult = (object.generativeResult !== undefined && object.generativeResult !== null)
+      ? GenerativeResult.fromPartial(object.generativeResult)
+      : undefined;
     return message;
   },
 };
 
 function createBaseSearchResult(): SearchResult {
-  return { properties: undefined, metadata: undefined };
+  return { properties: undefined, metadata: undefined, generative: undefined };
 }
 
 export const SearchResult = {
@@ -4143,6 +4283,9 @@ export const SearchResult = {
     }
     if (message.metadata !== undefined) {
       MetadataResult.encode(message.metadata, writer.uint32(18).fork()).ldelim();
+    }
+    if (message.generative !== undefined) {
+      GenerativeResult.encode(message.generative, writer.uint32(26).fork()).ldelim();
     }
     return writer;
   },
@@ -4168,6 +4311,13 @@ export const SearchResult = {
 
           message.metadata = MetadataResult.decode(reader, reader.uint32());
           continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.generative = GenerativeResult.decode(reader, reader.uint32());
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -4181,6 +4331,7 @@ export const SearchResult = {
     return {
       properties: isSet(object.properties) ? PropertiesResult.fromJSON(object.properties) : undefined,
       metadata: isSet(object.metadata) ? MetadataResult.fromJSON(object.metadata) : undefined,
+      generative: isSet(object.generative) ? GenerativeResult.fromJSON(object.generative) : undefined,
     };
   },
 
@@ -4191,6 +4342,9 @@ export const SearchResult = {
     }
     if (message.metadata !== undefined) {
       obj.metadata = MetadataResult.toJSON(message.metadata);
+    }
+    if (message.generative !== undefined) {
+      obj.generative = GenerativeResult.toJSON(message.generative);
     }
     return obj;
   },
@@ -4205,6 +4359,9 @@ export const SearchResult = {
       : undefined;
     message.metadata = (object.metadata !== undefined && object.metadata !== null)
       ? MetadataResult.fromPartial(object.metadata)
+      : undefined;
+    message.generative = (object.generative !== undefined && object.generative !== null)
+      ? GenerativeResult.fromPartial(object.generative)
       : undefined;
     return message;
   },

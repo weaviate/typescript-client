@@ -145,6 +145,7 @@ describe('Journey testing of the client using a WCD cluster', () => {
           references: [],
           replication: {
             asyncEnabled: false,
+            deletionStrategy: 'NoAutomatedResolution',
             factor: 1,
           },
           reranker: {
@@ -175,6 +176,7 @@ describe('Journey testing of the client using a WCD cluster', () => {
                 dynamicEfFactor: 8,
                 ef: -1,
                 efConstruction: 128,
+                filterStrategy: 'sweeping',
                 flatSearchCutoff: 40000,
                 maxConnections: (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 26, 0)))
                   ? 64

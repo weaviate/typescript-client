@@ -6,25 +6,26 @@ import {
   GenerativeCohereConfig,
   GenerativeDatabricksConfig,
   GenerativeFriendliAIConfig,
+  GenerativeGoogleConfig,
   GenerativeMistralConfig,
   GenerativeOctoAIConfig,
   GenerativeOllamaConfig,
   GenerativeOpenAIConfig,
-  GenerativePaLMConfig,
   ModuleConfig,
   VectorConfigCreate,
 } from '../types/index.js';
-import { configure } from './index.js';
+import { configure, reconfigure } from './index.js';
 import {
   InvertedIndexConfigCreate,
   MultiTenancyConfigCreate,
   ReplicationConfigCreate,
+  ReplicationConfigUpdate,
   ShardingConfigCreate,
   VectorIndexConfigFlatCreate,
   VectorIndexConfigHNSWCreate,
 } from './types/index.js';
 
-describe('Unit testing of the configure factory class', () => {
+describe('Unit testing of the configure & reconfigure factory classes', () => {
   it('should create the correct InvertedIndexConfig type with all values', () => {
     const config = configure.invertedIndex({
       bm25b: 0.5,
@@ -76,13 +77,28 @@ describe('Unit testing of the configure factory class', () => {
     });
   });
 
-  it('should create the correct ReplicationConfig type with all values', () => {
+  it('should create the correct ReplicationConfigCreate type with all values', () => {
     const config = configure.replication({
       asyncEnabled: true,
+      deletionStrategy: 'DeleteOnConflict',
       factor: 2,
     });
     expect(config).toEqual<ReplicationConfigCreate>({
       asyncEnabled: true,
+      deletionStrategy: 'DeleteOnConflict',
+      factor: 2,
+    });
+  });
+
+  it('should create the correct ReplicationConfigUpdate type with all values', () => {
+    const config = reconfigure.replication({
+      asyncEnabled: true,
+      deletionStrategy: 'DeleteOnConflict',
+      factor: 2,
+    });
+    expect(config).toEqual<ReplicationConfigUpdate>({
+      asyncEnabled: true,
+      deletionStrategy: 'DeleteOnConflict',
       factor: 2,
     });
   });
@@ -429,7 +445,110 @@ describe('Unit testing of the vectorizer factory class', () => {
     });
   });
 
-  it('should create the correct Multi2VecPalmConfig type with defaults', () => {
+  it('should create the correct Multi2VecGoogleConfig type with defaults', () => {
+    const config = configure.vectorizer.multi2VecGoogle({
+      projectId: 'project-id',
+      location: 'location',
+    });
+    expect(config).toEqual<VectorConfigCreate<never, undefined, 'hnsw', 'multi2vec-google'>>({
+      name: undefined,
+      vectorIndex: {
+        name: 'hnsw',
+        config: undefined,
+      },
+      vectorizer: {
+        name: 'multi2vec-google',
+        config: {
+          projectId: 'project-id',
+          location: 'location',
+        },
+      },
+    });
+  });
+
+  it('should create the correct Multi2VecGoogleonfig type with all values', () => {
+    const config = configure.vectorizer.multi2VecGoogle({
+      name: 'test',
+      projectId: 'project-id',
+      imageFields: ['field1', 'field2'],
+      textFields: ['field3', 'field4'],
+      videoFields: ['field5', 'field6'],
+      location: 'location',
+      modelId: 'model-id',
+      dimensions: 256,
+      vectorizeCollectionName: true,
+    });
+    expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'multi2vec-google'>>({
+      name: 'test',
+      vectorIndex: {
+        name: 'hnsw',
+        config: undefined,
+      },
+      vectorizer: {
+        name: 'multi2vec-google',
+        config: {
+          projectId: 'project-id',
+          imageFields: ['field1', 'field2'],
+          textFields: ['field3', 'field4'],
+          videoFields: ['field5', 'field6'],
+          location: 'location',
+          modelId: 'model-id',
+          dimensions: 256,
+          vectorizeCollectionName: true,
+        },
+      },
+    });
+  });
+
+  it('should create the correct Multi2VecGoogleConfig type with all values and weights', () => {
+    const config = configure.vectorizer.multi2VecGoogle({
+      name: 'test',
+      projectId: 'project-id',
+      imageFields: [
+        { name: 'field1', weight: 0.1 },
+        { name: 'field2', weight: 0.2 },
+      ],
+      textFields: [
+        { name: 'field3', weight: 0.3 },
+        { name: 'field4', weight: 0.4 },
+      ],
+      videoFields: [
+        { name: 'field5', weight: 0.5 },
+        { name: 'field6', weight: 0.6 },
+      ],
+      location: 'location',
+      modelId: 'model-id',
+      dimensions: 256,
+      vectorizeCollectionName: true,
+    });
+    expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'multi2vec-google'>>({
+      name: 'test',
+      vectorIndex: {
+        name: 'hnsw',
+        config: undefined,
+      },
+      vectorizer: {
+        name: 'multi2vec-google',
+        config: {
+          projectId: 'project-id',
+          imageFields: ['field1', 'field2'],
+          textFields: ['field3', 'field4'],
+          videoFields: ['field5', 'field6'],
+          location: 'location',
+          modelId: 'model-id',
+          dimensions: 256,
+          vectorizeCollectionName: true,
+          weights: {
+            imageFields: [0.1, 0.2],
+            textFields: [0.3, 0.4],
+            videoFields: [0.5, 0.6],
+          },
+        },
+      },
+    });
+  });
+
+  it('should create the correct Multi2VecPalmConfig type using deprecated method with defaults', () => {
     const config = configure.vectorizer.multi2VecPalm({
       projectId: 'project-id',
       location: 'location',
@@ -450,7 +569,7 @@ describe('Unit testing of the vectorizer factory class', () => {
     });
   });
 
-  it('should create the correct Multi2VecPalmConfig type with all values', () => {
+  it('should create the correct Multi2VecPalmConfig type using deprecated method with all values', () => {
     const config = configure.vectorizer.multi2VecPalm({
       name: 'test',
       projectId: 'project-id',
@@ -484,7 +603,7 @@ describe('Unit testing of the vectorizer factory class', () => {
     });
   });
 
-  it('should create the correct Multi2VecPalmConfig type with all values and weights', () => {
+  it('should create the correct Multi2VecPalmConfig type using deprecated method with all values and weights', () => {
     const config = configure.vectorizer.multi2VecPalm({
       name: 'test',
       projectId: 'project-id',
@@ -1029,7 +1148,48 @@ describe('Unit testing of the vectorizer factory class', () => {
     });
   });
 
-  it('should create the correct Text2VecPalmConfig type with defaults', () => {
+  it('should create the correct Text2VecGoogleConfig type with defaults', () => {
+    const config = configure.vectorizer.text2VecGoogle();
+    expect(config).toEqual<VectorConfigCreate<never, undefined, 'hnsw', 'text2vec-google'>>({
+      name: undefined,
+      vectorIndex: {
+        name: 'hnsw',
+        config: undefined,
+      },
+      vectorizer: {
+        name: 'text2vec-google',
+        config: undefined,
+      },
+    });
+  });
+
+  it('should create the correct Text2VecGoogleConfig type with all values', () => {
+    const config = configure.vectorizer.text2VecGoogle({
+      name: 'test',
+      apiEndpoint: 'api-endpoint',
+      modelId: 'model-id',
+      projectId: 'project-id',
+      vectorizeCollectionName: true,
+    });
+    expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'text2vec-google'>>({
+      name: 'test',
+      vectorIndex: {
+        name: 'hnsw',
+        config: undefined,
+      },
+      vectorizer: {
+        name: 'text2vec-google',
+        config: {
+          apiEndpoint: 'api-endpoint',
+          modelId: 'model-id',
+          projectId: 'project-id',
+          vectorizeCollectionName: true,
+        },
+      },
+    });
+  });
+
+  it('should create the correct Text2VecPalmConfig type using deprecated method with defaults', () => {
     const config = configure.vectorizer.text2VecPalm();
     expect(config).toEqual<VectorConfigCreate<never, undefined, 'hnsw', 'text2vec-palm'>>({
       name: undefined,
@@ -1044,7 +1204,7 @@ describe('Unit testing of the vectorizer factory class', () => {
     });
   });
 
-  it('should create the correct Text2VecPalmConfig type with all values', () => {
+  it('should create the correct Text2VecPalmConfig type using deprecated method with all values', () => {
     const config = configure.vectorizer.text2VecPalm({
       name: 'test',
       apiEndpoint: 'api-endpoint',
@@ -1466,7 +1626,15 @@ describe('Unit testing of the generative factory class', () => {
     });
   });
 
-  it('should create the correct GenerativePaLMConfig type with required & default values', () => {
+  it('should create the correct GeneratGoogleConfig type with required & default values', () => {
+    const config = configure.generative.google();
+    expect(config).toEqual<ModuleConfig<'generative-google', undefined>>({
+      name: 'generative-google',
+      config: undefined,
+    });
+  });
+
+  it('should create the correct GeneratGoogleConfig type using deprecated method with required & default values', () => {
     const config = configure.generative.palm();
     expect(config).toEqual<ModuleConfig<'generative-palm', undefined>>({
       name: 'generative-palm',
@@ -1474,7 +1642,7 @@ describe('Unit testing of the generative factory class', () => {
     });
   });
 
-  it('should create the correct GenerativePaLMConfig type with all values', () => {
+  it('should create the correct GenerativeGoogleConfig type using deprecated method with all values', () => {
     const config = configure.generative.palm({
       apiEndpoint: 'api-endpoint',
       maxOutputTokens: 100,
@@ -1484,8 +1652,32 @@ describe('Unit testing of the generative factory class', () => {
       topK: 5,
       topP: 0.8,
     });
-    expect(config).toEqual<ModuleConfig<'generative-palm', GenerativePaLMConfig>>({
+    expect(config).toEqual<ModuleConfig<'generative-palm', GenerativeGoogleConfig>>({
       name: 'generative-palm',
+      config: {
+        apiEndpoint: 'api-endpoint',
+        maxOutputTokens: 100,
+        modelId: 'model-id',
+        projectId: 'project-id',
+        temperature: 0.5,
+        topK: 5,
+        topP: 0.8,
+      },
+    });
+  });
+
+  it('should create the correct GenerativeGoogleConfig type with all values', () => {
+    const config = configure.generative.google({
+      apiEndpoint: 'api-endpoint',
+      maxOutputTokens: 100,
+      modelId: 'model-id',
+      projectId: 'project-id',
+      temperature: 0.5,
+      topK: 5,
+      topP: 0.8,
+    });
+    expect(config).toEqual<ModuleConfig<'generative-google', GenerativeGoogleConfig>>({
+      name: 'generative-google',
       config: {
         apiEndpoint: 'api-endpoint',
         maxOutputTokens: 100,

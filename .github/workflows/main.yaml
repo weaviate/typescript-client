@@ -7,9 +7,10 @@ on:
   pull_request:
 
 env:
-  WEAVIATE_124: 1.24.21
-  WEAVIATE_125: 1.25.8
-  WEAVIATE_126: 1.26.1
+  WEAVIATE_124: stable-v1.24-a8b364e
+  WEAVIATE_125: 1.25.21
+  WEAVIATE_126: 1.26.7
+  WEAVIATE_127: 1.27.0
 
 jobs:
   checks:
@@ -18,7 +19,7 @@ jobs:
     - uses: actions/checkout@v3
     - uses: actions/setup-node@v3
       with:
-        node-version: '18.x'
+        node-version: '22.x'
     - name: "Run checks"
       run: |
         npm ci
@@ -35,9 +36,10 @@ jobs:
         versions: [
           { node: "22.x", weaviate: $WEAVIATE_124},
           { node: "22.x", weaviate: $WEAVIATE_125},
-          { node: "18.x", weaviate: $WEAVIATE_126},
-          { node: "20.x", weaviate: $WEAVIATE_126},
-          { node: "22.x", weaviate: $WEAVIATE_126}
+          { node: "22.x", weaviate: $WEAVIATE_126},
+          { node: "18.x", weaviate: $WEAVIATE_127},
+          { node: "20.x", weaviate: $WEAVIATE_127},
+          { node: "22.x", weaviate: $WEAVIATE_127}
         ]
     steps:
     - uses: actions/checkout@v3
@@ -79,7 +81,7 @@ jobs:
       # Setup .npmrc file to publish to npm
       - uses: actions/setup-node@v3
         with:
-          node-version: '18.x'
+          node-version: '22.x'
           registry-url: 'https://registry.npmjs.org'
       - run: npm ci
       - run: npm run build
