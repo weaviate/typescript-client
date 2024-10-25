@@ -120,6 +120,12 @@ export const grpcClient = (config: GrpcConnectionParams): GrpcClient => {
   const channelOptions: ChannelOptions = {
     'grpc.max_send_message_length': MAX_GRPC_MESSAGE_LENGTH,
     'grpc.max_receive_message_length': MAX_GRPC_MESSAGE_LENGTH,
+    // Send keepalive pings every 10 seconds, default is 2 hours.
+    'grpc.keepalive_time_ms': 10 * 1000,
+    // Keepalive ping timeout after 5 seconds, default is 20 seconds.
+    'grpc.keepalive_timeout_ms': 5 * 1000,
+    // Allow keepalive pings when there are no gRPC calls.
+    'grpc.keepalive_permit_without_calls': 1,
   };
   if (config.grpcProxyUrl) {
     // grpc.http_proxy is not used by grpc.js under-the-hood
