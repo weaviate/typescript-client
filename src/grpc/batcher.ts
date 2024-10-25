@@ -5,10 +5,13 @@ import { ConsistencyLevel } from '../data/index.js';
 import { BatchObject, BatchObjectsReply, BatchObjectsRequest } from '../proto/v1/batch.js';
 import { WeaviateClient } from '../proto/v1/weaviate.js';
 
+import { RetryOptions } from 'nice-grpc-client-middleware-retry';
 import { WeaviateBatchError, WeaviateDeleteManyError } from '../errors.js';
 import { Filters } from '../proto/v1/base.js';
 import { BatchDeleteReply, BatchDeleteRequest } from '../proto/v1/batch_delete.js';
 import Base from './base.js';
+
+import { retryOptions } from './retry.js';
 
 export interface Batch {
   withDelete: (args: BatchDeleteArgs) => Promise<BatchDeleteReply>;
@@ -27,7 +30,7 @@ export interface BatchDeleteArgs {
 
 export default class Batcher extends Base implements Batch {
   public static use(
-    connection: WeaviateClient,
+    connection: WeaviateClient<RetryOptions>,
     collection: string,
     metadata: Metadata,
     timeout: number,
@@ -70,6 +73,7 @@ export default class Batcher extends Base implements Batch {
           {
             metadata: this.metadata,
             signal,
+            ...retryOptions,
           }
         )
         .catch((err) => {

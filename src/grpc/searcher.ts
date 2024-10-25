@@ -24,9 +24,11 @@ import {
 } from '../proto/v1/search_get.js';
 import { WeaviateClient } from '../proto/v1/weaviate.js';
 
+import { RetryOptions } from 'nice-grpc-client-middleware-retry';
 import { WeaviateQueryError } from '../errors.js';
 import { GenerativeSearch } from '../proto/v1/generative.js';
 import Base from './base.js';
+import { retryOptions } from './retry.js';
 
 export type SearchFetchArgs = {
   limit?: number;
@@ -113,7 +115,7 @@ export interface Search {
 
 export default class Searcher extends Base implements Search {
   public static use(
-    connection: WeaviateClient,
+    connection: WeaviateClient<RetryOptions>,
     collection: string,
     metadata: Metadata,
     timeout: number,
@@ -151,6 +153,7 @@ export default class Searcher extends Base implements Search {
           {
             metadata: this.metadata,
             signal,
+            ...retryOptions,
           }
         )
         .catch((err) => {
