@@ -14,7 +14,7 @@ describe('Integration testing of the ConnectionGRPC class', () => {
 
   beforeAll(async () => {
     container = await new GenericContainer(`semitechnologies/weaviate:${process.env.WEAVIATE_VERSION}`)
-      .withExposedPorts(33315, 33316)
+      .withExposedPorts(8080, 50051)
       .withEnvironment({
         GRPC_MAX_MESSAGE_SIZE: '1',
       })
@@ -28,8 +28,8 @@ describe('Integration testing of the ConnectionGRPC class', () => {
     try {
       await weaviate.connectToLocal({
         host: container.getHost(),
-        port: container.getMappedPort(33315),
-        grpcPort: container.getMappedPort(33316),
+        port: container.getMappedPort(8080),
+        grpcPort: container.getMappedPort(50051),
       });
       expect(dbVersion.isLowerThan(1, 27, 0)).toBe(true); // change to 1.27.1 when it lands
     } catch (err) {
