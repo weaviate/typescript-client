@@ -68,8 +68,10 @@ jobs:
         npm run build
     - name: "Run tests without authentication tests (for forks)"
       if: ${{ github.event.pull_request.head.repo.fork }}
+      env:
+        WEAVIATE_VERSION: ${{ matrix.versions.weaviate }}
       run: |
-        WEAVIATE_VERSION=${{ matrix.versions.weaviate }} npm test
+        npm test
         npm run build
     - name: "Stop Weaviate"
       run: ci/stop_dependencies.sh ${{ matrix.versions.weaviate }}
