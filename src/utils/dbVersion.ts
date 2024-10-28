@@ -1,4 +1,4 @@
-import ConnectionGRPC from '../connection/grpc.js';
+import { ConnectionGQL } from '../index.js';
 import MetaGetter from '../misc/metaGetter.js';
 
 export class DbVersionSupport {
@@ -239,7 +239,7 @@ export class DbVersionProvider implements VersionProvider {
   }
 }
 
-export function initDbVersionProvider(conn: ConnectionGRPC) {
+export function initDbVersionProvider(conn: ConnectionGQL) {
   const metaGetter = new MetaGetter(conn);
   const versionGetter = () => {
     return metaGetter.do().then((result) => (result.version ? result.version : ''));
