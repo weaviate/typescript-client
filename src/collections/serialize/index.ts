@@ -378,15 +378,6 @@ export class Serialize {
   };
 
   public static fetchObjectById = <T>(args: { id: string } & FetchObjectByIdOptions<T>): SearchFetchArgs => {
-    console.log({
-      ...Serialize.common({
-        filters: new FilterId().equal(args.id),
-        includeVector: args.includeVector,
-        returnMetadata: ['creationTime', 'updateTime', 'isConsistent'],
-        returnProperties: args.returnProperties,
-        returnReferences: args.returnReferences,
-      }),
-    });
     return {
       ...Serialize.common({
         filters: new FilterId().equal(args.id),

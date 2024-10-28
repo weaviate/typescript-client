@@ -19,6 +19,7 @@ describe('Integration testing of the ConnectionGRPC class', () => {
         GRPC_MAX_MESSAGE_SIZE: '1',
       })
       .start();
+    expect(container).toBeDefined();
   });
   afterAll(async () => {
     await container.stop();

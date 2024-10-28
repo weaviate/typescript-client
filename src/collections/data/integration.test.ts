@@ -1017,7 +1017,7 @@ describe('Testing of BYOV insertion with legacy vectorizer', () => {
 
   afterAll(() => oldClient.schema.classDeleter().withClassName(collectionName).do());
 
-  it.only('should insert and retrieve many vectors using the new client', async () => {
+  it('should insert and retrieve many vectors using the new client', async () => {
     const client = await weaviate.connectToLocal();
     const collection = client.collections.get(collectionName);
     const { uuids, hasErrors } = await collection.data.insertMany([

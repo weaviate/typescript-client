@@ -135,8 +135,8 @@ export class DbVersionSupport {
         supports:
           (version.isAtLeast(1, 24, 0) && version.isLowerThan(1, 24, 26)) ||
           (version.isAtLeast(1, 25, 0) && version.isLowerThan(1, 25, 22)) ||
-          (version.isAtLeast(1, 26, 0) && version.isLowerThan(1, 26, 8)) ||
-          version.isAtLeast(1, 27, 0), // TODO: add version.isLowerThan(1, 27, 0) when it lands
+          (version.isAtLeast(1, 26, 0) && version.isLowerThan(1, 26, 8)),
+        // || (version.isAtLeast(1, 27, 0) && version.isLowerThan(1, 27, 1)), // TODO: comment back in when 1.27.1 lands
         message: this.errorMessage(
           'Named vectors insert fix',
           version.show(),
