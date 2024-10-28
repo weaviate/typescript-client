@@ -89,6 +89,7 @@
     "prettier": "^2.8.4",
     "prettier-plugin-organize-imports": "^3.2.4",
     "protobufjs": "^7.2.6",
+    "testcontainers": "^10.13.2",
     "ts-jest": "^29.0.5",
     "ts-node": "^10.9.2",
     "ts-proto": "^1.163.0",

@@ -55,7 +55,7 @@ export default class ConnectionGRPC extends ConnectionGQL {
     return Promise.all([
       ConnectionGRPC.connect(
         params,
-        (rest.get('v1/meta', true) as Promise<Meta>).then(
+        (rest.get('/meta', true) as Promise<Meta>).then(
           (res: Meta) => res.grpcMaxMessageSize || MAX_GRPC_MESSAGE_LENGTH
         )
       ),
