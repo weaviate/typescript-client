@@ -191,8 +191,8 @@ const data = <T>(
         : undefined,
     };
     if (Array.isArray(object.vectors)) {
-      const supportsNamedVectors = await dbVersionSupport.supportsNamedVectors();
-      if (supportsNamedVectors.supports) {
+      const requiresNamedVectorsInsertFix = await dbVersionSupport.requiresNamedVectorsInsertFix();
+      if (requiresNamedVectorsInsertFix.supports) {
         obj.vector = object.vectors;
         obj.vectors = { default: object.vectors };
       } else {
@@ -247,8 +247,13 @@ const data = <T>(
       ),
     insertMany: (objects: (DataObject<T> | NonReferenceInputs<T>)[]): Promise<BatchObjectsReturn<T>> =>
       connection.batch(name, consistencyLevel).then(async (batch) => {
-        const supportsNamedVectors = await dbVersionSupport.supportsNamedVectors();
-        const serialized = await Serialize.batchObjects(name, objects, supportsNamedVectors.supports, tenant);
+        const requiresNamedVectorsInsertFix = await dbVersionSupport.requiresNamedVectorsInsertFix();
+        const serialized = await Serialize.batchObjects(
+          name,
+          objects,
+          requiresNamedVectorsInsertFix.supports,
+          tenant
+        );
         const start = Date.now();
         const reply = await batch.withObjects({ objects: serialized.mapped });
         const end = Date.now();

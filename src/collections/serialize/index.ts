@@ -179,6 +179,9 @@ class FilterGuards {
   };
 
   static isGeoRange = (argument?: FilterValueType): argument is GeoRangeFilter => {
+    if (argument === undefined) {
+      return false;
+    }
     const arg = argument as GeoRangeFilter;
     return arg.latitude !== undefined && arg.longitude !== undefined && arg.distance !== undefined;
   };
@@ -375,6 +378,15 @@ export class Serialize {
   };
 
   public static fetchObjectById = <T>(args: { id: string } & FetchObjectByIdOptions<T>): SearchFetchArgs => {
+    console.log({
+      ...Serialize.common({
+        filters: new FilterId().equal(args.id),
+        includeVector: args.includeVector,
+        returnMetadata: ['creationTime', 'updateTime', 'isConsistent'],
+        returnProperties: args.returnProperties,
+        returnReferences: args.returnReferences,
+      }),
+    });
     return {
       ...Serialize.common({
         filters: new FilterId().equal(args.id),
@@ -1430,7 +1442,7 @@ export class Serialize {
   public static batchObjects = <T>(
     collection: string,
     objects: (DataObject<T> | NonReferenceInputs<T>)[],
-    usesNamedVectors: boolean,
+    requiresInsertFix: boolean,
     tenant?: string
   ): Promise<BatchObjects<T>> => {
     const objs: BatchObjectGRPC[] = [];
@@ -1461,7 +1473,7 @@ export class Serialize {
             name: k,
           })
         );
-      } else if (Array.isArray(obj.vectors) && usesNamedVectors) {
+      } else if (Array.isArray(obj.vectors) && requiresInsertFix) {
         vectors = [
           VectorsGrpc.fromPartial({
             vectorBytes: Serialize.vectorToBytes(obj.vectors),
