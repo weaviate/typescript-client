@@ -63,17 +63,12 @@ jobs:
         WCS_DUMMY_CI_PW: ${{ secrets.WCS_DUMMY_CI_PW }}
         AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
         OKTA_CLIENT_SECRET: ${{ secrets.OKTA_CLIENT_SECRET }}
-        WEAVIATE_VERSION: ${{ matrix.versions.weaviate }}
-      run: |
-        WEAVIATE_VERSION=${WEAVIATE_VERSION} npm test
-        npm run build
+      run: WEAVIATE_VERSION=${{ matrix.versions.weaviate }} npm test
     - name: "Run tests without authentication tests (for forks)"
       if: ${{ github.event.pull_request.head.repo.fork }}
-      env:
-        WEAVIATE_VERSION: ${{ matrix.versions.weaviate }}
-      run: |
-        WEAVIATE_VERSION=${WEAVIATE_VERSION} npm test
-        npm run build
+      run: WEAVIATE_VERSION=${{ matrix.versions.weaviate }} npm test
+    - name: "Transpile the package"
+      run: npm run build
     - name: "Stop Weaviate"
       run: ci/stop_dependencies.sh ${{ matrix.versions.weaviate }}
 
