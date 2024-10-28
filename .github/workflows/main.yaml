@@ -7,10 +7,10 @@ on:
   pull_request:
 
 env:
-  WEAVIATE_124: stable-v1.24-a8b364e
-  WEAVIATE_125: 1.25.21
+  WEAVIATE_124: 1.24.26
+  WEAVIATE_125: 1.25.22
   WEAVIATE_126: 1.26.7
-  WEAVIATE_127: 1.27.0
+  WEAVIATE_127: stable-v1.27-ce73cd1
 
 jobs:
   checks:
@@ -63,7 +63,7 @@ jobs:
     - name: "Run tests without authentication tests (for forks)"
       if: ${{ github.event.pull_request.head.repo.fork }}
       run: |
-        npm test
+        WEAVIATE_VERSION=${{ matrix.versions.weaviate }} npm test
         npm run build
     - name: "Stop Weaviate"
       run: ci/stop_dependencies.sh ${{ matrix.versions.weaviate }}
