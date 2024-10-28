@@ -31,13 +31,13 @@ describe('Integration testing of the ConnectionGRPC class', () => {
         port: container.getMappedPort(8080),
         grpcPort: container.getMappedPort(50051),
       });
-      expect(dbVersion.isLowerThan(1, 27, 0)).toBe(true); // change to 1.27.1 when it lands
+      expect(dbVersion.isLowerThan(1, 27, 0)).toBe(true); // TODO: change to 1.27.1 when it lands
     } catch (err) {
       expect(err).toBeInstanceOf(WeaviateStartUpError);
       expect((err as WeaviateStartUpError).message).toContain(
         'RESOURCE_EXHAUSTED: Attempted to send message with a size larger than 1'
       );
-      expect(dbVersion.isAtLeast(1, 27, 0)).toBe(true); // change to 1.27.1 when it lands
+      expect(dbVersion.isAtLeast(1, 27, 0)).toBe(true); // TODO: change to 1.27.1 when it lands
     }
   });
 });
