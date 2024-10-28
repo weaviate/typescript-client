@@ -63,6 +63,7 @@ jobs:
         WCS_DUMMY_CI_PW: ${{ secrets.WCS_DUMMY_CI_PW }}
         AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
         OKTA_CLIENT_SECRET: ${{ secrets.OKTA_CLIENT_SECRET }}
+        WEAVIATE_VERSION: ${{ matrix.versions.weaviate }}
       run: |
         npm test
         npm run build
