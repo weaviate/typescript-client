@@ -3,6 +3,7 @@ import { WeaviateInvalidInputError } from '../../errors.js';
 import {
   WeaviateClass,
   WeaviateInvertedIndexConfig,
+  WeaviateMultiTenancyConfig,
   WeaviateReplicationConfig,
   WeaviateVectorIndexConfig,
   WeaviateVectorsConfig,
@@ -10,6 +11,7 @@ import {
 import { QuantizerGuards } from '../configure/parsing.js';
 import {
   InvertedIndexConfigUpdate,
+  MultiTenancyConfigUpdate,
   ReplicationConfigUpdate,
   VectorConfigUpdate,
   VectorIndexConfigFlatUpdate,
@@ -65,6 +67,15 @@ export class MergeWithExisting {
     if (bm25 !== undefined) merged.bm25 = { ...current.bm25!, ...bm25 };
     if (stopwords !== undefined) merged.stopwords = { ...current.stopwords!, ...stopwords };
     return merged;
+  }
+
+  static multiTenancy(
+    current: WeaviateMultiTenancyConfig,
+    update?: MultiTenancyConfigUpdate
+  ): MultiTenancyConfigUpdate {
+    if (current === undefined) throw Error('Multi-tenancy config is missing from the class schema.');
+    if (update === undefined) return current;
+    return { ...current, ...update };
   }
 
   static replication(

@@ -31,6 +31,12 @@ export type InvertedIndexConfigUpdate = {
 
 export type MultiTenancyConfigCreate = RecursivePartial<MultiTenancyConfig>;
 
+export type MultiTenancyConfigUpdate = {
+  autoTenantActivation?: boolean;
+  autoTenantCreation?: boolean;
+  enabled?: boolean;
+};
+
 export type NestedPropertyCreate<T = undefined> = T extends undefined
   ? {
       name: string;
