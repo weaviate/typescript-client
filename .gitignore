@@ -12,3 +12,4 @@ weaviate-data/
 test.sh
 scratch/
 docs/
+dist/
