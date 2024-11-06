@@ -7,7 +7,16 @@ const isFilePromise = (file: string | Buffer): Promise<boolean> =>
     }
     fs.stat(file, (err, stats) => {
       if (err) {
+        if (err.code == 'ENAMETOOLONG') {
+          resolve(false);
+          return;
+        }
         reject(err);
+        return;
+      }
+      if (stats === undefined) {
+        resolve(false);
+        return;
       }
       resolve(stats.isFile());
     });
