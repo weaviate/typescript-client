@@ -9,7 +9,7 @@ const isFilePromise = (file: string | Buffer): Promise<boolean> =>
       if (err) {
         reject(err);
       }
-      if (stats == undefined) {
+      if (stats === undefined) {
         resolve(false);
       }
       resolve(stats.isFile());
