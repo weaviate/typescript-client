@@ -14,9 +14,18 @@ const isFilePromise = (file) =>
     }
     fs_1.default.stat(file, (err, stats) => {
       if (err) {
+        if (err.code == 'ENAMETOOLONG') {
+          resolve(false);
+          return;
+        }
         reject(err);
+        return;
       }
-      resolve(stats === undefined ? false : stats.isFile());
+      if (stats === undefined) {
+        resolve(false);
+        return;
+      }
+      resolve(stats.isFile());
     });
   });
 const isBuffer = (file) => file instanceof Buffer;
