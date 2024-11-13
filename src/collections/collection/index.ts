@@ -64,6 +64,12 @@ export interface Collection<T = undefined, N = string> {
    */
   iterator: (opts?: IteratorOptions<T>) => Iterator<T>;
   /**
+   * Use this method to return the total number of objects in the collection.
+   *
+   * This is a short-hand for calling `collection.aggregate.overAll().then(({ totalCount }) => totalCount)`.
+   */
+  length: () => Promise<number>;
+  /**
    * Use this method to return a collection object specific to a single consistency level.
    *
    * If replication is not configured for this collection then Weaviate will throw an error.
@@ -111,9 +117,16 @@ const collection = <T, N>(
     throw new WeaviateInvalidInputError(`The collection name must be a string, got: ${typeof name}`);
   }
   const capitalizedName = capitalizeCollectionName(name);
+  const aggregateCollection = aggregate<T>(
+    connection,
+    capitalizedName,
+    dbVersionSupport,
+    consistencyLevel,
+    tenant
+  );
   const queryCollection = query<T>(connection, capitalizedName, dbVersionSupport, consistencyLevel, tenant);
   return {
-    aggregate: aggregate<T>(connection, capitalizedName, dbVersionSupport, consistencyLevel, tenant),
+    aggregate: aggregateCollection,
     backup: backupCollection(connection, capitalizedName),
     config: config<T>(connection, capitalizedName, dbVersionSupport, tenant),
     data: data<T>(connection, capitalizedName, dbVersionSupport, consistencyLevel, tenant),
@@ -139,6 +152,7 @@ const collection = <T, N>(
           })
           .then((res) => res.objects)
       ),
+    length: () => aggregateCollection.overAll().then(({ totalCount }) => totalCount),
     withConsistency: (consistencyLevel: ConsistencyLevel) =>
       collection<T, N>(connection, capitalizedName, dbVersionSupport, consistencyLevel, tenant),
     withTenant: <TT extends TenantBase>(tenant: string | TT) =>
