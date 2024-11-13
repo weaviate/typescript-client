@@ -1,4 +1,9 @@
-import { ModuleConfig, PQEncoderDistribution, PQEncoderType, VectorDistance } from '../config/types/index.js';
+import {
+  ModuleConfig,
+  PQEncoderDistribution,
+  PQEncoderType,
+  VectorIndexFilterStrategy,
+} from '../config/types/index.js';
 import {
   BQConfigCreate,
   BQConfigUpdate,
@@ -187,6 +192,7 @@ const reconfigure = {
    * @param {number} [options.dynamicEfMax] The dynamic ef max. Default is 500.
    * @param {number} [options.dynamicEfMin] The dynamic ef min. Default is 100.
    * @param {number} [options.ef] The ef parameter. Default is -1.
+   * @param {VectorIndexFilterStrategy} [options.filterStrategy] The filter strategy. Default is 'sweeping'.
    * @param {number} [options.flatSearchCutoff] The flat search cutoff. Default is 40000.
    * @param {PQConfigUpdate | BQConfigUpdate} [options.quantizer] The quantizer configuration to use. Use `vectorIndex.quantizer.bq` or `vectorIndex.quantizer.pq` to make one.
    * @param {number} [options.vectorCacheMaxObjects] The maximum number of objects to cache in the vector cache. Default is 1000000000000.
@@ -197,6 +203,7 @@ const reconfigure = {
     dynamicEfMax?: number;
     dynamicEfMin?: number;
     ef?: number;
+    filterStrategy?: VectorIndexFilterStrategy;
     flatSearchCutoff?: number;
     quantizer?: PQConfigUpdate | BQConfigUpdate | SQConfigUpdate;
     vectorCacheMaxObjects?: number;

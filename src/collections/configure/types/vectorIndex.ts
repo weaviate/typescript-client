@@ -126,6 +126,8 @@ export type VectorIndexConfigHNSWCreateOptions = {
   efConstruction?: number;
   /** The flat search cutoff. Default is 40000. */
   flatSearchCutoff?: number;
+  /** The filter strategy to use. Default is 'sweeping'. */
+  filterStrategy?: VectorIndexFilterStrategy;
   /** The maximum number of connections. Default is 64. */
   maxConnections?: number;
   /** The quantizer configuration to use. Use `vectorIndex.quantizer.bq` or `vectorIndex.quantizer.pq` to make one. */

@@ -138,6 +138,7 @@ describe('Unit testing of the configure & reconfigure factory classes', () => {
         ef: 100,
         efConstruction: 256,
         flatSearchCutoff: 80000,
+        filterStrategy: 'acorn',
         maxConnections: 128,
         quantizer: configure.vectorIndex.quantizer.pq({
           bitCompression: true,
@@ -163,6 +164,7 @@ describe('Unit testing of the configure & reconfigure factory classes', () => {
           ef: 100,
           efConstruction: 256,
           flatSearchCutoff: 80000,
+          filterStrategy: 'acorn',
           maxConnections: 128,
           quantizer: {
             bitCompression: true,
