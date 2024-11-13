@@ -157,6 +157,40 @@ export class DbVersionSupport {
       };
     });
   };
+
+  supportsMultiVectorSearch = () => {
+    return this.dbVersionProvider.getVersion().then((version) => {
+      return {
+        version: version,
+        supports: version.isAtLeast(1, 26, 0),
+        message: this.errorMessage('Multi-vector search', version.show(), '1.26.0'),
+      };
+    });
+  };
+
+  supportsMultiVectorPerTargetSearch = () => {
+    return this.dbVersionProvider.getVersion().then((version) => {
+      return {
+        version: version,
+        supports: version.isAtLeast(1, 27, 0),
+        message: this.errorMessage('Multi-vector-per-target search', version.show(), '1.27.0'),
+      };
+    });
+  };
+
+  supportsMultiWeightsPerTargetSearch = () => {
+    return this.dbVersionProvider.getVersion().then((version) => {
+      return {
+        version: version,
+        supports: version.isAtLeast(1, 27, 0),
+        message: this.errorMessage(
+          'Multi-target vector search with multiple weights',
+          version.show(),
+          '1.27.0'
+        ),
+      };
+    });
+  };
 }
 
 const EMPTY_VERSION = '';

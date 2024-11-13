@@ -45,6 +45,7 @@ import {
   VectorIndexConfigFlat,
   VectorIndexConfigHNSW,
   VectorIndexConfigType,
+  VectorIndexFilterStrategy,
   VectorizerConfig,
 } from './types/index.js';
 
@@ -265,6 +266,7 @@ class ConfigMapping {
     return {
       factor: v.factor,
       asyncEnabled: v.asyncEnabled ? v.asyncEnabled : false,
+      deletionStrategy: v.deletionStrategy ? v.deletionStrategy : 'NoAutomatedResolution',
     };
   }
   static sharding(v?: WeaviateShardingConfig): ShardingConfig {
@@ -375,6 +377,7 @@ class ConfigMapping {
       dynamicEfFactor: v.dynamicEfFactor,
       ef: v.ef,
       efConstruction: v.efConstruction,
+      filterStrategy: exists<VectorIndexFilterStrategy>(v.filterStrategy) ? v.filterStrategy : 'sweeping',
       flatSearchCutoff: v.flatSearchCutoff,
       maxConnections: v.maxConnections,
       quantizer: quantizer,

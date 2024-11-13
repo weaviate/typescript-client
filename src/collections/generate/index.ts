@@ -3,10 +3,11 @@ import Connection from '../../connection/grpc.js';
 import { ConsistencyLevel } from '../../data/index.js';
 import { DbVersionSupport } from '../../utils/dbVersion.js';
 
-import { WeaviateInvalidInputError, WeaviateUnsupportedFeatureError } from '../../errors.js';
+import { WeaviateInvalidInputError } from '../../errors.js';
 import { toBase64FromMedia } from '../../index.js';
 import { SearchReply } from '../../proto/v1/search_get.js';
 import { Deserialize } from '../deserialize/index.js';
+import { Check } from '../query/check.js';
 import {
   BaseBm25Options,
   BaseHybridOptions,
@@ -34,24 +35,10 @@ import {
 import { Generate } from './types.js';
 
 class GenerateManager<T> implements Generate<T> {
-  private connection: Connection;
-  private name: string;
-  private dbVersionSupport: DbVersionSupport;
-  private consistencyLevel?: ConsistencyLevel;
-  private tenant?: string;
+  private check: Check<T>;
 
-  private constructor(
-    connection: Connection,
-    name: string,
-    dbVersionSupport: DbVersionSupport,
-    consistencyLevel?: ConsistencyLevel,
-    tenant?: string
-  ) {
-    this.connection = connection;
-    this.name = name;
-    this.dbVersionSupport = dbVersionSupport;
-    this.consistencyLevel = consistencyLevel;
-    this.tenant = tenant;
+  private constructor(check: Check<T>) {
+    this.check = check;
   }
 
   public static use<T>(
@@ -61,60 +48,11 @@ class GenerateManager<T> implements Generate<T> {
     consistencyLevel?: ConsistencyLevel,
     tenant?: string
   ): GenerateManager<T> {
-    return new GenerateManager<T>(connection, name, dbVersionSupport, consistencyLevel, tenant);
+    return new GenerateManager<T>(new Check<T>(connection, name, dbVersionSupport, consistencyLevel, tenant));
   }
 
-  private checkSupportForNamedVectors = async (opts?: BaseNearOptions<T>) => {
-    if (!Serialize.isNamedVectors(opts)) return;
-    const check = await this.dbVersionSupport.supportsNamedVectors();
-    if (!check.supports) throw new WeaviateUnsupportedFeatureError(check.message);
-  };
-
-  private checkSupportForBm25AndHybridGroupByQueries = async (query: 'Bm25' | 'Hybrid', opts?: any) => {
-    if (!Serialize.isGroupBy(opts)) return;
-    const check = await this.dbVersionSupport.supportsBm25AndHybridGroupByQueries();
-    if (!check.supports) throw new WeaviateUnsupportedFeatureError(check.message(query));
-  };
-
-  private checkSupportForHybridNearTextAndNearVectorSubSearches = async (opts?: HybridOptions<T>) => {
-    if (opts?.vector === undefined || Array.isArray(opts.vector)) return;
-    const check = await this.dbVersionSupport.supportsHybridNearTextAndNearVectorSubsearchQueries();
-    if (!check.supports) throw new WeaviateUnsupportedFeatureError(check.message);
-  };
-
-  private checkSupportForMultiTargetVectorSearch = async (opts?: BaseNearOptions<T>) => {
-    if (!Serialize.isMultiTargetVector(opts)) return false;
-    const check = await this.dbVersionSupport.supportsMultiTargetVectorSearch();
-    if (!check.supports) throw new WeaviateUnsupportedFeatureError(check.message);
-    return check.supports;
-  };
-
-  private nearSearch = async (opts?: BaseNearOptions<T>) => {
-    const [_, supportsTargets] = await Promise.all([
-      this.checkSupportForNamedVectors(opts),
-      this.checkSupportForMultiTargetVectorSearch(opts),
-    ]);
-    return {
-      search: await this.connection.search(this.name, this.consistencyLevel, this.tenant),
-      supportsTargets,
-    };
-  };
-
-  private hybridSearch = async (opts?: BaseHybridOptions<T>) => {
-    const [supportsTargets] = await Promise.all([
-      this.checkSupportForMultiTargetVectorSearch(opts),
-      this.checkSupportForNamedVectors(opts),
-      this.checkSupportForBm25AndHybridGroupByQueries('Hybrid', opts),
-      this.checkSupportForHybridNearTextAndNearVectorSubSearches(opts),
-    ]);
-    return {
-      search: await this.connection.search(this.name, this.consistencyLevel, this.tenant),
-      supportsTargets,
-    };
-  };
-
   private async parseReply(reply: SearchReply) {
-    const deserialize = await Deserialize.use(this.dbVersionSupport);
+    const deserialize = await Deserialize.use(this.check.dbVersionSupport);
     return deserialize.generate<T>(reply);
   }
 
@@ -122,7 +60,7 @@ class GenerateManager<T> implements Generate<T> {
     opts: SearchOptions<T> | GroupByOptions<T> | undefined,
     reply: SearchReply
   ) {
-    const deserialize = await Deserialize.use(this.dbVersionSupport);
+    const deserialize = await Deserialize.use(this.check.dbVersionSupport);
     return Serialize.isGroupBy(opts) ? deserialize.generateGroupBy<T>(reply) : deserialize.generate<T>(reply);
   }
 
@@ -130,9 +68,9 @@ class GenerateManager<T> implements Generate<T> {
     generate: GenerateOptions<T>,
     opts?: FetchObjectsOptions<T>
   ): Promise<GenerativeReturn<T>> {
-    return this.checkSupportForNamedVectors(opts)
-      .then(() => this.connection.search(this.name, this.consistencyLevel, this.tenant))
-      .then((search) =>
+    return this.check
+      .fetchObjects(opts)
+      .then(({ search }) =>
         search.withFetch({
           ...Serialize.fetchObjects(opts),
           generative: Serialize.generative(generate),
@@ -152,12 +90,9 @@ class GenerateManager<T> implements Generate<T> {
     opts: GroupByBm25Options<T>
   ): Promise<GenerativeGroupByReturn<T>>;
   public bm25(query: string, generate: GenerateOptions<T>, opts?: Bm25Options<T>): GenerateReturn<T> {
-    return Promise.all([
-      this.checkSupportForNamedVectors(opts),
-      this.checkSupportForBm25AndHybridGroupByQueries('Bm25', opts),
-    ])
-      .then(() => this.connection.search(this.name, this.consistencyLevel, this.tenant))
-      .then((search) =>
+    return this.check
+      .bm25(opts)
+      .then(({ search }) =>
         search.withBm25({
           ...Serialize.bm25({ query, ...opts }),
           generative: Serialize.generative(generate),
@@ -180,10 +115,17 @@ class GenerateManager<T> implements Generate<T> {
     opts: GroupByHybridOptions<T>
   ): Promise<GenerativeGroupByReturn<T>>;
   public hybrid(query: string, generate: GenerateOptions<T>, opts?: HybridOptions<T>): GenerateReturn<T> {
-    return this.hybridSearch(opts)
-      .then(({ search, supportsTargets }) =>
+    return this.check
+      .hybridSearch(opts)
+      .then(({ search, supportsTargets, supportsVectorsForTargets, supportsWeightsForTargets }) =>
         search.withHybrid({
-          ...Serialize.hybrid({ query, supportsTargets, ...opts }),
+          ...Serialize.hybrid({
+            query,
+            supportsTargets,
+            supportsVectorsForTargets,
+            supportsWeightsForTargets,
+            ...opts,
+          }),
           generative: Serialize.generative(generate),
           groupBy: Serialize.isGroupBy<GroupByHybridOptions<T>>(opts)
             ? Serialize.groupBy(opts.groupBy)
@@ -208,11 +150,17 @@ class GenerateManager<T> implements Generate<T> {
     generate: GenerateOptions<T>,
     opts?: NearOptions<T>
   ): GenerateReturn<T> {
-    return this.nearSearch(opts)
-      .then(({ search, supportsTargets }) =>
+    return this.check
+      .nearSearch(opts)
+      .then(({ search, supportsTargets, supportsWeightsForTargets }) =>
         toBase64FromMedia(image).then((image) =>
           search.withNearImage({
-            ...Serialize.nearImage({ image, supportsTargets, ...(opts ? opts : {}) }),
+            ...Serialize.nearImage({
+              image,
+              supportsTargets,
+              supportsWeightsForTargets,
+              ...(opts ? opts : {}),
+            }),
             generative: Serialize.generative(generate),
             groupBy: Serialize.isGroupBy<GroupByNearOptions<T>>(opts)
               ? Serialize.groupBy(opts.groupBy)
@@ -234,10 +182,16 @@ class GenerateManager<T> implements Generate<T> {
     opts: GroupByNearOptions<T>
   ): Promise<GenerativeGroupByReturn<T>>;
   public nearObject(id: string, generate: GenerateOptions<T>, opts?: NearOptions<T>): GenerateReturn<T> {
-    return this.nearSearch(opts)
-      .then(({ search, supportsTargets }) =>
+    return this.check
+      .nearSearch(opts)
+      .then(({ search, supportsTargets, supportsWeightsForTargets }) =>
         search.withNearObject({
-          ...Serialize.nearObject({ id, supportsTargets, ...(opts ? opts : {}) }),
+          ...Serialize.nearObject({
+            id,
+            supportsTargets,
+            supportsWeightsForTargets,
+            ...(opts ? opts : {}),
+          }),
           generative: Serialize.generative(generate),
           groupBy: Serialize.isGroupBy<GroupByNearOptions<T>>(opts)
             ? Serialize.groupBy(opts.groupBy)
@@ -262,10 +216,16 @@ class GenerateManager<T> implements Generate<T> {
     generate: GenerateOptions<T>,
     opts?: NearOptions<T>
   ): GenerateReturn<T> {
-    return this.nearSearch(opts)
-      .then(({ search, supportsTargets }) =>
+    return this.check
+      .nearSearch(opts)
+      .then(({ search, supportsTargets, supportsWeightsForTargets }) =>
         search.withNearText({
-          ...Serialize.nearText({ query, supportsTargets, ...(opts ? opts : {}) }),
+          ...Serialize.nearText({
+            query,
+            supportsTargets,
+            supportsWeightsForTargets,
+            ...(opts ? opts : {}),
+          }),
           generative: Serialize.generative(generate),
           groupBy: Serialize.isGroupBy<GroupByNearOptions<T>>(opts)
             ? Serialize.groupBy(opts.groupBy)
@@ -290,10 +250,17 @@ class GenerateManager<T> implements Generate<T> {
     generate: GenerateOptions<T>,
     opts?: NearOptions<T>
   ): GenerateReturn<T> {
-    return this.nearSearch(opts)
-      .then(({ search, supportsTargets }) =>
+    return this.check
+      .nearVector(vector, opts)
+      .then(({ search, supportsTargets, supportsVectorsForTargets, supportsWeightsForTargets }) =>
         search.withNearVector({
-          ...Serialize.nearVector({ vector, supportsTargets, ...(opts ? opts : {}) }),
+          ...Serialize.nearVector({
+            vector,
+            supportsTargets,
+            supportsVectorsForTargets,
+            supportsWeightsForTargets,
+            ...(opts ? opts : {}),
+          }),
           generative: Serialize.generative(generate),
           groupBy: Serialize.isGroupBy<GroupByNearOptions<T>>(opts)
             ? Serialize.groupBy(opts.groupBy)
@@ -321,10 +288,15 @@ class GenerateManager<T> implements Generate<T> {
     generate: GenerateOptions<T>,
     opts?: NearOptions<T>
   ): GenerateReturn<T> {
-    return this.nearSearch(opts)
-      .then(({ search, supportsTargets }) => {
+    return this.check
+      .nearSearch(opts)
+      .then(({ search, supportsTargets, supportsWeightsForTargets }) => {
         let reply: Promise<SearchReply>;
-        const args = { supportsTargets, ...(opts ? opts : {}) };
+        const args = {
+          supportsTargets,
+          supportsWeightsForTargets,
+          ...(opts ? opts : {}),
+        };
         const generative = Serialize.generative(generate);
         const groupBy = Serialize.isGroupBy<GroupByNearOptions<T>>(opts)
           ? Serialize.groupBy(opts.groupBy)

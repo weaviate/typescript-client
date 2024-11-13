@@ -6,7 +6,7 @@ import { InternalConnectionParams } from './http.js';
 import { ConsistencyLevel } from '../data/index.js';
 
 import { ChannelCredentials, ChannelOptions, createChannel, createClientFactory, Metadata } from 'nice-grpc';
-import { deadlineMiddleware } from 'nice-grpc-client-middleware-deadline';
+import { retryMiddleware } from 'nice-grpc-client-middleware-retry';
 
 import { HealthCheckResponse_ServingStatus, HealthDefinition } from '../proto/google/health/v1/health.js';
 import { WeaviateDefinition } from '../proto/v1/weaviate.js';
@@ -23,7 +23,7 @@ export interface GrpcConnectionParams extends InternalConnectionParams {
   grpcSecure: boolean;
 }
 
-const clientFactory = createClientFactory().use(deadlineMiddleware);
+const clientFactory = createClientFactory().use(retryMiddleware);
 
 const MAX_GRPC_MESSAGE_LENGTH = 104858000; // 10mb, needs to be synchronized with GRPC server
 

@@ -13,9 +13,10 @@ import {
   SearchNearVideoArgs,
 } from '../../grpc/searcher.js';
 import { Filters, Filters_Operator } from '../../proto/v1/base.js';
+import { GenerativeSearch } from '../../proto/v1/generative.js';
 import {
   BM25,
-  GenerativeSearch,
+  CombinationMethod,
   GroupBy,
   Hybrid,
   Hybrid_FusionType,
@@ -31,12 +32,15 @@ import {
   NearVector,
   NearVideoSearch,
   PropertiesRequest,
+  Targets,
 } from '../../proto/v1/search_get.js';
 import { Filters as FiltersFactory } from '../filters/classes.js';
 import filter from '../filters/index.js';
+import { TargetVectorInputType } from '../query/types.js';
 import { Reference } from '../references/index.js';
 import sort from '../sort/index.js';
 import { WeaviateField } from '../types/index.js';
+import multiTargetVector from '../vectors/multiTargetVector.js';
 import { DataGuards, Serialize } from './index.js';
 
 describe('Unit testing of Serialize', () => {
@@ -142,7 +146,7 @@ describe('Unit testing of Serialize', () => {
     });
   });
 
-  it('should parse args for hybrid', () => {
+  it('should parse args for simple hybrid', () => {
     const args = Serialize.hybrid({
       query: 'test',
       queryProperties: ['name'],
@@ -151,6 +155,8 @@ describe('Unit testing of Serialize', () => {
       targetVector: 'title',
       fusionType: 'Ranked',
       supportsTargets: false,
+      supportsVectorsForTargets: false,
+      supportsWeightsForTargets: false,
     });
     expect(args).toEqual<SearchHybridArgs>({
       hybridSearch: Hybrid.fromPartial({
@@ -165,6 +171,60 @@ describe('Unit testing of Serialize', () => {
     });
   });
 
+  it('should parse args for multi-vector & multi-target hybrid', () => {
+    const args = Serialize.hybrid({
+      query: 'test',
+      queryProperties: ['name'],
+      alpha: 0.6,
+      vector: {
+        title: [
+          [1, 2, 3],
+          [4, 5, 6],
+        ],
+        description: [7, 8, 9],
+      },
+      targetVector: multiTargetVector().manualWeights({ title: [0.5, 0.5], description: 0.5 }),
+      fusionType: 'Ranked',
+      supportsTargets: true,
+      supportsVectorsForTargets: true,
+      supportsWeightsForTargets: true,
+    });
+    expect(args).toEqual<SearchHybridArgs>({
+      hybridSearch: Hybrid.fromPartial({
+        query: 'test',
+        properties: ['name'],
+        alpha: 0.6,
+        nearVector: NearVector.fromPartial({
+          vectorForTargets: [
+            { name: 'title', vectorBytes: new Uint8Array(new Float32Array([1, 2, 3]).buffer) },
+            { name: 'title', vectorBytes: new Uint8Array(new Float32Array([4, 5, 6]).buffer) },
+            { name: 'description', vectorBytes: new Uint8Array(new Float32Array([7, 8, 9]).buffer) },
+          ],
+        }),
+        targets: Targets.fromPartial({
+          combination: CombinationMethod.COMBINATION_METHOD_TYPE_MANUAL,
+          targetVectors: ['title', 'title', 'description'],
+          weightsForTargets: [
+            {
+              target: 'title',
+              weight: 0.5,
+            },
+            {
+              target: 'title',
+              weight: 0.5,
+            },
+            {
+              target: 'description',
+              weight: 0.5,
+            },
+          ],
+        }),
+        fusionType: Hybrid_FusionType.FUSION_TYPE_RANKED,
+      }),
+      metadata: MetadataRequest.fromPartial({ uuid: true }),
+    });
+  });
+
   it('should parse args for nearAudio', () => {
     const args = Serialize.nearAudio({
       audio: 'audio',
@@ -172,6 +232,7 @@ describe('Unit testing of Serialize', () => {
       distance: 0.4,
       targetVector: 'audio',
       supportsTargets: false,
+      supportsWeightsForTargets: false,
     });
     expect(args).toEqual<SearchNearAudioArgs>({
       nearAudio: NearAudioSearch.fromPartial({
@@ -188,6 +249,7 @@ describe('Unit testing of Serialize', () => {
     const args = Serialize.nearDepth({
       depth: 'depth',
       supportsTargets: false,
+      supportsWeightsForTargets: false,
     });
     expect(args).toEqual<SearchNearDepthArgs>({
       nearDepth: NearDepthSearch.fromPartial({
@@ -201,6 +263,7 @@ describe('Unit testing of Serialize', () => {
     const args = Serialize.nearIMU({
       imu: 'imu',
       supportsTargets: false,
+      supportsWeightsForTargets: false,
     });
     expect(args).toEqual<SearchNearIMUArgs>({
       nearIMU: NearIMUSearch.fromPartial({
@@ -214,6 +277,7 @@ describe('Unit testing of Serialize', () => {
     const args = Serialize.nearImage({
       image: 'image',
       supportsTargets: false,
+      supportsWeightsForTargets: false,
     });
     expect(args).toEqual<SearchNearImageArgs>({
       nearImage: NearImageSearch.fromPartial({
@@ -227,6 +291,7 @@ describe('Unit testing of Serialize', () => {
     const args = Serialize.nearObject({
       id: 'id',
       supportsTargets: false,
+      supportsWeightsForTargets: false,
     });
     expect(args).toEqual<SearchNearObjectArgs>({
       nearObject: NearObject.fromPartial({
@@ -250,6 +315,7 @@ describe('Unit testing of Serialize', () => {
         force: 0.6,
       },
       supportsTargets: false,
+      supportsWeightsForTargets: false,
     });
     expect(args).toEqual<SearchNearTextArgs>({
       nearText: NearTextSearch.fromPartial({
@@ -273,6 +339,7 @@ describe('Unit testing of Serialize', () => {
     const args = Serialize.nearThermal({
       thermal: 'thermal',
       supportsTargets: false,
+      supportsWeightsForTargets: false,
     });
     expect(args).toEqual<SearchNearThermalArgs>({
       nearThermal: NearThermalSearch.fromPartial({
@@ -282,10 +349,12 @@ describe('Unit testing of Serialize', () => {
     });
   });
 
-  it('should parse args for nearVector', () => {
+  it('should parse args for nearVector with single vector', () => {
     const args = Serialize.nearVector({
       vector: [1, 2, 3],
       supportsTargets: false,
+      supportsVectorsForTargets: false,
+      supportsWeightsForTargets: false,
     });
     expect(args).toEqual<SearchNearVectorArgs>({
       nearVector: NearVector.fromPartial({
@@ -295,10 +364,59 @@ describe('Unit testing of Serialize', () => {
     });
   });
 
+  it('should parse args for nearVector with two named vectors and supportsTargets (<1.27.0)', () => {
+    const args = Serialize.nearVector({
+      vector: {
+        a: [1, 2, 3],
+        b: [4, 5, 6],
+      },
+      supportsTargets: true,
+      supportsVectorsForTargets: false,
+      supportsWeightsForTargets: false,
+    });
+    expect(args).toEqual<SearchNearVectorArgs>({
+      nearVector: NearVector.fromPartial({
+        vectorPerTarget: {
+          a: new Uint8Array(new Float32Array([1, 2, 3]).buffer),
+          b: new Uint8Array(new Float32Array([4, 5, 6]).buffer),
+        },
+        targets: { targetVectors: ['a', 'b'] },
+      }),
+      metadata: MetadataRequest.fromPartial({ uuid: true }),
+    });
+  });
+
+  it('should parse args for nearVector with two named vectors and all supports (==1.27.x)', () => {
+    const args = Serialize.nearVector({
+      vector: {
+        a: [
+          [1, 2, 3],
+          [4, 5, 6],
+        ],
+        b: [7, 8, 9],
+      },
+      supportsTargets: true,
+      supportsVectorsForTargets: true,
+      supportsWeightsForTargets: true,
+    });
+    expect(args).toEqual<SearchNearVectorArgs>({
+      nearVector: NearVector.fromPartial({
+        vectorForTargets: [
+          { name: 'a', vectorBytes: new Uint8Array(new Float32Array([1, 2, 3]).buffer) },
+          { name: 'a', vectorBytes: new Uint8Array(new Float32Array([4, 5, 6]).buffer) },
+          { name: 'b', vectorBytes: new Uint8Array(new Float32Array([7, 8, 9]).buffer) },
+        ],
+        targets: { targetVectors: ['a', 'a', 'b'] },
+      }),
+      metadata: MetadataRequest.fromPartial({ uuid: true }),
+    });
+  });
+
   it('should parse args for nearVideo', () => {
     const args = Serialize.nearVideo({
       video: 'video',
       supportsTargets: false,
+      supportsWeightsForTargets: false,
     });
     expect(args).toEqual<SearchNearVideoArgs>({
       nearVideo: NearVideoSearch.fromPartial({
@@ -318,6 +436,8 @@ describe('Unit testing of Serialize', () => {
       singleResponsePrompt: 'test',
       groupedProperties: ['name'],
       groupedResponseTask: 'testing',
+      single: undefined,
+      grouped: undefined,
     });
   });
 
@@ -489,6 +609,177 @@ describe('Unit testing of Serialize', () => {
         { beacon: 'weaviate://localhost/L/32' },
       ],
     });
+  });
+
+  it('should parse isMultiWeightPerTarget', () => {
+    expect(
+      Serialize.isMultiWeightPerTarget({
+        targetVector: 'a',
+      })
+    ).toEqual(false);
+    expect(
+      Serialize.isMultiWeightPerTarget({
+        targetVector: ['a'],
+      })
+    ).toEqual(false);
+    expect(
+      Serialize.isMultiWeightPerTarget({
+        targetVector: multiTargetVector().manualWeights({ a: 0.5, b: 0.5 }),
+      })
+    ).toEqual(false);
+    expect(
+      Serialize.isMultiWeightPerTarget({
+        targetVector: multiTargetVector().manualWeights({ a: [0.5, 0.5], b: 0.5 }),
+      })
+    ).toEqual(true);
+  });
+
+  describe('should parse TargetVectorInput type', () => {
+    type Out = {
+      targets?: Targets;
+      targetVectors?: string[];
+    };
+    type Test = {
+      name: string;
+      targetVector: TargetVectorInputType;
+      supportsTargets: boolean;
+      supportsWeightsForTargets: boolean;
+      out: Out;
+    };
+    const tests: Test[] = [
+      {
+        name: 'should parse single target vector into targets',
+        targetVector: 'a',
+        supportsTargets: true,
+        supportsWeightsForTargets: false,
+        out: {
+          targets: Targets.fromPartial({ targetVectors: ['a'] }),
+        },
+      },
+      {
+        name: 'should parse list of target vectors into targets',
+        targetVector: ['a', 'b'],
+        supportsTargets: true,
+        supportsWeightsForTargets: false,
+        out: {
+          targets: Targets.fromPartial({ targetVectors: ['a', 'b'] }),
+        },
+      },
+      {
+        name: 'should parse MultiTargetJoin sum',
+        targetVector: multiTargetVector().average(['a', 'b']),
+        supportsTargets: true,
+        supportsWeightsForTargets: false,
+        out: {
+          targets: Targets.fromPartial({
+            combination: CombinationMethod.COMBINATION_METHOD_TYPE_AVERAGE,
+            targetVectors: ['a', 'b'],
+          }),
+        },
+      },
+      {
+        name: 'should parse MultiTargetJoin manual single weight per target',
+        targetVector: multiTargetVector().manualWeights({ a: 0.5, b: 0.5 }),
+        supportsTargets: true,
+        supportsWeightsForTargets: false,
+        out: {
+          targets: Targets.fromPartial({
+            combination: CombinationMethod.COMBINATION_METHOD_TYPE_MANUAL,
+            targetVectors: ['a', 'b'],
+            weights: { a: 0.5, b: 0.5 },
+          }),
+        },
+      },
+      {
+        name: 'should parse MultiTargetJoin manual multiple weights per target',
+        targetVector: multiTargetVector().manualWeights({ a: [0.5, 0.5], b: 0.5 }),
+        supportsTargets: true,
+        supportsWeightsForTargets: true,
+        out: {
+          targets: Targets.fromPartial({
+            combination: CombinationMethod.COMBINATION_METHOD_TYPE_MANUAL,
+            targetVectors: ['a', 'a', 'b'],
+            weightsForTargets: [
+              { target: 'a', weight: 0.5 },
+              { target: 'a', weight: 0.5 },
+              { target: 'b', weight: 0.5 },
+            ],
+          }),
+        },
+      },
+      {
+        name: 'should parse MultiTargetJoin minimum',
+        targetVector: multiTargetVector().minimum(['a', 'b']),
+        supportsTargets: true,
+        supportsWeightsForTargets: false,
+        out: {
+          targets: Targets.fromPartial({
+            combination: CombinationMethod.COMBINATION_METHOD_TYPE_MIN,
+            targetVectors: ['a', 'b'],
+          }),
+        },
+      },
+      {
+        name: 'should parse MultiTargetJoin sum',
+        targetVector: multiTargetVector().average(['a', 'b']),
+        supportsTargets: true,
+        supportsWeightsForTargets: false,
+        out: {
+          targets: Targets.fromPartial({
+            combination: CombinationMethod.COMBINATION_METHOD_TYPE_AVERAGE,
+            targetVectors: ['a', 'b'],
+          }),
+        },
+      },
+      {
+        name: 'should parse MultiTargetJoin relativeScore single weight per target',
+        targetVector: multiTargetVector().relativeScore({ a: 0.5, b: 0.5 }),
+        supportsTargets: true,
+        supportsWeightsForTargets: false,
+        out: {
+          targets: Targets.fromPartial({
+            combination: CombinationMethod.COMBINATION_METHOD_TYPE_RELATIVE_SCORE,
+            targetVectors: ['a', 'b'],
+            weights: { a: 0.5, b: 0.5 },
+          }),
+        },
+      },
+      {
+        name: 'should parse MultiTargetJoin relativeScore multiple weights per target',
+        targetVector: multiTargetVector().relativeScore({ a: [0.5, 0.5], b: 0.5 }),
+        supportsTargets: true,
+        supportsWeightsForTargets: true,
+        out: {
+          targets: Targets.fromPartial({
+            combination: CombinationMethod.COMBINATION_METHOD_TYPE_RELATIVE_SCORE,
+            targetVectors: ['a', 'a', 'b'],
+            weightsForTargets: [
+              { target: 'a', weight: 0.5 },
+              { target: 'a', weight: 0.5 },
+              { target: 'b', weight: 0.5 },
+            ],
+          }),
+        },
+      },
+      {
+        name: 'should parse MultiTargetJoin sum',
+        targetVector: multiTargetVector().sum(['a', 'b']),
+        supportsTargets: true,
+        supportsWeightsForTargets: false,
+        out: {
+          targets: Targets.fromPartial({
+            combination: CombinationMethod.COMBINATION_METHOD_TYPE_SUM,
+            targetVectors: ['a', 'b'],
+          }),
+        },
+      },
+    ];
+    const test = (test: Test) =>
+      it(test.name, () => {
+        const args = Serialize.targetVector(test);
+        expect(args).toEqual<Out>(test.out);
+      });
+    tests.forEach(test);
   });
 
   describe('.filtersGRPC', () => {

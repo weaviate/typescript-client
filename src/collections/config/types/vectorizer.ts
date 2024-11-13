@@ -11,11 +11,18 @@ export type VectorConfig = Record<
   }
 >;
 
+/** @deprecated Use `multi2vec-google` instead. */
+type Multi2VecPalmVectorizer = 'multi2vec-palm';
+
+/** @deprecated Use `text2vec-google` instead. */
+type Text2VecPalmVectorizer = 'text2vec-palm';
+
 export type Vectorizer =
   | 'img2vec-neural'
   | 'multi2vec-clip'
   | 'multi2vec-bind'
-  | 'multi2vec-palm'
+  | Multi2VecPalmVectorizer
+  | 'multi2vec-google'
   | 'ref2vec-centroid'
   | 'text2vec-aws'
   | 'text2vec-azure-openai'
@@ -29,7 +36,8 @@ export type Vectorizer =
   | 'text2vec-octoai'
   | 'text2vec-ollama'
   | 'text2vec-openai'
-  | 'text2vec-palm'
+  | Text2VecPalmVectorizer
+  | 'text2vec-google'
   | 'text2vec-transformers'
   | 'text2vec-voyageai'
   | 'none';
@@ -113,12 +121,15 @@ export type Multi2VecBindConfig = {
   };
 };
 
-/** The configuration for multi-media vectorization using the PaLM model.
+/** @deprecated Use `Multi2VecGoogleConfig` instead. */
+export type Multi2VecPalmConfig = Multi2VecGoogleConfig;
+
+/** The configuration for multi-media vectorization using the Google module.
  *
  * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/google/embeddings) for detailed usage.
  */
-export type Multi2VecPalmConfig = {
-  /** The project ID of the Palm model. */
+export type Multi2VecGoogleConfig = {
+  /** The project ID of the model in GCP. */
   projectId: string;
   /** The location where the model runs. */
   location: string;
@@ -327,12 +338,15 @@ export type Text2VecOpenAIConfig = {
   vectorizeCollectionName?: boolean;
 };
 
+/** @deprecated Use `Text2VecGoogleConfig` instead. */
+export type Text2VecPalmConfig = Text2VecGoogleConfig;
+
 /**
- * The configuration for text vectorization using the PaLM module.
+ * The configuration for text vectorization using the Google module.
  *
  * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/google/embeddings) for detailed usage.
  */
-export type Text2VecPalmConfig = {
+export type Text2VecGoogleConfig = {
   /** The API endpoint to use without a leading scheme such as `http://`. */
   apiEndpoint?: string;
   /** The model ID to use. */
@@ -385,6 +399,7 @@ export type VectorizerConfig =
   | Img2VecNeuralConfig
   | Multi2VecClipConfig
   | Multi2VecBindConfig
+  | Multi2VecGoogleConfig
   | Multi2VecPalmConfig
   | Ref2VecCentroidConfig
   | Text2VecAWSConfig
@@ -392,6 +407,7 @@ export type VectorizerConfig =
   | Text2VecContextionaryConfig
   | Text2VecCohereConfig
   | Text2VecDatabricksConfig
+  | Text2VecGoogleConfig
   | Text2VecGPT4AllConfig
   | Text2VecHuggingFaceConfig
   | Text2VecJinaConfig
@@ -407,7 +423,9 @@ export type VectorizerConfigType<V> = V extends 'img2vec-neural'
   ? Multi2VecClipConfig | undefined
   : V extends 'multi2vec-bind'
   ? Multi2VecBindConfig | undefined
-  : V extends 'multi2vec-palm'
+  : V extends 'multi2vec-google'
+  ? Multi2VecGoogleConfig
+  : V extends Multi2VecPalmVectorizer
   ? Multi2VecPalmConfig
   : V extends 'ref2vec-centroid'
   ? Ref2VecCentroidConfig
@@ -419,6 +437,8 @@ export type VectorizerConfigType<V> = V extends 'img2vec-neural'
   ? Text2VecCohereConfig | undefined
   : V extends 'text2vec-databricks'
   ? Text2VecDatabricksConfig
+  : V extends 'text2vec-google'
+  ? Text2VecGoogleConfig | undefined
   : V extends 'text2vec-gpt4all'
   ? Text2VecGPT4AllConfig | undefined
   : V extends 'text2vec-huggingface'
@@ -435,7 +455,7 @@ export type VectorizerConfigType<V> = V extends 'img2vec-neural'
   ? Text2VecOpenAIConfig | undefined
   : V extends 'text2vec-azure-openai'
   ? Text2VecAzureOpenAIConfig
-  : V extends 'text2vec-palm'
+  : V extends Text2VecPalmVectorizer
   ? Text2VecPalmConfig | undefined
   : V extends 'text2vec-transformers'
   ? Text2VecTransformersConfig | undefined

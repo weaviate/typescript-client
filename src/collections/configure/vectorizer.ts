@@ -169,10 +169,12 @@ export const vectorizer = {
    *
    * @param {ConfigureNonTextVectorizerOptions<N, I, 'multi2vec-palm'>} opts The configuration options for the `multi2vec-palm` vectorizer.
    * @returns {VectorConfigCreate<PrimitiveKeys<T>[], N, I, 'multi2vec-palm'>} The configuration object.
+   * @deprecated Use `multi2VecGoogle` instead.
    */
   multi2VecPalm: <N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
     opts: ConfigureNonTextVectorizerOptions<N, I, 'multi2vec-palm'>
   ): VectorConfigCreate<never, N, I, 'multi2vec-palm'> => {
+    console.warn('The `multi2vec-palm` vectorizer is deprecated. Use `multi2vec-google` instead.');
     const { name, vectorIndexConfig, ...config } = opts;
     const imageFields = config.imageFields?.map(mapMulti2VecField);
     const textFields = config.textFields?.map(mapMulti2VecField);
@@ -185,6 +187,39 @@ export const vectorizer = {
       vectorIndexConfig,
       vectorizerConfig: {
         name: 'multi2vec-palm',
+        config: {
+          ...config,
+          imageFields: imageFields?.map((f) => f.name),
+          textFields: textFields?.map((f) => f.name),
+          videoFields: videoFields?.map((f) => f.name),
+          weights: Object.keys(weights).length === 0 ? undefined : weights,
+        },
+      },
+    });
+  },
+  /**
+   * Create a `VectorConfigCreate` object with the vectorizer set to `'multi2vec-google'`.
+   *
+   * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/google/embeddings-multimodal) for detailed usage.
+   *
+   * @param {ConfigureNonTextVectorizerOptions<N, I, 'multi2vec-google'>} opts The configuration options for the `multi2vec-google` vectorizer.
+   * @returns {VectorConfigCreate<PrimitiveKeys<T>[], N, I, 'multi2vec-google'>} The configuration object.
+   */
+  multi2VecGoogle: <N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
+    opts: ConfigureNonTextVectorizerOptions<N, I, 'multi2vec-google'>
+  ): VectorConfigCreate<never, N, I, 'multi2vec-google'> => {
+    const { name, vectorIndexConfig, ...config } = opts;
+    const imageFields = config.imageFields?.map(mapMulti2VecField);
+    const textFields = config.textFields?.map(mapMulti2VecField);
+    const videoFields = config.videoFields?.map(mapMulti2VecField);
+    let weights: Multi2VecPalmConfig['weights'] = {};
+    weights = formatMulti2VecFields(weights, 'imageFields', imageFields);
+    weights = formatMulti2VecFields(weights, 'textFields', textFields);
+    weights = formatMulti2VecFields(weights, 'videoFields', videoFields);
+    return makeVectorizer(name, {
+      vectorIndexConfig,
+      vectorizerConfig: {
+        name: 'multi2vec-google',
         config: {
           ...config,
           imageFields: imageFields?.map((f) => f.name),
@@ -474,16 +509,39 @@ export const vectorizer = {
    *
    * @param {ConfigureTextVectorizerOptions<T, N, I, 'text2vec-palm'>} opts The configuration for the `text2vec-palm` vectorizer.
    * @returns {VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2vec-palm'>} The configuration object.
+   * @deprecated Use `text2VecGoogle` instead.
    */
   text2VecPalm: <T, N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
     opts?: ConfigureTextVectorizerOptions<T, N, I, 'text2vec-palm'>
   ): VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2vec-palm'> => {
+    console.warn('The `text2VecPalm` vectorizer is deprecated. Use `text2VecGoogle` instead.');
     const { name, sourceProperties, vectorIndexConfig, ...config } = opts || {};
     return makeVectorizer(name, {
       sourceProperties,
       vectorIndexConfig,
       vectorizerConfig: {
         name: 'text2vec-palm',
+        config: Object.keys(config).length === 0 ? undefined : config,
+      },
+    });
+  },
+  /**
+   * Create a `VectorConfigCreate` object with the vectorizer set to `'text2vec-google'`.
+   *
+   * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/google/embeddings) for detailed usage.
+   *
+   * @param {ConfigureTextVectorizerOptions<T, N, I, 'text2vec-google'>} opts The configuration for the `text2vec-palm` vectorizer.
+   * @returns {VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2vec-google'>} The configuration object.
+   */
+  text2VecGoogle: <T, N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
+    opts?: ConfigureTextVectorizerOptions<T, N, I, 'text2vec-google'>
+  ): VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2vec-google'> => {
+    const { name, sourceProperties, vectorIndexConfig, ...config } = opts || {};
+    return makeVectorizer(name, {
+      sourceProperties,
+      vectorIndexConfig,
+      vectorizerConfig: {
+        name: 'text2vec-google',
         config: Object.keys(config).length === 0 ? undefined : config,
       },
     });
