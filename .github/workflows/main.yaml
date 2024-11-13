@@ -7,10 +7,10 @@ on:
   pull_request:
 
 env:
-  WEAVIATE_124: stable-v1.24-a8b364e
-  WEAVIATE_125: 1.25.21
-  WEAVIATE_126: 1.26.7
-  WEAVIATE_127: 1.27.0
+  WEAVIATE_124: 1.24.26
+  WEAVIATE_125: 1.25.25
+  WEAVIATE_126: 1.26.10
+  WEAVIATE_127: 1.27.3
 
 jobs:
   checks:
@@ -46,6 +46,12 @@ jobs:
     - uses: actions/setup-node@v3
       with:
         node-version: ${{ matrix.versions.node }}
+    - name: Login to Docker Hub
+      if: ${{ !github.event.pull_request.head.repo.fork && github.triggering_actor != 'dependabot[bot]' }}
+      uses: docker/login-action@v3
+      with:
+        username: ${{secrets.DOCKER_USERNAME}}
+        password: ${{secrets.DOCKER_PASSWORD}}
     - name: "Install dependencies"
       run: |
         npm ci
@@ -57,14 +63,12 @@ jobs:
         WCS_DUMMY_CI_PW: ${{ secrets.WCS_DUMMY_CI_PW }}
         AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
         OKTA_CLIENT_SECRET: ${{ secrets.OKTA_CLIENT_SECRET }}
-      run: |
-        npm test
-        npm run build
+      run: WEAVIATE_VERSION=${{ matrix.versions.weaviate }} npm test
     - name: "Run tests without authentication tests (for forks)"
       if: ${{ github.event.pull_request.head.repo.fork }}
-      run: |
-        npm test
-        npm run build
+      run: WEAVIATE_VERSION=${{ matrix.versions.weaviate }} npm test
+    - name: "Transpile the package"
+      run: npm run build
     - name: "Stop Weaviate"
       run: ci/stop_dependencies.sh ${{ matrix.versions.weaviate }}
 

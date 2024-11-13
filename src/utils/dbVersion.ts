@@ -1,4 +1,4 @@
-import ConnectionGRPC from '../connection/grpc.js';
+import { ConnectionGQL } from '../index.js';
 import MetaGetter from '../misc/metaGetter.js';
 
 export class DbVersionSupport {
@@ -128,6 +128,24 @@ export class DbVersionSupport {
     });
   };
 
+  requiresNamedVectorsInsertFix = () => {
+    return this.dbVersionProvider.getVersion().then((version) => {
+      return {
+        version: version,
+        supports:
+          (version.isAtLeast(1, 24, 0) && version.isLowerThan(1, 24, 26)) ||
+          (version.isAtLeast(1, 25, 0) && version.isLowerThan(1, 25, 22)) ||
+          (version.isAtLeast(1, 26, 0) && version.isLowerThan(1, 26, 8)) ||
+          (version.isAtLeast(1, 27, 0) && version.isLowerThan(1, 27, 1)),
+        message: this.errorMessage(
+          'Named vectors insert fix',
+          version.show(),
+          '1.24.0 <= x < 1.24.26, 1.25.0 <= x < 1.25.22, 1.26.0 <= x < 1.26.8, 1.27.0 <= x < 1.27.1'
+        ),
+      };
+    });
+  };
+
   supportsTenantsGetGRPCMethod = () => {
     return this.dbVersionProvider.getVersion().then((version) => {
       return {
@@ -239,7 +257,7 @@ export class DbVersionProvider implements VersionProvider {
   }
 }
 
-export function initDbVersionProvider(conn: ConnectionGRPC) {
+export function initDbVersionProvider(conn: ConnectionGQL) {
   const metaGetter = new MetaGetter(conn);
   const versionGetter = () => {
     return metaGetter.do().then((result) => (result.version ? result.version : ''));

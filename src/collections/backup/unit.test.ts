@@ -114,17 +114,17 @@ describe('Mock testing of backup cancellation', () => {
   });
 
   it('should throw while waiting for creation if backup is cancelled in the meantime', async () => {
-    const promise = client.backup.create({
-      backupId: BACKUP_ID,
-      backend: BACKEND,
-      waitForCompletion: true,
-    });
-    await client.backup.cancel({ backupId: BACKUP_ID, backend: BACKEND });
-    try {
-      await promise;
-    } catch (err) {
-      expect(err).toBeInstanceOf(WeaviateBackupCanceled);
-    }
+    const promise = client.backup
+      .create({
+        backupId: BACKUP_ID,
+        backend: BACKEND,
+        waitForCompletion: true,
+      })
+      .catch((err) => expect(err).toBeInstanceOf(WeaviateBackupCanceled));
+    await new Promise((resolve) => setTimeout(resolve, 1000)); // wait for backup creation to start before cancelling
+    const deleted = await client.backup.cancel({ backupId: BACKUP_ID, backend: BACKEND });
+    expect(deleted).toBe(true);
+    return promise;
   });
 
   it('should return true if creation cancellation was successful', async () => {

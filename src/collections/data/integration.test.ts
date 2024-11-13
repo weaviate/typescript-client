@@ -1020,7 +1020,11 @@ describe('Testing of BYOV insertion with legacy vectorizer', () => {
   it('should insert and retrieve many vectors using the new client', async () => {
     const client = await weaviate.connectToLocal();
     const collection = client.collections.get(collectionName);
-    const { uuids } = await collection.data.insertMany([{ vectors: [1, 2, 3] }, { vectors: [4, 5, 6] }]);
+    const { uuids, hasErrors } = await collection.data.insertMany([
+      { vectors: [1, 2, 3] },
+      { vectors: [4, 5, 6] },
+    ]);
+    expect(hasErrors).toBeFalsy();
     await collection.query
       .fetchObjectById(uuids[0], { includeVector: true })
       .then((res) => expect(res?.vectors.default).toEqual([1, 2, 3]));
