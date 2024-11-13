@@ -398,6 +398,8 @@ export interface definitions {
     version?: string;
     /** @description Module-specific meta information */
     modules?: { [key: string]: unknown };
+    /** @description Max message size for GRPC connection in bytes */
+    grpcMaxMessageSize?: number;
   };
   /** @description Multiple instances of references to other objects. */
   MultipleRef: definitions['SingleRef'][];

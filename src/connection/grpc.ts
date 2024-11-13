@@ -17,6 +17,7 @@ import TenantsManager, { Tenants } from '../grpc/tenantsManager.js';
 import { DbVersionSupport, initDbVersionProvider } from '../utils/dbVersion.js';
 
 import { WeaviateGRPCUnavailableError, WeaviateUnsupportedFeatureError } from '../errors.js';
+import { Meta } from '../openapi/types.js';
 
 export interface GrpcConnectionParams extends InternalConnectionParams {
   grpcAddress: string;
@@ -31,22 +32,33 @@ const MAX_GRPC_MESSAGE_LENGTH = 104858000; // 10mb, needs to be synchronized wit
 // which are tightly coupled to ConnectionGQL
 export default class ConnectionGRPC extends ConnectionGQL {
   private grpc: GrpcClient;
-  private grpcAddress: string;
 
-  private constructor(params: GrpcConnectionParams) {
+  private constructor(params: GrpcConnectionParams & { grpcMaxMessageLength: number }) {
     super(params);
     this.grpc = grpcClient(params);
-    this.grpcAddress = params.grpcAddress;
   }
 
-  static use = async (params: GrpcConnectionParams) => {
-    const connection = new ConnectionGRPC(params);
-    const dbVersionProvider = initDbVersionProvider(connection);
+  static use = (params: GrpcConnectionParams) => {
+    const rest = new ConnectionGQL(params);
+    const dbVersionProvider = initDbVersionProvider(rest);
     const dbVersionSupport = new DbVersionSupport(dbVersionProvider);
     if (params.skipInitChecks) {
-      return { connection, dbVersionProvider, dbVersionSupport };
+      return {
+        connection: new ConnectionGRPC({
+          ...params,
+          grpcMaxMessageLength: MAX_GRPC_MESSAGE_LENGTH,
+        }),
+        dbVersionProvider,
+        dbVersionSupport,
+      };
     }
-    await Promise.all([
+    return Promise.all([
+      ConnectionGRPC.connect(
+        params,
+        (rest.get('/meta', true) as Promise<Meta>).then(
+          (res: Meta) => res.grpcMaxMessageSize || MAX_GRPC_MESSAGE_LENGTH
+        )
+      ),
       dbVersionSupport.supportsCompatibleGrpcService().then((check) => {
         if (!check.supports) {
           throw new WeaviateUnsupportedFeatureError(
@@ -54,17 +66,28 @@ export default class ConnectionGRPC extends ConnectionGQL {
           );
         }
       }),
-      connection.connect(),
-    ]);
-    return { connection, dbVersionProvider, dbVersionSupport };
+    ]).then(([connection]) => {
+      return { connection, dbVersionProvider, dbVersionSupport };
+    });
   };
 
-  private async connect() {
-    const isHealthy = await this.grpc.health();
+  private static async connect(
+    params: GrpcConnectionParams,
+    grpcMaxLengthPromise: Promise<number>
+  ): Promise<ConnectionGRPC> {
+    const connection = await grpcMaxLengthPromise.then(
+      (grpcMaxMessageLength) =>
+        new ConnectionGRPC({
+          ...params,
+          grpcMaxMessageLength,
+        })
+    );
+    const isHealthy = await connection.grpc.health();
     if (!isHealthy) {
-      await this.close();
-      throw new WeaviateGRPCUnavailableError(this.grpcAddress);
+      await connection.close();
+      throw new WeaviateGRPCUnavailableError(params.grpcAddress);
     }
+    return connection;
   }
 
   search = (collection: string, consistencyLevel?: ConsistencyLevel, tenant?: string) => {
@@ -116,10 +139,10 @@ export interface GrpcClient {
   tenants: (collection: string, bearerToken?: string) => Tenants;
 }
 
-export const grpcClient = (config: GrpcConnectionParams): GrpcClient => {
+export const grpcClient = (config: GrpcConnectionParams & { grpcMaxMessageLength: number }): GrpcClient => {
   const channelOptions: ChannelOptions = {
-    'grpc.max_send_message_length': MAX_GRPC_MESSAGE_LENGTH,
-    'grpc.max_receive_message_length': MAX_GRPC_MESSAGE_LENGTH,
+    'grpc.max_send_message_length': config.grpcMaxMessageLength,
+    'grpc.max_receive_message_length': config.grpcMaxMessageLength,
   };
   if (config.grpcProxyUrl) {
     // grpc.http_proxy is not used by grpc.js under-the-hood
