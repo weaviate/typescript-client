@@ -32,6 +32,11 @@ export class MergeWithExisting {
         current.invertedIndexConfig,
         update.invertedIndex
       );
+    if (update.multiTenancy !== undefined)
+      current.multiTenancyConfig = MergeWithExisting.multiTenancy(
+        current.multiTenancyConfig,
+        update.multiTenancy
+      );
     if (update.replication !== undefined)
       current.replicationConfig = MergeWithExisting.replication(
         current.replicationConfig!,
@@ -58,7 +63,7 @@ export class MergeWithExisting {
 
   static invertedIndex(
     current: WeaviateInvertedIndexConfig,
-    update?: InvertedIndexConfigUpdate
+    update: InvertedIndexConfigUpdate
   ): WeaviateInvertedIndexConfig {
     if (current === undefined) throw Error('Inverted index config is missing from the class schema.');
     if (update === undefined) return current;
@@ -71,28 +76,25 @@ export class MergeWithExisting {
 
   static multiTenancy(
     current: WeaviateMultiTenancyConfig,
-    update?: MultiTenancyConfigUpdate
+    update: MultiTenancyConfigUpdate
   ): MultiTenancyConfigUpdate {
     if (current === undefined) throw Error('Multi-tenancy config is missing from the class schema.');
-    if (update === undefined) return current;
     return { ...current, ...update };
   }
 
   static replication(
     current: WeaviateReplicationConfig,
-    update?: ReplicationConfigUpdate
+    update: ReplicationConfigUpdate
   ): WeaviateReplicationConfig {
     if (current === undefined) throw Error('Replication config is missing from the class schema.');
-    if (update === undefined) return current;
     return { ...current, ...update };
   }
 
   static vectors(
     current: WeaviateVectorsConfig,
-    update?: VectorConfigUpdate<string, VectorIndexType>[]
+    update: VectorConfigUpdate<string, VectorIndexType>[]
   ): WeaviateVectorsConfig {
     if (current === undefined) throw Error('Vector index config is missing from the class schema.');
-    if (update === undefined) return current;
     update.forEach((v) => {
       const existing = current[v.name];
       if (existing !== undefined) {
@@ -107,9 +109,8 @@ export class MergeWithExisting {
 
   static flat(
     current: WeaviateVectorIndexConfig,
-    update?: VectorIndexConfigFlatUpdate
+    update: VectorIndexConfigFlatUpdate
   ): WeaviateVectorIndexConfig {
-    if (update === undefined) return current;
     if (
       (QuantizerGuards.isPQUpdate(update.quantizer) && (current?.bq as any).enabled) ||
       (QuantizerGuards.isBQUpdate(update.quantizer) && (current?.pq as any).enabled)
@@ -126,9 +127,8 @@ export class MergeWithExisting {
 
   static hnsw(
     current: WeaviateVectorIndexConfig,
-    update?: VectorIndexConfigHNSWUpdate
+    update: VectorIndexConfigHNSWUpdate
   ): WeaviateVectorIndexConfig {
-    if (update === undefined) return current;
     if (
       (QuantizerGuards.isBQUpdate(update.quantizer) &&
         (((current?.pq as any) || {}).enabled || ((current?.sq as any) || {}).enabled)) ||
