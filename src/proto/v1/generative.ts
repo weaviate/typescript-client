@@ -31,7 +31,11 @@ export interface GenerativeSearch_Single {
 
 export interface GenerativeSearch_Grouped {
   task: string;
-  properties?: TextArray | undefined;
+  properties?:
+    | TextArray
+    | undefined;
+  /** only allow one at the beginning, but multiple in the future */
+  queries: GenerativeProvider[];
 }
 
 export interface GenerativeProvider {
@@ -42,10 +46,11 @@ export interface GenerativeProvider {
   cohere?: GenerativeCohere | undefined;
   dummy?: GenerativeDummy | undefined;
   mistral?: GenerativeMistral | undefined;
-  octoai?: GenerativeOctoAI | undefined;
   ollama?: GenerativeOllama | undefined;
   openai?: GenerativeOpenAI | undefined;
   google?: GenerativeGoogle | undefined;
+  databricks?: GenerativeDatabricks | undefined;
+  friendliai?: GenerativeFriendliAI | undefined;
 }
 
 export interface GenerativeAnthropic {
@@ -67,6 +72,11 @@ export interface GenerativeAnyscale {
 export interface GenerativeAWS {
   model?: string | undefined;
   temperature?: number | undefined;
+  service?: string | undefined;
+  region?: string | undefined;
+  endpoint?: string | undefined;
+  targetModel?: string | undefined;
+  targetVariant?: string | undefined;
 }
 
 export interface GenerativeCohere {
@@ -92,15 +102,6 @@ export interface GenerativeMistral {
   topP?: number | undefined;
 }
 
-export interface GenerativeOctoAI {
-  baseUrl?: string | undefined;
-  maxTokens?: number | undefined;
-  model?: string | undefined;
-  n?: number | undefined;
-  temperature?: number | undefined;
-  topP?: number | undefined;
-}
-
 export interface GenerativeOllama {
   apiEndpoint?: string | undefined;
   model?: string | undefined;
@@ -109,7 +110,6 @@ export interface GenerativeOllama {
 
 export interface GenerativeOpenAI {
   frequencyPenalty?: number | undefined;
-  logProbs?: boolean | undefined;
   maxTokens?: number | undefined;
   model: string;
   n?: number | undefined;
@@ -117,7 +117,11 @@ export interface GenerativeOpenAI {
   stop?: TextArray | undefined;
   temperature?: number | undefined;
   topP?: number | undefined;
-  topLogProbs?: number | undefined;
+  baseUrl?: string | undefined;
+  apiVersion?: string | undefined;
+  resourceName?: string | undefined;
+  deploymentId?: string | undefined;
+  isAzure?: boolean | undefined;
 }
 
 export interface GenerativeGoogle {
@@ -129,6 +133,33 @@ export interface GenerativeGoogle {
   topK?: number | undefined;
   topP?: number | undefined;
   stopSequences?: TextArray | undefined;
+  apiEndpoint?: string | undefined;
+  projectId?: string | undefined;
+  endpointId?: string | undefined;
+  region?: string | undefined;
+}
+
+export interface GenerativeDatabricks {
+  endpoint?: string | undefined;
+  model?: string | undefined;
+  frequencyPenalty?: number | undefined;
+  logProbs?: boolean | undefined;
+  topLogProbs?: number | undefined;
+  maxTokens?: number | undefined;
+  n?: number | undefined;
+  presencePenalty?: number | undefined;
+  stop?: TextArray | undefined;
+  temperature?: number | undefined;
+  topP?: number | undefined;
+}
+
+export interface GenerativeFriendliAI {
+  baseUrl?: string | undefined;
+  model?: string | undefined;
+  maxTokens?: number | undefined;
+  temperature?: number | undefined;
+  n?: number | undefined;
+  topP?: number | undefined;
 }
 
 export interface GenerativeAnthropicMetadata {
@@ -184,16 +215,6 @@ export interface GenerativeMistralMetadata_Usage {
   totalTokens?: number | undefined;
 }
 
-export interface GenerativeOctoAIMetadata {
-  usage?: GenerativeOctoAIMetadata_Usage | undefined;
-}
-
-export interface GenerativeOctoAIMetadata_Usage {
-  promptTokens?: number | undefined;
-  completionTokens?: number | undefined;
-  totalTokens?: number | undefined;
-}
-
 export interface GenerativeOllamaMetadata {
 }
 
@@ -232,6 +253,26 @@ export interface GenerativeGoogleMetadata_UsageMetadata {
   totalTokenCount?: number | undefined;
 }
 
+export interface GenerativeDatabricksMetadata {
+  usage?: GenerativeDatabricksMetadata_Usage | undefined;
+}
+
+export interface GenerativeDatabricksMetadata_Usage {
+  promptTokens?: number | undefined;
+  completionTokens?: number | undefined;
+  totalTokens?: number | undefined;
+}
+
+export interface GenerativeFriendliAIMetadata {
+  usage?: GenerativeFriendliAIMetadata_Usage | undefined;
+}
+
+export interface GenerativeFriendliAIMetadata_Usage {
+  promptTokens?: number | undefined;
+  completionTokens?: number | undefined;
+  totalTokens?: number | undefined;
+}
+
 export interface GenerativeMetadata {
   anthropic?: GenerativeAnthropicMetadata | undefined;
   anyscale?: GenerativeAnyscaleMetadata | undefined;
@@ -239,10 +280,11 @@ export interface GenerativeMetadata {
   cohere?: GenerativeCohereMetadata | undefined;
   dummy?: GenerativeDummyMetadata | undefined;
   mistral?: GenerativeMistralMetadata | undefined;
-  octoai?: GenerativeOctoAIMetadata | undefined;
   ollama?: GenerativeOllamaMetadata | undefined;
   openai?: GenerativeOpenAIMetadata | undefined;
   google?: GenerativeGoogleMetadata | undefined;
+  databricks?: GenerativeDatabricksMetadata | undefined;
+  friendliai?: GenerativeFriendliAIMetadata | undefined;
 }
 
 export interface GenerativeReply {
@@ -482,7 +524,7 @@ export const GenerativeSearch_Single = {
 };
 
 function createBaseGenerativeSearch_Grouped(): GenerativeSearch_Grouped {
-  return { task: "", properties: undefined };
+  return { task: "", properties: undefined, queries: [] };
 }
 
 export const GenerativeSearch_Grouped = {
@@ -492,6 +534,9 @@ export const GenerativeSearch_Grouped = {
     }
     if (message.properties !== undefined) {
       TextArray.encode(message.properties, writer.uint32(18).fork()).ldelim();
+    }
+    for (const v of message.queries) {
+      GenerativeProvider.encode(v!, writer.uint32(26).fork()).ldelim();
     }
     return writer;
   },
@@ -517,6 +562,13 @@ export const GenerativeSearch_Grouped = {
 
           message.properties = TextArray.decode(reader, reader.uint32());
           continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.queries.push(GenerativeProvider.decode(reader, reader.uint32()));
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -530,6 +582,9 @@ export const GenerativeSearch_Grouped = {
     return {
       task: isSet(object.task) ? globalThis.String(object.task) : "",
       properties: isSet(object.properties) ? TextArray.fromJSON(object.properties) : undefined,
+      queries: globalThis.Array.isArray(object?.queries)
+        ? object.queries.map((e: any) => GenerativeProvider.fromJSON(e))
+        : [],
     };
   },
 
@@ -540,6 +595,9 @@ export const GenerativeSearch_Grouped = {
     }
     if (message.properties !== undefined) {
       obj.properties = TextArray.toJSON(message.properties);
+    }
+    if (message.queries?.length) {
+      obj.queries = message.queries.map((e) => GenerativeProvider.toJSON(e));
     }
     return obj;
   },
@@ -553,6 +611,7 @@ export const GenerativeSearch_Grouped = {
     message.properties = (object.properties !== undefined && object.properties !== null)
       ? TextArray.fromPartial(object.properties)
       : undefined;
+    message.queries = object.queries?.map((e) => GenerativeProvider.fromPartial(e)) || [];
     return message;
   },
 };
@@ -566,10 +625,11 @@ function createBaseGenerativeProvider(): GenerativeProvider {
     cohere: undefined,
     dummy: undefined,
     mistral: undefined,
-    octoai: undefined,
     ollama: undefined,
     openai: undefined,
     google: undefined,
+    databricks: undefined,
+    friendliai: undefined,
   };
 }
 
@@ -596,17 +656,20 @@ export const GenerativeProvider = {
     if (message.mistral !== undefined) {
       GenerativeMistral.encode(message.mistral, writer.uint32(58).fork()).ldelim();
     }
-    if (message.octoai !== undefined) {
-      GenerativeOctoAI.encode(message.octoai, writer.uint32(66).fork()).ldelim();
-    }
     if (message.ollama !== undefined) {
-      GenerativeOllama.encode(message.ollama, writer.uint32(74).fork()).ldelim();
+      GenerativeOllama.encode(message.ollama, writer.uint32(66).fork()).ldelim();
     }
     if (message.openai !== undefined) {
-      GenerativeOpenAI.encode(message.openai, writer.uint32(82).fork()).ldelim();
+      GenerativeOpenAI.encode(message.openai, writer.uint32(74).fork()).ldelim();
     }
     if (message.google !== undefined) {
-      GenerativeGoogle.encode(message.google, writer.uint32(90).fork()).ldelim();
+      GenerativeGoogle.encode(message.google, writer.uint32(82).fork()).ldelim();
+    }
+    if (message.databricks !== undefined) {
+      GenerativeDatabricks.encode(message.databricks, writer.uint32(90).fork()).ldelim();
+    }
+    if (message.friendliai !== undefined) {
+      GenerativeFriendliAI.encode(message.friendliai, writer.uint32(98).fork()).ldelim();
     }
     return writer;
   },
@@ -672,28 +735,35 @@ export const GenerativeProvider = {
             break;
           }
 
-          message.octoai = GenerativeOctoAI.decode(reader, reader.uint32());
+          message.ollama = GenerativeOllama.decode(reader, reader.uint32());
           continue;
         case 9:
           if (tag !== 74) {
             break;
           }
 
-          message.ollama = GenerativeOllama.decode(reader, reader.uint32());
+          message.openai = GenerativeOpenAI.decode(reader, reader.uint32());
           continue;
         case 10:
           if (tag !== 82) {
             break;
           }
 
-          message.openai = GenerativeOpenAI.decode(reader, reader.uint32());
+          message.google = GenerativeGoogle.decode(reader, reader.uint32());
           continue;
         case 11:
           if (tag !== 90) {
             break;
           }
 
-          message.google = GenerativeGoogle.decode(reader, reader.uint32());
+          message.databricks = GenerativeDatabricks.decode(reader, reader.uint32());
+          continue;
+        case 12:
+          if (tag !== 98) {
+            break;
+          }
+
+          message.friendliai = GenerativeFriendliAI.decode(reader, reader.uint32());
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -713,10 +783,11 @@ export const GenerativeProvider = {
       cohere: isSet(object.cohere) ? GenerativeCohere.fromJSON(object.cohere) : undefined,
       dummy: isSet(object.dummy) ? GenerativeDummy.fromJSON(object.dummy) : undefined,
       mistral: isSet(object.mistral) ? GenerativeMistral.fromJSON(object.mistral) : undefined,
-      octoai: isSet(object.octoai) ? GenerativeOctoAI.fromJSON(object.octoai) : undefined,
       ollama: isSet(object.ollama) ? GenerativeOllama.fromJSON(object.ollama) : undefined,
       openai: isSet(object.openai) ? GenerativeOpenAI.fromJSON(object.openai) : undefined,
       google: isSet(object.google) ? GenerativeGoogle.fromJSON(object.google) : undefined,
+      databricks: isSet(object.databricks) ? GenerativeDatabricks.fromJSON(object.databricks) : undefined,
+      friendliai: isSet(object.friendliai) ? GenerativeFriendliAI.fromJSON(object.friendliai) : undefined,
     };
   },
 
@@ -743,9 +814,6 @@ export const GenerativeProvider = {
     if (message.mistral !== undefined) {
       obj.mistral = GenerativeMistral.toJSON(message.mistral);
     }
-    if (message.octoai !== undefined) {
-      obj.octoai = GenerativeOctoAI.toJSON(message.octoai);
-    }
     if (message.ollama !== undefined) {
       obj.ollama = GenerativeOllama.toJSON(message.ollama);
     }
@@ -754,6 +822,12 @@ export const GenerativeProvider = {
     }
     if (message.google !== undefined) {
       obj.google = GenerativeGoogle.toJSON(message.google);
+    }
+    if (message.databricks !== undefined) {
+      obj.databricks = GenerativeDatabricks.toJSON(message.databricks);
+    }
+    if (message.friendliai !== undefined) {
+      obj.friendliai = GenerativeFriendliAI.toJSON(message.friendliai);
     }
     return obj;
   },
@@ -780,9 +854,6 @@ export const GenerativeProvider = {
     message.mistral = (object.mistral !== undefined && object.mistral !== null)
       ? GenerativeMistral.fromPartial(object.mistral)
       : undefined;
-    message.octoai = (object.octoai !== undefined && object.octoai !== null)
-      ? GenerativeOctoAI.fromPartial(object.octoai)
-      : undefined;
     message.ollama = (object.ollama !== undefined && object.ollama !== null)
       ? GenerativeOllama.fromPartial(object.ollama)
       : undefined;
@@ -791,6 +862,12 @@ export const GenerativeProvider = {
       : undefined;
     message.google = (object.google !== undefined && object.google !== null)
       ? GenerativeGoogle.fromPartial(object.google)
+      : undefined;
+    message.databricks = (object.databricks !== undefined && object.databricks !== null)
+      ? GenerativeDatabricks.fromPartial(object.databricks)
+      : undefined;
+    message.friendliai = (object.friendliai !== undefined && object.friendliai !== null)
+      ? GenerativeFriendliAI.fromPartial(object.friendliai)
       : undefined;
     return message;
   },
@@ -1045,7 +1122,15 @@ export const GenerativeAnyscale = {
 };
 
 function createBaseGenerativeAWS(): GenerativeAWS {
-  return { model: undefined, temperature: undefined };
+  return {
+    model: undefined,
+    temperature: undefined,
+    service: undefined,
+    region: undefined,
+    endpoint: undefined,
+    targetModel: undefined,
+    targetVariant: undefined,
+  };
 }
 
 export const GenerativeAWS = {
@@ -1055,6 +1140,21 @@ export const GenerativeAWS = {
     }
     if (message.temperature !== undefined) {
       writer.uint32(65).double(message.temperature);
+    }
+    if (message.service !== undefined) {
+      writer.uint32(74).string(message.service);
+    }
+    if (message.region !== undefined) {
+      writer.uint32(82).string(message.region);
+    }
+    if (message.endpoint !== undefined) {
+      writer.uint32(90).string(message.endpoint);
+    }
+    if (message.targetModel !== undefined) {
+      writer.uint32(98).string(message.targetModel);
+    }
+    if (message.targetVariant !== undefined) {
+      writer.uint32(106).string(message.targetVariant);
     }
     return writer;
   },
@@ -1080,6 +1180,41 @@ export const GenerativeAWS = {
 
           message.temperature = reader.double();
           continue;
+        case 9:
+          if (tag !== 74) {
+            break;
+          }
+
+          message.service = reader.string();
+          continue;
+        case 10:
+          if (tag !== 82) {
+            break;
+          }
+
+          message.region = reader.string();
+          continue;
+        case 11:
+          if (tag !== 90) {
+            break;
+          }
+
+          message.endpoint = reader.string();
+          continue;
+        case 12:
+          if (tag !== 98) {
+            break;
+          }
+
+          message.targetModel = reader.string();
+          continue;
+        case 13:
+          if (tag !== 106) {
+            break;
+          }
+
+          message.targetVariant = reader.string();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1093,6 +1228,11 @@ export const GenerativeAWS = {
     return {
       model: isSet(object.model) ? globalThis.String(object.model) : undefined,
       temperature: isSet(object.temperature) ? globalThis.Number(object.temperature) : undefined,
+      service: isSet(object.service) ? globalThis.String(object.service) : undefined,
+      region: isSet(object.region) ? globalThis.String(object.region) : undefined,
+      endpoint: isSet(object.endpoint) ? globalThis.String(object.endpoint) : undefined,
+      targetModel: isSet(object.targetModel) ? globalThis.String(object.targetModel) : undefined,
+      targetVariant: isSet(object.targetVariant) ? globalThis.String(object.targetVariant) : undefined,
     };
   },
 
@@ -1104,6 +1244,21 @@ export const GenerativeAWS = {
     if (message.temperature !== undefined) {
       obj.temperature = message.temperature;
     }
+    if (message.service !== undefined) {
+      obj.service = message.service;
+    }
+    if (message.region !== undefined) {
+      obj.region = message.region;
+    }
+    if (message.endpoint !== undefined) {
+      obj.endpoint = message.endpoint;
+    }
+    if (message.targetModel !== undefined) {
+      obj.targetModel = message.targetModel;
+    }
+    if (message.targetVariant !== undefined) {
+      obj.targetVariant = message.targetVariant;
+    }
     return obj;
   },
 
@@ -1114,6 +1269,11 @@ export const GenerativeAWS = {
     const message = createBaseGenerativeAWS();
     message.model = object.model ?? undefined;
     message.temperature = object.temperature ?? undefined;
+    message.service = object.service ?? undefined;
+    message.region = object.region ?? undefined;
+    message.endpoint = object.endpoint ?? undefined;
+    message.targetModel = object.targetModel ?? undefined;
+    message.targetVariant = object.targetVariant ?? undefined;
     return message;
   },
 };
@@ -1471,147 +1631,6 @@ export const GenerativeMistral = {
   },
 };
 
-function createBaseGenerativeOctoAI(): GenerativeOctoAI {
-  return {
-    baseUrl: undefined,
-    maxTokens: undefined,
-    model: undefined,
-    n: undefined,
-    temperature: undefined,
-    topP: undefined,
-  };
-}
-
-export const GenerativeOctoAI = {
-  encode(message: GenerativeOctoAI, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.baseUrl !== undefined) {
-      writer.uint32(10).string(message.baseUrl);
-    }
-    if (message.maxTokens !== undefined) {
-      writer.uint32(16).int64(message.maxTokens);
-    }
-    if (message.model !== undefined) {
-      writer.uint32(26).string(message.model);
-    }
-    if (message.n !== undefined) {
-      writer.uint32(32).int64(message.n);
-    }
-    if (message.temperature !== undefined) {
-      writer.uint32(41).double(message.temperature);
-    }
-    if (message.topP !== undefined) {
-      writer.uint32(49).double(message.topP);
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): GenerativeOctoAI {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseGenerativeOctoAI();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          if (tag !== 10) {
-            break;
-          }
-
-          message.baseUrl = reader.string();
-          continue;
-        case 2:
-          if (tag !== 16) {
-            break;
-          }
-
-          message.maxTokens = longToNumber(reader.int64() as Long);
-          continue;
-        case 3:
-          if (tag !== 26) {
-            break;
-          }
-
-          message.model = reader.string();
-          continue;
-        case 4:
-          if (tag !== 32) {
-            break;
-          }
-
-          message.n = longToNumber(reader.int64() as Long);
-          continue;
-        case 5:
-          if (tag !== 41) {
-            break;
-          }
-
-          message.temperature = reader.double();
-          continue;
-        case 6:
-          if (tag !== 49) {
-            break;
-          }
-
-          message.topP = reader.double();
-          continue;
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): GenerativeOctoAI {
-    return {
-      baseUrl: isSet(object.baseUrl) ? globalThis.String(object.baseUrl) : undefined,
-      maxTokens: isSet(object.maxTokens) ? globalThis.Number(object.maxTokens) : undefined,
-      model: isSet(object.model) ? globalThis.String(object.model) : undefined,
-      n: isSet(object.n) ? globalThis.Number(object.n) : undefined,
-      temperature: isSet(object.temperature) ? globalThis.Number(object.temperature) : undefined,
-      topP: isSet(object.topP) ? globalThis.Number(object.topP) : undefined,
-    };
-  },
-
-  toJSON(message: GenerativeOctoAI): unknown {
-    const obj: any = {};
-    if (message.baseUrl !== undefined) {
-      obj.baseUrl = message.baseUrl;
-    }
-    if (message.maxTokens !== undefined) {
-      obj.maxTokens = Math.round(message.maxTokens);
-    }
-    if (message.model !== undefined) {
-      obj.model = message.model;
-    }
-    if (message.n !== undefined) {
-      obj.n = Math.round(message.n);
-    }
-    if (message.temperature !== undefined) {
-      obj.temperature = message.temperature;
-    }
-    if (message.topP !== undefined) {
-      obj.topP = message.topP;
-    }
-    return obj;
-  },
-
-  create(base?: DeepPartial<GenerativeOctoAI>): GenerativeOctoAI {
-    return GenerativeOctoAI.fromPartial(base ?? {});
-  },
-  fromPartial(object: DeepPartial<GenerativeOctoAI>): GenerativeOctoAI {
-    const message = createBaseGenerativeOctoAI();
-    message.baseUrl = object.baseUrl ?? undefined;
-    message.maxTokens = object.maxTokens ?? undefined;
-    message.model = object.model ?? undefined;
-    message.n = object.n ?? undefined;
-    message.temperature = object.temperature ?? undefined;
-    message.topP = object.topP ?? undefined;
-    return message;
-  },
-};
-
 function createBaseGenerativeOllama(): GenerativeOllama {
   return { apiEndpoint: undefined, model: undefined, temperature: undefined };
 }
@@ -1704,7 +1723,6 @@ export const GenerativeOllama = {
 function createBaseGenerativeOpenAI(): GenerativeOpenAI {
   return {
     frequencyPenalty: undefined,
-    logProbs: undefined,
     maxTokens: undefined,
     model: "",
     n: undefined,
@@ -1712,7 +1730,11 @@ function createBaseGenerativeOpenAI(): GenerativeOpenAI {
     stop: undefined,
     temperature: undefined,
     topP: undefined,
-    topLogProbs: undefined,
+    baseUrl: undefined,
+    apiVersion: undefined,
+    resourceName: undefined,
+    deploymentId: undefined,
+    isAzure: undefined,
   };
 }
 
@@ -1721,32 +1743,41 @@ export const GenerativeOpenAI = {
     if (message.frequencyPenalty !== undefined) {
       writer.uint32(9).double(message.frequencyPenalty);
     }
-    if (message.logProbs !== undefined) {
-      writer.uint32(16).bool(message.logProbs);
-    }
     if (message.maxTokens !== undefined) {
-      writer.uint32(24).int64(message.maxTokens);
+      writer.uint32(16).int64(message.maxTokens);
     }
     if (message.model !== "") {
-      writer.uint32(34).string(message.model);
+      writer.uint32(26).string(message.model);
     }
     if (message.n !== undefined) {
-      writer.uint32(40).int64(message.n);
+      writer.uint32(32).int64(message.n);
     }
     if (message.presencePenalty !== undefined) {
-      writer.uint32(49).double(message.presencePenalty);
+      writer.uint32(41).double(message.presencePenalty);
     }
     if (message.stop !== undefined) {
-      TextArray.encode(message.stop, writer.uint32(58).fork()).ldelim();
+      TextArray.encode(message.stop, writer.uint32(50).fork()).ldelim();
     }
     if (message.temperature !== undefined) {
-      writer.uint32(65).double(message.temperature);
+      writer.uint32(57).double(message.temperature);
     }
     if (message.topP !== undefined) {
-      writer.uint32(73).double(message.topP);
+      writer.uint32(65).double(message.topP);
     }
-    if (message.topLogProbs !== undefined) {
-      writer.uint32(80).int64(message.topLogProbs);
+    if (message.baseUrl !== undefined) {
+      writer.uint32(74).string(message.baseUrl);
+    }
+    if (message.apiVersion !== undefined) {
+      writer.uint32(82).string(message.apiVersion);
+    }
+    if (message.resourceName !== undefined) {
+      writer.uint32(90).string(message.resourceName);
+    }
+    if (message.deploymentId !== undefined) {
+      writer.uint32(98).string(message.deploymentId);
+    }
+    if (message.isAzure !== undefined) {
+      writer.uint32(104).bool(message.isAzure);
     }
     return writer;
   },
@@ -1770,63 +1801,84 @@ export const GenerativeOpenAI = {
             break;
           }
 
-          message.logProbs = reader.bool();
-          continue;
-        case 3:
-          if (tag !== 24) {
-            break;
-          }
-
           message.maxTokens = longToNumber(reader.int64() as Long);
           continue;
-        case 4:
-          if (tag !== 34) {
+        case 3:
+          if (tag !== 26) {
             break;
           }
 
           message.model = reader.string();
           continue;
-        case 5:
-          if (tag !== 40) {
+        case 4:
+          if (tag !== 32) {
             break;
           }
 
           message.n = longToNumber(reader.int64() as Long);
           continue;
-        case 6:
-          if (tag !== 49) {
+        case 5:
+          if (tag !== 41) {
             break;
           }
 
           message.presencePenalty = reader.double();
           continue;
-        case 7:
-          if (tag !== 58) {
+        case 6:
+          if (tag !== 50) {
             break;
           }
 
           message.stop = TextArray.decode(reader, reader.uint32());
+          continue;
+        case 7:
+          if (tag !== 57) {
+            break;
+          }
+
+          message.temperature = reader.double();
           continue;
         case 8:
           if (tag !== 65) {
             break;
           }
 
-          message.temperature = reader.double();
-          continue;
-        case 9:
-          if (tag !== 73) {
-            break;
-          }
-
           message.topP = reader.double();
           continue;
-        case 10:
-          if (tag !== 80) {
+        case 9:
+          if (tag !== 74) {
             break;
           }
 
-          message.topLogProbs = longToNumber(reader.int64() as Long);
+          message.baseUrl = reader.string();
+          continue;
+        case 10:
+          if (tag !== 82) {
+            break;
+          }
+
+          message.apiVersion = reader.string();
+          continue;
+        case 11:
+          if (tag !== 90) {
+            break;
+          }
+
+          message.resourceName = reader.string();
+          continue;
+        case 12:
+          if (tag !== 98) {
+            break;
+          }
+
+          message.deploymentId = reader.string();
+          continue;
+        case 13:
+          if (tag !== 104) {
+            break;
+          }
+
+          message.isAzure = reader.bool();
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -1840,7 +1892,6 @@ export const GenerativeOpenAI = {
   fromJSON(object: any): GenerativeOpenAI {
     return {
       frequencyPenalty: isSet(object.frequencyPenalty) ? globalThis.Number(object.frequencyPenalty) : undefined,
-      logProbs: isSet(object.logProbs) ? globalThis.Boolean(object.logProbs) : undefined,
       maxTokens: isSet(object.maxTokens) ? globalThis.Number(object.maxTokens) : undefined,
       model: isSet(object.model) ? globalThis.String(object.model) : "",
       n: isSet(object.n) ? globalThis.Number(object.n) : undefined,
@@ -1848,7 +1899,11 @@ export const GenerativeOpenAI = {
       stop: isSet(object.stop) ? TextArray.fromJSON(object.stop) : undefined,
       temperature: isSet(object.temperature) ? globalThis.Number(object.temperature) : undefined,
       topP: isSet(object.topP) ? globalThis.Number(object.topP) : undefined,
-      topLogProbs: isSet(object.topLogProbs) ? globalThis.Number(object.topLogProbs) : undefined,
+      baseUrl: isSet(object.baseUrl) ? globalThis.String(object.baseUrl) : undefined,
+      apiVersion: isSet(object.apiVersion) ? globalThis.String(object.apiVersion) : undefined,
+      resourceName: isSet(object.resourceName) ? globalThis.String(object.resourceName) : undefined,
+      deploymentId: isSet(object.deploymentId) ? globalThis.String(object.deploymentId) : undefined,
+      isAzure: isSet(object.isAzure) ? globalThis.Boolean(object.isAzure) : undefined,
     };
   },
 
@@ -1856,9 +1911,6 @@ export const GenerativeOpenAI = {
     const obj: any = {};
     if (message.frequencyPenalty !== undefined) {
       obj.frequencyPenalty = message.frequencyPenalty;
-    }
-    if (message.logProbs !== undefined) {
-      obj.logProbs = message.logProbs;
     }
     if (message.maxTokens !== undefined) {
       obj.maxTokens = Math.round(message.maxTokens);
@@ -1881,8 +1933,20 @@ export const GenerativeOpenAI = {
     if (message.topP !== undefined) {
       obj.topP = message.topP;
     }
-    if (message.topLogProbs !== undefined) {
-      obj.topLogProbs = Math.round(message.topLogProbs);
+    if (message.baseUrl !== undefined) {
+      obj.baseUrl = message.baseUrl;
+    }
+    if (message.apiVersion !== undefined) {
+      obj.apiVersion = message.apiVersion;
+    }
+    if (message.resourceName !== undefined) {
+      obj.resourceName = message.resourceName;
+    }
+    if (message.deploymentId !== undefined) {
+      obj.deploymentId = message.deploymentId;
+    }
+    if (message.isAzure !== undefined) {
+      obj.isAzure = message.isAzure;
     }
     return obj;
   },
@@ -1893,7 +1957,6 @@ export const GenerativeOpenAI = {
   fromPartial(object: DeepPartial<GenerativeOpenAI>): GenerativeOpenAI {
     const message = createBaseGenerativeOpenAI();
     message.frequencyPenalty = object.frequencyPenalty ?? undefined;
-    message.logProbs = object.logProbs ?? undefined;
     message.maxTokens = object.maxTokens ?? undefined;
     message.model = object.model ?? "";
     message.n = object.n ?? undefined;
@@ -1901,7 +1964,11 @@ export const GenerativeOpenAI = {
     message.stop = (object.stop !== undefined && object.stop !== null) ? TextArray.fromPartial(object.stop) : undefined;
     message.temperature = object.temperature ?? undefined;
     message.topP = object.topP ?? undefined;
-    message.topLogProbs = object.topLogProbs ?? undefined;
+    message.baseUrl = object.baseUrl ?? undefined;
+    message.apiVersion = object.apiVersion ?? undefined;
+    message.resourceName = object.resourceName ?? undefined;
+    message.deploymentId = object.deploymentId ?? undefined;
+    message.isAzure = object.isAzure ?? undefined;
     return message;
   },
 };
@@ -1916,6 +1983,10 @@ function createBaseGenerativeGoogle(): GenerativeGoogle {
     topK: undefined,
     topP: undefined,
     stopSequences: undefined,
+    apiEndpoint: undefined,
+    projectId: undefined,
+    endpointId: undefined,
+    region: undefined,
   };
 }
 
@@ -1944,6 +2015,18 @@ export const GenerativeGoogle = {
     }
     if (message.stopSequences !== undefined) {
       TextArray.encode(message.stopSequences, writer.uint32(66).fork()).ldelim();
+    }
+    if (message.apiEndpoint !== undefined) {
+      writer.uint32(74).string(message.apiEndpoint);
+    }
+    if (message.projectId !== undefined) {
+      writer.uint32(82).string(message.projectId);
+    }
+    if (message.endpointId !== undefined) {
+      writer.uint32(90).string(message.endpointId);
+    }
+    if (message.region !== undefined) {
+      writer.uint32(98).string(message.region);
     }
     return writer;
   },
@@ -2011,6 +2094,34 @@ export const GenerativeGoogle = {
 
           message.stopSequences = TextArray.decode(reader, reader.uint32());
           continue;
+        case 9:
+          if (tag !== 74) {
+            break;
+          }
+
+          message.apiEndpoint = reader.string();
+          continue;
+        case 10:
+          if (tag !== 82) {
+            break;
+          }
+
+          message.projectId = reader.string();
+          continue;
+        case 11:
+          if (tag !== 90) {
+            break;
+          }
+
+          message.endpointId = reader.string();
+          continue;
+        case 12:
+          if (tag !== 98) {
+            break;
+          }
+
+          message.region = reader.string();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -2030,6 +2141,10 @@ export const GenerativeGoogle = {
       topK: isSet(object.topK) ? globalThis.Number(object.topK) : undefined,
       topP: isSet(object.topP) ? globalThis.Number(object.topP) : undefined,
       stopSequences: isSet(object.stopSequences) ? TextArray.fromJSON(object.stopSequences) : undefined,
+      apiEndpoint: isSet(object.apiEndpoint) ? globalThis.String(object.apiEndpoint) : undefined,
+      projectId: isSet(object.projectId) ? globalThis.String(object.projectId) : undefined,
+      endpointId: isSet(object.endpointId) ? globalThis.String(object.endpointId) : undefined,
+      region: isSet(object.region) ? globalThis.String(object.region) : undefined,
     };
   },
 
@@ -2059,6 +2174,18 @@ export const GenerativeGoogle = {
     if (message.stopSequences !== undefined) {
       obj.stopSequences = TextArray.toJSON(message.stopSequences);
     }
+    if (message.apiEndpoint !== undefined) {
+      obj.apiEndpoint = message.apiEndpoint;
+    }
+    if (message.projectId !== undefined) {
+      obj.projectId = message.projectId;
+    }
+    if (message.endpointId !== undefined) {
+      obj.endpointId = message.endpointId;
+    }
+    if (message.region !== undefined) {
+      obj.region = message.region;
+    }
     return obj;
   },
 
@@ -2077,6 +2204,372 @@ export const GenerativeGoogle = {
     message.stopSequences = (object.stopSequences !== undefined && object.stopSequences !== null)
       ? TextArray.fromPartial(object.stopSequences)
       : undefined;
+    message.apiEndpoint = object.apiEndpoint ?? undefined;
+    message.projectId = object.projectId ?? undefined;
+    message.endpointId = object.endpointId ?? undefined;
+    message.region = object.region ?? undefined;
+    return message;
+  },
+};
+
+function createBaseGenerativeDatabricks(): GenerativeDatabricks {
+  return {
+    endpoint: undefined,
+    model: undefined,
+    frequencyPenalty: undefined,
+    logProbs: undefined,
+    topLogProbs: undefined,
+    maxTokens: undefined,
+    n: undefined,
+    presencePenalty: undefined,
+    stop: undefined,
+    temperature: undefined,
+    topP: undefined,
+  };
+}
+
+export const GenerativeDatabricks = {
+  encode(message: GenerativeDatabricks, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.endpoint !== undefined) {
+      writer.uint32(10).string(message.endpoint);
+    }
+    if (message.model !== undefined) {
+      writer.uint32(18).string(message.model);
+    }
+    if (message.frequencyPenalty !== undefined) {
+      writer.uint32(25).double(message.frequencyPenalty);
+    }
+    if (message.logProbs !== undefined) {
+      writer.uint32(32).bool(message.logProbs);
+    }
+    if (message.topLogProbs !== undefined) {
+      writer.uint32(40).int64(message.topLogProbs);
+    }
+    if (message.maxTokens !== undefined) {
+      writer.uint32(48).int64(message.maxTokens);
+    }
+    if (message.n !== undefined) {
+      writer.uint32(56).int64(message.n);
+    }
+    if (message.presencePenalty !== undefined) {
+      writer.uint32(65).double(message.presencePenalty);
+    }
+    if (message.stop !== undefined) {
+      TextArray.encode(message.stop, writer.uint32(74).fork()).ldelim();
+    }
+    if (message.temperature !== undefined) {
+      writer.uint32(81).double(message.temperature);
+    }
+    if (message.topP !== undefined) {
+      writer.uint32(89).double(message.topP);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): GenerativeDatabricks {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGenerativeDatabricks();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.endpoint = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.model = reader.string();
+          continue;
+        case 3:
+          if (tag !== 25) {
+            break;
+          }
+
+          message.frequencyPenalty = reader.double();
+          continue;
+        case 4:
+          if (tag !== 32) {
+            break;
+          }
+
+          message.logProbs = reader.bool();
+          continue;
+        case 5:
+          if (tag !== 40) {
+            break;
+          }
+
+          message.topLogProbs = longToNumber(reader.int64() as Long);
+          continue;
+        case 6:
+          if (tag !== 48) {
+            break;
+          }
+
+          message.maxTokens = longToNumber(reader.int64() as Long);
+          continue;
+        case 7:
+          if (tag !== 56) {
+            break;
+          }
+
+          message.n = longToNumber(reader.int64() as Long);
+          continue;
+        case 8:
+          if (tag !== 65) {
+            break;
+          }
+
+          message.presencePenalty = reader.double();
+          continue;
+        case 9:
+          if (tag !== 74) {
+            break;
+          }
+
+          message.stop = TextArray.decode(reader, reader.uint32());
+          continue;
+        case 10:
+          if (tag !== 81) {
+            break;
+          }
+
+          message.temperature = reader.double();
+          continue;
+        case 11:
+          if (tag !== 89) {
+            break;
+          }
+
+          message.topP = reader.double();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GenerativeDatabricks {
+    return {
+      endpoint: isSet(object.endpoint) ? globalThis.String(object.endpoint) : undefined,
+      model: isSet(object.model) ? globalThis.String(object.model) : undefined,
+      frequencyPenalty: isSet(object.frequencyPenalty) ? globalThis.Number(object.frequencyPenalty) : undefined,
+      logProbs: isSet(object.logProbs) ? globalThis.Boolean(object.logProbs) : undefined,
+      topLogProbs: isSet(object.topLogProbs) ? globalThis.Number(object.topLogProbs) : undefined,
+      maxTokens: isSet(object.maxTokens) ? globalThis.Number(object.maxTokens) : undefined,
+      n: isSet(object.n) ? globalThis.Number(object.n) : undefined,
+      presencePenalty: isSet(object.presencePenalty) ? globalThis.Number(object.presencePenalty) : undefined,
+      stop: isSet(object.stop) ? TextArray.fromJSON(object.stop) : undefined,
+      temperature: isSet(object.temperature) ? globalThis.Number(object.temperature) : undefined,
+      topP: isSet(object.topP) ? globalThis.Number(object.topP) : undefined,
+    };
+  },
+
+  toJSON(message: GenerativeDatabricks): unknown {
+    const obj: any = {};
+    if (message.endpoint !== undefined) {
+      obj.endpoint = message.endpoint;
+    }
+    if (message.model !== undefined) {
+      obj.model = message.model;
+    }
+    if (message.frequencyPenalty !== undefined) {
+      obj.frequencyPenalty = message.frequencyPenalty;
+    }
+    if (message.logProbs !== undefined) {
+      obj.logProbs = message.logProbs;
+    }
+    if (message.topLogProbs !== undefined) {
+      obj.topLogProbs = Math.round(message.topLogProbs);
+    }
+    if (message.maxTokens !== undefined) {
+      obj.maxTokens = Math.round(message.maxTokens);
+    }
+    if (message.n !== undefined) {
+      obj.n = Math.round(message.n);
+    }
+    if (message.presencePenalty !== undefined) {
+      obj.presencePenalty = message.presencePenalty;
+    }
+    if (message.stop !== undefined) {
+      obj.stop = TextArray.toJSON(message.stop);
+    }
+    if (message.temperature !== undefined) {
+      obj.temperature = message.temperature;
+    }
+    if (message.topP !== undefined) {
+      obj.topP = message.topP;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<GenerativeDatabricks>): GenerativeDatabricks {
+    return GenerativeDatabricks.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<GenerativeDatabricks>): GenerativeDatabricks {
+    const message = createBaseGenerativeDatabricks();
+    message.endpoint = object.endpoint ?? undefined;
+    message.model = object.model ?? undefined;
+    message.frequencyPenalty = object.frequencyPenalty ?? undefined;
+    message.logProbs = object.logProbs ?? undefined;
+    message.topLogProbs = object.topLogProbs ?? undefined;
+    message.maxTokens = object.maxTokens ?? undefined;
+    message.n = object.n ?? undefined;
+    message.presencePenalty = object.presencePenalty ?? undefined;
+    message.stop = (object.stop !== undefined && object.stop !== null) ? TextArray.fromPartial(object.stop) : undefined;
+    message.temperature = object.temperature ?? undefined;
+    message.topP = object.topP ?? undefined;
+    return message;
+  },
+};
+
+function createBaseGenerativeFriendliAI(): GenerativeFriendliAI {
+  return {
+    baseUrl: undefined,
+    model: undefined,
+    maxTokens: undefined,
+    temperature: undefined,
+    n: undefined,
+    topP: undefined,
+  };
+}
+
+export const GenerativeFriendliAI = {
+  encode(message: GenerativeFriendliAI, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.baseUrl !== undefined) {
+      writer.uint32(10).string(message.baseUrl);
+    }
+    if (message.model !== undefined) {
+      writer.uint32(18).string(message.model);
+    }
+    if (message.maxTokens !== undefined) {
+      writer.uint32(24).int64(message.maxTokens);
+    }
+    if (message.temperature !== undefined) {
+      writer.uint32(33).double(message.temperature);
+    }
+    if (message.n !== undefined) {
+      writer.uint32(40).int64(message.n);
+    }
+    if (message.topP !== undefined) {
+      writer.uint32(49).double(message.topP);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): GenerativeFriendliAI {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGenerativeFriendliAI();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.baseUrl = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.model = reader.string();
+          continue;
+        case 3:
+          if (tag !== 24) {
+            break;
+          }
+
+          message.maxTokens = longToNumber(reader.int64() as Long);
+          continue;
+        case 4:
+          if (tag !== 33) {
+            break;
+          }
+
+          message.temperature = reader.double();
+          continue;
+        case 5:
+          if (tag !== 40) {
+            break;
+          }
+
+          message.n = longToNumber(reader.int64() as Long);
+          continue;
+        case 6:
+          if (tag !== 49) {
+            break;
+          }
+
+          message.topP = reader.double();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GenerativeFriendliAI {
+    return {
+      baseUrl: isSet(object.baseUrl) ? globalThis.String(object.baseUrl) : undefined,
+      model: isSet(object.model) ? globalThis.String(object.model) : undefined,
+      maxTokens: isSet(object.maxTokens) ? globalThis.Number(object.maxTokens) : undefined,
+      temperature: isSet(object.temperature) ? globalThis.Number(object.temperature) : undefined,
+      n: isSet(object.n) ? globalThis.Number(object.n) : undefined,
+      topP: isSet(object.topP) ? globalThis.Number(object.topP) : undefined,
+    };
+  },
+
+  toJSON(message: GenerativeFriendliAI): unknown {
+    const obj: any = {};
+    if (message.baseUrl !== undefined) {
+      obj.baseUrl = message.baseUrl;
+    }
+    if (message.model !== undefined) {
+      obj.model = message.model;
+    }
+    if (message.maxTokens !== undefined) {
+      obj.maxTokens = Math.round(message.maxTokens);
+    }
+    if (message.temperature !== undefined) {
+      obj.temperature = message.temperature;
+    }
+    if (message.n !== undefined) {
+      obj.n = Math.round(message.n);
+    }
+    if (message.topP !== undefined) {
+      obj.topP = message.topP;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<GenerativeFriendliAI>): GenerativeFriendliAI {
+    return GenerativeFriendliAI.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<GenerativeFriendliAI>): GenerativeFriendliAI {
+    const message = createBaseGenerativeFriendliAI();
+    message.baseUrl = object.baseUrl ?? undefined;
+    message.model = object.model ?? undefined;
+    message.maxTokens = object.maxTokens ?? undefined;
+    message.temperature = object.temperature ?? undefined;
+    message.n = object.n ?? undefined;
+    message.topP = object.topP ?? undefined;
     return message;
   },
 };
@@ -2874,154 +3367,6 @@ export const GenerativeMistralMetadata_Usage = {
   },
 };
 
-function createBaseGenerativeOctoAIMetadata(): GenerativeOctoAIMetadata {
-  return { usage: undefined };
-}
-
-export const GenerativeOctoAIMetadata = {
-  encode(message: GenerativeOctoAIMetadata, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.usage !== undefined) {
-      GenerativeOctoAIMetadata_Usage.encode(message.usage, writer.uint32(10).fork()).ldelim();
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): GenerativeOctoAIMetadata {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseGenerativeOctoAIMetadata();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          if (tag !== 10) {
-            break;
-          }
-
-          message.usage = GenerativeOctoAIMetadata_Usage.decode(reader, reader.uint32());
-          continue;
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): GenerativeOctoAIMetadata {
-    return { usage: isSet(object.usage) ? GenerativeOctoAIMetadata_Usage.fromJSON(object.usage) : undefined };
-  },
-
-  toJSON(message: GenerativeOctoAIMetadata): unknown {
-    const obj: any = {};
-    if (message.usage !== undefined) {
-      obj.usage = GenerativeOctoAIMetadata_Usage.toJSON(message.usage);
-    }
-    return obj;
-  },
-
-  create(base?: DeepPartial<GenerativeOctoAIMetadata>): GenerativeOctoAIMetadata {
-    return GenerativeOctoAIMetadata.fromPartial(base ?? {});
-  },
-  fromPartial(object: DeepPartial<GenerativeOctoAIMetadata>): GenerativeOctoAIMetadata {
-    const message = createBaseGenerativeOctoAIMetadata();
-    message.usage = (object.usage !== undefined && object.usage !== null)
-      ? GenerativeOctoAIMetadata_Usage.fromPartial(object.usage)
-      : undefined;
-    return message;
-  },
-};
-
-function createBaseGenerativeOctoAIMetadata_Usage(): GenerativeOctoAIMetadata_Usage {
-  return { promptTokens: undefined, completionTokens: undefined, totalTokens: undefined };
-}
-
-export const GenerativeOctoAIMetadata_Usage = {
-  encode(message: GenerativeOctoAIMetadata_Usage, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.promptTokens !== undefined) {
-      writer.uint32(8).int64(message.promptTokens);
-    }
-    if (message.completionTokens !== undefined) {
-      writer.uint32(16).int64(message.completionTokens);
-    }
-    if (message.totalTokens !== undefined) {
-      writer.uint32(24).int64(message.totalTokens);
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): GenerativeOctoAIMetadata_Usage {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseGenerativeOctoAIMetadata_Usage();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          if (tag !== 8) {
-            break;
-          }
-
-          message.promptTokens = longToNumber(reader.int64() as Long);
-          continue;
-        case 2:
-          if (tag !== 16) {
-            break;
-          }
-
-          message.completionTokens = longToNumber(reader.int64() as Long);
-          continue;
-        case 3:
-          if (tag !== 24) {
-            break;
-          }
-
-          message.totalTokens = longToNumber(reader.int64() as Long);
-          continue;
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): GenerativeOctoAIMetadata_Usage {
-    return {
-      promptTokens: isSet(object.promptTokens) ? globalThis.Number(object.promptTokens) : undefined,
-      completionTokens: isSet(object.completionTokens) ? globalThis.Number(object.completionTokens) : undefined,
-      totalTokens: isSet(object.totalTokens) ? globalThis.Number(object.totalTokens) : undefined,
-    };
-  },
-
-  toJSON(message: GenerativeOctoAIMetadata_Usage): unknown {
-    const obj: any = {};
-    if (message.promptTokens !== undefined) {
-      obj.promptTokens = Math.round(message.promptTokens);
-    }
-    if (message.completionTokens !== undefined) {
-      obj.completionTokens = Math.round(message.completionTokens);
-    }
-    if (message.totalTokens !== undefined) {
-      obj.totalTokens = Math.round(message.totalTokens);
-    }
-    return obj;
-  },
-
-  create(base?: DeepPartial<GenerativeOctoAIMetadata_Usage>): GenerativeOctoAIMetadata_Usage {
-    return GenerativeOctoAIMetadata_Usage.fromPartial(base ?? {});
-  },
-  fromPartial(object: DeepPartial<GenerativeOctoAIMetadata_Usage>): GenerativeOctoAIMetadata_Usage {
-    const message = createBaseGenerativeOctoAIMetadata_Usage();
-    message.promptTokens = object.promptTokens ?? undefined;
-    message.completionTokens = object.completionTokens ?? undefined;
-    message.totalTokens = object.totalTokens ?? undefined;
-    return message;
-  },
-};
-
 function createBaseGenerativeOllamaMetadata(): GenerativeOllamaMetadata {
   return {};
 }
@@ -3605,6 +3950,302 @@ export const GenerativeGoogleMetadata_UsageMetadata = {
   },
 };
 
+function createBaseGenerativeDatabricksMetadata(): GenerativeDatabricksMetadata {
+  return { usage: undefined };
+}
+
+export const GenerativeDatabricksMetadata = {
+  encode(message: GenerativeDatabricksMetadata, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.usage !== undefined) {
+      GenerativeDatabricksMetadata_Usage.encode(message.usage, writer.uint32(10).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): GenerativeDatabricksMetadata {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGenerativeDatabricksMetadata();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.usage = GenerativeDatabricksMetadata_Usage.decode(reader, reader.uint32());
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GenerativeDatabricksMetadata {
+    return { usage: isSet(object.usage) ? GenerativeDatabricksMetadata_Usage.fromJSON(object.usage) : undefined };
+  },
+
+  toJSON(message: GenerativeDatabricksMetadata): unknown {
+    const obj: any = {};
+    if (message.usage !== undefined) {
+      obj.usage = GenerativeDatabricksMetadata_Usage.toJSON(message.usage);
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<GenerativeDatabricksMetadata>): GenerativeDatabricksMetadata {
+    return GenerativeDatabricksMetadata.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<GenerativeDatabricksMetadata>): GenerativeDatabricksMetadata {
+    const message = createBaseGenerativeDatabricksMetadata();
+    message.usage = (object.usage !== undefined && object.usage !== null)
+      ? GenerativeDatabricksMetadata_Usage.fromPartial(object.usage)
+      : undefined;
+    return message;
+  },
+};
+
+function createBaseGenerativeDatabricksMetadata_Usage(): GenerativeDatabricksMetadata_Usage {
+  return { promptTokens: undefined, completionTokens: undefined, totalTokens: undefined };
+}
+
+export const GenerativeDatabricksMetadata_Usage = {
+  encode(message: GenerativeDatabricksMetadata_Usage, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.promptTokens !== undefined) {
+      writer.uint32(8).int64(message.promptTokens);
+    }
+    if (message.completionTokens !== undefined) {
+      writer.uint32(16).int64(message.completionTokens);
+    }
+    if (message.totalTokens !== undefined) {
+      writer.uint32(24).int64(message.totalTokens);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): GenerativeDatabricksMetadata_Usage {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGenerativeDatabricksMetadata_Usage();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 8) {
+            break;
+          }
+
+          message.promptTokens = longToNumber(reader.int64() as Long);
+          continue;
+        case 2:
+          if (tag !== 16) {
+            break;
+          }
+
+          message.completionTokens = longToNumber(reader.int64() as Long);
+          continue;
+        case 3:
+          if (tag !== 24) {
+            break;
+          }
+
+          message.totalTokens = longToNumber(reader.int64() as Long);
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GenerativeDatabricksMetadata_Usage {
+    return {
+      promptTokens: isSet(object.promptTokens) ? globalThis.Number(object.promptTokens) : undefined,
+      completionTokens: isSet(object.completionTokens) ? globalThis.Number(object.completionTokens) : undefined,
+      totalTokens: isSet(object.totalTokens) ? globalThis.Number(object.totalTokens) : undefined,
+    };
+  },
+
+  toJSON(message: GenerativeDatabricksMetadata_Usage): unknown {
+    const obj: any = {};
+    if (message.promptTokens !== undefined) {
+      obj.promptTokens = Math.round(message.promptTokens);
+    }
+    if (message.completionTokens !== undefined) {
+      obj.completionTokens = Math.round(message.completionTokens);
+    }
+    if (message.totalTokens !== undefined) {
+      obj.totalTokens = Math.round(message.totalTokens);
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<GenerativeDatabricksMetadata_Usage>): GenerativeDatabricksMetadata_Usage {
+    return GenerativeDatabricksMetadata_Usage.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<GenerativeDatabricksMetadata_Usage>): GenerativeDatabricksMetadata_Usage {
+    const message = createBaseGenerativeDatabricksMetadata_Usage();
+    message.promptTokens = object.promptTokens ?? undefined;
+    message.completionTokens = object.completionTokens ?? undefined;
+    message.totalTokens = object.totalTokens ?? undefined;
+    return message;
+  },
+};
+
+function createBaseGenerativeFriendliAIMetadata(): GenerativeFriendliAIMetadata {
+  return { usage: undefined };
+}
+
+export const GenerativeFriendliAIMetadata = {
+  encode(message: GenerativeFriendliAIMetadata, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.usage !== undefined) {
+      GenerativeFriendliAIMetadata_Usage.encode(message.usage, writer.uint32(10).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): GenerativeFriendliAIMetadata {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGenerativeFriendliAIMetadata();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.usage = GenerativeFriendliAIMetadata_Usage.decode(reader, reader.uint32());
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GenerativeFriendliAIMetadata {
+    return { usage: isSet(object.usage) ? GenerativeFriendliAIMetadata_Usage.fromJSON(object.usage) : undefined };
+  },
+
+  toJSON(message: GenerativeFriendliAIMetadata): unknown {
+    const obj: any = {};
+    if (message.usage !== undefined) {
+      obj.usage = GenerativeFriendliAIMetadata_Usage.toJSON(message.usage);
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<GenerativeFriendliAIMetadata>): GenerativeFriendliAIMetadata {
+    return GenerativeFriendliAIMetadata.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<GenerativeFriendliAIMetadata>): GenerativeFriendliAIMetadata {
+    const message = createBaseGenerativeFriendliAIMetadata();
+    message.usage = (object.usage !== undefined && object.usage !== null)
+      ? GenerativeFriendliAIMetadata_Usage.fromPartial(object.usage)
+      : undefined;
+    return message;
+  },
+};
+
+function createBaseGenerativeFriendliAIMetadata_Usage(): GenerativeFriendliAIMetadata_Usage {
+  return { promptTokens: undefined, completionTokens: undefined, totalTokens: undefined };
+}
+
+export const GenerativeFriendliAIMetadata_Usage = {
+  encode(message: GenerativeFriendliAIMetadata_Usage, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.promptTokens !== undefined) {
+      writer.uint32(8).int64(message.promptTokens);
+    }
+    if (message.completionTokens !== undefined) {
+      writer.uint32(16).int64(message.completionTokens);
+    }
+    if (message.totalTokens !== undefined) {
+      writer.uint32(24).int64(message.totalTokens);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): GenerativeFriendliAIMetadata_Usage {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGenerativeFriendliAIMetadata_Usage();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 8) {
+            break;
+          }
+
+          message.promptTokens = longToNumber(reader.int64() as Long);
+          continue;
+        case 2:
+          if (tag !== 16) {
+            break;
+          }
+
+          message.completionTokens = longToNumber(reader.int64() as Long);
+          continue;
+        case 3:
+          if (tag !== 24) {
+            break;
+          }
+
+          message.totalTokens = longToNumber(reader.int64() as Long);
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GenerativeFriendliAIMetadata_Usage {
+    return {
+      promptTokens: isSet(object.promptTokens) ? globalThis.Number(object.promptTokens) : undefined,
+      completionTokens: isSet(object.completionTokens) ? globalThis.Number(object.completionTokens) : undefined,
+      totalTokens: isSet(object.totalTokens) ? globalThis.Number(object.totalTokens) : undefined,
+    };
+  },
+
+  toJSON(message: GenerativeFriendliAIMetadata_Usage): unknown {
+    const obj: any = {};
+    if (message.promptTokens !== undefined) {
+      obj.promptTokens = Math.round(message.promptTokens);
+    }
+    if (message.completionTokens !== undefined) {
+      obj.completionTokens = Math.round(message.completionTokens);
+    }
+    if (message.totalTokens !== undefined) {
+      obj.totalTokens = Math.round(message.totalTokens);
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<GenerativeFriendliAIMetadata_Usage>): GenerativeFriendliAIMetadata_Usage {
+    return GenerativeFriendliAIMetadata_Usage.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<GenerativeFriendliAIMetadata_Usage>): GenerativeFriendliAIMetadata_Usage {
+    const message = createBaseGenerativeFriendliAIMetadata_Usage();
+    message.promptTokens = object.promptTokens ?? undefined;
+    message.completionTokens = object.completionTokens ?? undefined;
+    message.totalTokens = object.totalTokens ?? undefined;
+    return message;
+  },
+};
+
 function createBaseGenerativeMetadata(): GenerativeMetadata {
   return {
     anthropic: undefined,
@@ -3613,10 +4254,11 @@ function createBaseGenerativeMetadata(): GenerativeMetadata {
     cohere: undefined,
     dummy: undefined,
     mistral: undefined,
-    octoai: undefined,
     ollama: undefined,
     openai: undefined,
     google: undefined,
+    databricks: undefined,
+    friendliai: undefined,
   };
 }
 
@@ -3640,17 +4282,20 @@ export const GenerativeMetadata = {
     if (message.mistral !== undefined) {
       GenerativeMistralMetadata.encode(message.mistral, writer.uint32(50).fork()).ldelim();
     }
-    if (message.octoai !== undefined) {
-      GenerativeOctoAIMetadata.encode(message.octoai, writer.uint32(58).fork()).ldelim();
-    }
     if (message.ollama !== undefined) {
-      GenerativeOllamaMetadata.encode(message.ollama, writer.uint32(66).fork()).ldelim();
+      GenerativeOllamaMetadata.encode(message.ollama, writer.uint32(58).fork()).ldelim();
     }
     if (message.openai !== undefined) {
-      GenerativeOpenAIMetadata.encode(message.openai, writer.uint32(74).fork()).ldelim();
+      GenerativeOpenAIMetadata.encode(message.openai, writer.uint32(66).fork()).ldelim();
     }
     if (message.google !== undefined) {
-      GenerativeGoogleMetadata.encode(message.google, writer.uint32(82).fork()).ldelim();
+      GenerativeGoogleMetadata.encode(message.google, writer.uint32(74).fork()).ldelim();
+    }
+    if (message.databricks !== undefined) {
+      GenerativeDatabricksMetadata.encode(message.databricks, writer.uint32(82).fork()).ldelim();
+    }
+    if (message.friendliai !== undefined) {
+      GenerativeFriendliAIMetadata.encode(message.friendliai, writer.uint32(90).fork()).ldelim();
     }
     return writer;
   },
@@ -3709,28 +4354,35 @@ export const GenerativeMetadata = {
             break;
           }
 
-          message.octoai = GenerativeOctoAIMetadata.decode(reader, reader.uint32());
+          message.ollama = GenerativeOllamaMetadata.decode(reader, reader.uint32());
           continue;
         case 8:
           if (tag !== 66) {
             break;
           }
 
-          message.ollama = GenerativeOllamaMetadata.decode(reader, reader.uint32());
+          message.openai = GenerativeOpenAIMetadata.decode(reader, reader.uint32());
           continue;
         case 9:
           if (tag !== 74) {
             break;
           }
 
-          message.openai = GenerativeOpenAIMetadata.decode(reader, reader.uint32());
+          message.google = GenerativeGoogleMetadata.decode(reader, reader.uint32());
           continue;
         case 10:
           if (tag !== 82) {
             break;
           }
 
-          message.google = GenerativeGoogleMetadata.decode(reader, reader.uint32());
+          message.databricks = GenerativeDatabricksMetadata.decode(reader, reader.uint32());
+          continue;
+        case 11:
+          if (tag !== 90) {
+            break;
+          }
+
+          message.friendliai = GenerativeFriendliAIMetadata.decode(reader, reader.uint32());
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -3749,10 +4401,11 @@ export const GenerativeMetadata = {
       cohere: isSet(object.cohere) ? GenerativeCohereMetadata.fromJSON(object.cohere) : undefined,
       dummy: isSet(object.dummy) ? GenerativeDummyMetadata.fromJSON(object.dummy) : undefined,
       mistral: isSet(object.mistral) ? GenerativeMistralMetadata.fromJSON(object.mistral) : undefined,
-      octoai: isSet(object.octoai) ? GenerativeOctoAIMetadata.fromJSON(object.octoai) : undefined,
       ollama: isSet(object.ollama) ? GenerativeOllamaMetadata.fromJSON(object.ollama) : undefined,
       openai: isSet(object.openai) ? GenerativeOpenAIMetadata.fromJSON(object.openai) : undefined,
       google: isSet(object.google) ? GenerativeGoogleMetadata.fromJSON(object.google) : undefined,
+      databricks: isSet(object.databricks) ? GenerativeDatabricksMetadata.fromJSON(object.databricks) : undefined,
+      friendliai: isSet(object.friendliai) ? GenerativeFriendliAIMetadata.fromJSON(object.friendliai) : undefined,
     };
   },
 
@@ -3776,9 +4429,6 @@ export const GenerativeMetadata = {
     if (message.mistral !== undefined) {
       obj.mistral = GenerativeMistralMetadata.toJSON(message.mistral);
     }
-    if (message.octoai !== undefined) {
-      obj.octoai = GenerativeOctoAIMetadata.toJSON(message.octoai);
-    }
     if (message.ollama !== undefined) {
       obj.ollama = GenerativeOllamaMetadata.toJSON(message.ollama);
     }
@@ -3787,6 +4437,12 @@ export const GenerativeMetadata = {
     }
     if (message.google !== undefined) {
       obj.google = GenerativeGoogleMetadata.toJSON(message.google);
+    }
+    if (message.databricks !== undefined) {
+      obj.databricks = GenerativeDatabricksMetadata.toJSON(message.databricks);
+    }
+    if (message.friendliai !== undefined) {
+      obj.friendliai = GenerativeFriendliAIMetadata.toJSON(message.friendliai);
     }
     return obj;
   },
@@ -3814,9 +4470,6 @@ export const GenerativeMetadata = {
     message.mistral = (object.mistral !== undefined && object.mistral !== null)
       ? GenerativeMistralMetadata.fromPartial(object.mistral)
       : undefined;
-    message.octoai = (object.octoai !== undefined && object.octoai !== null)
-      ? GenerativeOctoAIMetadata.fromPartial(object.octoai)
-      : undefined;
     message.ollama = (object.ollama !== undefined && object.ollama !== null)
       ? GenerativeOllamaMetadata.fromPartial(object.ollama)
       : undefined;
@@ -3825,6 +4478,12 @@ export const GenerativeMetadata = {
       : undefined;
     message.google = (object.google !== undefined && object.google !== null)
       ? GenerativeGoogleMetadata.fromPartial(object.google)
+      : undefined;
+    message.databricks = (object.databricks !== undefined && object.databricks !== null)
+      ? GenerativeDatabricksMetadata.fromPartial(object.databricks)
+      : undefined;
+    message.friendliai = (object.friendliai !== undefined && object.friendliai !== null)
+      ? GenerativeFriendliAIMetadata.fromPartial(object.friendliai)
       : undefined;
     return message;
   },

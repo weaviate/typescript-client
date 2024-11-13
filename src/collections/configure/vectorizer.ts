@@ -473,27 +473,6 @@ export const vectorizer = {
     });
   },
   /**
-   * Create a `VectorConfigCreate` object with the vectorizer set to `'text2vec-octoai'`.
-   *
-   * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/octoai/embeddings) for detailed usage.
-   *
-   * @param {ConfigureTextVectorizerOptions<T, N, I, 'text2vec-octoai'>} [opts] The configuration for the `text2vec-octoai` vectorizer.
-   * @returns {VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2vec-octoai'>} The configuration object.
-   */
-  text2VecOctoAI: <T, N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
-    opts?: ConfigureTextVectorizerOptions<T, N, I, 'text2vec-octoai'>
-  ): VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2vec-octoai'> => {
-    const { name, sourceProperties, vectorIndexConfig, ...config } = opts || {};
-    return makeVectorizer(name, {
-      sourceProperties,
-      vectorIndexConfig,
-      vectorizerConfig: {
-        name: 'text2vec-octoai',
-        config: Object.keys(config).length === 0 ? undefined : config,
-      },
-    });
-  },
-  /**
    * Create a `VectorConfigCreate` object with the vectorizer set to `'text2vec-openai'`.
    *
    * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/openai/embeddings) for detailed usage.

@@ -58,13 +58,6 @@ export type GenerativeMistralConfig = {
   temperature?: number;
 };
 
-export type GenerativeOctoAIConfig = {
-  baseURL?: string;
-  maxTokens?: number;
-  model?: string;
-  temperature?: number;
-};
-
 export type GenerativeOllamaConfig = {
   apiEndpoint?: string;
   model?: string;
@@ -102,7 +95,6 @@ export type GenerativeConfig =
   | GenerativeGoogleConfig
   | GenerativeFriendliAIConfig
   | GenerativeMistralConfig
-  | GenerativeOctoAIConfig
   | GenerativeOllamaConfig
   | GenerativeOpenAIConfig
   | GenerativePaLMConfig
@@ -127,8 +119,6 @@ export type GenerativeConfigType<G> = G extends 'generative-anthropic'
   ? GenerativeFriendliAIConfig
   : G extends 'generative-mistral'
   ? GenerativeMistralConfig
-  : G extends 'generative-octoai'
-  ? GenerativeOctoAIConfig
   : G extends 'generative-ollama'
   ? GenerativeOllamaConfig
   : G extends 'generative-openai'
@@ -152,7 +142,6 @@ export type GenerativeSearch =
   | 'generative-google'
   | 'generative-friendliai'
   | 'generative-mistral'
-  | 'generative-octoai'
   | 'generative-ollama'
   | 'generative-openai'
   | GenerativePalm

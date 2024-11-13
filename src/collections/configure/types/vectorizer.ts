@@ -13,7 +13,6 @@ import {
   Text2VecHuggingFaceConfig,
   Text2VecJinaConfig,
   Text2VecMistralConfig,
-  Text2VecOctoAIConfig,
   Text2VecOllamaConfig,
   Text2VecOpenAIConfig,
   Text2VecTransformersConfig,
@@ -170,8 +169,6 @@ export type Text2VecJinaConfigCreate = Text2VecJinaConfig;
 
 export type Text2VecMistralConfigCreate = Text2VecMistralConfig;
 
-export type Text2VecOctoAIConfigCreate = Text2VecOctoAIConfig;
-
 export type Text2VecOllamaConfigCreate = Text2VecOllamaConfig;
 
 export type Text2VecOpenAIConfigCreate = Text2VecOpenAIConfig;
@@ -215,8 +212,6 @@ export type VectorizerConfigCreateType<V> = V extends 'img2vec-neural'
   ? Text2VecJinaConfigCreate | undefined
   : V extends 'text2vec-mistral'
   ? Text2VecMistralConfigCreate | undefined
-  : V extends 'text2vec-octoai'
-  ? Text2VecOctoAIConfigCreate | undefined
   : V extends 'text2vec-ollama'
   ? Text2VecOllamaConfigCreate | undefined
   : V extends 'text2vec-openai'

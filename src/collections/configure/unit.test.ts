@@ -8,7 +8,6 @@ import {
   GenerativeFriendliAIConfig,
   GenerativeGoogleConfig,
   GenerativeMistralConfig,
-  GenerativeOctoAIConfig,
   GenerativeOllamaConfig,
   GenerativeOpenAIConfig,
   ModuleConfig,
@@ -1098,45 +1097,6 @@ describe('Unit testing of the vectorizer factory class', () => {
     });
   });
 
-  it('should create the correct Text2VecOctoAIConfig type with defaults', () => {
-    const config = configure.vectorizer.text2VecOctoAI();
-    expect(config).toEqual<VectorConfigCreate<never, undefined, 'hnsw', 'text2vec-octoai'>>({
-      name: undefined,
-      vectorIndex: {
-        name: 'hnsw',
-        config: undefined,
-      },
-      vectorizer: {
-        name: 'text2vec-octoai',
-        config: undefined,
-      },
-    });
-  });
-
-  it('should create the correct Text2VecOctoAIConfig type with all values', () => {
-    const config = configure.vectorizer.text2VecOctoAI({
-      name: 'test',
-      baseURL: 'base-url',
-      model: 'model',
-      vectorizeCollectionName: true,
-    });
-    expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'text2vec-octoai'>>({
-      name: 'test',
-      vectorIndex: {
-        name: 'hnsw',
-        config: undefined,
-      },
-      vectorizer: {
-        name: 'text2vec-octoai',
-        config: {
-          baseURL: 'base-url',
-          model: 'model',
-          vectorizeCollectionName: true,
-        },
-      },
-    });
-  });
-
   it('should create the correct Text2VecOllamaConfig type with defaults', () => {
     const config = configure.vectorizer.text2VecOllama();
     expect(config).toEqual<VectorConfigCreate<never, undefined, 'hnsw', 'text2vec-ollama'>>({
@@ -1612,32 +1572,6 @@ describe('Unit testing of the generative factory class', () => {
     expect(config).toEqual<ModuleConfig<'generative-mistral', GenerativeMistralConfig | undefined>>({
       name: 'generative-mistral',
       config: {
-        maxTokens: 100,
-        model: 'model',
-        temperature: 0.5,
-      },
-    });
-  });
-
-  it('should create the correct GenerativeOctoAIConfig type with required & default values', () => {
-    const config = configure.generative.octoai();
-    expect(config).toEqual<ModuleConfig<'generative-octoai', GenerativeOctoAIConfig | undefined>>({
-      name: 'generative-octoai',
-      config: undefined,
-    });
-  });
-
-  it('should create the correct GenerativeOctoAIConfig type with all values', () => {
-    const config = configure.generative.octoai({
-      baseURL: 'base-url',
-      maxTokens: 100,
-      model: 'model',
-      temperature: 0.5,
-    });
-    expect(config).toEqual<ModuleConfig<'generative-octoai', GenerativeOctoAIConfig | undefined>>({
-      name: 'generative-octoai',
-      config: {
-        baseURL: 'base-url',
         maxTokens: 100,
         model: 'model',
         temperature: 0.5,

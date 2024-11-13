@@ -34,7 +34,6 @@ export type Vectorizer =
   | 'text2vec-huggingface'
   | 'text2vec-jina'
   | 'text2vec-mistral'
-  | 'text2vec-octoai'
   | 'text2vec-ollama'
   | 'text2vec-openai'
   | Text2VecPalmVectorizer
@@ -319,20 +318,6 @@ export type Text2VecMistralConfig = {
 };
 
 /**
- * The configuration for text vectorization using the OctoAI module.
- *
- * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/octoai/embeddings) for detailed usage.
- */
-export type Text2VecOctoAIConfig = {
-  /** The base URL to use where API requests should go. */
-  baseURL?: string;
-  /** The model to use. */
-  model?: string;
-  /** Whether to vectorize the collection name. */
-  vectorizeCollectionName?: boolean;
-};
-
-/**
  * The configuration for text vectorization using the Ollama module.
  *
  * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/ollama/embeddings) for detailed usage.
@@ -477,8 +462,6 @@ export type VectorizerConfigType<V> = V extends 'img2vec-neural'
   ? Text2VecJinaConfig | undefined
   : V extends 'text2vec-mistral'
   ? Text2VecMistralConfig | undefined
-  : V extends 'text2vec-octoai'
-  ? Text2VecOctoAIConfig | undefined
   : V extends 'text2vec-ollama'
   ? Text2VecOllamaConfig | undefined
   : V extends 'text2vec-openai'
