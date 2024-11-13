@@ -1,4 +1,8 @@
-import { WeaviateInvertedIndexConfig, WeaviateVectorsConfig } from '../../openapi/types';
+import {
+  WeaviateInvertedIndexConfig,
+  WeaviateMultiTenancyConfig,
+  WeaviateVectorsConfig,
+} from '../../openapi/types';
 import { MergeWithExisting } from './classes';
 
 describe('Unit testing of the MergeWithExisting class', () => {
@@ -110,6 +114,12 @@ describe('Unit testing of the MergeWithExisting class', () => {
         },
       },
     },
+  };
+
+  const multiTenancyConfig: WeaviateMultiTenancyConfig = {
+    enabled: true,
+    autoTenantActivation: false,
+    autoTenantCreation: false,
   };
 
   it('should merge a partial invertedIndexUpdate with existing schema', () => {
@@ -339,6 +349,18 @@ describe('Unit testing of the MergeWithExisting class', () => {
           },
         },
       },
+    });
+  });
+
+  it('should merge full multi tenancy config with existing schema', () => {
+    const merged = MergeWithExisting.multiTenancy(JSON.parse(JSON.stringify(multiTenancyConfig)), {
+      autoTenantActivation: true,
+      autoTenantCreation: true,
+    });
+    expect(merged).toEqual({
+      enabled: true,
+      autoTenantActivation: true,
+      autoTenantCreation: true,
     });
   });
 });

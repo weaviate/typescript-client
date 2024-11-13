@@ -2,6 +2,7 @@ import {
   InvertedIndexConfigCreate,
   InvertedIndexConfigUpdate,
   MultiTenancyConfigCreate,
+  MultiTenancyConfigUpdate,
   ReplicationConfigCreate,
   ReplicationConfigUpdate,
   ReplicationDeletionStrategy,
@@ -223,13 +224,13 @@ const reconfigure = {
     },
   },
   /**
-   * Create a `ReplicationConfigUpdate` object to be used when defining the replication configuration of Weaviate.
+   * Create a `ReplicationConfigUpdate` object to be used when updating the replication configuration of Weaviate.
    *
    * See [the docs](https://weaviate.io/developers/weaviate/concepts/replication-architecture#replication-vs-sharding) for more details.
    *
-   * @param {boolean} [options.asyncEnabled] Whether asynchronous replication is enabled.
-   * @param {ReplicationDeletionStrategy} [options.deletionStrategy] The deletion strategy when replication conflicts are detected between deletes and reads.
-   * @param {number} [options.factor] The replication factor.
+   * @param {boolean} [options.asyncEnabled] Whether to enable asynchronous replication.
+   * @param {ReplicationDeletionStrategy} [options.deletionStrategy] The deletion strategy to update when replication conflicts are detected between deletes and reads.
+   * @param {number} [options.factor] The replication factor to update.
    */
   replication: (options: {
     asyncEnabled?: boolean;
@@ -240,6 +241,24 @@ const reconfigure = {
       asyncEnabled: options.asyncEnabled,
       deletionStrategy: options.deletionStrategy,
       factor: options.factor,
+    };
+  },
+  /**
+   * Create a `MultiTenancyConfigUpdate` object to be used when updating the multi-tenancy configuration of Weaviate.
+   *
+   * Note: You cannot update a single-tenant collection to become a multi-tenant collection. You must instead create a new multi-tenant collection and migrate the data over manually.
+   *
+   * @param {boolean} [options.autoTenantActivation] Whether to enable auto-tenant activation.
+   * @param {boolean} [options.autoTenantCreation] Whether to enable auto-tenant creation.
+   *
+   */
+  multiTenancy: (options: {
+    autoTenantActivation?: boolean;
+    autoTenantCreation?: boolean;
+  }): MultiTenancyConfigUpdate => {
+    return {
+      autoTenantActivation: options.autoTenantActivation,
+      autoTenantCreation: options.autoTenantCreation,
     };
   },
 };

@@ -1,7 +1,12 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { WeaviateUnsupportedFeatureError } from '../../errors.js';
 import weaviate, { WeaviateClient, weaviateV2 } from '../../index.js';
-import { PropertyConfig, VectorIndexConfigDynamic, VectorIndexConfigHNSW } from './types/index.js';
+import {
+  MultiTenancyConfig,
+  PropertyConfig,
+  VectorIndexConfigDynamic,
+  VectorIndexConfigHNSW,
+} from './types/index.js';
 
 const fail = (msg: string) => {
   throw new Error(msg);
@@ -509,7 +514,7 @@ describe('Testing of the collection.config namespace', () => {
   });
 
   it('should be able to create and get a collection with multi-tenancy enabled', async () => {
-    const collectionName = 'TestCollectionConfigMultiTenancy';
+    const collectionName = 'TestCollectionConfigCreateGetMultiTenancy';
     const collection = await client.collections.create({
       name: collectionName,
       multiTenancy: weaviate.configure.multiTenancy({
@@ -518,6 +523,37 @@ describe('Testing of the collection.config namespace', () => {
       }),
     });
     const config = await collection.config.get();
+
+    expect(config.name).toEqual(collectionName);
+    expect(config.multiTenancy.autoTenantActivation).toEqual(
+      await client.getWeaviateVersion().then((ver) => !ver.isLowerThan(1, 25, 2))
+    );
+    expect(config.multiTenancy.autoTenantCreation).toEqual(
+      await client.getWeaviateVersion().then((ver) => !ver.isLowerThan(1, 25, 0))
+    );
+    expect(config.multiTenancy.enabled).toEqual(true);
+  });
+
+  it('should be able to create and update a collection with multi-tenancy enabled', async () => {
+    const collectionName = 'TestCollectionConfigCreateUpdateMultiTenancy';
+    const collection = await client.collections.create({
+      name: collectionName,
+      multiTenancy: weaviate.configure.multiTenancy(),
+    });
+    let config = await collection.config.get();
+    expect(config.multiTenancy).toEqual<MultiTenancyConfig>({
+      enabled: true,
+      autoTenantActivation: false,
+      autoTenantCreation: false,
+    });
+
+    await collection.config.update({
+      multiTenancy: weaviate.reconfigure.multiTenancy({
+        autoTenantActivation: true,
+        autoTenantCreation: true,
+      }),
+    });
+    config = await collection.config.get();
 
     expect(config.name).toEqual(collectionName);
     expect(config.multiTenancy.autoTenantActivation).toEqual(

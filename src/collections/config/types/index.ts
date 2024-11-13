@@ -5,6 +5,7 @@ export * from './vectorizer.js';
 
 import {
   InvertedIndexConfigUpdate,
+  MultiTenancyConfigUpdate,
   ReplicationConfigUpdate,
   VectorConfigUpdate,
 } from '../../configure/types/index.js';
@@ -103,6 +104,7 @@ export type CollectionConfig = {
 export type CollectionConfigUpdate = {
   description?: string;
   invertedIndex?: InvertedIndexConfigUpdate;
+  multiTenancy?: MultiTenancyConfigUpdate;
   replication?: ReplicationConfigUpdate;
   vectorizers?:
     | VectorConfigUpdate<undefined, VectorIndexType>
