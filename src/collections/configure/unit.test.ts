@@ -8,7 +8,6 @@ import {
   GenerativeFriendliAIConfig,
   GenerativeGoogleConfig,
   GenerativeMistralConfig,
-  GenerativeOctoAIConfig,
   GenerativeOllamaConfig,
   GenerativeOpenAIConfig,
   ModuleConfig,
@@ -254,6 +253,79 @@ describe('Unit testing of the vectorizer factory class', () => {
         name: 'img2vec-neural',
         config: {
           imageFields: ['field1', 'field2'],
+        },
+      },
+    });
+  });
+
+  it('should create the correct Multi2VecCohereConfig type with defaults', () => {
+    const config = configure.vectorizer.multi2VecCohere();
+    expect(config).toEqual<VectorConfigCreate<never, undefined, 'hnsw', 'multi2vec-cohere'>>({
+      name: undefined,
+      vectorIndex: {
+        name: 'hnsw',
+        config: undefined,
+      },
+      vectorizer: {
+        name: 'multi2vec-cohere',
+        config: undefined,
+      },
+    });
+  });
+
+  it('should create the correct Multi2VecCohereConfig type with all values', () => {
+    const config = configure.vectorizer.multi2VecCohere({
+      name: 'test',
+      model: 'model',
+      vectorizeCollectionName: true,
+    });
+    expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'multi2vec-cohere'>>({
+      name: 'test',
+      vectorIndex: {
+        name: 'hnsw',
+        config: undefined,
+      },
+      vectorizer: {
+        name: 'multi2vec-cohere',
+        config: {
+          model: 'model',
+          vectorizeCollectionName: true,
+        },
+      },
+    });
+  });
+
+  it('should create the correct Multi2VecCohereConfig type with all values and weights', () => {
+    const config = configure.vectorizer.multi2VecCohere({
+      name: 'test',
+      model: 'model',
+      imageFields: [
+        { name: 'field1', weight: 0.1 },
+        { name: 'field2', weight: 0.2 },
+      ],
+      textFields: [
+        { name: 'field3', weight: 0.3 },
+        { name: 'field4', weight: 0.4 },
+      ],
+      vectorizeCollectionName: true,
+    });
+    expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'multi2vec-cohere'>>({
+      name: 'test',
+      vectorIndex: {
+        name: 'hnsw',
+        config: undefined,
+      },
+      vectorizer: {
+        name: 'multi2vec-cohere',
+        config: {
+          model: 'model',
+          imageFields: ['field1', 'field2'],
+          textFields: ['field3', 'field4'],
+          vectorizeCollectionName: true,
+          weights: {
+            imageFields: [0.1, 0.2],
+            textFields: [0.3, 0.4],
+          },
         },
       },
     });
@@ -1025,45 +1097,6 @@ describe('Unit testing of the vectorizer factory class', () => {
     });
   });
 
-  it('should create the correct Text2VecOctoAIConfig type with defaults', () => {
-    const config = configure.vectorizer.text2VecOctoAI();
-    expect(config).toEqual<VectorConfigCreate<never, undefined, 'hnsw', 'text2vec-octoai'>>({
-      name: undefined,
-      vectorIndex: {
-        name: 'hnsw',
-        config: undefined,
-      },
-      vectorizer: {
-        name: 'text2vec-octoai',
-        config: undefined,
-      },
-    });
-  });
-
-  it('should create the correct Text2VecOctoAIConfig type with all values', () => {
-    const config = configure.vectorizer.text2VecOctoAI({
-      name: 'test',
-      baseURL: 'base-url',
-      model: 'model',
-      vectorizeCollectionName: true,
-    });
-    expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'text2vec-octoai'>>({
-      name: 'test',
-      vectorIndex: {
-        name: 'hnsw',
-        config: undefined,
-      },
-      vectorizer: {
-        name: 'text2vec-octoai',
-        config: {
-          baseURL: 'base-url',
-          model: 'model',
-          vectorizeCollectionName: true,
-        },
-      },
-    });
-  });
-
   it('should create the correct Text2VecOllamaConfig type with defaults', () => {
     const config = configure.vectorizer.text2VecOllama();
     expect(config).toEqual<VectorConfigCreate<never, undefined, 'hnsw', 'text2vec-ollama'>>({
@@ -1539,32 +1572,6 @@ describe('Unit testing of the generative factory class', () => {
     expect(config).toEqual<ModuleConfig<'generative-mistral', GenerativeMistralConfig | undefined>>({
       name: 'generative-mistral',
       config: {
-        maxTokens: 100,
-        model: 'model',
-        temperature: 0.5,
-      },
-    });
-  });
-
-  it('should create the correct GenerativeOctoAIConfig type with required & default values', () => {
-    const config = configure.generative.octoai();
-    expect(config).toEqual<ModuleConfig<'generative-octoai', GenerativeOctoAIConfig | undefined>>({
-      name: 'generative-octoai',
-      config: undefined,
-    });
-  });
-
-  it('should create the correct GenerativeOctoAIConfig type with all values', () => {
-    const config = configure.generative.octoai({
-      baseURL: 'base-url',
-      maxTokens: 100,
-      model: 'model',
-      temperature: 0.5,
-    });
-    expect(config).toEqual<ModuleConfig<'generative-octoai', GenerativeOctoAIConfig | undefined>>({
-      name: 'generative-octoai',
-      config: {
-        baseURL: 'base-url',
         maxTokens: 100,
         model: 'model',
         temperature: 0.5,

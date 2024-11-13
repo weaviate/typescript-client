@@ -130,6 +130,39 @@ export const vectorizer = {
     });
   },
   /**
+   * Create a `VectorConfigCreate` object with the vectorizer set to `'multi2vec-cohere'`.
+   *
+   * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/cohere/embeddings) for detailed usage.
+   *
+   * @param {ConfigureNonTextVectorizerOptions<N, I, 'multi2vec-cohere'>} [opts] The configuration options for the `multi2vec-cohere` vectorizer.
+   * @returns {VectorConfigCreate<PrimitiveKeys<T>[], N, I, 'multi2vec-cohere'>} The configuration object.
+   */
+  multi2VecCohere: <N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
+    opts?: ConfigureNonTextVectorizerOptions<N, I, 'multi2vec-cohere'>
+  ): VectorConfigCreate<never, N, I, 'multi2vec-cohere'> => {
+    const { name, vectorIndexConfig, ...config } = opts || {};
+    const imageFields = config.imageFields?.map(mapMulti2VecField);
+    const textFields = config.textFields?.map(mapMulti2VecField);
+    let weights: Multi2VecBindConfig['weights'] = {};
+    weights = formatMulti2VecFields(weights, 'imageFields', imageFields);
+    weights = formatMulti2VecFields(weights, 'textFields', textFields);
+    return makeVectorizer(name, {
+      vectorIndexConfig,
+      vectorizerConfig: {
+        name: 'multi2vec-cohere',
+        config:
+          Object.keys(config).length === 0
+            ? undefined
+            : {
+                ...config,
+                imageFields: imageFields?.map((f) => f.name),
+                textFields: textFields?.map((f) => f.name),
+                weights: Object.keys(weights).length === 0 ? undefined : weights,
+              },
+      },
+    });
+  },
+  /**
    * Create a `VectorConfigCreate` object with the vectorizer set to `'multi2vec-clip'`.
    *
    * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/transformers/embeddings-multimodal) for detailed usage.
@@ -435,27 +468,6 @@ export const vectorizer = {
       vectorIndexConfig,
       vectorizerConfig: {
         name: 'text2vec-mistral',
-        config: Object.keys(config).length === 0 ? undefined : config,
-      },
-    });
-  },
-  /**
-   * Create a `VectorConfigCreate` object with the vectorizer set to `'text2vec-octoai'`.
-   *
-   * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/octoai/embeddings) for detailed usage.
-   *
-   * @param {ConfigureTextVectorizerOptions<T, N, I, 'text2vec-octoai'>} [opts] The configuration for the `text2vec-octoai` vectorizer.
-   * @returns {VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2vec-octoai'>} The configuration object.
-   */
-  text2VecOctoAI: <T, N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
-    opts?: ConfigureTextVectorizerOptions<T, N, I, 'text2vec-octoai'>
-  ): VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2vec-octoai'> => {
-    const { name, sourceProperties, vectorIndexConfig, ...config } = opts || {};
-    return makeVectorizer(name, {
-      sourceProperties,
-      vectorIndexConfig,
-      vectorizerConfig: {
-        name: 'text2vec-octoai',
         config: Object.keys(config).length === 0 ? undefined : config,
       },
     });

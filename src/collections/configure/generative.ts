@@ -8,7 +8,6 @@ import {
   GenerativeFriendliAIConfig,
   GenerativeGoogleConfig,
   GenerativeMistralConfig,
-  GenerativeOctoAIConfig,
   GenerativeOllamaConfig,
   GenerativeOpenAIConfig,
   GenerativePaLMConfig,
@@ -23,7 +22,6 @@ import {
   GenerativeDatabricksConfigCreate,
   GenerativeFriendliAIConfigCreate,
   GenerativeMistralConfigCreate,
-  GenerativeOctoAIConfigCreate,
   GenerativeOllamaConfigCreate,
   GenerativeOpenAIConfigCreate,
   GenerativePaLMConfigCreate,
@@ -168,22 +166,6 @@ export default {
   ): ModuleConfig<'generative-mistral', GenerativeMistralConfig | undefined> {
     return {
       name: 'generative-mistral',
-      config,
-    };
-  },
-  /**
-   * Create a `ModuleConfig<'generative-octoai', GenerativeOpenAIConfig | undefined>` object for use when performing AI generation using the `generative-octoai` module.
-   *
-   * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/octoai/generative) for detailed usage.
-   *
-   * @param {GenerativeOctoAIConfigCreate} [config] The configuration for the `generative-octoai` module.
-   * @returns {ModuleConfig<'generative-octoai', GenerativeOctoAIConfig | undefined>} The configuration object.
-   */
-  octoai(
-    config?: GenerativeOctoAIConfigCreate
-  ): ModuleConfig<'generative-octoai', GenerativeOctoAIConfig | undefined> {
-    return {
-      name: 'generative-octoai',
       config,
     };
   },
