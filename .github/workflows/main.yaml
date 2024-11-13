@@ -7,10 +7,10 @@ on:
   pull_request:
 
 env:
-  WEAVIATE_124: stable-v1.24-a8b364e
-  WEAVIATE_125: 1.25.21
-  WEAVIATE_126: 1.26.7
-  WEAVIATE_127: 1.27.0
+  WEAVIATE_124: 1.24.26
+  WEAVIATE_125: 1.25.25
+  WEAVIATE_126: 1.26.10
+  WEAVIATE_127: 1.27.3
 
 jobs:
   checks:
