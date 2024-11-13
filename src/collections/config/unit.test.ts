@@ -117,7 +117,7 @@ describe('Unit testing of the MergeWithExisting class', () => {
   };
 
   const multiTenancyConfig: WeaviateMultiTenancyConfig = {
-    enabled: false,
+    enabled: true,
     autoTenantActivation: false,
     autoTenantCreation: false,
   };
@@ -358,6 +358,7 @@ describe('Unit testing of the MergeWithExisting class', () => {
       autoTenantCreation: true,
     });
     expect(merged).toEqual({
+      enabled: true,
       autoTenantActivation: true,
       autoTenantCreation: true,
     });
