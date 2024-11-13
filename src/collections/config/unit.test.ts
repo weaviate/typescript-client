@@ -354,12 +354,10 @@ describe('Unit testing of the MergeWithExisting class', () => {
 
   it('should merge full multi tenancy config with existing schema', () => {
     const merged = MergeWithExisting.multiTenancy(JSON.parse(JSON.stringify(multiTenancyConfig)), {
-      enabled: true,
       autoTenantActivation: true,
       autoTenantCreation: true,
     });
     expect(merged).toEqual({
-      enabled: true,
       autoTenantActivation: true,
       autoTenantCreation: true,
     });
