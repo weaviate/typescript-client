@@ -20,6 +20,7 @@ type Text2VecPalmVectorizer = 'text2vec-palm';
 export type Vectorizer =
   | 'img2vec-neural'
   | 'multi2vec-clip'
+  | 'multi2vec-cohere'
   | 'multi2vec-bind'
   | Multi2VecPalmVectorizer
   | 'multi2vec-google'
@@ -70,6 +71,33 @@ export type Multi2VecClipConfig = {
   inferenceUrl?: string;
   /** The text fields used when vectorizing. */
   textFields?: string[];
+  /** Whether the collection name is vectorized. */
+  vectorizeCollectionName?: boolean;
+  /** The weights of the fields used for vectorization. */
+  weights?: {
+    /** The weights of the image fields. */
+    imageFields?: number[];
+    /** The weights of the text fields. */
+    textFields?: number[];
+  };
+};
+
+/**
+ * The configuration for multi-media vectorization using the Cohere module.
+ *
+ * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/cohere/embeddings-multimodal) for detailed usage.
+ */
+export type Multi2VecCohereConfig = {
+  /** The base URL to use where API requests should go. */
+  baseURL?: string;
+  /** The image fields used when vectorizing. */
+  imageFields?: string[];
+  /** The specific model to use. */
+  model?: string;
+  /** The text fields used when vectorizing. */
+  textFields?: string[];
+  /** The truncation strategy to use. */
+  truncate?: string;
   /** Whether the collection name is vectorized. */
   vectorizeCollectionName?: boolean;
   /** The weights of the fields used for vectorization. */
@@ -421,6 +449,8 @@ export type VectorizerConfigType<V> = V extends 'img2vec-neural'
   ? Img2VecNeuralConfig | undefined
   : V extends 'multi2vec-clip'
   ? Multi2VecClipConfig | undefined
+  : V extends 'multi2vec-cohere'
+  ? Multi2VecCohereConfig | undefined
   : V extends 'multi2vec-bind'
   ? Multi2VecBindConfig | undefined
   : V extends 'multi2vec-google'

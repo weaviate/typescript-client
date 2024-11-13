@@ -259,6 +259,79 @@ describe('Unit testing of the vectorizer factory class', () => {
     });
   });
 
+  it('should create the correct Multi2VecCohereConfig type with defaults', () => {
+    const config = configure.vectorizer.multi2VecCohere();
+    expect(config).toEqual<VectorConfigCreate<never, undefined, 'hnsw', 'multi2vec-cohere'>>({
+      name: undefined,
+      vectorIndex: {
+        name: 'hnsw',
+        config: undefined,
+      },
+      vectorizer: {
+        name: 'multi2vec-cohere',
+        config: undefined,
+      },
+    });
+  });
+
+  it('should create the correct Multi2VecCohereConfig type with all values', () => {
+    const config = configure.vectorizer.multi2VecCohere({
+      name: 'test',
+      model: 'model',
+      vectorizeCollectionName: true,
+    });
+    expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'multi2vec-cohere'>>({
+      name: 'test',
+      vectorIndex: {
+        name: 'hnsw',
+        config: undefined,
+      },
+      vectorizer: {
+        name: 'multi2vec-cohere',
+        config: {
+          model: 'model',
+          vectorizeCollectionName: true,
+        },
+      },
+    });
+  });
+
+  it('should create the correct Multi2VecCohereConfig type with all values and weights', () => {
+    const config = configure.vectorizer.multi2VecCohere({
+      name: 'test',
+      model: 'model',
+      imageFields: [
+        { name: 'field1', weight: 0.1 },
+        { name: 'field2', weight: 0.2 },
+      ],
+      textFields: [
+        { name: 'field3', weight: 0.3 },
+        { name: 'field4', weight: 0.4 },
+      ],
+      vectorizeCollectionName: true,
+    });
+    expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'multi2vec-cohere'>>({
+      name: 'test',
+      vectorIndex: {
+        name: 'hnsw',
+        config: undefined,
+      },
+      vectorizer: {
+        name: 'multi2vec-cohere',
+        config: {
+          model: 'model',
+          imageFields: ['field1', 'field2'],
+          textFields: ['field3', 'field4'],
+          vectorizeCollectionName: true,
+          weights: {
+            imageFields: [0.1, 0.2],
+            textFields: [0.3, 0.4],
+          },
+        },
+      },
+    });
+  });
+
   it('should create the correct Multi2VecClipConfig type with defaults', () => {
     const config = configure.vectorizer.multi2VecClip();
     expect(config).toEqual<VectorConfigCreate<never, undefined, 'hnsw', 'multi2vec-clip'>>({
