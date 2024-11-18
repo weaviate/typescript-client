@@ -166,7 +166,9 @@ describe('Journey testing of the client using a WCD cluster', () => {
             default: {
               vectorizer: {
                 name: 'text2vec-cohere',
-                config: {},
+                config: {
+                  vectorizeCollectionName: true,
+                },
               },
               indexConfig: {
                 cleanupIntervalSeconds: 300,
