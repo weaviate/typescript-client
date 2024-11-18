@@ -36,17 +36,32 @@ export type MultiTenancyConfigUpdate = {
   autoTenantCreation?: boolean;
 };
 
+export type ObjectDataType = 'object' | 'object[]';
+
+export type PrimitiveDataType = Exclude<DataType, ObjectDataType>;
+
+export type NestedDataTypeConfig<T> =
+  | {
+      dataType: ObjectDataType;
+      /** only for object types */
+      nestedProperties?: NestedPropertyConfigCreate<T, ObjectDataType>[];
+    }
+  | {
+      dataType: PrimitiveDataType;
+      /** If not an object, or an array of objecs, this field should never be assigned. */
+      nestedProperties?: never;
+    };
+
 export type NestedPropertyCreate<T = undefined> = T extends undefined
   ? {
       name: string;
       dataType: DataType;
       description?: string;
-      nestedProperties?: NestedPropertyConfigCreate<T, DataType>[];
       indexInverted?: boolean;
       indexFilterable?: boolean;
       indexSearchable?: boolean;
       tokenization?: WeaviateNestedProperty['tokenization'];
-    }
+    } & NestedDataTypeConfig<T>
   : {
       [K in NonRefKeys<T>]: RequiresNested<DataType<T[K]>> extends true
         ? {
@@ -92,9 +107,7 @@ export type NestedPropertyConfigCreateBase = {
 export type PropertyConfigCreate<T> = T extends undefined
   ? {
       name: string;
-      dataType: DataType;
       description?: string;
-      nestedProperties?: NestedPropertyConfigCreate<T, DataType>[];
       indexInverted?: boolean;
       indexFilterable?: boolean;
       indexRangeFilters?: boolean;
@@ -102,7 +115,7 @@ export type PropertyConfigCreate<T> = T extends undefined
       tokenization?: WeaviateProperty['tokenization'];
       skipVectorization?: boolean;
       vectorizePropertyName?: boolean;
-    }
+    } & NestedDataTypeConfig<T>
   : {
       [K in NonRefKeys<T>]: RequiresNested<DataType<T[K]>> extends true
         ? {
