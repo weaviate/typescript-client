@@ -55,7 +55,6 @@ export type NestedDataTypeConfig<T> =
 export type NestedPropertyCreate<T = undefined> = T extends undefined
   ? {
       name: string;
-      dataType: DataType;
       description?: string;
       indexInverted?: boolean;
       indexFilterable?: boolean;
