@@ -44,7 +44,7 @@ export type NestedDataTypeConfig<T> =
   | {
       dataType: ObjectDataType;
       /** only for object types */
-      nestedProperties?: NestedPropertyConfigCreate<T, ObjectDataType>[];
+      nestedProperties?: NestedPropertyCreate<T>[];
     }
   | {
       dataType: PrimitiveDataType;
