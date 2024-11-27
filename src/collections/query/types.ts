@@ -101,7 +101,7 @@ export type Bm25Options<T> = BaseBm25Options<T> | GroupByBm25Options<T> | undefi
 
 /** Base options available in the `query.hybrid` method */
 export type BaseHybridOptions<T> = SearchOptions<T> & {
-  /** The weight of the BM25 score. If not specified, the default weight specified by the server is used. */
+  /** The weight of the vector search score. If not specified, the default weight specified by the server is used. */
   alpha?: number;
   /** The specific vector to search for or a specific vector subsearch. If not specified, the query is vectorized and used in the similarity search. */
   vector?: NearVectorInputType | HybridNearTextSubSearch | HybridNearVectorSubSearch;
