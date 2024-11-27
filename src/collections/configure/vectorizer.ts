@@ -600,4 +600,26 @@ export const vectorizer = {
       },
     });
   },
+
+  /**
+   * Create a `VectorConfigCreate` object with the vectorizer set to `'text2vec-weaviate'`.
+   *
+   * TODO: add documentation reference once available.
+   *
+   * @param {ConfigureTextVectorizerOptions<T, N, I, 'text2vec-weaviate'>} [opts] The configuration for the `text2vec-weaviate` vectorizer.
+   * @returns {VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2vec-weaviate'>} The configuration object.
+   */
+  text2VecWeaviate: <T, N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
+    opts?: ConfigureTextVectorizerOptions<T, N, I, 'text2vec-weaviate'>
+  ): VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2vec-weaviate'> => {
+    const { name, sourceProperties, vectorIndexConfig, ...config } = opts || {};
+    return makeVectorizer(name, {
+      sourceProperties,
+      vectorIndexConfig,
+      vectorizerConfig: {
+        name: 'text2vec-weaviate',
+        config: Object.keys(config).length === 0 ? undefined : config,
+      },
+    });
+  },
 };

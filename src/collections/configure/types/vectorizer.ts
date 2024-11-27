@@ -17,6 +17,7 @@ import {
   Text2VecOpenAIConfig,
   Text2VecTransformersConfig,
   Text2VecVoyageAIConfig,
+  Text2VecWeaviateConfig,
   VectorIndexType,
   Vectorizer,
   VectorizerConfigType,
@@ -182,6 +183,8 @@ export type Text2VecTransformersConfigCreate = Text2VecTransformersConfig;
 
 export type Text2VecVoyageAIConfigCreate = Text2VecVoyageAIConfig;
 
+export type Text2VecWeaviateConfigCreate = Text2VecWeaviateConfig;
+
 export type VectorizerConfigCreateType<V> = V extends 'img2vec-neural'
   ? Img2VecNeuralConfigCreate | undefined
   : V extends 'multi2vec-clip'
@@ -226,6 +229,8 @@ export type VectorizerConfigCreateType<V> = V extends 'img2vec-neural'
   ? Text2VecTransformersConfigCreate | undefined
   : V extends 'text2vec-voyageai'
   ? Text2VecVoyageAIConfigCreate | undefined
+  : V extends 'text2vec-weaviate'
+  ? Text2VecWeaviateConfigCreate | undefined
   : V extends 'none'
   ? {}
   : V extends undefined
