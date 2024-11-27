@@ -24,8 +24,8 @@
     "test:coverage": "npm run test -- --coverage",
     "build": "npm run build:node",
     "build:web": "tsup",
-    "build:cjs": "tsc --module commonjs --outDir dist/node/cjs && touch dist/node/cjs/package.json && echo '{\"type\": \"commonjs\"}' > dist/node/cjs/package.json",
-    "build:esm": "tsc --module esnext --outDir dist/node/esm && touch dist/node/esm/package.json && echo '{\"type\": \"module\"}' > dist/node/esm/package.json",
+    "build:cjs": "tsc --module commonjs --moduleResolution node10 --outDir dist/node/cjs && touch dist/node/cjs/package.json && echo '{\"type\": \"commonjs\"}' > dist/node/cjs/package.json",
+    "build:esm": "tsc --outDir dist/node/esm && touch dist/node/esm/package.json && echo '{\"type\": \"module\"}' > dist/node/esm/package.json",
     "build:node": "npm run lint && npm run build:cjs && npm run build:esm && prettier --write --no-error-on-unmatched-pattern '**/dist/**/*.{ts,js}'",
     "prepack": "npm run build",
     "lint": "eslint --ext .ts,.js .",
@@ -95,7 +95,7 @@
     "tsup": "^8.0.2",
     "typedoc": "^0.25.12",
     "typedoc-plugin-extras": "^3.0.0",
-    "typescript": "5.1.3"
+    "typescript": "^5.3.3"
   },
   "lint-staged": {
     "*.{ts,js}": [

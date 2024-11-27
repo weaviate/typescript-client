@@ -1,6 +1,6 @@
 import { WeaviateStartUpError } from '../errors.js';
 import { ClientParams, WeaviateClient } from '../index.js';
-import { AuthCredentials } from './auth.js';
+import { AuthCredentials, isApiKey, mapApiKey } from './auth.js';
 import { ProxiesParams, TimeoutParams } from './http.js';
 
 /** The options available to the `weaviate.connectToWeaviateCloud` method. */
@@ -100,7 +100,7 @@ export function connectToWeaviateCloud(
       },
     },
     auth: options?.authCredentials,
-    headers: options?.headers,
+    headers: addWeaviateEmbeddingServiceHeaders(clusterURL, options),
   }).catch((e) => {
     throw new WeaviateStartUpError(`Weaviate failed to startup with message: ${e.message}`);
   });
@@ -154,4 +154,16 @@ export function connectToCustom(
   }).catch((e) => {
     throw new WeaviateStartUpError(`Weaviate failed to startup with message: ${e.message}`);
   });
+}
+
+function addWeaviateEmbeddingServiceHeaders(clusterURL: string, options?: ConnectToWeaviateCloudOptions) {
+  if (!isApiKey(options?.authCredentials)) {
+    return options?.headers;
+  }
+
+  return {
+    ...options.headers,
+    'X-Weaviate-Api-Key': mapApiKey(options.authCredentials).apiKey,
+    'X-Weaviate-Cluster-Url': clusterURL,
+  };
 }
