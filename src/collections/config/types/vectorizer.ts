@@ -419,7 +419,7 @@ export interface Text2VecWeaviateConfig {
   model?: 'Snowflake/snowflake-arctic-embed-m-v1.5' | string;
   /** Whether to vectorize the collection name. */
   vectorizeCollectionName?: boolean;
-};
+}
 
 export type NoVectorizerConfig = {};
 
