@@ -412,14 +412,14 @@ export type Text2VecVoyageAIConfig = {
  *
  * TODO: add documentation reference once available.
  */
-export interface Text2VecWeaviateConfig {
+export type Text2VecWeaviateConfig = {
   /** The base URL to use where API requests should go. */
   baseURL?: string;
   /** The model to use. */
   model?: 'Snowflake/snowflake-arctic-embed-m-v1.5' | string;
   /** Whether to vectorize the collection name. */
   vectorizeCollectionName?: boolean;
-}
+};
 
 export type NoVectorizerConfig = {};
 
