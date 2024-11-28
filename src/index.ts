@@ -17,15 +17,13 @@ import {
   isApiKey,
   mapApiKey,
 } from './connection/auth.js';
+import * as helpers from './connection/helpers.js';
 import {
   ConnectToCustomOptions,
   ConnectToLocalOptions,
   ConnectToWCDOptions,
   ConnectToWCSOptions,
   ConnectToWeaviateCloudOptions,
-  connectToCustom,
-  connectToLocal,
-  connectToWeaviateCloud,
 } from './connection/helpers.js';
 import { ProxiesParams, TimeoutParams } from './connection/http.js';
 import { ConnectionGRPC } from './connection/index.js';
@@ -125,112 +123,123 @@ const cleanHost = (host: string, protocol: 'rest' | 'grpc') => {
   return host;
 };
 
+/**
+ * Connect to a custom Weaviate deployment, e.g. your own self-hosted Kubernetes cluster.
+ *
+ * @param {ConnectToCustomOptions} options Options for the connection.
+ * @returns {Promise<WeaviateClient>} A Promise that resolves to a client connected to your custom Weaviate deployment.
+ */
+export function connectToCustom(options: ConnectToCustomOptions): Promise<WeaviateClient> {
+  return helpers.connectToCustom(client, options);
+}
+
+/**
+ * Connect to a locally-deployed Weaviate instance, e.g. as a Docker compose stack.
+ *
+ * @param {ConnectToLocalOptions} [options] Options for the connection.
+ * @returns {Promise<WeaviateClient>} A Promise that resolves to a client connected to your local Weaviate instance.
+ */
+export function connectToLocal(options?: ConnectToLocalOptions): Promise<WeaviateClient> {
+  return helpers.connectToLocal(client, options);
+}
+
+/**
+ * Connect to your own Weaviate Cloud (WCD) instance.
+ *
+ * @deprecated Use `connectToWeaviateCloud` instead.
+ *
+ * @param {string} clusterURL The URL of your WCD instance. E.g., `https://example.weaviate.network`.
+ * @param {ConnectToWCDOptions} [options] Additional options for the connection.
+ * @returns {Promise<WeaviateClient>} A Promise that resolves to a client connected to your WCD instance.
+ */
+export function connectToWCD(clusterURL: string, options?: ConnectToWCDOptions): Promise<WeaviateClient> {
+  console.warn(
+    'The `connectToWCD` method is deprecated. Please use `connectToWeaviateCloud` instead. This method will be removed in a future release.'
+  );
+  return helpers.connectToWeaviateCloud(clusterURL, client, options);
+}
+
+/**
+ * Connect to your own Weaviate Cloud Service (WCS) instance.
+ *
+ * @deprecated Use `connectToWeaviateCloud` instead.
+ *
+ * @param {string} clusterURL The URL of your WCD instance. E.g., `https://example.weaviate.network`.
+ * @param {ConnectToWCSOptions} [options] Additional options for the connection.
+ * @returns {Promise<WeaviateClient>} A Promise that resolves to a client connected to your WCS instance.
+ */
+export function connectToWCS(clusterURL: string, options?: ConnectToWCSOptions): Promise<WeaviateClient> {
+  console.warn(
+    'The `connectToWCS` method is deprecated. Please use `connectToWeaviateCloud` instead. This method will be removed in a future release.'
+  );
+  return helpers.connectToWeaviateCloud(clusterURL, client, options);
+}
+
+/**
+ * Connect to your own Weaviate Cloud (WCD) instance.
+ *
+ * @param {string} clusterURL The URL of your WCD instance. E.g., `https://example.weaviate.network`.
+ * @param {ConnectToWeaviateCloudOptions} [options] Additional options for the connection.
+ * @returns {Promise<WeaviateClient>} A Promise that resolves to a client connected to your WCD instance.
+ */
+export function connectToWeaviateCloud(
+  clusterURL: string,
+  options?: ConnectToWeaviateCloudOptions
+): Promise<WeaviateClient> {
+  return helpers.connectToWeaviateCloud(clusterURL, client, options);
+}
+
+async function client(params: ClientParams): Promise<WeaviateClient> {
+  let { host: httpHost } = params.connectionParams.http;
+  let { host: grpcHost } = params.connectionParams.grpc;
+  const { port: httpPort, secure: httpSecure, path: httpPath } = params.connectionParams.http;
+  const { port: grpcPort, secure: grpcSecure } = params.connectionParams.grpc;
+  httpHost = cleanHost(httpHost, 'rest');
+  grpcHost = cleanHost(grpcHost, 'grpc');
+
+  // check if headers are set
+  if (!params.headers) params.headers = {};
+
+  const scheme = httpSecure ? 'https' : 'http';
+  const agent = httpSecure ? new HttpsAgent({ keepAlive: true }) : new HttpAgent({ keepAlive: true });
+
+  const { connection, dbVersionProvider, dbVersionSupport } = await ConnectionGRPC.use({
+    host: `${scheme}://${httpHost}:${httpPort}${httpPath || ''}`,
+    scheme: scheme,
+    headers: params.headers,
+    grpcAddress: `${grpcHost}:${grpcPort}`,
+    grpcSecure: grpcSecure,
+    grpcProxyUrl: params.proxies?.grpc,
+    apiKey: isApiKey(params.auth) ? mapApiKey(params.auth) : undefined,
+    authClientSecret: isApiKey(params.auth) ? undefined : params.auth,
+    agent,
+    timeout: params.timeout,
+    skipInitChecks: params.skipInitChecks,
+  });
+
+  const ifc: WeaviateClient = {
+    backup: backup(connection),
+    cluster: cluster(connection),
+    collections: collections(connection, dbVersionSupport),
+    close: () => Promise.resolve(connection.close()), // hedge against future changes to add I/O to .close()
+    getMeta: () => new MetaGetter(connection).do(),
+    getOpenIDConfig: () => new OpenidConfigurationGetter(connection.http).do(),
+    getWeaviateVersion: () => dbVersionSupport.getVersion(),
+    isLive: () => new LiveChecker(connection, dbVersionProvider).do(),
+    isReady: () => new ReadyChecker(connection, dbVersionProvider).do(),
+  };
+  if (connection.oidcAuth) ifc.oidcAuth = connection.oidcAuth;
+
+  return ifc;
+}
+
 const app = {
-  /**
-   * Connect to a custom Weaviate deployment, e.g. your own self-hosted Kubernetes cluster.
-   *
-   * @param {ConnectToCustomOptions} options Options for the connection.
-   * @returns {Promise<WeaviateClient>} A Promise that resolves to a client connected to your custom Weaviate deployment.
-   */
-  connectToCustom: function (options: ConnectToCustomOptions): Promise<WeaviateClient> {
-    return connectToCustom(this.client, options);
-  },
-  /**
-   * Connect to a locally-deployed Weaviate instance, e.g. as a Docker compose stack.
-   *
-   * @param {ConnectToLocalOptions} [options] Options for the connection.
-   * @returns {Promise<WeaviateClient>} A Promise that resolves to a client connected to your local Weaviate instance.
-   */
-  connectToLocal: function (options?: ConnectToLocalOptions): Promise<WeaviateClient> {
-    return connectToLocal(this.client, options);
-  },
-  /**
-   * Connect to your own Weaviate Cloud (WCD) instance.
-   *
-   * @deprecated Use `connectToWeaviateCloud` instead.
-   *
-   * @param {string} clusterURL The URL of your WCD instance. E.g., `https://example.weaviate.network`.
-   * @param {ConnectToWCDOptions} [options] Additional options for the connection.
-   * @returns {Promise<WeaviateClient>} A Promise that resolves to a client connected to your WCD instance.
-   */
-  connectToWCD: function (clusterURL: string, options?: ConnectToWCDOptions): Promise<WeaviateClient> {
-    console.warn(
-      'The `connectToWCD` method is deprecated. Please use `connectToWeaviateCloud` instead. This method will be removed in a future release.'
-    );
-    return connectToWeaviateCloud(clusterURL, this.client, options);
-  },
-  /**
-   * Connect to your own Weaviate Cloud Service (WCS) instance.
-   *
-   * @deprecated Use `connectToWeaviateCloud` instead.
-   *
-   * @param {string} clusterURL The URL of your WCD instance. E.g., `https://example.weaviate.network`.
-   * @param {ConnectToWCSOptions} [options] Additional options for the connection.
-   * @returns {Promise<WeaviateClient>} A Promise that resolves to a client connected to your WCS instance.
-   */
-  connectToWCS: function (clusterURL: string, options?: ConnectToWCSOptions): Promise<WeaviateClient> {
-    console.warn(
-      'The `connectToWCS` method is deprecated. Please use `connectToWeaviateCloud` instead. This method will be removed in a future release.'
-    );
-    return connectToWeaviateCloud(clusterURL, this.client, options);
-  },
-  /**
-   * Connect to your own Weaviate Cloud (WCD) instance.
-   *
-   * @param {string} clusterURL The URL of your WCD instance. E.g., `https://example.weaviate.network`.
-   * @param {ConnectToWeaviateCloudOptions} [options] Additional options for the connection.
-   * @returns {Promise<WeaviateClient>} A Promise that resolves to a client connected to your WCD instance.
-   */
-  connectToWeaviateCloud: function (
-    clusterURL: string,
-    options?: ConnectToWeaviateCloudOptions
-  ): Promise<WeaviateClient> {
-    return connectToWeaviateCloud(clusterURL, this.client, options);
-  },
-  client: async function (params: ClientParams): Promise<WeaviateClient> {
-    let { host: httpHost } = params.connectionParams.http;
-    let { host: grpcHost } = params.connectionParams.grpc;
-    const { port: httpPort, secure: httpSecure, path: httpPath } = params.connectionParams.http;
-    const { port: grpcPort, secure: grpcSecure } = params.connectionParams.grpc;
-    httpHost = cleanHost(httpHost, 'rest');
-    grpcHost = cleanHost(grpcHost, 'grpc');
-
-    // check if headers are set
-    if (!params.headers) params.headers = {};
-
-    const scheme = httpSecure ? 'https' : 'http';
-    const agent = httpSecure ? new HttpsAgent({ keepAlive: true }) : new HttpAgent({ keepAlive: true });
-
-    const { connection, dbVersionProvider, dbVersionSupport } = await ConnectionGRPC.use({
-      host: `${scheme}://${httpHost}:${httpPort}${httpPath || ''}`,
-      scheme: scheme,
-      headers: params.headers,
-      grpcAddress: `${grpcHost}:${grpcPort}`,
-      grpcSecure: grpcSecure,
-      grpcProxyUrl: params.proxies?.grpc,
-      apiKey: isApiKey(params.auth) ? mapApiKey(params.auth) : undefined,
-      authClientSecret: isApiKey(params.auth) ? undefined : params.auth,
-      agent,
-      timeout: params.timeout,
-      skipInitChecks: params.skipInitChecks,
-    });
-
-    const ifc: WeaviateClient = {
-      backup: backup(connection),
-      cluster: cluster(connection),
-      collections: collections(connection, dbVersionSupport),
-      close: () => Promise.resolve(connection.close()), // hedge against future changes to add I/O to .close()
-      getMeta: () => new MetaGetter(connection).do(),
-      getOpenIDConfig: () => new OpenidConfigurationGetter(connection.http).do(),
-      getWeaviateVersion: () => dbVersionSupport.getVersion(),
-      isLive: () => new LiveChecker(connection, dbVersionProvider).do(),
-      isReady: () => new ReadyChecker(connection, dbVersionProvider).do(),
-    };
-    if (connection.oidcAuth) ifc.oidcAuth = connection.oidcAuth;
-
-    return ifc;
-  },
-
+  connectToCustom,
+  connectToLocal,
+  connectToWCD,
+  connectToWCS,
+  connectToWeaviateCloud,
+  client,
   ApiKey,
   AuthUserPasswordCredentials,
   AuthAccessTokenCredentials,
