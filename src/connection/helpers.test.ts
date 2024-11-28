@@ -19,6 +19,18 @@ describe('Testing of the connection helper methods', () => {
       });
   });
 
+  it('should connect to a local cluster', () => {
+    return weaviate
+      .connectToLocal()
+      .then((client) => client.getMeta())
+      .then((res: any) => {
+        expect(res.version).toBeDefined();
+      })
+      .catch((e: any) => {
+        throw new Error('it should not have errord: ' + e);
+      });
+  });
+
   describe('adds Weaviate Embedding Service headers', () => {
     it('to empty headers', async () => {
       const clientMakerMock = jest.fn().mockResolvedValue(undefined);
@@ -27,11 +39,9 @@ describe('Testing of the connection helper methods', () => {
         authCredentials: new weaviate.ApiKey(WCD_KEY),
       });
 
-      expect(clientMakerMock.mock.calls[0][0]).toMatchObject({
-        headers: {
-          'X-Weaviate-Api-Key': WCD_KEY,
-          'X-Weaviate-Cluster-Url': WCD_URL,
-        },
+      expect(clientMakerMock.mock.calls[0][0].headers).toEqual({
+        'X-Weaviate-Api-Key': WCD_KEY,
+        'X-Weaviate-Cluster-Url': WCD_URL,
       });
     });
 
@@ -43,25 +53,34 @@ describe('Testing of the connection helper methods', () => {
         headers: { existingHeader: 'existingValue' },
       });
 
-      expect(clientMakerMock.mock.calls[0][0]).toMatchObject({
-        headers: {
-          existingHeader: 'existingValue',
-          'X-Weaviate-Api-Key': WCD_KEY,
-          'X-Weaviate-Cluster-Url': WCD_URL,
-        },
+      expect(clientMakerMock.mock.calls[0][0].headers).toEqual({
+        existingHeader: 'existingValue',
+        'X-Weaviate-Api-Key': WCD_KEY,
+        'X-Weaviate-Cluster-Url': WCD_URL,
       });
     });
   });
 
-  it('should connect to a local cluster', () => {
-    return weaviate
-      .connectToLocal()
-      .then((client) => client.getMeta())
-      .then((res: any) => {
-        expect(res.version).toBeDefined();
-      })
-      .catch((e: any) => {
-        throw new Error('it should not have errord: ' + e);
+  describe('does not add Weaviate Embedding Service headers when not using API key', () => {
+    it('to empty headers', async () => {
+      const clientMakerMock = jest.fn().mockResolvedValue(undefined);
+
+      await connectToWeaviateCloud(WCD_URL, clientMakerMock, {
+        authCredentials: new weaviate.AuthUserPasswordCredentials({ username: 'test' }),
       });
+
+      expect(clientMakerMock.mock.calls[0][0].headers).toBe(undefined);
+    });
+
+    it('to existing headers', async () => {
+      const clientMakerMock = jest.fn().mockResolvedValue(undefined);
+
+      await connectToWeaviateCloud(WCD_URL, clientMakerMock, {
+        authCredentials: new weaviate.AuthUserPasswordCredentials({ username: 'test' }),
+        headers: { existingHeader: 'existingValue' },
+      });
+
+      expect(clientMakerMock.mock.calls[0][0].headers).toEqual({ existingHeader: 'existingValue' });
+    });
   });
 });
