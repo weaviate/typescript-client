@@ -40,6 +40,7 @@ export type Vectorizer =
   | 'text2vec-google'
   | 'text2vec-transformers'
   | 'text2vec-voyageai'
+  | 'text2vec-weaviate'
   | 'none';
 
 /** The configuration for image vectorization using a neural network module.
@@ -406,6 +407,20 @@ export type Text2VecVoyageAIConfig = {
   vectorizeCollectionName?: boolean;
 };
 
+/**
+ * The configuration for text vectorization using Weaviate's self-hosted text-based embedding models.
+ *
+ * TODO: add documentation reference once available.
+ */
+export type Text2VecWeaviateConfig = {
+  /** The base URL to use where API requests should go. */
+  baseURL?: string;
+  /** The model to use. */
+  model?: 'Snowflake/snowflake-arctic-embed-m-v1.5' | string;
+  /** Whether to vectorize the collection name. */
+  vectorizeCollectionName?: boolean;
+};
+
 export type NoVectorizerConfig = {};
 
 export type VectorizerConfig =
@@ -428,6 +443,7 @@ export type VectorizerConfig =
   | Text2VecPalmConfig
   | Text2VecTransformersConfig
   | Text2VecVoyageAIConfig
+  | Text2VecWeaviateConfig
   | NoVectorizerConfig;
 
 export type VectorizerConfigType<V> = V extends 'img2vec-neural'
@@ -474,6 +490,8 @@ export type VectorizerConfigType<V> = V extends 'img2vec-neural'
   ? Text2VecTransformersConfig | undefined
   : V extends 'text2vec-voyageai'
   ? Text2VecVoyageAIConfig | undefined
+  : V extends 'text2vec-weaviate'
+  ? Text2VecWeaviateConfig | undefined
   : V extends 'none'
   ? {}
   : V extends undefined

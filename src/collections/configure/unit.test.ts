@@ -1342,6 +1342,45 @@ describe('Unit testing of the vectorizer factory class', () => {
       },
     });
   });
+
+  it('should create the correct Text2VecWeaviateConfig type with defaults', () => {
+    const config = configure.vectorizer.text2VecWeaviate();
+    expect(config).toEqual<VectorConfigCreate<never, undefined, 'hnsw', 'text2vec-weaviate'>>({
+      name: undefined,
+      vectorIndex: {
+        name: 'hnsw',
+        config: undefined,
+      },
+      vectorizer: {
+        name: 'text2vec-weaviate',
+        config: undefined,
+      },
+    });
+  });
+
+  it('should create the correct Text2VecWeaviateConfig type with all values', () => {
+    const config = configure.vectorizer.text2VecWeaviate({
+      name: 'test',
+      baseURL: 'base-url',
+      model: 'model',
+      vectorizeCollectionName: true,
+    });
+    expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'text2vec-weaviate'>>({
+      name: 'test',
+      vectorIndex: {
+        name: 'hnsw',
+        config: undefined,
+      },
+      vectorizer: {
+        name: 'text2vec-weaviate',
+        config: {
+          baseURL: 'base-url',
+          model: 'model',
+          vectorizeCollectionName: true,
+        },
+      },
+    });
+  });
 });
 
 describe('Unit testing of the generative factory class', () => {
