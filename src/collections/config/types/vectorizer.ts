@@ -410,11 +410,13 @@ export type Text2VecVoyageAIConfig = {
 /**
  * The configuration for text vectorization using Weaviate's self-hosted text-based embedding models.
  *
- * TODO: add documentation reference once available.
+ * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/weaviate/embeddings) for detailed usage.
  */
 export type Text2VecWeaviateConfig = {
   /** The base URL to use where API requests should go. */
   baseURL?: string;
+  /** The dimensions to use. */
+  dimensions?: number;
   /** The model to use. */
   model?: 'Snowflake/snowflake-arctic-embed-m-v1.5' | string;
   /** Whether to vectorize the collection name. */
