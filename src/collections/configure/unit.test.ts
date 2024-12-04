@@ -1362,6 +1362,7 @@ describe('Unit testing of the vectorizer factory class', () => {
     const config = configure.vectorizer.text2VecWeaviate({
       name: 'test',
       baseURL: 'base-url',
+      dimensions: 256,
       model: 'model',
       vectorizeCollectionName: true,
     });
@@ -1375,6 +1376,7 @@ describe('Unit testing of the vectorizer factory class', () => {
         name: 'text2vec-weaviate',
         config: {
           baseURL: 'base-url',
+          dimensions: 256,
           model: 'model',
           vectorizeCollectionName: true,
         },
