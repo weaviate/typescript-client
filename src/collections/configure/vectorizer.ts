@@ -604,7 +604,7 @@ export const vectorizer = {
   /**
    * Create a `VectorConfigCreate` object with the vectorizer set to `'text2vec-weaviate'`.
    *
-   * TODO: add documentation reference once available.
+   * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/weaviate/embeddings) for detailed usage.
    *
    * @param {ConfigureTextVectorizerOptions<T, N, I, 'text2vec-weaviate'>} [opts] The configuration for the `text2vec-weaviate` vectorizer.
    * @returns {VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2vec-weaviate'>} The configuration object.
