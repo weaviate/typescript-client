@@ -3,6 +3,7 @@ import {
   Multi2VecClipConfig,
   Multi2VecField,
   Multi2VecPalmConfig,
+  Multi2VecVoyageAIConfig,
   VectorIndexType,
   Vectorizer,
   VectorizerConfigType,
@@ -260,6 +261,28 @@ export const vectorizer = {
           videoFields: videoFields?.map((f) => f.name),
           weights: Object.keys(weights).length === 0 ? undefined : weights,
         },
+      },
+    });
+  },
+  /**
+   * Create a `VectorConfigCreate` object with the vectorizer set to `'multi2vec-clip'`.
+   *
+   * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/transformers/embeddings-multimodal) for detailed usage.
+   *
+   * @param {ConfigureNonTextVectorizerOptions<N, I, 'multi2vec-voyageai'>} [opts] The configuration options for the `multi2vec-voyageai` vectorizer.
+   * @returns {VectorConfigCreate<PrimitiveKeys<T>[], N, I, 'multi2vec-voyageai'>} The configuration object.
+   */
+  multi2VecVoyageAI: <N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
+    opts?: ConfigureNonTextVectorizerOptions<N, I, 'multi2vec-voyageai'>
+  ): VectorConfigCreate<never, N, I, 'multi2vec-voyageai'> => {
+    const { name, vectorIndexConfig, ...config } = opts || {};
+    return makeVectorizer(name, {
+      vectorIndexConfig,
+      vectorizerConfig: {
+        name: 'multi2vec-voyageai',
+        config: {
+                ...config,
+              },
       },
     });
   },

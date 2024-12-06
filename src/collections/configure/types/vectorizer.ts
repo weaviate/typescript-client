@@ -150,6 +150,9 @@ export type Multi2VecGoogleConfigCreate = {
   vectorizeCollectionName?: boolean;
 };
 
+export type Multi2VecVoyageAIConfigCreate = {
+};
+
 export type Ref2VecCentroidConfigCreate = Ref2VecCentroidConfig;
 
 export type Text2VecAWSConfigCreate = Text2VecAWSConfig;
@@ -197,6 +200,8 @@ export type VectorizerConfigCreateType<V> = V extends 'img2vec-neural'
   ? Multi2VecPalmConfigCreate
   : V extends 'multi2vec-google'
   ? Multi2VecGoogleConfigCreate
+  : V extends 'multi2vec-voyageai'
+  ? Multi2VecVoyageAIConfigCreate | undefined
   : V extends 'ref2vec-centroid'
   ? Ref2VecCentroidConfigCreate
   : V extends 'text2vec-aws'
