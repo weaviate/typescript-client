@@ -3,7 +3,6 @@ import {
   Multi2VecClipConfig,
   Multi2VecField,
   Multi2VecPalmConfig,
-  Multi2VecVoyageAIConfig,
   VectorIndexType,
   Vectorizer,
   VectorizerConfigType,
@@ -281,8 +280,8 @@ export const vectorizer = {
       vectorizerConfig: {
         name: 'multi2vec-voyageai',
         config: {
-                ...config,
-              },
+          ...config,
+        },
       },
     });
   },
