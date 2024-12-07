@@ -190,6 +190,17 @@ export type Multi2VecGoogleConfig = {
  * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/transformers/embeddings-multimodal) for detailed usage.
  */
 export type Multi2VecVoyageAIConfig = {
+  /** The image fields used when vectorizing. */
+  imageFields?: string[];
+  /** The text fields used when vectorizing. */
+  textFields?: string[];
+  /** The weights of the fields used for vectorization. */
+  weights?: {
+    /** The weights of the image fields. */
+    imageFields?: number[];
+    /** The weights of the text fields. */
+    textFields?: number[];
+  };
 };
 
 /** The configuration for reference-based vectorization using the centroid method.

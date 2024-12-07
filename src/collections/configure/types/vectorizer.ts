@@ -151,6 +151,10 @@ export type Multi2VecGoogleConfigCreate = {
 };
 
 export type Multi2VecVoyageAIConfigCreate = {
+  /** The image fields to use in vectorization. Can be string of `Multi2VecField` type. If string, weight 0 will be assumed. */
+  imageFields?: string[] | Multi2VecField[];
+  /** The text fields to use in vectorization. Can be string of `Multi2VecField` type. If string, weight 0 will be assumed. */
+  textFields?: string[] | Multi2VecField[];
 };
 
 export type Ref2VecCentroidConfigCreate = Ref2VecCentroidConfig;
