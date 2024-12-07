@@ -3,6 +3,7 @@ import {
   Multi2VecClipConfig,
   Multi2VecField,
   Multi2VecPalmConfig,
+  Multi2VecVoyageAIConfig,
   VectorIndexType,
   Vectorizer,
   VectorizerConfigType,
@@ -258,6 +259,36 @@ export const vectorizer = {
           imageFields: imageFields?.map((f) => f.name),
           textFields: textFields?.map((f) => f.name),
           videoFields: videoFields?.map((f) => f.name),
+          weights: Object.keys(weights).length === 0 ? undefined : weights,
+        },
+      },
+    });
+  },
+  /**
+   * Create a `VectorConfigCreate` object with the vectorizer set to `'multi2vec-clip'`.
+   *
+   * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/transformers/embeddings-multimodal) for detailed usage.
+   *
+   * @param {ConfigureNonTextVectorizerOptions<N, I, 'multi2vec-voyageai'>} [opts] The configuration options for the `multi2vec-voyageai` vectorizer.
+   * @returns {VectorConfigCreate<PrimitiveKeys<T>[], N, I, 'multi2vec-voyageai'>} The configuration object.
+   */
+  multi2VecVoyageAI: <N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
+    opts?: ConfigureNonTextVectorizerOptions<N, I, 'multi2vec-voyageai'>
+  ): VectorConfigCreate<never, N, I, 'multi2vec-voyageai'> => {
+    const { name, vectorIndexConfig, ...config } = opts || {};
+    const imageFields = config.imageFields?.map(mapMulti2VecField);
+    const textFields = config.textFields?.map(mapMulti2VecField);
+    let weights: Multi2VecVoyageAIConfig['weights'] = {};
+    weights = formatMulti2VecFields(weights, 'imageFields', imageFields);
+    weights = formatMulti2VecFields(weights, 'textFields', textFields);
+    return makeVectorizer(name, {
+      vectorIndexConfig,
+      vectorizerConfig: {
+        name: 'multi2vec-voyageai',
+        config: {
+          ...config,
+          imageFields: imageFields?.map((f) => f.name),
+          textFields: textFields?.map((f) => f.name),
           weights: Object.keys(weights).length === 0 ? undefined : weights,
         },
       },

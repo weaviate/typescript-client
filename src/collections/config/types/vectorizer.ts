@@ -24,6 +24,7 @@ export type Vectorizer =
   | 'multi2vec-bind'
   | Multi2VecPalmVectorizer
   | 'multi2vec-google'
+  | 'multi2vec-voyageai'
   | 'ref2vec-centroid'
   | 'text2vec-aws'
   | 'text2vec-azure-openai'
@@ -181,6 +182,24 @@ export type Multi2VecGoogleConfig = {
     textFields?: number[];
     /** The weights of the video fields. */
     videoFields?: number[];
+  };
+};
+
+/** The configuration for multi-media vectorization using the VoyageAI module.
+ *
+ * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/transformers/embeddings-multimodal) for detailed usage.
+ */
+export type Multi2VecVoyageAIConfig = {
+  /** The image fields used when vectorizing. */
+  imageFields?: string[];
+  /** The text fields used when vectorizing. */
+  textFields?: string[];
+  /** The weights of the fields used for vectorization. */
+  weights?: {
+    /** The weights of the image fields. */
+    imageFields?: number[];
+    /** The weights of the text fields. */
+    textFields?: number[];
   };
 };
 
@@ -431,6 +450,7 @@ export type VectorizerConfig =
   | Multi2VecBindConfig
   | Multi2VecGoogleConfig
   | Multi2VecPalmConfig
+  | Multi2VecVoyageAIConfig
   | Ref2VecCentroidConfig
   | Text2VecAWSConfig
   | Text2VecAzureOpenAIConfig
@@ -460,6 +480,8 @@ export type VectorizerConfigType<V> = V extends 'img2vec-neural'
   ? Multi2VecGoogleConfig
   : V extends Multi2VecPalmVectorizer
   ? Multi2VecPalmConfig
+  : V extends 'multi2vec-voyageai'
+  ? Multi2VecVoyageAIConfig | undefined
   : V extends 'ref2vec-centroid'
   ? Ref2VecCentroidConfig
   : V extends 'text2vec-aws'
