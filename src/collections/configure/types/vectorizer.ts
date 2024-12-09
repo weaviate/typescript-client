@@ -150,6 +150,13 @@ export type Multi2VecGoogleConfigCreate = {
   vectorizeCollectionName?: boolean;
 };
 
+export type Multi2VecVoyageAIConfigCreate = {
+  /** The image fields to use in vectorization. Can be string of `Multi2VecField` type. If string, weight 0 will be assumed. */
+  imageFields?: string[] | Multi2VecField[];
+  /** The text fields to use in vectorization. Can be string of `Multi2VecField` type. If string, weight 0 will be assumed. */
+  textFields?: string[] | Multi2VecField[];
+};
+
 export type Ref2VecCentroidConfigCreate = Ref2VecCentroidConfig;
 
 export type Text2VecAWSConfigCreate = Text2VecAWSConfig;
@@ -197,6 +204,8 @@ export type VectorizerConfigCreateType<V> = V extends 'img2vec-neural'
   ? Multi2VecPalmConfigCreate
   : V extends 'multi2vec-google'
   ? Multi2VecGoogleConfigCreate
+  : V extends 'multi2vec-voyageai'
+  ? Multi2VecVoyageAIConfigCreate | undefined
   : V extends 'ref2vec-centroid'
   ? Ref2VecCentroidConfigCreate
   : V extends 'text2vec-aws'
