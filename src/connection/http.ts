@@ -4,8 +4,10 @@ import { Agent } from 'http';
 import OpenidConfigurationGetter from '../misc/openidConfigurationGetter.js';
 
 import {
+  WeaviateInsufficientPermissionsError,
   WeaviateInvalidInputError,
   WeaviateRequestTimeoutError,
+  WeaviateUnauthenticatedError,
   WeaviateUnexpectedStatusCodeError,
 } from '../errors.js';
 import {
@@ -155,11 +157,11 @@ export default class ConnectionREST {
     return this.http.head(path, payload);
   };
 
-  get = (path: string, expectReturnContent = true) => {
+  get = <T>(path: string, expectReturnContent = true) => {
     if (this.authEnabled) {
-      return this.login().then((token) => this.http.get(path, expectReturnContent, token));
+      return this.login().then((token) => this.http.get<T>(path, expectReturnContent, token));
     }
-    return this.http.get(path, expectReturnContent);
+    return this.http.get<T>(path, expectReturnContent);
   };
 
   login = async () => {
@@ -197,7 +199,7 @@ export interface HttpClient {
     expectReturnContent: boolean,
     bearerToken: string
   ) => Promise<T | undefined>;
-  get: (path: string, expectReturnContent?: boolean, bearerToken?: string) => any;
+  get: <T>(path: string, expectReturnContent?: boolean, bearerToken?: string) => Promise<T>;
   externalPost: (externalUrl: string, body: any, contentType: any) => any;
   getRaw: (path: string, bearerToken?: string) => any;
   delete: (path: string, payload: any, expectReturnContent?: boolean, bearerToken?: string) => any;
@@ -313,7 +315,7 @@ export const httpClient = (config: InternalConnectionParams): HttpClient => {
         handleHeadResponse<undefined>(false)
       );
     },
-    get: <T>(path: string, expectReturnContent = true, bearerToken = ''): Promise<T | undefined> => {
+    get: <T>(path: string, expectReturnContent = true, bearerToken = ''): Promise<T> => {
       const request = {
         method: 'GET',
         headers: {
@@ -323,7 +325,7 @@ export const httpClient = (config: InternalConnectionParams): HttpClient => {
       };
       addAuthHeaderIfNeeded(request, bearerToken);
       return fetchWithTimeout(url(path), config.timeout?.query || 30, request).then(
-        checkStatus<T>(expectReturnContent)
+        checkStatus<any>(expectReturnContent)
       );
     },
     getRaw: (path: string, bearerToken = '') => {
@@ -380,7 +382,13 @@ const checkStatus =
         } catch (e) {
           err = errText;
         }
-        return Promise.reject(new WeaviateUnexpectedStatusCodeError(res.status, err));
+        if (res.status === 401) {
+          return Promise.reject(new WeaviateUnauthenticatedError(err));
+        } else if (res.status === 403) {
+          return Promise.reject(new WeaviateInsufficientPermissionsError(403, err));
+        } else {
+          return Promise.reject(new WeaviateUnexpectedStatusCodeError(res.status, err));
+        }
       });
     }
     if (expectResponseBody) {

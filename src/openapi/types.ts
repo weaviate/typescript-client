@@ -64,3 +64,7 @@ export type BatchStats = definitions['BatchStats'];
 export type NodeShardStatus = definitions['NodeShardStatus'];
 // Meta
 export type Meta = definitions['Meta'];
+// RBAC
+export type Role = definitions['Role'];
+export type Permission = definitions['Permission'];
+export type Action = definitions['Permission']['action'];

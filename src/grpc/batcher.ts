@@ -1,4 +1,4 @@
-import { Metadata } from 'nice-grpc';
+import { Metadata, ServerError, Status } from 'nice-grpc';
 
 import { ConsistencyLevel } from '../data/index.js';
 
@@ -6,7 +6,11 @@ import { BatchObject, BatchObjectsReply, BatchObjectsRequest } from '../proto/v1
 import { WeaviateClient } from '../proto/v1/weaviate.js';
 
 import { RetryOptions } from 'nice-grpc-client-middleware-retry';
-import { WeaviateBatchError, WeaviateDeleteManyError } from '../errors.js';
+import {
+  WeaviateBatchError,
+  WeaviateDeleteManyError,
+  WeaviateInsufficientPermissionsError,
+} from '../errors.js';
 import { Filters } from '../proto/v1/base.js';
 import { BatchDeleteReply, BatchDeleteRequest } from '../proto/v1/batch_delete.js';
 import Base from './base.js';
@@ -58,6 +62,9 @@ export default class Batcher extends Base implements Batch {
         }
       )
     ).catch((err) => {
+      if (err instanceof ServerError && err.code === Status.PERMISSION_DENIED) {
+        throw new WeaviateInsufficientPermissionsError(7, err.message);
+      }
       throw new WeaviateDeleteManyError(err.message);
     });
   }
@@ -77,6 +84,9 @@ export default class Batcher extends Base implements Batch {
           }
         )
         .catch((err) => {
+          if (err instanceof ServerError && err.code === Status.PERMISSION_DENIED) {
+            throw new WeaviateInsufficientPermissionsError(7, err.message);
+          }
           throw new WeaviateBatchError(err.message);
         })
     );
