@@ -157,13 +157,15 @@ export function connectToCustom(
 }
 
 function addWeaviateEmbeddingServiceHeaders(clusterURL: string, options?: ConnectToWeaviateCloudOptions) {
-  if (!isApiKey(options?.authCredentials)) {
+  const creds = options?.authCredentials;
+
+  if (!isApiKey(creds)) {
     return options?.headers;
   }
 
   return {
-    ...options.headers,
-    'X-Weaviate-Api-Key': mapApiKey(options.authCredentials).apiKey,
+    ...options?.headers,
+    'X-Weaviate-Api-Key': mapApiKey(creds).apiKey,
     'X-Weaviate-Cluster-Url': clusterURL,
   };
 }

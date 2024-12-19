@@ -29,6 +29,7 @@ import { ProxiesParams, TimeoutParams } from './connection/http.js';
 import { ConnectionGRPC } from './connection/index.js';
 import MetaGetter from './misc/metaGetter.js';
 import { Meta } from './openapi/types.js';
+import roles, { Roles, permissions } from './roles/index.js';
 import { DbVersion } from './utils/dbVersion.js';
 
 import { Agent as HttpAgent } from 'http';
@@ -103,6 +104,7 @@ export interface WeaviateClient {
   cluster: Cluster;
   collections: Collections;
   oidcAuth?: OidcAuthenticator;
+  roles: Roles;
 
   close: () => Promise<void>;
   getMeta: () => Promise<Meta>;
@@ -221,6 +223,7 @@ async function client(params: ClientParams): Promise<WeaviateClient> {
     backup: backup(connection),
     cluster: cluster(connection),
     collections: collections(connection, dbVersionSupport),
+    roles: roles(connection),
     close: () => Promise.resolve(connection.close()), // hedge against future changes to add I/O to .close()
     getMeta: () => new MetaGetter(connection).do(),
     getOpenIDConfig: () => new OpenidConfigurationGetter(connection.http).do(),
@@ -247,11 +250,13 @@ const app = {
   configure,
   configGuards,
   reconfigure,
+  permissions,
 };
 
 export default app;
 export * from './collections/index.js';
 export * from './connection/index.js';
+export * from './roles/types.js';
 export * from './utils/base64.js';
 export * from './utils/uuid.js';
 export {

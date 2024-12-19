@@ -1,6 +1,6 @@
 import { ConsistencyLevel } from '../data/index.js';
 
-import { Metadata } from 'nice-grpc';
+import { Metadata, ServerError, Status } from 'nice-grpc';
 import { Filters } from '../proto/v1/base.js';
 import {
   BM25,
@@ -9,8 +9,8 @@ import {
   MetadataRequest,
   NearAudioSearch,
   NearDepthSearch,
-  NearImageSearch,
   NearIMUSearch,
+  NearImageSearch,
   NearObject,
   NearTextSearch,
   NearThermalSearch,
@@ -25,7 +25,7 @@ import {
 import { WeaviateClient } from '../proto/v1/weaviate.js';
 
 import { RetryOptions } from 'nice-grpc-client-middleware-retry';
-import { WeaviateQueryError } from '../errors.js';
+import { WeaviateInsufficientPermissionsError, WeaviateQueryError } from '../errors.js';
 import { GenerativeSearch } from '../proto/v1/generative.js';
 import Base from './base.js';
 import { retryOptions } from './retry.js';
@@ -157,6 +157,9 @@ export default class Searcher extends Base implements Search {
           }
         )
         .catch((err) => {
+          if (err instanceof ServerError && err.code === Status.PERMISSION_DENIED) {
+            throw new WeaviateInsufficientPermissionsError(7, err.message);
+          }
           throw new WeaviateQueryError(err.message, 'gRPC');
         })
     );
