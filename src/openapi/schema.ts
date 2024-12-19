@@ -5,7 +5,7 @@
 
 export interface paths {
   '/': {
-    /** Home. Discover the REST API */
+    /** Get links to other endpoints to help discover the REST API */
     get: operations['weaviate.root'];
   };
   '/.well-known/live': {
@@ -40,68 +40,100 @@ export interface paths {
       };
     };
   };
+  '/authz/roles': {
+    get: operations['getRoles'];
+    post: operations['createRole'];
+  };
+  '/authz/roles/{id}/add-permissions': {
+    post: operations['addPermissions'];
+  };
+  '/authz/roles/{id}/remove-permissions': {
+    post: operations['removePermissions'];
+  };
+  '/authz/roles/{id}': {
+    get: operations['getRole'];
+    delete: operations['deleteRole'];
+  };
+  '/authz/roles/{id}/has-permission': {
+    post: operations['hasPermission'];
+  };
+  '/authz/roles/{id}/users': {
+    get: operations['getUsersForRole'];
+  };
+  '/authz/users/{id}/roles': {
+    get: operations['getRolesForUser'];
+  };
+  '/authz/users/{id}/assign': {
+    post: operations['assignRole'];
+  };
+  '/authz/users/{id}/revoke': {
+    post: operations['revokeRole'];
+  };
+  '/authz/users/own-roles': {
+    get: operations['getRolesForOwnUser'];
+  };
   '/objects': {
     /** Lists all Objects in reverse order of creation, owned by the user that belongs to the used token. */
     get: operations['objects.list'];
-    /** Registers a new Object. Provided meta-data and schema values are validated. */
+    /** Create a new object. <br/><br/>Meta-data and schema values are validated. <br/><br/>**Note: Use `/batch` for importing many objects**: <br/>If you plan on importing a large number of objects, it's much more efficient to use the `/batch` endpoint. Otherwise, sending multiple single requests sequentially would incur a large performance penalty. <br/><br/>**Note: idempotence of `/objects`**: <br/>POST /objects will fail if an id is provided which already exists in the class. To update an existing object with the objects endpoint, use the PUT or PATCH method. */
     post: operations['objects.create'];
   };
   '/objects/{id}': {
-    /** Lists Objects. */
+    /** Get a specific object based on its UUID. Also available as Websocket bus. */
     get: operations['objects.get'];
-    /** Updates an Object's data. Given meta-data and schema values are validated. LastUpdateTime is set to the time this function is called. */
+    /** Updates an object based on its UUID. Given meta-data and schema values are validated. LastUpdateTime is set to the time this function is called. */
     put: operations['objects.update'];
-    /** Deletes an Object from the system. */
+    /** Deletes an object from the database based on its UUID. */
     delete: operations['objects.delete'];
-    /** Checks if an Object exists in the system. */
+    /** Checks if an object exists in the system based on its UUID. */
     head: operations['objects.head'];
-    /** Updates an Object. This method supports json-merge style patch semantics (RFC 7396). Provided meta-data and schema values are validated. LastUpdateTime is set to the time this function is called. */
+    /** Update an object based on its UUID (using patch semantics). This method supports json-merge style patch semantics (RFC 7396). Provided meta-data and schema values are validated. LastUpdateTime is set to the time this function is called. */
     patch: operations['objects.patch'];
   };
   '/objects/{className}/{id}': {
-    /** Get a single data object */
+    /** Get a data object based on its collection and UUID. Also available as Websocket bus. */
     get: operations['objects.class.get'];
-    /** Update an individual data object based on its class and uuid. */
+    /** Update an object based on its uuid and collection. This (`put`) method replaces the object with the provided object. */
     put: operations['objects.class.put'];
-    /** Delete a single data object. */
+    /** Delete an object based on its collection and UUID. <br/><br/>Note: For backward compatibility, beacons also support an older, deprecated format without the collection name. As a result, when deleting a reference, the beacon specified has to match the beacon to be deleted exactly. In other words, if a beacon is present using the old format (without collection name) you also need to specify it the same way. <br/><br/>In the beacon format, you need to always use `localhost` as the host, rather than the actual hostname. `localhost` here refers to the fact that the beacon's target is on the same Weaviate instance, as opposed to a foreign instance. */
     delete: operations['objects.class.delete'];
-    /** Checks if a data object exists without retrieving it. */
+    /** Checks if a data object exists based on its collection and uuid without retrieving it. <br/><br/>Internally it skips reading the object from disk other than checking if it is present. Thus it does not use resources on marshalling, parsing, etc., and is faster. Note the resulting HTTP request has no body; the existence of an object is indicated solely by the status code. */
     head: operations['objects.class.head'];
     /** Update an individual data object based on its class and uuid. This method supports json-merge style patch semantics (RFC 7396). Provided meta-data and schema values are validated. LastUpdateTime is set to the time this function is called. */
     patch: operations['objects.class.patch'];
   };
   '/objects/{id}/references/{propertyName}': {
-    /** Replace all references to a class-property. */
+    /** Replace all references in cross-reference property of an object. */
     put: operations['objects.references.update'];
-    /** Add a single reference to a class-property. */
+    /** Add a cross-reference. */
     post: operations['objects.references.create'];
     /** Delete the single reference that is given in the body from the list of references that this property has. */
     delete: operations['objects.references.delete'];
   };
   '/objects/{className}/{id}/references/{propertyName}': {
-    /** Update all references of a property of a data object. */
+    /** Replace **all** references in cross-reference property of an object. */
     put: operations['objects.class.references.put'];
-    /** Add a single reference to a class-property. */
+    /** Add a single reference to an object. This adds a reference to the array of cross-references of the given property in the source object specified by its collection name and id */
     post: operations['objects.class.references.create'];
-    /** Delete the single reference that is given in the body from the list of references that this property of a data object has */
+    /** Delete the single reference that is given in the body from the list of references that this property has. */
     delete: operations['objects.class.references.delete'];
   };
   '/objects/validate': {
-    /** Validate an Object's schema and meta-data. It has to be based on a schema, which is related to the given Object to be accepted by this validation. */
+    /** Validate an object's schema and meta-data without creating it. <br/><br/>If the schema of the object is valid, the request should return nothing with a plain RESTful request. Otherwise, an error object will be returned. */
     post: operations['objects.validate'];
   };
   '/batch/objects': {
-    /** Register new Objects in bulk. Provided meta-data and schema values are validated. */
+    /** Create new objects in bulk. <br/><br/>Meta-data and schema values are validated. <br/><br/>**Note: idempotence of `/batch/objects`**: <br/>`POST /batch/objects` is idempotent, and will overwrite any existing object given the same id. */
     post: operations['batch.objects.create'];
-    /** Delete Objects in bulk that match a certain filter. */
+    /** Batch delete objects that match a particular filter. <br/><br/>The request body takes a single `where` filter and will delete all objects matched. <br/><br/>Note that there is a limit to the number of objects to be deleted at once using this filter, in order to protect against unexpected memory surges and very-long-running requests. The default limit is 10,000 and may be configured by setting the `QUERY_MAXIMUM_RESULTS` environment variable. <br/><br/>Objects are deleted in the same order that they would be returned in an equivalent Get query. To delete more objects than the limit, run the same query multiple times. */
     delete: operations['batch.objects.delete'];
   };
   '/batch/references': {
-    /** Register cross-references between any class items (objects or objects) in bulk. */
+    /** Batch create cross-references between collections items (objects or objects) in bulk. */
     post: operations['batch.references.create'];
   };
   '/graphql': {
-    /** Get an object based on GraphQL */
+    /** Get a response based on a GraphQL query */
     post: operations['graphql.post'];
   };
   '/graphql/batch': {
@@ -109,27 +141,31 @@ export interface paths {
     post: operations['graphql.batch'];
   };
   '/meta': {
-    /** Gives meta information about the server and can be used to provide information to another Weaviate instance that wants to interact with the current instance. */
+    /** Returns meta information about the server. Can be used to provide information to another Weaviate instance that wants to interact with the current instance. */
     get: operations['meta.get'];
   };
   '/schema': {
+    /** Fetch an array of all collection definitions from the schema. */
     get: operations['schema.dump'];
+    /** Create a new data object collection. <br/><br/>If AutoSchema is enabled, Weaviate will attempt to infer the schema from the data at import time. However, manual schema definition is recommended for production environments. */
     post: operations['schema.objects.create'];
   };
   '/schema/{className}': {
     get: operations['schema.objects.get'];
-    /** Use this endpoint to alter an existing class in the schema. Note that not all settings are mutable. If an error about immutable fields is returned and you still need to update this particular setting, you will have to delete the class (and the underlying data) and recreate. This endpoint cannot be used to modify properties. Instead use POST /v1/schema/{className}/properties. A typical use case for this endpoint is to update configuration, such as the vectorIndexConfig. Note that even in mutable sections, such as vectorIndexConfig, some fields may be immutable. */
+    /** Add a property to an existing collection. */
     put: operations['schema.objects.update'];
+    /** Remove a collection from the schema. This will also delete all the objects in the collection. */
     delete: operations['schema.objects.delete'];
   };
   '/schema/{className}/properties': {
     post: operations['schema.objects.properties.add'];
   };
   '/schema/{className}/shards': {
+    /** Get the status of every shard in the cluster. */
     get: operations['schema.objects.shards.get'];
   };
   '/schema/{className}/shards/{shardName}': {
-    /** Update shard status of an Object Class */
+    /** Update a shard status for a collection. For example, a shard may have been marked as `READONLY` because its disk was full. After providing more disk space, use this endpoint to set the shard status to `READY` again. There is also a convenience function in each client to set the status of all shards of a collection. */
     put: operations['schema.objects.shards.update'];
   };
   '/schema/{className}/tenants': {
@@ -137,31 +173,33 @@ export interface paths {
     get: operations['tenants.get'];
     /** Update tenant of a specific class */
     put: operations['tenants.update'];
-    /** Create a new tenant for a specific class */
+    /** Create a new tenant for a collection. Multi-tenancy must be enabled in the collection definition. */
     post: operations['tenants.create'];
     /** delete tenants from a specific class */
     delete: operations['tenants.delete'];
   };
   '/schema/{className}/tenants/{tenantName}': {
+    /** get a specific tenant for the given class */
+    get: operations['tenants.get.one'];
     /** Check if a tenant exists for a specific class */
     head: operations['tenant.exists'];
   };
   '/backups/{backend}': {
     /** [Coming soon] List all backups in progress not implemented yet. */
     get: operations['backups.list'];
-    /** Starts a process of creating a backup for a set of classes */
+    /** Start creating a backup for a set of collections. <br/><br/>Notes: <br/>- Weaviate uses gzip compression by default. <br/>- Weaviate stays usable while a backup process is ongoing. */
     post: operations['backups.create'];
   };
   '/backups/{backend}/{id}': {
-    /** Returns status of backup creation attempt for a set of classes */
+    /** Returns status of backup creation attempt for a set of collections. <br/><br/>All client implementations have a `wait for completion` option which will poll the backup status in the background and only return once the backup has completed (successfully or unsuccessfully). If you set the `wait for completion` option to false, you can also check the status yourself using this endpoint. */
     get: operations['backups.create.status'];
     /** Cancel created backup with specified ID */
     delete: operations['backups.cancel'];
   };
   '/backups/{backend}/{id}/restore': {
-    /** Returns status of a backup restoration attempt for a set of classes */
+    /** Returns status of a backup restoration attempt for a set of classes. <br/><br/>All client implementations have a `wait for completion` option which will poll the backup status in the background and only return once the backup has completed (successfully or unsuccessfully). If you set the `wait for completion` option to false, you can also check the status yourself using the this endpoint. */
     get: operations['backups.restore.status'];
-    /** Starts a process of restoring a backup for a set of classes */
+    /** Starts a process of restoring a backup for a set of collections. <br/><br/>Any backup can be restored to any machine, as long as the number of nodes between source and target are identical.<br/><br/>Requrements:<br/><br/>- None of the collections to be restored already exist on the target restoration node(s).<br/>- The node names of the backed-up collections' must match those of the target restoration node(s). */
     post: operations['backups.restore'];
   };
   '/cluster/statistics': {
@@ -169,11 +207,11 @@ export interface paths {
     get: operations['cluster.get.statistics'];
   };
   '/nodes': {
-    /** Returns status of Weaviate DB. */
+    /** Returns node information for the entire database. */
     get: operations['nodes.get'];
   };
   '/nodes/{className}': {
-    /** Returns status of Weaviate DB. */
+    /** Returns node information for the nodes relevant to the collection. */
     get: operations['nodes.get.class'];
   };
   '/classifications/': {
@@ -187,6 +225,97 @@ export interface paths {
 }
 
 export interface definitions {
+  Role: {
+    /** @description role name */
+    name: string;
+    permissions: definitions['Permission'][];
+  };
+  /** @description permissions attached to a role. */
+  Permission: {
+    /** @description resources applicable for backup actions */
+    backups?: {
+      /**
+       * @description string or regex. if a specific collection name, if left empty it will be ALL or *
+       * @default *
+       */
+      collection?: string;
+    };
+    /** @description resources applicable for data actions */
+    data?: {
+      /**
+       * @description string or regex. if a specific collection name, if left empty it will be ALL or *
+       * @default *
+       */
+      collection?: string;
+      /**
+       * @description string or regex. if a specific tenant name, if left empty it will be ALL or *
+       * @default *
+       */
+      tenant?: string;
+      /**
+       * @description string or regex. if a specific object ID, if left empty it will be ALL or *
+       * @default *
+       */
+      object?: string;
+    };
+    /** @description resources applicable for cluster actions */
+    nodes?: {
+      /**
+       * @description whether to allow (verbose) returning shards and stats data in the response
+       * @default minimal
+       * @enum {string}
+       */
+      verbosity?: 'verbose' | 'minimal';
+      /**
+       * @description string or regex. if a specific collection name, if left empty it will be ALL or *
+       * @default *
+       */
+      collection?: string;
+    };
+    /** @description resources applicable for role actions */
+    roles?: {
+      /**
+       * @description string or regex. if a specific role name, if left empty it will be ALL or *
+       * @default *
+       */
+      role?: string;
+    };
+    /** @description resources applicable for collection and/or tenant actions */
+    collections?: {
+      /**
+       * @description string or regex. if a specific collection name, if left empty it will be ALL or *
+       * @default *
+       */
+      collection?: string;
+      /**
+       * @description string or regex. if a specific tenant name, if left empty it will be ALL or *
+       * @default *
+       */
+      tenant?: string;
+    };
+    /**
+     * @description allowed actions in weaviate.
+     * @enum {string}
+     */
+    action:
+      | 'manage_backups'
+      | 'read_cluster'
+      | 'manage_data'
+      | 'create_data'
+      | 'read_data'
+      | 'update_data'
+      | 'delete_data'
+      | 'read_nodes'
+      | 'manage_roles'
+      | 'read_roles'
+      | 'manage_collections'
+      | 'create_collections'
+      | 'read_collections'
+      | 'update_collections'
+      | 'delete_collections';
+  };
+  /** @description list of roles */
+  RolesListResponse: definitions['Role'][];
   Link: {
     /** @description target of the link */
     href?: string;
@@ -242,11 +371,11 @@ export interface definitions {
     /** Format: float */
     distance?: number;
   }[];
-  /** @description A Vector in the Contextionary */
+  /** @description A vector representation of the object in the Contextionary. If provided at object creation, this wil take precedence over any vectorizer setting. */
   C11yVector: number[];
-  /** @description A Vector object */
+  /** @description A vector representation of the object. If provided at object creation, this wil take precedence over any vectorizer setting. */
   Vector: number[];
-  /** @description A Multi Vector map of named vectors */
+  /** @description A map of named vectors for multi-vector representations. */
   Vectors: { [key: string]: definitions['Vector'] };
   /** @description Receive question based on array of classes, properties and values. */
   C11yVectorBasedQuestion: {
@@ -326,7 +455,7 @@ export interface definitions {
   };
   /** @description A list of GraphQL responses. */
   GraphQLResponses: definitions['GraphQLResponse'][];
-  /** @description Configure the inverted index built into Weaviate */
+  /** @description Configure the inverted index built into Weaviate (default: 60). */
   InvertedIndexConfig: {
     /**
      * Format: int
@@ -335,54 +464,54 @@ export interface definitions {
     cleanupIntervalSeconds?: number;
     bm25?: definitions['BM25Config'];
     stopwords?: definitions['StopwordConfig'];
-    /** @description Index each object by its internal timestamps */
+    /** @description Index each object by its internal timestamps (default: 'false'). */
     indexTimestamps?: boolean;
-    /** @description Index each object with the null state */
+    /** @description Index each object with the null state (default: 'false'). */
     indexNullState?: boolean;
-    /** @description Index length of properties */
+    /** @description Index length of properties (default: 'false'). */
     indexPropertyLength?: boolean;
   };
   /** @description Configure how replication is executed in a cluster */
   ReplicationConfig: {
-    /** @description Number of times a class is replicated */
+    /** @description Number of times a class is replicated (default: 1). */
     factor?: number;
-    /** @description Enable asynchronous replication */
+    /** @description Enable asynchronous replication (default: false). */
     asyncEnabled?: boolean;
     /**
-     * @description Conflict resolution strategy for deleted objects
+     * @description Conflict resolution strategy for deleted objects.
      * @enum {string}
      */
-    deletionStrategy?: 'NoAutomatedResolution' | 'DeleteOnConflict';
+    deletionStrategy?: 'NoAutomatedResolution' | 'DeleteOnConflict' | 'TimeBasedResolution';
   };
   /** @description tuning parameters for the BM25 algorithm */
   BM25Config: {
     /**
      * Format: float
-     * @description calibrates term-weight scaling based on the term frequency within a document
+     * @description Calibrates term-weight scaling based on the term frequency within a document (default: 1.2).
      */
     k1?: number;
     /**
      * Format: float
-     * @description calibrates term-weight scaling based on the document length
+     * @description Calibrates term-weight scaling based on the document length (default: 0.75).
      */
     b?: number;
   };
   /** @description fine-grained control over stopword list usage */
   StopwordConfig: {
-    /** @description pre-existing list of common words by language */
+    /** @description Pre-existing list of common words by language (default: 'en'). Options: ['en', 'none']. */
     preset?: string;
-    /** @description stopwords to be considered additionally */
+    /** @description Stopwords to be considered additionally (default: []). Can be any array of custom strings. */
     additions?: string[];
-    /** @description stopwords to be removed from consideration */
+    /** @description Stopwords to be removed from consideration (default: []). Can be any array of custom strings. */
     removals?: string[];
   };
   /** @description Configuration related to multi-tenancy within a class */
   MultiTenancyConfig: {
-    /** @description Whether or not multi-tenancy is enabled for this class */
+    /** @description Whether or not multi-tenancy is enabled for this class (default: false). */
     enabled?: boolean;
-    /** @description Nonexistent tenants should (not) be created implicitly */
+    /** @description Nonexistent tenants should (not) be created implicitly (default: false). */
     autoTenantCreation?: boolean;
-    /** @description Existing tenants should (not) be turned HOT implicitly when they are accessed and in another activity status */
+    /** @description Existing tenants should (not) be turned HOT implicitly when they are accessed and in another activity status (default: false). */
     autoTenantActivation?: boolean;
   };
   /** @description JSON object value. */
@@ -394,11 +523,11 @@ export interface definitions {
      * @description The url of the host.
      */
     hostname?: string;
-    /** @description Version of weaviate you are currently running */
+    /** @description The Weaviate server version. */
     version?: string;
-    /** @description Module-specific meta information */
+    /** @description Module-specific meta information. */
     modules?: { [key: string]: unknown };
-    /** @description Max message size for GRPC connection in bytes */
+    /** @description Max message size for GRPC connection in bytes. */
     grpcMaxMessageSize?: number;
   };
   /** @description Multiple instances of references to other objects. */
@@ -454,7 +583,7 @@ export interface definitions {
   PeerUpdateList: definitions['PeerUpdate'][];
   /** @description Allow custom overrides of vector weights as math expressions. E.g. "pancake": "7" will set the weight for the word pancake to 7 in the vectorization, whereas "w * 3" would triple the originally calculated word. This is an open object, with OpenAPI Specification 3.0 this will be more detailed. See Weaviate docs for more info. In the future this will become a key/value (string/string) object. */
   VectorWeights: { [key: string]: unknown };
-  /** @description This is an open object, with OpenAPI Specification 3.0 this will be more detailed. See Weaviate docs for more info. In the future this will become a key/value OR a SingleRef definition. */
+  /** @description Names and values of an individual property. A returned response may also contain additional metadata, such as from classification or feature projection. */
   PropertySchema: { [key: string]: unknown };
   /** @description This is an open object, with OpenAPI Specification 3.0 this will be more detailed. See Weaviate docs for more info. In the future this will become a key/value OR a SingleRef definition. */
   SchemaHistory: { [key: string]: unknown };
@@ -487,8 +616,9 @@ export interface definitions {
     ignoreSchemaSync?: boolean;
   };
   Class: {
-    /** @description Name of the class as URI relative to the schema URL. */
+    /** @description Name of the class (a.k.a. 'collection') (required). Multiple words should be concatenated in CamelCase, e.g. `ArticleAuthor`. */
     class?: string;
+    /** @description Configure named vectors. Either use this field or `vectorizer`, `vectorIndexType`, and `vectorIndexConfig` fields. Available from `v1.24.0`. */
     vectorConfig?: { [key: string]: definitions['VectorConfig'] };
     /** @description Name of the vector index to use, eg. (HNSW) */
     vectorIndexType?: string;
@@ -501,35 +631,43 @@ export interface definitions {
     multiTenancyConfig?: definitions['MultiTenancyConfig'];
     /** @description Specify how the vectors for this class should be determined. The options are either 'none' - this means you have to import a vector with each object yourself - or the name of a module that provides vectorization capabilities, such as 'text2vec-contextionary'. If left empty, it will use the globally configured default which can itself either be 'none' or a specific module. */
     vectorizer?: string;
-    /** @description Configuration specific to modules this Weaviate instance has installed */
+    /** @description Configuration specific to modules in a collection context. */
     moduleConfig?: { [key: string]: unknown };
-    /** @description Description of the class. */
+    /** @description Description of the collection for metadata purposes. */
     description?: string;
-    /** @description The properties of the class. */
+    /** @description Define properties of the collection. */
     properties?: definitions['Property'][];
   };
   Property: {
-    /** @description Can be a reference to another type when it starts with a capital (for example Person), otherwise "string" or "int". */
+    /** @description Data type of the property (required). If it starts with a capital (for example Person), may be a reference to another type. */
     dataType?: string[];
     /** @description Description of the property. */
     description?: string;
     /** @description Configuration specific to modules this Weaviate instance has installed */
     moduleConfig?: { [key: string]: unknown };
-    /** @description Name of the property as URI relative to the schema URL. */
+    /** @description The name of the property (required). Multiple words should be concatenated in camelCase, e.g. `nameOfAuthor`. */
     name?: string;
-    /** @description Optional. Should this property be indexed in the inverted index. Defaults to true. If you choose false, you will not be able to use this property in where filters, bm25 or hybrid search. This property has no affect on vectorization decisions done by modules (deprecated as of v1.19; use indexFilterable or/and indexSearchable instead) */
+    /** @description (Deprecated). Whether to include this property in the inverted index. If `false`, this property cannot be used in `where` filters, `bm25` or `hybrid` search. <br/><br/>Unrelated to vectorization behavior (deprecated as of v1.19; use indexFilterable or/and indexSearchable instead) */
     indexInverted?: boolean;
-    /** @description Optional. Should this property be indexed in the inverted index. Defaults to true. If you choose false, you will not be able to use this property in where filters. This property has no affect on vectorization decisions done by modules */
+    /** @description Whether to include this property in the filterable, Roaring Bitmap index. If `false`, this property cannot be used in `where` filters. <br/><br/>Note: Unrelated to vectorization behavior. */
     indexFilterable?: boolean;
     /** @description Optional. Should this property be indexed in the inverted index. Defaults to true. Applicable only to properties of data type text and text[]. If you choose false, you will not be able to use this property in bm25 or hybrid search. This property has no affect on vectorization decisions done by modules */
     indexSearchable?: boolean;
-    /** @description Optional. Should this property be indexed in the inverted index. Defaults to false. Provides better performance for range queries compared to filterable index in large datasets. Applicable only to properties of data type int, number, date. */
+    /** @description Whether to include this property in the filterable, range-based Roaring Bitmap index. Provides better performance for range queries compared to filterable index in large datasets. Applicable only to properties of data type int, number, date. */
     indexRangeFilters?: boolean;
     /**
      * @description Determines tokenization of the property as separate words or whole field. Optional. Applies to text and text[] data types. Allowed values are `word` (default; splits on any non-alphanumerical, lowercases), `lowercase` (splits on white spaces, lowercases), `whitespace` (splits on white spaces), `field` (trims). Not supported for remaining data types
      * @enum {string}
      */
-    tokenization?: 'word' | 'lowercase' | 'whitespace' | 'field' | 'trigram' | 'gse' | 'kagome_kr';
+    tokenization?:
+      | 'word'
+      | 'lowercase'
+      | 'whitespace'
+      | 'field'
+      | 'trigram'
+      | 'gse'
+      | 'kagome_kr'
+      | 'kagome_ja';
     /** @description The properties of the nested object(s). Applies to object and object[] data types. */
     nestedProperties?: definitions['NestedProperty'][];
   };
@@ -549,7 +687,16 @@ export interface definitions {
     indexSearchable?: boolean;
     indexRangeFilters?: boolean;
     /** @enum {string} */
-    tokenization?: 'word' | 'lowercase' | 'whitespace' | 'field';
+    tokenization?:
+      | 'word'
+      | 'lowercase'
+      | 'whitespace'
+      | 'field'
+      | 'trigram'
+      | 'gse'
+      | 'kagome_kr'
+      | 'kagome_ja';
+    /** @description The properties of the nested object(s). Applies to object and object[] data types. */
     nestedProperties?: definitions['NestedProperty'][];
   };
   /** @description The status of all the shards of a Class */
@@ -591,7 +738,7 @@ export interface definitions {
     id?: string;
     /** @description Backup backend name e.g. filesystem, gcs, s3. */
     backend?: string;
-    /** @description destination path of backup files proper to selected backup backend */
+    /** @description destination path of backup files proper to selected backup backend, contains bucket and path */
     path?: string;
     /** @description error message if restoration failed */
     error?: string;
@@ -604,13 +751,19 @@ export interface definitions {
   };
   /** @description Backup custom configuration */
   BackupConfig: {
+    /** @description name of the endpoint, e.g. s3.amazonaws.com */
+    Endpoint?: string;
+    /** @description Name of the bucket, container, volume, etc */
+    Bucket?: string;
+    /** @description Path or key within the bucket */
+    Path?: string;
     /**
      * @description Desired CPU core utilization ranging from 1%-80%
      * @default 50
      */
     CPUPercentage?: number;
     /**
-     * @description Weaviate will attempt to come close the specified size, with a minimum of 2MB, default of 128MB, and a maximum of 512MB
+     * @description Aimed chunk size, with a minimum of 2MB, default of 128MB, and a maximum of 512MB. The actual chunk size may vary.
      * @default 128
      */
     ChunkSize?: number;
@@ -623,6 +776,12 @@ export interface definitions {
   };
   /** @description Backup custom configuration */
   RestoreConfig: {
+    /** @description name of the endpoint, e.g. s3.amazonaws.com */
+    Endpoint?: string;
+    /** @description Name of the bucket, container, volume, etc */
+    Bucket?: string;
+    /** @description Path within the bucket */
+    Path?: string;
     /**
      * @description Desired CPU core utilization ranging from 1%-80%
      * @default 50
@@ -631,13 +790,13 @@ export interface definitions {
   };
   /** @description Request body for creating a backup of a set of classes */
   BackupCreateRequest: {
-    /** @description The ID of the backup. Must be URL-safe and work as a filesystem path, only lowercase, numbers, underscore, minus characters allowed. */
+    /** @description The ID of the backup (required). Must be URL-safe and work as a filesystem path, only lowercase, numbers, underscore, minus characters allowed. */
     id?: string;
     /** @description Custom configuration for the backup creation process */
     config?: definitions['BackupConfig'];
-    /** @description List of classes to include in the backup creation process */
+    /** @description List of collections to include in the backup creation process. If not set, all collections are included. Cannot be used together with `exclude`. */
     include?: string[];
-    /** @description List of classes to exclude from the backup creation process */
+    /** @description List of collections to exclude from the backup creation process. If not set, all collections are included. Cannot be used together with `include`. */
     exclude?: string[];
   };
   /** @description The definition of a backup create response body */
@@ -648,7 +807,9 @@ export interface definitions {
     classes?: string[];
     /** @description Backup backend name e.g. filesystem, gcs, s3. */
     backend?: string;
-    /** @description destination path of backup files proper to selected backend */
+    /** @description Name of the bucket, container, volume, etc */
+    bucket?: string;
+    /** @description Path within bucket of backup */
     path?: string;
     /** @description error message if creation failed */
     error?: string;
@@ -707,7 +868,7 @@ export interface definitions {
   NodeStats: {
     /**
      * Format: int
-     * @description The count of Weaviate's shards.
+     * @description The count of Weaviate's shards. To see this value, set `output` to `verbose`.
      */
     shardCount?: number;
     /**
@@ -856,7 +1017,7 @@ export interface definitions {
     /** @description Additional Meta information about classifications if the item was part of one */
     classification?: definitions['ReferenceMetaClassification'];
   };
-  /** @description Additional Meta information about a single object object. */
+  /** @description (Response only) Additional meta information about a single object. */
   AdditionalProperties: { [key: string]: { [key: string]: unknown } };
   /** @description This meta field contains additional info about the classified reference property */
   ReferenceMetaClassification: {
@@ -937,7 +1098,7 @@ export interface definitions {
        * @default SUCCESS
        * @enum {string}
        */
-      status?: 'SUCCESS' | 'PENDING' | 'FAILED';
+      status?: 'SUCCESS' | 'FAILED';
       errors?: definitions['ErrorResponse'];
     };
   };
@@ -987,12 +1148,12 @@ export interface definitions {
     id?: string;
     /**
      * Format: int64
-     * @description Timestamp of creation of this Object in milliseconds since epoch UTC.
+     * @description (Response only) Timestamp of creation of this object in milliseconds since epoch UTC.
      */
     creationTimeUnix?: number;
     /**
      * Format: int64
-     * @description Timestamp of the last Object update in milliseconds since epoch UTC.
+     * @description (Response only) Timestamp of the last object update in milliseconds since epoch UTC.
      */
     lastUpdateTimeUnix?: number;
     /** @description This field returns vectors associated with the Object. C11yVector, Vector or Vectors values are possible. */
@@ -1015,7 +1176,7 @@ export interface definitions {
        * @default SUCCESS
        * @enum {string}
        */
-      status?: 'SUCCESS' | 'PENDING' | 'FAILED';
+      status?: 'SUCCESS' | 'FAILED';
       errors?: definitions['ErrorResponse'];
     };
   };
@@ -1036,7 +1197,12 @@ export interface definitions {
      */
     output?: string;
     /**
-     * @description If true, objects will not be deleted yet, but merely listed. Defaults to false.
+     * Format: int64
+     * @description Timestamp of deletion in milliseconds since epoch UTC.
+     */
+    deletionTimeUnixMilli?: number;
+    /**
+     * @description If true, the call will show which objects would be matched using the specified filter without deleting any objects. <br/><br/>Depending on the configured verbosity, you will either receive a count of affected objects, or a list of IDs.
      * @default false
      */
     dryRun?: boolean;
@@ -1058,6 +1224,11 @@ export interface definitions {
      * @default minimal
      */
     output?: string;
+    /**
+     * Format: int64
+     * @description Timestamp of deletion in milliseconds since epoch UTC.
+     */
+    deletionTimeUnixMilli?: number;
     /**
      * @description If true, objects will not be deleted yet, but merely listed. Defaults to false.
      * @default false
@@ -1311,7 +1482,7 @@ export interface definitions {
   };
   /** @description attributes representing a single tenant within weaviate */
   Tenant: {
-    /** @description name of the tenant */
+    /** @description The name of the tenant (required). */
     name?: string;
     /**
      * @description activity status of the tenant's shard. Optional for creating tenant (implicit `ACTIVE`) and required for updating tenant. For creation, allowed values are `ACTIVE` - tenant is fully active and `INACTIVE` - tenant is inactive; no actions can be performed on tenant, tenant's files are stored locally. For updating, `ACTIVE`, `INACTIVE` and also `OFFLOADED` - as INACTIVE, but files are stored on cloud storage. The following values are read-only and are set by the server for internal use: `OFFLOADING` - tenant is transitioning from ACTIVE/INACTIVE to OFFLOADED, `ONLOADING` - tenant is transitioning from OFFLOADED to ACTIVE/INACTIVE. We still accept deprecated names `HOT` (now `ACTIVE`), `COLD` (now `INACTIVE`), `FROZEN` (now `OFFLOADED`), `FREEZING` (now `OFFLOADING`), `UNFREEZING` (now `ONLOADING`).
@@ -1329,20 +1500,31 @@ export interface definitions {
       | 'FREEZING'
       | 'UNFREEZING';
   };
+  /** @description attributes representing a single tenant response within weaviate */
+  TenantResponse: definitions['Tenant'] & {
+    /** @description The list of nodes that owns that tenant data. */
+    belongsToNodes?: string[];
+    /**
+     * @description Experimental. The data version of the tenant is a monotonically increasing number starting from 0 which is incremented each time a tenant's data is offloaded to cloud storage.
+     * @default 0
+     * @example 3
+     */
+    dataVersion?: number;
+  };
 }
 
 export interface parameters {
-  /** @description The starting ID of the result window. */
+  /** @description A threshold UUID of the objects to retrieve after, using an UUID-based ordering. This object is not part of the set. <br/><br/>Must be used with `class`, typically in conjunction with `limit`. <br/><br/>Note `after` cannot be used with `offset` or `sort`. <br/><br/>For a null value similar to offset=0, set an empty string in the request, i.e. `after=` or `after`. */
   CommonAfterParameterQuery: string;
   /**
    * Format: int64
-   * @description The starting index of the result window. Default value is 0.
+   * @description The starting index of the result window. Note `offset` will retrieve `offset+limit` results and return `limit` results from the object with index `offset` onwards. Limited by the value of `QUERY_MAXIMUM_RESULTS`. <br/><br/>Should be used in conjunction with `limit`. <br/><br/>Cannot be used with `after`.
    * @default 0
    */
   CommonOffsetParameterQuery: number;
   /**
    * Format: int64
-   * @description The maximum number of items to be returned per page. Default value is set in Weaviate config.
+   * @description The maximum number of items to be returned per page. The default is 25 unless set otherwise as an environment variable.
    */
   CommonLimitParameterQuery: number;
   /** @description Include additional information, such as classification infos. Allowed values include: classification, vector, interpretation */
@@ -1353,11 +1535,11 @@ export interface parameters {
   CommonTenantParameterQuery: string;
   /** @description The target node which should fulfill the request */
   CommonNodeNameParameterQuery: string;
-  /** @description Sort parameter to pass an information about the names of the sort fields */
+  /** @description Name(s) of the property to sort by - e.g. `city`, or `country,city`. */
   CommonSortParameterQuery: string;
-  /** @description Order parameter to tell how to order (asc or desc) data within given field */
+  /** @description Order parameter to tell how to order (asc or desc) data within given field. Should be used in conjunction with `sort` parameter. If providing multiple `sort` values, provide multiple `order` values in corresponding order, e.g.: `sort=author_name,title&order=desc,asc`. */
   CommonOrderParameterQuery: string;
-  /** @description Class parameter specifies the class from which to query objects */
+  /** @description The collection from which to query objects.  <br/><br/>Note that if `class` is not provided, the response will not include any objects. */
   CommonClassParameterQuery: string;
   /**
    * @description Controls the verbosity of the output, possible values are: "minimal", "verbose". Defaults to "minimal".
@@ -1367,7 +1549,7 @@ export interface parameters {
 }
 
 export interface operations {
-  /** Home. Discover the REST API */
+  /** Get links to other endpoints to help discover the REST API */
   'weaviate.root': {
     responses: {
       /** Weaviate is alive and ready to serve content */
@@ -1394,30 +1576,396 @@ export interface operations {
       503: unknown;
     };
   };
+  getRoles: {
+    responses: {
+      /** Successful response. */
+      200: {
+        schema: definitions['RolesListResponse'];
+      };
+      /** Malformed request. */
+      400: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Unauthorized or invalid credentials. */
+      401: unknown;
+      /** Forbidden */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
+  createRole: {
+    parameters: {
+      body: {
+        body: definitions['Role'];
+      };
+    };
+    responses: {
+      /** Role created successfully */
+      201: unknown;
+      /** Malformed request. */
+      400: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Unauthorized or invalid credentials. */
+      401: unknown;
+      /** Forbidden */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Role already exists */
+      409: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Request body is well-formed (i.e., syntactically correct), but semantically erroneous. Are you sure the class is defined in the configuration file? */
+      422: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
+  addPermissions: {
+    parameters: {
+      path: {
+        /** role name */
+        id: string;
+      };
+      body: {
+        body: {
+          /** @description permissions to be added to the role */
+          permissions: definitions['Permission'][];
+        } & {
+          name: unknown;
+        };
+      };
+    };
+    responses: {
+      /** Permissions added successfully */
+      200: unknown;
+      /** Malformed request. */
+      400: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Unauthorized or invalid credentials. */
+      401: unknown;
+      /** Forbidden */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** no role found */
+      404: unknown;
+      /** Request body is well-formed (i.e., syntactically correct), but semantically erroneous. Are you sure the class is defined in the configuration file? */
+      422: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
+  removePermissions: {
+    parameters: {
+      path: {
+        /** role name */
+        id: string;
+      };
+      body: {
+        body: {
+          /** @description permissions to remove from the role */
+          permissions: definitions['Permission'][];
+        };
+      };
+    };
+    responses: {
+      /** Permissions removed successfully */
+      200: unknown;
+      /** Malformed request. */
+      400: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Unauthorized or invalid credentials. */
+      401: unknown;
+      /** Forbidden */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** no role found */
+      404: unknown;
+      /** Request body is well-formed (i.e., syntactically correct), but semantically erroneous. Are you sure the class is defined in the configuration file? */
+      422: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
+  getRole: {
+    parameters: {
+      path: {
+        /** role name */
+        id: string;
+      };
+    };
+    responses: {
+      /** Successful response. */
+      200: {
+        schema: definitions['Role'];
+      };
+      /** Malformed request. */
+      400: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Unauthorized or invalid credentials. */
+      401: unknown;
+      /** Forbidden */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** no role found */
+      404: unknown;
+      /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
+  deleteRole: {
+    parameters: {
+      path: {
+        /** role name */
+        id: string;
+      };
+    };
+    responses: {
+      /** Successfully deleted. */
+      204: never;
+      /** Bad request */
+      400: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Unauthorized or invalid credentials. */
+      401: unknown;
+      /** Forbidden */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
+  hasPermission: {
+    parameters: {
+      path: {
+        /** role name */
+        id: string;
+      };
+      body: {
+        body: definitions['Permission'];
+      };
+    };
+    responses: {
+      /** Permission check was successful */
+      200: {
+        schema: boolean;
+      };
+      /** Malformed request. */
+      400: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Unauthorized or invalid credentials. */
+      401: unknown;
+      /** Forbidden */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Request body is well-formed (i.e., syntactically correct), but semantically erroneous. Are you sure the class is defined in the configuration file? */
+      422: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
+  getUsersForRole: {
+    parameters: {
+      path: {
+        /** role name */
+        id: string;
+      };
+    };
+    responses: {
+      /** Users assigned to this role */
+      200: {
+        schema: string[];
+      };
+      /** Bad request */
+      400: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Unauthorized or invalid credentials. */
+      401: unknown;
+      /** Forbidden */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** no role found */
+      404: unknown;
+      /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
+  getRolesForUser: {
+    parameters: {
+      path: {
+        /** user name */
+        id: string;
+      };
+    };
+    responses: {
+      /** Role assigned users */
+      200: {
+        schema: definitions['RolesListResponse'];
+      };
+      /** Bad request */
+      400: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Unauthorized or invalid credentials. */
+      401: unknown;
+      /** Forbidden */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** no role found for user */
+      404: unknown;
+      /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
+  assignRole: {
+    parameters: {
+      path: {
+        /** user name */
+        id: string;
+      };
+      body: {
+        body: {
+          /** @description the roles that assigned to user */
+          roles?: string[];
+        };
+      };
+    };
+    responses: {
+      /** Role assigned successfully */
+      200: unknown;
+      /** Bad request */
+      400: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Unauthorized or invalid credentials. */
+      401: unknown;
+      /** Forbidden */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** role or user is not found. */
+      404: unknown;
+      /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
+  revokeRole: {
+    parameters: {
+      path: {
+        /** user name */
+        id: string;
+      };
+      body: {
+        body: {
+          /** @description the roles that revoked from the key or user */
+          roles?: string[];
+        };
+      };
+    };
+    responses: {
+      /** Role revoked successfully */
+      200: unknown;
+      /** Bad request */
+      400: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Unauthorized or invalid credentials. */
+      401: unknown;
+      /** Forbidden */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** role or user is not found. */
+      404: unknown;
+      /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
+  getRolesForOwnUser: {
+    responses: {
+      /** Role assigned to own users */
+      200: {
+        schema: definitions['RolesListResponse'];
+      };
+      /** Unauthorized or invalid credentials. */
+      401: unknown;
+      /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
   /** Lists all Objects in reverse order of creation, owned by the user that belongs to the used token. */
   'objects.list': {
     parameters: {
       query: {
-        /** The starting ID of the result window. */
+        /** A threshold UUID of the objects to retrieve after, using an UUID-based ordering. This object is not part of the set. <br/><br/>Must be used with `class`, typically in conjunction with `limit`. <br/><br/>Note `after` cannot be used with `offset` or `sort`. <br/><br/>For a null value similar to offset=0, set an empty string in the request, i.e. `after=` or `after`. */
         after?: parameters['CommonAfterParameterQuery'];
-        /** The starting index of the result window. Default value is 0. */
+        /** The starting index of the result window. Note `offset` will retrieve `offset+limit` results and return `limit` results from the object with index `offset` onwards. Limited by the value of `QUERY_MAXIMUM_RESULTS`. <br/><br/>Should be used in conjunction with `limit`. <br/><br/>Cannot be used with `after`. */
         offset?: parameters['CommonOffsetParameterQuery'];
-        /** The maximum number of items to be returned per page. Default value is set in Weaviate config. */
+        /** The maximum number of items to be returned per page. The default is 25 unless set otherwise as an environment variable. */
         limit?: parameters['CommonLimitParameterQuery'];
         /** Include additional information, such as classification infos. Allowed values include: classification, vector, interpretation */
         include?: parameters['CommonIncludeParameterQuery'];
-        /** Sort parameter to pass an information about the names of the sort fields */
+        /** Name(s) of the property to sort by - e.g. `city`, or `country,city`. */
         sort?: parameters['CommonSortParameterQuery'];
-        /** Order parameter to tell how to order (asc or desc) data within given field */
+        /** Order parameter to tell how to order (asc or desc) data within given field. Should be used in conjunction with `sort` parameter. If providing multiple `sort` values, provide multiple `order` values in corresponding order, e.g.: `sort=author_name,title&order=desc,asc`. */
         order?: parameters['CommonOrderParameterQuery'];
-        /** Class parameter specifies the class from which to query objects */
+        /** The collection from which to query objects.  <br/><br/>Note that if `class` is not provided, the response will not include any objects. */
         class?: parameters['CommonClassParameterQuery'];
         /** Specifies the tenant in a request targeting a multi-tenant class */
         tenant?: parameters['CommonTenantParameterQuery'];
       };
     };
     responses: {
-      /** Successful response. */
+      /** Successful response. <br/><br/>If `class` is not provided, the response will not include any objects. */
       200: {
         schema: definitions['ObjectsListResponse'];
       };
@@ -1443,7 +1991,7 @@ export interface operations {
       };
     };
   };
-  /** Registers a new Object. Provided meta-data and schema values are validated. */
+  /** Create a new object. <br/><br/>Meta-data and schema values are validated. <br/><br/>**Note: Use `/batch` for importing many objects**: <br/>If you plan on importing a large number of objects, it's much more efficient to use the `/batch` endpoint. Otherwise, sending multiple single requests sequentially would incur a large performance penalty. <br/><br/>**Note: idempotence of `/objects`**: <br/>POST /objects will fail if an id is provided which already exists in the class. To update an existing object with the objects endpoint, use the PUT or PATCH method. */
   'objects.create': {
     parameters: {
       body: {
@@ -1479,7 +2027,7 @@ export interface operations {
       };
     };
   };
-  /** Lists Objects. */
+  /** Get a specific object based on its UUID. Also available as Websocket bus. */
   'objects.get': {
     parameters: {
       path: {
@@ -1514,7 +2062,7 @@ export interface operations {
       };
     };
   };
-  /** Updates an Object's data. Given meta-data and schema values are validated. LastUpdateTime is set to the time this function is called. */
+  /** Updates an object based on its UUID. Given meta-data and schema values are validated. LastUpdateTime is set to the time this function is called. */
   'objects.update': {
     parameters: {
       path: {
@@ -1552,7 +2100,7 @@ export interface operations {
       };
     };
   };
-  /** Deletes an Object from the system. */
+  /** Deletes an object from the database based on its UUID. */
   'objects.delete': {
     parameters: {
       path: {
@@ -1583,7 +2131,7 @@ export interface operations {
       };
     };
   };
-  /** Checks if an Object exists in the system. */
+  /** Checks if an object exists in the system based on its UUID. */
   'objects.head': {
     parameters: {
       path: {
@@ -1608,7 +2156,7 @@ export interface operations {
       };
     };
   };
-  /** Updates an Object. This method supports json-merge style patch semantics (RFC 7396). Provided meta-data and schema values are validated. LastUpdateTime is set to the time this function is called. */
+  /** Update an object based on its UUID (using patch semantics). This method supports json-merge style patch semantics (RFC 7396). Provided meta-data and schema values are validated. LastUpdateTime is set to the time this function is called. */
   'objects.patch': {
     parameters: {
       path: {
@@ -1647,7 +2195,7 @@ export interface operations {
       };
     };
   };
-  /** Get a single data object */
+  /** Get a data object based on its collection and UUID. Also available as Websocket bus. */
   'objects.class.get': {
     parameters: {
       path: {
@@ -1693,7 +2241,7 @@ export interface operations {
       };
     };
   };
-  /** Update an individual data object based on its class and uuid. */
+  /** Update an object based on its uuid and collection. This (`put`) method replaces the object with the provided object. */
   'objects.class.put': {
     parameters: {
       path: {
@@ -1732,7 +2280,7 @@ export interface operations {
       };
     };
   };
-  /** Delete a single data object. */
+  /** Delete an object based on its collection and UUID. <br/><br/>Note: For backward compatibility, beacons also support an older, deprecated format without the collection name. As a result, when deleting a reference, the beacon specified has to match the beacon to be deleted exactly. In other words, if a beacon is present using the old format (without collection name) you also need to specify it the same way. <br/><br/>In the beacon format, you need to always use `localhost` as the host, rather than the actual hostname. `localhost` here refers to the fact that the beacon's target is on the same Weaviate instance, as opposed to a foreign instance. */
   'objects.class.delete': {
     parameters: {
       path: {
@@ -1772,7 +2320,7 @@ export interface operations {
       };
     };
   };
-  /** Checks if a data object exists without retrieving it. */
+  /** Checks if a data object exists based on its collection and uuid without retrieving it. <br/><br/>Internally it skips reading the object from disk other than checking if it is present. Thus it does not use resources on marshalling, parsing, etc., and is faster. Note the resulting HTTP request has no body; the existence of an object is indicated solely by the status code. */
   'objects.class.head': {
     parameters: {
       path: {
@@ -1852,7 +2400,7 @@ export interface operations {
       };
     };
   };
-  /** Replace all references to a class-property. */
+  /** Replace all references in cross-reference property of an object. */
   'objects.references.update': {
     parameters: {
       path: {
@@ -1888,7 +2436,7 @@ export interface operations {
       };
     };
   };
-  /** Add a single reference to a class-property. */
+  /** Add a cross-reference. */
   'objects.references.create': {
     parameters: {
       path: {
@@ -1960,7 +2508,7 @@ export interface operations {
       };
     };
   };
-  /** Update all references of a property of a data object. */
+  /** Replace **all** references in cross-reference property of an object. */
   'objects.class.references.put': {
     parameters: {
       path: {
@@ -2006,7 +2554,7 @@ export interface operations {
       };
     };
   };
-  /** Add a single reference to a class-property. */
+  /** Add a single reference to an object. This adds a reference to the array of cross-references of the given property in the source object specified by its collection name and id */
   'objects.class.references.create': {
     parameters: {
       path: {
@@ -2052,7 +2600,7 @@ export interface operations {
       };
     };
   };
-  /** Delete the single reference that is given in the body from the list of references that this property of a data object has */
+  /** Delete the single reference that is given in the body from the list of references that this property has. */
   'objects.class.references.delete': {
     parameters: {
       path: {
@@ -2100,7 +2648,7 @@ export interface operations {
       };
     };
   };
-  /** Validate an Object's schema and meta-data. It has to be based on a schema, which is related to the given Object to be accepted by this validation. */
+  /** Validate an object's schema and meta-data without creating it. <br/><br/>If the schema of the object is valid, the request should return nothing with a plain RESTful request. Otherwise, an error object will be returned. */
   'objects.validate': {
     parameters: {
       body: {
@@ -2126,7 +2674,7 @@ export interface operations {
       };
     };
   };
-  /** Register new Objects in bulk. Provided meta-data and schema values are validated. */
+  /** Create new objects in bulk. <br/><br/>Meta-data and schema values are validated. <br/><br/>**Note: idempotence of `/batch/objects`**: <br/>`POST /batch/objects` is idempotent, and will overwrite any existing object given the same id. */
   'batch.objects.create': {
     parameters: {
       body: {
@@ -2166,7 +2714,7 @@ export interface operations {
       };
     };
   };
-  /** Delete Objects in bulk that match a certain filter. */
+  /** Batch delete objects that match a particular filter. <br/><br/>The request body takes a single `where` filter and will delete all objects matched. <br/><br/>Note that there is a limit to the number of objects to be deleted at once using this filter, in order to protect against unexpected memory surges and very-long-running requests. The default limit is 10,000 and may be configured by setting the `QUERY_MAXIMUM_RESULTS` environment variable. <br/><br/>Objects are deleted in the same order that they would be returned in an equivalent Get query. To delete more objects than the limit, run the same query multiple times. */
   'batch.objects.delete': {
     parameters: {
       body: {
@@ -2204,7 +2752,7 @@ export interface operations {
       };
     };
   };
-  /** Register cross-references between any class items (objects or objects) in bulk. */
+  /** Batch create cross-references between collections items (objects or objects) in bulk. */
   'batch.references.create': {
     parameters: {
       body: {
@@ -2241,7 +2789,7 @@ export interface operations {
       };
     };
   };
-  /** Get an object based on GraphQL */
+  /** Get a response based on a GraphQL query */
   'graphql.post': {
     parameters: {
       body: {
@@ -2299,7 +2847,7 @@ export interface operations {
       };
     };
   };
-  /** Gives meta information about the server and can be used to provide information to another Weaviate instance that wants to interact with the current instance. */
+  /** Returns meta information about the server. Can be used to provide information to another Weaviate instance that wants to interact with the current instance. */
   'meta.get': {
     responses: {
       /** Successful response. */
@@ -2318,6 +2866,7 @@ export interface operations {
       };
     };
   };
+  /** Fetch an array of all collection definitions from the schema. */
   'schema.dump': {
     parameters: {
       header: {
@@ -2342,6 +2891,7 @@ export interface operations {
       };
     };
   };
+  /** Create a new data object collection. <br/><br/>If AutoSchema is enabled, Weaviate will attempt to infer the schema from the data at import time. However, manual schema definition is recommended for production environments. */
   'schema.objects.create': {
     parameters: {
       body: {
@@ -2398,7 +2948,7 @@ export interface operations {
       };
     };
   };
-  /** Use this endpoint to alter an existing class in the schema. Note that not all settings are mutable. If an error about immutable fields is returned and you still need to update this particular setting, you will have to delete the class (and the underlying data) and recreate. This endpoint cannot be used to modify properties. Instead use POST /v1/schema/{className}/properties. A typical use case for this endpoint is to update configuration, such as the vectorIndexConfig. Note that even in mutable sections, such as vectorIndexConfig, some fields may be immutable. */
+  /** Add a property to an existing collection. */
   'schema.objects.update': {
     parameters: {
       path: {
@@ -2433,6 +2983,7 @@ export interface operations {
       };
     };
   };
+  /** Remove a collection from the schema. This will also delete all the objects in the collection. */
   'schema.objects.delete': {
     parameters: {
       path: {
@@ -2488,6 +3039,7 @@ export interface operations {
       };
     };
   };
+  /** Get the status of every shard in the cluster. */
   'schema.objects.shards.get': {
     parameters: {
       path: {
@@ -2518,7 +3070,7 @@ export interface operations {
       };
     };
   };
-  /** Update shard status of an Object Class */
+  /** Update a shard status for a collection. For example, a shard may have been marked as `READONLY` because its disk was full. After providing more disk space, use this endpoint to set the shard status to `READY` again. There is also a convenience function in each client to set the status of all shards of a collection. */
   'schema.objects.shards.update': {
     parameters: {
       path: {
@@ -2617,7 +3169,7 @@ export interface operations {
       };
     };
   };
-  /** Create a new tenant for a specific class */
+  /** Create a new tenant for a collection. Multi-tenancy must be enabled in the collection definition. */
   'tenants.create': {
     parameters: {
       path: {
@@ -2668,6 +3220,41 @@ export interface operations {
         schema: definitions['ErrorResponse'];
       };
       /** Invalid Tenant class */
+      422: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
+  /** get a specific tenant for the given class */
+  'tenants.get.one': {
+    parameters: {
+      path: {
+        className: string;
+        tenantName: string;
+      };
+      header: {
+        /** If consistency is true, the request will be proxied to the leader to ensure strong schema consistency */
+        consistency?: boolean;
+      };
+    };
+    responses: {
+      /** load the tenant given the specified class */
+      200: {
+        schema: definitions['TenantResponse'];
+      };
+      /** Unauthorized or invalid credentials. */
+      401: unknown;
+      /** Forbidden */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Tenant not found */
+      404: unknown;
+      /** Invalid tenant or class */
       422: {
         schema: definitions['ErrorResponse'];
       };
@@ -2739,11 +3326,11 @@ export interface operations {
       };
     };
   };
-  /** Starts a process of creating a backup for a set of classes */
+  /** Start creating a backup for a set of collections. <br/><br/>Notes: <br/>- Weaviate uses gzip compression by default. <br/>- Weaviate stays usable while a backup process is ongoing. */
   'backups.create': {
     parameters: {
       path: {
-        /** Backup backend name e.g. filesystem, gcs, s3. */
+        /** Backup backend name e.g. `filesystem`, `gcs`, `s3`, `azure`. */
         backend: string;
       };
       body: {
@@ -2771,7 +3358,7 @@ export interface operations {
       };
     };
   };
-  /** Returns status of backup creation attempt for a set of classes */
+  /** Returns status of backup creation attempt for a set of collections. <br/><br/>All client implementations have a `wait for completion` option which will poll the backup status in the background and only return once the backup has completed (successfully or unsuccessfully). If you set the `wait for completion` option to false, you can also check the status yourself using this endpoint. */
   'backups.create.status': {
     parameters: {
       path: {
@@ -2779,6 +3366,12 @@ export interface operations {
         backend: string;
         /** The ID of a backup. Must be URL-safe and work as a filesystem path, only lowercase, numbers, underscore, minus characters allowed. */
         id: string;
+      };
+      query: {
+        /** Name of the bucket, container, volume, etc */
+        bucket?: string;
+        /** The path within the bucket */
+        path?: string;
       };
     };
     responses: {
@@ -2815,6 +3408,12 @@ export interface operations {
         /** The ID of a backup. Must be URL-safe and work as a filesystem path, only lowercase, numbers, underscore, minus characters allowed. */
         id: string;
       };
+      query: {
+        /** Name of the bucket, container, volume, etc */
+        bucket?: string;
+        /** The path within the bucket */
+        path?: string;
+      };
     };
     responses: {
       /** Successfully deleted. */
@@ -2835,14 +3434,20 @@ export interface operations {
       };
     };
   };
-  /** Returns status of a backup restoration attempt for a set of classes */
+  /** Returns status of a backup restoration attempt for a set of classes. <br/><br/>All client implementations have a `wait for completion` option which will poll the backup status in the background and only return once the backup has completed (successfully or unsuccessfully). If you set the `wait for completion` option to false, you can also check the status yourself using the this endpoint. */
   'backups.restore.status': {
     parameters: {
       path: {
-        /** Backup backend name e.g. filesystem, gcs, s3. */
+        /** Backup backend name e.g. `filesystem`, `gcs`, `s3`, `azure`. */
         backend: string;
         /** The ID of a backup. Must be URL-safe and work as a filesystem path, only lowercase, numbers, underscore, minus characters allowed. */
         id: string;
+      };
+      query: {
+        /** Name of the bucket, container, volume, etc */
+        bucket?: string;
+        /** The path within the bucket */
+        path?: string;
       };
     };
     responses: {
@@ -2866,11 +3471,11 @@ export interface operations {
       };
     };
   };
-  /** Starts a process of restoring a backup for a set of classes */
+  /** Starts a process of restoring a backup for a set of collections. <br/><br/>Any backup can be restored to any machine, as long as the number of nodes between source and target are identical.<br/><br/>Requrements:<br/><br/>- None of the collections to be restored already exist on the target restoration node(s).<br/>- The node names of the backed-up collections' must match those of the target restoration node(s). */
   'backups.restore': {
     parameters: {
       path: {
-        /** Backup backend name e.g. filesystem, gcs, s3. */
+        /** Backup backend name e.g. `filesystem`, `gcs`, `s3`, `azure`. */
         backend: string;
         /** The ID of a backup. Must be URL-safe and work as a filesystem path, only lowercase, numbers, underscore, minus characters allowed. */
         id: string;
@@ -2927,7 +3532,7 @@ export interface operations {
       };
     };
   };
-  /** Returns status of Weaviate DB. */
+  /** Returns node information for the entire database. */
   'nodes.get': {
     parameters: {
       query: {
@@ -2960,7 +3565,7 @@ export interface operations {
       };
     };
   };
-  /** Returns status of Weaviate DB. */
+  /** Returns node information for the nodes relevant to the collection. */
   'nodes.get.class': {
     parameters: {
       path: {

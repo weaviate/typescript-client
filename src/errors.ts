@@ -148,3 +148,20 @@ export class WeaviateRequestTimeoutError extends WeaviateError {
     super(`Weaviate request timed out with message: ${message}`);
   }
 }
+
+/**
+ * Is thrown if a request to Weaviate fails with a forbidden status code due to insufficient permissions.
+ */
+export class WeaviateInsufficientPermissionsError extends WeaviateError {
+  public code: number;
+  constructor(code: number, message: string) {
+    super(`Forbidden: ${message}`);
+    this.code = code;
+  }
+}
+
+export class WeaviateUnauthenticatedError extends WeaviateError {
+  constructor(message: string) {
+    super(`Unauthenticated: ${message}`);
+  }
+}

@@ -32,7 +32,7 @@ export default class ClassExists extends CommandBase {
     }
     const path = `/schema`;
     return this.client
-      .get(path)
-      .then((res: WeaviateSchema) => res.classes?.some((c) => c.class === this.className));
+      .get<WeaviateSchema>(path)
+      .then((res) => (res.classes ? res.classes.some((c) => c.class === this.className) : false));
   };
 }
