@@ -127,7 +127,7 @@ export type Multi2VecCohereConfigCreate = {
   vectorizeCollectionName?: boolean;
 };
 
-export type Multi2VecJinaConfigCreate = {
+export type Multi2VecJinaAIConfigCreate = {
   /** The base URL to use where API requests should go. */
   baseURL?: string;
   /** The dimensionality of the vector once embedded. */
@@ -213,8 +213,8 @@ export type VectorizerConfigCreateType<V> = V extends 'img2vec-neural'
   ? Multi2VecCohereConfigCreate | undefined
   : V extends 'multi2vec-bind'
   ? Multi2VecBindConfigCreate | undefined
-  : V extends 'multi2vec-jina'
-  ? Multi2VecJinaConfigCreate | undefined
+  : V extends 'multi2vec-jinaai'
+  ? Multi2VecJinaAIConfigCreate | undefined
   : V extends 'multi2vec-palm'
   ? Multi2VecPalmConfigCreate
   : V extends 'multi2vec-google'

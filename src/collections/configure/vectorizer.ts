@@ -197,16 +197,16 @@ export const vectorizer = {
     });
   },
   /**
-   * Create a `VectorConfigCreate` object with the vectorizer set to `'multi2vec-jina'`.
+   * Create a `VectorConfigCreate` object with the vectorizer set to `'multi2vec-jinaai'`.
    *
    * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/jinaai/embeddings-multimodal) for detailed usage.
    *
-   * @param {ConfigureNonTextVectorizerOptions<N, I, 'multi2vec-jina'>} [opts] The configuration options for the `multi2vec-jina` vectorizer.
-   * @returns {VectorConfigCreate<PrimitiveKeys<T>[], N, I, 'multi2vec-jina'>} The configuration object.
+   * @param {ConfigureNonTextVectorizerOptions<N, I, 'multi2vec-jinaai'>} [opts] The configuration options for the `multi2vec-jinaai` vectorizer.
+   * @returns {VectorConfigCreate<PrimitiveKeys<T>[], N, I, 'multi2vec-jinaai'>} The configuration object.
    */
-  multi2VecJina: <N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
-    opts?: ConfigureNonTextVectorizerOptions<N, I, 'multi2vec-jina'>
-  ): VectorConfigCreate<never, N, I, 'multi2vec-jina'> => {
+  multi2VecJinaAI: <N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
+    opts?: ConfigureNonTextVectorizerOptions<N, I, 'multi2vec-jinaai'>
+  ): VectorConfigCreate<never, N, I, 'multi2vec-jinaai'> => {
     const { name, vectorIndexConfig, ...config } = opts || {};
     const imageFields = config.imageFields?.map(mapMulti2VecField);
     const textFields = config.textFields?.map(mapMulti2VecField);
@@ -216,7 +216,7 @@ export const vectorizer = {
     return makeVectorizer(name, {
       vectorIndexConfig,
       vectorizerConfig: {
-        name: 'multi2vec-jina',
+        name: 'multi2vec-jinaai',
         config:
           Object.keys(config).length === 0
             ? undefined

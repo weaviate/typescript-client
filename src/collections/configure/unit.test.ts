@@ -621,22 +621,22 @@ describe('Unit testing of the vectorizer factory class', () => {
       },
     });
   });
-  it('should create the correct Multi2VecJinaConfig type with defaults', () => {
-    const config = configure.vectorizer.multi2VecJina();
-    expect(config).toEqual<VectorConfigCreate<never, undefined, 'hnsw', 'multi2vec-jina'>>({
+  it('should create the correct Multi2VecJinaAIConfig type with defaults', () => {
+    const config = configure.vectorizer.multi2VecJinaAI();
+    expect(config).toEqual<VectorConfigCreate<never, undefined, 'hnsw', 'multi2vec-jinaai'>>({
       name: undefined,
       vectorIndex: {
         name: 'hnsw',
         config: undefined,
       },
       vectorizer: {
-        name: 'multi2vec-jina',
+        name: 'multi2vec-jinaai',
         config: undefined,
       },
     });
   });
-  it('should create the correct Multi2VecJinaConfig type with all values and weights', () => {
-    const config = configure.vectorizer.multi2VecJina({
+  it('should create the correct Multi2VecJinaAIConfig type with all values and weights', () => {
+    const config = configure.vectorizer.multi2VecJinaAI({
       name: 'test',
       imageFields: [
         { name: 'field1', weight: 0.1 },
@@ -648,14 +648,14 @@ describe('Unit testing of the vectorizer factory class', () => {
       ],
       vectorizeCollectionName: true,
     });
-    expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'multi2vec-jina'>>({
+    expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'multi2vec-jinaai'>>({
       name: 'test',
       vectorIndex: {
         name: 'hnsw',
         config: undefined,
       },
       vectorizer: {
-        name: 'multi2vec-jina',
+        name: 'multi2vec-jinaai',
         config: {
           imageFields: ['field1', 'field2'],
           textFields: ['field3', 'field4'],

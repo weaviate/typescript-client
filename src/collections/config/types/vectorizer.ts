@@ -24,7 +24,7 @@ export type Vectorizer =
   | 'multi2vec-bind'
   | Multi2VecPalmVectorizer
   | 'multi2vec-google'
-  | 'multi2vec-jina'
+  | 'multi2vec-jinaai'
   | 'multi2vec-voyageai'
   | 'ref2vec-centroid'
   | 'text2vec-aws'
@@ -190,7 +190,7 @@ export type Multi2VecGoogleConfig = {
  *
  * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/jinaai/embeddings-multimodal) for detailed usage.
  */
-export type Multi2VecJinaConfig = {
+export type Multi2VecJinaAIConfig = {
   /** The base URL to use where API requests should go. */
   baseURL?: string;
   /** The dimensionality of the vector once embedded. */
@@ -476,6 +476,7 @@ export type VectorizerConfig =
   | Multi2VecClipConfig
   | Multi2VecBindConfig
   | Multi2VecGoogleConfig
+  | Multi2VecJinaAIConfig
   | Multi2VecPalmConfig
   | Multi2VecVoyageAIConfig
   | Ref2VecCentroidConfig
@@ -505,8 +506,8 @@ export type VectorizerConfigType<V> = V extends 'img2vec-neural'
   ? Multi2VecBindConfig | undefined
   : V extends 'multi2vec-google'
   ? Multi2VecGoogleConfig
-  : V extends 'multi2vec-jina'
-  ? Multi2VecJinaConfig | undefined
+  : V extends 'multi2vec-jinaai'
+  ? Multi2VecJinaAIConfig | undefined
   : V extends Multi2VecPalmVectorizer
   ? Multi2VecPalmConfig
   : V extends 'multi2vec-voyageai'
