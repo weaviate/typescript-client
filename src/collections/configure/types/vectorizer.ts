@@ -127,6 +127,19 @@ export type Multi2VecCohereConfigCreate = {
   vectorizeCollectionName?: boolean;
 };
 
+export type Multi2VecJinaAIConfigCreate = {
+  /** The base URL to use where API requests should go. */
+  baseURL?: string;
+  /** The dimensionality of the vector once embedded. */
+  dimensions?: number;
+  /** The image fields to use in vectorization. Can be string of `Multi2VecField` type. If string, weight 0 will be assumed. */
+  imageFields?: string[] | Multi2VecField[];
+  /** The text fields to use in vectorization. Can be string of `Multi2VecField` type. If string, weight 0 will be assumed. */
+  textFields?: string[] | Multi2VecField[];
+  /** Whether to vectorize the collection name. */
+  vectorizeCollectionName?: boolean;
+};
+
 /** @deprecated Use `Multi2VecGoogleConfigCreate` instead.*/
 export type Multi2VecPalmConfigCreate = Multi2VecGoogleConfigCreate;
 
@@ -144,7 +157,7 @@ export type Multi2VecGoogleConfigCreate = {
   videoFields?: string[] | Multi2VecField[];
   /** The model ID to use. */
   modelId?: string;
-  /** The number of dimensions to use. */
+  /** The dimensionality of the vector once embedded. */
   dimensions?: number;
   /** Whether to vectorize the collection name. */
   vectorizeCollectionName?: boolean;
@@ -200,6 +213,8 @@ export type VectorizerConfigCreateType<V> = V extends 'img2vec-neural'
   ? Multi2VecCohereConfigCreate | undefined
   : V extends 'multi2vec-bind'
   ? Multi2VecBindConfigCreate | undefined
+  : V extends 'multi2vec-jinaai'
+  ? Multi2VecJinaAIConfigCreate | undefined
   : V extends 'multi2vec-palm'
   ? Multi2VecPalmConfigCreate
   : V extends 'multi2vec-google'

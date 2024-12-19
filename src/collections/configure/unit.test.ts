@@ -621,7 +621,53 @@ describe('Unit testing of the vectorizer factory class', () => {
       },
     });
   });
-
+  it('should create the correct Multi2VecJinaAIConfig type with defaults', () => {
+    const config = configure.vectorizer.multi2VecJinaAI();
+    expect(config).toEqual<VectorConfigCreate<never, undefined, 'hnsw', 'multi2vec-jinaai'>>({
+      name: undefined,
+      vectorIndex: {
+        name: 'hnsw',
+        config: undefined,
+      },
+      vectorizer: {
+        name: 'multi2vec-jinaai',
+        config: undefined,
+      },
+    });
+  });
+  it('should create the correct Multi2VecJinaAIConfig type with all values and weights', () => {
+    const config = configure.vectorizer.multi2VecJinaAI({
+      name: 'test',
+      imageFields: [
+        { name: 'field1', weight: 0.1 },
+        { name: 'field2', weight: 0.2 },
+      ],
+      textFields: [
+        { name: 'field3', weight: 0.3 },
+        { name: 'field4', weight: 0.4 },
+      ],
+      vectorizeCollectionName: true,
+    });
+    expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'multi2vec-jinaai'>>({
+      name: 'test',
+      vectorIndex: {
+        name: 'hnsw',
+        config: undefined,
+      },
+      vectorizer: {
+        name: 'multi2vec-jinaai',
+        config: {
+          imageFields: ['field1', 'field2'],
+          textFields: ['field3', 'field4'],
+          vectorizeCollectionName: true,
+          weights: {
+            imageFields: [0.1, 0.2],
+            textFields: [0.3, 0.4],
+          },
+        },
+      },
+    });
+  });
   it('should create the correct Multi2VecPalmConfig type using deprecated method with defaults', () => {
     const config = configure.vectorizer.multi2VecPalm({
       projectId: 'project-id',
