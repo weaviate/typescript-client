@@ -621,6 +621,7 @@ describe('Unit testing of the vectorizer factory class', () => {
       },
     });
   });
+
   it('should create the correct Multi2VecJinaAIConfig type with defaults', () => {
     const config = configure.vectorizer.multi2VecJinaAI();
     expect(config).toEqual<VectorConfigCreate<never, undefined, 'hnsw', 'multi2vec-jinaai'>>({
@@ -635,6 +636,7 @@ describe('Unit testing of the vectorizer factory class', () => {
       },
     });
   });
+
   it('should create the correct Multi2VecJinaAIConfig type with all values and weights', () => {
     const config = configure.vectorizer.multi2VecJinaAI({
       name: 'test',
@@ -668,6 +670,7 @@ describe('Unit testing of the vectorizer factory class', () => {
       },
     });
   });
+
   it('should create the correct Multi2VecPalmConfig type using deprecated method with defaults', () => {
     const config = configure.vectorizer.multi2VecPalm({
       projectId: 'project-id',
@@ -766,6 +769,51 @@ describe('Unit testing of the vectorizer factory class', () => {
             textFields: [0.3, 0.4],
             videoFields: [0.5, 0.6],
           },
+        },
+      },
+    });
+  });
+
+  it('should create the correct Multi2VecVoyageAIConfig type with defaults', () => {
+    const config = configure.vectorizer.multi2VecVoyageAI();
+    expect(config).toEqual<VectorConfigCreate<never, undefined, 'hnsw', 'multi2vec-voyageai'>>({
+      name: undefined,
+      vectorIndex: {
+        name: 'hnsw',
+        config: undefined,
+      },
+      vectorizer: {
+        name: 'multi2vec-voyageai',
+        config: undefined,
+      },
+    });
+  });
+
+  it('should create the correct Multi2VecVoyageAIConfig type with all values', () => {
+    const config = configure.vectorizer.multi2VecVoyageAI({
+      baseURL: 'base-url',
+      model: 'model',
+      name: 'test',
+      truncate: true,
+      imageFields: ['field1', 'field2'],
+      textFields: ['field3', 'field4'],
+      vectorizeCollectionName: true,
+    });
+    expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'multi2vec-voyageai'>>({
+      name: 'test',
+      vectorIndex: {
+        name: 'hnsw',
+        config: undefined,
+      },
+      vectorizer: {
+        name: 'multi2vec-voyageai',
+        config: {
+          baseURL: 'base-url',
+          model: 'model',
+          truncate: true,
+          imageFields: ['field1', 'field2'],
+          textFields: ['field3', 'field4'],
+          vectorizeCollectionName: true,
         },
       },
     });
@@ -1071,35 +1119,35 @@ describe('Unit testing of the vectorizer factory class', () => {
     });
   });
 
-  it('should create the correct Text2VecJinaConfig type with defaults', () => {
-    const config = configure.vectorizer.text2VecJina();
-    expect(config).toEqual<VectorConfigCreate<never, undefined, 'hnsw', 'text2vec-jina'>>({
+  it('should create the correct Text2VecJinaAIConfig type with defaults', () => {
+    const config = configure.vectorizer.text2VecJinaAI();
+    expect(config).toEqual<VectorConfigCreate<never, undefined, 'hnsw', 'text2vec-jinaai'>>({
       name: undefined,
       vectorIndex: {
         name: 'hnsw',
         config: undefined,
       },
       vectorizer: {
-        name: 'text2vec-jina',
+        name: 'text2vec-jinaai',
         config: undefined,
       },
     });
   });
 
-  it('should create the correct Text2VecJinaConfig type with all values', () => {
-    const config = configure.vectorizer.text2VecJina({
+  it('should create the correct Text2VecJinaAIConfig type with all values', () => {
+    const config = configure.vectorizer.text2VecJinaAI({
       name: 'test',
       model: 'model',
       vectorizeCollectionName: true,
     });
-    expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'text2vec-jina'>>({
+    expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'text2vec-jinaai'>>({
       name: 'test',
       vectorIndex: {
         name: 'hnsw',
         config: undefined,
       },
       vectorizer: {
-        name: 'text2vec-jina',
+        name: 'text2vec-jinaai',
         config: {
           model: 'model',
           vectorizeCollectionName: true,

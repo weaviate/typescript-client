@@ -318,12 +318,15 @@ export const vectorizer = {
       vectorIndexConfig,
       vectorizerConfig: {
         name: 'multi2vec-voyageai',
-        config: {
-          ...config,
-          imageFields: imageFields?.map((f) => f.name),
-          textFields: textFields?.map((f) => f.name),
-          weights: Object.keys(weights).length === 0 ? undefined : weights,
-        },
+        config:
+          Object.keys(config).length === 0
+            ? undefined
+            : {
+                ...config,
+                imageFields: imageFields?.map((f) => f.name),
+                textFields: textFields?.map((f) => f.name),
+                weights: Object.keys(weights).length === 0 ? undefined : weights,
+              },
       },
     });
   },
@@ -495,22 +498,22 @@ export const vectorizer = {
     });
   },
   /**
-   * Create a `VectorConfigCreate` object with the vectorizer set to `'text2vec-jina'`.
+   * Create a `VectorConfigCreate` object with the vectorizer set to `'text2vec-jinaai'`.
    *
    * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/jinaai/embeddings) for detailed usage.
    *
-   * @param {ConfigureTextVectorizerOptions<T, N, I, 'text2vec-jina'>} [opts] The configuration for the `text2vec-jina` vectorizer.
-   * @returns {VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2vec-jina'>} The configuration object.
+   * @param {ConfigureTextVectorizerOptions<T, N, I, 'text2vec-jinaai'>} [opts] The configuration for the `text2vec-jinaai` vectorizer.
+   * @returns {VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2vec-jinaai'>} The configuration object.
    */
-  text2VecJina: <T, N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
-    opts?: ConfigureTextVectorizerOptions<T, N, I, 'text2vec-jina'>
-  ): VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2vec-jina'> => {
+  text2VecJinaAI: <T, N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
+    opts?: ConfigureTextVectorizerOptions<T, N, I, 'text2vec-jinaai'>
+  ): VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2vec-jinaai'> => {
     const { name, sourceProperties, vectorIndexConfig, ...config } = opts || {};
     return makeVectorizer(name, {
       sourceProperties,
       vectorIndexConfig,
       vectorizerConfig: {
-        name: 'text2vec-jina',
+        name: 'text2vec-jinaai',
         config: Object.keys(config).length === 0 ? undefined : config,
       },
     });
