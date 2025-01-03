@@ -34,7 +34,7 @@ export type Vectorizer =
   | 'text2vec-databricks'
   | 'text2vec-gpt4all'
   | 'text2vec-huggingface'
-  | 'text2vec-jina'
+  | 'text2vec-jinaai'
   | 'text2vec-mistral'
   | 'text2vec-ollama'
   | 'text2vec-openai'
@@ -217,10 +217,18 @@ export type Multi2VecJinaAIConfig = {
  * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/transformers/embeddings-multimodal) for detailed usage.
  */
 export type Multi2VecVoyageAIConfig = {
+  /** The base URL to use where API requests should go. */
+  baseURL?: string;
   /** The image fields used when vectorizing. */
   imageFields?: string[];
+  /** The model to use. */
+  model?: string;
   /** The text fields used when vectorizing. */
   textFields?: string[];
+  /** Whether the input should be truncated to fit in the context window. */
+  truncate?: boolean;
+  /** Whether the collection name is vectorized. */
+  vectorizeCollectionName?: boolean;
   /** The weights of the fields used for vectorization. */
   weights?: {
     /** The weights of the image fields. */
@@ -282,7 +290,7 @@ export type Text2VecCohereConfig = {
   baseURL?: string;
   /** The model to use. */
   model?: string;
-  /** The truncation strategy to use. */
+  /** Whether to truncate the input texts to fit within the context length. */
   truncate?: boolean;
   /** Whether to vectorize the collection name. */
   vectorizeCollectionName?: boolean;
@@ -345,12 +353,15 @@ export type Text2VecHuggingFaceConfig = {
  *
  * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/jinaai/embeddings) for detailed usage.
  */
-export type Text2VecJinaConfig = {
+export type Text2VecJinaAIConfig = {
   /** The model to use. */
   model?: 'jina-embeddings-v2-base-en' | 'jina-embeddings-v2-small-en' | string;
   /** Whether to vectorize the collection name. */
   vectorizeCollectionName?: boolean;
 };
+
+/** @deprecated Use `Text2VecJinaAIConfig` instead. */
+export type Text2VecJinaConfig = Text2VecJinaAIConfig;
 
 /**
  * The configuration for text vectorization using the Mistral module.
@@ -488,7 +499,7 @@ export type VectorizerConfig =
   | Text2VecGoogleConfig
   | Text2VecGPT4AllConfig
   | Text2VecHuggingFaceConfig
-  | Text2VecJinaConfig
+  | Text2VecJinaAIConfig
   | Text2VecOpenAIConfig
   | Text2VecPalmConfig
   | Text2VecTransformersConfig
@@ -528,8 +539,8 @@ export type VectorizerConfigType<V> = V extends 'img2vec-neural'
   ? Text2VecGPT4AllConfig | undefined
   : V extends 'text2vec-huggingface'
   ? Text2VecHuggingFaceConfig | undefined
-  : V extends 'text2vec-jina'
-  ? Text2VecJinaConfig | undefined
+  : V extends 'text2vec-jinaai'
+  ? Text2VecJinaAIConfig | undefined
   : V extends 'text2vec-mistral'
   ? Text2VecMistralConfig | undefined
   : V extends 'text2vec-ollama'

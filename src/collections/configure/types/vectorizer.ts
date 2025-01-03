@@ -11,7 +11,7 @@ import {
   Text2VecGPT4AllConfig,
   Text2VecGoogleConfig,
   Text2VecHuggingFaceConfig,
-  Text2VecJinaConfig,
+  Text2VecJinaAIConfig,
   Text2VecMistralConfig,
   Text2VecOllamaConfig,
   Text2VecOpenAIConfig,
@@ -132,6 +132,8 @@ export type Multi2VecJinaAIConfigCreate = {
   baseURL?: string;
   /** The dimensionality of the vector once embedded. */
   dimensions?: number;
+  /** The model to use. */
+  model?: string;
   /** The image fields to use in vectorization. Can be string of `Multi2VecField` type. If string, weight 0 will be assumed. */
   imageFields?: string[] | Multi2VecField[];
   /** The text fields to use in vectorization. Can be string of `Multi2VecField` type. If string, weight 0 will be assumed. */
@@ -164,10 +166,18 @@ export type Multi2VecGoogleConfigCreate = {
 };
 
 export type Multi2VecVoyageAIConfigCreate = {
+  /** The base URL to use where API requests should go. */
+  baseURL?: string;
   /** The image fields to use in vectorization. Can be string of `Multi2VecField` type. If string, weight 0 will be assumed. */
   imageFields?: string[] | Multi2VecField[];
+  /** The model to use. */
+  model?: string;
   /** The text fields to use in vectorization. Can be string of `Multi2VecField` type. If string, weight 0 will be assumed. */
   textFields?: string[] | Multi2VecField[];
+  /** Whether the input should be truncated to fit the context window. */
+  truncate?: boolean;
+  /** Whether to vectorize the collection name. */
+  vectorizeCollectionName?: boolean;
 };
 
 export type Ref2VecCentroidConfigCreate = Ref2VecCentroidConfig;
@@ -186,7 +196,7 @@ export type Text2VecGPT4AllConfigCreate = Text2VecGPT4AllConfig;
 
 export type Text2VecHuggingFaceConfigCreate = Text2VecHuggingFaceConfig;
 
-export type Text2VecJinaConfigCreate = Text2VecJinaConfig;
+export type Text2VecJinaAIConfigCreate = Text2VecJinaAIConfig;
 
 export type Text2VecMistralConfigCreate = Text2VecMistralConfig;
 
@@ -235,8 +245,8 @@ export type VectorizerConfigCreateType<V> = V extends 'img2vec-neural'
   ? Text2VecGPT4AllConfigCreate | undefined
   : V extends 'text2vec-huggingface'
   ? Text2VecHuggingFaceConfigCreate | undefined
-  : V extends 'text2vec-jina'
-  ? Text2VecJinaConfigCreate | undefined
+  : V extends 'text2vec-jinaai'
+  ? Text2VecJinaAIConfigCreate | undefined
   : V extends 'text2vec-mistral'
   ? Text2VecMistralConfigCreate | undefined
   : V extends 'text2vec-ollama'
