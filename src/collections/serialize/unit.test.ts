@@ -154,6 +154,7 @@ describe('Unit testing of Serialize', () => {
       vector: [1, 2, 3],
       targetVector: 'title',
       fusionType: 'Ranked',
+      maxVectorDistance: 0.4,
       supportsTargets: false,
       supportsVectorsForTargets: false,
       supportsWeightsForTargets: false,
@@ -166,6 +167,7 @@ describe('Unit testing of Serialize', () => {
         vectorBytes: new Uint8Array(new Float32Array([1, 2, 3]).buffer),
         targetVectors: ['title'],
         fusionType: Hybrid_FusionType.FUSION_TYPE_RANKED,
+        vectorDistance: 0.4,
       }),
       metadata: MetadataRequest.fromPartial({ uuid: true }),
     });
