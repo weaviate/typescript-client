@@ -7,7 +7,8 @@ import { FilterValue } from '../filters/index.js';
 
 import { WeaviateQueryError } from '../../errors.js';
 import { Aggregator } from '../../graphql/index.js';
-import { toBase64FromMedia } from '../../index.js';
+import { PrimitiveKeys, toBase64FromMedia } from '../../index.js';
+import { Bm25QueryProperty } from '../query/types.js';
 import { Serialize } from '../serialize/index.js';
 
 export type AggregateBaseOptions<T, M> = {
@@ -33,6 +34,19 @@ export type AggregateNearOptions<T, M> = AggregateBaseOptions<T, M> & {
   distance?: number;
   objectLimit?: number;
   targetVector?: string;
+};
+
+export type AggregateHybridOptions<T, M> = AggregateBaseOptions<T, M> & {
+  alpha?: number;
+  maxVectorDistance?: number;
+  objectLimit?: number;
+  queryProperties?: (PrimitiveKeys<T> | Bm25QueryProperty<T>)[];
+  targetVector?: string;
+  vector?: number[];
+};
+
+export type AggregateGroupByHybridOptions<T, M> = AggregateHybridOptions<T, M> & {
+  groupBy: (keyof T & string) | GroupByAggregate<T>;
 };
 
 export type AggregateGroupByNearOptions<T, M> = AggregateNearOptions<T, M> & {
@@ -346,9 +360,26 @@ class AggregateManager<T> implements Aggregate<T> {
     this.tenant = tenant;
 
     this.groupBy = {
+      hybrid: <M extends PropertiesMetrics<T> | undefined = undefined>(
+        query: string,
+        opts: AggregateGroupByHybridOptions<T, M>
+      ): Promise<AggregateGroupByResult<T, M>[]> => {
+        let builder = this.base(opts?.returnMetrics, opts?.filters, opts?.groupBy).withHybrid({
+          query: query,
+          alpha: opts?.alpha,
+          maxVectorDistance: opts?.maxVectorDistance,
+          properties: opts?.queryProperties as string[],
+          targetVectors: opts?.targetVector ? [opts.targetVector] : undefined,
+          vector: opts?.vector,
+        });
+        if (opts?.objectLimit) {
+          builder = builder.withObjectLimit(opts.objectLimit);
+        }
+        return this.doGroupBy(builder);
+      },
       nearImage: async <M extends PropertiesMetrics<T> | undefined = undefined>(
         image: string | Buffer,
-        opts?: AggregateGroupByNearOptions<T, M>
+        opts: AggregateGroupByNearOptions<T, M>
       ): Promise<AggregateGroupByResult<T, M>[]> => {
         const builder = this.base(opts?.returnMetrics, opts?.filters, opts?.groupBy).withNearImage({
           image: await toBase64FromMedia(image),
@@ -363,7 +394,7 @@ class AggregateManager<T> implements Aggregate<T> {
       },
       nearObject: <M extends PropertiesMetrics<T> | undefined = undefined>(
         id: string,
-        opts?: AggregateGroupByNearOptions<T, M>
+        opts: AggregateGroupByNearOptions<T, M>
       ): Promise<AggregateGroupByResult<T, M>[]> => {
         const builder = this.base(opts?.returnMetrics, opts?.filters, opts?.groupBy).withNearObject({
           id: id,
@@ -378,7 +409,7 @@ class AggregateManager<T> implements Aggregate<T> {
       },
       nearText: <M extends PropertiesMetrics<T> | undefined = undefined>(
         query: string | string[],
-        opts?: AggregateGroupByNearOptions<T, M>
+        opts: AggregateGroupByNearOptions<T, M>
       ): Promise<AggregateGroupByResult<T, M>[]> => {
         const builder = this.base(opts?.returnMetrics, opts?.filters, opts?.groupBy).withNearText({
           concepts: Array.isArray(query) ? query : [query],
@@ -393,7 +424,7 @@ class AggregateManager<T> implements Aggregate<T> {
       },
       nearVector: <M extends PropertiesMetrics<T> | undefined = undefined>(
         vector: number[],
-        opts?: AggregateGroupByNearOptions<T, M>
+        opts: AggregateGroupByNearOptions<T, M>
       ): Promise<AggregateGroupByResult<T, M>[]> => {
         const builder = this.base(opts?.returnMetrics, opts?.filters, opts?.groupBy).withNearVector({
           vector: vector,
@@ -487,6 +518,24 @@ class AggregateManager<T> implements Aggregate<T> {
     tenant?: string
   ): AggregateManager<T> {
     return new AggregateManager<T>(connection, name, dbVersionSupport, consistencyLevel, tenant);
+  }
+
+  hybrid<M extends PropertiesMetrics<T>>(
+    query: string,
+    opts?: AggregateHybridOptions<T, M>
+  ): Promise<AggregateResult<T, M>> {
+    let builder = this.base(opts?.returnMetrics, opts?.filters).withHybrid({
+      query: query,
+      alpha: opts?.alpha,
+      maxVectorDistance: opts?.maxVectorDistance,
+      properties: opts?.queryProperties as string[],
+      targetVectors: opts?.targetVector ? [opts.targetVector] : undefined,
+      vector: opts?.vector,
+    });
+    if (opts?.objectLimit) {
+      builder = builder.withObjectLimit(opts.objectLimit);
+    }
+    return this.do(builder);
   }
 
   async nearImage<M extends PropertiesMetrics<T>>(
@@ -603,6 +652,19 @@ export interface Aggregate<T> {
   /** This namespace contains methods perform a group by search while aggregating metrics. */
   groupBy: AggregateGroupBy<T>;
   /**
+   * Aggregate metrics over the objects returned by a hybrid search on this collection.
+   *
+   * This method requires that the objects in the collection have associated vectors.
+   *
+   * @param {string} query The text query to search for.
+   * @param {AggregateHybridOptions<T, M>} opts The options for the request.
+   * @returns {Promise<AggregateResult<T, M>[]>} The aggregated metrics for the objects returned by the vector search.
+   */
+  hybrid<M extends PropertiesMetrics<T>>(
+    query: string,
+    opts?: AggregateHybridOptions<T, M>
+  ): Promise<AggregateResult<T, M>>;
+  /**
    * Aggregate metrics over the objects returned by a near image vector search on this collection.
    *
    * At least one of `certainty`, `distance`, or `object_limit` must be specified here for the vector search.
@@ -673,44 +735,57 @@ export interface Aggregate<T> {
 
 export interface AggregateGroupBy<T> {
   /**
-   * Aggregate metrics over the objects returned by a near image vector search on this collection.
+   * Aggregate metrics over the objects grouped by a specified property and returned by a hybrid search on this collection.
+   *
+   * This method requires that the objects in the collection have associated vectors.
+   *
+   * @param {string} query The text query to search for.
+   * @param {AggregateGroupByHybridOptions<T, M>} opts The options for the request.
+   * @returns {Promise<AggregateGroupByResult<T, M>[]>} The aggregated metrics for the objects returned by the vector search.
+   */
+  hybrid<M extends PropertiesMetrics<T>>(
+    query: string,
+    opts: AggregateGroupByHybridOptions<T, M>
+  ): Promise<AggregateGroupByResult<T, M>[]>;
+  /**
+   * Aggregate metrics over the objects grouped by a specified property and returned by a near image vector search on this collection.
    *
    * At least one of `certainty`, `distance`, or `object_limit` must be specified here for the vector search.
    *
    * This method requires a vectorizer capable of handling base64-encoded images, e.g. `img2vec-neural`, `multi2vec-clip`, and `multi2vec-bind`.
    *
    * @param {string | Buffer} image The image to search on. This can be a base64 string, a file path string, or a buffer.
-   * @param {AggregateGroupByNearOptions<T, M>} [opts] The options for the request.
+   * @param {AggregateGroupByNearOptions<T, M>} opts The options for the request.
    * @returns {Promise<AggregateGroupByResult<T, M>[]>} The aggregated metrics for the objects returned by the vector search.
    */
   nearImage<M extends PropertiesMetrics<T>>(
     image: string | Buffer,
-    opts?: AggregateGroupByNearOptions<T, M>
+    opts: AggregateGroupByNearOptions<T, M>
   ): Promise<AggregateGroupByResult<T, M>[]>;
   /**
-   * Aggregate metrics over the objects returned by a near object search on this collection.
+   * Aggregate metrics over the objects grouped by a specified property and returned by a near object search on this collection.
    *
    * At least one of `certainty`, `distance`, or `object_limit` must be specified here for the vector search.
    *
    * This method requires that the objects in the collection have associated vectors.
    *
    * @param {string} id The ID of the object to search for.
-   * @param {AggregateGroupByNearOptions<T, M>} [opts] The options for the request.
+   * @param {AggregateGroupByNearOptions<T, M>} opts The options for the request.
    * @returns {Promise<AggregateGroupByResult<T, M>[]>} The aggregated metrics for the objects returned by the vector search.
    */
   nearObject<M extends PropertiesMetrics<T>>(
     id: string,
-    opts?: AggregateGroupByNearOptions<T, M>
+    opts: AggregateGroupByNearOptions<T, M>
   ): Promise<AggregateGroupByResult<T, M>[]>;
   /**
-   * Aggregate metrics over the objects returned by a near text vector search on this collection.
+   * Aggregate metrics over the objects grouped by a specified property and returned by a near text vector search on this collection.
    *
    * At least one of `certainty`, `distance`, or `object_limit` must be specified here for the vector search.
    *
    * This method requires a vectorizer capable of handling text, e.g. `text2vec-contextionary`, `text2vec-openai`, etc.
    *
    * @param {string | string[]} query The text to search for.
-   * @param {AggregateGroupByNearOptions<T, M>} [opts] The options for the request.
+   * @param {AggregateGroupByNearOptions<T, M>} opts The options for the request.
    * @returns {Promise<AggregateGroupByResult<T, M>[]>} The aggregated metrics for the objects returned by the vector search.
    */
   nearText<M extends PropertiesMetrics<T>>(
@@ -718,22 +793,22 @@ export interface AggregateGroupBy<T> {
     opts: AggregateGroupByNearOptions<T, M>
   ): Promise<AggregateGroupByResult<T, M>[]>;
   /**
-   * Aggregate metrics over the objects returned by a near vector search on this collection.
+   * Aggregate metrics over the objects grouped by a specified property and returned by a near vector search on this collection.
    *
    * At least one of `certainty`, `distance`, or `object_limit` must be specified here for the vector search.
    *
    * This method requires that the objects in the collection have associated vectors.
    *
    * @param {number[]} vector The vector to search for.
-   * @param {AggregateGroupByNearOptions<T, M>} [opts] The options for the request.
+   * @param {AggregateGroupByNearOptions<T, M>} opts The options for the request.
    * @returns {Promise<AggregateGroupByResult<T, M>[]>} The aggregated metrics for the objects returned by the vector search.
    */
   nearVector<M extends PropertiesMetrics<T>>(
     vector: number[],
-    opts?: AggregateGroupByNearOptions<T, M>
+    opts: AggregateGroupByNearOptions<T, M>
   ): Promise<AggregateGroupByResult<T, M>[]>;
   /**
-   * Aggregate metrics over all the objects in this collection without any vector search.
+   * Aggregate metrics over all the objects in this collection grouped by a specified property without any vector search.
    *
    * @param {AggregateGroupByOptions<T, M>} [opts] The options for the request.
    * @returns {Promise<AggregateGroupByResult<T, M>[]>} The aggregated metrics for the objects in the collection.

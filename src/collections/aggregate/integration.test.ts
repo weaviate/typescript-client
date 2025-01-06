@@ -355,6 +355,7 @@ describe('Testing of collection.aggregate.overAll with a multi-tenancy collectio
 
   beforeAll(async () => {
     client = await weaviate.connectToLocal();
+    collection = client.collections.get(collectionName);
     return client.collections
       .create({
         name: collectionName,
@@ -388,4 +389,87 @@ describe('Testing of collection.aggregate.overAll with a multi-tenancy collectio
     expect(collection.withTenant('non-existing-tenant').aggregate.overAll()).rejects.toThrow(
       WeaviateQueryError
     ));
+});
+
+describe('Testing of collection.aggregate search methods', () => {
+  let client: WeaviateClient;
+  let collection: Collection;
+  const collectionName = 'TestCollectionAggregateSearches';
+
+  let uuid: string;
+
+  afterAll(async () => {
+    return (await client).collections.delete(collectionName).catch((err) => {
+      console.error(err);
+      throw err;
+    });
+  });
+
+  beforeAll(async () => {
+    client = await weaviate.connectToLocal();
+    collection = client.collections.get(collectionName);
+    return client.collections
+      .create({
+        name: collectionName,
+        properties: [
+          {
+            name: 'text',
+            dataType: 'text',
+          },
+        ],
+        vectorizers: weaviate.configure.vectorizer.text2VecContextionary(),
+      })
+      .then(async () => {
+        const data: Array<any> = [];
+        for (let i = 0; i < 100; i++) {
+          data.push({
+            properties: {
+              text: 'test',
+            },
+          });
+        }
+        await collection.data.insertMany(data).then((res) => {
+          uuid = res.uuids[0];
+        });
+      });
+  });
+
+  it('should return an aggregation on a hybrid search', async () => {
+    const result = await collection.aggregate.hybrid('test', {
+      alpha: 0.5,
+      maxVectorDistance: 0,
+      queryProperties: ['text'],
+      returnMetrics: collection.metrics.aggregate('text').text(['count']),
+    });
+    expect(result.totalCount).toEqual(100);
+    expect(result.properties.text.count).toEqual(100);
+  });
+
+  it('should return an aggregation on a nearText search', async () => {
+    const result = await collection.aggregate.nearText('test', {
+      objectLimit: 100,
+      returnMetrics: collection.metrics.aggregate('text').text(['count']),
+    });
+    expect(result.totalCount).toEqual(100);
+    expect(result.properties.text.count).toEqual(100);
+  });
+
+  it('should return an aggregation on a nearVector search', async () => {
+    const obj = await collection.query.fetchObjectById(uuid, { includeVector: true });
+    const result = await collection.aggregate.nearVector(obj?.vectors.default!, {
+      objectLimit: 100,
+      returnMetrics: collection.metrics.aggregate('text').text(['count']),
+    });
+    expect(result.totalCount).toEqual(100);
+    expect(result.properties.text.count).toEqual(100);
+  });
+
+  it('should return an aggregation on a nearObject search', async () => {
+    const result = await collection.aggregate.nearObject(uuid, {
+      objectLimit: 100,
+      returnMetrics: collection.metrics.aggregate('text').text(['count']),
+    });
+    expect(result.totalCount).toEqual(100);
+    expect(result.properties.text.count).toEqual(100);
+  });
 });

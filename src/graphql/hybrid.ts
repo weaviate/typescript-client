@@ -8,6 +8,7 @@ export interface HybridArgs {
   targetVectors?: string[];
   fusionType?: FusionType;
   searches?: HybridSubSearch[];
+  maxVectorDistance?: number;
 }
 
 export interface NearTextSubSearch {
@@ -87,6 +88,7 @@ export default class GraphQLHybrid {
   private targetVectors?: string[];
   private fusionType?: FusionType;
   private searches?: GraphQLHybridSubSearch[];
+  private maxVectorDistance?: number;
 
   constructor(args: HybridArgs) {
     this.alpha = args.alpha;
@@ -96,6 +98,7 @@ export default class GraphQLHybrid {
     this.targetVectors = args.targetVectors;
     this.fusionType = args.fusionType;
     this.searches = args.searches?.map((search) => new GraphQLHybridSubSearch(search));
+    this.maxVectorDistance = args.maxVectorDistance;
   }
 
   toString() {
@@ -123,6 +126,10 @@ export default class GraphQLHybrid {
 
     if (this.searches !== undefined) {
       args = [...args, `searches:[${this.searches.map((search) => search.toString()).join(',')}]`];
+    }
+
+    if (this.maxVectorDistance !== undefined) {
+      args = [...args, `maxVectorDistance:${this.maxVectorDistance}`];
     }
 
     return `{${args.join(',')}}`;
