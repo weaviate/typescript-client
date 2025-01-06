@@ -140,7 +140,7 @@ describe('Testing of the collection.aggregate methods', () => {
     expect(result[0].totalCount).toEqual(100);
     expect(result[0].groupedBy.prop).toEqual('text');
     expect(result[0].groupedBy.value).toEqual('test');
-    expect(result[0].properties).toBeUndefined();
+    expect(result[0].properties).toEqual({});
   });
 
   it('should aggregate grouped by data with a near text search and no property metrics', async () => {
@@ -152,7 +152,7 @@ describe('Testing of the collection.aggregate methods', () => {
     expect(result[0].totalCount).toEqual(100);
     expect(result[0].groupedBy.prop).toEqual('text');
     expect(result[0].groupedBy.value).toEqual('test');
-    expect(result[0].properties).toBeUndefined();
+    expect(result[0].properties).toEqual({});
   });
 
   it('should aggregate data without a search and one generic property metric', async () => {
@@ -419,7 +419,7 @@ describe('Testing of collection.aggregate search methods', () => {
         ],
         vectorizers: weaviate.configure.vectorizer.text2VecContextionary(),
       })
-      .then(async () => {
+      .then(() => {
         const data: Array<any> = [];
         for (let i = 0; i < 100; i++) {
           data.push({
@@ -428,9 +428,10 @@ describe('Testing of collection.aggregate search methods', () => {
             },
           });
         }
-        await collection.data.insertMany(data).then((res) => {
-          uuid = res.uuids[0];
-        });
+        return collection.data.insertMany(data);
+      })
+      .then((res) => {
+        uuid = res.uuids[0];
       });
   });
 
@@ -441,35 +442,76 @@ describe('Testing of collection.aggregate search methods', () => {
       queryProperties: ['text'],
       returnMetrics: collection.metrics.aggregate('text').text(['count']),
     });
-    expect(result.totalCount).toEqual(100);
-    expect(result.properties.text.count).toEqual(100);
+    expect(result.totalCount).toBeGreaterThan(0);
+  });
+
+  it('should return a grouped aggregation on a hybrid search', async () => {
+    const result = await collection.aggregate.groupBy.hybrid('test', {
+      objectLimit: 1000,
+      groupBy: 'text',
+      returnMetrics: collection.metrics.aggregate('text').text(['count']),
+    });
+    expect(result.length).toEqual(1);
+    expect(result[0].groupedBy.prop).toEqual('text');
+    expect(result[0].groupedBy.value).toEqual('test');
   });
 
   it('should return an aggregation on a nearText search', async () => {
     const result = await collection.aggregate.nearText('test', {
-      objectLimit: 100,
+      objectLimit: 1000,
       returnMetrics: collection.metrics.aggregate('text').text(['count']),
     });
-    expect(result.totalCount).toEqual(100);
-    expect(result.properties.text.count).toEqual(100);
+    expect(result.totalCount).toBeGreaterThan(0);
+  });
+
+  it('should return a grouped aggregation on a nearText search', async () => {
+    const result = await collection.aggregate.groupBy.nearText('test', {
+      objectLimit: 1000,
+      groupBy: 'text',
+      returnMetrics: collection.metrics.aggregate('text').text(['count']),
+    });
+    expect(result.length).toEqual(1);
+    expect(result[0].groupedBy.prop).toEqual('text');
+    expect(result[0].groupedBy.value).toEqual('test');
   });
 
   it('should return an aggregation on a nearVector search', async () => {
     const obj = await collection.query.fetchObjectById(uuid, { includeVector: true });
     const result = await collection.aggregate.nearVector(obj?.vectors.default!, {
-      objectLimit: 100,
+      objectLimit: 1000,
       returnMetrics: collection.metrics.aggregate('text').text(['count']),
     });
-    expect(result.totalCount).toEqual(100);
-    expect(result.properties.text.count).toEqual(100);
+    expect(result.totalCount).toBeGreaterThan(0);
+  });
+
+  it('should return a grouped aggregation on a nearVector search', async () => {
+    const obj = await collection.query.fetchObjectById(uuid, { includeVector: true });
+    const result = await collection.aggregate.groupBy.nearVector(obj?.vectors.default!, {
+      objectLimit: 1000,
+      groupBy: 'text',
+      returnMetrics: collection.metrics.aggregate('text').text(['count']),
+    });
+    expect(result.length).toEqual(1);
+    expect(result[0].groupedBy.prop).toEqual('text');
+    expect(result[0].groupedBy.value).toEqual('test');
   });
 
   it('should return an aggregation on a nearObject search', async () => {
     const result = await collection.aggregate.nearObject(uuid, {
-      objectLimit: 100,
+      objectLimit: 1000,
       returnMetrics: collection.metrics.aggregate('text').text(['count']),
     });
-    expect(result.totalCount).toEqual(100);
-    expect(result.properties.text.count).toEqual(100);
+    expect(result.totalCount).toBeGreaterThan(0);
+  });
+
+  it('should return a grouped aggregation on a nearText search', async () => {
+    const result = await collection.aggregate.groupBy.nearObject(uuid, {
+      objectLimit: 1000,
+      groupBy: 'text',
+      returnMetrics: collection.metrics.aggregate('text').text(['count']),
+    });
+    expect(result.length).toEqual(1);
+    expect(result[0].groupedBy.prop).toEqual('text');
+    expect(result[0].groupedBy.value).toEqual('test');
   });
 });

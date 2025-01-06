@@ -16,18 +16,16 @@ export type AggregateBaseOptions<T, M> = {
   returnMetrics?: M;
 };
 
-export type AggregateGroupByOptions<T, M> = AggregateOptions<T, M> & {
-  groupBy: (keyof T & string) | GroupByAggregate<T>;
+export type AggregateGroupByOptions<T, M> = AggregateBaseOptions<T, M> & {
+  groupBy: T extends undefined ? string : (keyof T & string) | GroupByAggregate<T>;
 };
 
 export type GroupByAggregate<T> = {
-  property: keyof T & string;
+  property: T extends undefined ? string : keyof T & string;
   limit?: number;
 };
 
-export type AggregateOptions<T, M> = AggregateBaseOptions<T, M>;
-
-export type AggregateBaseOverAllOptions<T, M> = AggregateBaseOptions<T, M>;
+export type AggregateOverAllOptions<T, M> = AggregateBaseOptions<T, M>;
 
 export type AggregateNearOptions<T, M> = AggregateBaseOptions<T, M> & {
   certainty?: number;
@@ -46,11 +44,11 @@ export type AggregateHybridOptions<T, M> = AggregateBaseOptions<T, M> & {
 };
 
 export type AggregateGroupByHybridOptions<T, M> = AggregateHybridOptions<T, M> & {
-  groupBy: (keyof T & string) | GroupByAggregate<T>;
+  groupBy: T extends undefined ? string : (keyof T & string) | GroupByAggregate<T>;
 };
 
 export type AggregateGroupByNearOptions<T, M> = AggregateNearOptions<T, M> & {
-  groupBy: (keyof T & string) | GroupByAggregate<T>;
+  groupBy: T extends undefined ? string : (keyof T & string) | GroupByAggregate<T>;
 };
 
 export type AggregateBoolean = {
@@ -453,7 +451,7 @@ class AggregateManager<T> implements Aggregate<T> {
   base(
     metrics?: PropertiesMetrics<T>,
     filters?: FilterValue,
-    groupBy?: (keyof T & string) | GroupByAggregate<T>
+    groupBy?: (keyof T & string) | GroupByAggregate<T> | string
   ) {
     let fields = 'meta { count }';
     let builder = this.query().withClassName(this.name);
@@ -602,7 +600,9 @@ class AggregateManager<T> implements Aggregate<T> {
     return this.do(builder);
   }
 
-  overAll<M extends PropertiesMetrics<T>>(opts?: AggregateOptions<T, M>): Promise<AggregateResult<T, M>> {
+  overAll<M extends PropertiesMetrics<T>>(
+    opts?: AggregateOverAllOptions<T, M>
+  ): Promise<AggregateResult<T, M>> {
     const builder = this.base(opts?.returnMetrics, opts?.filters);
     return this.do(builder);
   }
@@ -637,7 +637,7 @@ class AggregateManager<T> implements Aggregate<T> {
               prop: groupedBy.path[0],
               value: groupedBy.value,
             },
-            properties: rest.length > 0 ? rest : undefined,
+            properties: rest,
             totalCount: meta?.count,
           };
         })
@@ -730,7 +730,9 @@ export interface Aggregate<T> {
    * @param {AggregateOptions<T, M>} [opts] The options for the request.
    * @returns {Promise<AggregateResult<T, M>[]>} The aggregated metrics for the objects in the collection.
    */
-  overAll<M extends PropertiesMetrics<T>>(opts?: AggregateOptions<T, M>): Promise<AggregateResult<T, M>>;
+  overAll<M extends PropertiesMetrics<T>>(
+    opts?: AggregateOverAllOptions<T, M>
+  ): Promise<AggregateResult<T, M>>;
 }
 
 export interface AggregateGroupBy<T> {
