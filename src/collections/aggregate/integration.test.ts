@@ -436,6 +436,10 @@ describe('Testing of collection.aggregate search methods', () => {
   });
 
   it('should return an aggregation on a hybrid search', async () => {
+    if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 25, 0))) {
+      console.warn('Skipping test as there is a bug with this in 1.24.26 that will not be fixed');
+      return;
+    }
     const result = await collection.aggregate.hybrid('test', {
       alpha: 0.5,
       maxVectorDistance: 0,
@@ -446,6 +450,10 @@ describe('Testing of collection.aggregate search methods', () => {
   });
 
   it('should return a grouped aggregation on a hybrid search', async () => {
+    if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 25, 0))) {
+      console.warn('Skipping test as there is a bug with this in 1.24.26 that will not be fixed');
+      return;
+    }
     const result = await collection.aggregate.groupBy.hybrid('test', {
       objectLimit: 1000,
       groupBy: 'text',
