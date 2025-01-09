@@ -21,7 +21,6 @@ describe('Journey testing of the client using a WCD cluster', () => {
         authCredentials: 'NOg5AliYnrN6z7dZDuGv7SLVKhTabAaSTKS7',
       }
     );
-    return client.collections.delete(collectionName);
   });
 
   it('should create the correct config for a collection with vectorizer, generative, and reranker modules', () => {
@@ -169,6 +168,9 @@ describe('Journey testing of the client using a WCD cluster', () => {
               vectorizer: {
                 name: 'text2vec-cohere',
                 config: {
+                  baseUrl: 'https://api.cohere.ai',
+                  model: 'embed-multilingual-v3.0',
+                  truncate: 'END',
                   vectorizeCollectionName: true,
                 },
               },
