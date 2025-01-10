@@ -1,9 +1,11 @@
 import {
   WeaviateInvertedIndexConfig,
+  WeaviateModuleConfig,
   WeaviateMultiTenancyConfig,
   WeaviateVectorsConfig,
 } from '../../openapi/types';
 import { MergeWithExisting } from './classes';
+import { GenerativeCohereConfig, RerankerCohereConfig } from './types';
 
 describe('Unit testing of the MergeWithExisting class', () => {
   const invertedIndex: WeaviateInvertedIndexConfig = {
@@ -122,8 +124,22 @@ describe('Unit testing of the MergeWithExisting class', () => {
     autoTenantCreation: false,
   };
 
+  const moduleConfig: WeaviateModuleConfig = {
+    'generative-cohere': {
+      kProperty: 0.1,
+      model: 'model',
+      maxTokensProperty: '5',
+      returnLikelihoodsProperty: 'likelihoods',
+      stopSequencesProperty: ['and'],
+      temperatureProperty: 5.2,
+    },
+    'reranker-cohere': {},
+  };
+
+  const parse = (config: any) => JSON.parse(JSON.stringify(config));
+
   it('should merge a partial invertedIndexUpdate with existing schema', () => {
-    const merged = MergeWithExisting.invertedIndex(JSON.parse(JSON.stringify(invertedIndex)), {
+    const merged = MergeWithExisting.invertedIndex(parse(invertedIndex), {
       bm25: {
         b: 0.9,
       },
@@ -147,7 +163,7 @@ describe('Unit testing of the MergeWithExisting class', () => {
   });
 
   it('should merge a no quantizer HNSW vectorIndexConfig with existing schema', () => {
-    const merged = MergeWithExisting.vectors(JSON.parse(JSON.stringify(hnswVectorConfig)), [
+    const merged = MergeWithExisting.vectors(parse(hnswVectorConfig), [
       {
         name: 'name',
         vectorIndex: {
@@ -196,7 +212,7 @@ describe('Unit testing of the MergeWithExisting class', () => {
   });
 
   it('should merge a PQ quantizer HNSW vectorIndexConfig with existing schema', () => {
-    const merged = MergeWithExisting.vectors(JSON.parse(JSON.stringify(hnswVectorConfig)), [
+    const merged = MergeWithExisting.vectors(parse(hnswVectorConfig), [
       {
         name: 'name',
         vectorIndex: {
@@ -245,7 +261,7 @@ describe('Unit testing of the MergeWithExisting class', () => {
   });
 
   it('should merge a BQ quantizer HNSW vectorIndexConfig with existing schema', () => {
-    const merged = MergeWithExisting.vectors(JSON.parse(JSON.stringify(hnswVectorConfig)), [
+    const merged = MergeWithExisting.vectors(parse(hnswVectorConfig), [
       {
         name: 'name',
         vectorIndex: {
@@ -280,7 +296,7 @@ describe('Unit testing of the MergeWithExisting class', () => {
   });
 
   it('should merge a SQ quantizer HNSW vectorIndexConfig with existing schema', () => {
-    const merged = MergeWithExisting.vectors(JSON.parse(JSON.stringify(hnswVectorConfig)), [
+    const merged = MergeWithExisting.vectors(parse(hnswVectorConfig), [
       {
         name: 'name',
         vectorIndex: {
@@ -353,7 +369,7 @@ describe('Unit testing of the MergeWithExisting class', () => {
   });
 
   it('should merge full multi tenancy config with existing schema', () => {
-    const merged = MergeWithExisting.multiTenancy(JSON.parse(JSON.stringify(multiTenancyConfig)), {
+    const merged = MergeWithExisting.multiTenancy(parse(multiTenancyConfig), {
       autoTenantActivation: true,
       autoTenantCreation: true,
     });
@@ -361,6 +377,38 @@ describe('Unit testing of the MergeWithExisting class', () => {
       enabled: true,
       autoTenantActivation: true,
       autoTenantCreation: true,
+    });
+  });
+
+  it('should merge a generative config with existing schema', () => {
+    const merged = MergeWithExisting.generative(parse(moduleConfig), {
+      name: 'generative-cohere',
+      config: {
+        kProperty: 0.2,
+      } as GenerativeCohereConfig,
+    });
+    expect(merged).toEqual({
+      ...moduleConfig,
+      'generative-cohere': {
+        ...(moduleConfig['generative-cohere'] as any),
+        kProperty: 0.2,
+      } as GenerativeCohereConfig,
+    });
+  });
+
+  it('should merge a reranker config with existing schema', () => {
+    const merged = MergeWithExisting.reranker(parse(moduleConfig), {
+      name: 'reranker-cohere',
+      config: {
+        model: 'other',
+      } as RerankerCohereConfig,
+    });
+    expect(merged).toEqual({
+      ...moduleConfig,
+      'reranker-cohere': {
+        ...(moduleConfig['reranker-cohere'] as any),
+        model: 'other',
+      } as RerankerCohereConfig,
     });
   });
 });

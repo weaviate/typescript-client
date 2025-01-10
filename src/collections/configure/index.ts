@@ -261,6 +261,8 @@ const reconfigure = {
       autoTenantCreation: options.autoTenantCreation,
     };
   },
+  generative: configure.generative,
+  reranker: configure.reranker,
 };
 
 export {
