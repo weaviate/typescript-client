@@ -8,8 +8,6 @@ import { MergeWithExisting } from './classes';
 import { GenerativeCohereConfig, RerankerCohereConfig } from './types';
 
 describe('Unit testing of the MergeWithExisting class', () => {
-  const parse = (config: any) => JSON.parse(JSON.stringify(config));
-
   const invertedIndex: WeaviateInvertedIndexConfig = {
     bm25: {
       b: 0.8,
@@ -66,7 +64,7 @@ describe('Unit testing of the MergeWithExisting class', () => {
   };
 
   it('should merge a full invertedIndexUpdate with existing schema', () => {
-    const merged = MergeWithExisting.invertedIndex(parse(invertedIndex), {
+    const merged = MergeWithExisting.invertedIndex(JSON.parse(JSON.stringify(invertedIndex)), {
       bm25: {
         b: 0.9,
         k1: 1.4,
@@ -137,6 +135,8 @@ describe('Unit testing of the MergeWithExisting class', () => {
     },
     'reranker-cohere': {},
   };
+
+  const parse = (config: any) => JSON.parse(JSON.stringify(config));
 
   it('should merge a partial invertedIndexUpdate with existing schema', () => {
     const merged = MergeWithExisting.invertedIndex(parse(invertedIndex), {
@@ -333,7 +333,7 @@ describe('Unit testing of the MergeWithExisting class', () => {
   });
 
   it('should merge a BQ quantizer Flat vectorIndexConfig with existing schema', () => {
-    const merged = MergeWithExisting.vectors(parse(flatVectorConfig), [
+    const merged = MergeWithExisting.vectors(JSON.parse(JSON.stringify(flatVectorConfig)), [
       {
         name: 'name',
         vectorIndex: {
