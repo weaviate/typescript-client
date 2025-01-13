@@ -450,11 +450,7 @@ class AggregateManager<T> implements Aggregate<T> {
     return new Aggregator(this.connection);
   }
 
-  base(
-    metrics?: PropertiesMetrics<T>,
-    filters?: FilterValue,
-    groupBy?: (keyof T & string) | GroupByAggregate<T> | string
-  ) {
+  base(metrics?: PropertiesMetrics<T>, filters?: FilterValue, groupBy?: PropertyOf<T> | GroupByAggregate<T>) {
     let fields = 'meta { count }';
     let builder = this.query().withClassName(this.name);
     if (metrics) {
