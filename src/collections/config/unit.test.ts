@@ -8,7 +8,7 @@ import { MergeWithExisting } from './classes';
 import { GenerativeCohereConfig, RerankerCohereConfig } from './types';
 
 describe('Unit testing of the MergeWithExisting class', () => {
-  const parse = (config: any) => JSON.parse(JSON.stringify(config));
+  const deepCopy = (config: any) => JSON.parse(JSON.stringify(config));
 
   const invertedIndex: WeaviateInvertedIndexConfig = {
     bm25: {
@@ -66,7 +66,7 @@ describe('Unit testing of the MergeWithExisting class', () => {
   };
 
   it('should merge a full invertedIndexUpdate with existing schema', () => {
-    const merged = MergeWithExisting.invertedIndex(parse(invertedIndex), {
+    const merged = MergeWithExisting.invertedIndex(deepCopy(invertedIndex), {
       bm25: {
         b: 0.9,
         k1: 1.4,
@@ -139,7 +139,7 @@ describe('Unit testing of the MergeWithExisting class', () => {
   };
 
   it('should merge a partial invertedIndexUpdate with existing schema', () => {
-    const merged = MergeWithExisting.invertedIndex(parse(invertedIndex), {
+    const merged = MergeWithExisting.invertedIndex(deepCopy(invertedIndex), {
       bm25: {
         b: 0.9,
       },
@@ -163,7 +163,7 @@ describe('Unit testing of the MergeWithExisting class', () => {
   });
 
   it('should merge a no quantizer HNSW vectorIndexConfig with existing schema', () => {
-    const merged = MergeWithExisting.vectors(parse(hnswVectorConfig), [
+    const merged = MergeWithExisting.vectors(deepCopy(hnswVectorConfig), [
       {
         name: 'name',
         vectorIndex: {
@@ -212,7 +212,7 @@ describe('Unit testing of the MergeWithExisting class', () => {
   });
 
   it('should merge a PQ quantizer HNSW vectorIndexConfig with existing schema', () => {
-    const merged = MergeWithExisting.vectors(parse(hnswVectorConfig), [
+    const merged = MergeWithExisting.vectors(deepCopy(hnswVectorConfig), [
       {
         name: 'name',
         vectorIndex: {
@@ -261,7 +261,7 @@ describe('Unit testing of the MergeWithExisting class', () => {
   });
 
   it('should merge a BQ quantizer HNSW vectorIndexConfig with existing schema', () => {
-    const merged = MergeWithExisting.vectors(parse(hnswVectorConfig), [
+    const merged = MergeWithExisting.vectors(deepCopy(hnswVectorConfig), [
       {
         name: 'name',
         vectorIndex: {
@@ -296,7 +296,7 @@ describe('Unit testing of the MergeWithExisting class', () => {
   });
 
   it('should merge a SQ quantizer HNSW vectorIndexConfig with existing schema', () => {
-    const merged = MergeWithExisting.vectors(parse(hnswVectorConfig), [
+    const merged = MergeWithExisting.vectors(deepCopy(hnswVectorConfig), [
       {
         name: 'name',
         vectorIndex: {
@@ -333,7 +333,7 @@ describe('Unit testing of the MergeWithExisting class', () => {
   });
 
   it('should merge a BQ quantizer Flat vectorIndexConfig with existing schema', () => {
-    const merged = MergeWithExisting.vectors(parse(flatVectorConfig), [
+    const merged = MergeWithExisting.vectors(deepCopy(flatVectorConfig), [
       {
         name: 'name',
         vectorIndex: {
@@ -369,7 +369,7 @@ describe('Unit testing of the MergeWithExisting class', () => {
   });
 
   it('should merge full multi tenancy config with existing schema', () => {
-    const merged = MergeWithExisting.multiTenancy(parse(multiTenancyConfig), {
+    const merged = MergeWithExisting.multiTenancy(deepCopy(multiTenancyConfig), {
       autoTenantActivation: true,
       autoTenantCreation: true,
     });
@@ -381,7 +381,7 @@ describe('Unit testing of the MergeWithExisting class', () => {
   });
 
   it('should merge a generative config with existing schema', () => {
-    const merged = MergeWithExisting.generative(parse(moduleConfig), {
+    const merged = MergeWithExisting.generative(deepCopy(moduleConfig), {
       name: 'generative-cohere',
       config: {
         kProperty: 0.2,
@@ -397,7 +397,7 @@ describe('Unit testing of the MergeWithExisting class', () => {
   });
 
   it('should merge a reranker config with existing schema', () => {
-    const merged = MergeWithExisting.reranker(parse(moduleConfig), {
+    const merged = MergeWithExisting.reranker(deepCopy(moduleConfig), {
       name: 'reranker-cohere',
       config: {
         model: 'other',
