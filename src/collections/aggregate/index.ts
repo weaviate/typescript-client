@@ -10,35 +10,33 @@ import { Aggregator } from '../../graphql/index.js';
 import { toBase64FromMedia } from '../../index.js';
 import { Serialize } from '../serialize/index.js';
 
-export type AggregateBaseOptions<M> = {
+export type AggregateBaseOptions<T, M> = {
   filters?: FilterValue;
   returnMetrics?: M;
 };
 
-export type PropertyOf<T> = T extends undefined ? string : keyof T & string;
-
-export type AggregateGroupByOptions<T, M> = AggregateOptions<M> & {
-  groupBy: PropertyOf<T> | GroupByAggregate<T>;
+export type AggregateGroupByOptions<T, M> = AggregateOptions<T, M> & {
+  groupBy: (keyof T & string) | GroupByAggregate<T>;
 };
 
 export type GroupByAggregate<T> = {
-  property: PropertyOf<T>;
+  property: keyof T & string;
   limit?: number;
 };
 
-export type AggregateOptions<M> = AggregateBaseOptions<M>;
+export type AggregateOptions<T, M> = AggregateBaseOptions<T, M>;
 
-export type AggregateBaseOverAllOptions<M> = AggregateBaseOptions<M>;
+export type AggregateBaseOverAllOptions<T, M> = AggregateBaseOptions<T, M>;
 
-export type AggregateNearOptions<M> = AggregateBaseOptions<M> & {
+export type AggregateNearOptions<T, M> = AggregateBaseOptions<T, M> & {
   certainty?: number;
   distance?: number;
   objectLimit?: number;
   targetVector?: string;
 };
 
-export type AggregateGroupByNearOptions<T, M> = AggregateNearOptions<M> & {
-  groupBy: PropertyOf<T> | GroupByAggregate<T>;
+export type AggregateGroupByNearOptions<T, M> = AggregateNearOptions<T, M> & {
+  groupBy: (keyof T & string) | GroupByAggregate<T>;
 };
 
 export type AggregateBoolean = {
@@ -128,11 +126,11 @@ export type AggregateMetrics<M> = {
   [K in keyof M]: M[K] extends true ? number : never;
 };
 
-export type MetricsProperty<T> = PropertyOf<T>;
+export type MetricsProperty<T> = T extends undefined ? string : keyof T & string;
 
 export const metrics = <T>() => {
   return {
-    aggregate: <P extends PropertyOf<T>>(property: P) => new MetricsManager<T, P>(property),
+    aggregate: <P extends MetricsProperty<T>>(property: P) => new MetricsManager<T, P>(property),
   };
 };
 
@@ -145,10 +143,10 @@ export interface Metrics<T> {
 
     See [the docs](https://weaviate.io/developers/weaviate/search/aggregate) for more details!
    */
-  aggregate: <P extends PropertyOf<T>>(property: P) => MetricsManager<T, P>;
+  aggregate: <P extends MetricsProperty<T>>(property: P) => MetricsManager<T, P>;
 }
 
-export class MetricsManager<T, P extends PropertyOf<T>> {
+export class MetricsManager<T, P extends MetricsProperty<T>> {
   private propertyName: P;
 
   constructor(property: P) {
@@ -421,7 +419,11 @@ class AggregateManager<T> implements Aggregate<T> {
     return new Aggregator(this.connection);
   }
 
-  base(metrics?: PropertiesMetrics<T>, filters?: FilterValue, groupBy?: PropertyOf<T> | GroupByAggregate<T>) {
+  base(
+    metrics?: PropertiesMetrics<T>,
+    filters?: FilterValue,
+    groupBy?: (keyof T & string) | GroupByAggregate<T>
+  ) {
     let fields = 'meta { count }';
     let builder = this.query().withClassName(this.name);
     if (metrics) {
@@ -489,7 +491,7 @@ class AggregateManager<T> implements Aggregate<T> {
 
   async nearImage<M extends PropertiesMetrics<T>>(
     image: string | Buffer,
-    opts?: AggregateNearOptions<M>
+    opts?: AggregateNearOptions<T, M>
   ): Promise<AggregateResult<T, M>> {
     const builder = this.base(opts?.returnMetrics, opts?.filters).withNearImage({
       image: await toBase64FromMedia(image),
@@ -505,7 +507,7 @@ class AggregateManager<T> implements Aggregate<T> {
 
   nearObject<M extends PropertiesMetrics<T>>(
     id: string,
-    opts?: AggregateNearOptions<M>
+    opts?: AggregateNearOptions<T, M>
   ): Promise<AggregateResult<T, M>> {
     const builder = this.base(opts?.returnMetrics, opts?.filters).withNearObject({
       id: id,
@@ -521,7 +523,7 @@ class AggregateManager<T> implements Aggregate<T> {
 
   nearText<M extends PropertiesMetrics<T>>(
     query: string | string[],
-    opts?: AggregateNearOptions<M>
+    opts?: AggregateNearOptions<T, M>
   ): Promise<AggregateResult<T, M>> {
     const builder = this.base(opts?.returnMetrics, opts?.filters).withNearText({
       concepts: Array.isArray(query) ? query : [query],
@@ -537,7 +539,7 @@ class AggregateManager<T> implements Aggregate<T> {
 
   nearVector<M extends PropertiesMetrics<T>>(
     vector: number[],
-    opts?: AggregateNearOptions<M>
+    opts?: AggregateNearOptions<T, M>
   ): Promise<AggregateResult<T, M>> {
     const builder = this.base(opts?.returnMetrics, opts?.filters).withNearVector({
       vector: vector,
@@ -551,7 +553,7 @@ class AggregateManager<T> implements Aggregate<T> {
     return this.do(builder);
   }
 
-  overAll<M extends PropertiesMetrics<T>>(opts?: AggregateOptions<M>): Promise<AggregateResult<T, M>> {
+  overAll<M extends PropertiesMetrics<T>>(opts?: AggregateOptions<T, M>): Promise<AggregateResult<T, M>> {
     const builder = this.base(opts?.returnMetrics, opts?.filters);
     return this.do(builder);
   }
@@ -613,7 +615,7 @@ export interface Aggregate<T> {
    */
   nearImage<M extends PropertiesMetrics<T>>(
     image: string | Buffer,
-    opts?: AggregateNearOptions<M>
+    opts?: AggregateNearOptions<T, M>
   ): Promise<AggregateResult<T, M>>;
   /**
    * Aggregate metrics over the objects returned by a near object search on this collection.
@@ -628,7 +630,7 @@ export interface Aggregate<T> {
    */
   nearObject<M extends PropertiesMetrics<T>>(
     id: string,
-    opts?: AggregateNearOptions<M>
+    opts?: AggregateNearOptions<T, M>
   ): Promise<AggregateResult<T, M>>;
   /**
    * Aggregate metrics over the objects returned by a near vector search on this collection.
@@ -643,7 +645,7 @@ export interface Aggregate<T> {
    */
   nearText<M extends PropertiesMetrics<T>>(
     query: string | string[],
-    opts?: AggregateNearOptions<M>
+    opts?: AggregateNearOptions<T, M>
   ): Promise<AggregateResult<T, M>>;
   /**
    * Aggregate metrics over the objects returned by a near vector search on this collection.
@@ -658,7 +660,7 @@ export interface Aggregate<T> {
    */
   nearVector<M extends PropertiesMetrics<T>>(
     vector: number[],
-    opts?: AggregateNearOptions<M>
+    opts?: AggregateNearOptions<T, M>
   ): Promise<AggregateResult<T, M>>;
   /**
    * Aggregate metrics over all the objects in this collection without any vector search.
@@ -666,7 +668,7 @@ export interface Aggregate<T> {
    * @param {AggregateOptions<T, M>} [opts] The options for the request.
    * @returns {Promise<AggregateResult<T, M>[]>} The aggregated metrics for the objects in the collection.
    */
-  overAll<M extends PropertiesMetrics<T>>(opts?: AggregateOptions<M>): Promise<AggregateResult<T, M>>;
+  overAll<M extends PropertiesMetrics<T>>(opts?: AggregateOptions<T, M>): Promise<AggregateResult<T, M>>;
 }
 
 export interface AggregateGroupBy<T> {
