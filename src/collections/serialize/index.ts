@@ -519,6 +519,7 @@ export class Serialize {
         alpha: args.alpha ? args.alpha : 0.5,
         properties: this.bm25QueryProperties(args.queryProperties),
         vectorBytes: vectorBytes,
+        vectorDistance: args.maxVectorDistance,
         fusionType: fusionType(args.fusionType),
         targetVectors,
         targets,
