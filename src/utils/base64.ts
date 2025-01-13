@@ -23,7 +23,7 @@ const isFilePromise = (file: string | Buffer): Promise<boolean> =>
     });
   });
 
-const isUrl = (file: string | Buffer): boolean => {
+const isUrl = (file: string): file is string => {
   if (typeof file !== 'string') return false;
   try {
     const url = new URL(file);
