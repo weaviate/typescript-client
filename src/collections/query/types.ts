@@ -105,7 +105,7 @@ export type BaseHybridOptions<T> = SearchOptions<T> & {
   alpha?: number;
   /** The type of fusion to apply. If not specified, the default fusion type specified by the server is used. */
   fusionType?: 'Ranked' | 'RelativeScore';
-  /** The maximum tolerated similarity in the vector search before the results are cutoff from the resultset. */
+  /** The maximum tolerated similarity in the vector search before the results are cutoff from the result set. */
   maxVectorDistance?: number;
   /** The properties to search in. If not specified, all properties are searched. */
   queryProperties?: (PrimitiveKeys<T> | Bm25QueryProperty<T>)[];
