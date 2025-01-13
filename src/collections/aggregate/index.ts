@@ -11,13 +11,15 @@ import { PrimitiveKeys, toBase64FromMedia } from '../../index.js';
 import { Bm25QueryProperty } from '../query/types.js';
 import { Serialize } from '../serialize/index.js';
 
-export type AggregateBaseOptions<T, M> = {
+export type AggregateBaseOptions<M> = {
   filters?: FilterValue;
   returnMetrics?: M;
 };
 
-export type AggregateGroupByOptions<T, M> = AggregateBaseOptions<T, M> & {
-  groupBy: T extends undefined ? string : (keyof T & string) | GroupByAggregate<T>;
+export type PropertyOf<T> = T extends undefined ? string : keyof T & string;
+
+export type AggregateGroupByOptions<T, M> = AggregateBaseOptions<M> & {
+  groupBy: PropertyOf<T> | GroupByAggregate<T>;
 };
 
 export type GroupByAggregate<T> = {
@@ -25,16 +27,16 @@ export type GroupByAggregate<T> = {
   limit?: number;
 };
 
-export type AggregateOverAllOptions<T, M> = AggregateBaseOptions<T, M>;
+export type AggregateOverAllOptions<M> = AggregateBaseOptions<M>;
 
-export type AggregateNearOptions<T, M> = AggregateBaseOptions<T, M> & {
+export type AggregateNearOptions<M> = AggregateBaseOptions<M> & {
   certainty?: number;
   distance?: number;
   objectLimit?: number;
   targetVector?: string;
 };
 
-export type AggregateHybridOptions<T, M> = AggregateBaseOptions<T, M> & {
+export type AggregateHybridOptions<T, M> = AggregateBaseOptions<M> & {
   alpha?: number;
   maxVectorDistance?: number;
   objectLimit?: number;
@@ -44,11 +46,11 @@ export type AggregateHybridOptions<T, M> = AggregateBaseOptions<T, M> & {
 };
 
 export type AggregateGroupByHybridOptions<T, M> = AggregateHybridOptions<T, M> & {
-  groupBy: T extends undefined ? string : (keyof T & string) | GroupByAggregate<T>;
+  groupBy: PropertyOf<T> | GroupByAggregate<T>;
 };
 
-export type AggregateGroupByNearOptions<T, M> = AggregateNearOptions<T, M> & {
-  groupBy: T extends undefined ? string : (keyof T & string) | GroupByAggregate<T>;
+export type AggregateGroupByNearOptions<T, M> = AggregateNearOptions<M> & {
+  groupBy: PropertyOf<T> | GroupByAggregate<T>;
 };
 
 export type AggregateBoolean = {
@@ -538,7 +540,7 @@ class AggregateManager<T> implements Aggregate<T> {
 
   async nearImage<M extends PropertiesMetrics<T>>(
     image: string | Buffer,
-    opts?: AggregateNearOptions<T, M>
+    opts?: AggregateNearOptions<M>
   ): Promise<AggregateResult<T, M>> {
     const builder = this.base(opts?.returnMetrics, opts?.filters).withNearImage({
       image: await toBase64FromMedia(image),
@@ -554,7 +556,7 @@ class AggregateManager<T> implements Aggregate<T> {
 
   nearObject<M extends PropertiesMetrics<T>>(
     id: string,
-    opts?: AggregateNearOptions<T, M>
+    opts?: AggregateNearOptions<M>
   ): Promise<AggregateResult<T, M>> {
     const builder = this.base(opts?.returnMetrics, opts?.filters).withNearObject({
       id: id,
@@ -570,7 +572,7 @@ class AggregateManager<T> implements Aggregate<T> {
 
   nearText<M extends PropertiesMetrics<T>>(
     query: string | string[],
-    opts?: AggregateNearOptions<T, M>
+    opts?: AggregateNearOptions<M>
   ): Promise<AggregateResult<T, M>> {
     const builder = this.base(opts?.returnMetrics, opts?.filters).withNearText({
       concepts: Array.isArray(query) ? query : [query],
@@ -586,7 +588,7 @@ class AggregateManager<T> implements Aggregate<T> {
 
   nearVector<M extends PropertiesMetrics<T>>(
     vector: number[],
-    opts?: AggregateNearOptions<T, M>
+    opts?: AggregateNearOptions<M>
   ): Promise<AggregateResult<T, M>> {
     const builder = this.base(opts?.returnMetrics, opts?.filters).withNearVector({
       vector: vector,
@@ -600,9 +602,7 @@ class AggregateManager<T> implements Aggregate<T> {
     return this.do(builder);
   }
 
-  overAll<M extends PropertiesMetrics<T>>(
-    opts?: AggregateOverAllOptions<T, M>
-  ): Promise<AggregateResult<T, M>> {
+  overAll<M extends PropertiesMetrics<T>>(opts?: AggregateOverAllOptions<M>): Promise<AggregateResult<T, M>> {
     const builder = this.base(opts?.returnMetrics, opts?.filters);
     return this.do(builder);
   }
@@ -677,7 +677,7 @@ export interface Aggregate<T> {
    */
   nearImage<M extends PropertiesMetrics<T>>(
     image: string | Buffer,
-    opts?: AggregateNearOptions<T, M>
+    opts?: AggregateNearOptions<M>
   ): Promise<AggregateResult<T, M>>;
   /**
    * Aggregate metrics over the objects returned by a near object search on this collection.
@@ -692,7 +692,7 @@ export interface Aggregate<T> {
    */
   nearObject<M extends PropertiesMetrics<T>>(
     id: string,
-    opts?: AggregateNearOptions<T, M>
+    opts?: AggregateNearOptions<M>
   ): Promise<AggregateResult<T, M>>;
   /**
    * Aggregate metrics over the objects returned by a near vector search on this collection.
@@ -707,7 +707,7 @@ export interface Aggregate<T> {
    */
   nearText<M extends PropertiesMetrics<T>>(
     query: string | string[],
-    opts?: AggregateNearOptions<T, M>
+    opts?: AggregateNearOptions<M>
   ): Promise<AggregateResult<T, M>>;
   /**
    * Aggregate metrics over the objects returned by a near vector search on this collection.
@@ -722,7 +722,7 @@ export interface Aggregate<T> {
    */
   nearVector<M extends PropertiesMetrics<T>>(
     vector: number[],
-    opts?: AggregateNearOptions<T, M>
+    opts?: AggregateNearOptions<M>
   ): Promise<AggregateResult<T, M>>;
   /**
    * Aggregate metrics over all the objects in this collection without any vector search.
@@ -730,9 +730,7 @@ export interface Aggregate<T> {
    * @param {AggregateOptions<T, M>} [opts] The options for the request.
    * @returns {Promise<AggregateResult<T, M>[]>} The aggregated metrics for the objects in the collection.
    */
-  overAll<M extends PropertiesMetrics<T>>(
-    opts?: AggregateOverAllOptions<T, M>
-  ): Promise<AggregateResult<T, M>>;
+  overAll<M extends PropertiesMetrics<T>>(opts?: AggregateOverAllOptions<M>): Promise<AggregateResult<T, M>>;
 }
 
 export interface AggregateGroupBy<T> {
