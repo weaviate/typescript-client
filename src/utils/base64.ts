@@ -33,14 +33,24 @@ const isUrl = (file: string | Buffer): boolean => {
   }
 };
 
-const downloadImageAsBase64 = async (url: string): Promise<string> => {
+export const downloadImageFromURLAsBase64 = async (url: string): Promise<string> => {
+  if (!isUrl(url)) {
+    throw new Error('Invalid URL');
+  }
+
   try {
     const client = httpClient({
       headers: { 'Content-Type': 'image/*' },
       host: '',
     });
+
     const response = await client.externalGet(url);
-    return Buffer.from(response, 'binary').toString('base64');
+
+    if (!Buffer.isBuffer(response)) {
+      throw new Error('Response is not a buffer');
+    }
+
+    return response.toString('base64');
   } catch (error) {
     throw new Error(`Failed to download image from URL: ${url}`);
   }
@@ -62,7 +72,7 @@ const fileToBase64 = (file: string | Buffer): Promise<string> =>
       : isBuffer(file)
       ? Promise.resolve(file.toString('base64'))
       : isUrl(file)
-      ? downloadImageAsBase64(file)
+      ? downloadImageFromURLAsBase64(file)
       : Promise.resolve(file)
   );
 
