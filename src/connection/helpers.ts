@@ -160,11 +160,9 @@ export function connectToCustom(
 
 function addWeaviateEmbeddingServiceHeaders(
   clusterURL: string,
-  authCredentials?: AuthCredentials,
+  creds?: AuthCredentials,
   headers?: Record<string, string>
 ) {
-  const creds = authCredentials;
-
   if (!isApiKey(creds)) {
     return headers;
   }
