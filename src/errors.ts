@@ -38,6 +38,15 @@ export class WeaviateDeleteManyError extends WeaviateError {
 }
 
 /**
+ * Is thrown if a gRPC tenants get to Weaviate fails in any way.
+ */
+export class WeaviateTenantsGetError extends WeaviateError {
+  constructor(message: string) {
+    super(`Tenants get failed with message: ${message}`);
+  }
+}
+
+/**
  * Is thrown if a gRPC batch query to Weaviate fails in any way.
  */
 export class WeaviateBatchError extends WeaviateError {

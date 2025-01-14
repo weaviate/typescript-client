@@ -10,11 +10,13 @@ import {
   WeaviateBatchError,
   WeaviateDeleteManyError,
   WeaviateInsufficientPermissionsError,
+  WeaviateRequestTimeoutError,
 } from '../errors.js';
 import { Filters } from '../proto/v1/base.js';
 import { BatchDeleteReply, BatchDeleteRequest } from '../proto/v1/batch_delete.js';
 import Base from './base.js';
 
+import { isAbortError } from 'abort-controller-x';
 import { retryOptions } from './retry.js';
 
 export interface Batch {
@@ -65,6 +67,9 @@ export default class Batcher extends Base implements Batch {
       if (err instanceof ServerError && err.code === Status.PERMISSION_DENIED) {
         throw new WeaviateInsufficientPermissionsError(7, err.message);
       }
+      if (isAbortError(err)) {
+        throw new WeaviateRequestTimeoutError(`timed out after ${this.timeout}ms`);
+      }
       throw new WeaviateDeleteManyError(err.message);
     });
   }
@@ -86,6 +91,9 @@ export default class Batcher extends Base implements Batch {
         .catch((err) => {
           if (err instanceof ServerError && err.code === Status.PERMISSION_DENIED) {
             throw new WeaviateInsufficientPermissionsError(7, err.message);
+          }
+          if (isAbortError(err)) {
+            throw new WeaviateRequestTimeoutError(`timed out after ${this.timeout}ms`);
           }
           throw new WeaviateBatchError(err.message);
         })
