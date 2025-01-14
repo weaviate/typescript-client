@@ -86,6 +86,8 @@ export function connectToWeaviateCloud(
     grpcHost = `grpc-${url.hostname}`;
   }
 
+  const { headers, ...rest } = options || {};
+
   return clientMaker({
     connectionParams: {
       http: {
@@ -99,8 +101,8 @@ export function connectToWeaviateCloud(
         port: 443,
       },
     },
-    auth: options?.authCredentials,
-    headers: addWeaviateEmbeddingServiceHeaders(clusterURL, options),
+    headers: addWeaviateEmbeddingServiceHeaders(clusterURL, options?.authCredentials, headers),
+    ...rest,
   }).catch((e) => {
     throw new WeaviateStartUpError(`Weaviate failed to startup with message: ${e.message}`);
   });
@@ -110,21 +112,21 @@ export function connectToLocal(
   clientMaker: (params: ClientParams) => Promise<WeaviateClient>,
   options?: ConnectToLocalOptions
 ): Promise<WeaviateClient> {
+  const { host, port, grpcPort, ...rest } = options || {};
   return clientMaker({
     connectionParams: {
       http: {
         secure: false,
-        host: options?.host || 'localhost',
-        port: options?.port || 8080,
+        host: host || 'localhost',
+        port: port || 8080,
       },
       grpc: {
         secure: false,
-        host: options?.host || 'localhost',
-        port: options?.grpcPort || 50051,
+        host: host || 'localhost',
+        port: grpcPort || 50051,
       },
     },
-    auth: options?.authCredentials,
-    headers: options?.headers,
+    ...rest,
   }).catch((e) => {
     throw new WeaviateStartUpError(`Weaviate failed to startup with message: ${e.message}`);
   });
@@ -134,37 +136,40 @@ export function connectToCustom(
   clientMaker: (params: ClientParams) => Promise<WeaviateClient>,
   options?: ConnectToCustomOptions
 ): Promise<WeaviateClient> {
+  const { httpHost, httpPath, httpPort, httpSecure, grpcHost, grpcPort, grpcSecure, ...rest } = options || {};
   return clientMaker({
     connectionParams: {
       http: {
-        secure: options?.httpSecure || false,
-        host: options?.httpHost || 'localhost',
-        path: options?.httpPath || '',
-        port: options?.httpPort || 8080,
+        secure: httpSecure || false,
+        host: httpHost || 'localhost',
+        path: httpPath || '',
+        port: httpPort || 8080,
       },
       grpc: {
-        secure: options?.grpcSecure || false,
-        host: options?.grpcHost || 'localhost',
-        port: options?.grpcPort || 50051,
+        secure: grpcSecure || false,
+        host: grpcHost || 'localhost',
+        port: grpcPort || 50051,
       },
     },
-    auth: options?.authCredentials,
-    headers: options?.headers,
-    proxies: options?.proxies,
+    ...rest,
   }).catch((e) => {
     throw new WeaviateStartUpError(`Weaviate failed to startup with message: ${e.message}`);
   });
 }
 
-function addWeaviateEmbeddingServiceHeaders(clusterURL: string, options?: ConnectToWeaviateCloudOptions) {
-  const creds = options?.authCredentials;
+function addWeaviateEmbeddingServiceHeaders(
+  clusterURL: string,
+  authCredentials?: AuthCredentials,
+  headers?: Record<string, string>
+) {
+  const creds = authCredentials;
 
   if (!isApiKey(creds)) {
-    return options?.headers;
+    return headers;
   }
 
   return {
-    ...options?.headers,
+    ...headers,
     'X-Weaviate-Api-Key': mapApiKey(creds).apiKey,
     'X-Weaviate-Cluster-Url': clusterURL,
   };

@@ -1,6 +1,11 @@
+import { isAbortError } from 'abort-controller-x';
 import { Metadata, ServerError, Status } from 'nice-grpc';
 import { RetryOptions } from 'nice-grpc-client-middleware-retry';
-import { WeaviateDeleteManyError, WeaviateInsufficientPermissionsError } from '../errors.js';
+import {
+  WeaviateInsufficientPermissionsError,
+  WeaviateRequestTimeoutError,
+  WeaviateTenantsGetError,
+} from '../errors.js';
 import { TenantsGetReply, TenantsGetRequest } from '../proto/v1/tenants.js';
 import { WeaviateClient } from '../proto/v1/weaviate.js';
 import Base from './base.js';
@@ -45,7 +50,10 @@ export default class TenantsManager extends Base implements Tenants {
           if (err instanceof ServerError && err.code === Status.PERMISSION_DENIED) {
             throw new WeaviateInsufficientPermissionsError(7, err.message);
           }
-          throw new WeaviateDeleteManyError(err.message);
+          if (isAbortError(err)) {
+            throw new WeaviateRequestTimeoutError(`timed out after ${this.timeout}ms`);
+          }
+          throw new WeaviateTenantsGetError(err.message);
         })
     );
   }

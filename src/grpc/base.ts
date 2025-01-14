@@ -1,9 +1,7 @@
-import { isAbortError } from 'abort-controller-x';
 import { ConsistencyLevel } from '../data/index.js';
 
 import { Metadata } from 'nice-grpc';
 import { RetryOptions } from 'nice-grpc-client-middleware-retry';
-import { WeaviateRequestTimeoutError } from '../errors.js';
 import { ConsistencyLevel as ConsistencyLevelGRPC } from '../proto/v1/base.js';
 import { WeaviateClient } from '../proto/v1/weaviate.js';
 
@@ -47,13 +45,6 @@ export default class Base {
   protected sendWithTimeout = <T>(send: (signal: AbortSignal) => Promise<T>): Promise<T> => {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), this.timeout * 1000);
-    return send(controller.signal)
-      .catch((error) => {
-        if (isAbortError(error)) {
-          throw new WeaviateRequestTimeoutError(`timed out after ${this.timeout}ms`);
-        }
-        throw error;
-      })
-      .finally(() => clearTimeout(timeoutId));
+    return send(controller.signal).finally(() => clearTimeout(timeoutId));
   };
 }

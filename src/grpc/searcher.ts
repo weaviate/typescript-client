@@ -24,8 +24,13 @@ import {
 } from '../proto/v1/search_get.js';
 import { WeaviateClient } from '../proto/v1/weaviate.js';
 
+import { isAbortError } from 'abort-controller-x';
 import { RetryOptions } from 'nice-grpc-client-middleware-retry';
-import { WeaviateInsufficientPermissionsError, WeaviateQueryError } from '../errors.js';
+import {
+  WeaviateInsufficientPermissionsError,
+  WeaviateQueryError,
+  WeaviateRequestTimeoutError,
+} from '../errors.js';
 import { GenerativeSearch } from '../proto/v1/generative.js';
 import Base from './base.js';
 import { retryOptions } from './retry.js';
@@ -159,6 +164,9 @@ export default class Searcher extends Base implements Search {
         .catch((err) => {
           if (err instanceof ServerError && err.code === Status.PERMISSION_DENIED) {
             throw new WeaviateInsufficientPermissionsError(7, err.message);
+          }
+          if (isAbortError(err)) {
+            throw new WeaviateRequestTimeoutError(`timed out after ${this.timeout}ms`);
           }
           throw new WeaviateQueryError(err.message, 'gRPC');
         })
