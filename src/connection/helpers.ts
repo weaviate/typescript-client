@@ -86,7 +86,7 @@ export function connectToWeaviateCloud(
     grpcHost = `grpc-${url.hostname}`;
   }
 
-  const { headers, ...rest } = options || {};
+  const { authCredentials, headers, ...rest } = options || {};
 
   return clientMaker({
     connectionParams: {
@@ -101,7 +101,8 @@ export function connectToWeaviateCloud(
         port: 443,
       },
     },
-    headers: addWeaviateEmbeddingServiceHeaders(clusterURL, options?.authCredentials, headers),
+    auth: authCredentials,
+    headers: addWeaviateEmbeddingServiceHeaders(clusterURL, authCredentials, headers),
     ...rest,
   }).catch((e) => {
     throw new WeaviateStartUpError(`Weaviate failed to startup with message: ${e.message}`);
