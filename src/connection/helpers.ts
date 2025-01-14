@@ -86,7 +86,7 @@ export function connectToWeaviateCloud(
     grpcHost = `grpc-${url.hostname}`;
   }
 
-  const { authCredentials, headers, ...rest } = options || {};
+  const { authCredentials: auth, headers, ...rest } = options || {};
 
   return clientMaker({
     connectionParams: {
@@ -101,8 +101,8 @@ export function connectToWeaviateCloud(
         port: 443,
       },
     },
-    auth: authCredentials,
-    headers: addWeaviateEmbeddingServiceHeaders(clusterURL, authCredentials, headers),
+    auth,
+    headers: addWeaviateEmbeddingServiceHeaders(clusterURL, auth, headers),
     ...rest,
   }).catch((e) => {
     throw new WeaviateStartUpError(`Weaviate failed to startup with message: ${e.message}`);
@@ -113,7 +113,7 @@ export function connectToLocal(
   clientMaker: (params: ClientParams) => Promise<WeaviateClient>,
   options?: ConnectToLocalOptions
 ): Promise<WeaviateClient> {
-  const { host, port, grpcPort, ...rest } = options || {};
+  const { host, port, grpcPort, authCredentials: auth, ...rest } = options || {};
   return clientMaker({
     connectionParams: {
       http: {
@@ -127,6 +127,7 @@ export function connectToLocal(
         port: grpcPort || 50051,
       },
     },
+    auth,
     ...rest,
   }).catch((e) => {
     throw new WeaviateStartUpError(`Weaviate failed to startup with message: ${e.message}`);
@@ -137,7 +138,17 @@ export function connectToCustom(
   clientMaker: (params: ClientParams) => Promise<WeaviateClient>,
   options?: ConnectToCustomOptions
 ): Promise<WeaviateClient> {
-  const { httpHost, httpPath, httpPort, httpSecure, grpcHost, grpcPort, grpcSecure, ...rest } = options || {};
+  const {
+    httpHost,
+    httpPath,
+    httpPort,
+    httpSecure,
+    grpcHost,
+    grpcPort,
+    grpcSecure,
+    authCredentials: auth,
+    ...rest
+  } = options || {};
   return clientMaker({
     connectionParams: {
       http: {
@@ -152,6 +163,7 @@ export function connectToCustom(
         port: grpcPort || 50051,
       },
     },
+    auth,
     ...rest,
   }).catch((e) => {
     throw new WeaviateStartUpError(`Weaviate failed to startup with message: ${e.message}`);
