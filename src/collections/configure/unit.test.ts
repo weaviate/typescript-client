@@ -13,7 +13,7 @@ import {
   ModuleConfig,
   VectorConfigCreate,
 } from '../types/index.js';
-import { configure, reconfigure } from './index.js';
+import { configure } from './index.js';
 import {
   InvertedIndexConfigCreate,
   MultiTenancyConfigCreate,
@@ -25,6 +25,11 @@ import {
 } from './types/index.js';
 
 describe('Unit testing of the configure & reconfigure factory classes', () => {
+  it('should create the correct InvertedIndexConfig type with defaults', () => {
+    const config = configure.invertedIndex({});
+    expect(config).toEqual<InvertedIndexConfigCreate>({});
+  });
+
   it('should create the correct InvertedIndexConfig type with all values', () => {
     const config = configure.invertedIndex({
       bm25b: 0.5,
@@ -90,7 +95,7 @@ describe('Unit testing of the configure & reconfigure factory classes', () => {
   });
 
   it('should create the correct ReplicationConfigUpdate type with all values', () => {
-    const config = reconfigure.replication({
+    const config = configure.replication({
       asyncEnabled: true,
       deletionStrategy: 'DeleteOnConflict',
       factor: 2,
