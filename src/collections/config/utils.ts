@@ -191,8 +191,8 @@ class ConfigMapping {
           `Expected exactly one vectorizer for ${key} named vector, got ${vectorizerNames.length}`
         );
       const vectorizerName = vectorizerNames[0];
-      const { properties, ...restA } = vectorizer[vectorizerName] as any;
-      const { vectorizeClassName, ...restB } = restA;
+      const { properties, ...restA } = vectorizer[vectorizerName] || ({} as any);
+      const { vectorizeClassName, ...restB } = restA || {};
       out[key] = {
         vectorizer: {
           name: vectorizerName,
