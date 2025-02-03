@@ -33,9 +33,9 @@
     "format": "prettier --write --no-error-on-unmatched-pattern '**/*.{ts,js}' '!dist/**'",
     "format:check": "prettier --check --no-error-on-unmatched-pattern '**/*.{ts,js}' '!dist/**'",
     "format:dist": "prettier --write --no-error-on-unmatched-pattern '**/dist/**/*.{ts,js}'",
-    "schema": "./tools/refresh_schema.sh",
-    "protos": "./tools/refresh_protos.sh",
-    "docs": "typedoc --plugin typedoc-plugin-extras --favicon public/favicon.ico --out docs/ src/"
+    "refresh-schema": "./tools/refresh_schema.sh",
+    "refresh-protos": "./tools/refresh_protos.sh",
+    "make-docs": "typedoc --plugin typedoc-plugin-extras --favicon public/favicon.ico --out docs/ src/"
   },
   "repository": {
     "type": "git",
