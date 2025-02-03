@@ -278,9 +278,53 @@ export interface GeoCoordinatesFilter {
 
 export interface Vectors {
   name: string;
-  /** for multi-vec */
+  /**
+   * for multi-vec
+   *
+   * @deprecated
+   */
   index: number;
   vectorBytes: Uint8Array;
+  type: Vectors_VectorType;
+}
+
+export enum Vectors_VectorType {
+  VECTOR_TYPE_UNSPECIFIED = 0,
+  VECTOR_TYPE_SINGLE_FP32 = 1,
+  VECTOR_TYPE_MULTI_FP32 = 2,
+  UNRECOGNIZED = -1,
+}
+
+export function vectors_VectorTypeFromJSON(object: any): Vectors_VectorType {
+  switch (object) {
+    case 0:
+    case "VECTOR_TYPE_UNSPECIFIED":
+      return Vectors_VectorType.VECTOR_TYPE_UNSPECIFIED;
+    case 1:
+    case "VECTOR_TYPE_SINGLE_FP32":
+      return Vectors_VectorType.VECTOR_TYPE_SINGLE_FP32;
+    case 2:
+    case "VECTOR_TYPE_MULTI_FP32":
+      return Vectors_VectorType.VECTOR_TYPE_MULTI_FP32;
+    case -1:
+    case "UNRECOGNIZED":
+    default:
+      return Vectors_VectorType.UNRECOGNIZED;
+  }
+}
+
+export function vectors_VectorTypeToJSON(object: Vectors_VectorType): string {
+  switch (object) {
+    case Vectors_VectorType.VECTOR_TYPE_UNSPECIFIED:
+      return "VECTOR_TYPE_UNSPECIFIED";
+    case Vectors_VectorType.VECTOR_TYPE_SINGLE_FP32:
+      return "VECTOR_TYPE_SINGLE_FP32";
+    case Vectors_VectorType.VECTOR_TYPE_MULTI_FP32:
+      return "VECTOR_TYPE_MULTI_FP32";
+    case Vectors_VectorType.UNRECOGNIZED:
+    default:
+      return "UNRECOGNIZED";
+  }
 }
 
 function createBaseNumberArrayProperties(): NumberArrayProperties {
@@ -1933,7 +1977,7 @@ export const GeoCoordinatesFilter = {
 };
 
 function createBaseVectors(): Vectors {
-  return { name: "", index: 0, vectorBytes: new Uint8Array(0) };
+  return { name: "", index: 0, vectorBytes: new Uint8Array(0), type: 0 };
 }
 
 export const Vectors = {
@@ -1946,6 +1990,9 @@ export const Vectors = {
     }
     if (message.vectorBytes.length !== 0) {
       writer.uint32(26).bytes(message.vectorBytes);
+    }
+    if (message.type !== 0) {
+      writer.uint32(32).int32(message.type);
     }
     return writer;
   },
@@ -1978,6 +2025,13 @@ export const Vectors = {
 
           message.vectorBytes = reader.bytes();
           continue;
+        case 4:
+          if (tag !== 32) {
+            break;
+          }
+
+          message.type = reader.int32() as any;
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1992,6 +2046,7 @@ export const Vectors = {
       name: isSet(object.name) ? globalThis.String(object.name) : "",
       index: isSet(object.index) ? globalThis.Number(object.index) : 0,
       vectorBytes: isSet(object.vectorBytes) ? bytesFromBase64(object.vectorBytes) : new Uint8Array(0),
+      type: isSet(object.type) ? vectors_VectorTypeFromJSON(object.type) : 0,
     };
   },
 
@@ -2006,6 +2061,9 @@ export const Vectors = {
     if (message.vectorBytes.length !== 0) {
       obj.vectorBytes = base64FromBytes(message.vectorBytes);
     }
+    if (message.type !== 0) {
+      obj.type = vectors_VectorTypeToJSON(message.type);
+    }
     return obj;
   },
 
@@ -2017,6 +2075,7 @@ export const Vectors = {
     message.name = object.name ?? "";
     message.index = object.index ?? 0;
     message.vectorBytes = object.vectorBytes ?? new Uint8Array(0);
+    message.type = object.type ?? 0;
     return message;
   },
 };

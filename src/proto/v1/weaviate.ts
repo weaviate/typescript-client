@@ -6,6 +6,7 @@
 
 /* eslint-disable */
 import { type CallContext, type CallOptions } from "nice-grpc-common";
+import { AggregateReply, AggregateRequest } from "./aggregate.js";
 import { BatchObjectsReply, BatchObjectsRequest } from "./batch.js";
 import { BatchDeleteReply, BatchDeleteRequest } from "./batch_delete.js";
 import { SearchReply, SearchRequest } from "./search_get.js";
@@ -50,6 +51,14 @@ export const WeaviateDefinition = {
       responseStream: false,
       options: {},
     },
+    aggregate: {
+      name: "Aggregate",
+      requestType: AggregateRequest,
+      requestStream: false,
+      responseType: AggregateReply,
+      responseStream: false,
+      options: {},
+    },
   },
 } as const;
 
@@ -64,6 +73,7 @@ export interface WeaviateServiceImplementation<CallContextExt = {}> {
     context: CallContext & CallContextExt,
   ): Promise<DeepPartial<BatchDeleteReply>>;
   tenantsGet(request: TenantsGetRequest, context: CallContext & CallContextExt): Promise<DeepPartial<TenantsGetReply>>;
+  aggregate(request: AggregateRequest, context: CallContext & CallContextExt): Promise<DeepPartial<AggregateReply>>;
 }
 
 export interface WeaviateClient<CallOptionsExt = {}> {
@@ -77,6 +87,7 @@ export interface WeaviateClient<CallOptionsExt = {}> {
     options?: CallOptions & CallOptionsExt,
   ): Promise<BatchDeleteReply>;
   tenantsGet(request: DeepPartial<TenantsGetRequest>, options?: CallOptions & CallOptionsExt): Promise<TenantsGetReply>;
+  aggregate(request: DeepPartial<AggregateRequest>, options?: CallOptions & CallOptionsExt): Promise<AggregateReply>;
 }
 
 type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
