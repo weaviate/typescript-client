@@ -436,8 +436,8 @@ describe('Testing of collection.aggregate search methods', () => {
   });
 
   it('should return an aggregation on a hybrid search', async () => {
-    if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 25, 0))) {
-      console.warn('Skipping test as there is a bug with this in 1.24.26 that will not be fixed');
+    if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 26, 0))) {
+      console.warn('Skipping test max vector distance not supported in 1.25.x');
       return;
     }
     const result = await collection.aggregate.hybrid('test', {
