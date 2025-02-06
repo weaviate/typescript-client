@@ -35,7 +35,7 @@
     "format:dist": "prettier --write --no-error-on-unmatched-pattern '**/dist/**/*.{ts,js}'",
     "refresh-schema": "./tools/refresh_schema.sh",
     "refresh-protos": "./tools/refresh_protos.sh",
-    "make-docs": "typedoc --plugin typedoc-plugin-extras --favicon public/favicon.ico --out docs/ src/"
+    "docs": "typedoc --plugin typedoc-plugin-extras --favicon public/favicon.ico --out docs/ src/"
   },
   "repository": {
     "type": "git",
