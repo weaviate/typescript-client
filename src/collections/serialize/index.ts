@@ -580,7 +580,7 @@ class Search {
     });
   };
 
-  private static groupBy = <T>(groupBy?: GroupByOptions<T>): GroupBy => {
+  public static groupBy = <T>(groupBy?: GroupByOptions<T>): GroupBy => {
     return GroupBy.fromPartial({
       path: groupBy?.property ? [groupBy.property as string] : undefined,
       numberOfGroups: groupBy?.numberOfGroups,
@@ -644,7 +644,7 @@ class Search {
       supportsVectorsForTargets: boolean;
       supportsWeightsForTargets: boolean;
     },
-    opts: HybridOptions<T>
+    opts?: HybridOptions<T>
   ): SearchHybridArgs => {
     return {
       ...Search.common<T>(opts),
@@ -659,7 +659,7 @@ class Search {
       supportsTargets: boolean;
       supportsWeightsForTargets: boolean;
     },
-    opts: NearOptions<T>
+    opts?: NearOptions<T>
   ): SearchNearAudioArgs => {
     return {
       ...Search.common(opts),
@@ -674,7 +674,7 @@ class Search {
       supportsTargets: boolean;
       supportsWeightsForTargets: boolean;
     },
-    opts: NearOptions<T>
+    opts?: NearOptions<T>
   ): SearchNearDepthArgs => {
     return {
       ...Search.common(opts),
@@ -689,7 +689,7 @@ class Search {
       supportsTargets: boolean;
       supportsWeightsForTargets: boolean;
     },
-    opts: NearOptions<T>
+    opts?: NearOptions<T>
   ): SearchNearImageArgs => {
     return {
       ...Search.common(opts),
@@ -704,7 +704,7 @@ class Search {
       supportsTargets: boolean;
       supportsWeightsForTargets: boolean;
     },
-    opts: NearOptions<T>
+    opts?: NearOptions<T>
   ): SearchNearIMUArgs => {
     return {
       ...Search.common(opts),

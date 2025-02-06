@@ -285,11 +285,9 @@ class GenerateManager<T> implements Generate<T> {
     return this.check
       .nearSearch(opts)
       .then(({ search, supportsTargets, supportsWeightsForTargets }) => {
-        let reply: Promise<SearchReply>;
         const args = {
           supportsTargets,
           supportsWeightsForTargets,
-          ...(opts ? opts : {}),
         };
         const generative = Serialize.generative(generate);
         let send: (media: string) => Promise<SearchReply>;
