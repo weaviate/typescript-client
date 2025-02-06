@@ -1,14 +1,16 @@
-import Connection from '../../connection/index.js';
+import Connection from '../../connection/grpc.js';
 
 import { ConsistencyLevel } from '../../data/index.js';
 import { DbVersionSupport } from '../../utils/dbVersion.js';
 
 import { FilterValue } from '../filters/index.js';
 
-import { WeaviateQueryError } from '../../errors.js';
+import { WeaviateInvalidInputError, WeaviateQueryError } from '../../errors.js';
 import { Aggregator } from '../../graphql/index.js';
 import { PrimitiveKeys, toBase64FromMedia } from '../../index.js';
-import { Bm25QueryProperty } from '../query/types.js';
+import { Deserialize } from '../deserialize/index.js';
+import { Bm25QueryProperty, NearVectorInputType } from '../query/types.js';
+import { NearVectorInputGuards } from '../query/utils.js';
 import { Serialize } from '../serialize/index.js';
 
 export type AggregateBaseOptions<M> = {
@@ -63,10 +65,10 @@ export type AggregateBoolean = {
 
 export type AggregateDate = {
   count?: number;
-  maximum?: number;
-  median?: number;
-  minimum?: number;
-  mode?: number;
+  maximum?: string;
+  median?: string;
+  minimum?: string;
+  mode?: string;
 };
 
 export type AggregateNumber = {
@@ -87,7 +89,7 @@ export type AggregateText = {
   count?: number;
   topOccurrences?: {
     occurs?: number;
-    value?: number;
+    value?: string;
   }[];
 };
 
@@ -345,6 +347,7 @@ class AggregateManager<T> implements Aggregate<T> {
   dbVersionSupport: DbVersionSupport;
   consistencyLevel?: ConsistencyLevel;
   tenant?: string;
+  grpcChecker: Promise<boolean>;
 
   private constructor(
     connection: Connection,
@@ -358,6 +361,8 @@ class AggregateManager<T> implements Aggregate<T> {
     this.dbVersionSupport = dbVersionSupport;
     this.consistencyLevel = consistencyLevel;
     this.tenant = tenant;
+
+    this.grpcChecker = this.dbVersionSupport.supportsAggregateGRPC().then((res) => res.supports);
 
     this.groupBy = {
       hybrid: <M extends PropertiesMetrics<T> | undefined = undefined>(
@@ -446,13 +451,15 @@ class AggregateManager<T> implements Aggregate<T> {
     };
   }
 
-  query() {
+  private grpc = () => this.connection.aggregate(this.name, this.consistencyLevel, this.tenant);
+
+  private gql() {
     return new Aggregator(this.connection);
   }
 
   base(metrics?: PropertiesMetrics<T>, filters?: FilterValue, groupBy?: PropertyOf<T> | GroupByAggregate<T>) {
     let fields = 'meta { count }';
-    let builder = this.query().withClassName(this.name);
+    let builder = this.gql().withClassName(this.name);
     if (metrics) {
       if (Array.isArray(metrics)) {
         fields += metrics.map((m) => this.metrics(m)).join(' ');
@@ -516,10 +523,15 @@ class AggregateManager<T> implements Aggregate<T> {
     return new AggregateManager<T>(connection, name, dbVersionSupport, consistencyLevel, tenant);
   }
 
-  hybrid<M extends PropertiesMetrics<T>>(
+  async hybrid<M extends PropertiesMetrics<T>>(
     query: string,
     opts?: AggregateHybridOptions<T, M>
   ): Promise<AggregateResult<T, M>> {
+    if (await this.grpcChecker) {
+      return this.grpc()
+        .then((aggregate) => aggregate.withHybrid(Serialize.aggregate.hybrid(query, opts)))
+        .then((reply) => Deserialize.aggregate(reply));
+    }
     let builder = this.base(opts?.returnMetrics, opts?.filters).withHybrid({
       query: query,
       alpha: opts?.alpha,
@@ -538,8 +550,14 @@ class AggregateManager<T> implements Aggregate<T> {
     image: string | Buffer,
     opts?: AggregateNearOptions<M>
   ): Promise<AggregateResult<T, M>> {
+    const [b64, usesGrpc] = await Promise.all([await toBase64FromMedia(image), await this.grpcChecker]);
+    if (usesGrpc) {
+      return this.grpc()
+        .then((aggregate) => aggregate.withNearImage(Serialize.aggregate.nearImage(b64, opts)))
+        .then((reply) => Deserialize.aggregate(reply));
+    }
     const builder = this.base(opts?.returnMetrics, opts?.filters).withNearImage({
-      image: await toBase64FromMedia(image),
+      image: b64,
       certainty: opts?.certainty,
       distance: opts?.distance,
       targetVectors: opts?.targetVector ? [opts.targetVector] : undefined,
@@ -550,10 +568,15 @@ class AggregateManager<T> implements Aggregate<T> {
     return this.do(builder);
   }
 
-  nearObject<M extends PropertiesMetrics<T>>(
+  async nearObject<M extends PropertiesMetrics<T>>(
     id: string,
     opts?: AggregateNearOptions<M>
   ): Promise<AggregateResult<T, M>> {
+    if (await this.grpcChecker) {
+      return this.grpc()
+        .then((aggregate) => aggregate.withNearObject(Serialize.aggregate.nearObject(id, opts)))
+        .then((reply) => Deserialize.aggregate(reply));
+    }
     const builder = this.base(opts?.returnMetrics, opts?.filters).withNearObject({
       id: id,
       certainty: opts?.certainty,
@@ -566,10 +589,15 @@ class AggregateManager<T> implements Aggregate<T> {
     return this.do(builder);
   }
 
-  nearText<M extends PropertiesMetrics<T>>(
+  async nearText<M extends PropertiesMetrics<T>>(
     query: string | string[],
     opts?: AggregateNearOptions<M>
   ): Promise<AggregateResult<T, M>> {
+    if (await this.grpcChecker) {
+      return this.grpc()
+        .then((aggregate) => aggregate.withNearText(Serialize.aggregate.nearText(query, opts)))
+        .then((reply) => Deserialize.aggregate(reply));
+    }
     const builder = this.base(opts?.returnMetrics, opts?.filters).withNearText({
       concepts: Array.isArray(query) ? query : [query],
       certainty: opts?.certainty,
@@ -582,10 +610,20 @@ class AggregateManager<T> implements Aggregate<T> {
     return this.do(builder);
   }
 
-  nearVector<M extends PropertiesMetrics<T>>(
-    vector: number[],
+  async nearVector<M extends PropertiesMetrics<T>>(
+    vector: NearVectorInputType,
     opts?: AggregateNearOptions<M>
   ): Promise<AggregateResult<T, M>> {
+    if (await this.grpcChecker) {
+      return this.grpc()
+        .then((aggregate) => aggregate.withNearVector(Serialize.aggregate.nearVector(vector, opts)))
+        .then((reply) => Deserialize.aggregate(reply));
+    }
+    if (!NearVectorInputGuards.is1DArray(vector)) {
+      throw new WeaviateInvalidInputError(
+        'Vector can only be a 1D array of numbers when using `nearVector` with <1.29 Weaviate versions.'
+      );
+    }
     const builder = this.base(opts?.returnMetrics, opts?.filters).withNearVector({
       vector: vector,
       certainty: opts?.certainty,
@@ -598,9 +636,15 @@ class AggregateManager<T> implements Aggregate<T> {
     return this.do(builder);
   }
 
-  overAll<M extends PropertiesMetrics<T>>(opts?: AggregateOverAllOptions<M>): Promise<AggregateResult<T, M>> {
-    const builder = this.base(opts?.returnMetrics, opts?.filters);
-    return this.do(builder);
+  async overAll<M extends PropertiesMetrics<T>>(
+    opts?: AggregateOverAllOptions<M>
+  ): Promise<AggregateResult<T, M>> {
+    if (await this.grpcChecker) {
+      return this.grpc()
+        .then((aggregate) => aggregate.withFetch(Serialize.aggregate.overAll(opts)))
+        .then((reply) => Deserialize.aggregate(reply));
+    }
+    return this.do(this.base(opts?.returnMetrics, opts?.filters));
   }
 
   do = <M extends PropertiesMetrics<T> | undefined = undefined>(

@@ -61,7 +61,9 @@ class GenerateManager<T> implements Generate<T> {
     reply: SearchReply
   ) {
     const deserialize = await Deserialize.use(this.check.dbVersionSupport);
-    return Serialize.isGroupBy(opts) ? deserialize.generateGroupBy<T>(reply) : deserialize.generate<T>(reply);
+    return Serialize.search.isGroupBy(opts)
+      ? deserialize.generateGroupBy<T>(reply)
+      : deserialize.generate<T>(reply);
   }
 
   public fetchObjects(
@@ -72,7 +74,7 @@ class GenerateManager<T> implements Generate<T> {
       .fetchObjects(opts)
       .then(({ search }) =>
         search.withFetch({
-          ...Serialize.fetchObjects(opts),
+          ...Serialize.search.fetchObjects(opts),
           generative: Serialize.generative(generate),
         })
       )
@@ -94,11 +96,8 @@ class GenerateManager<T> implements Generate<T> {
       .bm25(opts)
       .then(({ search }) =>
         search.withBm25({
-          ...Serialize.bm25({ query, ...opts }),
+          ...Serialize.search.bm25(query, opts),
           generative: Serialize.generative(generate),
-          groupBy: Serialize.isGroupBy<GroupByBm25Options<T>>(opts)
-            ? Serialize.groupBy(opts.groupBy)
-            : undefined,
         })
       )
       .then((reply) => this.parseGroupByReply(opts, reply));
@@ -119,17 +118,16 @@ class GenerateManager<T> implements Generate<T> {
       .hybridSearch(opts)
       .then(({ search, supportsTargets, supportsVectorsForTargets, supportsWeightsForTargets }) =>
         search.withHybrid({
-          ...Serialize.hybrid({
-            query,
-            supportsTargets,
-            supportsVectorsForTargets,
-            supportsWeightsForTargets,
-            ...opts,
-          }),
+          ...Serialize.search.hybrid(
+            {
+              query,
+              supportsTargets,
+              supportsVectorsForTargets,
+              supportsWeightsForTargets,
+            },
+            opts
+          ),
           generative: Serialize.generative(generate),
-          groupBy: Serialize.isGroupBy<GroupByHybridOptions<T>>(opts)
-            ? Serialize.groupBy(opts.groupBy)
-            : undefined,
         })
       )
       .then((reply) => this.parseGroupByReply(opts, reply));
@@ -155,16 +153,15 @@ class GenerateManager<T> implements Generate<T> {
       .then(({ search, supportsTargets, supportsWeightsForTargets }) =>
         toBase64FromMedia(image).then((image) =>
           search.withNearImage({
-            ...Serialize.nearImage({
-              image,
-              supportsTargets,
-              supportsWeightsForTargets,
-              ...(opts ? opts : {}),
-            }),
+            ...Serialize.search.nearImage(
+              {
+                image,
+                supportsTargets,
+                supportsWeightsForTargets,
+              },
+              opts
+            ),
             generative: Serialize.generative(generate),
-            groupBy: Serialize.isGroupBy<GroupByNearOptions<T>>(opts)
-              ? Serialize.groupBy(opts.groupBy)
-              : undefined,
           })
         )
       )
@@ -186,16 +183,15 @@ class GenerateManager<T> implements Generate<T> {
       .nearSearch(opts)
       .then(({ search, supportsTargets, supportsWeightsForTargets }) =>
         search.withNearObject({
-          ...Serialize.nearObject({
-            id,
-            supportsTargets,
-            supportsWeightsForTargets,
-            ...(opts ? opts : {}),
-          }),
+          ...Serialize.search.nearObject(
+            {
+              id,
+              supportsTargets,
+              supportsWeightsForTargets,
+            },
+            opts
+          ),
           generative: Serialize.generative(generate),
-          groupBy: Serialize.isGroupBy<GroupByNearOptions<T>>(opts)
-            ? Serialize.groupBy(opts.groupBy)
-            : undefined,
         })
       )
       .then((reply) => this.parseGroupByReply(opts, reply));
@@ -220,16 +216,15 @@ class GenerateManager<T> implements Generate<T> {
       .nearSearch(opts)
       .then(({ search, supportsTargets, supportsWeightsForTargets }) =>
         search.withNearText({
-          ...Serialize.nearText({
-            query,
-            supportsTargets,
-            supportsWeightsForTargets,
-            ...(opts ? opts : {}),
-          }),
+          ...Serialize.search.nearText(
+            {
+              query,
+              supportsTargets,
+              supportsWeightsForTargets,
+            },
+            opts
+          ),
           generative: Serialize.generative(generate),
-          groupBy: Serialize.isGroupBy<GroupByNearOptions<T>>(opts)
-            ? Serialize.groupBy(opts.groupBy)
-            : undefined,
         })
       )
       .then((reply) => this.parseGroupByReply(opts, reply));
@@ -254,17 +249,16 @@ class GenerateManager<T> implements Generate<T> {
       .nearVector(vector, opts)
       .then(({ search, supportsTargets, supportsVectorsForTargets, supportsWeightsForTargets }) =>
         search.withNearVector({
-          ...Serialize.nearVector({
-            vector,
-            supportsTargets,
-            supportsVectorsForTargets,
-            supportsWeightsForTargets,
-            ...(opts ? opts : {}),
-          }),
+          ...Serialize.search.nearVector(
+            {
+              vector,
+              supportsTargets,
+              supportsVectorsForTargets,
+              supportsWeightsForTargets,
+            },
+            opts
+          ),
           generative: Serialize.generative(generate),
-          groupBy: Serialize.isGroupBy<GroupByNearOptions<T>>(opts)
-            ? Serialize.groupBy(opts.groupBy)
-            : undefined,
         })
       )
       .then((reply) => this.parseGroupByReply(opts, reply));
@@ -298,68 +292,48 @@ class GenerateManager<T> implements Generate<T> {
           ...(opts ? opts : {}),
         };
         const generative = Serialize.generative(generate);
-        const groupBy = Serialize.isGroupBy<GroupByNearOptions<T>>(opts)
-          ? Serialize.groupBy(opts.groupBy)
-          : undefined;
+        let send: (media: string) => Promise<SearchReply>;
         switch (type) {
           case 'audio':
-            reply = toBase64FromMedia(media).then((media) =>
+            send = (media) =>
               search.withNearAudio({
-                ...Serialize.nearAudio({ audio: media, ...args }),
+                ...Serialize.search.nearAudio({ audio: media, ...args }, opts),
                 generative,
-                groupBy,
-              })
-            );
+              });
             break;
           case 'depth':
-            reply = toBase64FromMedia(media).then((media) =>
+            send = (media) =>
               search.withNearDepth({
-                ...Serialize.nearDepth({ depth: media, ...args }),
+                ...Serialize.search.nearDepth({ depth: media, ...args }, opts),
                 generative,
-                groupBy,
-              })
-            );
+              });
             break;
           case 'image':
-            reply = toBase64FromMedia(media).then((media) =>
+            send = (media) =>
               search.withNearImage({
-                ...Serialize.nearImage({ image: media, ...args }),
+                ...Serialize.search.nearImage({ image: media, ...args }, opts),
                 generative,
-                groupBy,
-              })
-            );
+              });
             break;
           case 'imu':
-            reply = toBase64FromMedia(media).then((media) =>
-              search.withNearIMU({
-                ...Serialize.nearIMU({ imu: media, ...args }),
-                generative,
-                groupBy,
-              })
-            );
+            send = (media) =>
+              search.withNearIMU({ ...Serialize.search.nearIMU({ imu: media, ...args }, opts), generative });
             break;
           case 'thermal':
-            reply = toBase64FromMedia(media).then((media) =>
+            send = (media) =>
               search.withNearThermal({
-                ...Serialize.nearThermal({ thermal: media, ...args }),
+                ...Serialize.search.nearThermal({ thermal: media, ...args }, opts),
                 generative,
-                groupBy,
-              })
-            );
+              });
             break;
           case 'video':
-            reply = toBase64FromMedia(media).then((media) =>
-              search.withNearVideo({
-                ...Serialize.nearVideo({ video: media, ...args }),
-                generative,
-                groupBy,
-              })
-            );
+            send = (media) =>
+              search.withNearVideo({ ...Serialize.search.nearVideo({ video: media, ...args }), generative });
             break;
           default:
             throw new WeaviateInvalidInputError(`Invalid media type: ${type}`);
         }
-        return reply;
+        return toBase64FromMedia(media).then(send);
       })
       .then((reply) => this.parseGroupByReply(opts, reply));
   }

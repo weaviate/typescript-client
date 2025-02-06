@@ -442,7 +442,7 @@ describe('Testing of collection.aggregate search methods', () => {
     }
     const result = await collection.aggregate.hybrid('test', {
       alpha: 0.5,
-      maxVectorDistance: 0,
+      maxVectorDistance: 1,
       queryProperties: ['text'],
       returnMetrics: collection.metrics.aggregate('text').text(['count']),
     });

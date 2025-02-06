@@ -1,11 +1,29 @@
 import { WeaviateDeserializationError } from '../../errors.js';
 import { Tenant as TenantREST } from '../../openapi/types.js';
+import {
+  AggregateReply,
+  AggregateReply_Aggregations_Aggregation,
+  AggregateReply_Aggregations_Aggregation_Boolean,
+  AggregateReply_Aggregations_Aggregation_DateMessage,
+  AggregateReply_Aggregations_Aggregation_Integer,
+  AggregateReply_Aggregations_Aggregation_Number,
+  AggregateReply_Aggregations_Aggregation_Text,
+} from '../../proto/v1/aggregate.js';
 import { BatchObject as BatchObjectGRPC, BatchObjectsReply } from '../../proto/v1/batch.js';
 import { BatchDeleteReply } from '../../proto/v1/batch_delete.js';
 import { ListValue, Properties as PropertiesGrpc, Value } from '../../proto/v1/properties.js';
 import { MetadataResult, PropertiesResult, SearchReply } from '../../proto/v1/search_get.js';
 import { TenantActivityStatus, TenantsGetReply } from '../../proto/v1/tenants.js';
 import { DbVersionSupport } from '../../utils/dbVersion.js';
+import {
+  AggregateBoolean,
+  AggregateDate,
+  AggregateNumber,
+  AggregateResult,
+  AggregateText,
+  AggregateType,
+  PropertiesMetrics,
+} from '../index.js';
 import { referenceFromObjects } from '../references/utils.js';
 import { Tenant } from '../tenants/index.js';
 import {
@@ -34,6 +52,96 @@ export class Deserialize {
   public static async use(support: DbVersionSupport): Promise<Deserialize> {
     const supports125ListValue = await support.supports125ListValue().then((res) => res.supports);
     return new Deserialize(supports125ListValue);
+  }
+
+  private static aggregateBoolean(
+    aggregation: AggregateReply_Aggregations_Aggregation_Boolean
+  ): AggregateBoolean {
+    return {
+      count: aggregation.count,
+      percentageFalse: aggregation.percentageFalse,
+      percentageTrue: aggregation.percentageTrue,
+      totalFalse: aggregation.totalFalse,
+      totalTrue: aggregation.totalTrue,
+    };
+  }
+
+  private static aggregateDate(
+    aggregation: AggregateReply_Aggregations_Aggregation_DateMessage
+  ): AggregateDate {
+    const parse = (date: string | undefined) => (date !== undefined ? date : undefined);
+    return {
+      count: aggregation.count,
+      maximum: parse(aggregation.maximum),
+      median: parse(aggregation.median),
+      minimum: parse(aggregation.minimum),
+      mode: parse(aggregation.mode),
+    };
+  }
+
+  private static aggregateInt(aggregation: AggregateReply_Aggregations_Aggregation_Integer): AggregateNumber {
+    return {
+      count: aggregation.count,
+      maximum: aggregation.maximum,
+      mean: aggregation.mean,
+      median: aggregation.median,
+      minimum: aggregation.minimum,
+      mode: aggregation.mode,
+      sum: aggregation.sum,
+    };
+  }
+
+  private static aggregateNumber(
+    aggregation: AggregateReply_Aggregations_Aggregation_Number
+  ): AggregateNumber {
+    return {
+      count: aggregation.count,
+      maximum: aggregation.maximum,
+      mean: aggregation.mean,
+      median: aggregation.median,
+      minimum: aggregation.minimum,
+      mode: aggregation.mode,
+      sum: aggregation.sum,
+    };
+  }
+
+  private static aggregateText(aggregation: AggregateReply_Aggregations_Aggregation_Text): AggregateText {
+    return {
+      count: aggregation.count,
+      topOccurrences: aggregation.topOccurences?.items.map((occurrence) => {
+        return {
+          occurs: occurrence.occurs,
+          value: occurrence.value,
+        };
+      }),
+    };
+  }
+
+  private static mapAggregate(aggregation: AggregateReply_Aggregations_Aggregation): AggregateType {
+    if (aggregation.boolean !== undefined) return Deserialize.aggregateBoolean(aggregation.boolean);
+    if (aggregation.date !== undefined) return Deserialize.aggregateDate(aggregation.date);
+    if (aggregation.int !== undefined) return Deserialize.aggregateInt(aggregation.int);
+    if (aggregation.number !== undefined) return Deserialize.aggregateNumber(aggregation.number);
+    // if (aggregation.reference !== undefined) return aggregation.reference;
+    if (aggregation.text !== undefined) return Deserialize.aggregateText(aggregation.text);
+    throw new WeaviateDeserializationError(`Unknown aggregation type: ${aggregation}`);
+  }
+
+  public static aggregate<T, M extends PropertiesMetrics<T>>(reply: AggregateReply): AggregateResult<T, M> {
+    if (reply.singleResult === undefined) {
+      throw new WeaviateDeserializationError('No single result in aggregate response');
+    }
+    return {
+      totalCount: reply.singleResult.objectsCount!,
+      properties: (reply.singleResult.aggregations
+        ? Object.fromEntries(
+            reply.singleResult.aggregations.aggregations.map((aggregation) => [
+              aggregation.property,
+              Deserialize.mapAggregate(aggregation),
+            ])
+          )
+        : {}) as AggregateResult<T, M>['properties'],
+    };
   }
 
   public query<T>(reply: SearchReply): WeaviateReturn<T> {
