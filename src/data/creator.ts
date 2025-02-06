@@ -61,13 +61,15 @@ export default class Creator extends CommandBase {
     }
   };
 
+  // as any required below because server uses swagger object as interface{} in Go to perform type switching
+  // actual types are []number and [][]number but unions don't work in go-swagger
   payload = (): WeaviateObject => ({
     tenant: this.tenant,
     vector: this.vector,
     properties: this.properties,
     class: this.className,
     id: this.id,
-    vectors: this.vectors,
+    vectors: this.vectors as any,
   });
 
   validate = () => {
