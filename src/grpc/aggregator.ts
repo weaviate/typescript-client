@@ -34,9 +34,10 @@ import { retryOptions } from './retry.js';
 
 export type BaseAggregateArgs = {
   aggregations?: AggregateRequest_Aggregation[];
-  objectLimit?: number;
   filters?: Filters;
   groupBy?: AggregateRequest_GroupBy;
+  limit?: number;
+  objectLimit?: number;
 };
 
 export type AggregateFetchArgs = BaseAggregateArgs;

@@ -2,12 +2,14 @@ import { WeaviateDeserializationError } from '../../errors.js';
 import { Tenant as TenantREST } from '../../openapi/types.js';
 import {
   AggregateReply,
+  AggregateReply_Aggregations,
   AggregateReply_Aggregations_Aggregation,
   AggregateReply_Aggregations_Aggregation_Boolean,
   AggregateReply_Aggregations_Aggregation_DateMessage,
   AggregateReply_Aggregations_Aggregation_Integer,
   AggregateReply_Aggregations_Aggregation_Number,
   AggregateReply_Aggregations_Aggregation_Text,
+  AggregateReply_Group_GroupedBy,
 } from '../../proto/v1/aggregate.js';
 import { BatchObject as BatchObjectGRPC, BatchObjectsReply } from '../../proto/v1/batch.js';
 import { BatchDeleteReply } from '../../proto/v1/batch_delete.js';
@@ -18,6 +20,7 @@ import { DbVersionSupport } from '../../utils/dbVersion.js';
 import {
   AggregateBoolean,
   AggregateDate,
+  AggregateGroupByResult,
   AggregateNumber,
   AggregateResult,
   AggregateText,
@@ -127,21 +130,67 @@ export class Deserialize {
     throw new WeaviateDeserializationError(`Unknown aggregation type: ${aggregation}`);
   }
 
+  private static aggregations(aggregations?: AggregateReply_Aggregations): Record<string, AggregateType> {
+    return aggregations
+      ? Object.fromEntries(
+          aggregations.aggregations.map((aggregation) => [
+            aggregation.property,
+            Deserialize.mapAggregate(aggregation),
+          ])
+        )
+      : {};
+  }
+
   public static aggregate<T, M extends PropertiesMetrics<T>>(reply: AggregateReply): AggregateResult<T, M> {
     if (reply.singleResult === undefined) {
       throw new WeaviateDeserializationError('No single result in aggregate response');
     }
     return {
       totalCount: reply.singleResult.objectsCount!,
-      properties: (reply.singleResult.aggregations
-        ? Object.fromEntries(
-            reply.singleResult.aggregations.aggregations.map((aggregation) => [
-              aggregation.property,
-              Deserialize.mapAggregate(aggregation),
-            ])
-          )
-        : {}) as AggregateResult<T, M>['properties'],
+      properties: Deserialize.aggregations(reply.singleResult.aggregations) as AggregateResult<
+        T,
+        M
+      >['properties'],
     };
+  }
+
+  public static aggregateGroupBy<T, M extends PropertiesMetrics<T>>(
+    reply: AggregateReply
+  ): AggregateGroupByResult<T, M>[] {
+    if (reply.groupedResults === undefined)
+      throw new WeaviateDeserializationError('No grouped results in aggregate response');
+
+    const parse = (groupedBy?: AggregateReply_Group_GroupedBy): AggregateGroupByResult<T, M>['groupedBy'] => {
+      if (groupedBy === undefined)
+        throw new WeaviateDeserializationError('No groupedBy in aggregate response');
+
+      let value: AggregateGroupByResult<T, M>['groupedBy']['value'];
+      if (groupedBy.boolean !== undefined) value = groupedBy.boolean;
+      else if (groupedBy.booleans !== undefined) value = groupedBy.booleans.values;
+      else if (groupedBy.geo !== undefined) value = groupedBy.geo;
+      else if (groupedBy.int !== undefined) value = groupedBy.int;
+      else if (groupedBy.ints !== undefined) value = groupedBy.ints.values;
+      else if (groupedBy.number !== undefined) value = groupedBy.number;
+      else if (groupedBy.numbers !== undefined) value = groupedBy.numbers.values;
+      else if (groupedBy.text !== undefined) value = groupedBy.text;
+      else if (groupedBy.texts !== undefined) value = groupedBy.texts.values;
+      else {
+        console.warn(`Unknown groupBy type: ${JSON.stringify(groupedBy, null, 2)}`);
+        value = '';
+      }
+
+      return {
+        prop: groupedBy.path[0],
+        value,
+      };
+    };
+    return reply.groupedResults.groups.map((group) => {
+      return {
+        totalCount: group.objectsCount!,
+        groupedBy: parse(group.groupedBy),
+        properties: Deserialize.aggregations(group.aggregations) as AggregateResult<T, M>['properties'],
+      };
+    });
   }
 
   public query<T>(reply: SearchReply): WeaviateReturn<T> {
@@ -174,7 +223,7 @@ export class Deserialize {
     };
   }
 
-  public groupBy<T>(reply: SearchReply): GroupByReturn<T> {
+  public queryGroupBy<T>(reply: SearchReply): GroupByReturn<T> {
     const objects: GroupByObject<T>[] = [];
     const groups: Record<string, GroupByResult<T>> = {};
     reply.groupByResults.forEach((result) => {

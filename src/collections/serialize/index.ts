@@ -70,6 +70,7 @@ import {
   AggregateRequest_Aggregation_Integer,
   AggregateRequest_Aggregation_Number,
   AggregateRequest_Aggregation_Text,
+  AggregateRequest_GroupBy,
 } from '../../proto/v1/aggregate.js';
 import {
   BooleanArrayProperties,
@@ -96,6 +97,7 @@ import {
   AggregateBaseOptions,
   AggregateHybridOptions,
   AggregateNearOptions,
+  GroupByAggregate,
   MultiTargetVectorJoin,
   PrimitiveKeys,
   PropertiesMetrics,
@@ -387,6 +389,12 @@ class Aggregate {
       filters: opts?.filters ? Serialize.filtersGRPC(opts.filters) : undefined,
       aggregations: Aggregate.aggregations(opts?.returnMetrics),
     };
+  };
+
+  public static groupBy = <T>(groupBy?: GroupByAggregate<T>): AggregateRequest_GroupBy => {
+    return AggregateRequest_GroupBy.fromPartial({
+      property: groupBy?.property,
+    });
   };
 
   public static hybrid = (

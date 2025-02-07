@@ -61,7 +61,9 @@ class QueryManager<T> implements Query<T> {
     reply: SearchReply
   ) {
     const deserialize = await Deserialize.use(this.check.dbVersionSupport);
-    return Serialize.search.isGroupBy(opts) ? deserialize.groupBy<T>(reply) : deserialize.query<T>(reply);
+    return Serialize.search.isGroupBy(opts)
+      ? deserialize.queryGroupBy<T>(reply)
+      : deserialize.query<T>(reply);
   }
 
   public fetchObjectById(id: string, opts?: FetchObjectByIdOptions<T>): Promise<WeaviateObject<T> | null> {
