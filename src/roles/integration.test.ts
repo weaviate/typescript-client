@@ -1,6 +1,9 @@
-import { StartedWeaviateContainer, WeaviateContainer } from '@testcontainers/weaviate';
 import weaviate, { ApiKey, Permission, Role, WeaviateClient } from '..';
-import { WeaviateInsufficientPermissionsError, WeaviateUnexpectedStatusCodeError } from '../errors';
+import {
+  WeaviateInsufficientPermissionsError,
+  WeaviateStartUpError,
+  WeaviateUnexpectedStatusCodeError,
+} from '../errors';
 import { DbVersion } from '../utils/dbVersion';
 
 const only = DbVersion.fromString(`v${process.env.WEAVIATE_VERSION!}`).isAtLeast(1, 28, 0)
@@ -9,30 +12,13 @@ const only = DbVersion.fromString(`v${process.env.WEAVIATE_VERSION!}`).isAtLeast
 
 only('Integration testing of the roles namespace', () => {
   let client: WeaviateClient;
-  let container: StartedWeaviateContainer;
 
   beforeAll(async () => {
-    container = await new WeaviateContainer(`semitechnologies/weaviate:${process.env.WEAVIATE_VERSION}`)
-      .withExposedPorts(8080, 50051)
-      .withEnvironment({
-        AUTHENTICATION_APIKEY_ENABLED: 'true',
-        AUTHENTICATION_APIKEY_ALLOWED_KEYS: 'admin-key,custom-key',
-        AUTHENTICATION_APIKEY_USERS: 'admin-user,custom-user',
-        AUTHORIZATION_ADMIN_USERS: 'admin-user',
-        AUTHORIZATION_ENABLE_RBAC: 'true',
-      })
-      .start();
-    expect(container).toBeDefined();
     client = await weaviate.connectToLocal({
-      host: container.getHost(),
-      port: container.getMappedPort(8080),
-      grpcPort: container.getMappedPort(50051),
+      port: 8091,
+      grpcPort: 50062,
       authCredentials: new ApiKey('admin-key'),
     });
-  });
-
-  afterAll(async () => {
-    await container.stop();
   });
 
   it('should be able to retrieve the default roles', async () => {
@@ -40,22 +26,18 @@ only('Integration testing of the roles namespace', () => {
     expect(Object.values(roles).length).toBeGreaterThan(0);
   });
 
-  it('should fail with insufficient permissions if no key provided', async () => {
-    const unauthenticatedClient = await weaviate.connectToLocal({
-      host: container.getHost(),
-      port: container.getMappedPort(8080),
-      grpcPort: container.getMappedPort(50051),
-    });
-    await expect(unauthenticatedClient.roles.listAll()).rejects.toThrowError(
-      WeaviateInsufficientPermissionsError
-    ); // should be unauthenticated error, needs fixing on server
-  });
+  it('should fail to start up if no key provided', () =>
+    expect(
+      weaviate.connectToLocal({
+        port: 8091,
+        grpcPort: 50062,
+      })
+    ).rejects.toThrowError(WeaviateStartUpError));
 
   it('should fail with insufficient permissions if permission-less key provided', async () => {
     const unauthenticatedClient = await weaviate.connectToLocal({
-      host: container.getHost(),
-      port: container.getMappedPort(8080),
-      grpcPort: container.getMappedPort(50051),
+      port: 8091,
+      grpcPort: 50062,
       authCredentials: new ApiKey('custom-key'),
     });
     await expect(unauthenticatedClient.roles.listAll()).rejects.toThrowError(

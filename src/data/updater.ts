@@ -67,13 +67,15 @@ export default class Updater extends CommandBase {
     return this;
   };
 
+  // as Record<string, any> required below because server uses swagger object as interface{} in Go to perform type switching
+  // actual types are []number and [][]number but unions don't work in go-swagger
   payload = (): WeaviateObject => ({
     tenant: this.tenant,
     properties: this.properties,
     class: this.className,
     id: this.id,
     vector: this.vector,
-    vectors: this.vectors,
+    vectors: this.vectors as Record<string, any>,
   });
 
   validate = () => {

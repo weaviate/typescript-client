@@ -8,10 +8,11 @@ on:
 
 env:
   WEAVIATE_124: 1.24.26
-  WEAVIATE_125: 1.25.28
-  WEAVIATE_126: 1.26.13
-  WEAVIATE_127: 1.27.9
-  WEAVIATE_128: 1.28.2
+  WEAVIATE_125: 1.25.30
+  WEAVIATE_126: 1.26.14
+  WEAVIATE_127: 1.27.11
+  WEAVIATE_128: 1.28.4
+  WEAVIATE_129: 1.29.0-rc.0
 
 jobs:
   checks:
@@ -39,9 +40,10 @@ jobs:
           { node: "22.x", weaviate: $WEAVIATE_125},
           { node: "22.x", weaviate: $WEAVIATE_126},
           { node: "22.x", weaviate: $WEAVIATE_127},
-          { node: "18.x", weaviate: $WEAVIATE_128},
-          { node: "20.x", weaviate: $WEAVIATE_128},
-          { node: "22.x", weaviate: $WEAVIATE_128}
+          { node: "22.x", weaviate: $WEAVIATE_128},
+          { node: "18.x", weaviate: $WEAVIATE_129},
+          { node: "20.x", weaviate: $WEAVIATE_129},
+          { node: "22.x", weaviate: $WEAVIATE_129}
         ]
     steps:
     - uses: actions/checkout@v3

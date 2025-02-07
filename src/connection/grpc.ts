@@ -17,6 +17,7 @@ import TenantsManager, { Tenants } from '../grpc/tenantsManager.js';
 import { DbVersionSupport, initDbVersionProvider } from '../utils/dbVersion.js';
 
 import { WeaviateGRPCUnavailableError, WeaviateUnsupportedFeatureError } from '../errors.js';
+import Aggregator, { Aggregate } from '../grpc/aggregator.js';
 import { Meta } from '../openapi/types.js';
 
 export interface GrpcConnectionParams extends InternalConnectionParams {
@@ -90,15 +91,6 @@ export default class ConnectionGRPC extends ConnectionGQL {
     return connection;
   }
 
-  search = (collection: string, consistencyLevel?: ConsistencyLevel, tenant?: string) => {
-    if (this.authEnabled) {
-      return this.login().then((token) =>
-        this.grpc.search(collection, consistencyLevel, tenant, `Bearer ${token}`)
-      );
-    }
-    return new Promise<Search>((resolve) => resolve(this.grpc.search(collection, consistencyLevel, tenant)));
-  };
-
   batch = (collection: string, consistencyLevel?: ConsistencyLevel, tenant?: string) => {
     if (this.authEnabled) {
       return this.login().then((token) =>
@@ -106,6 +98,26 @@ export default class ConnectionGRPC extends ConnectionGQL {
       );
     }
     return new Promise<Batch>((resolve) => resolve(this.grpc.batch(collection, consistencyLevel, tenant)));
+  };
+
+  aggregate = (collection: string, consistencyLevel?: ConsistencyLevel, tenant?: string) => {
+    if (this.authEnabled) {
+      return this.login().then((token) =>
+        this.grpc.aggregate(collection, consistencyLevel, tenant, `Bearer ${token}`)
+      );
+    }
+    return new Promise<Aggregate>((resolve) =>
+      resolve(this.grpc.aggregate(collection, consistencyLevel, tenant))
+    );
+  };
+
+  search = (collection: string, consistencyLevel?: ConsistencyLevel, tenant?: string) => {
+    if (this.authEnabled) {
+      return this.login().then((token) =>
+        this.grpc.search(collection, consistencyLevel, tenant, `Bearer ${token}`)
+      );
+    }
+    return new Promise<Search>((resolve) => resolve(this.grpc.search(collection, consistencyLevel, tenant)));
   };
 
   tenants = (collection: string) => {
@@ -122,13 +134,19 @@ export default class ConnectionGRPC extends ConnectionGQL {
 }
 
 export interface GrpcClient {
-  close: () => void;
+  aggregate: (
+    collection: string,
+    consistencyLevel?: ConsistencyLevel,
+    tenant?: string,
+    bearerToken?: string
+  ) => Aggregate;
   batch: (
     collection: string,
     consistencyLevel?: ConsistencyLevel,
     tenant?: string,
     bearerToken?: string
   ) => Batch;
+  close: () => void;
   health: () => Promise<boolean>;
   search: (
     collection: string,
@@ -158,7 +176,20 @@ export const grpcClient = (config: GrpcConnectionParams & { grpcMaxMessageLength
   const client = clientFactory.create(WeaviateDefinition, channel);
   const health = clientFactory.create(HealthDefinition, channel);
   return {
-    close: () => channel.close(),
+    aggregate: (
+      collection: string,
+      consistencyLevel?: ConsistencyLevel,
+      tenant?: string,
+      bearerToken?: string
+    ) =>
+      Aggregator.use(
+        client,
+        collection,
+        new Metadata(bearerToken ? { ...config.headers, authorization: bearerToken } : config.headers),
+        config.timeout?.query || 30,
+        consistencyLevel,
+        tenant
+      ),
     batch: (collection: string, consistencyLevel?: ConsistencyLevel, tenant?: string, bearerToken?: string) =>
       Batcher.use(
         client,
@@ -168,6 +199,7 @@ export const grpcClient = (config: GrpcConnectionParams & { grpcMaxMessageLength
         consistencyLevel,
         tenant
       ),
+    close: () => channel.close(),
     health: () => {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), (config.timeout?.init || 2) * 1000);

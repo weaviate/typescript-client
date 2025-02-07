@@ -4,9 +4,7 @@ import { Metadata, ServerError, Status } from 'nice-grpc';
 import { Filters } from '../proto/v1/base.js';
 import {
   BM25,
-  GroupBy,
   Hybrid,
-  MetadataRequest,
   NearAudioSearch,
   NearDepthSearch,
   NearIMUSearch,
@@ -16,6 +14,10 @@ import {
   NearThermalSearch,
   NearVector,
   NearVideoSearch,
+} from '../proto/v1/base_search.js';
+import {
+  GroupBy,
+  MetadataRequest,
   PropertiesRequest,
   Rerank,
   SearchReply,
@@ -31,6 +33,7 @@ import {
   WeaviateQueryError,
   WeaviateRequestTimeoutError,
 } from '../errors.js';
+import { NearMediaType } from '../index.js';
 import { GenerativeSearch } from '../proto/v1/generative.js';
 import Base from './base.js';
 import { retryOptions } from './retry.js';
@@ -102,6 +105,20 @@ export type SearchNearVectorArgs = BaseSearchArgs & {
 export type SearchNearVideoArgs = BaseSearchArgs & {
   nearVideo: NearVideoSearch;
 };
+
+export type SearchNearMediaArgs<T extends NearMediaType> = T extends 'audio'
+  ? SearchNearAudioArgs
+  : T extends 'depth'
+  ? SearchNearDepthArgs
+  : T extends 'image'
+  ? SearchNearImageArgs
+  : T extends 'imu'
+  ? SearchNearIMUArgs
+  : T extends 'thermal'
+  ? SearchNearThermalArgs
+  : T extends 'video'
+  ? SearchNearVideoArgs
+  : never;
 
 export interface Search {
   withFetch: (args: SearchFetchArgs) => Promise<SearchReply>;

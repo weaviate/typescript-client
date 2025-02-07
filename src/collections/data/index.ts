@@ -190,16 +190,18 @@ const data = <T>(
         ? (Serialize.restProperties(object.properties, object.references) as T)
         : undefined,
     };
+    // as any required below because server uses swagger object as interface{} in Go to perform type switching
+    // actual types are []number and [][]number but unions don't work in go-swagger
     if (Array.isArray(object.vectors)) {
       const requiresNamedVectorsInsertFix = await dbVersionSupport.requiresNamedVectorsInsertFix();
       if (requiresNamedVectorsInsertFix.supports) {
         obj.vector = object.vectors;
-        obj.vectors = { default: object.vectors };
+        obj.vectors = { default: object.vectors as any };
       } else {
         obj.vector = object.vectors;
       }
     } else if (object.vectors) {
-      obj.vectors = object.vectors;
+      obj.vectors = object.vectors as any;
     }
     return obj;
   };
