@@ -54,6 +54,7 @@ export type WeaviateMultiTenancyConfig = WeaviateClass['multiTenancyConfig'];
 export type WeaviateReplicationConfig = WeaviateClass['replicationConfig'];
 export type WeaviateShardingConfig = WeaviateClass['shardingConfig'];
 export type WeaviateShardStatus = definitions['ShardStatusGetResponse'];
+export type WeaviateUser = definitions['UserInfo'];
 export type WeaviateVectorIndexConfig = WeaviateClass['vectorIndexConfig'];
 export type WeaviateVectorsConfig = WeaviateClass['vectorConfig'];
 export type WeaviateVectorConfig = definitions['VectorConfig'];

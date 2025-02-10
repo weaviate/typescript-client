@@ -6,7 +6,7 @@ import {
 } from '../errors';
 import { DbVersion } from '../utils/dbVersion';
 
-const only = DbVersion.fromString(`v${process.env.WEAVIATE_VERSION!}`).isAtLeast(1, 28, 0)
+const only = DbVersion.fromString(`v${process.env.WEAVIATE_VERSION!}`).isAtLeast(1, 29, 0)
   ? describe
   : describe.skip;
 
@@ -45,11 +45,6 @@ only('Integration testing of the roles namespace', () => {
     );
   });
 
-  it('should get roles by user', async () => {
-    const roles = await client.roles.byUser('admin-user');
-    expect(Object.keys(roles).length).toBeGreaterThan(0);
-  });
-
   it('should check the existance of a real role', async () => {
     const exists = await client.roles.exists('admin');
     expect(exists).toBeTruthy();
@@ -72,7 +67,7 @@ only('Integration testing of the roles namespace', () => {
         permissions: weaviate.permissions.backup({ collection: 'Some-collection', manage: true }),
         expected: {
           name: 'backups',
-          backupsPermissions: [{ collection: 'Some-collection', action: 'manage_backups' }],
+          backupsPermissions: [{ collection: 'Some-collection', actions: ['manage_backups'] }],
           clusterPermissions: [],
           collectionsPermissions: [],
           dataPermissions: [],
@@ -86,7 +81,7 @@ only('Integration testing of the roles namespace', () => {
         expected: {
           name: 'cluster',
           backupsPermissions: [],
-          clusterPermissions: [{ action: 'read_cluster' }],
+          clusterPermissions: [{ actions: ['read_cluster'] }],
           collectionsPermissions: [],
           dataPermissions: [],
           nodesPermissions: [],
@@ -107,10 +102,10 @@ only('Integration testing of the roles namespace', () => {
           backupsPermissions: [],
           clusterPermissions: [],
           collectionsPermissions: [
-            { collection: 'Some-collection', action: 'create_collections' },
-            { collection: 'Some-collection', action: 'read_collections' },
-            { collection: 'Some-collection', action: 'update_collections' },
-            { collection: 'Some-collection', action: 'delete_collections' },
+            {
+              collection: 'Some-collection',
+              actions: ['create_collections', 'read_collections', 'update_collections', 'delete_collections'],
+            },
           ],
           dataPermissions: [],
           nodesPermissions: [],
@@ -132,10 +127,10 @@ only('Integration testing of the roles namespace', () => {
           clusterPermissions: [],
           collectionsPermissions: [],
           dataPermissions: [
-            { collection: 'Some-collection', action: 'create_data' },
-            { collection: 'Some-collection', action: 'read_data' },
-            { collection: 'Some-collection', action: 'update_data' },
-            { collection: 'Some-collection', action: 'delete_data' },
+            {
+              collection: 'Some-collection',
+              actions: ['create_data', 'read_data', 'update_data', 'delete_data'],
+            },
           ],
           nodesPermissions: [],
           rolesPermissions: [],
@@ -154,7 +149,9 @@ only('Integration testing of the roles namespace', () => {
           clusterPermissions: [],
           collectionsPermissions: [],
           dataPermissions: [],
-          nodesPermissions: [{ collection: 'Some-collection', verbosity: 'verbose', action: 'read_nodes' }],
+          nodesPermissions: [
+            { collection: 'Some-collection', verbosity: 'verbose', actions: ['read_nodes'] },
+          ],
           rolesPermissions: [],
         },
       },
@@ -168,7 +165,7 @@ only('Integration testing of the roles namespace', () => {
           collectionsPermissions: [],
           dataPermissions: [],
           nodesPermissions: [],
-          rolesPermissions: [{ role: 'some-role', action: 'manage_roles' }],
+          rolesPermissions: [{ role: 'some-role', actions: ['manage_roles'] }],
         },
       },
     ];
@@ -186,4 +183,10 @@ only('Integration testing of the roles namespace', () => {
     await expect(client.roles.byName('backups')).rejects.toThrowError(WeaviateUnexpectedStatusCodeError);
     await expect(client.roles.exists('backups')).resolves.toBeFalsy();
   });
+
+  afterAll(() =>
+    Promise.all(
+      ['backups', 'cluster', 'collections', 'data', 'nodes', 'roles'].map((n) => client.roles.delete(n))
+    )
+  );
 });

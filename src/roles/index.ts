@@ -10,37 +10,29 @@ import {
   PermissionsInput,
   Role,
   RolesPermission,
-  User,
 } from './types.js';
 import { Map } from './util.js';
 
 export interface Roles {
   listAll: () => Promise<Record<string, Role>>;
-  ofCurrentUser: () => Promise<Record<string, Role>>;
   byName: (roleName: string) => Promise<Role | null>;
-  byUser: (user: string) => Promise<Record<string, Role>>;
-  assignedUsers: (roleName: string) => Promise<Record<string, User>>;
+  assignedUserIds: (roleName: string) => Promise<string[]>;
   delete: (roleName: string) => Promise<void>;
   create: (roleName: string, permissions: PermissionsInput) => Promise<Role>;
-  assignToUser: (roleNames: string | string[], user: string) => Promise<void>;
   exists: (roleName: string) => Promise<boolean>;
-  revokeFromUser: (roleNames: string | string[], user: string) => Promise<void>;
   addPermissions: (roleName: string, permissions: PermissionsInput) => Promise<void>;
   removePermissions: (roleName: string, permissions: PermissionsInput) => Promise<void>;
-  hasPermission: (roleName: string, permission: Permission) => Promise<boolean>;
+  hasPermissions: (roleName: string, permission: Permission) => Promise<boolean>;
 }
 
 const roles = (connection: ConnectionREST): Roles => {
   return {
     listAll: () => connection.get<WeaviateRole[]>('/authz/roles').then(Map.roles),
-    ofCurrentUser: () => connection.get<WeaviateRole[]>('/authz/users/own-roles').then(Map.roles),
     byName: (roleName: string) =>
       connection.get<WeaviateRole>(`/authz/roles/${roleName}`).then(Map.roleFromWeaviate),
-    byUser: (user: string) => connection.get<WeaviateRole[]>(`/authz/users/${user}/roles`).then(Map.roles),
-    assignedUsers: (roleName: string) =>
-      connection.get<string[]>(`/authz/roles/${roleName}/users`).then(Map.users),
+    assignedUserIds: (roleName: string) => connection.get<string[]>(`/authz/roles/${roleName}/users`),
     create: (roleName: string, permissions: PermissionsInput) => {
-      const perms = Map.flattenPermissions(permissions).map(Map.permissionToWeaviate);
+      const perms = Map.flattenPermissions(permissions).flatMap(Map.permissionToWeaviate);
       return connection
         .postEmpty<WeaviateRole>('/authz/roles', {
           name: roleName,
@@ -54,23 +46,18 @@ const roles = (connection: ConnectionREST): Roles => {
         .get(`/authz/roles/${roleName}`)
         .then(() => true)
         .catch(() => false),
-    assignToUser: (roleNames: string | string[], user: string) =>
-      connection.postEmpty(`/authz/users/${user}/assign`, {
-        roles: Array.isArray(roleNames) ? roleNames : [roleNames],
-      }),
-    revokeFromUser: (roleNames: string | string[], user: string) =>
-      connection.postEmpty(`/authz/users/${user}/revoke`, {
-        roles: Array.isArray(roleNames) ? roleNames : [roleNames],
-      }),
     addPermissions: (roleName: string, permissions: PermissionsInput) =>
       connection.postEmpty(`/authz/roles/${roleName}/add-permissions`, { permissions }),
     removePermissions: (roleName: string, permissions: PermissionsInput) =>
       connection.postEmpty(`/authz/roles/${roleName}/remove-permissions`, { permissions }),
-    hasPermission: (roleName: string, permission: Permission) =>
-      connection.postReturn<WeaviatePermission, boolean>(
-        `/authz/roles/${roleName}/has-permission`,
-        Map.permissionToWeaviate(permission)
-      ),
+    hasPermissions: (roleName: string, permission: Permission | Permission[]) =>
+      Promise.all(
+        (Array.isArray(permission) ? permission : [permission])
+          .flatMap((p) => Map.permissionToWeaviate(p))
+          .map((p) =>
+            connection.postReturn<WeaviatePermission, boolean>(`/authz/roles/${roleName}/has-permission`, p)
+          )
+      ).then((r) => r.every((b) => b)),
   };
 };
 
@@ -78,19 +65,15 @@ export const permissions = {
   backup: (args: { collection: string | string[]; manage?: boolean }): BackupsPermission[] => {
     const collections = Array.isArray(args.collection) ? args.collection : [args.collection];
     return collections.flatMap((collection) => {
-      const out: BackupsPermission[] = [];
-      if (args.manage) {
-        out.push({ collection, action: 'manage_backups' });
-      }
+      const out: BackupsPermission = { collection, actions: [] };
+      if (args.manage) out.actions.push('manage_backups');
       return out;
     });
   },
   cluster: (args: { read?: boolean }): ClusterPermission[] => {
-    const out: ClusterPermission[] = [];
-    if (args.read) {
-      out.push({ action: 'read_cluster' });
-    }
-    return out;
+    const out: ClusterPermission = { actions: [] };
+    if (args.read) out.actions.push('read_cluster');
+    return [out];
   },
   collections: (args: {
     collection: string | string[];
@@ -101,19 +84,11 @@ export const permissions = {
   }): CollectionsPermission[] => {
     const collections = Array.isArray(args.collection) ? args.collection : [args.collection];
     return collections.flatMap((collection) => {
-      const out: CollectionsPermission[] = [];
-      if (args.create_collection) {
-        out.push({ collection, action: 'create_collections' });
-      }
-      if (args.read_config) {
-        out.push({ collection, action: 'read_collections' });
-      }
-      if (args.update_config) {
-        out.push({ collection, action: 'update_collections' });
-      }
-      if (args.delete_collection) {
-        out.push({ collection, action: 'delete_collections' });
-      }
+      const out: CollectionsPermission = { collection, actions: [] };
+      if (args.create_collection) out.actions.push('create_collections');
+      if (args.read_config) out.actions.push('read_collections');
+      if (args.update_config) out.actions.push('update_collections');
+      if (args.delete_collection) out.actions.push('delete_collections');
       return out;
     });
   },
@@ -126,19 +101,11 @@ export const permissions = {
   }): DataPermission[] => {
     const collections = Array.isArray(args.collection) ? args.collection : [args.collection];
     return collections.flatMap((collection) => {
-      const out: DataPermission[] = [];
-      if (args.create) {
-        out.push({ collection, action: 'create_data' });
-      }
-      if (args.read) {
-        out.push({ collection, action: 'read_data' });
-      }
-      if (args.update) {
-        out.push({ collection, action: 'update_data' });
-      }
-      if (args.delete) {
-        out.push({ collection, action: 'delete_data' });
-      }
+      const out: DataPermission = { collection, actions: [] };
+      if (args.create) out.actions.push('create_data');
+      if (args.read) out.actions.push('read_data');
+      if (args.update) out.actions.push('update_data');
+      if (args.delete) out.actions.push('delete_data');
       return out;
     });
   },
@@ -149,23 +116,21 @@ export const permissions = {
   }): NodesPermission[] => {
     const collections = Array.isArray(args.collection) ? args.collection : [args.collection];
     return collections.flatMap((collection) => {
-      const out: NodesPermission[] = [];
-      if (args.read) {
-        out.push({ collection, action: 'read_nodes', verbosity: args.verbosity || 'verbose' });
-      }
+      const out: NodesPermission = {
+        collection,
+        actions: [],
+        verbosity: args.verbosity || 'verbose',
+      };
+      if (args.read) out.actions.push('read_nodes');
       return out;
     });
   },
   roles: (args: { role: string | string[]; read?: boolean; manage?: boolean }): RolesPermission[] => {
     const roles = Array.isArray(args.role) ? args.role : [args.role];
     return roles.flatMap((role) => {
-      const out: RolesPermission[] = [];
-      if (args.read) {
-        out.push({ role, action: 'read_roles' });
-      }
-      if (args.manage) {
-        out.push({ role, action: 'manage_roles' });
-      }
+      const out: RolesPermission = { role, actions: [] };
+      if (args.read) out.actions.push('read_roles');
+      if (args.manage) out.actions.push('manage_roles');
       return out;
     });
   },
