@@ -39,6 +39,7 @@ import { LiveChecker, OpenidConfigurationGetter, ReadyChecker } from './misc/ind
 import weaviateV2 from './v2/index.js';
 
 import { ConsistencyLevel } from './data/replication.js';
+import users, { Users } from './users/index.js';
 
 export type ProtocolParams = {
   /**
@@ -105,6 +106,7 @@ export interface WeaviateClient {
   collections: Collections;
   oidcAuth?: OidcAuthenticator;
   roles: Roles;
+  users: Users;
 
   close: () => Promise<void>;
   getMeta: () => Promise<Meta>;
@@ -224,6 +226,7 @@ async function client(params: ClientParams): Promise<WeaviateClient> {
     cluster: cluster(connection),
     collections: collections(connection, dbVersionSupport),
     roles: roles(connection),
+    users: users(connection),
     close: () => Promise.resolve(connection.close()), // hedge against future changes to add I/O to .close()
     getMeta: () => new MetaGetter(connection).do(),
     getOpenIDConfig: () => new OpenidConfigurationGetter(connection.http).do(),
