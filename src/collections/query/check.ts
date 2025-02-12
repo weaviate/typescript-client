@@ -98,6 +98,18 @@ export class Check<T> {
     return check.supports;
   };
 
+  private checkSupportForVectors = async (
+    vec?: NearVectorInputType | HybridNearVectorSubSearch | HybridNearTextSubSearch
+  ) => {
+    if (vec === undefined || Serialize.isHybridNearTextSearch(vec)) return false;
+    if (Serialize.isHybridNearVectorSearch(vec) && !Serialize.isMultiVectorPerTarget(vec.vector))
+      return false;
+    if (Serialize.isHybridVectorSearch(vec) && !Serialize.isMultiVectorPerTarget(vec)) return false;
+    const check = await this.dbVersionSupport.supportsMultiVectorPerTargetSearch();
+    if (!check.supports) throw new WeaviateUnsupportedFeatureError(check.message);
+    return check.supports;
+  };
+
   public nearSearch = (opts?: BaseNearOptions<T>) => {
     return Promise.all([
       this.getSearcher(),
@@ -118,6 +130,7 @@ export class Check<T> {
       this.checkSupportForMultiVectorSearch(vec),
       this.checkSupportForMultiVectorPerTargetSearch(vec),
       this.checkSupportForMultiWeightPerTargetSearch(opts),
+      this.checkSupportForVectors(),
       this.checkSupportForNamedVectors(opts),
     ]).then(
       ([
@@ -126,14 +139,17 @@ export class Check<T> {
         supportsMultiVector,
         supportsVectorsForTargets,
         supportsWeightsForTargets,
+        supportsVectors,
       ]) => {
         const is126 = supportsMultiTarget || supportsMultiVector;
         const is127 = supportsVectorsForTargets || supportsWeightsForTargets;
+        const is129 = supportsVectors;
         return {
           search,
           supportsTargets: is126 || is127,
           supportsVectorsForTargets: is127,
           supportsWeightsForTargets: is127,
+          supportsVectors: is129,
         };
       }
     );
@@ -146,6 +162,7 @@ export class Check<T> {
       this.checkSupportForMultiVectorSearch(opts?.vector),
       this.checkSupportForMultiVectorPerTargetSearch(opts?.vector),
       this.checkSupportForMultiWeightPerTargetSearch(opts),
+      this.checkSupportForVectors(),
       this.checkSupportForNamedVectors(opts),
       this.checkSupportForBm25AndHybridGroupByQueries('Hybrid', opts),
       this.checkSupportForHybridNearTextAndNearVectorSubSearches(opts),
@@ -156,14 +173,17 @@ export class Check<T> {
         supportsMultiVector,
         supportsWeightsForTargets,
         supportsVectorsForTargets,
+        supportsVectors,
       ]) => {
         const is126 = supportsMultiTarget || supportsMultiVector;
         const is127 = supportsVectorsForTargets || supportsWeightsForTargets;
+        const is129 = supportsVectors;
         return {
           search,
           supportsTargets: is126 || is127,
           supportsWeightsForTargets: is127,
           supportsVectorsForTargets: is127,
+          supportsVectors: is129,
         };
       }
     );

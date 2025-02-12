@@ -183,12 +183,27 @@ export type GroupByNearTextOptions<T> = BaseNearTextOptions<T> & {
 /** The type of the media to search for in the `query.nearMedia` method */
 export type NearMediaType = 'audio' | 'depth' | 'image' | 'imu' | 'thermal' | 'video';
 
+/** The allowed types of primitive vectors as stored in Weaviate.
+ *
+ * These correspond to 1-dimensional vectors, created by modules named `x2vec-`, and 2-dimensional vectors, created by modules named `x2colbert-`.
+ */
+export type PrimitiveVectorType = number[] | number[][];
+
+export type ListOfVectors<V extends PrimitiveVectorType> = {
+  kind: 'listOfVectors';
+  dimensionality: '1D' | '2D';
+  vectors: V[];
+};
+
 /**
  * The vector(s) to search for in the `query/generate.nearVector` and `query/generate.hybrid` methods. One of:
- * - a single vector, in which case pass a single number array.
- * - multiple named vectors, in which case pass an object of type `Record<string, number[] | number[][]>`.
+ * - a single 1-dimensional vector, in which case pass a single number array.
+ * - a single 2-dimensional vector, in which case pas a single array of number arrays.
+ * - multiple named vectors, in which case pass an object of type `Record<string, PrimitiveVectorType>`.
  */
-export type NearVectorInputType = number[] | Record<string, number[] | number[][]>;
+export type NearVectorInputType =
+  | PrimitiveVectorType
+  | Record<string, PrimitiveVectorType | ListOfVectors<number[]> | ListOfVectors<number[][]>>;
 
 /**
  * Over which vector spaces to perform the vector search query in the `nearX` search method. One of:

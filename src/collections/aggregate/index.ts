@@ -378,9 +378,9 @@ class AggregateManager<T> implements Aggregate<T> {
         if (await this.grpcChecker) {
           const group = typeof opts.groupBy === 'string' ? { property: opts.groupBy } : opts.groupBy;
           return this.grpc()
-            .then((aggregate) =>
+            .then(async (aggregate) =>
               aggregate.withHybrid({
-                ...Serialize.aggregate.hybrid(query, opts),
+                ...(await Serialize.aggregate.hybrid(query, opts)),
                 groupBy: Serialize.aggregate.groupBy(group),
                 limit: group.limit,
               })
@@ -489,9 +489,9 @@ class AggregateManager<T> implements Aggregate<T> {
         if (await this.grpcChecker) {
           const group = typeof opts.groupBy === 'string' ? { property: opts.groupBy } : opts.groupBy;
           return this.grpc()
-            .then((aggregate) =>
+            .then(async (aggregate) =>
               aggregate.withNearVector({
-                ...Serialize.aggregate.nearVector(vector, opts),
+                ...(await Serialize.aggregate.nearVector(vector, opts)),
                 groupBy: Serialize.aggregate.groupBy(group),
                 limit: group.limit,
               })
@@ -609,7 +609,7 @@ class AggregateManager<T> implements Aggregate<T> {
   ): Promise<AggregateResult<T, M>> {
     if (await this.grpcChecker) {
       return this.grpc()
-        .then((aggregate) => aggregate.withHybrid(Serialize.aggregate.hybrid(query, opts)))
+        .then(async (aggregate) => aggregate.withHybrid(await Serialize.aggregate.hybrid(query, opts)))
         .then((reply) => Deserialize.aggregate(reply));
     }
     let builder = this.base(opts?.returnMetrics, opts?.filters).withHybrid({
@@ -696,10 +696,12 @@ class AggregateManager<T> implements Aggregate<T> {
   ): Promise<AggregateResult<T, M>> {
     if (await this.grpcChecker) {
       return this.grpc()
-        .then((aggregate) => aggregate.withNearVector(Serialize.aggregate.nearVector(vector, opts)))
+        .then(async (aggregate) =>
+          aggregate.withNearVector(await Serialize.aggregate.nearVector(vector, opts))
+        )
         .then((reply) => Deserialize.aggregate(reply));
     }
-    if (!NearVectorInputGuards.is1DArray(vector)) {
+    if (!NearVectorInputGuards.is1D(vector)) {
       throw new WeaviateInvalidInputError(
         'Vector can only be a 1D array of numbers when using `nearVector` with <1.29 Weaviate versions.'
       );

@@ -95,14 +95,25 @@ class QueryManager<T> implements Query<T> {
   public hybrid(query: string, opts?: HybridOptions<T>): QueryReturn<T> {
     return this.check
       .hybridSearch(opts)
-      .then(({ search, supportsTargets, supportsWeightsForTargets, supportsVectorsForTargets }) =>
-        search.withHybrid(
-          Serialize.search.hybrid(
-            { query, supportsTargets, supportsWeightsForTargets, supportsVectorsForTargets },
-            opts
-          )
-        )
+      .then(
+        async ({
+          search,
+          supportsTargets,
+          supportsWeightsForTargets,
+          supportsVectorsForTargets,
+          supportsVectors,
+        }) => ({
+          search,
+          args: await Serialize.search.hybrid({
+            query,
+            supportsTargets,
+            supportsWeightsForTargets,
+            supportsVectorsForTargets,
+            supportsVectors,
+          }),
+        })
       )
+      .then(({ search, args }) => search.withHybrid(args))
       .then((reply) => this.parseGroupByReply(opts, reply));
   }
 
@@ -112,19 +123,19 @@ class QueryManager<T> implements Query<T> {
     return this.check
       .nearSearch(opts)
       .then(({ search, supportsTargets, supportsWeightsForTargets }) => {
-        return toBase64FromMedia(image).then((image) =>
-          search.withNearImage(
-            Serialize.search.nearImage(
-              {
-                image,
-                supportsTargets,
-                supportsWeightsForTargets,
-              },
-              opts
-            )
-          )
-        );
+        return toBase64FromMedia(image).then((image) => ({
+          search,
+          args: Serialize.search.nearImage(
+            {
+              image,
+              supportsTargets,
+              supportsWeightsForTargets,
+            },
+            opts
+          ),
+        }));
       })
+      .then(({ search, args }) => search.withNearImage(args))
       .then((reply) => this.parseGroupByReply(opts, reply));
   }
 
@@ -183,18 +194,18 @@ class QueryManager<T> implements Query<T> {
   public nearObject(id: string, opts?: NearOptions<T>): QueryReturn<T> {
     return this.check
       .nearSearch(opts)
-      .then(({ search, supportsTargets, supportsWeightsForTargets }) =>
-        search.withNearObject(
-          Serialize.search.nearObject(
-            {
-              id,
-              supportsTargets,
-              supportsWeightsForTargets,
-            },
-            opts
-          )
-        )
-      )
+      .then(({ search, supportsTargets, supportsWeightsForTargets }) => ({
+        search,
+        args: Serialize.search.nearObject(
+          {
+            id,
+            supportsTargets,
+            supportsWeightsForTargets,
+          },
+          opts
+        ),
+      }))
+      .then(({ search, args }) => search.withNearObject(args))
       .then((reply) => this.parseGroupByReply(opts, reply));
   }
 
@@ -203,18 +214,18 @@ class QueryManager<T> implements Query<T> {
   public nearText(query: string | string[], opts?: NearTextOptions<T>): QueryReturn<T> {
     return this.check
       .nearSearch(opts)
-      .then(({ search, supportsTargets, supportsWeightsForTargets }) =>
-        search.withNearText(
-          Serialize.search.nearText(
-            {
-              query,
-              supportsTargets,
-              supportsWeightsForTargets,
-            },
-            opts
-          )
-        )
-      )
+      .then(({ search, supportsTargets, supportsWeightsForTargets }) => ({
+        search,
+        args: Serialize.search.nearText(
+          {
+            query,
+            supportsTargets,
+            supportsWeightsForTargets,
+          },
+          opts
+        ),
+      }))
+      .then(({ search, args }) => search.withNearText(args))
       .then((reply) => this.parseGroupByReply(opts, reply));
   }
 
@@ -223,25 +234,34 @@ class QueryManager<T> implements Query<T> {
   public nearVector(vector: NearVectorInputType, opts?: NearOptions<T>): QueryReturn<T> {
     return this.check
       .nearVector(vector, opts)
-      .then(({ search, supportsTargets, supportsVectorsForTargets, supportsWeightsForTargets }) =>
-        search.withNearVector(
-          Serialize.search.nearVector(
+      .then(
+        async ({
+          search,
+          supportsTargets,
+          supportsVectorsForTargets,
+          supportsWeightsForTargets,
+          supportsVectors,
+        }) => ({
+          search,
+          args: await Serialize.search.nearVector(
             {
               vector,
               supportsTargets,
               supportsVectorsForTargets,
               supportsWeightsForTargets,
+              supportsVectors,
             },
             opts
-          )
-        )
+          ),
+        })
       )
+      .then(({ search, args }) => search.withNearVector(args))
       .then((reply) => this.parseGroupByReply(opts, reply));
   }
 }
 
 export default QueryManager.use;
-
+export { queryFactory } from './factories.js';
 export {
   BaseBm25Options,
   BaseHybridOptions,

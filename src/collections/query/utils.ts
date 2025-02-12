@@ -1,13 +1,33 @@
 import { MultiTargetVectorJoin } from '../index.js';
-import { NearVectorInputType, TargetVectorInputType } from './types.js';
+import { ListOfVectors, NearVectorInputType, PrimitiveVectorType, TargetVectorInputType } from './types.js';
 
 export class NearVectorInputGuards {
-  public static is1DArray(input: NearVectorInputType): input is number[] {
+  public static is1D(input: NearVectorInputType): input is number[] {
     return Array.isArray(input) && input.length > 0 && !Array.isArray(input[0]);
   }
 
-  public static isObject(input: NearVectorInputType): input is Record<string, number[] | number[][]> {
+  public static is2D(input: NearVectorInputType): input is number[][] {
+    return Array.isArray(input) && input.length > 0 && Array.isArray(input[0]) && input[0].length > 0;
+  }
+
+  public static isObject(
+    input: NearVectorInputType
+  ): input is Record<string, PrimitiveVectorType | ListOfVectors<number[]> | ListOfVectors<number[][]>> {
     return !Array.isArray(input);
+  }
+
+  public static isListOf1D(
+    input: PrimitiveVectorType | ListOfVectors<number[]> | ListOfVectors<number[][]>
+  ): input is ListOfVectors<number[]> {
+    const i = input as ListOfVectors<number[]>;
+    return !Array.isArray(input) && i.kind === 'listOfVectors' && i.dimensionality == '1D';
+  }
+
+  public static isListOf2D(
+    input: PrimitiveVectorType | ListOfVectors<number[]> | ListOfVectors<number[][]>
+  ): input is ListOfVectors<number[][]> {
+    const i = input as ListOfVectors<number[][]>;
+    return !Array.isArray(input) && i.kind === 'listOfVectors' && i.dimensionality == '2D';
   }
 }
 
