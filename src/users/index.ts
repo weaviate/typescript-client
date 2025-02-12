@@ -5,9 +5,34 @@ import { Map } from '../roles/util.js';
 import { User } from './types.js';
 
 export interface Users {
+  /**
+   * Retrieve the information relevant to the currently authenticated user.
+   *
+   * @returns {Promise<User>} The user information.
+   */
   getMyUser: () => Promise<User>;
+  /**
+   * Retrieve the roles assigned to a user.
+   *
+   * @param {string} userId The ID of the user to retrieve the assigned roles for.
+   * @returns {Promise<Record<string, Role>>} A map of role names to their respective roles.
+   */
   getAssignedRoles: (userId: string) => Promise<Record<string, Role>>;
+  /**
+   * Assign roles to a user.
+   *
+   * @param {string | string[]} roleNames The name or names of the roles to assign.
+   * @param {string} userId The ID of the user to assign the roles to.
+   * @returns {Promise<void>} A promise that resolves when the roles are assigned.
+   */
   assignRoles: (roleNames: string | string[], userId: string) => Promise<void>;
+  /**
+   * Revoke roles from a user.
+   *
+   * @param {string | string[]} roleNames The name or names of the roles to revoke.
+   * @param {string} userId The ID of the user to revoke the roles from.
+   * @returns {Promise<void>} A promise that resolves when the roles are revoked.
+   */
   revokeRoles: (roleNames: string | string[], userId: string) => Promise<void>;
 }
 

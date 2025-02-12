@@ -14,15 +14,72 @@ import {
 import { Map } from './util.js';
 
 export interface Roles {
+  /**
+   * Retrieve all the roles in the system.
+   *
+   * @returns {Promise<Record<string, Role>>} A map of role names to their respective roles.
+   */
   listAll: () => Promise<Record<string, Role>>;
+  /**
+   * Retrieve a role by its name.
+   *
+   * @param {string} roleName The name of the role to retrieve.
+   * @returns {Promise<Role | null>} The role if it exists, or null if it does not.
+   */
   byName: (roleName: string) => Promise<Role | null>;
+  /**
+   * Retrieve the user IDs assigned to a role.
+   *
+   * @param {string} roleName The name of the role to retrieve the assigned user IDs for.
+   * @returns {Promise<string[]>} The user IDs assigned to the role.
+   */
   assignedUserIds: (roleName: string) => Promise<string[]>;
+  /**
+   * Delete a role by its name.
+   *
+   * @param {string} roleName The name of the role to delete.
+   * @returns {Promise<void>} A promise that resolves when the role is deleted.
+   */
   delete: (roleName: string) => Promise<void>;
+  /**
+   * Create a new role.
+   *
+   * @param {string} roleName The name of the new role.
+   * @param {PermissionsInput} permissions The permissions to assign to the new role.
+   * @returns {Promise<Role>} The newly created role.
+   */
   create: (roleName: string, permissions: PermissionsInput) => Promise<Role>;
+  /**
+   * Check if a role exists.
+   *
+   * @param {string} roleName The name of the role to check for.
+   * @returns {Promise<boolean>} A promise that resolves to true if the role exists, or false if it does not.
+   */
   exists: (roleName: string) => Promise<boolean>;
+  /**
+   * Add permissions to a role.
+   *
+   * @param {string} roleName The name of the role to add permissions to.
+   * @param {PermissionsInput} permissions The permissions to add.
+   * @returns {Promise<void>} A promise that resolves when the permissions are added.
+   */
   addPermissions: (roleName: string, permissions: PermissionsInput) => Promise<void>;
+  /**
+   * Remove permissions from a role.
+   *
+   * @param {string} roleName The name of the role to remove permissions from.
+   * @param {PermissionsInput} permissions The permissions to remove.
+   * @returns {Promise<void>} A promise that resolves when the permissions are removed.
+   */
   removePermissions: (roleName: string, permissions: PermissionsInput) => Promise<void>;
-  hasPermissions: (roleName: string, permission: Permission) => Promise<boolean>;
+  /**
+   * Check if a role has the specified permissions.
+   *
+   * @param {string} roleName The name of the role to check.
+   * @param {Permission | Permission[]} permission The permission or permissions to check for.
+   * @returns {Promise<boolean>} A promise that resolves to true if the role has the permissions, or false if it does not.
+   */
+  hasPermissions: (roleName: string, permission: Permission | Permission[]) => Promise<boolean>;
 }
 
 const roles = (connection: ConnectionREST): Roles => {
