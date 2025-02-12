@@ -72,12 +72,14 @@ class GenerateManager<T> implements Generate<T> {
   ): Promise<GenerativeReturn<T>> {
     return this.check
       .fetchObjects(opts)
-      .then(({ search }) =>
-        search.withFetch({
+      .then(({ search }) => ({
+        search,
+        args: {
           ...Serialize.search.fetchObjects(opts),
           generative: Serialize.generative(generate),
-        })
-      )
+        },
+      }))
+      .then(({ search, args }) => search.withFetch(args))
       .then((reply) => this.parseReply(reply));
   }
 
@@ -94,12 +96,14 @@ class GenerateManager<T> implements Generate<T> {
   public bm25(query: string, generate: GenerateOptions<T>, opts?: Bm25Options<T>): GenerateReturn<T> {
     return this.check
       .bm25(opts)
-      .then(({ search }) =>
-        search.withBm25({
+      .then(({ search }) => ({
+        search,
+        args: {
           ...Serialize.search.bm25(query, opts),
           generative: Serialize.generative(generate),
-        })
-      )
+        },
+      }))
+      .then(({ search, args }) => search.withBm25(args))
       .then((reply) => this.parseGroupByReply(opts, reply));
   }
 
@@ -116,20 +120,31 @@ class GenerateManager<T> implements Generate<T> {
   public hybrid(query: string, generate: GenerateOptions<T>, opts?: HybridOptions<T>): GenerateReturn<T> {
     return this.check
       .hybridSearch(opts)
-      .then(({ search, supportsTargets, supportsVectorsForTargets, supportsWeightsForTargets }) =>
-        search.withHybrid({
-          ...Serialize.search.hybrid(
-            {
-              query,
-              supportsTargets,
-              supportsVectorsForTargets,
-              supportsWeightsForTargets,
-            },
-            opts
-          ),
-          generative: Serialize.generative(generate),
+      .then(
+        async ({
+          search,
+          supportsTargets,
+          supportsVectorsForTargets,
+          supportsWeightsForTargets,
+          supportsVectors,
+        }) => ({
+          search,
+          args: {
+            ...(await Serialize.search.hybrid(
+              {
+                query,
+                supportsTargets,
+                supportsVectorsForTargets,
+                supportsWeightsForTargets,
+                supportsVectors,
+              },
+              opts
+            )),
+            generative: Serialize.generative(generate),
+          },
         })
       )
+      .then(({ search, args }) => search.withHybrid(args))
       .then((reply) => this.parseGroupByReply(opts, reply));
   }
 
@@ -150,21 +165,21 @@ class GenerateManager<T> implements Generate<T> {
   ): GenerateReturn<T> {
     return this.check
       .nearSearch(opts)
-      .then(({ search, supportsTargets, supportsWeightsForTargets }) =>
-        toBase64FromMedia(image).then((image) =>
-          search.withNearImage({
-            ...Serialize.search.nearImage(
-              {
-                image,
-                supportsTargets,
-                supportsWeightsForTargets,
-              },
-              opts
-            ),
-            generative: Serialize.generative(generate),
-          })
-        )
-      )
+      .then(async ({ search, supportsTargets, supportsWeightsForTargets }) => ({
+        search,
+        args: {
+          ...Serialize.search.nearImage(
+            {
+              image: await toBase64FromMedia(image),
+              supportsTargets,
+              supportsWeightsForTargets,
+            },
+            opts
+          ),
+          generative: Serialize.generative(generate),
+        },
+      }))
+      .then(({ search, args }) => search.withNearImage(args))
       .then((reply) => this.parseGroupByReply(opts, reply));
   }
 
@@ -181,8 +196,9 @@ class GenerateManager<T> implements Generate<T> {
   public nearObject(id: string, generate: GenerateOptions<T>, opts?: NearOptions<T>): GenerateReturn<T> {
     return this.check
       .nearSearch(opts)
-      .then(({ search, supportsTargets, supportsWeightsForTargets }) =>
-        search.withNearObject({
+      .then(({ search, supportsTargets, supportsWeightsForTargets }) => ({
+        search,
+        args: {
           ...Serialize.search.nearObject(
             {
               id,
@@ -192,8 +208,9 @@ class GenerateManager<T> implements Generate<T> {
             opts
           ),
           generative: Serialize.generative(generate),
-        })
-      )
+        },
+      }))
+      .then(({ search, args }) => search.withNearObject(args))
       .then((reply) => this.parseGroupByReply(opts, reply));
   }
 
@@ -214,8 +231,9 @@ class GenerateManager<T> implements Generate<T> {
   ): GenerateReturn<T> {
     return this.check
       .nearSearch(opts)
-      .then(({ search, supportsTargets, supportsWeightsForTargets }) =>
-        search.withNearText({
+      .then(({ search, supportsTargets, supportsWeightsForTargets }) => ({
+        search,
+        args: {
           ...Serialize.search.nearText(
             {
               query,
@@ -225,8 +243,9 @@ class GenerateManager<T> implements Generate<T> {
             opts
           ),
           generative: Serialize.generative(generate),
-        })
-      )
+        },
+      }))
+      .then(({ search, args }) => search.withNearText(args))
       .then((reply) => this.parseGroupByReply(opts, reply));
   }
 
@@ -247,20 +266,31 @@ class GenerateManager<T> implements Generate<T> {
   ): GenerateReturn<T> {
     return this.check
       .nearVector(vector, opts)
-      .then(({ search, supportsTargets, supportsVectorsForTargets, supportsWeightsForTargets }) =>
-        search.withNearVector({
-          ...Serialize.search.nearVector(
-            {
-              vector,
-              supportsTargets,
-              supportsVectorsForTargets,
-              supportsWeightsForTargets,
-            },
-            opts
-          ),
-          generative: Serialize.generative(generate),
+      .then(
+        async ({
+          search,
+          supportsTargets,
+          supportsVectorsForTargets,
+          supportsWeightsForTargets,
+          supportsVectors,
+        }) => ({
+          search,
+          args: {
+            ...(await Serialize.search.nearVector(
+              {
+                vector,
+                supportsTargets,
+                supportsVectorsForTargets,
+                supportsWeightsForTargets,
+                supportsVectors,
+              },
+              opts
+            )),
+            generative: Serialize.generative(generate),
+          },
         })
       )
+      .then(({ search, args }) => search.withNearVector(args))
       .then((reply) => this.parseGroupByReply(opts, reply));
   }
 
