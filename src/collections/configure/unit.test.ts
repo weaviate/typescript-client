@@ -129,6 +129,7 @@ describe('Unit testing of the configure & reconfigure factory classes', () => {
           quantizer: {
             type: 'pq',
           },
+          type: 'hnsw',
         },
       });
     });
@@ -183,6 +184,7 @@ describe('Unit testing of the configure & reconfigure factory classes', () => {
             type: 'pq',
           },
           skip: true,
+          type: 'hnsw',
           vectorCacheMaxObjects: 2000000000000,
         },
       });
@@ -196,6 +198,7 @@ describe('Unit testing of the configure & reconfigure factory classes', () => {
           quantizer: {
             type: 'bq',
           },
+          type: 'flat',
         },
       });
     });
@@ -220,6 +223,7 @@ describe('Unit testing of the configure & reconfigure factory classes', () => {
           rescoreLimit: 100,
           type: 'bq',
         },
+        type: 'flat',
       },
     });
   });
@@ -239,6 +243,22 @@ describe('Unit testing of the configure & reconfigure factory classes', () => {
           trainingLimit: 200,
           type: 'sq',
         },
+        type: 'hnsw',
+      },
+    });
+  });
+
+  it('should create an hnsw VectorIndexConfig type with multivector enabled', () => {
+    const config = configure.vectorIndex.hnsw({
+      multiVector: configure.vectorIndex.multiVector.multiVector({ aggregation: 'maxSim' }),
+    });
+    expect(config).toEqual<ModuleConfig<'hnsw', VectorIndexConfigHNSWCreate>>({
+      name: 'hnsw',
+      config: {
+        multiVector: {
+          aggregation: 'maxSim',
+        },
+        type: 'hnsw',
       },
     });
   });

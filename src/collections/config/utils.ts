@@ -27,6 +27,7 @@ import {
   InvertedIndexConfig,
   ModuleConfig,
   MultiTenancyConfig,
+  MultiVectorConfig,
   PQConfig,
   PQEncoderConfig,
   PQEncoderDistribution,
@@ -380,10 +381,23 @@ class ConfigMapping {
       filterStrategy: exists<VectorIndexFilterStrategy>(v.filterStrategy) ? v.filterStrategy : 'sweeping',
       flatSearchCutoff: v.flatSearchCutoff,
       maxConnections: v.maxConnections,
+      multiVector: exists<MultiVectorConfig>(v.multivector)
+        ? ConfigMapping.multiVector(v.multivector)
+        : undefined,
       quantizer: quantizer,
       skip: v.skip,
       vectorCacheMaxObjects: v.vectorCacheMaxObjects,
       type: 'hnsw',
+    };
+  }
+  static multiVector(v: Record<string, unknown>): MultiVectorConfig | undefined {
+    if (!exists<boolean>(v.enabled))
+      throw new WeaviateDeserializationError('Multi vector enabled was not returned by Weaviate');
+    if (v.enabled === false) return undefined;
+    if (!exists<string>(v.aggregation))
+      throw new WeaviateDeserializationError('Multi vector aggregation was not returned by Weaviate');
+    return {
+      aggregation: v.aggregation,
     };
   }
   static bq(v?: Record<string, unknown>): BQConfig | undefined {

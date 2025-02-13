@@ -45,7 +45,7 @@ describe('Testing of the collection.iterator method with a simple collection', (
         });
       });
     const res = await collection.query.fetchObjectById(id, { includeVector: true });
-    vector = res?.vectors.default!;
+    vector = res?.vectors.default as number[];
   });
 
   it('should iterate through the collection with no options returning the objects', async () => {
