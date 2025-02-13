@@ -450,9 +450,9 @@ export class Deserialize {
       await Promise.all(
         metadata.vectors.map(async (vector) => [
           vector.name,
-          vector.type === Vectors_VectorType.VECTOR_TYPE_SINGLE_FP32
-            ? Deserialize.vectorFromBytes(vector.vectorBytes)
-            : await Deserialize.vectorsFromBytes(vector.vectorBytes),
+          vector.type === Vectors_VectorType.VECTOR_TYPE_MULTI_FP32
+            ? await Deserialize.vectorsFromBytes(vector.vectorBytes)
+            : Deserialize.vectorFromBytes(vector.vectorBytes),
         ])
       )
     );
