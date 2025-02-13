@@ -157,7 +157,13 @@ only('Integration testing of the roles namespace', () => {
       },
       {
         roleName: 'roles',
-        permissions: weaviate.permissions.roles({ role: 'some-role', manage: true }),
+        permissions: weaviate.permissions.roles({
+          role: 'some-role',
+          create: true,
+          read: true,
+          update: true,
+          delete: true,
+        }),
         expected: {
           name: 'roles',
           backupsPermissions: [],
@@ -165,7 +171,9 @@ only('Integration testing of the roles namespace', () => {
           collectionsPermissions: [],
           dataPermissions: [],
           nodesPermissions: [],
-          rolesPermissions: [{ role: 'some-role', actions: ['manage_roles'] }],
+          rolesPermissions: [
+            { role: 'some-role', actions: ['create_roles', 'read_roles', 'update_roles', 'delete_roles'] },
+          ],
         },
       },
     ];

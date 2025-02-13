@@ -340,8 +340,10 @@ export interface definitions {
       | 'update_data'
       | 'delete_data'
       | 'read_nodes'
-      | 'manage_roles'
+      | 'create_roles'
       | 'read_roles'
+      | 'update_roles'
+      | 'delete_roles'
       | 'create_collections'
       | 'read_collections'
       | 'update_collections'
@@ -1933,7 +1935,9 @@ export interface operations {
         schema: definitions['ErrorResponse'];
       };
       /** role or user is not found. */
-      404: unknown;
+      404: {
+        schema: definitions['ErrorResponse'];
+      };
       /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
       500: {
         schema: definitions['ErrorResponse'];
@@ -1967,7 +1971,9 @@ export interface operations {
         schema: definitions['ErrorResponse'];
       };
       /** role or user is not found. */
-      404: unknown;
+      404: {
+        schema: definitions['ErrorResponse'];
+      };
       /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
       500: {
         schema: definitions['ErrorResponse'];

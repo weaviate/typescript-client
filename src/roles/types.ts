@@ -15,7 +15,7 @@ export type DataAction = Extract<
   'create_data' | 'delete_data' | 'read_data' | 'update_data' | 'manage_data'
 >;
 export type NodesAction = Extract<Action, 'read_nodes'>;
-export type RolesAction = Extract<Action, 'manage_roles' | 'read_roles'>;
+export type RolesAction = Extract<Action, 'create_roles' | 'read_roles' | 'update_roles' | 'delete_roles'>;
 
 export type BackupsPermission = {
   collection: string;

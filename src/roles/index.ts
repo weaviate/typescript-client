@@ -182,12 +182,20 @@ export const permissions = {
       return out;
     });
   },
-  roles: (args: { role: string | string[]; read?: boolean; manage?: boolean }): RolesPermission[] => {
+  roles: (args: {
+    role: string | string[];
+    create?: boolean;
+    read?: boolean;
+    update?: boolean;
+    delete?: boolean;
+  }): RolesPermission[] => {
     const roles = Array.isArray(args.role) ? args.role : [args.role];
     return roles.flatMap((role) => {
       const out: RolesPermission = { role, actions: [] };
+      if (args.create) out.actions.push('create_roles');
       if (args.read) out.actions.push('read_roles');
-      if (args.manage) out.actions.push('manage_roles');
+      if (args.update) out.actions.push('update_roles');
+      if (args.delete) out.actions.push('delete_roles');
       return out;
     });
   },

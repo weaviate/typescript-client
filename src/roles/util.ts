@@ -45,7 +45,7 @@ export class PermissionGuards {
   static isNodes = (permission: Permission): permission is NodesPermission =>
     PermissionGuards.includes(permission, 'read_nodes');
   static isRoles = (permission: Permission): permission is RolesPermission =>
-    PermissionGuards.includes(permission, 'manage_roles');
+    PermissionGuards.includes(permission, 'create_role', 'read_roles', 'update_roles', 'delete_roles');
   static isPermission = (permissions: PermissionsInput): permissions is Permission =>
     !Array.isArray(permissions);
   static isPermissionArray = (permissions: PermissionsInput): permissions is Permission[] =>
@@ -90,7 +90,7 @@ export class Map {
     } else if (PermissionGuards.isRoles(permission)) {
       return Array.from(permission.actions).map((action) => ({ roles: { role: permission.role }, action }));
     } else {
-      throw new Error(`Unknown permission type: ${permission}`);
+      throw new Error(`Unknown permission type: ${JSON.stringify(permission, null, 2)}`);
     }
   };
 
