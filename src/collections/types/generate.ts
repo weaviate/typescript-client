@@ -1,6 +1,6 @@
 import { GroupByObject, GroupByResult, WeaviateGenericObject, WeaviateNonGenericObject } from './query.js';
 
-export type GenerativeGenericObject<T> = WeaviateGenericObject<T> & {
+export type GenerativeGenericObject<T, V> = WeaviateGenericObject<T, V> & {
   /** The LLM-generated output applicable to this single object. */
   generated?: string;
 };
@@ -15,28 +15,32 @@ export type GenerativeNonGenericObject = WeaviateNonGenericObject & {
  * Depending on the generic type `T`, the object will have subfields that map from `T`'s specific type definition.
  * If not, then the object will be non-generic and have a `properties` field that maps from a generic string to a `WeaviateField`.
  */
-export type GenerativeObject<T> = T extends undefined
-  ? GenerativeNonGenericObject
-  : GenerativeGenericObject<T>;
+export type GenerativeObject<T, V> = T extends undefined
+  ? V extends undefined
+    ? GenerativeNonGenericObject
+    : GenerativeGenericObject<GenerativeNonGenericObject['properties'], V>
+  : V extends undefined
+  ? GenerativeGenericObject<T, GenerativeNonGenericObject['vectors']>
+  : GenerativeGenericObject<T, V>;
 
 /** The return of a query method in the `collection.generate` namespace. */
-export type GenerativeReturn<T> = {
+export type GenerativeReturn<T, V> = {
   /** The objects that were found by the query. */
-  objects: GenerativeObject<T>[];
+  objects: GenerativeObject<T, V>[];
   /** The LLM-generated output applicable to this query as a whole. */
   generated?: string;
 };
 
-export type GenerativeGroupByResult<T> = GroupByResult<T> & {
+export type GenerativeGroupByResult<T, V> = GroupByResult<T, V> & {
   generated?: string;
 };
 
 /** The return of a query method in the `collection.generate` namespace where the `groupBy` argument was specified. */
-export type GenerativeGroupByReturn<T> = {
+export type GenerativeGroupByReturn<T, V> = {
   /** The objects that were found by the query. */
-  objects: GroupByObject<T>[];
+  objects: GroupByObject<T, V>[];
   /** The groups that were created by the query. */
-  groups: Record<string, GenerativeGroupByResult<T>>;
+  groups: Record<string, GenerativeGroupByResult<T, V>>;
   /** The LLM-generated output applicable to this query as a whole. */
   generated?: string;
 };
@@ -51,4 +55,4 @@ export type GenerateOptions<T> = {
   groupedProperties?: T extends undefined ? string[] : (keyof T)[];
 };
 
-export type GenerateReturn<T> = Promise<GenerativeReturn<T>> | Promise<GenerativeGroupByReturn<T>>;
+export type GenerateReturn<T, V> = Promise<GenerativeReturn<T, V>> | Promise<GenerativeGroupByReturn<T, V>>;

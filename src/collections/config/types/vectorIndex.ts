@@ -9,6 +9,7 @@ export type VectorIndexConfigHNSW = {
   filterStrategy: VectorIndexFilterStrategy;
   flatSearchCutoff: number;
   maxConnections: number;
+  multiVector: MultiVectorConfig | undefined;
   quantizer: PQConfig | BQConfig | SQConfig | undefined;
   skip: boolean;
   vectorCacheMaxObjects: number;
@@ -59,6 +60,10 @@ export type PQConfig = {
   segments: number;
   trainingLimit: number;
   type: 'pq';
+};
+
+export type MultiVectorConfig = {
+  aggregation: 'maxSim' | string;
 };
 
 export type PQEncoderConfig = {

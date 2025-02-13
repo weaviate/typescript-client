@@ -7,6 +7,7 @@ import {
 import {
   BQConfigCreate,
   BQConfigUpdate,
+  MultiVectorConfigCreate,
   PQConfigCreate,
   PQConfigUpdate,
   SQConfigCreate,
@@ -44,6 +45,7 @@ const configure = {
         distance,
         vectorCacheMaxObjects,
         quantizer: quantizer,
+        type: 'flat',
       },
     };
   },
@@ -66,6 +68,7 @@ const configure = {
             ...rest,
             distance: distanceMetric,
             quantizer: rest.quantizer,
+            type: 'hnsw',
           }
         : undefined,
     };
@@ -89,9 +92,26 @@ const configure = {
             threshold: opts.threshold,
             hnsw: isModuleConfig(opts.hnsw) ? opts.hnsw.config : configure.hnsw(opts.hnsw).config,
             flat: isModuleConfig(opts.flat) ? opts.flat.config : configure.flat(opts.flat).config,
+            type: 'dynamic',
           }
         : undefined,
     };
+  },
+  /**
+   * Define the configuration for a multi-vector index.
+   */
+  multiVector: {
+    /**
+     * Create an object of type `MultiVectorConfigCreate` to be used when defining the configuration of a multi-vector index.
+     *
+     * @param {object} [options.aggregation] The aggregation method to use. Default is 'maxSim'.
+     * @returns {MultiVectorConfigCreate} The object of type `MultiVectorConfigCreate`.
+     */
+    multiVector: (options?: { aggregation?: 'maxSim' | string }): MultiVectorConfigCreate => {
+      return {
+        aggregation: options?.aggregation,
+      };
+    },
   },
   /**
    * Define the quantizer configuration to use when creating a vector index.

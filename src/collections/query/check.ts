@@ -17,7 +17,7 @@ import {
   SearchOptions,
 } from './types.js';
 
-export class Check<T> {
+export class Check<T, V> {
   private connection: Connection;
   private name: string;
   public dbVersionSupport: DbVersionSupport;
@@ -40,7 +40,7 @@ export class Check<T> {
 
   private getSearcher = () => this.connection.search(this.name, this.consistencyLevel, this.tenant);
 
-  private checkSupportForNamedVectors = async (opts?: BaseNearOptions<T>) => {
+  private checkSupportForNamedVectors = async (opts?: BaseNearOptions<T, V>) => {
     if (!Serialize.isNamedVectors(opts)) return;
     const check = await this.dbVersionSupport.supportsNamedVectors();
     if (!check.supports) throw new WeaviateUnsupportedFeatureError(check.message);
@@ -48,20 +48,20 @@ export class Check<T> {
 
   private checkSupportForBm25AndHybridGroupByQueries = async (
     query: 'Bm25' | 'Hybrid',
-    opts?: SearchOptions<T> | GroupByOptions<T>
+    opts?: SearchOptions<T, V> | GroupByOptions<T>
   ) => {
     if (!Serialize.search.isGroupBy(opts)) return;
     const check = await this.dbVersionSupport.supportsBm25AndHybridGroupByQueries();
     if (!check.supports) throw new WeaviateUnsupportedFeatureError(check.message(query));
   };
 
-  private checkSupportForHybridNearTextAndNearVectorSubSearches = async (opts?: HybridOptions<T>) => {
+  private checkSupportForHybridNearTextAndNearVectorSubSearches = async (opts?: HybridOptions<T, V>) => {
     if (opts?.vector === undefined || Array.isArray(opts.vector)) return;
     const check = await this.dbVersionSupport.supportsHybridNearTextAndNearVectorSubsearchQueries();
     if (!check.supports) throw new WeaviateUnsupportedFeatureError(check.message);
   };
 
-  private checkSupportForMultiTargetSearch = async (opts?: BaseNearOptions<T>) => {
+  private checkSupportForMultiTargetSearch = async (opts?: BaseNearOptions<T, V>) => {
     if (!Serialize.isMultiTarget(opts)) return false;
     const check = await this.dbVersionSupport.supportsMultiTargetVectorSearch();
     if (!check.supports) throw new WeaviateUnsupportedFeatureError(check.message);
@@ -79,7 +79,7 @@ export class Check<T> {
     return check.supports;
   };
 
-  private checkSupportForMultiWeightPerTargetSearch = async (opts?: BaseNearOptions<T>) => {
+  private checkSupportForMultiWeightPerTargetSearch = async (opts?: BaseNearOptions<T, V>) => {
     if (!Serialize.isMultiWeightPerTarget(opts)) return false;
     const check = await this.dbVersionSupport.supportsMultiWeightsPerTargetSearch();
     if (!check.supports) throw new WeaviateUnsupportedFeatureError(check.message);
@@ -102,15 +102,11 @@ export class Check<T> {
     vec?: NearVectorInputType | HybridNearVectorSubSearch | HybridNearTextSubSearch
   ) => {
     if (vec === undefined || Serialize.isHybridNearTextSearch(vec)) return false;
-    if (Serialize.isHybridNearVectorSearch(vec) && !Serialize.isMultiVectorPerTarget(vec.vector))
-      return false;
-    if (Serialize.isHybridVectorSearch(vec) && !Serialize.isMultiVectorPerTarget(vec)) return false;
-    const check = await this.dbVersionSupport.supportsMultiVectorPerTargetSearch();
-    if (!check.supports) throw new WeaviateUnsupportedFeatureError(check.message);
+    const check = await this.dbVersionSupport.supportsVectorsFieldInGRPC();
     return check.supports;
   };
 
-  public nearSearch = (opts?: BaseNearOptions<T>) => {
+  public nearSearch = (opts?: BaseNearOptions<T, V>) => {
     return Promise.all([
       this.getSearcher(),
       this.checkSupportForMultiTargetSearch(opts),
@@ -123,14 +119,14 @@ export class Check<T> {
     });
   };
 
-  public nearVector = (vec: NearVectorInputType, opts?: BaseNearOptions<T>) => {
+  public nearVector = (vec: NearVectorInputType, opts?: BaseNearOptions<T, V>) => {
     return Promise.all([
       this.getSearcher(),
       this.checkSupportForMultiTargetSearch(opts),
       this.checkSupportForMultiVectorSearch(vec),
       this.checkSupportForMultiVectorPerTargetSearch(vec),
       this.checkSupportForMultiWeightPerTargetSearch(opts),
-      this.checkSupportForVectors(),
+      this.checkSupportForVectors(vec),
       this.checkSupportForNamedVectors(opts),
     ]).then(
       ([
@@ -155,14 +151,14 @@ export class Check<T> {
     );
   };
 
-  public hybridSearch = (opts?: BaseHybridOptions<T>) => {
+  public hybridSearch = (opts?: BaseHybridOptions<T, V>) => {
     return Promise.all([
       this.getSearcher(),
       this.checkSupportForMultiTargetSearch(opts),
       this.checkSupportForMultiVectorSearch(opts?.vector),
       this.checkSupportForMultiVectorPerTargetSearch(opts?.vector),
       this.checkSupportForMultiWeightPerTargetSearch(opts),
-      this.checkSupportForVectors(),
+      this.checkSupportForVectors(opts?.vector),
       this.checkSupportForNamedVectors(opts),
       this.checkSupportForBm25AndHybridGroupByQueries('Hybrid', opts),
       this.checkSupportForHybridNearTextAndNearVectorSubSearches(opts),
@@ -189,19 +185,19 @@ export class Check<T> {
     );
   };
 
-  public fetchObjects = (opts?: FetchObjectsOptions<T>) => {
+  public fetchObjects = (opts?: FetchObjectsOptions<T, V>) => {
     return Promise.all([this.getSearcher(), this.checkSupportForNamedVectors(opts)]).then(([search]) => {
       return { search };
     });
   };
 
-  public fetchObjectById = (opts?: FetchObjectByIdOptions<T>) => {
+  public fetchObjectById = (opts?: FetchObjectByIdOptions<T, V>) => {
     return Promise.all([this.getSearcher(), this.checkSupportForNamedVectors(opts)]).then(([search]) => {
       return { search };
     });
   };
 
-  public bm25 = (opts?: BaseBm25Options<T>) => {
+  public bm25 = (opts?: BaseBm25Options<T, V>) => {
     return Promise.all([
       this.getSearcher(),
       this.checkSupportForNamedVectors(opts),

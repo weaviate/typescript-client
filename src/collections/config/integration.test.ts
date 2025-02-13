@@ -72,6 +72,7 @@ describe('Testing of the collection.config namespace', () => {
       filterStrategy: 'sweeping',
       flatSearchCutoff: 40000,
       distance: 'cosine',
+      multiVector: undefined,
       quantizer: undefined,
       type: 'hnsw',
     });
@@ -127,6 +128,7 @@ describe('Testing of the collection.config namespace', () => {
       filterStrategy: 'sweeping',
       flatSearchCutoff: 40000,
       distance: 'cosine',
+      multiVector: undefined,
       quantizer: undefined,
       type: 'hnsw',
     });
@@ -499,6 +501,7 @@ describe('Testing of the collection.config namespace', () => {
       filterStrategy: 'sweeping',
       flatSearchCutoff: 40000,
       distance: 'cosine',
+      multiVector: undefined,
       quantizer: {
         bitCompression: false,
         segments: 0,
@@ -608,6 +611,7 @@ describe('Testing of the collection.config namespace', () => {
       filterStrategy: 'sweeping',
       flatSearchCutoff: 40000,
       distance: 'cosine',
+      multiVector: undefined,
       type: 'hnsw',
       quantizer: {
         bitCompression: false,

@@ -485,7 +485,7 @@ describe('Testing of collection.aggregate search methods', () => {
 
   it('should return an aggregation on a nearVector search', async () => {
     const obj = await collection.query.fetchObjectById(uuid, { includeVector: true });
-    const result = await collection.aggregate.nearVector(obj?.vectors.default!, {
+    const result = await collection.aggregate.nearVector(obj?.vectors.default as number[], {
       objectLimit: 1000,
       returnMetrics: collection.metrics.aggregate('text').text(['count']),
     });
@@ -494,7 +494,7 @@ describe('Testing of collection.aggregate search methods', () => {
 
   it('should return a grouped aggregation on a nearVector search', async () => {
     const obj = await collection.query.fetchObjectById(uuid, { includeVector: true });
-    const result = await collection.aggregate.groupBy.nearVector(obj?.vectors.default!, {
+    const result = await collection.aggregate.groupBy.nearVector(obj?.vectors.default as number[], {
       objectLimit: 1000,
       groupBy: 'text',
       returnMetrics: collection.metrics.aggregate('text').text(['count']),
