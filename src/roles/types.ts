@@ -19,32 +19,32 @@ export type RolesAction = Extract<Action, 'manage_roles' | 'read_roles'>;
 
 export type BackupsPermission = {
   collection: string;
-  action: BackupsAction;
+  actions: BackupsAction[];
 };
 
 export type ClusterPermission = {
-  action: ClusterAction;
+  actions: ClusterAction[];
 };
 
 export type CollectionsPermission = {
   collection: string;
-  action: CollectionsAction;
+  actions: CollectionsAction[];
 };
 
 export type DataPermission = {
   collection: string;
-  action: DataAction;
+  actions: DataAction[];
 };
 
 export type NodesPermission = {
   collection: string;
   verbosity: 'verbose' | 'minimal';
-  action: NodesAction;
+  actions: NodesAction[];
 };
 
 export type RolesPermission = {
   role: string;
-  action: RolesAction;
+  actions: RolesAction[];
 };
 
 export type Role = {
@@ -55,10 +55,6 @@ export type Role = {
   dataPermissions: DataPermission[];
   nodesPermissions: NodesPermission[];
   rolesPermissions: RolesPermission[];
-};
-
-export type User = {
-  name: string;
 };
 
 export type Permission =

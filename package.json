@@ -101,8 +101,7 @@
     "*.{ts,js}": [
       "npm run format:check",
       "npm run lint -- --cache",
-      "npm run prepack",
-      "npm run docs"
+      "npm run prepack"
     ]
   }
 }
