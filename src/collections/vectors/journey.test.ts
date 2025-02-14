@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+/* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
 import weaviate, {
   VectorIndexConfigHNSW,
   WeaviateClient,
@@ -81,7 +83,7 @@ only('Testing of the collection.query methods with a collection with multvectors
     });
   });
 
-  it('should be able to get the inserted object with its vectors', async () => {
+  it('should be able to get the inserted object with its vectors stated implicitly', async () => {
     const obj = await collection.query.fetchObjectById(id1, { includeVector: true });
     const assert = (obj: any): obj is WeaviateGenericObject<Record<string, WeaviateField>, MyVectors> => {
       expect(obj).not.toBeNull();
@@ -98,6 +100,34 @@ only('Testing of the collection.query methods with a collection with multvectors
         [3, 4],
       ]);
     }
+  });
+
+  it('should be able to get the inserted object with its vectors stated explicitly', async () => {
+    const obj = await collection.query.fetchObjectById(id1, { includeVector: ['regular', 'colbert'] });
+    const assert = (obj: any): obj is WeaviateGenericObject<Record<string, WeaviateField>, MyVectors> => {
+      expect(obj).not.toBeNull();
+      return true;
+    };
+    if (assert(obj)) {
+      singleVector = obj.vectors.regular;
+      multiVector = obj.vectors.colbert;
+      expect(obj.uuid).toBe(id1);
+      expect(obj.vectors).toBeDefined();
+      expect(obj.vectors.regular).toEqual([1, 2, 3, 4]);
+      expect(obj.vectors.colbert).toEqual([
+        [1, 2],
+        [3, 4],
+      ]);
+    }
+  });
+
+  it('should be able to get the inserted object with one of its vectors', async () => {
+    const obj = await collection.query.fetchObjectById(id1, { includeVector: ['regular'] });
+    singleVector = obj?.vectors.regular!;
+    expect(obj?.uuid).toBe(id1);
+    expect(obj?.vectors).toBeDefined();
+    expect(obj?.vectors.regular).toEqual([1, 2, 3, 4]);
+    expect((obj?.vectors as MyVectors).colbert).toBeUndefined();
   });
 
   it('should be able to query with hybrid for the inserted object over the single vector space', async () => {

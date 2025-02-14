@@ -8,9 +8,16 @@ import { DbVersionSupport } from '../../utils/dbVersion.js';
 import { SearchReply } from '../../proto/v1/search_get.js';
 import { Deserialize } from '../deserialize/index.js';
 import { Serialize } from '../serialize/index.js';
-import { GroupByOptions, GroupByReturn, WeaviateObject, WeaviateReturn } from '../types/index.js';
+import {
+  GroupByOptions,
+  GroupByReturn,
+  ReturnVectors,
+  WeaviateObject,
+  WeaviateReturn,
+} from '../types/index.js';
 
 import { WeaviateInvalidInputError } from '../../errors.js';
+import { IncludeVector } from '../types/internal.js';
 import { Check } from './check.js';
 import {
   BaseBm25Options,
@@ -53,51 +60,71 @@ class QueryManager<T, V> implements Query<T, V> {
     );
   }
 
-  private async parseReply(reply: SearchReply) {
+  private async parseReply<RV>(reply: SearchReply) {
     const deserialize = await Deserialize.use(this.check.dbVersionSupport);
-    return deserialize.query<T, V>(reply);
+    return deserialize.query<T, RV>(reply);
   }
 
-  private async parseGroupByReply(
-    opts: SearchOptions<T, V> | GroupByOptions<T> | undefined,
+  private async parseGroupByReply<RV>(
+    opts: SearchOptions<any, any> | GroupByOptions<any> | undefined,
     reply: SearchReply
   ) {
     const deserialize = await Deserialize.use(this.check.dbVersionSupport);
     return Serialize.search.isGroupBy(opts)
-      ? deserialize.queryGroupBy<T, V>(reply)
-      : deserialize.query<T, V>(reply);
+      ? deserialize.queryGroupBy<T, RV>(reply)
+      : deserialize.query<T, RV>(reply);
   }
 
-  public fetchObjectById(
+  public fetchObjectById<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
     id: string,
-    opts?: FetchObjectByIdOptions<T, V>
-  ): Promise<WeaviateObject<T, V> | null> {
+    opts?: FetchObjectByIdOptions<T, I>
+  ): Promise<WeaviateObject<T, RV> | null> {
     return this.check
       .fetchObjectById(opts)
       .then(({ search }) => search.withFetch(Serialize.search.fetchObjectById({ id, ...opts })))
-      .then((reply) => this.parseReply(reply))
+      .then((reply) => this.parseReply<RV>(reply))
       .then((ret) => (ret.objects.length === 1 ? ret.objects[0] : null));
   }
 
-  public fetchObjects(opts?: FetchObjectsOptions<T, V>): Promise<WeaviateReturn<T, V>> {
+  public fetchObjects<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
+    opts?: FetchObjectsOptions<T, I>
+  ): Promise<WeaviateReturn<T, RV>> {
     return this.check
       .fetchObjects(opts)
       .then(({ search }) => search.withFetch(Serialize.search.fetchObjects(opts)))
       .then((reply) => this.parseReply(reply));
   }
 
-  public bm25(query: string, opts?: BaseBm25Options<T, V>): Promise<WeaviateReturn<T, V>>;
-  public bm25(query: string, opts: GroupByBm25Options<T, V>): Promise<GroupByReturn<T, V>>;
-  public bm25(query: string, opts?: Bm25Options<T, V>): QueryReturn<T, V> {
+  public bm25<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
+    query: string,
+    opts?: BaseBm25Options<T, I>
+  ): Promise<WeaviateReturn<T, RV>>;
+  public bm25<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
+    query: string,
+    opts: GroupByBm25Options<T, I>
+  ): Promise<GroupByReturn<T, RV>>;
+  public bm25<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
+    query: string,
+    opts?: Bm25Options<T, I>
+  ): QueryReturn<T, RV> {
     return this.check
       .bm25(opts)
       .then(({ search }) => search.withBm25(Serialize.search.bm25(query, opts)))
       .then((reply) => this.parseGroupByReply(opts, reply));
   }
 
-  public hybrid(query: string, opts?: BaseHybridOptions<T, V>): Promise<WeaviateReturn<T, V>>;
-  public hybrid(query: string, opts: GroupByHybridOptions<T, V>): Promise<GroupByReturn<T, V>>;
-  public hybrid(query: string, opts?: HybridOptions<T, V>): QueryReturn<T, V> {
+  public hybrid<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
+    query: string,
+    opts?: BaseHybridOptions<T, V, I>
+  ): Promise<WeaviateReturn<T, RV>>;
+  public hybrid<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
+    query: string,
+    opts: GroupByHybridOptions<T, V, I>
+  ): Promise<GroupByReturn<T, RV>>;
+  public hybrid<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
+    query: string,
+    opts?: HybridOptions<T, V, I>
+  ): QueryReturn<T, RV> {
     return this.check
       .hybridSearch(opts)
       .then(
@@ -125,9 +152,18 @@ class QueryManager<T, V> implements Query<T, V> {
       .then((reply) => this.parseGroupByReply(opts, reply));
   }
 
-  public nearImage(image: string | Buffer, opts?: BaseNearOptions<T, V>): Promise<WeaviateReturn<T, V>>;
-  public nearImage(image: string | Buffer, opts: GroupByNearOptions<T, V>): Promise<GroupByReturn<T, V>>;
-  public nearImage(image: string | Buffer, opts?: NearOptions<T, V>): QueryReturn<T, V> {
+  public nearImage<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
+    image: string | Buffer,
+    opts?: BaseNearOptions<T, V, I>
+  ): Promise<WeaviateReturn<T, RV>>;
+  public nearImage<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
+    image: string | Buffer,
+    opts: GroupByNearOptions<T, V, I>
+  ): Promise<GroupByReturn<T, RV>>;
+  public nearImage<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
+    image: string | Buffer,
+    opts?: NearOptions<T, V, I>
+  ): QueryReturn<T, RV> {
     return this.check
       .nearSearch(opts)
       .then(({ search, supportsTargets, supportsWeightsForTargets }) => {
@@ -147,17 +183,21 @@ class QueryManager<T, V> implements Query<T, V> {
       .then((reply) => this.parseGroupByReply(opts, reply));
   }
 
-  public nearMedia(
+  public nearMedia<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
     media: string | Buffer,
     type: NearMediaType,
-    opts?: BaseNearOptions<T, V>
-  ): Promise<WeaviateReturn<T, V>>;
-  public nearMedia(
+    opts?: BaseNearOptions<T, V, I>
+  ): Promise<WeaviateReturn<T, RV>>;
+  public nearMedia<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
     media: string | Buffer,
     type: NearMediaType,
-    opts: GroupByNearOptions<T, V>
-  ): Promise<GroupByReturn<T, V>>;
-  public nearMedia(media: string | Buffer, type: NearMediaType, opts?: NearOptions<T, V>): QueryReturn<T, V> {
+    opts: GroupByNearOptions<T, V, I>
+  ): Promise<GroupByReturn<T, RV>>;
+  public nearMedia<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
+    media: string | Buffer,
+    type: NearMediaType,
+    opts?: NearOptions<T, V, I>
+  ): QueryReturn<T, RV> {
     return this.check
       .nearSearch(opts)
       .then(({ search, supportsTargets, supportsWeightsForTargets }) => {
@@ -197,9 +237,18 @@ class QueryManager<T, V> implements Query<T, V> {
       .then((reply) => this.parseGroupByReply(opts, reply));
   }
 
-  public nearObject(id: string, opts?: BaseNearOptions<T, V>): Promise<WeaviateReturn<T, V>>;
-  public nearObject(id: string, opts: GroupByNearOptions<T, V>): Promise<GroupByReturn<T, V>>;
-  public nearObject(id: string, opts?: NearOptions<T, V>): QueryReturn<T, V> {
+  public nearObject<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
+    id: string,
+    opts?: BaseNearOptions<T, V, I>
+  ): Promise<WeaviateReturn<T, RV>>;
+  public nearObject<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
+    id: string,
+    opts: GroupByNearOptions<T, V, I>
+  ): Promise<GroupByReturn<T, RV>>;
+  public nearObject<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
+    id: string,
+    opts?: NearOptions<T, V, I>
+  ): QueryReturn<T, RV> {
     return this.check
       .nearSearch(opts)
       .then(({ search, supportsTargets, supportsWeightsForTargets }) => ({
@@ -217,9 +266,18 @@ class QueryManager<T, V> implements Query<T, V> {
       .then((reply) => this.parseGroupByReply(opts, reply));
   }
 
-  public nearText(query: string | string[], opts?: BaseNearTextOptions<T, V>): Promise<WeaviateReturn<T, V>>;
-  public nearText(query: string | string[], opts: GroupByNearTextOptions<T, V>): Promise<GroupByReturn<T, V>>;
-  public nearText(query: string | string[], opts?: NearTextOptions<T, V>): QueryReturn<T, V> {
+  public nearText<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
+    query: string | string[],
+    opts?: BaseNearTextOptions<T, V, I>
+  ): Promise<WeaviateReturn<T, RV>>;
+  public nearText<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
+    query: string | string[],
+    opts: GroupByNearTextOptions<T, V, I>
+  ): Promise<GroupByReturn<T, RV>>;
+  public nearText<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
+    query: string | string[],
+    opts?: NearTextOptions<T, V, I>
+  ): QueryReturn<T, RV> {
     return this.check
       .nearSearch(opts)
       .then(({ search, supportsTargets, supportsWeightsForTargets }) => ({
@@ -237,12 +295,18 @@ class QueryManager<T, V> implements Query<T, V> {
       .then((reply) => this.parseGroupByReply(opts, reply));
   }
 
-  public nearVector(vector: NearVectorInputType, opts?: BaseNearOptions<T, V>): Promise<WeaviateReturn<T, V>>;
-  public nearVector(
+  public nearVector<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
     vector: NearVectorInputType,
-    opts: GroupByNearOptions<T, V>
-  ): Promise<GroupByReturn<T, V>>;
-  public nearVector(vector: NearVectorInputType, opts?: NearOptions<T, V>): QueryReturn<T, V> {
+    opts?: BaseNearOptions<T, V, I>
+  ): Promise<WeaviateReturn<T, RV>>;
+  public nearVector<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
+    vector: NearVectorInputType,
+    opts: GroupByNearOptions<T, V, I>
+  ): Promise<GroupByReturn<T, RV>>;
+  public nearVector<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
+    vector: NearVectorInputType,
+    opts?: NearOptions<T, V, I>
+  ): QueryReturn<T, RV> {
     return this.check
       .nearVector(vector, opts)
       .then(

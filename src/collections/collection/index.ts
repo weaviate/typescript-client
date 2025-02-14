@@ -14,7 +14,7 @@ import { Iterator } from '../iterator/index.js';
 import query, { Query } from '../query/index.js';
 import sort, { Sort } from '../sort/index.js';
 import tenants, { TenantBase, Tenants } from '../tenants/index.js';
-import { QueryMetadata, QueryProperty, QueryReference } from '../types/index.js';
+import { QueryMetadata, QueryProperty, QueryReference, ReturnVectors } from '../types/index.js';
 import { IncludeVector } from '../types/internal.js';
 import multiTargetVector, { MultiTargetVector } from '../vectors/multiTargetVector.js';
 
@@ -55,15 +55,19 @@ export interface Collection<T = undefined, N = string, V = undefined> {
    * This iterator keeps a record of the last object that it returned to be used in each subsequent call to Weaviate.
    * Once the collection is exhausted, the iterator exits.
    *
+   * @typeParam I - The vector(s) to include in the response. If using named vectors, pass an array of strings to include only specific vectors.
+   * @typeParam RV - The vectors(s) to be returned in the response depending on the input in opts.includeVector.
    * @param {IteratorOptions<T>} opts The options to use when fetching objects from Weaviate.
    * @returns {Iterator<T>} An iterator over the objects in the collection as an async generator.
    *
    * @description If `return_properties` is not provided, all the properties of each object will be
    * requested from Weaviate except for its vector as this is an expensive operation. Specify `include_vector`
-   * to request the vector back as well. In addition, if `return_references=None` then none of the references
+   * to request the vectors back as well. In addition, if `return_references=None` then none of the references
    * are returned. Use `wvc.QueryReference` to specify which references to return.
    */
-  iterator: (opts?: IteratorOptions<T, V>) => Iterator<T, V>;
+  iterator: <I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
+    opts?: IteratorOptions<T, I>
+  ) => Iterator<T, RV>;
   /**
    * Use this method to return the total number of objects in the collection.
    *
@@ -95,8 +99,8 @@ export interface Collection<T = undefined, N = string, V = undefined> {
   withTenant: <TT extends TenantBase>(tenant: string | TT) => Collection<T, N, V>;
 }
 
-export type IteratorOptions<T, V> = {
-  includeVector?: IncludeVector<V>;
+export type IteratorOptions<T, I> = {
+  includeVector?: I;
   returnMetadata?: QueryMetadata;
   returnProperties?: QueryProperty<T>[];
   returnReferences?: QueryReference<T>[];
@@ -146,10 +150,10 @@ const collection = <T, N, V>(
     sort: sort<T>(),
     tenants: tenants(connection, capitalizedName, dbVersionSupport),
     exists: () => new ClassExists(connection).withClassName(capitalizedName).do(),
-    iterator: (opts?: IteratorOptions<T, V>) =>
-      new Iterator<T, V>((limit: number, after?: string) =>
+    iterator: <I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(opts?: IteratorOptions<T, I>) =>
+      new Iterator<T, RV>((limit: number, after?: string) =>
         queryCollection
-          .fetchObjects({
+          .fetchObjects<I, RV>({
             limit,
             after,
             includeVector: opts?.includeVector,
