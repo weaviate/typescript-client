@@ -31,7 +31,9 @@ import {
   GenerativeGroupByReturn,
   GenerativeReturn,
   GroupByOptions,
+  ReturnVectors,
 } from '../types/index.js';
+import { IncludeVector } from '../types/internal.js';
 import { Generate } from './types.js';
 
 class GenerateManager<T, V> implements Generate<T, V> {
@@ -53,19 +55,19 @@ class GenerateManager<T, V> implements Generate<T, V> {
     );
   }
 
-  private async parseReply(reply: SearchReply) {
+  private async parseReply<RV>(reply: SearchReply) {
     const deserialize = await Deserialize.use(this.check.dbVersionSupport);
-    return deserialize.generate<T, V>(reply);
+    return deserialize.generate<T, RV>(reply);
   }
 
-  private async parseGroupByReply(
-    opts: SearchOptions<T, V> | GroupByOptions<T> | undefined,
+  private async parseGroupByReply<RV>(
+    opts: SearchOptions<any, any> | GroupByOptions<any> | undefined,
     reply: SearchReply
   ) {
     const deserialize = await Deserialize.use(this.check.dbVersionSupport);
     return Serialize.search.isGroupBy(opts)
-      ? deserialize.generateGroupBy<T, V>(reply)
-      : deserialize.generate<T, V>(reply);
+      ? deserialize.generateGroupBy<T, RV>(reply)
+      : deserialize.generate<T, RV>(reply);
   }
 
   public fetchObjects(
@@ -85,17 +87,21 @@ class GenerateManager<T, V> implements Generate<T, V> {
       .then((reply) => this.parseReply(reply));
   }
 
-  public bm25(
+  public bm25<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
     query: string,
     generate: GenerateOptions<T>,
-    opts?: BaseBm25Options<T, V>
-  ): Promise<GenerativeReturn<T, V>>;
-  public bm25(
+    opts?: BaseBm25Options<T, I>
+  ): Promise<GenerativeReturn<T, RV>>;
+  public bm25<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
     query: string,
     generate: GenerateOptions<T>,
-    opts: GroupByBm25Options<T, V>
-  ): Promise<GenerativeGroupByReturn<T, V>>;
-  public bm25(query: string, generate: GenerateOptions<T>, opts?: Bm25Options<T, V>): GenerateReturn<T, V> {
+    opts: GroupByBm25Options<T, I>
+  ): Promise<GenerativeGroupByReturn<T, RV>>;
+  public bm25<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
+    query: string,
+    generate: GenerateOptions<T>,
+    opts?: Bm25Options<T, I>
+  ): GenerateReturn<T, RV> {
     return this.check
       .bm25(opts)
       .then(({ search }) => ({
@@ -109,21 +115,21 @@ class GenerateManager<T, V> implements Generate<T, V> {
       .then((reply) => this.parseGroupByReply(opts, reply));
   }
 
-  public hybrid(
+  public hybrid<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
     query: string,
     generate: GenerateOptions<T>,
-    opts?: BaseHybridOptions<T, V>
-  ): Promise<GenerativeReturn<T, V>>;
-  public hybrid(
+    opts?: BaseHybridOptions<T, V, I>
+  ): Promise<GenerativeReturn<T, RV>>;
+  public hybrid<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
     query: string,
     generate: GenerateOptions<T>,
-    opts: GroupByHybridOptions<T, V>
-  ): Promise<GenerativeGroupByReturn<T, V>>;
-  public hybrid(
+    opts: GroupByHybridOptions<T, V, I>
+  ): Promise<GenerativeGroupByReturn<T, RV>>;
+  public hybrid<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
     query: string,
     generate: GenerateOptions<T>,
-    opts?: HybridOptions<T, V>
-  ): GenerateReturn<T, V> {
+    opts?: HybridOptions<T, V, I>
+  ): GenerateReturn<T, RV> {
     return this.check
       .hybridSearch(opts)
       .then(
@@ -154,21 +160,21 @@ class GenerateManager<T, V> implements Generate<T, V> {
       .then((reply) => this.parseGroupByReply(opts, reply));
   }
 
-  public nearImage(
+  public nearImage<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
     image: string | Buffer,
     generate: GenerateOptions<T>,
-    opts?: BaseNearOptions<T, V>
-  ): Promise<GenerativeReturn<T, V>>;
-  public nearImage(
+    opts?: BaseNearOptions<T, V, I>
+  ): Promise<GenerativeReturn<T, RV>>;
+  public nearImage<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
     image: string | Buffer,
     generate: GenerateOptions<T>,
-    opts: GroupByNearOptions<T, V>
-  ): Promise<GenerativeGroupByReturn<T, V>>;
-  public nearImage(
+    opts: GroupByNearOptions<T, V, I>
+  ): Promise<GenerativeGroupByReturn<T, RV>>;
+  public nearImage<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
     image: string | Buffer,
     generate: GenerateOptions<T>,
-    opts?: NearOptions<T, V>
-  ): GenerateReturn<T, V> {
+    opts?: NearOptions<T, V, I>
+  ): GenerateReturn<T, RV> {
     return this.check
       .nearSearch(opts)
       .then(async ({ search, supportsTargets, supportsWeightsForTargets }) => ({
@@ -189,21 +195,21 @@ class GenerateManager<T, V> implements Generate<T, V> {
       .then((reply) => this.parseGroupByReply(opts, reply));
   }
 
-  public nearObject(
+  public nearObject<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
     id: string,
     generate: GenerateOptions<T>,
-    opts?: BaseNearOptions<T, V>
-  ): Promise<GenerativeReturn<T, V>>;
-  public nearObject(
+    opts?: BaseNearOptions<T, V, I>
+  ): Promise<GenerativeReturn<T, RV>>;
+  public nearObject<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
     id: string,
     generate: GenerateOptions<T>,
-    opts: GroupByNearOptions<T, V>
-  ): Promise<GenerativeGroupByReturn<T, V>>;
-  public nearObject(
+    opts: GroupByNearOptions<T, V, I>
+  ): Promise<GenerativeGroupByReturn<T, RV>>;
+  public nearObject<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
     id: string,
     generate: GenerateOptions<T>,
-    opts?: NearOptions<T, V>
-  ): GenerateReturn<T, V> {
+    opts?: NearOptions<T, V, I>
+  ): GenerateReturn<T, RV> {
     return this.check
       .nearSearch(opts)
       .then(({ search, supportsTargets, supportsWeightsForTargets }) => ({
@@ -224,21 +230,21 @@ class GenerateManager<T, V> implements Generate<T, V> {
       .then((reply) => this.parseGroupByReply(opts, reply));
   }
 
-  public nearText(
+  public nearText<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
     query: string | string[],
     generate: GenerateOptions<T>,
-    opts?: BaseNearTextOptions<T, V>
-  ): Promise<GenerativeReturn<T, V>>;
-  public nearText(
+    opts?: BaseNearTextOptions<T, V, I>
+  ): Promise<GenerativeReturn<T, RV>>;
+  public nearText<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
     query: string | string[],
     generate: GenerateOptions<T>,
-    opts: GroupByNearTextOptions<T, V>
-  ): Promise<GenerativeGroupByReturn<T, V>>;
-  public nearText(
+    opts: GroupByNearTextOptions<T, V, I>
+  ): Promise<GenerativeGroupByReturn<T, RV>>;
+  public nearText<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
     query: string | string[],
     generate: GenerateOptions<T>,
-    opts?: NearOptions<T, V>
-  ): GenerateReturn<T, V> {
+    opts?: NearOptions<T, V, I>
+  ): GenerateReturn<T, RV> {
     return this.check
       .nearSearch(opts)
       .then(({ search, supportsTargets, supportsWeightsForTargets }) => ({
@@ -259,21 +265,21 @@ class GenerateManager<T, V> implements Generate<T, V> {
       .then((reply) => this.parseGroupByReply(opts, reply));
   }
 
-  public nearVector(
+  public nearVector<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
     vector: number[],
     generate: GenerateOptions<T>,
-    opts?: BaseNearOptions<T, V>
-  ): Promise<GenerativeReturn<T, V>>;
-  public nearVector(
+    opts?: BaseNearOptions<T, V, I>
+  ): Promise<GenerativeReturn<T, RV>>;
+  public nearVector<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
     vector: number[],
     generate: GenerateOptions<T>,
-    opts: GroupByNearOptions<T, V>
-  ): Promise<GenerativeGroupByReturn<T, V>>;
-  public nearVector(
+    opts: GroupByNearOptions<T, V, I>
+  ): Promise<GenerativeGroupByReturn<T, RV>>;
+  public nearVector<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
     vector: number[],
     generate: GenerateOptions<T>,
-    opts?: NearOptions<T, V>
-  ): GenerateReturn<T, V> {
+    opts?: NearOptions<T, V, I>
+  ): GenerateReturn<T, RV> {
     return this.check
       .nearVector(vector, opts)
       .then(
@@ -304,24 +310,24 @@ class GenerateManager<T, V> implements Generate<T, V> {
       .then((reply) => this.parseGroupByReply(opts, reply));
   }
 
-  public nearMedia(
+  public nearMedia<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
     media: string | Buffer,
     type: NearMediaType,
     generate: GenerateOptions<T>,
-    opts?: BaseNearOptions<T, V>
-  ): Promise<GenerativeReturn<T, V>>;
-  public nearMedia(
+    opts?: BaseNearOptions<T, V, I>
+  ): Promise<GenerativeReturn<T, RV>>;
+  public nearMedia<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
     media: string | Buffer,
     type: NearMediaType,
     generate: GenerateOptions<T>,
-    opts: GroupByNearOptions<T, V>
-  ): Promise<GenerativeGroupByReturn<T, V>>;
-  public nearMedia(
+    opts: GroupByNearOptions<T, V, I>
+  ): Promise<GenerativeGroupByReturn<T, RV>>;
+  public nearMedia<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
     media: string | Buffer,
     type: NearMediaType,
     generate: GenerateOptions<T>,
-    opts?: NearOptions<T, V>
-  ): GenerateReturn<T, V> {
+    opts?: NearOptions<T, V, I>
+  ): GenerateReturn<T, RV> {
     return this.check
       .nearSearch(opts)
       .then(({ search, supportsTargets, supportsWeightsForTargets }) => {

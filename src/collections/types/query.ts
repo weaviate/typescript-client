@@ -61,7 +61,9 @@ export interface Vectors {
   [k: string]: PrimitiveVectorType;
 }
 
-export type ReturnVectors<V, I> = I extends true
+export type ReturnVectors<V, I> = V extends undefined
+  ? undefined
+  : I extends true
   ? V
   : I extends Array<infer U>
   ? Pick<

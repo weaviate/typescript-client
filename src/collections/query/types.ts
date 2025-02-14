@@ -1,5 +1,5 @@
 import { FilterValue } from '../filters/index.js';
-import { MultiTargetVectorJoin } from '../index.js';
+import { MultiTargetVectorJoin, ReturnVectors } from '../index.js';
 import { Sorting } from '../sort/classes.js';
 import {
   GroupByOptions,
@@ -14,9 +14,9 @@ import {
 import { IncludeVector, PrimitiveKeys } from '../types/internal.js';
 
 /** Options available in the `query.fetchObjectById` method */
-export type FetchObjectByIdOptions<T, V> = {
+export type FetchObjectByIdOptions<T, I> = {
   /** Whether to include the vector of the object in the response. If using named vectors, pass an array of strings to include only specific vectors. */
-  includeVector?: IncludeVector<V>;
+  includeVector?: I;
   /**
    * Which properties of the object to return. Can be primitive, in which case specify their names, or nested, in which case
    * use the QueryNested<T> type. If not specified, all properties are returned.
@@ -27,7 +27,7 @@ export type FetchObjectByIdOptions<T, V> = {
 };
 
 /** Options available in the `query.fetchObjects` method */
-export type FetchObjectsOptions<T, V> = {
+export type FetchObjectsOptions<T, I> = {
   /** How many objects to return in the query */
   limit?: number;
   /** How many objects to skip in the query. Incompatible with the `after` cursor */
@@ -39,7 +39,7 @@ export type FetchObjectsOptions<T, V> = {
   /** The sorting to be applied to the query. Use `weaviate.sort.*` to create sorting */
   sort?: Sorting<T>;
   /** Whether to include the vector of the object in the response. If using named vectors, pass an array of strings to include only specific vectors. */
-  includeVector?: IncludeVector<V>;
+  includeVector?: I;
   /** Which metadata of the object to return. If not specified, no metadata is returned. */
   returnMetadata?: QueryMetadata;
   /**
@@ -52,7 +52,7 @@ export type FetchObjectsOptions<T, V> = {
 };
 
 /** Base options available to all the query methods that involve searching. */
-export type SearchOptions<T, V> = {
+export type SearchOptions<T, I> = {
   /** How many objects to return in the query */
   limit?: number;
   /** How many objects to skip in the query. Incompatible with the `after` cursor */
@@ -64,7 +64,7 @@ export type SearchOptions<T, V> = {
   /** How to rerank the query results. Requires a configured [reranking](https://weaviate.io/developers/weaviate/concepts/reranking) module. */
   rerank?: RerankOptions<T>;
   /** Whether to include the vector of the object in the response. If using named vectors, pass an array of strings to include only specific vectors. */
-  includeVector?: IncludeVector<V>;
+  includeVector?: I;
   /** Which metadata of the object to return. If not specified, no metadata is returned. */
   returnMetadata?: QueryMetadata;
   /**
@@ -90,16 +90,16 @@ export type Bm25SearchOptions<T> = {
 };
 
 /** Base options available in the `query.bm25` method */
-export type BaseBm25Options<T, V> = SearchOptions<T, V> & Bm25SearchOptions<T>;
+export type BaseBm25Options<T, I> = SearchOptions<T, I> & Bm25SearchOptions<T>;
 
 /** Options available in the `query.bm25` method when specifying the `groupBy` parameter. */
-export type GroupByBm25Options<T, V> = BaseBm25Options<T, V> & {
+export type GroupByBm25Options<T, I> = BaseBm25Options<T, I> & {
   /** The group by options to apply to the search. */
   groupBy: GroupByOptions<T>;
 };
 
 /** Options available in the `query.bm25` method */
-export type Bm25Options<T, V> = BaseBm25Options<T, V> | GroupByBm25Options<T, V> | undefined;
+export type Bm25Options<T, I> = BaseBm25Options<T, I> | GroupByBm25Options<T, I> | undefined;
 
 /** Options available to the hybrid search type only */
 export type HybridSearchOptions<T, V> = {
@@ -118,7 +118,7 @@ export type HybridSearchOptions<T, V> = {
 };
 
 /** Base options available in the `query.hybrid` method */
-export type BaseHybridOptions<T, V> = SearchOptions<T, V> & HybridSearchOptions<T, V>;
+export type BaseHybridOptions<T, V, I> = SearchOptions<T, I> & HybridSearchOptions<T, V>;
 
 export type HybridSubSearchBase = {
   certainty?: number;
@@ -136,13 +136,13 @@ export type HybridNearVectorSubSearch = HybridSubSearchBase & {
 };
 
 /** Options available in the `query.hybrid` method when specifying the `groupBy` parameter. */
-export type GroupByHybridOptions<T, V> = BaseHybridOptions<T, V> & {
+export type GroupByHybridOptions<T, V, I> = BaseHybridOptions<T, V, I> & {
   /** The group by options to apply to the search. */
   groupBy: GroupByOptions<T>;
 };
 
 /** Options available in the `query.hybrid` method */
-export type HybridOptions<T, V> = BaseHybridOptions<T, V> | GroupByHybridOptions<T, V> | undefined;
+export type HybridOptions<T, V, I> = BaseHybridOptions<T, V, I> | GroupByHybridOptions<T, V, I> | undefined;
 
 export type NearSearchOptions<V> = {
   /** The minimum similarity score to return. Incompatible with the `distance` param. */
@@ -154,10 +154,10 @@ export type NearSearchOptions<V> = {
 };
 
 /** Base options for the near search queries. */
-export type BaseNearOptions<T, V> = SearchOptions<T, V> & NearSearchOptions<V>;
+export type BaseNearOptions<T, V, I> = SearchOptions<T, I> & NearSearchOptions<V>;
 
 /** Options available in the near search queries when specifying the `groupBy` parameter. */
-export type GroupByNearOptions<T, V> = BaseNearOptions<T, V> & {
+export type GroupByNearOptions<T, V, I> = BaseNearOptions<T, V, I> & {
   /** The group by options to apply to the search. */
   groupBy: GroupByOptions<T>;
 };
@@ -170,13 +170,13 @@ export type MoveOptions = {
 };
 
 /** Base options for the `query.nearText` method. */
-export type BaseNearTextOptions<T, V> = BaseNearOptions<T, V> & {
+export type BaseNearTextOptions<T, V, I> = BaseNearOptions<T, V, I> & {
   moveTo?: MoveOptions;
   moveAway?: MoveOptions;
 };
 
 /** Options available in the near text search queries when specifying the `groupBy` parameter. */
-export type GroupByNearTextOptions<T, V> = BaseNearTextOptions<T, V> & {
+export type GroupByNearTextOptions<T, V, I> = BaseNearTextOptions<T, V, I> & {
   groupBy: GroupByOptions<T>;
 };
 
@@ -227,11 +227,16 @@ interface Bm25<T, V> {
    *
    * This overload is for performing a search without the `groupBy` param.
    *
+   * @typeParam I - The vector(s) to include in the response. If using named vectors, pass an array of strings to include only specific vectors.
+   * @typeParam RV - The vectors(s) to be returned in the response depending on the input in opts.includeVector.
    * @param {string} query - The query to search for.
-   * @param {BaseBm25Options<T, V>} [opts] - The available options for the search excluding the `groupBy` param.
-   * @returns {Promise<WeaviateReturn<T, V>>} - The result of the search within the fetched collection.
+   * @param {BaseBm25Options<T, I>} [opts] - The available options for the search excluding the `groupBy` param.
+   * @returns {Promise<WeaviateReturn<T, ReturnVectors<V, I>>>} - The result of the search within the fetched collection.
    */
-  bm25(query: string, opts?: BaseBm25Options<T, V>): Promise<WeaviateReturn<T, V>>;
+  bm25<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
+    query: string,
+    opts?: BaseBm25Options<T, I>
+  ): Promise<WeaviateReturn<T, RV>>;
   /**
    * Search for objects in this collection using the keyword-based BM25 algorithm.
    *
@@ -239,11 +244,16 @@ interface Bm25<T, V> {
    *
    * This overload is for performing a search with the `groupBy` param.
    *
+   * @typeParam I - The vector(s) to include in the response. If using named vectors, pass an array of strings to include only specific vectors.
+   * @typeParam RV - The vectors(s) to be returned in the response depending on the input in opts.includeVector.
    * @param {string} query - The query to search for.
-   * @param {GroupByBm25Options<T, V>} opts - The available options for the search including the `groupBy` param.
+   * @param {GroupByBm25Options<T, I>} opts - The available options for the search including the `groupBy` param.
    * @returns {Promise<GroupByReturn<T, V>>} - The result of the search within the fetched collection.
    */
-  bm25(query: string, opts: GroupByBm25Options<T, V>): Promise<GroupByReturn<T, V>>;
+  bm25<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
+    query: string,
+    opts: GroupByBm25Options<T, I>
+  ): Promise<GroupByReturn<T, RV>>;
   /**
    * Search for objects in this collection using the keyword-based BM25 algorithm.
    *
@@ -251,11 +261,16 @@ interface Bm25<T, V> {
    *
    * This overload is for performing a search with a programmatically defined `opts` param.
    *
+   * @typeParam I - The vector(s) to include in the response. If using named vectors, pass an array of strings to include only specific vectors.
+   * @typeParam RV - The vectors(s) to be returned in the response depending on the input in opts.includeVector.
    * @param {string} query - The query to search for.
    * @param {Bm25Options<T, V>} [opts] - The available options for the search including the `groupBy` param.
    * @returns {Promise<GroupByReturn<T, V>>} - The result of the search within the fetched collection.
    */
-  bm25(query: string, opts?: Bm25Options<T, V>): QueryReturn<T, V>;
+  bm25<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
+    query: string,
+    opts?: Bm25Options<T, I>
+  ): QueryReturn<T, RV>;
 }
 
 interface Hybrid<T, V> {
@@ -266,11 +281,16 @@ interface Hybrid<T, V> {
    *
    * This overload is for performing a search without the `groupBy` param.
    *
+   * @typeParam I - The vector(s) to include in the response. If using named vectors, pass an array of strings to include only specific vectors.
+   * @typeParam RV - The vectors(s) to be returned in the response depending on the input in opts.includeVector.
    * @param {string} query - The query to search for in the BM25 keyword search..
    * @param {BaseHybridOptions<T, V>} [opts] - The available options for the search excluding the `groupBy` param.
    * @returns {Promise<WeaviateReturn<T, V>>} - The result of the search within the fetched collection.
    */
-  hybrid(query: string, opts?: BaseHybridOptions<T, V>): Promise<WeaviateReturn<T, V>>;
+  hybrid<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
+    query: string,
+    opts?: BaseHybridOptions<T, V, I>
+  ): Promise<WeaviateReturn<T, RV>>;
   /**
    * Search for objects in this collection using the hybrid algorithm blending keyword-based BM25 and vector-based similarity.
    *
@@ -278,11 +298,16 @@ interface Hybrid<T, V> {
    *
    * This overload is for performing a search with the `groupBy` param.
    *
+   * @typeParam I - The vector(s) to include in the response. If using named vectors, pass an array of strings to include only specific vectors.
+   * @typeParam RV - The vectors(s) to be returned in the response depending on the input in opts.includeVector.
    * @param {string} query - The query to search for in the BM25 keyword search..
    * @param {GroupByHybridOptions<T, V>} opts - The available options for the search including the `groupBy` param.
    * @returns {Promise<GroupByReturn<T, V>>} - The result of the search within the fetched collection.
    */
-  hybrid(query: string, opts: GroupByHybridOptions<T, V>): Promise<GroupByReturn<T, V>>;
+  hybrid<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
+    query: string,
+    opts: GroupByHybridOptions<T, V, I>
+  ): Promise<GroupByReturn<T, RV>>;
   /**
    * Search for objects in this collection using the hybrid algorithm blending keyword-based BM25 and vector-based similarity.
    *
@@ -294,7 +319,10 @@ interface Hybrid<T, V> {
    * @param {HybridOptions<T, V>} [opts] - The available options for the search including the `groupBy` param.
    * @returns {Promise<QueryReturn<T, V>>} - The result of the search within the fetched collection.
    */
-  hybrid(query: string, opts?: HybridOptions<T, V>): QueryReturn<T, V>;
+  hybrid<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
+    query: string,
+    opts?: HybridOptions<T, V, I>
+  ): QueryReturn<T, RV>;
 }
 
 interface NearImage<T, V> {
@@ -311,7 +339,10 @@ interface NearImage<T, V> {
    * @param {BaseNearOptions<T, V>} [opts] - The available options for the search excluding the `groupBy` param.
    * @returns {Promise<WeaviateReturn<T, V>>} - The result of the search within the fetched collection.
    */
-  nearImage(image: string | Buffer, opts?: BaseNearOptions<T, V>): Promise<WeaviateReturn<T, V>>;
+  nearImage<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
+    image: string | Buffer,
+    opts?: BaseNearOptions<T, V, I>
+  ): Promise<WeaviateReturn<T, RV>>;
   /**
    * Search for objects by image in this collection using an image-capable vectorization module and vector-based similarity search.
    * You must have an image-capable vectorization module installed in order to use this method,
@@ -325,7 +356,10 @@ interface NearImage<T, V> {
    * @param {GroupByNearOptions<T, V>} opts - The available options for the search including the `groupBy` param.
    * @returns {Promise<GroupByReturn<T, V>>} - The group by result of the search within the fetched collection.
    */
-  nearImage(image: string | Buffer, opts: GroupByNearOptions<T, V>): Promise<GroupByReturn<T, V>>;
+  nearImage<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
+    image: string | Buffer,
+    opts: GroupByNearOptions<T, V, I>
+  ): Promise<GroupByReturn<T, RV>>;
   /**
    * Search for objects by image in this collection using an image-capable vectorization module and vector-based similarity search.
    * You must have an image-capable vectorization module installed in order to use this method,
@@ -339,7 +373,10 @@ interface NearImage<T, V> {
    * @param {NearOptions<T, V>} [opts] - The available options for the search.
    * @returns {QueryReturn<T, V>} - The result of the search within the fetched collection.
    */
-  nearImage(image: string | Buffer, opts?: NearOptions<T, V>): QueryReturn<T, V>;
+  nearImage<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
+    image: string | Buffer,
+    opts?: NearOptions<T, V, I>
+  ): QueryReturn<T, RV>;
 }
 
 interface NearMedia<T, V> {
@@ -356,11 +393,11 @@ interface NearMedia<T, V> {
    * @param {BaseNearOptions<T, V>} [opts] - The available options for the search excluding the `groupBy` param.
    * @returns {Promise<WeaviateReturn<T, V>>} - The result of the search within the fetched collection.
    */
-  nearMedia(
+  nearMedia<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
     media: string | Buffer,
     type: NearMediaType,
-    opts?: BaseNearOptions<T, V>
-  ): Promise<WeaviateReturn<T, V>>;
+    opts?: BaseNearOptions<T, V, I>
+  ): Promise<WeaviateReturn<T, RV>>;
   /**
    * Search for objects by image in this collection using an image-capable vectorization module and vector-based similarity search.
    * You must have a multi-media-capable vectorization module installed in order to use this method, e.g. `multi2vec-bind` or `multi2vec-palm`.
@@ -374,11 +411,11 @@ interface NearMedia<T, V> {
    * @param {GroupByNearOptions<T, V>} opts - The available options for the search including the `groupBy` param.
    * @returns {Promise<GroupByReturn<T, V>>} - The group by result of the search within the fetched collection.
    */
-  nearMedia(
+  nearMedia<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
     media: string | Buffer,
     type: NearMediaType,
-    opts: GroupByNearOptions<T, V>
-  ): Promise<GroupByReturn<T, V>>;
+    opts: GroupByNearOptions<T, V, I>
+  ): Promise<GroupByReturn<T, RV>>;
   /**
    * Search for objects by image in this collection using an image-capable vectorization module and vector-based similarity search.
    * You must have a multi-media-capable vectorization module installed in order to use this method, e.g. `multi2vec-bind` or `multi2vec-palm`.
@@ -392,7 +429,11 @@ interface NearMedia<T, V> {
    * @param {NearOptions<T, V>} [opts] - The available options for the search.
    * @returns {QueryReturn<T, V>} - The result of the search within the fetched collection.
    */
-  nearMedia(media: string | Buffer, type: NearMediaType, opts?: NearOptions<T, V>): QueryReturn<T, V>;
+  nearMedia<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
+    media: string | Buffer,
+    type: NearMediaType,
+    opts?: NearOptions<T, V, I>
+  ): QueryReturn<T, RV>;
 }
 
 interface NearObject<T, V> {
@@ -407,7 +448,10 @@ interface NearObject<T, V> {
    * @param {BaseNearOptions<T, V>} [opts] - The available options for the search excluding the `groupBy` param.
    * @returns {Promise<WeaviateReturn<T, V>>} - The result of the search within the fetched collection.
    */
-  nearObject(id: string, opts?: BaseNearOptions<T, V>): Promise<WeaviateReturn<T, V>>;
+  nearObject<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
+    id: string,
+    opts?: BaseNearOptions<T, V, I>
+  ): Promise<WeaviateReturn<T, RV>>;
   /**
    * Search for objects in this collection by another object using a vector-based similarity search.
    *
@@ -419,7 +463,10 @@ interface NearObject<T, V> {
    * @param {GroupByNearOptions<T, V>} opts - The available options for the search including the `groupBy` param.
    * @returns {Promise<GroupByReturn<T, V>>} - The group by result of the search within the fetched collection.
    */
-  nearObject(id: string, opts: GroupByNearOptions<T, V>): Promise<GroupByReturn<T, V>>;
+  nearObject<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
+    id: string,
+    opts: GroupByNearOptions<T, V, I>
+  ): Promise<GroupByReturn<T, RV>>;
   /**
    * Search for objects in this collection by another object using a vector-based similarity search.
    *
@@ -431,7 +478,10 @@ interface NearObject<T, V> {
    * @param {NearOptions<T, V>} [opts] - The available options for the search.
    * @returns {QueryReturn<T, V>} - The result of the search within the fetched collection.
    */
-  nearObject(id: string, opts?: NearOptions<T, V>): QueryReturn<T, V>;
+  nearObject<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
+    id: string,
+    opts?: NearOptions<T, V, I>
+  ): QueryReturn<T, RV>;
 }
 
 interface NearText<T, V> {
@@ -448,7 +498,10 @@ interface NearText<T, V> {
    * @param {BaseNearTextOptions<T, V>} [opts] - The available options for the search excluding the `groupBy` param.
    * @returns {Promise<WeaviateReturn<T, V>>} - The result of the search within the fetched collection.
    */
-  nearText(query: string | string[], opts?: BaseNearTextOptions<T, V>): Promise<WeaviateReturn<T, V>>;
+  nearText<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
+    query: string | string[],
+    opts?: BaseNearTextOptions<T, V, I>
+  ): Promise<WeaviateReturn<T, RV>>;
   /**
    * Search for objects in this collection by text using text-capable vectorization module and vector-based similarity search.
    * You must have a text-capable vectorization module installed in order to use this method,
@@ -462,7 +515,10 @@ interface NearText<T, V> {
    * @param {GroupByNearTextOptions<T, V>} opts - The available options for the search including the `groupBy` param.
    * @returns {Promise<GroupByReturn<T, V>>} - The group by result of the search within the fetched collection.
    */
-  nearText(query: string | string[], opts: GroupByNearTextOptions<T, V>): Promise<GroupByReturn<T, V>>;
+  nearText<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
+    query: string | string[],
+    opts: GroupByNearTextOptions<T, V, I>
+  ): Promise<GroupByReturn<T, RV>>;
   /**
    * Search for objects in this collection by text using text-capable vectorization module and vector-based similarity search.
    * You must have a text-capable vectorization module installed in order to use this method,
@@ -476,7 +532,10 @@ interface NearText<T, V> {
    * @param {NearTextOptions<T, V>} [opts] - The available options for the search.
    * @returns {QueryReturn<T, V>} - The result of the search within the fetched collection.
    */
-  nearText(query: string | string[], opts?: NearTextOptions<T, V>): QueryReturn<T, V>;
+  nearText<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
+    query: string | string[],
+    opts?: NearTextOptions<T, V, I>
+  ): QueryReturn<T, RV>;
 }
 
 interface NearVector<T, V> {
@@ -491,7 +550,10 @@ interface NearVector<T, V> {
    * @param {BaseNearOptions<T, V>} [opts] - The available options for the search excluding the `groupBy` param.
    * @returns {Promise<WeaviateReturn<T, V>>} - The result of the search within the fetched collection.
    */
-  nearVector(vector: NearVectorInputType, opts?: BaseNearOptions<T, V>): Promise<WeaviateReturn<T, V>>;
+  nearVector<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
+    vector: NearVectorInputType,
+    opts?: BaseNearOptions<T, V, I>
+  ): Promise<WeaviateReturn<T, RV>>;
   /**
    * Search for objects by vector in this collection using a vector-based similarity search.
    *
@@ -503,7 +565,10 @@ interface NearVector<T, V> {
    * @param {GroupByNearOptions<T, V>} opts - The available options for the search including the `groupBy` param.
    * @returns {Promise<GroupByReturn<T, V>>} - The group by result of the search within the fetched collection.
    */
-  nearVector(vector: NearVectorInputType, opts: GroupByNearOptions<T, V>): Promise<GroupByReturn<T, V>>;
+  nearVector<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
+    vector: NearVectorInputType,
+    opts: GroupByNearOptions<T, V, I>
+  ): Promise<GroupByReturn<T, RV>>;
   /**
    * Search for objects by vector in this collection using a vector-based similarity search.
    *
@@ -515,7 +580,10 @@ interface NearVector<T, V> {
    * @param {NearOptions<T, V>} [opts] - The available options for the search.
    * @returns {QueryReturn<T, V>} - The result of the search within the fetched collection.
    */
-  nearVector(vector: NearVectorInputType, opts?: NearOptions<T, V>): QueryReturn<T, V>;
+  nearVector<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
+    vector: NearVectorInputType,
+    opts?: NearOptions<T, V, I>
+  ): QueryReturn<T, RV>;
 }
 
 /** All the available methods on the `.query` namespace. */
@@ -534,7 +602,10 @@ export interface Query<T, V>
    * @param {FetchObjectByIdOptions} [opts] - The available options for fetching the object.
    * @returns {Promise<WeaviateObject<T, V> | null>} - The object with the given UUID, or null if it does not exist.
    */
-  fetchObjectById: (id: string, opts?: FetchObjectByIdOptions<T, V>) => Promise<WeaviateObject<T, V> | null>;
+  fetchObjectById: <I extends IncludeVector<V>>(
+    id: string,
+    opts?: FetchObjectByIdOptions<T, I>
+  ) => Promise<WeaviateObject<T, ReturnVectors<V, I>> | null>;
 
   /**
    * Retrieve objects from the server without searching.
@@ -542,13 +613,18 @@ export interface Query<T, V>
    * @param {FetchObjectsOptions} [opts] - The available options for fetching the objects.
    * @returns {Promise<WeaviateReturn<T, V>>} - The objects within the fetched collection.
    */
-  fetchObjects: (opts?: FetchObjectsOptions<T, V>) => Promise<WeaviateReturn<T, V>>;
+  fetchObjects: <I extends IncludeVector<V>>(
+    opts?: FetchObjectsOptions<T, I>
+  ) => Promise<WeaviateReturn<T, ReturnVectors<V, I>>>;
 }
 /** Options available in the `query.nearImage`, `query.nearMedia`, `query.nearObject`, and `query.nearVector` methods */
-export type NearOptions<T, V> = BaseNearOptions<T, V> | GroupByNearOptions<T, V> | undefined;
+export type NearOptions<T, V, I> = BaseNearOptions<T, V, I> | GroupByNearOptions<T, V, I> | undefined;
 
 /** Options available in the `query.nearText` method */
-export type NearTextOptions<T, V> = BaseNearTextOptions<T, V> | GroupByNearTextOptions<T, V> | undefined;
+export type NearTextOptions<T, V, I> =
+  | BaseNearTextOptions<T, V, I>
+  | GroupByNearTextOptions<T, V, I>
+  | undefined;
 
 /** The return type of the `query` methods. It is a union of a standard query and a group by query due to function overloading. */
 export type QueryReturn<T, V> = Promise<WeaviateReturn<T, V>> | Promise<GroupByReturn<T, V>>;

@@ -40,7 +40,7 @@ export class Check<T, V> {
 
   private getSearcher = () => this.connection.search(this.name, this.consistencyLevel, this.tenant);
 
-  private checkSupportForNamedVectors = async (opts?: BaseNearOptions<T, V>) => {
+  private checkSupportForNamedVectors = async (opts?: BaseNearOptions<any, any, any>) => {
     if (!Serialize.isNamedVectors(opts)) return;
     const check = await this.dbVersionSupport.supportsNamedVectors();
     if (!check.supports) throw new WeaviateUnsupportedFeatureError(check.message);
@@ -48,20 +48,22 @@ export class Check<T, V> {
 
   private checkSupportForBm25AndHybridGroupByQueries = async (
     query: 'Bm25' | 'Hybrid',
-    opts?: SearchOptions<T, V> | GroupByOptions<T>
+    opts?: SearchOptions<any, any> | GroupByOptions<any>
   ) => {
     if (!Serialize.search.isGroupBy(opts)) return;
     const check = await this.dbVersionSupport.supportsBm25AndHybridGroupByQueries();
     if (!check.supports) throw new WeaviateUnsupportedFeatureError(check.message(query));
   };
 
-  private checkSupportForHybridNearTextAndNearVectorSubSearches = async (opts?: HybridOptions<T, V>) => {
+  private checkSupportForHybridNearTextAndNearVectorSubSearches = async (
+    opts?: HybridOptions<any, any, any>
+  ) => {
     if (opts?.vector === undefined || Array.isArray(opts.vector)) return;
     const check = await this.dbVersionSupport.supportsHybridNearTextAndNearVectorSubsearchQueries();
     if (!check.supports) throw new WeaviateUnsupportedFeatureError(check.message);
   };
 
-  private checkSupportForMultiTargetSearch = async (opts?: BaseNearOptions<T, V>) => {
+  private checkSupportForMultiTargetSearch = async (opts?: BaseNearOptions<any, any, any>) => {
     if (!Serialize.isMultiTarget(opts)) return false;
     const check = await this.dbVersionSupport.supportsMultiTargetVectorSearch();
     if (!check.supports) throw new WeaviateUnsupportedFeatureError(check.message);
@@ -79,7 +81,7 @@ export class Check<T, V> {
     return check.supports;
   };
 
-  private checkSupportForMultiWeightPerTargetSearch = async (opts?: BaseNearOptions<T, V>) => {
+  private checkSupportForMultiWeightPerTargetSearch = async (opts?: BaseNearOptions<any, any, any>) => {
     if (!Serialize.isMultiWeightPerTarget(opts)) return false;
     const check = await this.dbVersionSupport.supportsMultiWeightsPerTargetSearch();
     if (!check.supports) throw new WeaviateUnsupportedFeatureError(check.message);
@@ -106,7 +108,7 @@ export class Check<T, V> {
     return check.supports;
   };
 
-  public nearSearch = (opts?: BaseNearOptions<T, V>) => {
+  public nearSearch = (opts?: BaseNearOptions<any, any, any>) => {
     return Promise.all([
       this.getSearcher(),
       this.checkSupportForMultiTargetSearch(opts),
@@ -119,7 +121,7 @@ export class Check<T, V> {
     });
   };
 
-  public nearVector = (vec: NearVectorInputType, opts?: BaseNearOptions<T, V>) => {
+  public nearVector = (vec: NearVectorInputType, opts?: BaseNearOptions<any, any, any>) => {
     return Promise.all([
       this.getSearcher(),
       this.checkSupportForMultiTargetSearch(opts),
@@ -151,7 +153,7 @@ export class Check<T, V> {
     );
   };
 
-  public hybridSearch = (opts?: BaseHybridOptions<T, V>) => {
+  public hybridSearch = (opts?: BaseHybridOptions<any, any, any>) => {
     return Promise.all([
       this.getSearcher(),
       this.checkSupportForMultiTargetSearch(opts),
@@ -185,19 +187,19 @@ export class Check<T, V> {
     );
   };
 
-  public fetchObjects = (opts?: FetchObjectsOptions<T, V>) => {
+  public fetchObjects = (opts?: FetchObjectsOptions<any, any>) => {
     return Promise.all([this.getSearcher(), this.checkSupportForNamedVectors(opts)]).then(([search]) => {
       return { search };
     });
   };
 
-  public fetchObjectById = (opts?: FetchObjectByIdOptions<T, V>) => {
+  public fetchObjectById = (opts?: FetchObjectByIdOptions<any, any>) => {
     return Promise.all([this.getSearcher(), this.checkSupportForNamedVectors(opts)]).then(([search]) => {
       return { search };
     });
   };
 
-  public bm25 = (opts?: BaseBm25Options<T, V>) => {
+  public bm25 = (opts?: BaseBm25Options<any, any>) => {
     return Promise.all([
       this.getSearcher(),
       this.checkSupportForNamedVectors(opts),
