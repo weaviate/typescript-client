@@ -10,6 +10,7 @@ import {
   PermissionsInput,
   Role,
   RolesPermission,
+  UsersPermission,
 } from './types.js';
 import { Map } from './util.js';
 
@@ -166,21 +167,28 @@ export const permissions = {
       return out;
     });
   },
-  nodes: (args: {
-    collection: string | string[];
-    verbosity?: 'verbose' | 'minimal';
-    read?: boolean;
-  }): NodesPermission[] => {
-    const collections = Array.isArray(args.collection) ? args.collection : [args.collection];
-    return collections.flatMap((collection) => {
+  nodes: {
+    minimal: (args: { read?: boolean }): NodesPermission[] => {
       const out: NodesPermission = {
-        collection,
+        collection: '*',
         actions: [],
-        verbosity: args.verbosity || 'verbose',
+        verbosity: 'minimal',
       };
       if (args.read) out.actions.push('read_nodes');
-      return out;
-    });
+      return [out];
+    },
+    verbose: (args: { collection: string | string[]; read?: boolean }): NodesPermission[] => {
+      const collections = Array.isArray(args.collection) ? args.collection : [args.collection];
+      return collections.flatMap((collection) => {
+        const out: NodesPermission = {
+          collection,
+          actions: [],
+          verbosity: 'verbose',
+        };
+        if (args.read) out.actions.push('read_nodes');
+        return out;
+      });
+    },
   },
   roles: (args: {
     role: string | string[];
@@ -196,6 +204,19 @@ export const permissions = {
       if (args.read) out.actions.push('read_roles');
       if (args.update) out.actions.push('update_roles');
       if (args.delete) out.actions.push('delete_roles');
+      return out;
+    });
+  },
+  users: (args: {
+    user: string | string[];
+    assign_and_revoke?: boolean;
+    read?: boolean;
+  }): UsersPermission[] => {
+    const users = Array.isArray(args.user) ? args.user : [args.user];
+    return users.flatMap((user) => {
+      const out: UsersPermission = { users: user, actions: [] };
+      if (args.assign_and_revoke) out.actions.push('assign_and_revoke_users');
+      if (args.read) out.actions.push('read_users');
       return out;
     });
   },
