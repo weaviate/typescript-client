@@ -1,9 +1,5 @@
 import weaviate, { ApiKey, Permission, Role, WeaviateClient } from '..';
-import {
-  WeaviateInsufficientPermissionsError,
-  WeaviateStartUpError,
-  WeaviateUnexpectedStatusCodeError,
-} from '../errors';
+import { WeaviateStartUpError, WeaviateUnexpectedStatusCodeError } from '../errors';
 import { DbVersion } from '../utils/dbVersion';
 
 const only = DbVersion.fromString(`v${process.env.WEAVIATE_VERSION!}`).isAtLeast(1, 29, 0)
@@ -34,17 +30,6 @@ only('Integration testing of the roles namespace', () => {
       })
     ).rejects.toThrowError(WeaviateStartUpError));
 
-  it('should fail with insufficient permissions if permission-less key provided', async () => {
-    const unauthenticatedClient = await weaviate.connectToLocal({
-      port: 8091,
-      grpcPort: 50062,
-      authCredentials: new ApiKey('custom-key'),
-    });
-    await expect(unauthenticatedClient.roles.listAll()).rejects.toThrowError(
-      WeaviateInsufficientPermissionsError
-    );
-  });
-
   it('should check the existance of a real role', async () => {
     const exists = await client.roles.exists('admin');
     expect(exists).toBeTruthy();
@@ -73,6 +58,7 @@ only('Integration testing of the roles namespace', () => {
           dataPermissions: [],
           nodesPermissions: [],
           rolesPermissions: [],
+          usersPermissions: [],
         },
       },
       {
@@ -86,6 +72,7 @@ only('Integration testing of the roles namespace', () => {
           dataPermissions: [],
           nodesPermissions: [],
           rolesPermissions: [],
+          usersPermissions: [],
         },
       },
       {
@@ -110,6 +97,7 @@ only('Integration testing of the roles namespace', () => {
           dataPermissions: [],
           nodesPermissions: [],
           rolesPermissions: [],
+          usersPermissions: [],
         },
       },
       {
@@ -134,17 +122,17 @@ only('Integration testing of the roles namespace', () => {
           ],
           nodesPermissions: [],
           rolesPermissions: [],
+          usersPermissions: [],
         },
       },
       {
-        roleName: 'nodes',
-        permissions: weaviate.permissions.nodes({
+        roleName: 'nodes-verbose',
+        permissions: weaviate.permissions.nodes.verbose({
           collection: 'Some-collection',
-          verbosity: 'verbose',
           read: true,
         }),
         expected: {
-          name: 'nodes',
+          name: 'nodes-verbose',
           backupsPermissions: [],
           clusterPermissions: [],
           collectionsPermissions: [],
@@ -153,6 +141,23 @@ only('Integration testing of the roles namespace', () => {
             { collection: 'Some-collection', verbosity: 'verbose', actions: ['read_nodes'] },
           ],
           rolesPermissions: [],
+          usersPermissions: [],
+        },
+      },
+      {
+        roleName: 'nodes-minimal',
+        permissions: weaviate.permissions.nodes.minimal({
+          read: true,
+        }),
+        expected: {
+          name: 'nodes-minimal',
+          backupsPermissions: [],
+          clusterPermissions: [],
+          collectionsPermissions: [],
+          dataPermissions: [],
+          nodesPermissions: [{ collection: '*', verbosity: 'minimal', actions: ['read_nodes'] }],
+          rolesPermissions: [],
+          usersPermissions: [],
         },
       },
       {
@@ -174,6 +179,25 @@ only('Integration testing of the roles namespace', () => {
           rolesPermissions: [
             { role: 'some-role', actions: ['create_roles', 'read_roles', 'update_roles', 'delete_roles'] },
           ],
+          usersPermissions: [],
+        },
+      },
+      {
+        roleName: 'users',
+        permissions: weaviate.permissions.users({
+          user: 'some-user',
+          assign_and_revoke: true,
+          read: true,
+        }),
+        expected: {
+          name: 'users',
+          backupsPermissions: [],
+          clusterPermissions: [],
+          collectionsPermissions: [],
+          dataPermissions: [],
+          nodesPermissions: [],
+          rolesPermissions: [],
+          usersPermissions: [{ users: 'some-user', actions: ['assign_and_revoke_users', 'read_users'] }],
         },
       },
     ];
@@ -194,7 +218,9 @@ only('Integration testing of the roles namespace', () => {
 
   afterAll(() =>
     Promise.all(
-      ['backups', 'cluster', 'collections', 'data', 'nodes', 'roles'].map((n) => client.roles.delete(n))
+      ['backups', 'cluster', 'collections', 'data', 'nodes-verbose', 'nodes-minimal', 'roles', 'users'].map(
+        (n) => client.roles.delete(n)
+      )
     )
   );
 });

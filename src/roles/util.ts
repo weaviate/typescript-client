@@ -15,6 +15,8 @@ import {
   Role,
   RolesAction,
   RolesPermission,
+  UsersAction,
+  UsersPermission,
 } from './types.js';
 
 export class PermissionGuards {
@@ -46,6 +48,8 @@ export class PermissionGuards {
     PermissionGuards.includes(permission, 'read_nodes');
   static isRoles = (permission: Permission): permission is RolesPermission =>
     PermissionGuards.includes(permission, 'create_role', 'read_roles', 'update_roles', 'delete_roles');
+  static isUsers = (permission: Permission): permission is UsersPermission =>
+    PermissionGuards.includes(permission, 'read_users', 'assign_and_revoke_users');
   static isPermission = (permissions: PermissionsInput): permissions is Permission =>
     !Array.isArray(permissions);
   static isPermissionArray = (permissions: PermissionsInput): permissions is Permission[] =>
@@ -89,6 +93,8 @@ export class Map {
       }));
     } else if (PermissionGuards.isRoles(permission)) {
       return Array.from(permission.actions).map((action) => ({ roles: { role: permission.role }, action }));
+    } else if (PermissionGuards.isUsers(permission)) {
+      return Array.from(permission.actions).map((action) => ({ users: { users: permission.users }, action }));
     } else {
       throw new Error(`Unknown permission type: ${JSON.stringify(permission, null, 2)}`);
     }
@@ -102,6 +108,7 @@ export class Map {
       data: {} as Record<string, DataPermission>,
       nodes: {} as Record<string, NodesPermission>,
       roles: {} as Record<string, RolesPermission>,
+      users: {} as Record<string, UsersPermission>,
     };
     role.permissions.forEach((permission) => {
       if (permission.backups !== undefined) {
@@ -123,9 +130,14 @@ export class Map {
         if (perms.data[key] === undefined) perms.data[key] = { collection: key, actions: [] };
         perms.data[key].actions.push(permission.action as DataAction);
       } else if (permission.nodes !== undefined) {
-        const { collection, verbosity } = permission.nodes;
-        if (collection === undefined) throw new Error('Nodes permission missing collection');
+        let { collection } = permission.nodes;
+        const { verbosity } = permission.nodes;
         if (verbosity === undefined) throw new Error('Nodes permission missing verbosity');
+        if (verbosity === 'verbose') {
+          if (collection === undefined) throw new Error('Nodes permission missing collection');
+        } else if (verbosity === 'minimal') collection = '*';
+        else throw new Error('Nodes permission missing verbosity');
+
         const key = `${collection}#${verbosity}`;
         if (perms.nodes[key] === undefined) perms.nodes[key] = { collection, verbosity, actions: [] };
         perms.nodes[key].actions.push(permission.action as NodesAction);
@@ -134,6 +146,11 @@ export class Map {
         if (key === undefined) throw new Error('Roles permission missing role');
         if (perms.roles[key] === undefined) perms.roles[key] = { role: key, actions: [] };
         perms.roles[key].actions.push(permission.action as RolesAction);
+      } else if (permission.users !== undefined) {
+        const key = permission.users.users;
+        if (key === undefined) throw new Error('Users permission missing user');
+        if (perms.users[key] === undefined) perms.users[key] = { users: key, actions: [] };
+        perms.users[key].actions.push(permission.action as UsersAction);
       }
     });
     return {
@@ -144,6 +161,7 @@ export class Map {
       dataPermissions: Object.values(perms.data),
       nodesPermissions: Object.values(perms.nodes),
       rolesPermissions: Object.values(perms.roles),
+      usersPermissions: Object.values(perms.users),
     };
   };
 

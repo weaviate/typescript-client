@@ -349,6 +349,7 @@ export interface definitions {
       | 'update_collections'
       | 'delete_collections'
       | 'assign_and_revoke_users'
+      | 'read_users'
       | 'create_tenants'
       | 'read_tenants'
       | 'update_tenants'
