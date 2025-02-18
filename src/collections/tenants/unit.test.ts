@@ -33,6 +33,7 @@ const makeRestApp = (version: string) => {
 
 const makeGrpcApp = () => {
   const weaviateMockImpl: WeaviateServiceImplementation = {
+    aggregate: jest.fn(),
     tenantsGet: (request: TenantsGetRequest): Promise<TenantsGetReply> =>
       Promise.resolve({
         took: 0.1,

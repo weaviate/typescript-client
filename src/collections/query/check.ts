@@ -50,7 +50,7 @@ export class Check<T> {
     query: 'Bm25' | 'Hybrid',
     opts?: SearchOptions<T> | GroupByOptions<T>
   ) => {
-    if (!Serialize.isGroupBy(opts)) return;
+    if (!Serialize.search.isGroupBy(opts)) return;
     const check = await this.dbVersionSupport.supportsBm25AndHybridGroupByQueries();
     if (!check.supports) throw new WeaviateUnsupportedFeatureError(check.message(query));
   };
