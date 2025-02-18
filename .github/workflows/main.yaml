@@ -12,7 +12,7 @@ env:
   WEAVIATE_126: 1.26.14
   WEAVIATE_127: 1.27.11
   WEAVIATE_128: 1.28.4
-  WEAVIATE_129: 1.29.0-rc.2
+  WEAVIATE_129: 1.29.0
 
 jobs:
   checks:
