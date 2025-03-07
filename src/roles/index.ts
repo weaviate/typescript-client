@@ -10,6 +10,7 @@ import {
   PermissionsInput,
   Role,
   RolesPermission,
+  TenantsPermission,
   UsersPermission,
 } from './types.js';
 import { Map } from './util.js';
@@ -204,6 +205,23 @@ export const permissions = {
       if (args.read) out.actions.push('read_roles');
       if (args.update) out.actions.push('update_roles');
       if (args.delete) out.actions.push('delete_roles');
+      return out;
+    });
+  },
+  tenants: (args: {
+    collection: string | string[];
+    create?: boolean;
+    read?: boolean;
+    update?: boolean;
+    delete?: boolean;
+  }): TenantsPermission[] => {
+    const collections = Array.isArray(args.collection) ? args.collection : [args.collection];
+    return collections.flatMap((collection) => {
+      const out: TenantsPermission = { collection, actions: [] };
+      if (args.create) out.actions.push('create_tenants');
+      if (args.read) out.actions.push('read_tenants');
+      if (args.update) out.actions.push('update_tenants');
+      if (args.delete) out.actions.push('delete_tenants');
       return out;
     });
   },
