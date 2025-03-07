@@ -82,7 +82,7 @@ describe('Mock testing of tenants.get() method with a REST server', () => {
 
   it('should get mocked tenants', async () => {
     const client = await weaviate.connectToLocal({ port: 8954, grpcPort: 8955 });
-    const collection = client.collections.get(TENANTS_COLLECTION_NAME);
+    const collection = client.collections.use(TENANTS_COLLECTION_NAME);
     const tenants = await collection.tenants.get();
     expect(tenants).toEqual<Record<string, Tenant>>({
       hot: { name: 'hot', activityStatus: 'ACTIVE' },
@@ -108,7 +108,7 @@ describe('Mock testing of tenants.get() method with a gRPC server', () => {
 
   it('should get the mocked tenants', async () => {
     const client = await weaviate.connectToLocal({ port: 8956, grpcPort: 8957 });
-    const collection = client.collections.get(TENANTS_COLLECTION_NAME);
+    const collection = client.collections.use(TENANTS_COLLECTION_NAME);
     const tenants = await collection.tenants.get();
     expect(tenants).toEqual<Record<string, Tenant>>({
       hot: { name: 'hot', activityStatus: 'ACTIVE' },

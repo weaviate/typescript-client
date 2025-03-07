@@ -17,7 +17,7 @@ describe('Testing of the collection.tenants methods', () => {
 
   beforeAll(async () => {
     client = await weaviate.connectToLocal();
-    collection = client.collections.get(collectionName);
+    collection = client.collections.use(collectionName);
     return client.collections
       .create({
         name: collectionName,

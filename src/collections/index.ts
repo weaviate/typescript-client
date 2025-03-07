@@ -276,6 +276,9 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
     get: <TProperties extends Properties | undefined = undefined, TName extends string = string>(
       name: TName
     ) => collection<TProperties, TName>(connection, name, dbVersionSupport),
+    use: <TProperties extends Properties | undefined = undefined, TName extends string = string>(
+      name: TName
+    ) => collection<TProperties, TName>(connection, name, dbVersionSupport),
   };
 };
 
@@ -292,9 +295,9 @@ export interface Collections {
     name: TName
   ): Collection<TProperties, TName>;
   listAll(): Promise<CollectionConfig[]>;
-  // use<TProperties extends Properties | undefined = undefined, TName extends string = string>(
-  //   name: TName
-  // ): Collection<TProperties, TName>;
+  use<TProperties extends Properties | undefined = undefined, TName extends string = string>(
+    name: TName
+  ): Collection<TProperties, TName>;
 }
 
 export default collections;

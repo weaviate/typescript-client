@@ -580,7 +580,7 @@ describe('Testing of the collection.config namespace', () => {
         vectorizer: 'none',
       })
       .do();
-    const collection = client.collections.get(collectionName);
+    const collection = client.collections.use(collectionName);
     const config = await collection.config
       .update({
         vectorizers: weaviate.reconfigure.vectorizer.update({
@@ -631,7 +631,7 @@ describe('Testing of the collection.config namespace', () => {
       return;
     }
     const collectionName = 'TestCollectionConfigUpdateGenerative';
-    const collection = client.collections.get(collectionName);
+    const collection = client.collections.use(collectionName);
     await client.collections.create({
       name: collectionName,
       vectorizers: weaviate.configure.vectorizer.none(),
