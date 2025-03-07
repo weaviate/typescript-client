@@ -58,6 +58,7 @@ only('Integration testing of the roles namespace', () => {
           dataPermissions: [],
           nodesPermissions: [],
           rolesPermissions: [],
+          tenantsPermissions: [],
           usersPermissions: [],
         },
       },
@@ -72,6 +73,7 @@ only('Integration testing of the roles namespace', () => {
           dataPermissions: [],
           nodesPermissions: [],
           rolesPermissions: [],
+          tenantsPermissions: [],
           usersPermissions: [],
         },
       },
@@ -97,6 +99,7 @@ only('Integration testing of the roles namespace', () => {
           dataPermissions: [],
           nodesPermissions: [],
           rolesPermissions: [],
+          tenantsPermissions: [],
           usersPermissions: [],
         },
       },
@@ -122,6 +125,7 @@ only('Integration testing of the roles namespace', () => {
           ],
           nodesPermissions: [],
           rolesPermissions: [],
+          tenantsPermissions: [],
           usersPermissions: [],
         },
       },
@@ -141,6 +145,7 @@ only('Integration testing of the roles namespace', () => {
             { collection: 'Some-collection', verbosity: 'verbose', actions: ['read_nodes'] },
           ],
           rolesPermissions: [],
+          tenantsPermissions: [],
           usersPermissions: [],
         },
       },
@@ -157,6 +162,7 @@ only('Integration testing of the roles namespace', () => {
           dataPermissions: [],
           nodesPermissions: [{ collection: '*', verbosity: 'minimal', actions: ['read_nodes'] }],
           rolesPermissions: [],
+          tenantsPermissions: [],
           usersPermissions: [],
         },
       },
@@ -179,6 +185,33 @@ only('Integration testing of the roles namespace', () => {
           rolesPermissions: [
             { role: 'some-role', actions: ['create_roles', 'read_roles', 'update_roles', 'delete_roles'] },
           ],
+          tenantsPermissions: [],
+          usersPermissions: [],
+        },
+      },
+      {
+        roleName: 'tenants',
+        permissions: weaviate.permissions.tenants({
+          collection: 'some-collection',
+          create: true,
+          read: true,
+          update: true,
+          delete: true,
+        }),
+        expected: {
+          name: 'tenants',
+          backupsPermissions: [],
+          clusterPermissions: [],
+          collectionsPermissions: [],
+          dataPermissions: [],
+          nodesPermissions: [],
+          rolesPermissions: [],
+          tenantsPermissions: [
+            {
+              collection: 'Some-collection',
+              actions: ['create_tenants', 'read_tenants', 'update_tenants', 'delete_tenants'],
+            },
+          ],
           usersPermissions: [],
         },
       },
@@ -197,6 +230,7 @@ only('Integration testing of the roles namespace', () => {
           dataPermissions: [],
           nodesPermissions: [],
           rolesPermissions: [],
+          tenantsPermissions: [],
           usersPermissions: [{ users: 'some-user', actions: ['assign_and_revoke_users', 'read_users'] }],
         },
       },
@@ -218,9 +252,17 @@ only('Integration testing of the roles namespace', () => {
 
   afterAll(() =>
     Promise.all(
-      ['backups', 'cluster', 'collections', 'data', 'nodes-verbose', 'nodes-minimal', 'roles', 'users'].map(
-        (n) => client.roles.delete(n)
-      )
+      [
+        'backups',
+        'cluster',
+        'collections',
+        'data',
+        'nodes-verbose',
+        'nodes-minimal',
+        'roles',
+        'tenants',
+        'users',
+      ].map((n) => client.roles.delete(n))
     )
   );
 });

@@ -15,6 +15,8 @@ import {
   Role,
   RolesAction,
   RolesPermission,
+  TenantsAction,
+  TenantsPermission,
   UsersAction,
   UsersPermission,
 } from './types.js';
@@ -48,6 +50,14 @@ export class PermissionGuards {
     PermissionGuards.includes(permission, 'read_nodes');
   static isRoles = (permission: Permission): permission is RolesPermission =>
     PermissionGuards.includes(permission, 'create_role', 'read_roles', 'update_roles', 'delete_roles');
+  static isTenants = (permission: Permission): permission is TenantsPermission =>
+    PermissionGuards.includes(
+      permission,
+      'create_tenants',
+      'delete_tenants',
+      'read_tenants',
+      'update_tenants'
+    );
   static isUsers = (permission: Permission): permission is UsersPermission =>
     PermissionGuards.includes(permission, 'read_users', 'assign_and_revoke_users');
   static isPermission = (permissions: PermissionsInput): permissions is Permission =>
@@ -93,6 +103,11 @@ export class Map {
       }));
     } else if (PermissionGuards.isRoles(permission)) {
       return Array.from(permission.actions).map((action) => ({ roles: { role: permission.role }, action }));
+    } else if (PermissionGuards.isTenants(permission)) {
+      return Array.from(permission.actions).map((action) => ({
+        tenants: { collection: permission.collection },
+        action,
+      }));
     } else if (PermissionGuards.isUsers(permission)) {
       return Array.from(permission.actions).map((action) => ({ users: { users: permission.users }, action }));
     } else {
@@ -100,70 +115,7 @@ export class Map {
     }
   };
 
-  static roleFromWeaviate = (role: WeaviateRole): Role => {
-    const perms = {
-      backups: {} as Record<string, BackupsPermission>,
-      cluster: {} as Record<string, ClusterPermission>,
-      collections: {} as Record<string, CollectionsPermission>,
-      data: {} as Record<string, DataPermission>,
-      nodes: {} as Record<string, NodesPermission>,
-      roles: {} as Record<string, RolesPermission>,
-      users: {} as Record<string, UsersPermission>,
-    };
-    role.permissions.forEach((permission) => {
-      if (permission.backups !== undefined) {
-        const key = permission.backups.collection;
-        if (key === undefined) throw new Error('Backups permission missing collection');
-        if (perms.backups[key] === undefined) perms.backups[key] = { collection: key, actions: [] };
-        perms.backups[key].actions.push(permission.action as BackupsAction);
-      } else if (permission.action === 'read_cluster') {
-        if (perms.cluster[''] === undefined) perms.cluster[''] = { actions: [] };
-        perms.cluster[''].actions.push('read_cluster');
-      } else if (permission.collections !== undefined) {
-        const key = permission.collections.collection;
-        if (key === undefined) throw new Error('Collections permission missing collection');
-        if (perms.collections[key] === undefined) perms.collections[key] = { collection: key, actions: [] };
-        perms.collections[key].actions.push(permission.action as CollectionsAction);
-      } else if (permission.data !== undefined) {
-        const key = permission.data.collection;
-        if (key === undefined) throw new Error('Data permission missing collection');
-        if (perms.data[key] === undefined) perms.data[key] = { collection: key, actions: [] };
-        perms.data[key].actions.push(permission.action as DataAction);
-      } else if (permission.nodes !== undefined) {
-        let { collection } = permission.nodes;
-        const { verbosity } = permission.nodes;
-        if (verbosity === undefined) throw new Error('Nodes permission missing verbosity');
-        if (verbosity === 'verbose') {
-          if (collection === undefined) throw new Error('Nodes permission missing collection');
-        } else if (verbosity === 'minimal') collection = '*';
-        else throw new Error('Nodes permission missing verbosity');
-
-        const key = `${collection}#${verbosity}`;
-        if (perms.nodes[key] === undefined) perms.nodes[key] = { collection, verbosity, actions: [] };
-        perms.nodes[key].actions.push(permission.action as NodesAction);
-      } else if (permission.roles !== undefined) {
-        const key = permission.roles.role;
-        if (key === undefined) throw new Error('Roles permission missing role');
-        if (perms.roles[key] === undefined) perms.roles[key] = { role: key, actions: [] };
-        perms.roles[key].actions.push(permission.action as RolesAction);
-      } else if (permission.users !== undefined) {
-        const key = permission.users.users;
-        if (key === undefined) throw new Error('Users permission missing user');
-        if (perms.users[key] === undefined) perms.users[key] = { users: key, actions: [] };
-        perms.users[key].actions.push(permission.action as UsersAction);
-      }
-    });
-    return {
-      name: role.name,
-      backupsPermissions: Object.values(perms.backups),
-      clusterPermissions: Object.values(perms.cluster),
-      collectionsPermissions: Object.values(perms.collections),
-      dataPermissions: Object.values(perms.data),
-      nodesPermissions: Object.values(perms.nodes),
-      rolesPermissions: Object.values(perms.roles),
-      usersPermissions: Object.values(perms.users),
-    };
-  };
+  static roleFromWeaviate = (role: WeaviateRole): Role => PermissionsMapping.use(role).map();
 
   static roles = (roles: WeaviateRole[]): Record<string, Role> =>
     roles.reduce((acc, role) => {
@@ -181,3 +133,141 @@ export class Map {
     roles: user.roles?.map(Map.roleFromWeaviate),
   });
 }
+
+class PermissionsMapping {
+  private mappings: PermissionMappings;
+  private role: WeaviateRole;
+
+  private constructor(role: WeaviateRole) {
+    this.mappings = {
+      backups: {},
+      cluster: {},
+      collections: {},
+      data: {},
+      nodes: {},
+      roles: {},
+      tenants: {},
+      users: {},
+    };
+    this.role = role;
+  }
+
+  public static use = (role: WeaviateRole) => new PermissionsMapping(role);
+
+  public map = (): Role => {
+    this.role.permissions.forEach(this.permissionFromWeaviate);
+    return {
+      name: this.role.name,
+      backupsPermissions: Object.values(this.mappings.backups),
+      clusterPermissions: Object.values(this.mappings.cluster),
+      collectionsPermissions: Object.values(this.mappings.collections),
+      dataPermissions: Object.values(this.mappings.data),
+      nodesPermissions: Object.values(this.mappings.nodes),
+      rolesPermissions: Object.values(this.mappings.roles),
+      tenantsPermissions: Object.values(this.mappings.tenants),
+      usersPermissions: Object.values(this.mappings.users),
+    };
+  };
+
+  private backups = (permission: WeaviatePermission) => {
+    if (permission.backups !== undefined) {
+      const key = permission.backups.collection;
+      if (key === undefined) throw new Error('Backups permission missing collection');
+      if (this.mappings.backups[key] === undefined)
+        this.mappings.backups[key] = { collection: key, actions: [] };
+      this.mappings.backups[key].actions.push(permission.action as BackupsAction);
+    }
+  };
+
+  private cluster = (permission: WeaviatePermission) => {
+    if (permission.action === 'read_cluster') {
+      if (this.mappings.cluster[''] === undefined) this.mappings.cluster[''] = { actions: [] };
+      this.mappings.cluster[''].actions.push('read_cluster');
+    }
+  };
+
+  private collections = (permission: WeaviatePermission) => {
+    if (permission.collections !== undefined) {
+      const key = permission.collections.collection;
+      if (key === undefined) throw new Error('Collections permission missing collection');
+      if (this.mappings.collections[key] === undefined)
+        this.mappings.collections[key] = { collection: key, actions: [] };
+      this.mappings.collections[key].actions.push(permission.action as CollectionsAction);
+    }
+  };
+
+  private data = (permission: WeaviatePermission) => {
+    if (permission.data !== undefined) {
+      const key = permission.data.collection;
+      if (key === undefined) throw new Error('Data permission missing collection');
+      if (this.mappings.data[key] === undefined) this.mappings.data[key] = { collection: key, actions: [] };
+      this.mappings.data[key].actions.push(permission.action as DataAction);
+    }
+  };
+
+  private nodes = (permission: WeaviatePermission) => {
+    if (permission.nodes !== undefined) {
+      let { collection } = permission.nodes;
+      const { verbosity } = permission.nodes;
+      if (verbosity === undefined) throw new Error('Nodes permission missing verbosity');
+      if (verbosity === 'verbose') {
+        if (collection === undefined) throw new Error('Nodes permission missing collection');
+      } else if (verbosity === 'minimal') collection = '*';
+      else throw new Error('Nodes permission missing verbosity');
+      const key = `${collection}#${verbosity}`;
+      if (this.mappings.nodes[key] === undefined)
+        this.mappings.nodes[key] = { collection, verbosity, actions: [] };
+      this.mappings.nodes[key].actions.push(permission.action as NodesAction);
+    }
+  };
+
+  private roles = (permission: WeaviatePermission) => {
+    if (permission.roles !== undefined) {
+      const key = permission.roles.role;
+      if (key === undefined) throw new Error('Roles permission missing role');
+      if (this.mappings.roles[key] === undefined) this.mappings.roles[key] = { role: key, actions: [] };
+      this.mappings.roles[key].actions.push(permission.action as RolesAction);
+    }
+  };
+
+  private tenants = (permission: WeaviatePermission) => {
+    if (permission.tenants !== undefined) {
+      const key = permission.tenants.collection;
+      if (key === undefined) throw new Error('Tenants permission missing collection');
+      if (this.mappings.tenants[key] === undefined)
+        this.mappings.tenants[key] = { collection: key, actions: [] };
+      this.mappings.tenants[key].actions.push(permission.action as TenantsAction);
+    }
+  };
+
+  private users = (permission: WeaviatePermission) => {
+    if (permission.users !== undefined) {
+      const key = permission.users.users;
+      if (key === undefined) throw new Error('Users permission missing user');
+      if (this.mappings.users[key] === undefined) this.mappings.users[key] = { users: key, actions: [] };
+      this.mappings.users[key].actions.push(permission.action as UsersAction);
+    }
+  };
+
+  private permissionFromWeaviate = (permission: WeaviatePermission) => {
+    this.backups(permission);
+    this.cluster(permission);
+    this.collections(permission);
+    this.data(permission);
+    this.nodes(permission);
+    this.roles(permission);
+    this.tenants(permission);
+    this.users(permission);
+  };
+}
+
+type PermissionMappings = {
+  backups: Record<string, BackupsPermission>;
+  cluster: Record<string, ClusterPermission>;
+  collections: Record<string, CollectionsPermission>;
+  data: Record<string, DataPermission>;
+  nodes: Record<string, NodesPermission>;
+  roles: Record<string, RolesPermission>;
+  tenants: Record<string, TenantsPermission>;
+  users: Record<string, UsersPermission>;
+};

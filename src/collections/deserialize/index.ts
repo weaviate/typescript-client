@@ -25,6 +25,8 @@ import {
   AggregateResult,
   AggregateText,
   AggregateType,
+  GenerativeConfigRuntime,
+  GenerativeMetadata,
   PropertiesMetrics,
 } from '../index.js';
 import { referenceFromObjects } from '../references/utils.js';
@@ -207,11 +209,24 @@ export class Deserialize {
     };
   }
 
-  public generate<T>(reply: SearchReply): GenerativeReturn<T> {
+  public generate<T, C extends GenerativeConfigRuntime | undefined>(
+    reply: SearchReply
+  ): GenerativeReturn<T, C> {
     return {
       objects: reply.results.map((result) => {
         return {
-          generated: result.metadata?.generativePresent ? result.metadata?.generative : undefined,
+          generated: result.metadata?.generativePresent
+            ? result.metadata?.generative
+            : result.generative
+            ? result.generative.values[0].result
+            : undefined,
+          generative: result.generative
+            ? {
+                text: result.generative.values[0].result,
+                debug: result.generative.values[0].debug,
+                metadata: result.generative.values[0].metadata as GenerativeMetadata<C>,
+              }
+            : undefined,
           metadata: Deserialize.metadata(result.metadata),
           properties: this.properties(result.properties),
           references: this.references(result.properties),
@@ -219,7 +234,18 @@ export class Deserialize {
           vectors: Deserialize.vectors(result.metadata),
         } as any;
       }),
-      generated: reply.generativeGroupedResult,
+      generated:
+        reply.generativeGroupedResult !== ''
+          ? reply.generativeGroupedResult
+          : reply.generativeGroupedResults
+          ? reply.generativeGroupedResults.values[0].result
+          : undefined,
+      generative: reply.generativeGroupedResults
+        ? {
+            text: reply.generativeGroupedResults?.values[0].result,
+            metadata: reply.generativeGroupedResults?.values[0].metadata as GenerativeMetadata<C>,
+          }
+        : undefined,
     };
   }
 
@@ -252,9 +278,9 @@ export class Deserialize {
     };
   }
 
-  public generateGroupBy<T>(reply: SearchReply): GenerativeGroupByReturn<T> {
+  public generateGroupBy<T>(reply: SearchReply): GenerativeGroupByReturn<T, any> {
     const objects: GroupByObject<T>[] = [];
-    const groups: Record<string, GenerativeGroupByResult<T>> = {};
+    const groups: Record<string, GenerativeGroupByResult<T, any>> = {};
     reply.groupByResults.forEach((result) => {
       const objs = result.objects.map((object) => {
         return {

@@ -27,10 +27,10 @@ maybe('Testing of the collection.generate methods with a simple collection', () 
     testProp: string;
   };
 
-  const generateOpts: GenerateOptions<TestCollectionGenerateSimple> = {
+  const generateOpts = {
     singlePrompt: 'Write a haiku about ducks for {testProp}',
     groupedTask: 'What is the value of testProp here?',
-    groupedProperties: ['testProp'],
+    groupedProperties: ['testProp'] as 'testProp'[],
   };
 
   afterAll(() => {
@@ -162,7 +162,7 @@ maybe('Testing of the groupBy collection.generate methods with a simple collecti
     testProp: string;
   };
 
-  const generateOpts: GenerateOptions<TestCollectionGenerateGroupBySimple> = {
+  const generateOpts: GenerateOptions<TestCollectionGenerateGroupBySimple, undefined> = {
     singlePrompt: 'Write a haiku about ducks for {testProp}',
     groupedTask: 'What is the value of testProp here?',
     groupedProperties: ['testProp'],
@@ -419,5 +419,83 @@ maybe('Testing of the collection.generate methods with a multi vector collection
     expect(ret.generated).toBeDefined();
     expect(ret.objects[0].generated).toBeDefined();
     expect(ret.objects[1].generated).toBeDefined();
+  });
+});
+
+maybe('Testing of the collection.generate methods with runtime generative config', () => {
+  let client: WeaviateClient;
+  let collection: Collection<TestCollectionGenerateConfigRuntime, 'TestCollectionGenerateConfigRuntime'>;
+  const collectionName = 'TestCollectionGenerateConfigRuntime';
+
+  type TestCollectionGenerateConfigRuntime = {
+    testProp: string;
+  };
+
+  afterAll(() => {
+    return client.collections.delete(collectionName).catch((err) => {
+      console.error(err);
+      throw err;
+    });
+  });
+
+  beforeAll(async () => {
+    client = await makeOpenAIClient();
+    collection = client.collections.get(collectionName);
+    return client.collections
+      .create({
+        name: collectionName,
+        properties: [
+          {
+            name: 'testProp',
+            dataType: 'text',
+          },
+        ],
+      })
+      .then(() => {
+        return collection.data.insert({
+          properties: {
+            testProp: 'test',
+          },
+        });
+      });
+  });
+
+  it('should generate using a runtime config without search', async () => {
+    const query = () =>
+      collection.generate.fetchObjects({
+        singlePrompt: {
+          prompt: 'Write a haiku about ducks for {testProp}',
+          debug: true,
+          metadata: true,
+        },
+        groupedTask: {
+          prompt: 'What is the value of testProp here?',
+          nonBlobProperties: ['testProp'],
+          metadata: true,
+        },
+        config: {
+          name: 'generative-openai',
+          config: {
+            model: 'gpt-4o-mini',
+          },
+        },
+      });
+
+    if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 30, 0))) {
+      await expect(query()).rejects.toThrow(WeaviateUnsupportedFeatureError);
+      return;
+    }
+
+    const res = await query();
+    expect(res.objects.length).toEqual(1);
+    expect(res.generated).toBeDefined();
+    expect(res.generative?.text).toBeDefined();
+    expect(res.generative?.metadata).toBeDefined();
+    res.objects.forEach((obj) => {
+      expect(obj.generated).toBeDefined();
+      expect(obj.generative?.text).toBeDefined();
+      expect(obj.generative?.metadata).toBeDefined();
+      expect(obj.generative?.debug).toBeDefined();
+    });
   });
 });
