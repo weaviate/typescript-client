@@ -219,6 +219,17 @@ export class DbVersionSupport {
       };
     });
   };
+
+  supportsSingleGrouped = () =>
+    this.dbVersionProvider.getVersion().then((version) => ({
+      version,
+      supports:
+        (version.isAtLeast(1, 27, 14) && version.isLowerThan(1, 28, 0)) ||
+        (version.isAtLeast(1, 28, 8) && version.isLowerThan(1, 29, 0)) ||
+        (version.isAtLeast(1, 29, 0) && version.isLowerThan(1, 30, 0)) ||
+        version.isAtLeast(1, 30, 0),
+      message: this.errorMessage('Single/Grouped fields in gRPC', version.show(), '1.30.0'),
+    }));
 }
 
 const EMPTY_VERSION = '';
