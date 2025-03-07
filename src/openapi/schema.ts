@@ -231,7 +231,7 @@ export interface paths {
 }
 
 export interface definitions {
-  UserInfo: {
+  UserOwnInfo: {
     /** @description The groups associated to the user */
     groups?: string[];
     roles?: definitions['Role'][];
@@ -1615,7 +1615,7 @@ export interface operations {
     responses: {
       /** Info about the user */
       200: {
-        schema: definitions['UserInfo'];
+        schema: definitions['UserOwnInfo'];
       };
       /** Unauthorized or invalid credentials. */
       401: unknown;
