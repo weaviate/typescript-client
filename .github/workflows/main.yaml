@@ -29,7 +29,7 @@ jobs:
         npm run format:check
         npm run docs
 
-  tests:
+  tests-without-auth:
     needs: checks
     runs-on: ubuntu-latest
     strategy:
@@ -60,6 +60,37 @@ jobs:
       run: |
         npm ci
         ci/run_dependencies.sh ${{ matrix.versions.weaviate }}
+    - name: "Run tests without authentication tests"
+      run: WEAVIATE_VERSION=${{ matrix.versions.weaviate }} npm test
+    - name: "Transpile the package"
+      run: npm run build
+    - name: "Stop Weaviate"
+      run: ci/stop_dependencies.sh ${{ matrix.versions.weaviate }}
+
+  tests-with-auth:
+    needs: checks
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        versions: [
+          { node: "22.x", weaviate: $WEAVIATE_129}
+        ]
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.versions.node }}
+    - name: Login to Docker Hub
+      if: ${{ !github.event.pull_request.head.repo.fork && github.triggering_actor != 'dependabot[bot]' }}
+      uses: docker/login-action@v3
+      with:
+        username: ${{secrets.DOCKER_USERNAME}}
+        password: ${{secrets.DOCKER_PASSWORD}}
+    - name: "Install dependencies"
+      run: |
+        npm ci
+        ci/run_dependencies.sh ${{ matrix.versions.weaviate }}
     - name: "Run tests with authentication tests"
       if: ${{ !github.event.pull_request.head.repo.fork }}
       env:
@@ -68,11 +99,6 @@ jobs:
         AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
         OKTA_CLIENT_SECRET: ${{ secrets.OKTA_CLIENT_SECRET }}
       run: WEAVIATE_VERSION=${{ matrix.versions.weaviate }} npm test
-    - name: "Run tests without authentication tests (for forks)"
-      if: ${{ github.event.pull_request.head.repo.fork }}
-      run: WEAVIATE_VERSION=${{ matrix.versions.weaviate }} npm test
-    - name: "Transpile the package"
-      run: npm run build
     - name: "Stop Weaviate"
       run: ci/stop_dependencies.sh ${{ matrix.versions.weaviate }}
 
