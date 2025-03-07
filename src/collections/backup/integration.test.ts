@@ -11,7 +11,7 @@ describe('Integration testing of backups', () => {
     grpcPort: 50061,
   });
 
-  const getCollection = (client: WeaviateClient) => client.collections.get('TestBackupCollection');
+  const getCollection = (client: WeaviateClient) => client.collections.use('TestBackupCollection');
 
   beforeAll(() =>
     clientPromise.then((client) =>

@@ -39,7 +39,7 @@ describe('Testing of the collection.aggregate methods', () => {
 
   beforeAll(async () => {
     client = await weaviate.connectToLocal();
-    collection = client.collections.get(collectionName);
+    collection = client.collections.use(collectionName);
     return client.collections
       .create({
         name: collectionName,
@@ -168,7 +168,7 @@ describe('Testing of the collection.aggregate methods', () => {
   });
 
   it('should aggregate data without a search and one non-generic property metric', async () => {
-    const result = await (await client).collections.get(collectionName).aggregate.overAll({
+    const result = await (await client).collections.use(collectionName).aggregate.overAll({
       returnMetrics: collection.metrics
         .aggregate('text')
         .text(['count', 'topOccurrencesOccurs', 'topOccurrencesValue']),
@@ -307,7 +307,7 @@ describe('Testing of the collection.aggregate methods with named vectors', () =>
 
   beforeAll(async () => {
     client = await weaviate.connectToLocal();
-    collection = client.collections.get(collectionName);
+    collection = client.collections.use(collectionName);
     const query = () =>
       client.collections.create<TestCollectionAggregateVectors>({
         name: collectionName,
@@ -355,7 +355,7 @@ describe('Testing of collection.aggregate.overAll with a multi-tenancy collectio
 
   beforeAll(async () => {
     client = await weaviate.connectToLocal();
-    collection = client.collections.get(collectionName);
+    collection = client.collections.use(collectionName);
     return client.collections
       .create({
         name: collectionName,
@@ -407,7 +407,7 @@ describe('Testing of collection.aggregate search methods', () => {
 
   beforeAll(async () => {
     client = await weaviate.connectToLocal();
-    collection = client.collections.get(collectionName);
+    collection = client.collections.use(collectionName);
     return client.collections
       .create({
         name: collectionName,
