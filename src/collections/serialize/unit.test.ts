@@ -441,8 +441,8 @@ describe('Unit testing of Serialize', () => {
     });
   });
 
-  it('should parse args for generative', () => {
-    const args = Serialize.generative(
+  it('should parse args for generative', async () => {
+    const args = await Serialize.generative(
       { supportsSingleGrouped: false },
       {
         singlePrompt: 'test',
