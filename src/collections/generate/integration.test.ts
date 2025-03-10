@@ -460,7 +460,7 @@ maybe('Testing of the collection.generate methods with runtime generative config
       });
   });
 
-  it('should generate using a runtime config without search', async () => {
+  it('should generate using a runtime config without search and with extras', async () => {
     const query = () =>
       collection.generate.fetchObjects({
         singlePrompt: {
@@ -496,6 +496,37 @@ maybe('Testing of the collection.generate methods with runtime generative config
       expect(obj.generative?.text).toBeDefined();
       expect(obj.generative?.metadata).toBeDefined();
       expect(obj.generative?.debug).toBeDefined();
+    });
+  });
+
+  it('should generate using a runtime config without search nor extras', async () => {
+    const query = () =>
+      collection.generate.fetchObjects({
+        singlePrompt: 'Write a haiku about ducks for {testProp}',
+        groupedTask: 'What is the value of testProp here?',
+        config: {
+          name: 'generative-openai',
+          config: {
+            model: 'gpt-4o-mini',
+          },
+        },
+      });
+
+    if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 30, 0))) {
+      await expect(query()).rejects.toThrow(WeaviateUnsupportedFeatureError);
+      return;
+    }
+
+    const res = await query();
+    expect(res.objects.length).toEqual(1);
+    expect(res.generated).toBeDefined();
+    expect(res.generative?.text).toBeDefined();
+    expect(res.generative?.metadata).toBeUndefined();
+    res.objects.forEach((obj) => {
+      expect(obj.generated).toBeDefined();
+      expect(obj.generative?.text).toBeDefined();
+      expect(obj.generative?.metadata).toBeUndefined();
+      expect(obj.generative?.debug).toBeUndefined();
     });
   });
 });
