@@ -364,4 +364,5 @@ class GenerateManager<T> implements Generate<T> {
 
 export default GenerateManager.use;
 
+export { generativeConfigRuntime } from './config.js';
 export { Generate } from './types.js';

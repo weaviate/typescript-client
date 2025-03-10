@@ -119,19 +119,50 @@ export type GroupedTask<T> = {
   imageProperties?: string[];
 };
 
+type omitFields = 'images' | 'imageProperties';
+
 export type GenerativeConfigRuntime =
-  | ModuleConfig<'generative-anthropic', GenerativeAnthropicConfigRuntime>
-  | ModuleConfig<'generative-anyscale', GenerativeAnyscaleConfigRuntime>
-  | ModuleConfig<'generative-aws', GenerativeAWSConfigRuntime>
-  | ModuleConfig<'generative-cohere', GenerativeCohereConfigRuntime>
-  | ModuleConfig<'generative-databricks', GenerativeDatabricksConfigRuntime>
-  | ModuleConfig<'generative-dummy', GenerativeDummyConfigRuntime>
-  | ModuleConfig<'generative-friendliai', GenerativeFriendliAIConfigRuntime>
-  | ModuleConfig<'generative-google', GenerativeGoogleConfigRuntime>
-  | ModuleConfig<'generative-mistral', GenerativeMistralConfigRuntime>
-  | ModuleConfig<'generative-nvidia', GenerativeNvidiaConfigRuntime>
-  | ModuleConfig<'generative-ollama', GenerativeOllamaConfigRuntime>
-  | ModuleConfig<'generative-openai', GenerativeOpenAIConfigRuntime>;
+  | ModuleConfig<'generative-anthropic', GenerativeConfigRuntimeType<'generative-anthropic'>>
+  | ModuleConfig<'generative-anyscale', GenerativeConfigRuntimeType<'generative-anyscale'>>
+  | ModuleConfig<'generative-aws', GenerativeConfigRuntimeType<'generative-aws'>>
+  | ModuleConfig<'generative-azure-openai', GenerativeConfigRuntimeType<'generative-azure-openai'>>
+  | ModuleConfig<'generative-cohere', GenerativeConfigRuntimeType<'generative-cohere'>>
+  | ModuleConfig<'generative-databricks', GenerativeConfigRuntimeType<'generative-databricks'>>
+  | ModuleConfig<'generative-dummy', GenerativeConfigRuntimeType<'generative-dummy'>>
+  | ModuleConfig<'generative-friendliai', GenerativeConfigRuntimeType<'generative-friendliai'>>
+  | ModuleConfig<'generative-google', GenerativeConfigRuntimeType<'generative-google'>>
+  | ModuleConfig<'generative-mistral', GenerativeConfigRuntimeType<'generative-mistral'>>
+  | ModuleConfig<'generative-nvidia', GenerativeConfigRuntimeType<'generative-nvidia'>>
+  | ModuleConfig<'generative-ollama', GenerativeConfigRuntimeType<'generative-ollama'>>
+  | ModuleConfig<'generative-openai', GenerativeConfigRuntimeType<'generative-openai'>>;
+
+export type GenerativeConfigRuntimeType<G> = G extends 'generative-anthropic'
+  ? Omit<GenerativeAnthropicGRPC, omitFields>
+  : G extends 'generative-anyscale'
+  ? Omit<GenerativeAnyscaleGRPC, omitFields>
+  : G extends 'generative-aws'
+  ? Omit<GenerativeAWSGRPC, omitFields>
+  : G extends 'generative-azure-openai'
+  ? Omit<GenerativeOpenAIGRPC, omitFields> & { isAzure: true }
+  : G extends 'generative-cohere'
+  ? Omit<GenerativeCohereGRPC, omitFields>
+  : G extends 'generative-databricks'
+  ? Omit<GenerativeDatabricksGRPC, omitFields>
+  : G extends 'generative-google'
+  ? Omit<GenerativeGoogleGRPC, omitFields>
+  : G extends 'generative-friendliai'
+  ? Omit<GenerativeFriendliAIGRPC, omitFields>
+  : G extends 'generative-mistral'
+  ? Omit<GenerativeMistralGRPC, omitFields>
+  : G extends 'generative-nvidia'
+  ? Omit<GenerativeNvidiaGRPC, omitFields>
+  : G extends 'generative-ollama'
+  ? Omit<GenerativeOllamaGRPC, omitFields>
+  : G extends 'generative-openai'
+  ? Omit<GenerativeOpenAIGRPC, omitFields> & { isAzure?: false }
+  : G extends 'none'
+  ? undefined
+  : Record<string, any> | undefined;
 
 export type GenerativeMetadata<C extends GenerativeConfigRuntime | undefined> = C extends undefined
   ? never
@@ -167,17 +198,117 @@ export type GenerateReturn<T, C extends GenerativeConfigRuntime | undefined> =
   | Promise<GenerativeReturn<T, C>>
   | Promise<GenerativeGroupByReturn<T, C>>;
 
-type omitFields = 'images' | 'imageProperties';
+export type GenerativeAnthropicConfigRuntime = {
+  baseURL?: string | undefined;
+  maxTokens?: number | undefined;
+  model?: string | undefined;
+  temperature?: number | undefined;
+  topK?: number | undefined;
+  topP?: number | undefined;
+  stopSequences?: string[] | undefined;
+};
 
-export type GenerativeAnthropicConfigRuntime = Omit<GenerativeAnthropicGRPC, omitFields>;
-export type GenerativeAnyscaleConfigRuntime = Omit<GenerativeAnyscaleGRPC, omitFields>;
-export type GenerativeAWSConfigRuntime = Omit<GenerativeAWSGRPC, omitFields>;
-export type GenerativeCohereConfigRuntime = Omit<GenerativeCohereGRPC, omitFields>;
-export type GenerativeDatabricksConfigRuntime = Omit<GenerativeDatabricksGRPC, omitFields>;
-export type GenerativeDummyConfigRuntime = Omit<GenerativeDummyGRPC, omitFields>;
-export type GenerativeFriendliAIConfigRuntime = Omit<GenerativeFriendliAIGRPC, omitFields>;
-export type GenerativeGoogleConfigRuntime = Omit<GenerativeGoogleGRPC, omitFields>;
-export type GenerativeMistralConfigRuntime = Omit<GenerativeMistralGRPC, omitFields>;
-export type GenerativeNvidiaConfigRuntime = Omit<GenerativeNvidiaGRPC, omitFields>;
-export type GenerativeOllamaConfigRuntime = Omit<GenerativeOllamaGRPC, omitFields>;
-export type GenerativeOpenAIConfigRuntime = Omit<GenerativeOpenAIGRPC, omitFields>;
+export type GenerativeAnyscaleConfigRuntime = {
+  baseURL?: string | undefined;
+  model?: string | undefined;
+  temperature?: number | undefined;
+};
+
+export type GenerativeAWSConfigRuntime = {
+  model?: string | undefined;
+  temperature?: number | undefined;
+  service?: string | undefined;
+  region?: string | undefined;
+  endpoint?: string | undefined;
+  targetModel?: string | undefined;
+  targetVariant?: string | undefined;
+};
+
+export type GenerativeCohereConfigRuntime = {
+  baseURL?: string | undefined;
+  frequencyPenalty?: number | undefined;
+  maxTokens?: number | undefined;
+  model?: string | undefined;
+  k?: number | undefined;
+  p?: number | undefined;
+  presencePenalty?: number | undefined;
+  stopSequences?: string[] | undefined;
+  temperature?: number | undefined;
+};
+
+export type GenerativeDatabricksConfigRuntime = {
+  endpoint?: string | undefined;
+  model?: string | undefined;
+  frequencyPenalty?: number | undefined;
+  logProbs?: boolean | undefined;
+  topLogProbs?: number | undefined;
+  maxTokens?: number | undefined;
+  n?: number | undefined;
+  presencePenalty?: number | undefined;
+  stop?: string[] | undefined;
+  temperature?: number | undefined;
+  topP?: number | undefined;
+};
+
+export type GenerativeDummyConfigRuntime = GenerativeDummyGRPC;
+
+export type GenerativeFriendliAIConfigRuntime = {
+  baseURL?: string | undefined;
+  model?: string | undefined;
+  maxTokens?: number | undefined;
+  temperature?: number | undefined;
+  n?: number | undefined;
+  topP?: number | undefined;
+};
+
+export type GenerativeGoogleConfigRuntime = {
+  frequencyPenalty?: number | undefined;
+  maxTokens?: number | undefined;
+  model?: string | undefined;
+  presencePenalty?: number | undefined;
+  temperature?: number | undefined;
+  topK?: number | undefined;
+  topP?: number | undefined;
+  stopSequences?: string[] | undefined;
+  apiEndpoint?: string | undefined;
+  projectId?: string | undefined;
+  endpointId?: string | undefined;
+  region?: string | undefined;
+};
+
+export type GenerativeMistralConfigRuntime = {
+  baseURL?: string | undefined;
+  maxTokens?: number | undefined;
+  model?: string | undefined;
+  temperature?: number | undefined;
+  topP?: number | undefined;
+};
+
+export type GenerativeNvidiaConfigRuntime = {
+  baseURL?: string | undefined;
+  model?: string | undefined;
+  temperature?: number | undefined;
+  topP?: number | undefined;
+  maxTokens?: number | undefined;
+};
+
+export type GenerativeOllamaConfigRuntime = {
+  apiEndpoint?: string | undefined;
+  model?: string | undefined;
+  temperature?: number | undefined;
+};
+
+export type GenerativeOpenAIConfigRuntime = {
+  frequencyPenalty?: number | undefined;
+  maxTokens?: number | undefined;
+  model?: string;
+  n?: number | undefined;
+  presencePenalty?: number | undefined;
+  stop?: string[] | undefined;
+  temperature?: number | undefined;
+  topP?: number | undefined;
+  baseURL?: string | undefined;
+  apiVersion?: string | undefined;
+  resourceName?: string | undefined;
+  deploymentId?: string | undefined;
+};

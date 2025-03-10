@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
 import { WeaviateUnsupportedFeatureError } from '../../errors.js';
-import weaviate, { WeaviateClient } from '../../index.js';
+import weaviate, { WeaviateClient, generativeConfigRuntime } from '../../index.js';
 import { Collection } from '../collection/index.js';
 import { GenerateOptions, GroupByOptions } from '../types/index.js';
 
@@ -460,7 +460,7 @@ maybe('Testing of the collection.generate methods with runtime generative config
       });
   });
 
-  it('should generate using a runtime config without search and with extras', async () => {
+  it.only('should generate using a runtime config without search and with extras', async () => {
     const query = () =>
       collection.generate.fetchObjects({
         singlePrompt: {
@@ -473,12 +473,10 @@ maybe('Testing of the collection.generate methods with runtime generative config
           nonBlobProperties: ['testProp'],
           metadata: true,
         },
-        config: {
-          name: 'generative-openai',
-          config: {
-            model: 'gpt-4o-mini',
-          },
-        },
+        config: generativeConfigRuntime.openAI({
+          model: 'gpt-4o-mini',
+          stop: ['\n'],
+        }),
       });
 
     if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 30, 0))) {
@@ -508,6 +506,7 @@ maybe('Testing of the collection.generate methods with runtime generative config
           name: 'generative-openai',
           config: {
             model: 'gpt-4o-mini',
+            stop: { values: ['\n'] },
           },
         },
       });

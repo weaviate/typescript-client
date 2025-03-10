@@ -58,6 +58,13 @@ export type GenerativeMistralConfig = {
   temperature?: number;
 };
 
+export type GenerativeNvidiaConfig = {
+  baseURL?: string;
+  maxTokens?: number;
+  model?: string;
+  temperature?: number;
+};
+
 export type GenerativeOllamaConfig = {
   apiEndpoint?: string;
   model?: string;
