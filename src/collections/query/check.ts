@@ -98,6 +98,12 @@ export class Check<T> {
     return check.supports;
   };
 
+  public supportForSingleGrouped = async () => {
+    const check = await this.dbVersionSupport.supportsSingleGrouped();
+    if (!check.supports) throw new WeaviateUnsupportedFeatureError(check.message);
+    return check.supports;
+  };
+
   public nearSearch = (opts?: BaseNearOptions<T>) => {
     return Promise.all([
       this.getSearcher(),

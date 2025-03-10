@@ -5,6 +5,7 @@ import {
   GenerativeDatabricksConfig,
   GenerativeFriendliAIConfig,
   GenerativeMistralConfig,
+  GenerativeNvidiaConfig,
   GenerativeOllamaConfig,
   GenerativePaLMConfig,
 } from '../../index.js';
@@ -44,6 +45,8 @@ export type GenerativeFriendliAIConfigCreate = GenerativeFriendliAIConfig;
 
 export type GenerativeMistralConfigCreate = GenerativeMistralConfig;
 
+export type GenerativeNvidiaConfigCreate = GenerativeNvidiaConfig;
+
 export type GenerativeOllamaConfigCreate = GenerativeOllamaConfig;
 
 export type GenerativeOpenAIConfigCreate = GenerativeOpenAIConfigBaseCreate & {
@@ -61,6 +64,7 @@ export type GenerativeConfigCreate =
   | GenerativeDatabricksConfigCreate
   | GenerativeFriendliAIConfigCreate
   | GenerativeMistralConfigCreate
+  | GenerativeNvidiaConfigCreate
   | GenerativeOllamaConfigCreate
   | GenerativeOpenAIConfigCreate
   | GenerativePaLMConfigCreate
@@ -81,6 +85,8 @@ export type GenerativeConfigCreateType<G> = G extends 'generative-anthropic'
   ? GenerativeFriendliAIConfigCreate
   : G extends 'generative-mistral'
   ? GenerativeMistralConfigCreate
+  : G extends 'generative-nvidia'
+  ? GenerativeNvidiaConfigCreate
   : G extends 'generative-ollama'
   ? GenerativeOllamaConfigCreate
   : G extends 'generative-openai'
