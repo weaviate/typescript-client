@@ -460,7 +460,7 @@ maybe('Testing of the collection.generate methods with runtime generative config
       });
   });
 
-  it.only('should generate using a runtime config without search and with extras', async () => {
+  it('should generate using a runtime config without search and with extras', async () => {
     const query = () =>
       collection.generate.fetchObjects({
         singlePrompt: {
@@ -474,7 +474,6 @@ maybe('Testing of the collection.generate methods with runtime generative config
           metadata: true,
         },
         config: generativeConfigRuntime.openAI({
-          model: 'gpt-4o-mini',
           stop: ['\n'],
         }),
       });
