@@ -98,7 +98,7 @@ export class Check<T> {
     return check.supports;
   };
 
-  public supportForSingleGrouped = async () => {
+  public supportForSingleGroupedGenerative = async () => {
     const check = await this.dbVersionSupport.supportsSingleGrouped();
     if (!check.supports) throw new WeaviateUnsupportedFeatureError(check.message);
     return check.supports;

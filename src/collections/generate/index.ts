@@ -72,7 +72,7 @@ class GenerateManager<T> implements Generate<T> {
     generate: GenerateOptions<T, C>,
     opts?: FetchObjectsOptions<T>
   ): Promise<GenerativeReturn<T, C>> {
-    return Promise.all([this.check.fetchObjects(opts), this.check.supportForSingleGrouped()])
+    return Promise.all([this.check.fetchObjects(opts), this.check.supportForSingleGroupedGenerative()])
       .then(async ([{ search }, supportsSingleGrouped]) =>
         search.withFetch({
           ...Serialize.search.fetchObjects(opts),
@@ -97,7 +97,7 @@ class GenerateManager<T> implements Generate<T> {
     generate: GenerateOptions<T, C>,
     opts?: Bm25Options<T>
   ): GenerateReturn<T, C> {
-    return Promise.all([this.check.bm25(opts), this.check.supportForSingleGrouped()])
+    return Promise.all([this.check.bm25(opts), this.check.supportForSingleGroupedGenerative()])
       .then(async ([{ search }, supportsSingleGrouped]) =>
         search.withBm25({
           ...Serialize.search.bm25(query, opts),
@@ -122,7 +122,7 @@ class GenerateManager<T> implements Generate<T> {
     generate: GenerateOptions<T, C>,
     opts?: HybridOptions<T>
   ): GenerateReturn<T, C> {
-    return Promise.all([this.check.hybridSearch(opts), this.check.supportForSingleGrouped()])
+    return Promise.all([this.check.hybridSearch(opts), this.check.supportForSingleGroupedGenerative()])
       .then(
         async ([
           { search, supportsTargets, supportsVectorsForTargets, supportsWeightsForTargets },
@@ -159,7 +159,7 @@ class GenerateManager<T> implements Generate<T> {
     generate: GenerateOptions<T, C>,
     opts?: NearOptions<T>
   ): GenerateReturn<T, C> {
-    return Promise.all([this.check.nearSearch(opts), this.check.supportForSingleGrouped()])
+    return Promise.all([this.check.nearSearch(opts), this.check.supportForSingleGroupedGenerative()])
       .then(([{ search, supportsTargets, supportsWeightsForTargets }, supportsSingleGrouped]) =>
         Promise.all([
           toBase64FromMedia(image),
@@ -196,7 +196,7 @@ class GenerateManager<T> implements Generate<T> {
     generate: GenerateOptions<T, C>,
     opts?: NearOptions<T>
   ): GenerateReturn<T, C> {
-    return Promise.all([this.check.nearSearch(opts), this.check.supportForSingleGrouped()])
+    return Promise.all([this.check.nearSearch(opts), this.check.supportForSingleGroupedGenerative()])
       .then(async ([{ search, supportsTargets, supportsWeightsForTargets }, supportsSingleGrouped]) =>
         search.withNearObject({
           ...Serialize.search.nearObject(
@@ -228,7 +228,7 @@ class GenerateManager<T> implements Generate<T> {
     generate: GenerateOptions<T, C>,
     opts?: NearOptions<T>
   ): GenerateReturn<T, C> {
-    return Promise.all([this.check.nearSearch(opts), this.check.supportForSingleGrouped()])
+    return Promise.all([this.check.nearSearch(opts), this.check.supportForSingleGroupedGenerative()])
       .then(async ([{ search, supportsTargets, supportsWeightsForTargets }, supportsSingleGrouped]) =>
         search.withNearText({
           ...Serialize.search.nearText(
@@ -260,7 +260,7 @@ class GenerateManager<T> implements Generate<T> {
     generate: GenerateOptions<T, C>,
     opts?: NearOptions<T>
   ): GenerateReturn<T, C> {
-    return Promise.all([this.check.nearVector(vector, opts), this.check.supportForSingleGrouped()])
+    return Promise.all([this.check.nearVector(vector, opts), this.check.supportForSingleGroupedGenerative()])
       .then(
         async ([
           { search, supportsTargets, supportsVectorsForTargets, supportsWeightsForTargets },
@@ -300,7 +300,7 @@ class GenerateManager<T> implements Generate<T> {
     generate: GenerateOptions<T, C>,
     opts?: NearOptions<T>
   ): GenerateReturn<T, C> {
-    return Promise.all([this.check.nearSearch(opts), this.check.supportForSingleGrouped()])
+    return Promise.all([this.check.nearSearch(opts), this.check.supportForSingleGroupedGenerative()])
       .then(([{ search, supportsTargets, supportsWeightsForTargets }, supportsSingleGrouped]) => {
         const args = {
           supportsTargets,
