@@ -118,7 +118,7 @@ export interface GenerativeOllama {
 export interface GenerativeOpenAI {
   frequencyPenalty?: number | undefined;
   maxTokens?: number | undefined;
-  model: string;
+  model?: string | undefined;
   n?: number | undefined;
   presencePenalty?: number | undefined;
   stop?: TextArray | undefined;
@@ -1884,7 +1884,7 @@ function createBaseGenerativeOpenAI(): GenerativeOpenAI {
   return {
     frequencyPenalty: undefined,
     maxTokens: undefined,
-    model: "",
+    model: undefined,
     n: undefined,
     presencePenalty: undefined,
     stop: undefined,
@@ -1908,7 +1908,7 @@ export const GenerativeOpenAI = {
     if (message.maxTokens !== undefined) {
       writer.uint32(16).int64(message.maxTokens);
     }
-    if (message.model !== "") {
+    if (message.model !== undefined) {
       writer.uint32(26).string(message.model);
     }
     if (message.n !== undefined) {
@@ -2075,7 +2075,7 @@ export const GenerativeOpenAI = {
     return {
       frequencyPenalty: isSet(object.frequencyPenalty) ? globalThis.Number(object.frequencyPenalty) : undefined,
       maxTokens: isSet(object.maxTokens) ? globalThis.Number(object.maxTokens) : undefined,
-      model: isSet(object.model) ? globalThis.String(object.model) : "",
+      model: isSet(object.model) ? globalThis.String(object.model) : undefined,
       n: isSet(object.n) ? globalThis.Number(object.n) : undefined,
       presencePenalty: isSet(object.presencePenalty) ? globalThis.Number(object.presencePenalty) : undefined,
       stop: isSet(object.stop) ? TextArray.fromJSON(object.stop) : undefined,
@@ -2099,7 +2099,7 @@ export const GenerativeOpenAI = {
     if (message.maxTokens !== undefined) {
       obj.maxTokens = Math.round(message.maxTokens);
     }
-    if (message.model !== "") {
+    if (message.model !== undefined) {
       obj.model = message.model;
     }
     if (message.n !== undefined) {
@@ -2148,7 +2148,7 @@ export const GenerativeOpenAI = {
     const message = createBaseGenerativeOpenAI();
     message.frequencyPenalty = object.frequencyPenalty ?? undefined;
     message.maxTokens = object.maxTokens ?? undefined;
-    message.model = object.model ?? "";
+    message.model = object.model ?? undefined;
     message.n = object.n ?? undefined;
     message.presencePenalty = object.presencePenalty ?? undefined;
     message.stop = (object.stop !== undefined && object.stop !== null) ? TextArray.fromPartial(object.stop) : undefined;

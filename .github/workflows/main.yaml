@@ -15,6 +15,10 @@ env:
   WEAVIATE_129: 1.29.1
   WEAVIATE_130: 1.30.0-dev-9df35ca
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+  
 jobs:
   checks:
     runs-on: ubuntu-latest
