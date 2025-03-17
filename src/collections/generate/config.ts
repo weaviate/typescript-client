@@ -88,18 +88,17 @@ export const generativeConfigRuntime = {
   azureOpenAI: (
     config?: GenerativeOpenAIConfigRuntime
   ): ModuleConfig<'generative-azure-openai', GenerativeConfigRuntimeType<'generative-azure-openai'>> => {
-    const { baseURL, model, stop, ...rest } = config || {};
+    const { baseURL, stop, ...rest } = config || {};
     return {
       name: 'generative-azure-openai',
       config: config
         ? {
             ...rest,
             baseUrl: baseURL,
-            model: model ?? '',
             isAzure: true,
             stop: TextArray.fromPartial({ values: stop }),
           }
-        : { model: '', isAzure: true },
+        : { isAzure: true },
     };
   },
   /**
@@ -243,18 +242,17 @@ export const generativeConfigRuntime = {
   openAI: (
     config?: GenerativeOpenAIConfigRuntime
   ): ModuleConfig<'generative-openai', GenerativeConfigRuntimeType<'generative-openai'>> => {
-    const { baseURL, model, stop, ...rest } = config || {};
+    const { baseURL, stop, ...rest } = config || {};
     return {
       name: 'generative-openai',
       config: config
         ? {
             ...rest,
             baseUrl: baseURL,
-            model: model ?? '',
             isAzure: false,
             stop: TextArray.fromPartial({ values: stop }),
           }
-        : { model: '', isAzure: false },
+        : { isAzure: false },
     };
   },
   /**
