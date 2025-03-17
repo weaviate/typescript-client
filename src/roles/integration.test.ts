@@ -1,12 +1,288 @@
-import weaviate, { ApiKey, Permission, Role, WeaviateClient } from '..';
+import weaviate, {
+  ApiKey,
+  CollectionsAction,
+  DataAction,
+  Permission,
+  Role,
+  RolesAction,
+  TenantsAction,
+  WeaviateClient,
+} from '..';
 import { WeaviateStartUpError, WeaviateUnexpectedStatusCodeError } from '../errors';
 import { DbVersion } from '../utils/dbVersion';
 
-const only = DbVersion.fromString(`v${process.env.WEAVIATE_VERSION!}`).isAtLeast(1, 29, 0)
+type TestCase = {
+  roleName: string;
+  permissions: Permission[];
+  expected: Role;
+};
+
+const emptyPermissions = {
+  backupsPermissions: [],
+  clusterPermissions: [],
+  collectionsPermissions: [],
+  dataPermissions: [],
+  nodesPermissions: [],
+  rolesPermissions: [],
+  tenantsPermissions: [],
+  usersPermissions: [],
+};
+const crud = {
+  create: true,
+  read: true,
+  update: true,
+  delete: true,
+};
+const collectionsActions: CollectionsAction[] = [
+  'create_collections',
+  'read_collections',
+  'update_collections',
+  'delete_collections',
+];
+const dataActions: DataAction[] = ['create_data', 'read_data', 'update_data', 'delete_data'];
+const tenantsActions: TenantsAction[] = [
+  'create_tenants',
+  'read_tenants',
+  'update_tenants',
+  'delete_tenants',
+];
+const rolesActions: RolesAction[] = ['create_roles', 'read_roles', 'update_roles', 'delete_roles'];
+const testCases: TestCase[] = [
+  {
+    roleName: 'backups',
+    permissions: weaviate.permissions.backup({ collection: 'Some-collection', manage: true }),
+    expected: {
+      name: 'backups',
+      ...emptyPermissions,
+      backupsPermissions: [{ collection: 'Some-collection', actions: ['manage_backups'] }],
+    },
+  },
+  {
+    roleName: 'cluster',
+    permissions: weaviate.permissions.cluster({ read: true }),
+    expected: {
+      name: 'cluster',
+      ...emptyPermissions,
+      clusterPermissions: [{ actions: ['read_cluster'] }],
+    },
+  },
+  {
+    roleName: 'collections',
+    permissions: weaviate.permissions.collections({
+      collection: 'Some-collection',
+      create_collection: true,
+      read_config: true,
+      update_config: true,
+      delete_collection: true,
+    }),
+    expected: {
+      name: 'collections',
+      ...emptyPermissions,
+      collectionsPermissions: [
+        {
+          collection: 'Some-collection',
+          actions: collectionsActions,
+        },
+      ],
+    },
+  },
+  {
+    roleName: 'data-st',
+    permissions: weaviate.permissions.data({
+      collection: 'Some-collection',
+      ...crud,
+    }),
+    expected: {
+      name: 'data-st',
+      ...emptyPermissions,
+      dataPermissions: [
+        {
+          collection: 'Some-collection',
+          tenant: '*',
+          actions: dataActions,
+        },
+      ],
+    },
+  },
+  {
+    roleName: 'data-mt',
+    permissions: weaviate.permissions.data({
+      collection: 'Some-collection',
+      tenant: 'some-tenant',
+      ...crud,
+    }),
+    expected: {
+      name: 'data-mt',
+      ...emptyPermissions,
+      dataPermissions: [
+        {
+          collection: 'Some-collection',
+          tenant: 'some-tenant',
+          actions: dataActions,
+        },
+      ],
+    },
+  },
+  {
+    roleName: 'data-mt-mixed',
+    permissions: weaviate.permissions.data({
+      collection: ['Some-collection', 'Another-collection'],
+      tenant: ['some-tenant', 'another-tenant'],
+      ...crud,
+    }),
+    expected: {
+      name: 'data-mt-mixed',
+      ...emptyPermissions,
+      dataPermissions: [
+        {
+          collection: 'Some-collection',
+          tenant: 'some-tenant',
+          actions: dataActions,
+        },
+        {
+          collection: 'Some-collection',
+          tenant: 'another-tenant',
+          actions: dataActions,
+        },
+        {
+          collection: 'Another-collection',
+          tenant: 'some-tenant',
+          actions: dataActions,
+        },
+        {
+          collection: 'Another-collection',
+          tenant: 'another-tenant',
+          actions: dataActions,
+        },
+      ],
+    },
+  },
+  {
+    roleName: 'nodes-verbose',
+    permissions: weaviate.permissions.nodes.verbose({
+      collection: 'Some-collection',
+      read: true,
+    }),
+    expected: {
+      name: 'nodes-verbose',
+      ...emptyPermissions,
+      nodesPermissions: [{ collection: 'Some-collection', verbosity: 'verbose', actions: ['read_nodes'] }],
+    },
+  },
+  {
+    roleName: 'nodes-minimal',
+    permissions: weaviate.permissions.nodes.minimal({
+      read: true,
+    }),
+    expected: {
+      name: 'nodes-minimal',
+      ...emptyPermissions,
+      nodesPermissions: [{ collection: '*', verbosity: 'minimal', actions: ['read_nodes'] }],
+    },
+  },
+  {
+    roleName: 'roles',
+    permissions: weaviate.permissions.roles({
+      role: 'some-role',
+      ...crud,
+    }),
+    expected: {
+      name: 'roles',
+      ...emptyPermissions,
+      rolesPermissions: [{ role: 'some-role', actions: rolesActions }],
+    },
+  },
+  {
+    roleName: 'tenants-st',
+    permissions: weaviate.permissions.tenants({
+      collection: 'some-collection',
+      ...crud,
+    }),
+    expected: {
+      name: 'tenants-st',
+      ...emptyPermissions,
+      tenantsPermissions: [
+        {
+          collection: 'Some-collection',
+          tenant: '*',
+          actions: tenantsActions,
+        },
+      ],
+    },
+  },
+  {
+    roleName: 'tenants-mt',
+    permissions: weaviate.permissions.tenants({
+      collection: 'some-collection',
+      tenant: 'some-tenant',
+      ...crud,
+    }),
+    expected: {
+      name: 'tenants-mt',
+      ...emptyPermissions,
+      tenantsPermissions: [
+        {
+          collection: 'Some-collection',
+          tenant: 'some-tenant',
+          actions: tenantsActions,
+        },
+      ],
+    },
+  },
+  {
+    roleName: 'tenants-mt-mixed',
+    permissions: weaviate.permissions.tenants({
+      collection: ['some-collection', 'another-collection'],
+      tenant: ['some-tenant', 'another-tenant'],
+      ...crud,
+    }),
+    expected: {
+      name: 'tenants-mt-mixed',
+      ...emptyPermissions,
+      tenantsPermissions: [
+        {
+          collection: 'Some-collection',
+          tenant: 'some-tenant',
+          actions: tenantsActions,
+        },
+        {
+          collection: 'Some-collection',
+          tenant: 'another-tenant',
+          actions: tenantsActions,
+        },
+        {
+          collection: 'Another-collection',
+          tenant: 'some-tenant',
+          actions: tenantsActions,
+        },
+        {
+          collection: 'Another-collection',
+          tenant: 'another-tenant',
+          actions: tenantsActions,
+        },
+      ],
+    },
+  },
+  {
+    roleName: 'users',
+    permissions: weaviate.permissions.users({
+      user: 'some-user',
+      assignAndRevoke: true,
+      read: true,
+    }),
+    expected: {
+      name: 'users',
+      ...emptyPermissions,
+      usersPermissions: [{ users: 'some-user', actions: ['assign_and_revoke_users', 'read_users'] }],
+    },
+  },
+];
+
+const maybe = DbVersion.fromString(`v${process.env.WEAVIATE_VERSION!}`).isAtLeast(1, 29, 0)
   ? describe
   : describe.skip;
 
-only('Integration testing of the roles namespace', () => {
+maybe('Integration testing of the roles namespace', () => {
   let client: WeaviateClient;
 
   beforeAll(async () => {
@@ -41,200 +317,6 @@ only('Integration testing of the roles namespace', () => {
   });
 
   describe('should be able to create roles using the permissions factory', () => {
-    type TestCase = {
-      roleName: string;
-      permissions: Permission[];
-      expected: Role;
-    };
-    const testCases: TestCase[] = [
-      {
-        roleName: 'backups',
-        permissions: weaviate.permissions.backup({ collection: 'Some-collection', manage: true }),
-        expected: {
-          name: 'backups',
-          backupsPermissions: [{ collection: 'Some-collection', actions: ['manage_backups'] }],
-          clusterPermissions: [],
-          collectionsPermissions: [],
-          dataPermissions: [],
-          nodesPermissions: [],
-          rolesPermissions: [],
-          tenantsPermissions: [],
-          usersPermissions: [],
-        },
-      },
-      {
-        roleName: 'cluster',
-        permissions: weaviate.permissions.cluster({ read: true }),
-        expected: {
-          name: 'cluster',
-          backupsPermissions: [],
-          clusterPermissions: [{ actions: ['read_cluster'] }],
-          collectionsPermissions: [],
-          dataPermissions: [],
-          nodesPermissions: [],
-          rolesPermissions: [],
-          tenantsPermissions: [],
-          usersPermissions: [],
-        },
-      },
-      {
-        roleName: 'collections',
-        permissions: weaviate.permissions.collections({
-          collection: 'Some-collection',
-          create_collection: true,
-          read_config: true,
-          update_config: true,
-          delete_collection: true,
-        }),
-        expected: {
-          name: 'collections',
-          backupsPermissions: [],
-          clusterPermissions: [],
-          collectionsPermissions: [
-            {
-              collection: 'Some-collection',
-              actions: ['create_collections', 'read_collections', 'update_collections', 'delete_collections'],
-            },
-          ],
-          dataPermissions: [],
-          nodesPermissions: [],
-          rolesPermissions: [],
-          tenantsPermissions: [],
-          usersPermissions: [],
-        },
-      },
-      {
-        roleName: 'data',
-        permissions: weaviate.permissions.data({
-          collection: 'Some-collection',
-          create: true,
-          read: true,
-          update: true,
-          delete: true,
-        }),
-        expected: {
-          name: 'data',
-          backupsPermissions: [],
-          clusterPermissions: [],
-          collectionsPermissions: [],
-          dataPermissions: [
-            {
-              collection: 'Some-collection',
-              actions: ['create_data', 'read_data', 'update_data', 'delete_data'],
-            },
-          ],
-          nodesPermissions: [],
-          rolesPermissions: [],
-          tenantsPermissions: [],
-          usersPermissions: [],
-        },
-      },
-      {
-        roleName: 'nodes-verbose',
-        permissions: weaviate.permissions.nodes.verbose({
-          collection: 'Some-collection',
-          read: true,
-        }),
-        expected: {
-          name: 'nodes-verbose',
-          backupsPermissions: [],
-          clusterPermissions: [],
-          collectionsPermissions: [],
-          dataPermissions: [],
-          nodesPermissions: [
-            { collection: 'Some-collection', verbosity: 'verbose', actions: ['read_nodes'] },
-          ],
-          rolesPermissions: [],
-          tenantsPermissions: [],
-          usersPermissions: [],
-        },
-      },
-      {
-        roleName: 'nodes-minimal',
-        permissions: weaviate.permissions.nodes.minimal({
-          read: true,
-        }),
-        expected: {
-          name: 'nodes-minimal',
-          backupsPermissions: [],
-          clusterPermissions: [],
-          collectionsPermissions: [],
-          dataPermissions: [],
-          nodesPermissions: [{ collection: '*', verbosity: 'minimal', actions: ['read_nodes'] }],
-          rolesPermissions: [],
-          tenantsPermissions: [],
-          usersPermissions: [],
-        },
-      },
-      {
-        roleName: 'roles',
-        permissions: weaviate.permissions.roles({
-          role: 'some-role',
-          create: true,
-          read: true,
-          update: true,
-          delete: true,
-        }),
-        expected: {
-          name: 'roles',
-          backupsPermissions: [],
-          clusterPermissions: [],
-          collectionsPermissions: [],
-          dataPermissions: [],
-          nodesPermissions: [],
-          rolesPermissions: [
-            { role: 'some-role', actions: ['create_roles', 'read_roles', 'update_roles', 'delete_roles'] },
-          ],
-          tenantsPermissions: [],
-          usersPermissions: [],
-        },
-      },
-      {
-        roleName: 'tenants',
-        permissions: weaviate.permissions.tenants({
-          collection: 'some-collection',
-          create: true,
-          read: true,
-          update: true,
-          delete: true,
-        }),
-        expected: {
-          name: 'tenants',
-          backupsPermissions: [],
-          clusterPermissions: [],
-          collectionsPermissions: [],
-          dataPermissions: [],
-          nodesPermissions: [],
-          rolesPermissions: [],
-          tenantsPermissions: [
-            {
-              collection: 'Some-collection',
-              actions: ['create_tenants', 'read_tenants', 'update_tenants', 'delete_tenants'],
-            },
-          ],
-          usersPermissions: [],
-        },
-      },
-      {
-        roleName: 'users',
-        permissions: weaviate.permissions.users({
-          user: 'some-user',
-          assign_and_revoke: true,
-          read: true,
-        }),
-        expected: {
-          name: 'users',
-          backupsPermissions: [],
-          clusterPermissions: [],
-          collectionsPermissions: [],
-          dataPermissions: [],
-          nodesPermissions: [],
-          rolesPermissions: [],
-          tenantsPermissions: [],
-          usersPermissions: [{ users: 'some-user', actions: ['assign_and_revoke_users', 'read_users'] }],
-        },
-      },
-    ];
     testCases.forEach((testCase) => {
       it(`with ${testCase.roleName} permissions`, async () => {
         await client.roles.create(testCase.roleName, testCase.permissions);
@@ -250,19 +332,5 @@ only('Integration testing of the roles namespace', () => {
     await expect(client.roles.exists('backups')).resolves.toBeFalsy();
   });
 
-  afterAll(() =>
-    Promise.all(
-      [
-        'backups',
-        'cluster',
-        'collections',
-        'data',
-        'nodes-verbose',
-        'nodes-minimal',
-        'roles',
-        'tenants',
-        'users',
-      ].map((n) => client.roles.delete(n))
-    )
-  );
+  afterAll(() => Promise.all(testCases.map((t) => client.roles.delete(t.roleName))));
 });

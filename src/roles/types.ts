@@ -38,6 +38,7 @@ export type CollectionsPermission = {
 
 export type DataPermission = {
   collection: string;
+  tenant: string;
   actions: DataAction[];
 };
 
@@ -54,6 +55,7 @@ export type RolesPermission = {
 
 export type TenantsPermission = {
   collection: string;
+  tenant: string;
   actions: TenantsAction[];
 };
 
