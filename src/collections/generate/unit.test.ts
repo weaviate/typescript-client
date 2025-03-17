@@ -74,7 +74,7 @@ describe('Unit testing of the generativeConfigRuntime factory methods', () => {
         ModuleConfig<'generative-azure-openai', GenerativeConfigRuntimeType<'generative-azure-openai'>>
       >({
         name: 'generative-azure-openai',
-        config: { model: '', isAzure: true },
+        config: { isAzure: true },
       });
     });
     it('with values', () => {
@@ -255,7 +255,7 @@ describe('Unit testing of the generativeConfigRuntime factory methods', () => {
         ModuleConfig<'generative-openai', GenerativeConfigRuntimeType<'generative-openai'>>
       >({
         name: 'generative-openai',
-        config: { model: '', isAzure: false },
+        config: { isAzure: false },
       });
     });
     it('with values', () => {
