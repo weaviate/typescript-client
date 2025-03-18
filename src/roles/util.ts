@@ -81,35 +81,35 @@ export class Map {
   static permissionToWeaviate = (permission: Permission): WeaviatePermission[] => {
     if (PermissionGuards.isBackups(permission)) {
       return Array.from(permission.actions).map((action) => ({
-        backups: { collection: permission.collection },
+        backups: permission,
         action,
       }));
     } else if (PermissionGuards.isCluster(permission)) {
       return Array.from(permission.actions).map((action) => ({ action }));
     } else if (PermissionGuards.isCollections(permission)) {
       return Array.from(permission.actions).map((action) => ({
-        collections: { collection: permission.collection },
+        collections: permission,
         action,
       }));
     } else if (PermissionGuards.isData(permission)) {
       return Array.from(permission.actions).map((action) => ({
-        data: { collection: permission.collection },
+        data: permission,
         action,
       }));
     } else if (PermissionGuards.isNodes(permission)) {
       return Array.from(permission.actions).map((action) => ({
-        nodes: { collection: permission.collection, verbosity: permission.verbosity },
+        nodes: permission,
         action,
       }));
     } else if (PermissionGuards.isRoles(permission)) {
-      return Array.from(permission.actions).map((action) => ({ roles: { role: permission.role }, action }));
+      return Array.from(permission.actions).map((action) => ({ roles: permission, action }));
     } else if (PermissionGuards.isTenants(permission)) {
       return Array.from(permission.actions).map((action) => ({
-        tenants: { collection: permission.collection },
+        tenants: permission,
         action,
       }));
     } else if (PermissionGuards.isUsers(permission)) {
-      return Array.from(permission.actions).map((action) => ({ users: { users: permission.users }, action }));
+      return Array.from(permission.actions).map((action) => ({ users: permission, action }));
     } else {
       throw new Error(`Unknown permission type: ${JSON.stringify(permission, null, 2)}`);
     }
@@ -198,9 +198,11 @@ class PermissionsMapping {
 
   private data = (permission: WeaviatePermission) => {
     if (permission.data !== undefined) {
-      const key = permission.data.collection;
-      if (key === undefined) throw new Error('Data permission missing collection');
-      if (this.mappings.data[key] === undefined) this.mappings.data[key] = { collection: key, actions: [] };
+      const { collection, tenant } = permission.data;
+      if (collection === undefined) throw new Error('Data permission missing collection');
+      const key = tenant === undefined ? collection : `${collection}#${tenant}`;
+      if (this.mappings.data[key] === undefined)
+        this.mappings.data[key] = { collection, tenant: tenant || '*', actions: [] };
       this.mappings.data[key].actions.push(permission.action as DataAction);
     }
   };
@@ -232,10 +234,11 @@ class PermissionsMapping {
 
   private tenants = (permission: WeaviatePermission) => {
     if (permission.tenants !== undefined) {
-      const key = permission.tenants.collection;
-      if (key === undefined) throw new Error('Tenants permission missing collection');
+      const { collection, tenant } = permission.tenants;
+      if (collection === undefined) throw new Error('Tenants permission missing collection');
+      const key = tenant === undefined ? collection : `${collection}#${tenant}`;
       if (this.mappings.tenants[key] === undefined)
-        this.mappings.tenants[key] = { collection: key, actions: [] };
+        this.mappings.tenants[key] = { collection, tenant: tenant || '*', actions: [] };
       this.mappings.tenants[key].actions.push(permission.action as TenantsAction);
     }
   };
