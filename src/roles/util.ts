@@ -3,6 +3,7 @@ import { User } from '../users/types.js';
 import {
   BackupsAction,
   BackupsPermission,
+  ClusterAction,
   ClusterPermission,
   CollectionsAction,
   CollectionsPermission,
@@ -22,36 +23,40 @@ import {
 } from './types.js';
 
 export class PermissionGuards {
-  private static includes = (permission: Permission, ...actions: string[]): boolean =>
+  private static includes = <A extends string>(permission: Permission, ...actions: A[]): boolean =>
     actions.filter((a) => Array.from<string>(permission.actions).includes(a)).length > 0;
   static isBackups = (permission: Permission): permission is BackupsPermission =>
-    PermissionGuards.includes(permission, 'manage_backups');
+    PermissionGuards.includes<BackupsAction>(permission, 'manage_backups');
   static isCluster = (permission: Permission): permission is ClusterPermission =>
-    PermissionGuards.includes(permission, 'read_cluster');
+    PermissionGuards.includes<ClusterAction>(permission, 'read_cluster');
   static isCollections = (permission: Permission): permission is CollectionsPermission =>
-    PermissionGuards.includes(
+    PermissionGuards.includes<CollectionsAction>(
       permission,
       'create_collections',
       'delete_collections',
       'read_collections',
-      'update_collections',
-      'manage_collections'
+      'update_collections'
     );
   static isData = (permission: Permission): permission is DataPermission =>
-    PermissionGuards.includes(
+    PermissionGuards.includes<DataAction>(
       permission,
       'create_data',
       'delete_data',
       'read_data',
-      'update_data',
-      'manage_data'
+      'update_data'
     );
   static isNodes = (permission: Permission): permission is NodesPermission =>
-    PermissionGuards.includes(permission, 'read_nodes');
+    PermissionGuards.includes<NodesAction>(permission, 'read_nodes');
   static isRoles = (permission: Permission): permission is RolesPermission =>
-    PermissionGuards.includes(permission, 'create_role', 'read_roles', 'update_roles', 'delete_roles');
+    PermissionGuards.includes<RolesAction>(
+      permission,
+      'create_roles',
+      'read_roles',
+      'update_roles',
+      'delete_roles'
+    );
   static isTenants = (permission: Permission): permission is TenantsPermission =>
-    PermissionGuards.includes(
+    PermissionGuards.includes<TenantsAction>(
       permission,
       'create_tenants',
       'delete_tenants',
@@ -59,7 +64,7 @@ export class PermissionGuards {
       'update_tenants'
     );
   static isUsers = (permission: Permission): permission is UsersPermission =>
-    PermissionGuards.includes(permission, 'read_users', 'assign_and_revoke_users');
+    PermissionGuards.includes<UsersAction>(permission, 'read_users', 'assign_and_revoke_users');
   static isPermission = (permissions: PermissionsInput): permissions is Permission =>
     !Array.isArray(permissions);
   static isPermissionArray = (permissions: PermissionsInput): permissions is Permission[] =>
