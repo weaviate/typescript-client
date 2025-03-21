@@ -8,6 +8,7 @@ import {
   GenerativeFriendliAIConfig,
   GenerativeGoogleConfig,
   GenerativeMistralConfig,
+  GenerativeNvidiaConfig,
   GenerativeOllamaConfig,
   GenerativeOpenAIConfig,
   GenerativePaLMConfig,
@@ -22,6 +23,7 @@ import {
   GenerativeDatabricksConfigCreate,
   GenerativeFriendliAIConfigCreate,
   GenerativeMistralConfigCreate,
+  GenerativeNvidiaConfigCreate,
   GenerativeOllamaConfigCreate,
   GenerativeOpenAIConfigCreate,
   GenerativePaLMConfigCreate,
@@ -166,6 +168,22 @@ export default {
   ): ModuleConfig<'generative-mistral', GenerativeMistralConfig | undefined> {
     return {
       name: 'generative-mistral',
+      config,
+    };
+  },
+  /**
+   * Create a `ModuleConfig<'generative-nvidia', GenerativeNvidiaConfig | undefined>` object for use when performing AI generation using the `generative-mistral` module.
+   *
+   * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/nvidia/generative) for detailed usage.
+   *
+   * @param {GenerativeNvidiaConfigCreate} [config] The configuration for the `generative-nvidia` module.
+   * @returns {ModuleConfig<'generative-nvidia', GenerativeNvidiaConfig | undefined>} The configuration object.
+   */
+  nvidia(
+    config?: GenerativeNvidiaConfigCreate
+  ): ModuleConfig<'generative-nvidia', GenerativeNvidiaConfig | undefined> {
+    return {
+      name: 'generative-nvidia',
       config,
     };
   },
