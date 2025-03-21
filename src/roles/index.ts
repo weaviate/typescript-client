@@ -106,9 +106,13 @@ const roles = (connection: ConnectionREST): Roles => {
         .then(() => true)
         .catch(() => false),
     addPermissions: (roleName: string, permissions: PermissionsInput) =>
-      connection.postEmpty(`/authz/roles/${roleName}/add-permissions`, { permissions }),
+      connection.postEmpty(`/authz/roles/${roleName}/add-permissions`, {
+        permissions: Map.flattenPermissions(permissions).flatMap(Map.permissionToWeaviate),
+      }),
     removePermissions: (roleName: string, permissions: PermissionsInput) =>
-      connection.postEmpty(`/authz/roles/${roleName}/remove-permissions`, { permissions }),
+      connection.postEmpty(`/authz/roles/${roleName}/remove-permissions`, {
+        permissions: Map.flattenPermissions(permissions).flatMap(Map.permissionToWeaviate),
+      }),
     hasPermissions: (roleName: string, permission: Permission | Permission[]) =>
       Promise.all(
         (Array.isArray(permission) ? permission : [permission])

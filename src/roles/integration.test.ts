@@ -326,6 +326,35 @@ maybe('Integration testing of the roles namespace', () => {
     });
   });
 
+  it('should be able to add permissions to one of the created roles', async () => {
+    await client.roles.addPermissions(
+      'backups',
+      weaviate.permissions.backup({ collection: 'Another-collection', manage: true })
+    );
+    const role = await client.roles.byName('backups');
+    expect(role).toEqual({
+      name: 'backups',
+      ...emptyPermissions,
+      backupsPermissions: [
+        { collection: 'Some-collection', actions: ['manage_backups'] },
+        { collection: 'Another-collection', actions: ['manage_backups'] },
+      ],
+    });
+  });
+
+  it('should be able to remove permissions from one of the created roles', async () => {
+    await client.roles.removePermissions(
+      'backups',
+      weaviate.permissions.backup({ collection: 'Another-collection', manage: true })
+    );
+    const role = await client.roles.byName('backups');
+    expect(role).toEqual({
+      name: 'backups',
+      ...emptyPermissions,
+      backupsPermissions: [{ collection: 'Some-collection', actions: ['manage_backups'] }],
+    });
+  });
+
   it('should delete one of the created roles', async () => {
     await client.roles.delete('backups');
     await expect(client.roles.byName('backups')).rejects.toThrowError(WeaviateUnexpectedStatusCodeError);
