@@ -69,9 +69,9 @@ export type UpdateObject<T> = {
   /** The ID of the object to be updated */
   id: string;
   /** The properties of the object to be updated */
-  properties?: NonReferenceInputs<T>;
+  properties?: Partial<NonReferenceInputs<T>>;
   /** The references of the object to be updated */
-  references?: ReferenceInputs<T>;
+  references?: Partial<ReferenceInputs<T>>;
   //* The vector(s) to update in the object */
   vectors?: number[] | Vectors;
 };
@@ -170,6 +170,13 @@ const addContext = <B extends IBuilder>(
   return builder;
 };
 
+type ParseObject<T> = {
+  id?: string;
+  properties?: Partial<NonReferenceInputs<T>>;
+  references?: Partial<ReferenceInputs<T>>;
+  vectors?: number[] | Vectors;
+};
+
 const data = <T>(
   connection: Connection,
   name: string,
@@ -180,7 +187,7 @@ const data = <T>(
   const objectsPath = new ObjectsPath(dbVersionSupport);
   const referencesPath = new ReferencesPath(dbVersionSupport);
 
-  const parseObject = async (object?: InsertObject<any>): Promise<WeaviateObject<T>> => {
+  const parseObject = async (object?: ParseObject<any>): Promise<WeaviateObject<T>> => {
     if (!object) {
       return {} as WeaviateObject<T>;
     }
