@@ -380,15 +380,18 @@ export const vectorizer = {
    * @returns {VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2vec-azure-openai'>} The configuration object.
    */
   text2VecAzureOpenAI: <T, N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
-    opts: ConfigureTextVectorizerOptions<T, N, I, 'text2vec-azure-openai'>
+    opts?: ConfigureTextVectorizerOptions<T, N, I, 'text2vec-azure-openai'>
   ): VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2vec-azure-openai'> => {
-    const { name, sourceProperties, vectorIndexConfig, ...config } = opts;
+    const { name, sourceProperties, vectorIndexConfig, ...config } = opts || {};
     return makeVectorizer(name, {
       sourceProperties,
       vectorIndexConfig,
       vectorizerConfig: {
         name: 'text2vec-azure-openai',
-        config,
+        config: {
+          ...config,
+          isAzure: true,
+        },
       },
     });
   },
