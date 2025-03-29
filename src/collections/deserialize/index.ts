@@ -329,7 +329,7 @@ export class Deserialize {
     if (value.blobValue !== undefined) return value.blobValue;
     if (value.geoValue !== undefined) return value.geoValue;
     if (value.phoneValue !== undefined) return value.phoneValue;
-    if (value.nullValue !== undefined) return undefined;
+    if (value.nullValue !== undefined) return null;
     throw new WeaviateDeserializationError(`Unknown value type: ${JSON.stringify(value, null, 2)}`);
   }
 
