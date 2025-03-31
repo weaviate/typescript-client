@@ -205,6 +205,7 @@ export default class Aggregator extends CommandBase {
       this.nearVectorString ||
       this.limit ||
       this.groupBy ||
+      this.hybridString ||
       this.tenant
     ) {
       let args: string[] = [];
@@ -251,7 +252,6 @@ export default class Aggregator extends CommandBase {
 
       params = `(${args.join(',')})`;
     }
-
     return this.client.query(`{Aggregate{${this.className}${params}{${this.fields}}}}`);
   };
 }

@@ -23,6 +23,7 @@ import { WeaviateDefinition, WeaviateServiceImplementation } from '../proto/v1/w
 
 import { WeaviateRequestTimeoutError } from '../errors.js';
 import weaviate, { Collection, WeaviateClient } from '../index';
+import { AggregateReply } from '../proto/v1/aggregate.js';
 import { BatchObjectsReply } from '../proto/v1/batch.js';
 import { BatchDeleteReply } from '../proto/v1/batch_delete.js';
 import { SearchReply } from '../proto/v1/search_get.js';
@@ -231,6 +232,14 @@ const makeRestApp = (version: string) => {
 
 const makeGrpcApp = () => {
   const weaviateMockImpl: WeaviateServiceImplementation = {
+    aggregate: (): Promise<AggregateReply> =>
+      new Promise((r) => {
+        setTimeout(r, 2000);
+      }).then(() => {
+        return {
+          took: 5000,
+        };
+      }),
     tenantsGet: (): Promise<TenantsGetReply> =>
       new Promise((r) => {
         setTimeout(r, 2000);
@@ -303,9 +312,9 @@ describe('Mock testing of timeout behaviour', () => {
   let collection: Collection;
 
   beforeAll(async () => {
-    servers = await makeMockServers('1.28.2', 8954, 'localhost:8955');
+    servers = await makeMockServers('1.29.0', 8954, 'localhost:8955');
     client = await weaviate.connectToLocal({ port: 8954, grpcPort: 8955, timeout: { query: 1, insert: 1 } });
-    collection = client.collections.get(COLLECTION_NAME);
+    collection = client.collections.use(COLLECTION_NAME);
   });
 
   it('should timeout when calling REST GET v1/schema', () =>
@@ -324,6 +333,8 @@ describe('Mock testing of timeout behaviour', () => {
     expect(collection.data.deleteMany(collection.filter.byId().equal('123' as any))).rejects.toThrow(
       WeaviateRequestTimeoutError
     ));
+  it('should timeout when calling gRPC Aggregate', () =>
+    expect(collection.aggregate.overAll()).rejects.toThrow(WeaviateRequestTimeoutError));
 
   afterAll(() => Promise.all([servers.rest.close(), servers.grpc.shutdown()]));
 });

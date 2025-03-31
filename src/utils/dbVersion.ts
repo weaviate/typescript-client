@@ -209,6 +209,16 @@ export class DbVersionSupport {
       };
     });
   };
+
+  supportsAggregateGRPC = () => {
+    return this.dbVersionProvider.getVersion().then((version) => {
+      return {
+        version: version,
+        supports: version.isAtLeast(1, 29, 0),
+        message: this.errorMessage('Aggregate gRPC method', version.show(), '1.29.0'),
+      };
+    });
+  };
 }
 
 const EMPTY_VERSION = '';

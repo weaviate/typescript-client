@@ -15,36 +15,51 @@ export type DataAction = Extract<
   'create_data' | 'delete_data' | 'read_data' | 'update_data' | 'manage_data'
 >;
 export type NodesAction = Extract<Action, 'read_nodes'>;
-export type RolesAction = Extract<Action, 'manage_roles' | 'read_roles'>;
+export type RolesAction = Extract<Action, 'create_roles' | 'read_roles' | 'update_roles' | 'delete_roles'>;
+export type TenantsAction = Extract<
+  Action,
+  'create_tenants' | 'delete_tenants' | 'read_tenants' | 'update_tenants'
+>;
+export type UsersAction = Extract<Action, 'read_users' | 'assign_and_revoke_users'>;
 
 export type BackupsPermission = {
   collection: string;
-  action: BackupsAction;
+  actions: BackupsAction[];
 };
 
 export type ClusterPermission = {
-  action: ClusterAction;
+  actions: ClusterAction[];
 };
 
 export type CollectionsPermission = {
   collection: string;
-  action: CollectionsAction;
+  actions: CollectionsAction[];
 };
 
 export type DataPermission = {
   collection: string;
-  action: DataAction;
+  actions: DataAction[];
 };
 
 export type NodesPermission = {
   collection: string;
   verbosity: 'verbose' | 'minimal';
-  action: NodesAction;
+  actions: NodesAction[];
 };
 
 export type RolesPermission = {
   role: string;
-  action: RolesAction;
+  actions: RolesAction[];
+};
+
+export type TenantsPermission = {
+  collection: string;
+  actions: TenantsAction[];
+};
+
+export type UsersPermission = {
+  users: string;
+  actions: UsersAction[];
 };
 
 export type Role = {
@@ -55,10 +70,8 @@ export type Role = {
   dataPermissions: DataPermission[];
   nodesPermissions: NodesPermission[];
   rolesPermissions: RolesPermission[];
-};
-
-export type User = {
-  name: string;
+  tenantsPermissions: TenantsPermission[];
+  usersPermissions: UsersPermission[];
 };
 
 export type Permission =
@@ -67,6 +80,8 @@ export type Permission =
   | CollectionsPermission
   | DataPermission
   | NodesPermission
-  | RolesPermission;
+  | RolesPermission
+  | TenantsPermission
+  | UsersPermission;
 
 export type PermissionsInput = Permission | Permission[] | Permission[][] | (Permission | Permission[])[];

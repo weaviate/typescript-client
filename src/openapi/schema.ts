@@ -40,6 +40,9 @@ export interface paths {
       };
     };
   };
+  '/users/own-info': {
+    get: operations['getOwnInfo'];
+  };
   '/authz/roles': {
     get: operations['getRoles'];
     post: operations['createRole'];
@@ -64,13 +67,16 @@ export interface paths {
     get: operations['getRolesForUser'];
   };
   '/authz/users/{id}/assign': {
-    post: operations['assignRole'];
+    post: operations['assignRoleToUser'];
   };
   '/authz/users/{id}/revoke': {
-    post: operations['revokeRole'];
+    post: operations['revokeRoleFromUser'];
   };
-  '/authz/users/own-roles': {
-    get: operations['getRolesForOwnUser'];
+  '/authz/groups/{id}/assign': {
+    post: operations['assignRoleToGroup'];
+  };
+  '/authz/groups/{id}/revoke': {
+    post: operations['revokeRoleFromGroup'];
   };
   '/objects': {
     /** Lists all Objects in reverse order of creation, owned by the user that belongs to the used token. */
@@ -225,6 +231,13 @@ export interface paths {
 }
 
 export interface definitions {
+  UserOwnInfo: {
+    /** @description The groups associated to the user */
+    groups?: string[];
+    roles?: definitions['Role'][];
+    /** @description The username associated with the provided key */
+    username: string;
+  };
   Role: {
     /** @description role name */
     name: string;
@@ -272,16 +285,16 @@ export interface definitions {
        */
       collection?: string;
     };
-    /** @description resources applicable for role actions */
-    roles?: {
+    /** @description resources applicable for user actions */
+    users?: {
       /**
-       * @description string or regex. if a specific role name, if left empty it will be ALL or *
+       * @description string or regex. if a specific name, if left empty it will be ALL or *
        * @default *
        */
-      role?: string;
+      users?: string;
     };
-    /** @description resources applicable for collection and/or tenant actions */
-    collections?: {
+    /** @description resources applicable for tenant actions */
+    tenants?: {
       /**
        * @description string or regex. if a specific collection name, if left empty it will be ALL or *
        * @default *
@@ -293,6 +306,28 @@ export interface definitions {
        */
       tenant?: string;
     };
+    /** @description resources applicable for role actions */
+    roles?: {
+      /**
+       * @description string or regex. if a specific role name, if left empty it will be ALL or *
+       * @default *
+       */
+      role?: string;
+      /**
+       * @description set the scope for the manage role permission
+       * @default match
+       * @enum {string}
+       */
+      scope?: 'all' | 'match';
+    };
+    /** @description resources applicable for collection and/or tenant actions */
+    collections?: {
+      /**
+       * @description string or regex. if a specific collection name, if left empty it will be ALL or *
+       * @default *
+       */
+      collection?: string;
+    };
     /**
      * @description allowed actions in weaviate.
      * @enum {string}
@@ -300,19 +335,25 @@ export interface definitions {
     action:
       | 'manage_backups'
       | 'read_cluster'
-      | 'manage_data'
       | 'create_data'
       | 'read_data'
       | 'update_data'
       | 'delete_data'
       | 'read_nodes'
-      | 'manage_roles'
+      | 'create_roles'
       | 'read_roles'
-      | 'manage_collections'
+      | 'update_roles'
+      | 'delete_roles'
       | 'create_collections'
       | 'read_collections'
       | 'update_collections'
-      | 'delete_collections';
+      | 'delete_collections'
+      | 'assign_and_revoke_users'
+      | 'read_users'
+      | 'create_tenants'
+      | 'read_tenants'
+      | 'update_tenants'
+      | 'delete_tenants';
   };
   /** @description list of roles */
   RolesListResponse: definitions['Role'][];
@@ -374,7 +415,7 @@ export interface definitions {
   /** @description A vector representation of the object in the Contextionary. If provided at object creation, this wil take precedence over any vectorizer setting. */
   C11yVector: number[];
   /** @description A vector representation of the object. If provided at object creation, this wil take precedence over any vectorizer setting. */
-  Vector: number[];
+  Vector: { [key: string]: unknown };
   /** @description A map of named vectors for multi-vector representations. */
   Vectors: { [key: string]: definitions['Vector'] };
   /** @description Receive question based on array of classes, properties and values. */
@@ -1504,12 +1545,6 @@ export interface definitions {
   TenantResponse: definitions['Tenant'] & {
     /** @description The list of nodes that owns that tenant data. */
     belongsToNodes?: string[];
-    /**
-     * @description Experimental. The data version of the tenant is a monotonically increasing number starting from 0 which is incremented each time a tenant's data is offloaded to cloud storage.
-     * @default 0
-     * @example 3
-     */
-    dataVersion?: number;
   };
 }
 
@@ -1574,6 +1609,20 @@ export interface operations {
       200: unknown;
       /** The application is currently not able to serve traffic. If other horizontal replicas of weaviate are available and they are capable of receiving traffic, all traffic should be redirected there instead. */
       503: unknown;
+    };
+  };
+  getOwnInfo: {
+    responses: {
+      /** Info about the user */
+      200: {
+        schema: definitions['UserOwnInfo'];
+      };
+      /** Unauthorized or invalid credentials. */
+      401: unknown;
+      /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
     };
   };
   getRoles: {
@@ -1860,7 +1909,7 @@ export interface operations {
       };
     };
   };
-  assignRole: {
+  assignRoleToUser: {
     parameters: {
       path: {
         /** user name */
@@ -1887,14 +1936,16 @@ export interface operations {
         schema: definitions['ErrorResponse'];
       };
       /** role or user is not found. */
-      404: unknown;
+      404: {
+        schema: definitions['ErrorResponse'];
+      };
       /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
       500: {
         schema: definitions['ErrorResponse'];
       };
     };
   };
-  revokeRole: {
+  revokeRoleFromUser: {
     parameters: {
       path: {
         /** user name */
@@ -1921,6 +1972,42 @@ export interface operations {
         schema: definitions['ErrorResponse'];
       };
       /** role or user is not found. */
+      404: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
+  assignRoleToGroup: {
+    parameters: {
+      path: {
+        /** group name */
+        id: string;
+      };
+      body: {
+        body: {
+          /** @description the roles that assigned to group */
+          roles?: string[];
+        };
+      };
+    };
+    responses: {
+      /** Role assigned successfully */
+      200: unknown;
+      /** Bad request */
+      400: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Unauthorized or invalid credentials. */
+      401: unknown;
+      /** Forbidden */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** role or group is not found. */
       404: unknown;
       /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
       500: {
@@ -1928,14 +2015,34 @@ export interface operations {
       };
     };
   };
-  getRolesForOwnUser: {
+  revokeRoleFromGroup: {
+    parameters: {
+      path: {
+        /** group name */
+        id: string;
+      };
+      body: {
+        body: {
+          /** @description the roles that revoked from group */
+          roles?: string[];
+        };
+      };
+    };
     responses: {
-      /** Role assigned to own users */
-      200: {
-        schema: definitions['RolesListResponse'];
+      /** Role revoked successfully */
+      200: unknown;
+      /** Bad request */
+      400: {
+        schema: definitions['ErrorResponse'];
       };
       /** Unauthorized or invalid credentials. */
       401: unknown;
+      /** Forbidden */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** role or group is not found. */
+      404: unknown;
       /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
       500: {
         schema: definitions['ErrorResponse'];

@@ -1,38 +1,20 @@
-import { StartedWeaviateContainer, WeaviateContainer } from '@testcontainers/weaviate';
 import weaviate, { ApiKey, Permission, Role, WeaviateClient } from '..';
-import { WeaviateInsufficientPermissionsError, WeaviateUnexpectedStatusCodeError } from '../errors';
+import { WeaviateStartUpError, WeaviateUnexpectedStatusCodeError } from '../errors';
 import { DbVersion } from '../utils/dbVersion';
 
-const only = DbVersion.fromString(`v${process.env.WEAVIATE_VERSION!}`).isAtLeast(1, 28, 0)
+const only = DbVersion.fromString(`v${process.env.WEAVIATE_VERSION!}`).isAtLeast(1, 29, 0)
   ? describe
   : describe.skip;
 
 only('Integration testing of the roles namespace', () => {
   let client: WeaviateClient;
-  let container: StartedWeaviateContainer;
 
   beforeAll(async () => {
-    container = await new WeaviateContainer(`semitechnologies/weaviate:${process.env.WEAVIATE_VERSION}`)
-      .withExposedPorts(8080, 50051)
-      .withEnvironment({
-        AUTHENTICATION_APIKEY_ENABLED: 'true',
-        AUTHENTICATION_APIKEY_ALLOWED_KEYS: 'admin-key,custom-key',
-        AUTHENTICATION_APIKEY_USERS: 'admin-user,custom-user',
-        AUTHORIZATION_ADMIN_USERS: 'admin-user',
-        AUTHORIZATION_ENABLE_RBAC: 'true',
-      })
-      .start();
-    expect(container).toBeDefined();
     client = await weaviate.connectToLocal({
-      host: container.getHost(),
-      port: container.getMappedPort(8080),
-      grpcPort: container.getMappedPort(50051),
+      port: 8091,
+      grpcPort: 50062,
       authCredentials: new ApiKey('admin-key'),
     });
-  });
-
-  afterAll(async () => {
-    await container.stop();
   });
 
   it('should be able to retrieve the default roles', async () => {
@@ -40,33 +22,13 @@ only('Integration testing of the roles namespace', () => {
     expect(Object.values(roles).length).toBeGreaterThan(0);
   });
 
-  it('should fail with insufficient permissions if no key provided', async () => {
-    const unauthenticatedClient = await weaviate.connectToLocal({
-      host: container.getHost(),
-      port: container.getMappedPort(8080),
-      grpcPort: container.getMappedPort(50051),
-    });
-    await expect(unauthenticatedClient.roles.listAll()).rejects.toThrowError(
-      WeaviateInsufficientPermissionsError
-    ); // should be unauthenticated error, needs fixing on server
-  });
-
-  it('should fail with insufficient permissions if permission-less key provided', async () => {
-    const unauthenticatedClient = await weaviate.connectToLocal({
-      host: container.getHost(),
-      port: container.getMappedPort(8080),
-      grpcPort: container.getMappedPort(50051),
-      authCredentials: new ApiKey('custom-key'),
-    });
-    await expect(unauthenticatedClient.roles.listAll()).rejects.toThrowError(
-      WeaviateInsufficientPermissionsError
-    );
-  });
-
-  it('should get roles by user', async () => {
-    const roles = await client.roles.byUser('admin-user');
-    expect(Object.keys(roles).length).toBeGreaterThan(0);
-  });
+  it('should fail to start up if no key provided', () =>
+    expect(
+      weaviate.connectToLocal({
+        port: 8091,
+        grpcPort: 50062,
+      })
+    ).rejects.toThrowError(WeaviateStartUpError));
 
   it('should check the existance of a real role', async () => {
     const exists = await client.roles.exists('admin');
@@ -90,12 +52,14 @@ only('Integration testing of the roles namespace', () => {
         permissions: weaviate.permissions.backup({ collection: 'Some-collection', manage: true }),
         expected: {
           name: 'backups',
-          backupsPermissions: [{ collection: 'Some-collection', action: 'manage_backups' }],
+          backupsPermissions: [{ collection: 'Some-collection', actions: ['manage_backups'] }],
           clusterPermissions: [],
           collectionsPermissions: [],
           dataPermissions: [],
           nodesPermissions: [],
           rolesPermissions: [],
+          tenantsPermissions: [],
+          usersPermissions: [],
         },
       },
       {
@@ -104,11 +68,13 @@ only('Integration testing of the roles namespace', () => {
         expected: {
           name: 'cluster',
           backupsPermissions: [],
-          clusterPermissions: [{ action: 'read_cluster' }],
+          clusterPermissions: [{ actions: ['read_cluster'] }],
           collectionsPermissions: [],
           dataPermissions: [],
           nodesPermissions: [],
           rolesPermissions: [],
+          tenantsPermissions: [],
+          usersPermissions: [],
         },
       },
       {
@@ -125,14 +91,16 @@ only('Integration testing of the roles namespace', () => {
           backupsPermissions: [],
           clusterPermissions: [],
           collectionsPermissions: [
-            { collection: 'Some-collection', action: 'create_collections' },
-            { collection: 'Some-collection', action: 'read_collections' },
-            { collection: 'Some-collection', action: 'update_collections' },
-            { collection: 'Some-collection', action: 'delete_collections' },
+            {
+              collection: 'Some-collection',
+              actions: ['create_collections', 'read_collections', 'update_collections', 'delete_collections'],
+            },
           ],
           dataPermissions: [],
           nodesPermissions: [],
           rolesPermissions: [],
+          tenantsPermissions: [],
+          usersPermissions: [],
         },
       },
       {
@@ -150,35 +118,63 @@ only('Integration testing of the roles namespace', () => {
           clusterPermissions: [],
           collectionsPermissions: [],
           dataPermissions: [
-            { collection: 'Some-collection', action: 'create_data' },
-            { collection: 'Some-collection', action: 'read_data' },
-            { collection: 'Some-collection', action: 'update_data' },
-            { collection: 'Some-collection', action: 'delete_data' },
+            {
+              collection: 'Some-collection',
+              actions: ['create_data', 'read_data', 'update_data', 'delete_data'],
+            },
           ],
           nodesPermissions: [],
           rolesPermissions: [],
+          tenantsPermissions: [],
+          usersPermissions: [],
         },
       },
       {
-        roleName: 'nodes',
-        permissions: weaviate.permissions.nodes({
+        roleName: 'nodes-verbose',
+        permissions: weaviate.permissions.nodes.verbose({
           collection: 'Some-collection',
-          verbosity: 'verbose',
           read: true,
         }),
         expected: {
-          name: 'nodes',
+          name: 'nodes-verbose',
           backupsPermissions: [],
           clusterPermissions: [],
           collectionsPermissions: [],
           dataPermissions: [],
-          nodesPermissions: [{ collection: 'Some-collection', verbosity: 'verbose', action: 'read_nodes' }],
+          nodesPermissions: [
+            { collection: 'Some-collection', verbosity: 'verbose', actions: ['read_nodes'] },
+          ],
           rolesPermissions: [],
+          tenantsPermissions: [],
+          usersPermissions: [],
+        },
+      },
+      {
+        roleName: 'nodes-minimal',
+        permissions: weaviate.permissions.nodes.minimal({
+          read: true,
+        }),
+        expected: {
+          name: 'nodes-minimal',
+          backupsPermissions: [],
+          clusterPermissions: [],
+          collectionsPermissions: [],
+          dataPermissions: [],
+          nodesPermissions: [{ collection: '*', verbosity: 'minimal', actions: ['read_nodes'] }],
+          rolesPermissions: [],
+          tenantsPermissions: [],
+          usersPermissions: [],
         },
       },
       {
         roleName: 'roles',
-        permissions: weaviate.permissions.roles({ role: 'some-role', manage: true }),
+        permissions: weaviate.permissions.roles({
+          role: 'some-role',
+          create: true,
+          read: true,
+          update: true,
+          delete: true,
+        }),
         expected: {
           name: 'roles',
           backupsPermissions: [],
@@ -186,7 +182,56 @@ only('Integration testing of the roles namespace', () => {
           collectionsPermissions: [],
           dataPermissions: [],
           nodesPermissions: [],
-          rolesPermissions: [{ role: 'some-role', action: 'manage_roles' }],
+          rolesPermissions: [
+            { role: 'some-role', actions: ['create_roles', 'read_roles', 'update_roles', 'delete_roles'] },
+          ],
+          tenantsPermissions: [],
+          usersPermissions: [],
+        },
+      },
+      {
+        roleName: 'tenants',
+        permissions: weaviate.permissions.tenants({
+          collection: 'some-collection',
+          create: true,
+          read: true,
+          update: true,
+          delete: true,
+        }),
+        expected: {
+          name: 'tenants',
+          backupsPermissions: [],
+          clusterPermissions: [],
+          collectionsPermissions: [],
+          dataPermissions: [],
+          nodesPermissions: [],
+          rolesPermissions: [],
+          tenantsPermissions: [
+            {
+              collection: 'Some-collection',
+              actions: ['create_tenants', 'read_tenants', 'update_tenants', 'delete_tenants'],
+            },
+          ],
+          usersPermissions: [],
+        },
+      },
+      {
+        roleName: 'users',
+        permissions: weaviate.permissions.users({
+          user: 'some-user',
+          assign_and_revoke: true,
+          read: true,
+        }),
+        expected: {
+          name: 'users',
+          backupsPermissions: [],
+          clusterPermissions: [],
+          collectionsPermissions: [],
+          dataPermissions: [],
+          nodesPermissions: [],
+          rolesPermissions: [],
+          tenantsPermissions: [],
+          usersPermissions: [{ users: 'some-user', actions: ['assign_and_revoke_users', 'read_users'] }],
         },
       },
     ];
@@ -204,4 +249,20 @@ only('Integration testing of the roles namespace', () => {
     await expect(client.roles.byName('backups')).rejects.toThrowError(WeaviateUnexpectedStatusCodeError);
     await expect(client.roles.exists('backups')).resolves.toBeFalsy();
   });
+
+  afterAll(() =>
+    Promise.all(
+      [
+        'backups',
+        'cluster',
+        'collections',
+        'data',
+        'nodes-verbose',
+        'nodes-minimal',
+        'roles',
+        'tenants',
+        'users',
+      ].map((n) => client.roles.delete(n))
+    )
+  );
 });

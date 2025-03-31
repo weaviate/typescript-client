@@ -23,7 +23,7 @@ describe('Testing of the collection.iterator method with a simple collection', (
 
   beforeAll(async () => {
     client = await weaviate.connectToLocal({ port: 8080, grpcPort: 50051 });
-    collection = client.collections.get(collectionName);
+    collection = client.collections.use(collectionName);
     id = await client.collections
       .create({
         name: collectionName,

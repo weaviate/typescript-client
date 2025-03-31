@@ -475,7 +475,7 @@ export type Text2VecWeaviateConfig = {
   /** The dimensionality of the vector once embedded. */
   dimensions?: number;
   /** The model to use. */
-  model?: 'Snowflake/snowflake-arctic-embed-m-v1.5' | string;
+  model?: 'Snowflake/snowflake-arctic-embed-l-v2.0' | 'Snowflake/snowflake-arctic-embed-m-v1.5' | string;
   /** Whether to vectorize the collection name. */
   vectorizeCollectionName?: boolean;
 };

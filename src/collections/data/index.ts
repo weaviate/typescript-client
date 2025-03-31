@@ -69,9 +69,9 @@ export type UpdateObject<T> = {
   /** The ID of the object to be updated */
   id: string;
   /** The properties of the object to be updated */
-  properties?: NonReferenceInputs<T>;
+  properties?: Partial<NonReferenceInputs<T>>;
   /** The references of the object to be updated */
-  references?: ReferenceInputs<T>;
+  references?: Partial<ReferenceInputs<T>>;
   //* The vector(s) to update in the object */
   vectors?: number[] | Vectors;
 };
@@ -170,6 +170,13 @@ const addContext = <B extends IBuilder>(
   return builder;
 };
 
+type ParseObject<T> = {
+  id?: string;
+  properties?: Partial<NonReferenceInputs<T>>;
+  references?: Partial<ReferenceInputs<T>>;
+  vectors?: number[] | Vectors;
+};
+
 const data = <T>(
   connection: Connection,
   name: string,
@@ -180,7 +187,7 @@ const data = <T>(
   const objectsPath = new ObjectsPath(dbVersionSupport);
   const referencesPath = new ReferencesPath(dbVersionSupport);
 
-  const parseObject = async (object?: InsertObject<any>): Promise<WeaviateObject<T>> => {
+  const parseObject = async (object?: ParseObject<any>): Promise<WeaviateObject<T>> => {
     if (!object) {
       return {} as WeaviateObject<T>;
     }
@@ -190,16 +197,18 @@ const data = <T>(
         ? (Serialize.restProperties(object.properties, object.references) as T)
         : undefined,
     };
+    // as any required below because server uses swagger object as interface{} in Go to perform type switching
+    // actual types are []number and [][]number but unions don't work in go-swagger
     if (Array.isArray(object.vectors)) {
       const requiresNamedVectorsInsertFix = await dbVersionSupport.requiresNamedVectorsInsertFix();
       if (requiresNamedVectorsInsertFix.supports) {
         obj.vector = object.vectors;
-        obj.vectors = { default: object.vectors };
+        obj.vectors = { default: object.vectors as any };
       } else {
         obj.vector = object.vectors;
       }
     } else if (object.vectors) {
-      obj.vectors = object.vectors;
+      obj.vectors = object.vectors as any;
     }
     return obj;
   };

@@ -2378,7 +2378,7 @@ describe('named vectors test', () => {
           .get()
           .withClassName(className)
           .withNearVector({
-            vector: res.vectors?.title as number[],
+            vector: res.vectors?.title as any,
             targetVectors: ['title'],
           })
           .withFields('title')
