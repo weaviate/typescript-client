@@ -1626,8 +1626,8 @@ export class Serialize {
   };
 
   public static restProperties = (
-    properties: Record<string, WeaviateField>,
-    references?: Record<string, ReferenceInput<any>>
+    properties: Record<string, WeaviateField | undefined>,
+    references?: Record<string, ReferenceInput<any> | undefined>
   ): Record<string, any> => {
     const parsedProperties: any = {};
     Object.keys(properties).forEach((key) => {
@@ -1651,6 +1651,9 @@ export class Serialize {
     });
     if (!references) return parsedProperties;
     for (const [key, value] of Object.entries(references)) {
+      if (value === undefined) {
+        continue;
+      }
       if (ReferenceGuards.isReferenceManager(value)) {
         parsedProperties[key] = value.toBeaconObjs();
       } else if (ReferenceGuards.isUuid(value)) {
