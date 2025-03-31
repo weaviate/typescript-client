@@ -1,13 +1,7 @@
 import weaviate, { ApiKey } from '..';
-import { DbVersion } from '../utils/dbVersion';
+import { requireAtLeast } from '../../test/version.js';
 import { WeaviateUserTypeDB } from '../v2';
 import { UserDB } from './types.js';
-
-const version = DbVersion.fromString(`v${process.env.WEAVIATE_VERSION!}`);
-
-/** Run the suite / test only for Weaviate version above this. */
-const requireAtLeast = (...semver: [...Parameters<DbVersion['isAtLeast']>]) =>
-  version.isAtLeast(...semver) ? describe : describe.skip;
 
 requireAtLeast(
   1,

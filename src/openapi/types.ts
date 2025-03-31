@@ -1,4 +1,4 @@
-import { definitions } from './schema.js';
+import { definitions, operations } from './schema.js';
 
 type Override<T1, T2> = Omit<T1, keyof T2> & T2;
 type DefaultProperties = { [key: string]: unknown };
@@ -54,11 +54,6 @@ export type WeaviateMultiTenancyConfig = WeaviateClass['multiTenancyConfig'];
 export type WeaviateReplicationConfig = WeaviateClass['replicationConfig'];
 export type WeaviateShardingConfig = WeaviateClass['shardingConfig'];
 export type WeaviateShardStatus = definitions['ShardStatusGetResponse'];
-export type WeaviateUser = definitions['UserOwnInfo'];
-export type WeaviateDBUser = definitions['DBUserInfo'];
-export type WeaviateUserType = definitions['UserTypeOutput'];
-export type WeaviateUserTypeInternal = definitions['UserTypeInput'];
-export type WeaviateUserTypeDB = definitions['DBUserInfo']['dbUserType'];
 export type WeaviateVectorIndexConfig = WeaviateClass['vectorIndexConfig'];
 export type WeaviateVectorsConfig = WeaviateClass['vectorConfig'];
 export type WeaviateVectorConfig = definitions['VectorConfig'];
@@ -73,3 +68,9 @@ export type Meta = definitions['Meta'];
 export type Role = definitions['Role'];
 export type Permission = definitions['Permission'];
 export type Action = definitions['Permission']['action'];
+export type WeaviateUser = definitions['UserOwnInfo'];
+export type WeaviateDBUser = definitions['DBUserInfo'];
+export type WeaviateUserType = definitions['UserTypeOutput'];
+export type WeaviateUserTypeInternal = definitions['UserTypeInput'];
+export type WeaviateUserTypeDB = definitions['DBUserInfo']['dbUserType'];
+export type WeaviateAssignedUser = operations['getUsersForRole']['responses']['200']['schema'][0];

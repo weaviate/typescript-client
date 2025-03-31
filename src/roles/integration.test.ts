@@ -7,9 +7,10 @@ import weaviate, {
   RolesAction,
   TenantsAction,
   WeaviateClient,
+  UserAssignment,
 } from '..';
+import { requireAtLeast } from '../../test/version';
 import { WeaviateStartUpError, WeaviateUnexpectedStatusCodeError } from '../errors';
-import { DbVersion } from '../utils/dbVersion';
 
 type TestCase = {
   roleName: string;
@@ -278,11 +279,11 @@ const testCases: TestCase[] = [
   },
 ];
 
-const maybe = DbVersion.fromString(`v${process.env.WEAVIATE_VERSION!}`).isAtLeast(1, 29, 0)
-  ? describe
-  : describe.skip;
-
-maybe('Integration testing of the roles namespace', () => {
+requireAtLeast(
+  1,
+  29,
+  0
+)('Integration testing of the roles namespace', () => {
   let client: WeaviateClient;
 
   beforeAll(async () => {
@@ -314,6 +315,37 @@ maybe('Integration testing of the roles namespace', () => {
   it('should check the existance of a fake role', async () => {
     const exists = await client.roles.exists('fake-role');
     expect(exists).toBeFalsy();
+  });
+
+  requireAtLeast(
+    1,
+    30,
+    0
+  )('namespaced users', () => {
+    it('retrieves assigned users with namespace', async () => {
+      await client.roles.create('landlord', {
+        collection: 'Buildings',
+        tenant: 'john doe',
+        actions: ['create_tenants', 'delete_tenants'],
+      });
+
+      await client.users.db.create('Innkeeper').catch((res) => expect(res.code).toEqual(409));
+
+      await client.users.db.assignRoles('landlord', 'custom-user');
+      await client.users.db.assignRoles('landlord', 'Innkeeper');
+
+      const assignments = await client.roles.userAssignments('landlord');
+
+      expect(assignments).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining<UserAssignment>({ id: 'custom-user', userType: 'db_env_user' }),
+          expect.objectContaining<UserAssignment>({ id: 'Innkeeper', userType: 'db_user' }),
+        ])
+      );
+
+      await client.users.db.delete('Innkeeper');
+      await client.roles.delete('landlord');
+    });
   });
 
   describe('should be able to create roles using the permissions factory', () => {

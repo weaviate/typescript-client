@@ -1,4 +1,5 @@
 import {
+  WeaviateAssignedUser,
   WeaviateDBUser,
   Permission as WeaviatePermission,
   Role as WeaviateRole,
@@ -23,6 +24,7 @@ import {
   RolesPermission,
   TenantsAction,
   TenantsPermission,
+  UserAssignment,
   UsersAction,
   UsersPermission,
 } from './types.js';
@@ -153,6 +155,15 @@ export class Map {
       acc.push(Map.dbUser(user));
       return acc;
     }, [] as UserDB[]);
+
+  static assignedUsers = (users: WeaviateAssignedUser[]): UserAssignment[] =>
+    users.reduce((acc, user) => {
+      acc.push({
+        id: user.userId || '',
+        userType: user.userType,
+      });
+      return acc;
+    }, [] as UserAssignment[]);
 }
 
 class PermissionsMapping {
