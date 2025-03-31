@@ -90,14 +90,16 @@ const roles = (connection: ConnectionREST): Roles => {
     byName: (roleName: string) =>
       connection.get<WeaviateRole>(`/authz/roles/${roleName}`).then(Map.roleFromWeaviate),
     assignedUserIds: (roleName: string) => connection.get<string[]>(`/authz/roles/${roleName}/users`),
-    create: (roleName: string, permissions: PermissionsInput) => {
-      const perms = Map.flattenPermissions(permissions).flatMap(Map.permissionToWeaviate);
+    create: (roleName: string, permissions?: PermissionsInput) => {
+      const perms = permissions
+        ? Map.flattenPermissions(permissions).flatMap(Map.permissionToWeaviate)
+        : undefined;
       return connection
-        .postEmpty<WeaviateRole>('/authz/roles', {
+        .postEmpty('/authz/roles', {
           name: roleName,
           permissions: perms,
         })
-        .then(() => Map.roleFromWeaviate({ name: roleName, permissions: perms }));
+        .then(() => Map.roleFromWeaviate({ name: roleName, permissions: perms || [] }));
     },
     delete: (roleName: string) => connection.delete(`/authz/roles/${roleName}`, null),
     exists: (roleName: string) =>

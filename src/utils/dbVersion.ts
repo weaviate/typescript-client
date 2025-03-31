@@ -230,6 +230,13 @@ export class DbVersionSupport {
         version.isAtLeast(1, 30, 0),
       message: this.errorMessage('Single/Grouped fields in gRPC', version.show(), '1.30.0'),
     }));
+
+  supportsGenerativeConfigRuntime = () =>
+    this.dbVersionProvider.getVersion().then((version) => ({
+      version,
+      supports: version.isAtLeast(1, 30, 0),
+      message: this.errorMessage('Generative config runtime', version.show(), '1.30.0'),
+    }));
 }
 
 const EMPTY_VERSION = '';

@@ -13,7 +13,7 @@ env:
   WEAVIATE_127: 1.27.15
   WEAVIATE_128: 1.28.11
   WEAVIATE_129: 1.29.1
-  WEAVIATE_130: 1.30.0-dev-9df35ca
+  WEAVIATE_130: 1.30.0-rc.0-6b9a01c
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}

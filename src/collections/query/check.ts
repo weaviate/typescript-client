@@ -2,7 +2,7 @@ import Connection from '../../connection/grpc.js';
 import { WeaviateUnsupportedFeatureError } from '../../errors.js';
 import { ConsistencyLevel } from '../../index.js';
 import { DbVersionSupport } from '../../utils/dbVersion.js';
-import { GroupByOptions } from '../index.js';
+import { GenerativeConfigRuntime, GroupByOptions } from '../index.js';
 import { Serialize } from '../serialize/index.js';
 import {
   BaseBm25Options,
@@ -100,6 +100,13 @@ export class Check<T> {
 
   public supportForSingleGroupedGenerative = async () => {
     const check = await this.dbVersionSupport.supportsSingleGrouped();
+    if (!check.supports) throw new WeaviateUnsupportedFeatureError(check.message);
+    return check.supports;
+  };
+
+  public supportForGenerativeConfigRuntime = async (generativeConfig?: GenerativeConfigRuntime) => {
+    if (generativeConfig === undefined) return true;
+    const check = await this.dbVersionSupport.supportsGenerativeConfigRuntime();
     if (!check.supports) throw new WeaviateUnsupportedFeatureError(check.message);
     return check.supports;
   };

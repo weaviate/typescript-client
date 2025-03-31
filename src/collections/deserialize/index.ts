@@ -226,6 +226,10 @@ export class Deserialize {
                 debug: result.generative.values[0].debug,
                 metadata: result.generative.values[0].metadata as GenerativeMetadata<C>,
               }
+            : result.metadata?.generativePresent
+            ? {
+                text: result.metadata?.generative,
+              }
             : undefined,
           metadata: Deserialize.metadata(result.metadata),
           properties: this.properties(result.properties),
@@ -244,6 +248,10 @@ export class Deserialize {
         ? {
             text: reply.generativeGroupedResults?.values[0].result,
             metadata: reply.generativeGroupedResults?.values[0].metadata as GenerativeMetadata<C>,
+          }
+        : reply.generativeGroupedResult !== ''
+        ? {
+            text: reply.generativeGroupedResult,
           }
         : undefined,
     };

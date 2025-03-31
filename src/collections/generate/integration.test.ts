@@ -148,6 +148,26 @@ maybe('Testing of the collection.generate methods with a simple collection', () 
       expect(ret.objects[0].uuid).toEqual(id);
       expect(ret.objects[0].generated).toBeDefined();
     });
+
+    it('should generate in a BC-compatible way', async () => {
+      const query = () => collection.generate.fetchObjects(generateOpts);
+
+      const res = await query();
+      expect(res.objects.length).toEqual(1);
+      expect(res.generated).toBeDefined();
+      expect(res.generated).not.toEqual('');
+      expect(res.generative?.text).toBeDefined();
+      expect(res.generative?.text).not.toEqual('');
+      expect(res.generative?.metadata).toBeUndefined();
+      res.objects.forEach((obj) => {
+        expect(obj.generated).toBeDefined();
+        expect(obj.generated).not.toEqual('');
+        expect(obj.generative?.text).toBeDefined();
+        expect(obj.generative?.text).not.toEqual('');
+        expect(obj.generative?.metadata).toBeUndefined();
+        expect(obj.generative?.debug).toBeUndefined();
+      });
+    });
   });
 });
 
@@ -486,7 +506,9 @@ maybe('Testing of the collection.generate methods with runtime generative config
     const res = await query();
     expect(res.objects.length).toEqual(1);
     expect(res.generated).toBeDefined();
+    expect(res.generated).not.toEqual('');
     expect(res.generative?.text).toBeDefined();
+    expect(res.generative?.text).not.toEqual('');
     expect(res.generative?.metadata).toBeDefined();
     res.objects.forEach((obj) => {
       expect(obj.generated).toBeDefined();
@@ -518,11 +540,15 @@ maybe('Testing of the collection.generate methods with runtime generative config
     const res = await query();
     expect(res.objects.length).toEqual(1);
     expect(res.generated).toBeDefined();
+    expect(res.generated).not.toEqual('');
     expect(res.generative?.text).toBeDefined();
+    expect(res.generative?.text).not.toEqual('');
     expect(res.generative?.metadata).toBeUndefined();
     res.objects.forEach((obj) => {
       expect(obj.generated).toBeDefined();
+      expect(obj.generated).not.toEqual('');
       expect(obj.generative?.text).toBeDefined();
+      expect(obj.generative?.text).not.toEqual('');
       expect(obj.generative?.metadata).toBeUndefined();
       expect(obj.generative?.debug).toBeUndefined();
     });
