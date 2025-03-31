@@ -112,11 +112,7 @@ requireAtLeast(
     it('should be able to list all dynamic users', async () => {
       const admin = await makeClient('admin-key');
 
-      const created: Promise<any>[] = [];
-      for (const user of ['jim', 'pam', 'dwight']) {
-        created.push(admin.users.db.create(user));
-      }
-      await Promise.all(created);
+      await Promise.all(['jim', 'pam', 'dwight'].map((user) => admin.users.db.create(user)));
 
       const all = await admin.users.db.listAll();
       expect(all.length).toBeGreaterThanOrEqual(3);
@@ -147,10 +143,10 @@ requireAtLeast(
     });
 
     afterAll(() =>
-      makeClient('admin-key').then((c) => {
-        for (const user of ['jim', 'pam', 'dwight', 'dynamic-dave', 'api-ashley', 'role-rick']) {
-          c.users.db.delete(user);
-        }
+      makeClient('admin-key').then(async (c) => {
+        await Promise.all(
+          ['jim', 'pam', 'dwight', 'dynamic-dave', 'api-ashley', 'role-rick'].map((n) => c.roles.delete(n))
+        );
       })
     );
   });
