@@ -1,5 +1,5 @@
-import { Role } from '../roles/types.js';
 import { WeaviateUserTypeDB as UserTypeDB } from '../openapi/types.js';
+import { Role } from '../roles/types.js';
 
 export type User = {
   id: string;
@@ -12,5 +12,3 @@ export type UserDB = {
   roleNames: string[];
   active: boolean;
 };
-
-

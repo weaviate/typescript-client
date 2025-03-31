@@ -101,7 +101,7 @@ export default class ClassificationsScheduler extends CommandBase {
         reject(
           new Error(
             "classification didn't finish within configured timeout, " +
-            'set larger timeout with .withWaitTimeout(timeout)'
+              'set larger timeout with .withWaitTimeout(timeout)'
           )
         );
       }, this.waitTimeout);

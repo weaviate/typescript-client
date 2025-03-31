@@ -1,4 +1,9 @@
-import { WeaviateDBUser, Permission as WeaviatePermission, Role as WeaviateRole, WeaviateUser } from '../openapi/types.js';
+import {
+  WeaviateDBUser,
+  Permission as WeaviatePermission,
+  Role as WeaviateRole,
+  WeaviateUser,
+} from '../openapi/types.js';
 import { User, UserDB } from '../users/types.js';
 import {
   BackupsAction,
@@ -136,19 +141,18 @@ export class Map {
   static user = (user: WeaviateUser): User => ({
     id: user.username,
     roles: user.roles?.map(Map.roleFromWeaviate),
-  })
+  });
   static dbUser = (user: WeaviateDBUser): UserDB => ({
     userType: user.dbUserType,
     id: user.userId,
     roleNames: user.roles,
     active: user.active,
-  })
+  });
   static dbUsers = (users: WeaviateDBUser[]): UserDB[] =>
     users.reduce((acc, user) => {
       acc.push(Map.dbUser(user));
       return acc;
-    }, [] as UserDB[])
-    ;
+    }, [] as UserDB[]);
 }
 
 class PermissionsMapping {
@@ -172,7 +176,11 @@ class PermissionsMapping {
   public static use = (role: WeaviateRole) => new PermissionsMapping(role);
 
   public map = (): Role => {
-    this.role.permissions.forEach(this.permissionFromWeaviate);
+    // If truncated roles are requested (?includeFullRoles=false),
+    // role.permissions are not present.
+    if (this.role.permissions !== null) {
+      this.role.permissions.forEach(this.permissionFromWeaviate);
+    }
     return {
       name: this.role.name,
       backupsPermissions: Object.values(this.mappings.backups),

@@ -386,30 +386,30 @@ export interface definitions {
      * @enum {string}
      */
     action:
-    | 'manage_backups'
-    | 'read_cluster'
-    | 'create_data'
-    | 'read_data'
-    | 'update_data'
-    | 'delete_data'
-    | 'read_nodes'
-    | 'create_roles'
-    | 'read_roles'
-    | 'update_roles'
-    | 'delete_roles'
-    | 'create_collections'
-    | 'read_collections'
-    | 'update_collections'
-    | 'delete_collections'
-    | 'assign_and_revoke_users'
-    | 'create_users'
-    | 'read_users'
-    | 'update_users'
-    | 'delete_users'
-    | 'create_tenants'
-    | 'read_tenants'
-    | 'update_tenants'
-    | 'delete_tenants';
+      | 'manage_backups'
+      | 'read_cluster'
+      | 'create_data'
+      | 'read_data'
+      | 'update_data'
+      | 'delete_data'
+      | 'read_nodes'
+      | 'create_roles'
+      | 'read_roles'
+      | 'update_roles'
+      | 'delete_roles'
+      | 'create_collections'
+      | 'read_collections'
+      | 'update_collections'
+      | 'delete_collections'
+      | 'assign_and_revoke_users'
+      | 'create_users'
+      | 'read_users'
+      | 'update_users'
+      | 'delete_users'
+      | 'create_tenants'
+      | 'read_tenants'
+      | 'update_tenants'
+      | 'delete_tenants';
   };
   /** @description list of roles */
   RolesListResponse: definitions['Role'][];
@@ -787,15 +787,15 @@ export interface definitions {
      * @enum {string}
      */
     tokenization?:
-    | 'word'
-    | 'lowercase'
-    | 'whitespace'
-    | 'field'
-    | 'trigram'
-    | 'gse'
-    | 'kagome_kr'
-    | 'kagome_ja'
-    | 'gse_ch';
+      | 'word'
+      | 'lowercase'
+      | 'whitespace'
+      | 'field'
+      | 'trigram'
+      | 'gse'
+      | 'kagome_kr'
+      | 'kagome_ja'
+      | 'gse_ch';
     /** @description The properties of the nested object(s). Applies to object and object[] data types. */
     nestedProperties?: definitions['NestedProperty'][];
   };
@@ -816,15 +816,15 @@ export interface definitions {
     indexRangeFilters?: boolean;
     /** @enum {string} */
     tokenization?:
-    | 'word'
-    | 'lowercase'
-    | 'whitespace'
-    | 'field'
-    | 'trigram'
-    | 'gse'
-    | 'kagome_kr'
-    | 'kagome_ja'
-    | 'gse_ch';
+      | 'word'
+      | 'lowercase'
+      | 'whitespace'
+      | 'field'
+      | 'trigram'
+      | 'gse'
+      | 'kagome_kr'
+      | 'kagome_ja'
+      | 'gse_ch';
     /** @description The properties of the nested object(s). Applies to object and object[] data types. */
     nestedProperties?: definitions['NestedProperty'][];
   };
@@ -1505,19 +1505,19 @@ export interface definitions {
      * @enum {string}
      */
     operator?:
-    | 'And'
-    | 'Or'
-    | 'Equal'
-    | 'Like'
-    | 'NotEqual'
-    | 'GreaterThan'
-    | 'GreaterThanEqual'
-    | 'LessThan'
-    | 'LessThanEqual'
-    | 'WithinGeoRange'
-    | 'IsNull'
-    | 'ContainsAny'
-    | 'ContainsAll';
+      | 'And'
+      | 'Or'
+      | 'Equal'
+      | 'Like'
+      | 'NotEqual'
+      | 'GreaterThan'
+      | 'GreaterThanEqual'
+      | 'LessThan'
+      | 'LessThanEqual'
+      | 'WithinGeoRange'
+      | 'IsNull'
+      | 'ContainsAny'
+      | 'ContainsAll';
     /**
      * @description path to the property currently being filtered
      * @example [
@@ -1618,16 +1618,16 @@ export interface definitions {
      * @enum {string}
      */
     activityStatus?:
-    | 'ACTIVE'
-    | 'INACTIVE'
-    | 'OFFLOADED'
-    | 'OFFLOADING'
-    | 'ONLOADING'
-    | 'HOT'
-    | 'COLD'
-    | 'FROZEN'
-    | 'FREEZING'
-    | 'UNFREEZING';
+      | 'ACTIVE'
+      | 'INACTIVE'
+      | 'OFFLOADED'
+      | 'OFFLOADING'
+      | 'ONLOADING'
+      | 'HOT'
+      | 'COLD'
+      | 'FROZEN'
+      | 'FREEZING'
+      | 'UNFREEZING';
   };
   /** @description attributes representing a single tenant response within weaviate */
   TenantResponse: definitions['Tenant'] & {
@@ -4187,4 +4187,4 @@ export interface operations {
   };
 }
 
-export interface external { }
+export interface external {}
