@@ -1,5 +1,5 @@
-import { Permission as WeaviatePermission, Role as WeaviateRole, WeaviateUser } from '../openapi/types.js';
-import { User } from '../users/types.js';
+import { WeaviateDBUser, Permission as WeaviatePermission, Role as WeaviateRole, WeaviateUser } from '../openapi/types.js';
+import { User, UserDB } from '../users/types.js';
 import {
   BackupsAction,
   BackupsPermission,
@@ -136,7 +136,19 @@ export class Map {
   static user = (user: WeaviateUser): User => ({
     id: user.username,
     roles: user.roles?.map(Map.roleFromWeaviate),
-  });
+  })
+  static dbUser = (user: WeaviateDBUser): UserDB => ({
+    userType: user.dbUserType,
+    id: user.userId,
+    roleNames: user.roles,
+    active: user.active,
+  })
+  static dbUsers = (users: WeaviateDBUser[]): UserDB[] =>
+    users.reduce((acc, user) => {
+      acc.push(Map.dbUser(user));
+      return acc;
+    }, [] as UserDB[])
+    ;
 }
 
 class PermissionsMapping {

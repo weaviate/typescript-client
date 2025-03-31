@@ -116,10 +116,14 @@ export default class ConnectionREST {
   postReturn = <B, T>(path: string, payload: B): Promise<T> => {
     if (this.authEnabled) {
       return this.login().then((token) =>
-        this.http.post<B, T>(path, payload, true, token).then((res) => res as T)
+        this.http.post<B, T>(path, payload, true, token) as T
       );
     }
-    return this.http.post<B, T>(path, payload, true, '').then((res) => res as T);
+    return this.http.post<B, T>(path, payload, true, '') as Promise<T>;
+  };
+
+  postNoBody = <T>(path: string): Promise<T> => {
+    return this.postReturn<null, T>(path, null);
   };
 
   postEmpty = <B>(path: string, payload: B): Promise<void> => {
@@ -372,46 +376,46 @@ const makeUrl = (basePath: string) => (path: string) => basePath + path;
 
 const checkStatus =
   <T>(expectResponseBody: boolean) =>
-  (res: Response) => {
-    if (res.status >= 400) {
-      return res.text().then((errText: string) => {
-        let err: string;
-        try {
-          // in case of invalid json response (like empty string)
-          err = JSON.stringify(JSON.parse(errText));
-        } catch (e) {
-          err = errText;
-        }
-        if (res.status === 401) {
-          return Promise.reject(new WeaviateUnauthenticatedError(err));
-        } else if (res.status === 403) {
-          return Promise.reject(new WeaviateInsufficientPermissionsError(403, err));
-        } else {
-          return Promise.reject(new WeaviateUnexpectedStatusCodeError(res.status, err));
-        }
-      });
-    }
-    if (expectResponseBody) {
-      return res.json() as Promise<T>;
-    }
-    return Promise.resolve(undefined);
-  };
+    (res: Response) => {
+      if (res.status >= 400) {
+        return res.text().then((errText: string) => {
+          let err: string;
+          try {
+            // in case of invalid json response (like empty string)
+            err = JSON.stringify(JSON.parse(errText));
+          } catch (e) {
+            err = errText;
+          }
+          if (res.status === 401) {
+            return Promise.reject(new WeaviateUnauthenticatedError(err));
+          } else if (res.status === 403) {
+            return Promise.reject(new WeaviateInsufficientPermissionsError(403, err));
+          } else {
+            return Promise.reject(new WeaviateUnexpectedStatusCodeError(res.status, err));
+          }
+        });
+      }
+      if (expectResponseBody) {
+        return res.json() as Promise<T>;
+      }
+      return Promise.resolve(undefined);
+    };
 
 const handleHeadResponse =
   <T>(expectResponseBody: boolean) =>
-  (res: Response) => {
-    if (res.status == 200 || res.status == 204 || res.status == 404) {
-      return Promise.resolve(res.status == 200 || res.status == 204);
-    }
-    return checkStatus<T>(expectResponseBody)(res);
-  };
+    (res: Response) => {
+      if (res.status == 200 || res.status == 204 || res.status == 404) {
+        return Promise.resolve(res.status == 200 || res.status == 204);
+      }
+      return checkStatus<T>(expectResponseBody)(res);
+    };
 
 const getAuthHeaders = (config: InternalConnectionParams, bearerToken: string) =>
   bearerToken
     ? {
-        Authorization: `Bearer ${bearerToken}`,
-        'X-Weaviate-Cluster-Url': config.host,
-        //  keeping for backwards compatibility for older clusters for now. On newer clusters, Embedding Service reuses Authorization header.
-        'X-Weaviate-Api-Key': bearerToken,
-      }
+      Authorization: `Bearer ${bearerToken}`,
+      'X-Weaviate-Cluster-Url': config.host,
+      //  keeping for backwards compatibility for older clusters for now. On newer clusters, Embedding Service reuses Authorization header.
+      'X-Weaviate-Api-Key': bearerToken,
+    }
     : undefined;
