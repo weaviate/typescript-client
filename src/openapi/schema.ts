@@ -40,8 +40,28 @@ export interface paths {
       };
     };
   };
+  '/replication/replicate': {
+    post: operations['replicate'];
+  };
   '/users/own-info': {
     get: operations['getOwnInfo'];
+  };
+  '/users/db': {
+    get: operations['listAllUsers'];
+  };
+  '/users/db/{user_id}': {
+    get: operations['getUserInfo'];
+    post: operations['createUser'];
+    delete: operations['deleteUser'];
+  };
+  '/users/db/{user_id}/rotate-key': {
+    post: operations['rotateUserApiKey'];
+  };
+  '/users/db/{user_id}/activate': {
+    post: operations['activateUser'];
+  };
+  '/users/db/{user_id}/deactivate': {
+    post: operations['deactivateUser'];
   };
   '/authz/roles': {
     get: operations['getRoles'];
@@ -61,9 +81,15 @@ export interface paths {
     post: operations['hasPermission'];
   };
   '/authz/roles/{id}/users': {
+    get: operations['getUsersForRoleDeprecated'];
+  };
+  '/authz/roles/{id}/user-assignments': {
     get: operations['getUsersForRole'];
   };
   '/authz/users/{id}/roles': {
+    get: operations['getRolesForUserDeprecated'];
+  };
+  '/authz/users/{id}/roles/{userType}': {
     get: operations['getRolesForUser'];
   };
   '/authz/users/{id}/assign': {
@@ -231,12 +257,39 @@ export interface paths {
 }
 
 export interface definitions {
+  /**
+   * @description the type of user
+   * @enum {string}
+   */
+  UserTypeInput: 'db' | 'oidc';
+  /**
+   * @description the type of user
+   * @enum {string}
+   */
+  UserTypeOutput: 'db_user' | 'db_env_user' | 'oidc';
   UserOwnInfo: {
     /** @description The groups associated to the user */
     groups?: string[];
     roles?: definitions['Role'][];
     /** @description The username associated with the provided key */
     username: string;
+  };
+  DBUserInfo: {
+    /** @description The role names associated to the user */
+    roles: string[];
+    /** @description The user id of the given user */
+    userId: string;
+    /**
+     * @description type of the returned user
+     * @enum {string}
+     */
+    dbUserType: 'db_user' | 'db_env_user';
+    /** @description activity status of the returned user */
+    active: boolean;
+  };
+  UserApiKey: {
+    /** @description The apikey */
+    apikey: string;
   };
   Role: {
     /** @description role name */
@@ -349,7 +402,10 @@ export interface definitions {
       | 'update_collections'
       | 'delete_collections'
       | 'assign_and_revoke_users'
+      | 'create_users'
       | 'read_users'
+      | 'update_users'
+      | 'delete_users'
       | 'create_tenants'
       | 'read_tenants'
       | 'update_tenants'
@@ -371,6 +427,7 @@ export interface definitions {
     /** @description The username that was extracted either from the authentication information */
     username?: string;
     groups?: string[];
+    userType?: definitions['UserTypeInput'];
   };
   /** @description An array of available words and contexts. */
   C11yWordsResponse: {
@@ -603,6 +660,35 @@ export interface definitions {
     value?: { [key: string]: unknown };
     merge?: definitions['Object'];
   };
+  /** @description Request body to add a replica of given shard of a given collection */
+  ReplicationReplicateReplicaRequest: {
+    /** @description The node containing the replica */
+    sourceNodeName: string;
+    /** @description The node to add a copy of the replica on */
+    destinationNodeName: string;
+    /** @description The collection name holding the shard */
+    collectionId: string;
+    /** @description The shard id holding the replica to be copied */
+    shardId: string;
+  };
+  /** @description Request body to disable (soft-delete) a replica of given shard of a given collection */
+  ReplicationDisableReplicaRequest: {
+    /** @description The node containing the replica to be disabled */
+    nodeName: string;
+    /** @description The collection name holding the replica to be disabled */
+    collectionId: string;
+    /** @description The shard id holding the replica to be disabled */
+    shardId: string;
+  };
+  /** @description Request body to delete a replica of given shard of a given collection */
+  ReplicationDeleteReplicaRequest: {
+    /** @description The node containing the replica to be deleted */
+    nodeName: string;
+    /** @description The collection name holding the replica to be delete */
+    collectionId: string;
+    /** @description The shard id holding the replica to be deleted */
+    shardId: string;
+  };
   /** @description A single peer in the network. */
   PeerUpdate: {
     /**
@@ -708,7 +794,8 @@ export interface definitions {
       | 'trigram'
       | 'gse'
       | 'kagome_kr'
-      | 'kagome_ja';
+      | 'kagome_ja'
+      | 'gse_ch';
     /** @description The properties of the nested object(s). Applies to object and object[] data types. */
     nestedProperties?: definitions['NestedProperty'][];
   };
@@ -736,7 +823,8 @@ export interface definitions {
       | 'trigram'
       | 'gse'
       | 'kagome_kr'
-      | 'kagome_ja';
+      | 'kagome_ja'
+      | 'gse_ch';
     /** @description The properties of the nested object(s). Applies to object and object[] data types. */
     nestedProperties?: definitions['NestedProperty'][];
   };
@@ -1611,6 +1699,35 @@ export interface operations {
       503: unknown;
     };
   };
+  replicate: {
+    parameters: {
+      body: {
+        body: definitions['ReplicationReplicateReplicaRequest'];
+      };
+    };
+    responses: {
+      /** Replication operation registered successfully */
+      200: unknown;
+      /** Malformed request. */
+      400: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Unauthorized or invalid credentials. */
+      401: unknown;
+      /** Forbidden */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Request body is well-formed (i.e., syntactically correct), but semantically erroneous. */
+      422: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
   getOwnInfo: {
     responses: {
       /** Info about the user */
@@ -1619,6 +1736,229 @@ export interface operations {
       };
       /** Unauthorized or invalid credentials. */
       401: unknown;
+      /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
+  listAllUsers: {
+    responses: {
+      /** Info about the user */
+      200: {
+        schema: definitions['DBUserInfo'][];
+      };
+      /** Unauthorized or invalid credentials. */
+      401: unknown;
+      /** Forbidden */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
+  getUserInfo: {
+    parameters: {
+      path: {
+        /** user id */
+        user_id: string;
+      };
+    };
+    responses: {
+      /** Info about the user */
+      200: {
+        schema: definitions['DBUserInfo'];
+      };
+      /** Unauthorized or invalid credentials. */
+      401: unknown;
+      /** Forbidden */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** user not found */
+      404: unknown;
+      /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
+  createUser: {
+    parameters: {
+      path: {
+        /** user id */
+        user_id: string;
+      };
+    };
+    responses: {
+      /** User created successfully */
+      201: {
+        schema: definitions['UserApiKey'];
+      };
+      /** Malformed request. */
+      400: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Unauthorized or invalid credentials. */
+      401: unknown;
+      /** Forbidden */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** User already exists */
+      409: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Request body is well-formed (i.e., syntactically correct), but semantically erroneous. */
+      422: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
+  deleteUser: {
+    parameters: {
+      path: {
+        /** user name */
+        user_id: string;
+      };
+    };
+    responses: {
+      /** Successfully deleted. */
+      204: never;
+      /** Malformed request. */
+      400: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Unauthorized or invalid credentials. */
+      401: unknown;
+      /** Forbidden */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** user not found */
+      404: unknown;
+      /** Request body is well-formed (i.e., syntactically correct), but semantically erroneous. */
+      422: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
+  rotateUserApiKey: {
+    parameters: {
+      path: {
+        /** user id */
+        user_id: string;
+      };
+    };
+    responses: {
+      /** ApiKey successfully changed */
+      200: {
+        schema: definitions['UserApiKey'];
+      };
+      /** Malformed request. */
+      400: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Unauthorized or invalid credentials. */
+      401: unknown;
+      /** Forbidden */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** user not found */
+      404: unknown;
+      /** Request body is well-formed (i.e., syntactically correct), but semantically erroneous. */
+      422: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
+  activateUser: {
+    parameters: {
+      path: {
+        /** user id */
+        user_id: string;
+      };
+    };
+    responses: {
+      /** User successfully activated */
+      200: unknown;
+      /** Malformed request. */
+      400: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Unauthorized or invalid credentials. */
+      401: unknown;
+      /** Forbidden */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** user not found */
+      404: unknown;
+      /** user already activated */
+      409: unknown;
+      /** Request body is well-formed (i.e., syntactically correct), but semantically erroneous. */
+      422: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
+  deactivateUser: {
+    parameters: {
+      path: {
+        /** user id */
+        user_id: string;
+      };
+      body: {
+        body?: {
+          /**
+           * @description if the key should be revoked when deactivating the user
+           * @default false
+           */
+          revoke_key?: boolean;
+        };
+      };
+    };
+    responses: {
+      /** users successfully deactivated */
+      200: unknown;
+      /** Malformed request. */
+      400: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Unauthorized or invalid credentials. */
+      401: unknown;
+      /** Forbidden */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** user not found */
+      404: unknown;
+      /** user already deactivated */
+      409: unknown;
+      /** Request body is well-formed (i.e., syntactically correct), but semantically erroneous. Are you sure the class is defined in the configuration file? */
+      422: {
+        schema: definitions['ErrorResponse'];
+      };
       /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
       500: {
         schema: definitions['ErrorResponse'];
@@ -1849,7 +2189,7 @@ export interface operations {
       };
     };
   };
-  getUsersForRole: {
+  getUsersForRoleDeprecated: {
     parameters: {
       path: {
         /** role name */
@@ -1879,7 +2219,42 @@ export interface operations {
       };
     };
   };
-  getRolesForUser: {
+  getUsersForRole: {
+    parameters: {
+      path: {
+        /** role name */
+        id: string;
+      };
+    };
+    responses: {
+      /** Users assigned to this role */
+      200: {
+        schema: ({
+          userId?: string;
+          userType: definitions['UserTypeOutput'];
+        } & {
+          name: unknown;
+        })[];
+      };
+      /** Bad request */
+      400: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Unauthorized or invalid credentials. */
+      401: unknown;
+      /** Forbidden */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** no role found */
+      404: unknown;
+      /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
+  getRolesForUserDeprecated: {
     parameters: {
       path: {
         /** user name */
@@ -1903,6 +2278,50 @@ export interface operations {
       };
       /** no role found for user */
       404: unknown;
+      /** Request body is well-formed (i.e., syntactically correct), but semantically erroneous. Are you sure the class is defined in the configuration file? */
+      422: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
+  getRolesForUser: {
+    parameters: {
+      path: {
+        /** user name */
+        id: string;
+        /** The type of user */
+        userType: 'oidc' | 'db';
+      };
+      query: {
+        /** Whether to include detailed role information needed the roles permission */
+        includeFullRoles?: boolean;
+      };
+    };
+    responses: {
+      /** Role assigned users */
+      200: {
+        schema: definitions['RolesListResponse'];
+      };
+      /** Bad request */
+      400: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Unauthorized or invalid credentials. */
+      401: unknown;
+      /** Forbidden */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** no role found for user */
+      404: unknown;
+      /** Request body is well-formed (i.e., syntactically correct), but semantically erroneous. Are you sure the class is defined in the configuration file? */
+      422: {
+        schema: definitions['ErrorResponse'];
+      };
       /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
       500: {
         schema: definitions['ErrorResponse'];
@@ -1919,6 +2338,7 @@ export interface operations {
         body: {
           /** @description the roles that assigned to user */
           roles?: string[];
+          userType?: definitions['UserTypeInput'];
         };
       };
     };
@@ -1955,6 +2375,7 @@ export interface operations {
         body: {
           /** @description the roles that revoked from the key or user */
           roles?: string[];
+          userType?: definitions['UserTypeInput'];
         };
       };
     };
