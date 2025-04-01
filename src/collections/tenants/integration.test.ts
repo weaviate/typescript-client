@@ -84,19 +84,34 @@ describe('Testing of the collection.tenants methods', () => {
 
   describe('getByName and getByNames', () => {
     it('should be able to get a tenant by name string', async () => {
-      const result = await collection.tenants.getByName('hot');
+      const query = () => collection.tenants.getByName('hot');
+      if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 25, 0))) {
+        await expect(query()).rejects.toThrow(WeaviateUnsupportedFeatureError);
+        return;
+      }
+      const result = await query();
       expect(result).toHaveProperty('name', 'hot');
       expect(result).toHaveProperty('activityStatus', 'ACTIVE');
     });
 
     it('should be able to get a tenant by tenant object', async () => {
-      const result = await collection.tenants.getByName({ name: 'hot' });
+      const query = () => collection.tenants.getByName({ name: 'hot' });
+      if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 25, 0))) {
+        await expect(query()).rejects.toThrow(WeaviateUnsupportedFeatureError);
+        return;
+      }
+      const result = await query();
       expect(result).toHaveProperty('name', 'hot');
       expect(result).toHaveProperty('activityStatus', 'ACTIVE');
     });
 
     it('should fail to get a non-existing tenant', async () => {
-      const result = await collection.tenants.getByName('non-existing');
+      const query = () => collection.tenants.getByName('non-existing');
+      if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 25, 0))) {
+        await expect(query()).rejects.toThrow(WeaviateUnsupportedFeatureError);
+        return;
+      }
+      const result = await query();
       expect(result).toBeNull();
     });
 
