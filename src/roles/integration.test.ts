@@ -6,8 +6,8 @@ import weaviate, {
   Role,
   RolesAction,
   TenantsAction,
-  WeaviateClient,
   UserAssignment,
+  WeaviateClient,
 } from '..';
 import { requireAtLeast } from '../../test/version';
 import { WeaviateStartUpError, WeaviateUnexpectedStatusCodeError } from '../errors';
