@@ -127,19 +127,19 @@ requireAtLeast(
         await admin.users.db.create('role-rick');
       }
 
-      await admin.users.db.assignRoles('test', 'role-rick');
-      expect(admin.users.db.getAssignedRoles('role-rick')).resolves.toEqual(
+      await admin.users[kind].assignRoles('test', 'role-rick');
+      expect(admin.users[kind].getAssignedRoles('role-rick')).resolves.toEqual(
         expect.objectContaining({ test: expect.any(Object) })
       );
 
-      await admin.users.db.revokeRoles('test', 'role-rick');
-      expect(admin.users.db.getAssignedRoles('role-rick')).resolves.toEqual({});
+      await admin.users[kind].revokeRoles('test', 'role-rick');
+      expect(admin.users[kind].getAssignedRoles('role-rick')).resolves.toEqual({})
     });
 
     afterAll(() =>
       makeClient('admin-key').then(async (c) => {
         await Promise.all(
-          ['jim', 'pam', 'dwight', 'dynamic-dave', 'api-ashley', 'role-rick'].map((n) => c.roles.delete(n))
+          ['jim', 'pam', 'dwight', 'dynamic-dave', 'api-ashley', 'role-rick'].map(n => c.users.db.delete(n))
         );
       })
     );
