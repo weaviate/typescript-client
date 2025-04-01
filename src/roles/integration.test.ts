@@ -325,7 +325,7 @@ requireAtLeast(
     it('retrieves assigned users with namespace', async () => {
       await client.roles.create('landlord', {
         collection: 'Buildings',
-        tenant: 'john doe',
+        tenant: 'john-doe',
         actions: ['create_tenants', 'delete_tenants'],
       });
 
