@@ -122,18 +122,18 @@ export type GroupedTask<T> = {
 type omitFields = 'images' | 'imageProperties';
 
 export type GenerativeConfigRuntime =
-  | ModuleConfig<'generative-anthropic', GenerativeConfigRuntimeType<'generative-anthropic'>>
-  | ModuleConfig<'generative-anyscale', GenerativeConfigRuntimeType<'generative-anyscale'>>
-  | ModuleConfig<'generative-aws', GenerativeConfigRuntimeType<'generative-aws'>>
+  | ModuleConfig<'generative-anthropic', GenerativeConfigRuntimeType<'generative-anthropic'> | undefined>
+  | ModuleConfig<'generative-anyscale', GenerativeConfigRuntimeType<'generative-anyscale'> | undefined>
+  | ModuleConfig<'generative-aws', GenerativeConfigRuntimeType<'generative-aws'> | undefined>
   | ModuleConfig<'generative-azure-openai', GenerativeConfigRuntimeType<'generative-azure-openai'>>
-  | ModuleConfig<'generative-cohere', GenerativeConfigRuntimeType<'generative-cohere'>>
-  | ModuleConfig<'generative-databricks', GenerativeConfigRuntimeType<'generative-databricks'>>
-  | ModuleConfig<'generative-dummy', GenerativeConfigRuntimeType<'generative-dummy'>>
-  | ModuleConfig<'generative-friendliai', GenerativeConfigRuntimeType<'generative-friendliai'>>
-  | ModuleConfig<'generative-google', GenerativeConfigRuntimeType<'generative-google'>>
-  | ModuleConfig<'generative-mistral', GenerativeConfigRuntimeType<'generative-mistral'>>
-  | ModuleConfig<'generative-nvidia', GenerativeConfigRuntimeType<'generative-nvidia'>>
-  | ModuleConfig<'generative-ollama', GenerativeConfigRuntimeType<'generative-ollama'>>
+  | ModuleConfig<'generative-cohere', GenerativeConfigRuntimeType<'generative-cohere'> | undefined>
+  | ModuleConfig<'generative-databricks', GenerativeConfigRuntimeType<'generative-databricks'> | undefined>
+  | ModuleConfig<'generative-dummy', GenerativeConfigRuntimeType<'generative-dummy'> | undefined>
+  | ModuleConfig<'generative-friendliai', GenerativeConfigRuntimeType<'generative-friendliai'> | undefined>
+  | ModuleConfig<'generative-google', GenerativeConfigRuntimeType<'generative-google'> | undefined>
+  | ModuleConfig<'generative-mistral', GenerativeConfigRuntimeType<'generative-mistral'> | undefined>
+  | ModuleConfig<'generative-nvidia', GenerativeConfigRuntimeType<'generative-nvidia'> | undefined>
+  | ModuleConfig<'generative-ollama', GenerativeConfigRuntimeType<'generative-ollama'> | undefined>
   | ModuleConfig<'generative-openai', GenerativeConfigRuntimeType<'generative-openai'>>;
 
 export type GenerativeConfigRuntimeType<G> = G extends 'generative-anthropic'

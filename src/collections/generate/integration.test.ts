@@ -1,9 +1,10 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
 import { WeaviateUnsupportedFeatureError } from '../../errors.js';
-import weaviate, { WeaviateClient, generativeConfigRuntime } from '../../index.js';
+import weaviate, { WeaviateClient } from '../../index.js';
 import { Collection } from '../collection/index.js';
 import { GenerateOptions, GroupByOptions } from '../types/index.js';
+import { generativeParameters } from './config.js';
 
 const maybe = process.env.OPENAI_APIKEY ? describe : describe.skip;
 
@@ -493,7 +494,7 @@ maybe('Testing of the collection.generate methods with runtime generative config
           nonBlobProperties: ['testProp'],
           metadata: true,
         },
-        config: generativeConfigRuntime.openAI({
+        config: generativeParameters.openAI({
           stop: ['\n'],
         }),
       });

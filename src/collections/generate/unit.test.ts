@@ -1,11 +1,11 @@
 import { GenerativeConfigRuntimeType, ModuleConfig } from '../types';
-import { generativeConfigRuntime } from './config';
+import { generativeParameters } from './config';
 
 // only tests fields that must be mapped from some public name to a gRPC name, e.g. baseURL -> baseUrl and stop: string[] -> stop: TextArray
-describe('Unit testing of the generativeConfigRuntime factory methods', () => {
+describe('Unit testing of the generativeParameters factory methods', () => {
   describe('anthropic', () => {
     it('with defaults', () => {
-      const config = generativeConfigRuntime.anthropic();
+      const config = generativeParameters.anthropic();
       expect(config).toEqual<
         ModuleConfig<'generative-anthropic', GenerativeConfigRuntimeType<'generative-anthropic'> | undefined>
       >({
@@ -14,7 +14,7 @@ describe('Unit testing of the generativeConfigRuntime factory methods', () => {
       });
     });
     it('with values', () => {
-      const config = generativeConfigRuntime.anthropic({
+      const config = generativeParameters.anthropic({
         baseURL: 'http://localhost:8080',
         stopSequences: ['a', 'b', 'c'],
       });
@@ -32,7 +32,7 @@ describe('Unit testing of the generativeConfigRuntime factory methods', () => {
 
   describe('anyscale', () => {
     it('with defaults', () => {
-      const config = generativeConfigRuntime.anyscale();
+      const config = generativeParameters.anyscale();
       expect(config).toEqual<
         ModuleConfig<'generative-anyscale', GenerativeConfigRuntimeType<'generative-anyscale'> | undefined>
       >({
@@ -41,7 +41,7 @@ describe('Unit testing of the generativeConfigRuntime factory methods', () => {
       });
     });
     it('with values', () => {
-      const config = generativeConfigRuntime.anyscale({
+      const config = generativeParameters.anyscale({
         baseURL: 'http://localhost:8080',
       });
       expect(config).toEqual<
@@ -57,7 +57,7 @@ describe('Unit testing of the generativeConfigRuntime factory methods', () => {
 
   describe('aws', () => {
     it('with defaults', () => {
-      const config = generativeConfigRuntime.aws();
+      const config = generativeParameters.aws();
       expect(config).toEqual<
         ModuleConfig<'generative-aws', GenerativeConfigRuntimeType<'generative-aws'> | undefined>
       >({
@@ -69,7 +69,7 @@ describe('Unit testing of the generativeConfigRuntime factory methods', () => {
 
   describe('azure-openai', () => {
     it('with defaults', () => {
-      const config = generativeConfigRuntime.azureOpenAI();
+      const config = generativeParameters.azureOpenAI();
       expect(config).toEqual<
         ModuleConfig<'generative-azure-openai', GenerativeConfigRuntimeType<'generative-azure-openai'>>
       >({
@@ -78,7 +78,7 @@ describe('Unit testing of the generativeConfigRuntime factory methods', () => {
       });
     });
     it('with values', () => {
-      const config = generativeConfigRuntime.azureOpenAI({
+      const config = generativeParameters.azureOpenAI({
         baseURL: 'http://localhost:8080',
         model: 'model',
         stop: ['a', 'b', 'c'],
@@ -99,7 +99,7 @@ describe('Unit testing of the generativeConfigRuntime factory methods', () => {
 
   describe('cohere', () => {
     it('with defaults', () => {
-      const config = generativeConfigRuntime.cohere();
+      const config = generativeParameters.cohere();
       expect(config).toEqual<
         ModuleConfig<'generative-cohere', GenerativeConfigRuntimeType<'generative-cohere'> | undefined>
       >({
@@ -108,7 +108,7 @@ describe('Unit testing of the generativeConfigRuntime factory methods', () => {
       });
     });
     it('with values', () => {
-      const config = generativeConfigRuntime.cohere({
+      const config = generativeParameters.cohere({
         baseURL: 'http://localhost:8080',
         stopSequences: ['a', 'b', 'c'],
       });
@@ -126,7 +126,7 @@ describe('Unit testing of the generativeConfigRuntime factory methods', () => {
 
   describe('databricks', () => {
     it('with defaults', () => {
-      const config = generativeConfigRuntime.databricks();
+      const config = generativeParameters.databricks();
       expect(config).toEqual<
         ModuleConfig<
           'generative-databricks',
@@ -138,7 +138,7 @@ describe('Unit testing of the generativeConfigRuntime factory methods', () => {
       });
     });
     it('with values', () => {
-      const config = generativeConfigRuntime.databricks({
+      const config = generativeParameters.databricks({
         stop: ['a', 'b', 'c'],
       });
       expect(config).toEqual<
@@ -157,7 +157,7 @@ describe('Unit testing of the generativeConfigRuntime factory methods', () => {
 
   describe('friendliai', () => {
     it('with defaults', () => {
-      const config = generativeConfigRuntime.friendliai();
+      const config = generativeParameters.friendliai();
       expect(config).toEqual<
         ModuleConfig<
           'generative-friendliai',
@@ -169,7 +169,7 @@ describe('Unit testing of the generativeConfigRuntime factory methods', () => {
       });
     });
     it('with values', () => {
-      const config = generativeConfigRuntime.friendliai({
+      const config = generativeParameters.friendliai({
         baseURL: 'http://localhost:8080',
       });
       expect(config).toEqual<
@@ -188,7 +188,7 @@ describe('Unit testing of the generativeConfigRuntime factory methods', () => {
 
   describe('mistral', () => {
     it('with defaults', () => {
-      const config = generativeConfigRuntime.mistral();
+      const config = generativeParameters.mistral();
       expect(config).toEqual<
         ModuleConfig<'generative-mistral', GenerativeConfigRuntimeType<'generative-mistral'> | undefined>
       >({
@@ -197,7 +197,7 @@ describe('Unit testing of the generativeConfigRuntime factory methods', () => {
       });
     });
     it('with values', () => {
-      const config = generativeConfigRuntime.mistral({
+      const config = generativeParameters.mistral({
         baseURL: 'http://localhost:8080',
       });
       expect(config).toEqual<
@@ -213,7 +213,7 @@ describe('Unit testing of the generativeConfigRuntime factory methods', () => {
 
   describe('nvidia', () => {
     it('with defaults', () => {
-      const config = generativeConfigRuntime.nvidia();
+      const config = generativeParameters.nvidia();
       expect(config).toEqual<
         ModuleConfig<'generative-nvidia', GenerativeConfigRuntimeType<'generative-nvidia'> | undefined>
       >({
@@ -222,7 +222,7 @@ describe('Unit testing of the generativeConfigRuntime factory methods', () => {
       });
     });
     it('with values', () => {
-      const config = generativeConfigRuntime.nvidia({
+      const config = generativeParameters.nvidia({
         baseURL: 'http://localhost:8080',
       });
       expect(config).toEqual<
@@ -238,7 +238,7 @@ describe('Unit testing of the generativeConfigRuntime factory methods', () => {
 
   describe('ollama', () => {
     it('with defaults', () => {
-      const config = generativeConfigRuntime.ollama();
+      const config = generativeParameters.ollama();
       expect(config).toEqual<
         ModuleConfig<'generative-ollama', GenerativeConfigRuntimeType<'generative-ollama'> | undefined>
       >({
@@ -250,7 +250,7 @@ describe('Unit testing of the generativeConfigRuntime factory methods', () => {
 
   describe('openai', () => {
     it('with defaults', () => {
-      const config = generativeConfigRuntime.openAI();
+      const config = generativeParameters.openAI();
       expect(config).toEqual<
         ModuleConfig<'generative-openai', GenerativeConfigRuntimeType<'generative-openai'>>
       >({
@@ -259,7 +259,7 @@ describe('Unit testing of the generativeConfigRuntime factory methods', () => {
       });
     });
     it('with values', () => {
-      const config = generativeConfigRuntime.openAI({
+      const config = generativeParameters.openAI({
         baseURL: 'http://localhost:8080',
         model: 'model',
         stop: ['a', 'b', 'c'],
