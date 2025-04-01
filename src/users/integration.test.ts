@@ -133,13 +133,13 @@ requireAtLeast(
       );
 
       await admin.users[kind].revokeRoles('test', 'role-rick');
-      expect(admin.users[kind].getAssignedRoles('role-rick')).resolves.toEqual({})
+      expect(admin.users[kind].getAssignedRoles('role-rick')).resolves.toEqual({});
     });
 
     afterAll(() =>
       makeClient('admin-key').then(async (c) => {
         await Promise.all(
-          ['jim', 'pam', 'dwight', 'dynamic-dave', 'api-ashley', 'role-rick'].map(n => c.users.db.delete(n))
+          ['jim', 'pam', 'dwight', 'dynamic-dave', 'api-ashley', 'role-rick'].map((n) => c.users.db.delete(n))
         );
       })
     );
