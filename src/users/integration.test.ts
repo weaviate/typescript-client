@@ -1,4 +1,4 @@
-import weaviate, { ApiKey, Role } from '..';
+import weaviate, { ApiKey } from '..';
 import { requireAtLeast } from '../../test/version.js';
 import { WeaviateUserTypeDB } from '../v2';
 import { UserDB } from './types.js';
@@ -149,16 +149,17 @@ requireAtLeast(
       await admin.users.db.assignRoles('test', 'permission-peter');
 
       const roles = await admin.users.db.getAssignedRoles('permission-peter', { includePermissions: true });
-      expect(roles['test'].backupsPermissions).toHaveLength(1);
-      expect(roles['test'].dataPermissions).toHaveLength(1);
-      expect(roles['test'].nodesPermissions).toHaveLength(1);
-
+      expect(roles.test.backupsPermissions).toHaveLength(1);
+      expect(roles.test.dataPermissions).toHaveLength(1);
+      expect(roles.test.nodesPermissions).toHaveLength(1);
     });
 
     afterAll(() =>
       makeClient('admin-key').then(async (c) => {
         await Promise.all(
-          ['jim', 'pam', 'dwight', 'dynamic-dave', 'api-ashley', 'role-rick', 'permission-peter'].map((n) => c.users.db.delete(n))
+          ['jim', 'pam', 'dwight', 'dynamic-dave', 'api-ashley', 'role-rick', 'permission-peter'].map((n) =>
+            c.users.db.delete(n)
+          )
         );
       })
     );

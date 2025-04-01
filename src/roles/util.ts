@@ -130,16 +130,22 @@ export class Map {
   static roleFromWeaviate = (role: WeaviateRole): Role => PermissionsMapping.use(role).map();
 
   static roles = (roles: WeaviateRole[]): Record<string, Role> =>
-    roles.reduce((acc, role) => ({
-      ...acc,
-      [role.name]: Map.roleFromWeaviate(role),
-    }), {} as Record<string, Role>);
+    roles.reduce(
+      (acc, role) => ({
+        ...acc,
+        [role.name]: Map.roleFromWeaviate(role),
+      }),
+      {} as Record<string, Role>
+    );
 
   static users = (users: string[]): Record<string, User> =>
-    users.reduce((acc, user) => ({
-      ...acc,
-      [user]: { id: user },
-    }), {} as Record<string, User>);
+    users.reduce(
+      (acc, user) => ({
+        ...acc,
+        [user]: { id: user },
+      }),
+      {} as Record<string, User>
+    );
   static user = (user: WeaviateUser): User => ({
     id: user.username,
     roles: user.roles?.map(Map.roleFromWeaviate),
@@ -150,8 +156,7 @@ export class Map {
     roleNames: user.roles,
     active: user.active,
   });
-  static dbUsers = (users: WeaviateDBUser[]): UserDB[] =>
-    users.map(Map.dbUser);
+  static dbUsers = (users: WeaviateDBUser[]): UserDB[] => users.map(Map.dbUser);
   static assignedUsers = (users: WeaviateAssignedUser[]): UserAssignment[] =>
     users.map((user) => ({
       id: user.userId || '',

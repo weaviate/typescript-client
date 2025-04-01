@@ -72,7 +72,7 @@ export interface DBUsers extends UsersBase {
 
 type GetAssingedRolesOptions = {
   includePermissions?: boolean;
-}
+};
 
 /** Operations supported for namespaced 'oidc' users.*/
 export interface OIDCUsers extends UsersBase {
@@ -110,8 +110,10 @@ const db = (connection: ConnectionREST): DBUsers => {
   return {
     getAssignedRoles: (userId: string, opts?: GetAssingedRolesOptions) =>
       ns.getAssignedRoles('db', userId, opts),
-    assignRoles: (roleNames: string | string[], userId: string) => ns.assignRoles(roleNames, userId, { userType: 'db' }),
-    revokeRoles: (roleNames: string | string[], userId: string) => ns.revokeRoles(roleNames, userId, { userType: 'db' }),
+    assignRoles: (roleNames: string | string[], userId: string) =>
+      ns.assignRoles(roleNames, userId, { userType: 'db' }),
+    revokeRoles: (roleNames: string | string[], userId: string) =>
+      ns.revokeRoles(roleNames, userId, { userType: 'db' }),
 
     create: (userId: string) =>
       connection.postNoBody<APIKeyResponse>(`/users/db/${userId}`).then((resp) => resp.apikey),
@@ -142,14 +144,19 @@ const oidc = (connection: ConnectionREST): OIDCUsers => {
   return {
     getAssignedRoles: (userId: string, opts?: GetAssingedRolesOptions) =>
       ns.getAssignedRoles('oidc', userId, opts),
-    assignRoles: (roleNames: string | string[], userId: string) => ns.assignRoles(roleNames, userId, { userType: 'oidc' }),
-    revokeRoles: (roleNames: string | string[], userId: string) => ns.revokeRoles(roleNames, userId, { userType: 'oidc' }),
+    assignRoles: (roleNames: string | string[], userId: string) =>
+      ns.assignRoles(roleNames, userId, { userType: 'oidc' }),
+    revokeRoles: (roleNames: string | string[], userId: string) =>
+      ns.revokeRoles(roleNames, userId, { userType: 'oidc' }),
   };
 };
 
 /** Internal interface for operations that MAY accept a 'db'/'oidc' namespace. */
 interface NamespacedUsers {
-  getAssignedRoles: (userType: UserTypeInternal, userId: string, opts?: GetAssingedRolesOptions
+  getAssignedRoles: (
+    userType: UserTypeInternal,
+    userId: string,
+    opts?: GetAssingedRolesOptions
   ) => Promise<Record<string, Role>>;
   assignRoles: (roleNames: string | string[], userId: string, opts?: AssignRevokeOptions) => Promise<void>;
   revokeRoles: (roleNames: string | string[], userId: string, opts?: AssignRevokeOptions) => Promise<void>;
@@ -164,14 +171,16 @@ const baseUsers = (connection: ConnectionREST): UsersBase => {
 };
 
 /** Optional arguments to /assign and /revoke endpoints. */
-type AssignRevokeOptions = { userType?: UserTypeInternal }
+type AssignRevokeOptions = { userType?: UserTypeInternal };
 
 const namespacedUsers = (connection: ConnectionREST): NamespacedUsers => {
   return {
     getAssignedRoles: (userType: UserTypeInternal, userId: string, opts?: GetAssingedRolesOptions) =>
       connection
         .get<WeaviateRole[]>(
-          `/authz/users/${userId}/roles/${userType}${opts?.includePermissions ? '?&includeFullRoles=true' : ''}`
+          `/authz/users/${userId}/roles/${userType}${
+            opts?.includePermissions ? '?&includeFullRoles=true' : ''
+          }`
         )
         .then(Map.roles),
     assignRoles: (roleNames: string | string[], userId: string, opts?: AssignRevokeOptions) =>
