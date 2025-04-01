@@ -15,7 +15,7 @@ import {
   GenerativeOpenAIConfigRuntime,
 } from '../index.js';
 
-export const generativeConfigRuntime = {
+export const generativeParameters = {
   /**
    * Create a `ModuleConfig<'generative-anthropic', GenerativeConfigRuntimeType<'generative-anthropic'> | undefined>` object for use when performing runtime-specific AI generation using the `generative-anthropic` module.
    *

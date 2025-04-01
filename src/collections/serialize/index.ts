@@ -852,40 +852,40 @@ export class Serialize {
     const provider = GenerativeProvider.fromPartial({ returnMetadata: opts?.metadata });
     switch (generative.name) {
       case 'generative-anthropic':
-        provider.anthropic = await withImages(generative.config, opts?.images, opts?.imageProperties);
+        provider.anthropic = await withImages(generative.config || {}, opts?.images, opts?.imageProperties);
         break;
       case 'generative-anyscale':
-        provider.anyscale = generative.config;
+        provider.anyscale = generative.config || {};
         break;
       case 'generative-aws':
-        provider.aws = await withImages(generative.config, opts?.images, opts?.imageProperties);
+        provider.aws = await withImages(generative.config || {}, opts?.images, opts?.imageProperties);
         break;
       case 'generative-cohere':
-        provider.cohere = generative.config;
+        provider.cohere = generative.config || {};
         break;
       case 'generative-databricks':
-        provider.databricks = generative.config;
+        provider.databricks = generative.config || {};
         break;
       case 'generative-dummy':
-        provider.dummy = generative.config;
+        provider.dummy = generative.config || {};
         break;
       case 'generative-friendliai':
-        provider.friendliai = generative.config;
+        provider.friendliai = generative.config || {};
         break;
       case 'generative-google':
-        provider.google = await withImages(generative.config, opts?.images, opts?.imageProperties);
+        provider.google = await withImages(generative.config || {}, opts?.images, opts?.imageProperties);
         break;
       case 'generative-mistral':
-        provider.mistral = generative.config;
+        provider.mistral = generative.config || {};
         break;
       case 'generative-nvidia':
-        provider.nvidia = generative.config;
+        provider.nvidia = generative.config || {};
         break;
       case 'generative-ollama':
-        provider.ollama = await withImages(generative.config, opts?.images, opts?.imageProperties);
+        provider.ollama = await withImages(generative.config || {}, opts?.images, opts?.imageProperties);
         break;
       case 'generative-openai':
-        provider.openai = await withImages(generative.config, opts?.images, opts?.imageProperties);
+        provider.openai = await withImages(generative.config || {}, opts?.images, opts?.imageProperties);
         break;
     }
     return provider;
