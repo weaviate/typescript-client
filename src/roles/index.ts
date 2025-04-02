@@ -35,7 +35,8 @@ export interface Roles {
    */
   byName: (roleName: string) => Promise<Role | null>;
   /**
-   * Retrieve the user IDs assigned to a role.
+   * Retrieve the user IDs assigned to a role. Each user has a qualifying user type,
+   * e.g. `'db_user' | 'db_env_user' | 'oidc'`.
    *
    * @param {string} roleName The name of the role to retrieve the assigned user IDs for.
    * @returns {Promise<string[]>} The user IDs assigned to the role.

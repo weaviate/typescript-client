@@ -55,26 +55,74 @@ export interface Users extends UsersBase {
 /** Operations supported for namespaced 'db' users.*/
 export interface DBUsers extends UsersBase {
   /**
-   * Retrieve the roles assigned to a user.
+   * Retrieve the roles assigned to a 'db_user' user.
    *
    * @param {string} userId The ID of the user to retrieve the assigned roles for.
    * @returns {Promise<Record<string, Role>>} A map of role names to their respective roles.
    */
   getAssignedRoles: (userId: string, opts?: GetAssignedRolesOptions) => Promise<Record<string, Role>>;
 
+  /** Create a new 'db_user' user.
+   *
+   * @param {string} userId The ID of the user to create. Must consist of valid URL characters only.
+   * @returns {Promise<string>} API key for the newly created user.
+   */
   create: (userId: string) => Promise<string>;
+
+  /**
+   * Delete a 'db_user' user. It is not possible to delete 'db_env_user' users programmatically.
+   *
+   * @param {string} userId The ID of the user to delete.
+   * @returns {Promise<boolean>} `true` if the user has been successfully deleted.
+   */
   delete: (userId: string) => Promise<boolean>;
+
+  /**
+   * Rotate the API key of a 'db_user' user. The old API key becomes invalid.
+   * API keys of 'db_env_user' users are defined in the server's environment
+   * and cannot be modified programmatically.
+   *
+   * @param {string} userId The ID of the user to create a new API key for.
+   * @returns {Promise<string>} New API key for the user.
+   */
   rotateKey: (userId: string) => Promise<string>;
+
+  /**
+   * Activate 'db_user' user.
+   *
+   * @param {string} userId The ID of the user to activate.
+   * @returns {Promise<boolean>} `true` if the user has been successfully activated.
+   */
   activate: (userId: string) => Promise<boolean>;
+
+  /**
+   * Deactivate 'db_user' user.
+   *
+   * @param {string} userId The ID of the user to deactivate.
+   * @returns {Promise<boolean>} `true` if the user has been successfully deactivated.
+   */
   deactivate: (userId: string) => Promise<boolean>;
+
+  /**
+   * Retrieve information about the 'db_user' / 'db_env_user' user.
+   *
+   * @param {string} userId The ID of the user to get.
+   * @returns {Promise<UserDB>} ID, status, and assigned roles of a 'db_*' user.
+   */
   byName: (userId: string) => Promise<UserDB>;
+
+  /**
+   * List all 'db_user' / 'db_env_user' users.
+   *
+   * @returns {Promise<UserDB[]>} ID, status, and assigned roles for each 'db_*' user.
+   */
   listAll: () => Promise<UserDB[]>;
 }
 
 /** Operations supported for namespaced 'oidc' users.*/
 export interface OIDCUsers extends UsersBase {
   /**
-   * Retrieve the roles assigned to a user.
+   * Retrieve the roles assigned to an 'oidc' user.
    *
    * @param {string} userId The ID of the user to retrieve the assigned roles for.
    * @returns {Promise<Record<string, Role>>} A map of role names to their respective roles.
@@ -167,6 +215,7 @@ interface NamespacedUsers {
   revokeRoles: (roleNames: string | string[], userId: string, opts?: AssignRevokeOptions) => Promise<void>;
 }
 
+/** Implementation of the operations common to 'db', 'oidc', and legacy users. */
 const baseUsers = (connection: ConnectionREST): UsersBase => {
   const ns = namespacedUsers(connection);
   return {
@@ -175,13 +224,13 @@ const baseUsers = (connection: ConnectionREST): UsersBase => {
   };
 };
 
+/** Implementation of the operations common to 'db' and 'oidc' users. */
 const namespacedUsers = (connection: ConnectionREST): NamespacedUsers => {
   return {
     getAssignedRoles: (userType: UserTypeInternal, userId: string, opts?: GetAssignedRolesOptions) =>
       connection
         .get<WeaviateRole[]>(
-          `/authz/users/${userId}/roles/${userType}${
-            opts?.includePermissions ? '?&includeFullRoles=true' : ''
+          `/authz/users/${userId}/roles/${userType}${opts?.includePermissions ? '?&includeFullRoles=true' : ''
           }`
         )
         .then(Map.roles),
