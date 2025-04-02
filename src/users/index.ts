@@ -119,14 +119,16 @@ const db = (connection: ConnectionREST): DBUsers => {
       ns.revokeRoles(roleNames, userId, { userType: 'db' }),
 
     create: (userId: string) =>
-      connection.postNoBody<APIKeyResponse>(`/users/db/${userId}`).then((resp) => resp.apikey),
+      connection.postReturn<null, APIKeyResponse>(`/users/db/${userId}`, null).then((resp) => resp.apikey),
     delete: (userId: string) =>
       connection
         .delete(`/users/db/${userId}`, null)
         .then(() => true)
         .catch(() => false),
     rotateKey: (userId: string) =>
-      connection.postNoBody<APIKeyResponse>(`/users/db/${userId}/rotate-key`).then((resp) => resp.apikey),
+      connection
+        .postReturn<null, APIKeyResponse>(`/users/db/${userId}/rotate-key`, null)
+        .then((resp) => resp.apikey),
     activate: (userId: string) =>
       connection
         .postEmpty<null>(`/users/db/${userId}/activate`, null)
