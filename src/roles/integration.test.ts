@@ -335,7 +335,6 @@ requireAtLeast(
       await client.users.db.assignRoles('landlord', 'Innkeeper');
 
       const assignments = await client.roles.userAssignments('landlord');
-
       expect(assignments).toEqual(
         expect.arrayContaining([
           expect.objectContaining<UserAssignment>({ id: 'custom-user', userType: 'db_env_user' }),

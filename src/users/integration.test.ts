@@ -76,19 +76,19 @@ requireAtLeast(
       };
 
       await client.users.db.create('dynamic-dave');
-      expectDave().toHaveProperty('active', true);
+      await expectDave().toHaveProperty('active', true);
 
       // Second activation is a no-op
-      expect(client.users.db.activate('dynamic-dave')).resolves.toEqual(true);
+      await expect(client.users.db.activate('dynamic-dave')).resolves.toEqual(true);
 
       await client.users.db.deactivate('dynamic-dave');
-      expectDave().toHaveProperty('active', false);
+      await expectDave().toHaveProperty('active', false);
 
       // Second deactivation is a no-op
-      expect(client.users.db.deactivate('dynamic-dave')).resolves.toEqual(true);
+      await expect(client.users.db.deactivate('dynamic-dave')).resolves.toEqual(true);
 
       await client.users.db.delete('dynamic-dave');
-      expectDave(false).toHaveProperty('code', 404);
+      await expectDave(false).toHaveProperty('code', 404);
     });
 
     it('should be able to obtain and rotate api keys', async () => {
@@ -128,12 +128,12 @@ requireAtLeast(
       }
 
       await admin.users[kind].assignRoles('test', 'role-rick');
-      expect(admin.users[kind].getAssignedRoles('role-rick')).resolves.toEqual(
+      await expect(admin.users[kind].getAssignedRoles('role-rick')).resolves.toEqual(
         expect.objectContaining({ test: expect.any(Object) })
       );
 
       await admin.users[kind].revokeRoles('test', 'role-rick');
-      expect(admin.users[kind].getAssignedRoles('role-rick')).resolves.toEqual({});
+      await expect(admin.users[kind].getAssignedRoles('role-rick')).resolves.toEqual({});
     });
 
     it('should be able to fetch assigned roles with all permissions', async () => {

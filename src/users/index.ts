@@ -106,7 +106,7 @@ const db = (connection: ConnectionREST): DBUsers => {
         return error.code === code;
       }
       throw error;
-    }
+    };
   };
 
   type APIKeyResponse = { apikey: string };
@@ -178,7 +178,8 @@ const namespacedUsers = (connection: ConnectionREST): NamespacedUsers => {
     getAssignedRoles: (userType: UserTypeInternal, userId: string, opts?: GetAssignedRolesOptions) =>
       connection
         .get<WeaviateRole[]>(
-          `/authz/users/${userId}/roles/${userType}${opts?.includePermissions ? '?&includeFullRoles=true' : ''
+          `/authz/users/${userId}/roles/${userType}${
+            opts?.includePermissions ? '?&includeFullRoles=true' : ''
           }`
         )
         .then(Map.roles),
