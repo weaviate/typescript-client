@@ -15,6 +15,7 @@ export type GenerativeAWSConfig = {
 };
 
 export type GenerativeAnthropicConfig = {
+  baseURL?: string;
   maxTokens?: number;
   model?: string;
   stopSequences?: string[];

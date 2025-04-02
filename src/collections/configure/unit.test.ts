@@ -1161,6 +1161,47 @@ describe('Unit testing of the vectorizer factory class', () => {
     });
   });
 
+  it('should create the correct Text2VecNvidiaConfig type with defaults', () => {
+    const config = configure.vectorizer.text2VecNvidia();
+    expect(config).toEqual<VectorConfigCreate<never, undefined, 'hnsw', 'text2vec-nvidia'>>({
+      name: undefined,
+      vectorIndex: {
+        name: 'hnsw',
+        config: undefined,
+      },
+      vectorizer: {
+        name: 'text2vec-nvidia',
+        config: undefined,
+      },
+    });
+  });
+
+  it('should create the correct Text2VecNvidiaConfig type with all values', () => {
+    const config = configure.vectorizer.text2VecNvidia({
+      name: 'test',
+      baseURL: 'base-url',
+      model: 'model',
+      truncate: true,
+      vectorizeCollectionName: true,
+    });
+    expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'text2vec-nvidia'>>({
+      name: 'test',
+      vectorIndex: {
+        name: 'hnsw',
+        config: undefined,
+      },
+      vectorizer: {
+        name: 'text2vec-nvidia',
+        config: {
+          baseURL: 'base-url',
+          model: 'model',
+          truncate: true,
+          vectorizeCollectionName: true,
+        },
+      },
+    });
+  });
+
   it('should create the correct Text2VecMistralConfig type with defaults', () => {
     const config = configure.vectorizer.text2VecMistral();
     expect(config).toEqual<VectorConfigCreate<never, undefined, 'hnsw', 'text2vec-mistral'>>({
