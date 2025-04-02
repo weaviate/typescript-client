@@ -126,12 +126,12 @@ const db = (connection: ConnectionREST): DBUsers => {
       connection.postNoBody<APIKeyResponse>(`/users/db/${userId}/rotate-key`).then((resp) => resp.apikey),
     activate: (userId: string) =>
       connection
-        .postNoBody(`/users/db/${userId}/activate`)
+        .postEmpty<null>(`/users/db/${userId}/activate`, null)
         .then(() => true)
         .catch(allowCode(409)),
     deactivate: (userId: string) =>
       connection
-        .postNoBody(`/users/db/${userId}/deactivate`)
+        .postEmpty<null>(`/users/db/${userId}/deactivate`, null)
         .then(() => true)
         .catch(allowCode(409)),
     byName: (userId: string) => connection.get<WeaviateDBUser>(`/users/db/${userId}`, true).then(Map.dbUser),
@@ -178,8 +178,7 @@ const namespacedUsers = (connection: ConnectionREST): NamespacedUsers => {
     getAssignedRoles: (userType: UserTypeInternal, userId: string, opts?: GetAssingedRolesOptions) =>
       connection
         .get<WeaviateRole[]>(
-          `/authz/users/${userId}/roles/${userType}${
-            opts?.includePermissions ? '?&includeFullRoles=true' : ''
+          `/authz/users/${userId}/roles/${userType}${opts?.includePermissions ? '?&includeFullRoles=true' : ''
           }`
         )
         .then(Map.roles),
