@@ -151,10 +151,17 @@ export class DbVersionSupport {
       return {
         version: version,
         supports: version.isAtLeast(1, 25, 0),
-        message: this.errorMessage('Tenants get method', version.show(), '1.25.0'),
+        message: this.errorMessage('Tenants get method over gRPC', version.show(), '1.25.0'),
       };
     });
   };
+
+  supportsTenantGetRESTMethod = () =>
+    this.dbVersionProvider.getVersion().then((version) => ({
+      version: version,
+      supports: version.isAtLeast(1, 28, 0),
+      message: this.errorMessage('Tenant get method over REST', version.show(), '1.28.0'),
+    }));
 
   supportsDynamicVectorIndex = () => {
     return this.dbVersionProvider.getVersion().then((version) => {
