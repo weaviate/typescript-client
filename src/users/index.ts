@@ -1,3 +1,4 @@
+import { WeaviateUnexpectedStatusCodeError } from '../errors.js';
 import { ConnectionREST } from '../index.js';
 import {
   WeaviateUserTypeInternal as UserTypeInternal,
@@ -102,8 +103,14 @@ const users = (connection: ConnectionREST): Users => {
 const db = (connection: ConnectionREST): DBUsers => {
   const ns = namespacedUsers(connection);
 
-  const allowCode = (code: number): ((reason: any) => boolean) => {
-    return (reason) => reason.code !== undefined && reason.code === code;
+  /** expectCode returns true if the error contained an expected status code. */
+  const expectCode = (code: number): ((_: any) => boolean) => {
+    return (error) => {
+      if (error instanceof WeaviateUnexpectedStatusCodeError) {
+        return error.code === code;
+      }
+      throw error;
+    }
   };
 
   type APIKeyResponse = { apikey: string };
@@ -128,12 +135,12 @@ const db = (connection: ConnectionREST): DBUsers => {
       connection
         .postEmpty<null>(`/users/db/${userId}/activate`, null)
         .then(() => true)
-        .catch(allowCode(409)),
+        .catch(expectCode(409)),
     deactivate: (userId: string) =>
       connection
         .postEmpty<null>(`/users/db/${userId}/deactivate`, null)
         .then(() => true)
-        .catch(allowCode(409)),
+        .catch(expectCode(409)),
     byName: (userId: string) => connection.get<WeaviateDBUser>(`/users/db/${userId}`, true).then(Map.dbUser),
     listAll: () => connection.get<WeaviateDBUser[]>('/users/db', true).then(Map.dbUsers),
   };
