@@ -1,4 +1,4 @@
-import { Action } from '../openapi/types.js';
+import { Action, WeaviateUserType } from '../openapi/types.js';
 
 export type BackupsAction = Extract<Action, 'manage_backups'>;
 export type ClusterAction = Extract<Action, 'read_cluster'>;
@@ -22,6 +22,11 @@ export type TenantsAction = Extract<
 >;
 export type UsersAction = Extract<Action, 'read_users' | 'assign_and_revoke_users'>;
 
+export type UserAssignment = {
+  id: string;
+  userType: WeaviateUserType;
+};
+
 export type BackupsPermission = {
   collection: string;
   actions: BackupsAction[];
@@ -38,6 +43,7 @@ export type CollectionsPermission = {
 
 export type DataPermission = {
   collection: string;
+  tenant: string;
   actions: DataAction[];
 };
 
@@ -54,6 +60,7 @@ export type RolesPermission = {
 
 export type TenantsPermission = {
   collection: string;
+  tenant: string;
   actions: TenantsAction[];
 };
 

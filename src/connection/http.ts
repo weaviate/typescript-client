@@ -115,11 +115,9 @@ export default class ConnectionREST {
 
   postReturn = <B, T>(path: string, payload: B): Promise<T> => {
     if (this.authEnabled) {
-      return this.login().then((token) =>
-        this.http.post<B, T>(path, payload, true, token).then((res) => res as T)
-      );
+      return this.login().then((token) => this.http.post<B, T>(path, payload, true, token) as T);
     }
-    return this.http.post<B, T>(path, payload, true, '').then((res) => res as T);
+    return this.http.post<B, T>(path, payload, true, '') as Promise<T>;
   };
 
   postEmpty = <B>(path: string, payload: B): Promise<void> => {

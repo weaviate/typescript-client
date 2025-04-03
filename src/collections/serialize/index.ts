@@ -25,7 +25,12 @@ import {
   BatchObject_Properties,
   BatchObject_SingleTargetRefProps,
 } from '../../proto/v1/batch.js';
-import { GenerativeSearch } from '../../proto/v1/generative.js';
+import {
+  GenerativeProvider,
+  GenerativeSearch,
+  GenerativeSearch_Grouped,
+  GenerativeSearch_Single,
+} from '../../proto/v1/generative.js';
 import {
   GroupBy,
   MetadataRequest,
@@ -63,6 +68,7 @@ import {
   SearchNearVectorArgs,
   SearchNearVideoArgs,
 } from '../../grpc/searcher.js';
+import { toBase64FromMedia } from '../../index.js';
 import {
   AggregateRequest_Aggregation,
   AggregateRequest_Aggregation_Boolean,
@@ -82,6 +88,7 @@ import {
   ObjectArrayProperties,
   ObjectProperties,
   ObjectPropertiesValue,
+  TextArray,
   TextArrayProperties,
   Vectors as VectorsGrpc,
 } from '../../proto/v1/base.js';
@@ -97,10 +104,13 @@ import {
   AggregateBaseOptions,
   AggregateHybridOptions,
   AggregateNearOptions,
+  GenerativeConfigRuntime,
   GroupByAggregate,
+  GroupedTask,
   MultiTargetVectorJoin,
   PrimitiveKeys,
   PropertiesMetrics,
+  SinglePrompt,
 } from '../index.js';
 import {
   BaseHybridOptions,
@@ -818,13 +828,125 @@ export class Serialize {
     return vec !== undefined && !Array.isArray(vec) && Object.values(vec).some(ArrayInputGuards.is2DArray);
   };
 
-  public static generative = <T>(generative?: GenerateOptions<T>): GenerativeSearch => {
-    return GenerativeSearch.fromPartial({
-      singleResponsePrompt: generative?.singlePrompt,
-      groupedResponseTask: generative?.groupedTask,
-      groupedProperties: generative?.groupedProperties as string[],
-    });
+  private static generativeQuery = async (
+    generative: GenerativeConfigRuntime,
+    opts?: { metadata?: boolean; images?: (string | Buffer)[]; imageProperties?: string[] }
+  ): Promise<GenerativeProvider> => {
+    const withImages = async <T extends Record<string, any>>(
+      config: T,
+      imgs?: (string | Buffer)[],
+      imgProps?: string[]
+    ): Promise<T> => {
+      if (imgs == undefined && imgProps == undefined) {
+        return config;
+      }
+      return {
+        ...config,
+        images: TextArray.fromPartial({
+          values: imgs ? await Promise.all(imgs.map(toBase64FromMedia)) : undefined,
+        }),
+        imageProperties: TextArray.fromPartial({ values: imgProps }),
+      };
+    };
+
+    const provider = GenerativeProvider.fromPartial({ returnMetadata: opts?.metadata });
+    switch (generative.name) {
+      case 'generative-anthropic':
+        provider.anthropic = await withImages(generative.config || {}, opts?.images, opts?.imageProperties);
+        break;
+      case 'generative-anyscale':
+        provider.anyscale = generative.config || {};
+        break;
+      case 'generative-aws':
+        provider.aws = await withImages(generative.config || {}, opts?.images, opts?.imageProperties);
+        break;
+      case 'generative-cohere':
+        provider.cohere = generative.config || {};
+        break;
+      case 'generative-databricks':
+        provider.databricks = generative.config || {};
+        break;
+      case 'generative-dummy':
+        provider.dummy = generative.config || {};
+        break;
+      case 'generative-friendliai':
+        provider.friendliai = generative.config || {};
+        break;
+      case 'generative-google':
+        provider.google = await withImages(generative.config || {}, opts?.images, opts?.imageProperties);
+        break;
+      case 'generative-mistral':
+        provider.mistral = generative.config || {};
+        break;
+      case 'generative-nvidia':
+        provider.nvidia = generative.config || {};
+        break;
+      case 'generative-ollama':
+        provider.ollama = await withImages(generative.config || {}, opts?.images, opts?.imageProperties);
+        break;
+      case 'generative-openai':
+        provider.openai = await withImages(generative.config || {}, opts?.images, opts?.imageProperties);
+        break;
+    }
+    return provider;
   };
+
+  public static generative = async <T>(
+    args: { supportsSingleGrouped: boolean },
+    opts?: GenerateOptions<T, GenerativeConfigRuntime | undefined>
+  ): Promise<GenerativeSearch> => {
+    const singlePrompt = Serialize.isSinglePrompt(opts?.singlePrompt)
+      ? opts.singlePrompt.prompt
+      : opts?.singlePrompt;
+    const singlePromptDebug = Serialize.isSinglePrompt(opts?.singlePrompt)
+      ? opts.singlePrompt.debug
+      : undefined;
+
+    const groupedTask = Serialize.isGroupedTask(opts?.groupedTask)
+      ? opts.groupedTask.prompt
+      : opts?.groupedTask;
+    const groupedProperties = Serialize.isGroupedTask(opts?.groupedTask)
+      ? opts.groupedTask.nonBlobProperties
+      : opts?.groupedProperties;
+
+    const singleOpts = Serialize.isSinglePrompt(opts?.singlePrompt) ? opts.singlePrompt : undefined;
+    const groupedOpts = Serialize.isGroupedTask(opts?.groupedTask) ? opts.groupedTask : undefined;
+
+    return args.supportsSingleGrouped
+      ? GenerativeSearch.fromPartial({
+          single: opts?.singlePrompt
+            ? GenerativeSearch_Single.fromPartial({
+                prompt: singlePrompt,
+                debug: singlePromptDebug,
+                queries: opts.config ? [await Serialize.generativeQuery(opts.config, singleOpts)] : undefined,
+              })
+            : undefined,
+          grouped: opts?.groupedTask
+            ? GenerativeSearch_Grouped.fromPartial({
+                task: groupedTask,
+                queries: opts.config
+                  ? [await Serialize.generativeQuery(opts.config, groupedOpts)]
+                  : undefined,
+                properties: groupedProperties
+                  ? TextArray.fromPartial({ values: groupedProperties as string[] })
+                  : undefined,
+              })
+            : undefined,
+        })
+      : GenerativeSearch.fromPartial({
+          singleResponsePrompt: singlePrompt,
+          groupedResponseTask: groupedTask,
+          groupedProperties: groupedProperties as string[],
+        });
+  };
+
+  public static isSinglePrompt(arg?: string | SinglePrompt): arg is SinglePrompt {
+    return typeof arg !== 'string' && arg !== undefined && arg.prompt !== undefined;
+  }
+
+  public static isGroupedTask<T>(arg?: string | GroupedTask<T>): arg is GroupedTask<T> {
+    return typeof arg !== 'string' && arg !== undefined && arg.prompt !== undefined;
+  }
 
   private static bm25QueryProperties = <T>(
     properties?: (PrimitiveKeys<T> | Bm25QueryProperty<T>)[]

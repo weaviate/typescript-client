@@ -109,8 +109,8 @@ describe('Mock testing of backup cancellation', () => {
   let mock: CancelMock;
 
   beforeAll(async () => {
-    mock = await CancelMock.use('1.27.0', 8958, 8959);
-    client = await weaviate.connectToLocal({ port: 8958, grpcPort: 8959 });
+    mock = await CancelMock.use('1.27.0', 8912, 8913);
+    client = await weaviate.connectToLocal({ port: 8912, grpcPort: 8913 });
   });
 
   it('should throw while waiting for creation if backup is cancelled in the meantime', async () => {
@@ -133,7 +133,7 @@ describe('Mock testing of backup cancellation', () => {
   });
 
   it('should return false if creation backup does not exist', async () => {
-    const success = await client.backup.cancel({ backupId: `${BACKUP_ID}4`, backend: BACKEND });
+    const success = await client.backup.cancel({ backupId: `${BACKUP_ID}-unknown`, backend: BACKEND });
     expect(success).toBe(false);
   });
 

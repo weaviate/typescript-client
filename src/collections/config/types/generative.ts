@@ -15,6 +15,7 @@ export type GenerativeAWSConfig = {
 };
 
 export type GenerativeAnthropicConfig = {
+  baseURL?: string;
   maxTokens?: number;
   model?: string;
   stopSequences?: string[];
@@ -53,6 +54,13 @@ export type GenerativeFriendliAIConfig = {
 };
 
 export type GenerativeMistralConfig = {
+  maxTokens?: number;
+  model?: string;
+  temperature?: number;
+};
+
+export type GenerativeNvidiaConfig = {
+  baseURL?: string;
   maxTokens?: number;
   model?: string;
   temperature?: number;
