@@ -1,5 +1,9 @@
 import { ConnectionREST } from '../index.js';
-import { Permission as WeaviatePermission, Role as WeaviateRole } from '../openapi/types.js';
+import {
+  WeaviateAssignedUser,
+  Permission as WeaviatePermission,
+  Role as WeaviateRole,
+} from '../openapi/types.js';
 import {
   BackupsPermission,
   ClusterPermission,
@@ -11,6 +15,7 @@ import {
   Role,
   RolesPermission,
   TenantsPermission,
+  UserAssignment,
   UsersPermission,
 } from './types.js';
 import { Map } from './util.js';
@@ -30,12 +35,13 @@ export interface Roles {
    */
   byName: (roleName: string) => Promise<Role | null>;
   /**
-   * Retrieve the user IDs assigned to a role.
+   * Retrieve the user IDs assigned to a role. Each user has a qualifying user type,
+   * e.g. `'db_user' | 'db_env_user' | 'oidc'`.
    *
    * @param {string} roleName The name of the role to retrieve the assigned user IDs for.
    * @returns {Promise<string[]>} The user IDs assigned to the role.
    */
-  assignedUserIds: (roleName: string) => Promise<string[]>;
+  userAssignments: (roleName: string) => Promise<UserAssignment[]>;
   /**
    * Delete a role by its name.
    *
@@ -89,7 +95,10 @@ const roles = (connection: ConnectionREST): Roles => {
     listAll: () => connection.get<WeaviateRole[]>('/authz/roles').then(Map.roles),
     byName: (roleName: string) =>
       connection.get<WeaviateRole>(`/authz/roles/${roleName}`).then(Map.roleFromWeaviate),
-    assignedUserIds: (roleName: string) => connection.get<string[]>(`/authz/roles/${roleName}/users`),
+    userAssignments: (roleName: string) =>
+      connection
+        .get<WeaviateAssignedUser[]>(`/authz/roles/${roleName}/user-assignments`, true)
+        .then(Map.assignedUsers),
     create: (roleName: string, permissions?: PermissionsInput) => {
       const perms = permissions
         ? Map.flattenPermissions(permissions).flatMap(Map.permissionToWeaviate)

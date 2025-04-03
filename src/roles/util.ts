@@ -1,5 +1,11 @@
-import { Permission as WeaviatePermission, Role as WeaviateRole, WeaviateUser } from '../openapi/types.js';
-import { User } from '../users/types.js';
+import {
+  WeaviateAssignedUser,
+  WeaviateDBUser,
+  Permission as WeaviatePermission,
+  Role as WeaviateRole,
+  WeaviateUser,
+} from '../openapi/types.js';
+import { User, UserDB } from '../users/types.js';
 import {
   BackupsAction,
   BackupsPermission,
@@ -18,6 +24,7 @@ import {
   RolesPermission,
   TenantsAction,
   TenantsPermission,
+  UserAssignment,
   UsersAction,
   UsersPermission,
 } from './types.js';
@@ -123,20 +130,38 @@ export class Map {
   static roleFromWeaviate = (role: WeaviateRole): Role => PermissionsMapping.use(role).map();
 
   static roles = (roles: WeaviateRole[]): Record<string, Role> =>
-    roles.reduce((acc, role) => {
-      acc[role.name] = Map.roleFromWeaviate(role);
-      return acc;
-    }, {} as Record<string, Role>);
+    roles.reduce(
+      (acc, role) => ({
+        ...acc,
+        [role.name]: Map.roleFromWeaviate(role),
+      }),
+      {} as Record<string, Role>
+    );
 
   static users = (users: string[]): Record<string, User> =>
-    users.reduce((acc, user) => {
-      acc[user] = { id: user };
-      return acc;
-    }, {} as Record<string, User>);
+    users.reduce(
+      (acc, user) => ({
+        ...acc,
+        [user]: { id: user },
+      }),
+      {} as Record<string, User>
+    );
   static user = (user: WeaviateUser): User => ({
     id: user.username,
     roles: user.roles?.map(Map.roleFromWeaviate),
   });
+  static dbUser = (user: WeaviateDBUser): UserDB => ({
+    userType: user.dbUserType,
+    id: user.userId,
+    roleNames: user.roles,
+    active: user.active,
+  });
+  static dbUsers = (users: WeaviateDBUser[]): UserDB[] => users.map(Map.dbUser);
+  static assignedUsers = (users: WeaviateAssignedUser[]): UserAssignment[] =>
+    users.map((user) => ({
+      id: user.userId || '',
+      userType: user.userType,
+    }));
 }
 
 class PermissionsMapping {
@@ -160,7 +185,11 @@ class PermissionsMapping {
   public static use = (role: WeaviateRole) => new PermissionsMapping(role);
 
   public map = (): Role => {
-    this.role.permissions.forEach(this.permissionFromWeaviate);
+    // If truncated roles are requested (?includeFullRoles=false),
+    // role.permissions are not present.
+    if (this.role.permissions !== null) {
+      this.role.permissions.forEach(this.permissionFromWeaviate);
+    }
     return {
       name: this.role.name,
       backupsPermissions: Object.values(this.mappings.backups),
