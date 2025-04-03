@@ -3,6 +3,7 @@ import { WeaviateInvalidInputError } from '../../errors.js';
 import {
   WeaviateClass,
   WeaviateInvertedIndexConfig,
+  WeaviateModuleConfig,
   WeaviateMultiTenancyConfig,
   WeaviateReplicationConfig,
   WeaviateVectorIndexConfig,
@@ -17,7 +18,15 @@ import {
   VectorIndexConfigFlatUpdate,
   VectorIndexConfigHNSWUpdate,
 } from '../configure/types/index.js';
-import { CollectionConfigUpdate, VectorIndexType } from './types/index.js';
+import {
+  CollectionConfigUpdate,
+  GenerativeConfig,
+  GenerativeSearch,
+  ModuleConfig,
+  Reranker,
+  RerankerConfig,
+  VectorIndexType,
+} from './types/index.js';
 
 export class MergeWithExisting {
   static schema(
@@ -27,6 +36,8 @@ export class MergeWithExisting {
   ): WeaviateClass {
     if (update === undefined) return current;
     if (update.description !== undefined) current.description = update.description;
+    if (update.generative !== undefined)
+      current.moduleConfig = MergeWithExisting.generative(current.moduleConfig, update.generative);
     if (update.invertedIndex !== undefined)
       current.invertedIndexConfig = MergeWithExisting.invertedIndex(
         current.invertedIndexConfig,
@@ -42,6 +53,8 @@ export class MergeWithExisting {
         current.replicationConfig!,
         update.replication
       );
+    if (update.reranker !== undefined)
+      current.moduleConfig = MergeWithExisting.reranker(current.moduleConfig, update.reranker);
     if (update.vectorizers !== undefined) {
       if (Array.isArray(update.vectorizers)) {
         current.vectorConfig = MergeWithExisting.vectors(current.vectorConfig, update.vectorizers);
@@ -58,6 +71,35 @@ export class MergeWithExisting {
             : MergeWithExisting.flat(current.vectorIndexConfig, update.vectorizers.vectorIndex.config);
       }
     }
+    return current;
+  }
+
+  static generative(
+    current: WeaviateModuleConfig,
+    update: ModuleConfig<GenerativeSearch, GenerativeConfig>
+  ): WeaviateModuleConfig {
+    if (current === undefined) throw Error('Module config is missing from the class schema.');
+    if (update === undefined) return current;
+    const generative = update.name === 'generative-azure-openai' ? 'generative-openai' : update.name;
+    const currentGenerative = current[generative] as Record<string, any>;
+    current[generative] = {
+      ...currentGenerative,
+      ...update.config,
+    };
+    return current;
+  }
+
+  static reranker(
+    current: WeaviateModuleConfig,
+    update: ModuleConfig<Reranker, RerankerConfig>
+  ): WeaviateModuleConfig {
+    if (current === undefined) throw Error('Module config is missing from the class schema.');
+    if (update === undefined) return current;
+    const reranker = current[update.name] as Record<string, any>;
+    current[update.name] = {
+      ...reranker,
+      ...update.config,
+    };
     return current;
   }
 

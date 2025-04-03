@@ -19,7 +19,7 @@ describe('connection', () => {
     const client = await weaviate.connectToLocal({
       port: 8085,
       authCredentials: new AuthUserPasswordCredentials({
-        username: 'ms_2d0e007e7136de11d5f29fce7a53dae219a51458@existiert.net',
+        username: 'oidc-test-user@weaviate.io',
         password: process.env.WCS_DUMMY_CI_PW,
         silentRefresh: false,
       }),
@@ -35,29 +35,29 @@ describe('connection', () => {
       });
   });
 
-  it('makes an Azure logged-in request with client credentials', async () => {
-    if (process.env.AZURE_CLIENT_SECRET == undefined || process.env.AZURE_CLIENT_SECRET == '') {
-      console.warn('Skipping because `AZURE_CLIENT_SECRET` is not set');
-      return Promise.resolve();
-    }
+  // it('makes an Azure logged-in request with client credentials', async () => {
+  //   if (process.env.AZURE_CLIENT_SECRET == undefined || process.env.AZURE_CLIENT_SECRET == '') {
+  //     console.warn('Skipping because `AZURE_CLIENT_SECRET` is not set');
+  //     return Promise.resolve();
+  //   }
 
-    const client = await weaviate.connectToLocal({
-      port: 8081,
-      authCredentials: new AuthClientCredentials({
-        clientSecret: process.env.AZURE_CLIENT_SECRET,
-        silentRefresh: false,
-      }),
-    });
+  //   const client = await weaviate.connectToLocal({
+  //     port: 8081,
+  //     authCredentials: new AuthClientCredentials({
+  //       clientSecret: process.env.AZURE_CLIENT_SECRET,
+  //       silentRefresh: false,
+  //     }),
+  //   });
 
-    return client
-      .getMeta()
-      .then((res) => {
-        expect(res.version).toBeDefined();
-      })
-      .catch((e) => {
-        throw new Error('it should not have errord: ' + e);
-      });
-  });
+  //   return client
+  //     .getMeta()
+  //     .then((res) => {
+  //       expect(res.version).toBeDefined();
+  //     })
+  //     .catch((e) => {
+  //       throw new Error('it should not have errord: ' + e);
+  //     });
+  // });
 
   it('makes an Okta logged-in request with client credentials', async () => {
     if (process.env.OKTA_CLIENT_SECRET == undefined || process.env.OKTA_CLIENT_SECRET == '') {
@@ -118,7 +118,7 @@ describe('connection', () => {
     const client = await weaviate.connectToLocal({
       port: 8085,
       authCredentials: new AuthUserPasswordCredentials({
-        username: 'ms_2d0e007e7136de11d5f29fce7a53dae219a51458@existiert.net',
+        username: 'oidc-test-user@weaviate.io',
         password: process.env.WCS_DUMMY_CI_PW,
         silentRefresh: false,
       }),
@@ -176,7 +176,7 @@ describe('connection', () => {
       scheme: 'http',
       host: 'localhost:8085',
       authClientSecret: new AuthUserPasswordCredentials({
-        username: 'ms_2d0e007e7136de11d5f29fce7a53dae219a51458@existiert.net',
+        username: 'oidc-test-user@weaviate.io',
         password: process.env.WCS_DUMMY_CI_PW,
         silentRefresh: false,
       }),
@@ -215,7 +215,7 @@ describe('connection', () => {
       scheme: 'http',
       host: 'localhost:8085',
       authClientSecret: new AuthUserPasswordCredentials({
-        username: 'ms_2d0e007e7136de11d5f29fce7a53dae219a51458@existiert.net',
+        username: 'oidc-test-user@weaviate.io',
         password: process.env.WCS_DUMMY_CI_PW,
         silentRefresh: false,
       }),

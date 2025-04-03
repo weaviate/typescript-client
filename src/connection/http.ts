@@ -4,8 +4,10 @@ import { Agent } from 'http';
 import OpenidConfigurationGetter from '../misc/openidConfigurationGetter.js';
 
 import {
+  WeaviateInsufficientPermissionsError,
   WeaviateInvalidInputError,
   WeaviateRequestTimeoutError,
+  WeaviateUnauthenticatedError,
   WeaviateUnexpectedStatusCodeError,
 } from '../errors.js';
 import {
@@ -155,11 +157,11 @@ export default class ConnectionREST {
     return this.http.head(path, payload);
   };
 
-  get = (path: string, expectReturnContent = true) => {
+  get = <T>(path: string, expectReturnContent = true) => {
     if (this.authEnabled) {
-      return this.login().then((token) => this.http.get(path, expectReturnContent, token));
+      return this.login().then((token) => this.http.get<T>(path, expectReturnContent, token));
     }
-    return this.http.get(path, expectReturnContent);
+    return this.http.get<T>(path, expectReturnContent);
   };
 
   login = async () => {
@@ -197,7 +199,7 @@ export interface HttpClient {
     expectReturnContent: boolean,
     bearerToken: string
   ) => Promise<T | undefined>;
-  get: (path: string, expectReturnContent?: boolean, bearerToken?: string) => any;
+  get: <T>(path: string, expectReturnContent?: boolean, bearerToken?: string) => Promise<T>;
   externalPost: (externalUrl: string, body: any, contentType: any) => any;
   getRaw: (path: string, bearerToken?: string) => any;
   delete: (path: string, payload: any, expectReturnContent?: boolean, bearerToken?: string) => any;
@@ -241,11 +243,11 @@ export const httpClient = (config: InternalConnectionParams): HttpClient => {
         headers: {
           ...config.headers,
           'content-type': 'application/json',
+          ...getAuthHeaders(config, bearerToken),
         },
         body: JSON.stringify(payload),
         agent: config.agent,
       };
-      addAuthHeaderIfNeeded(request, bearerToken);
       return fetchWithTimeout(url(path), config.timeout?.insert || 90, request).then(
         checkStatus<T>(expectReturnContent)
       );
@@ -261,11 +263,11 @@ export const httpClient = (config: InternalConnectionParams): HttpClient => {
         headers: {
           ...config.headers,
           'content-type': 'application/json',
+          ...getAuthHeaders(config, bearerToken),
         },
         body: JSON.stringify(payload),
         agent: config.agent,
       };
-      addAuthHeaderIfNeeded(request, bearerToken);
       return fetchWithTimeout(url(path), config.timeout?.insert || 90, request).then(
         checkStatus<T>(expectReturnContent)
       );
@@ -276,11 +278,11 @@ export const httpClient = (config: InternalConnectionParams): HttpClient => {
         headers: {
           ...config.headers,
           'content-type': 'application/json',
+          ...getAuthHeaders(config, bearerToken),
         },
         body: JSON.stringify(payload),
         agent: config.agent,
       };
-      addAuthHeaderIfNeeded(request, bearerToken);
       return fetchWithTimeout(url(path), config.timeout?.insert || 90, request).then(checkStatus<T>(false));
     },
     delete: <B>(path: string, payload: B | null = null, expectReturnContent = false, bearerToken = '') => {
@@ -289,11 +291,11 @@ export const httpClient = (config: InternalConnectionParams): HttpClient => {
         headers: {
           ...config.headers,
           'content-type': 'application/json',
+          ...getAuthHeaders(config, bearerToken),
         },
         body: payload ? JSON.stringify(payload) : undefined,
         agent: config.agent,
       };
-      addAuthHeaderIfNeeded(request, bearerToken);
       return fetchWithTimeout(url(path), config.timeout?.insert || 90, request).then(
         checkStatus<undefined>(expectReturnContent)
       );
@@ -304,26 +306,26 @@ export const httpClient = (config: InternalConnectionParams): HttpClient => {
         headers: {
           ...config.headers,
           'content-type': 'application/json',
+          ...getAuthHeaders(config, bearerToken),
         },
         body: payload ? JSON.stringify(payload) : undefined,
         agent: config.agent,
       };
-      addAuthHeaderIfNeeded(request, bearerToken);
       return fetchWithTimeout(url(path), config.timeout?.query || 30, request).then(
         handleHeadResponse<undefined>(false)
       );
     },
-    get: <T>(path: string, expectReturnContent = true, bearerToken = ''): Promise<T | undefined> => {
+    get: <T>(path: string, expectReturnContent = true, bearerToken = ''): Promise<T> => {
       const request = {
         method: 'GET',
         headers: {
           ...config.headers,
+          ...getAuthHeaders(config, bearerToken),
         },
         agent: config.agent,
       };
-      addAuthHeaderIfNeeded(request, bearerToken);
       return fetchWithTimeout(url(path), config.timeout?.query || 30, request).then(
-        checkStatus<T>(expectReturnContent)
+        checkStatus<any>(expectReturnContent)
       );
     },
     getRaw: (path: string, bearerToken = '') => {
@@ -332,10 +334,10 @@ export const httpClient = (config: InternalConnectionParams): HttpClient => {
         method: 'GET',
         headers: {
           ...config.headers,
+          ...getAuthHeaders(config, bearerToken),
         },
         agent: config.agent,
       };
-      addAuthHeaderIfNeeded(request, bearerToken);
       return fetchWithTimeout(url(path), config.timeout?.query || 30, request);
     },
     externalGet: (externalUrl: string) => {
@@ -380,7 +382,13 @@ const checkStatus =
         } catch (e) {
           err = errText;
         }
-        return Promise.reject(new WeaviateUnexpectedStatusCodeError(res.status, err));
+        if (res.status === 401) {
+          return Promise.reject(new WeaviateUnauthenticatedError(err));
+        } else if (res.status === 403) {
+          return Promise.reject(new WeaviateInsufficientPermissionsError(403, err));
+        } else {
+          return Promise.reject(new WeaviateUnexpectedStatusCodeError(res.status, err));
+        }
       });
     }
     if (expectResponseBody) {
@@ -398,8 +406,12 @@ const handleHeadResponse =
     return checkStatus<T>(expectResponseBody)(res);
   };
 
-function addAuthHeaderIfNeeded(request: any, bearerToken: string) {
-  if (bearerToken !== '') {
-    request.headers.Authorization = `Bearer ${bearerToken}`;
-  }
-}
+const getAuthHeaders = (config: InternalConnectionParams, bearerToken: string) =>
+  bearerToken
+    ? {
+        Authorization: `Bearer ${bearerToken}`,
+        'X-Weaviate-Cluster-Url': config.host,
+        //  keeping for backwards compatibility for older clusters for now. On newer clusters, Embedding Service reuses Authorization header.
+        'X-Weaviate-Api-Key': bearerToken,
+      }
+    : undefined;

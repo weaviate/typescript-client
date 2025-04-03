@@ -1,21 +1,23 @@
 import { ConsistencyLevel } from '../data/index.js';
 
-import { Metadata } from 'nice-grpc';
+import { Metadata, ServerError, Status } from 'nice-grpc';
 import { Filters } from '../proto/v1/base.js';
 import {
   BM25,
-  GroupBy,
   Hybrid,
-  MetadataRequest,
   NearAudioSearch,
   NearDepthSearch,
-  NearImageSearch,
   NearIMUSearch,
+  NearImageSearch,
   NearObject,
   NearTextSearch,
   NearThermalSearch,
   NearVector,
   NearVideoSearch,
+} from '../proto/v1/base_search.js';
+import {
+  GroupBy,
+  MetadataRequest,
   PropertiesRequest,
   Rerank,
   SearchReply,
@@ -24,8 +26,14 @@ import {
 } from '../proto/v1/search_get.js';
 import { WeaviateClient } from '../proto/v1/weaviate.js';
 
+import { isAbortError } from 'abort-controller-x';
 import { RetryOptions } from 'nice-grpc-client-middleware-retry';
-import { WeaviateQueryError } from '../errors.js';
+import {
+  WeaviateInsufficientPermissionsError,
+  WeaviateQueryError,
+  WeaviateRequestTimeoutError,
+} from '../errors.js';
+import { NearMediaType } from '../index.js';
 import { GenerativeSearch } from '../proto/v1/generative.js';
 import Base from './base.js';
 import { retryOptions } from './retry.js';
@@ -98,6 +106,20 @@ export type SearchNearVideoArgs = BaseSearchArgs & {
   nearVideo: NearVideoSearch;
 };
 
+export type SearchNearMediaArgs<T extends NearMediaType> = T extends 'audio'
+  ? SearchNearAudioArgs
+  : T extends 'depth'
+  ? SearchNearDepthArgs
+  : T extends 'image'
+  ? SearchNearImageArgs
+  : T extends 'imu'
+  ? SearchNearIMUArgs
+  : T extends 'thermal'
+  ? SearchNearThermalArgs
+  : T extends 'video'
+  ? SearchNearVideoArgs
+  : never;
+
 export interface Search {
   withFetch: (args: SearchFetchArgs) => Promise<SearchReply>;
   withBm25: (args: SearchBm25Args) => Promise<SearchReply>;
@@ -157,6 +179,12 @@ export default class Searcher extends Base implements Search {
           }
         )
         .catch((err) => {
+          if (err instanceof ServerError && err.code === Status.PERMISSION_DENIED) {
+            throw new WeaviateInsufficientPermissionsError(7, err.message);
+          }
+          if (isAbortError(err)) {
+            throw new WeaviateRequestTimeoutError(`timed out after ${this.timeout}ms`);
+          }
           throw new WeaviateQueryError(err.message, 'gRPC');
         })
     );

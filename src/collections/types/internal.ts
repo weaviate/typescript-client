@@ -124,3 +124,9 @@ export type NonReferenceInputs<Obj> = Obj extends undefined
     };
 
 export type MapPhoneNumberType<T> = T extends PhoneNumber ? PhoneNumberInput : T;
+
+type AtLeastOne<T> = {
+  [K in keyof T]: Pick<T, K>;
+}[keyof T];
+
+export type NonEmpty<T> = keyof T extends never ? never : T;

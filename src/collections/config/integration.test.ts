@@ -2,8 +2,11 @@
 import { WeaviateUnsupportedFeatureError } from '../../errors.js';
 import weaviate, { WeaviateClient, weaviateV2 } from '../../index.js';
 import {
+  GenerativeCohereConfig,
+  ModuleConfig,
   MultiTenancyConfig,
   PropertyConfig,
+  RerankerCohereConfig,
   VectorIndexConfigDynamic,
   VectorIndexConfigHNSW,
 } from './types/index.js';
@@ -577,7 +580,7 @@ describe('Testing of the collection.config namespace', () => {
         vectorizer: 'none',
       })
       .do();
-    const collection = client.collections.get(collectionName);
+    const collection = client.collections.use(collectionName);
     const config = await collection.config
       .update({
         vectorizers: weaviate.reconfigure.vectorizer.update({
@@ -620,5 +623,54 @@ describe('Testing of the collection.config namespace', () => {
     });
     expect(config.vectorizers.default.indexType).toEqual('hnsw');
     expect(config.vectorizers.default.vectorizer.name).toEqual('none');
+  });
+
+  it('should be able to update the generative & reranker configs of a collection', async () => {
+    if ((await client.getWeaviateVersion()).isLowerThan(1, 25, 0)) {
+      console.warn('Skipping test because Weaviate version is lower than 1.25.0');
+      return;
+    }
+    const collectionName = 'TestCollectionConfigUpdateGenerative';
+    const collection = client.collections.use(collectionName);
+    await client.collections.create({
+      name: collectionName,
+      vectorizers: weaviate.configure.vectorizer.none(),
+    });
+    let config = await collection.config.get();
+    expect(config.generative).toBeUndefined();
+
+    await collection.config.update({
+      generative: weaviate.reconfigure.generative.cohere({
+        model: 'model',
+      }),
+    });
+
+    config = await collection.config.get();
+    expect(config.generative).toEqual<ModuleConfig<'generative-cohere', GenerativeCohereConfig>>({
+      name: 'generative-cohere',
+      config: {
+        model: 'model',
+      },
+    });
+
+    await collection.config.update({
+      reranker: weaviate.reconfigure.reranker.cohere({
+        model: 'model',
+      }),
+    });
+
+    config = await collection.config.get();
+    expect(config.generative).toEqual<ModuleConfig<'generative-cohere', GenerativeCohereConfig>>({
+      name: 'generative-cohere',
+      config: {
+        model: 'model',
+      },
+    });
+    expect(config.reranker).toEqual<ModuleConfig<'reranker-cohere', RerankerCohereConfig>>({
+      name: 'reranker-cohere',
+      config: {
+        model: 'model',
+      },
+    });
   });
 });

@@ -13,14 +13,11 @@ import {
   SearchNearVideoArgs,
 } from '../../grpc/searcher.js';
 import { Filters, Filters_Operator } from '../../proto/v1/base.js';
-import { GenerativeSearch } from '../../proto/v1/generative.js';
 import {
   BM25,
   CombinationMethod,
-  GroupBy,
   Hybrid,
   Hybrid_FusionType,
-  MetadataRequest,
   NearAudioSearch,
   NearDepthSearch,
   NearIMUSearch,
@@ -31,9 +28,10 @@ import {
   NearThermalSearch,
   NearVector,
   NearVideoSearch,
-  PropertiesRequest,
   Targets,
-} from '../../proto/v1/search_get.js';
+} from '../../proto/v1/base_search.js';
+import { GenerativeSearch } from '../../proto/v1/generative.js';
+import { GroupBy, MetadataRequest, PropertiesRequest } from '../../proto/v1/search_get.js';
 import { Filters as FiltersFactory } from '../filters/classes.js';
 import filter from '../filters/index.js';
 import { TargetVectorInputType } from '../query/types.js';
@@ -45,7 +43,7 @@ import { DataGuards, Serialize } from './index.js';
 
 describe('Unit testing of Serialize', () => {
   it('should parse args for fetchObjects', () => {
-    const args = Serialize.fetchObjects({
+    const args = Serialize.search.fetchObjects({
       limit: 1,
       offset: 0,
       after: 'one',
@@ -95,7 +93,7 @@ describe('Unit testing of Serialize', () => {
   });
 
   it('should parse args for fetchObjectById', () => {
-    const args = Serialize.fetchObjectById({
+    const args = Serialize.search.fetchObjectById({
       id: '1',
       includeVector: ['title'],
       returnProperties: ['name'],
@@ -131,8 +129,7 @@ describe('Unit testing of Serialize', () => {
   });
 
   it('should parse args for bm25', () => {
-    const args = Serialize.bm25({
-      query: 'test',
+    const args = Serialize.search.bm25('test', {
       queryProperties: ['name'],
       autoLimit: 1,
     });
@@ -147,17 +144,22 @@ describe('Unit testing of Serialize', () => {
   });
 
   it('should parse args for simple hybrid', () => {
-    const args = Serialize.hybrid({
-      query: 'test',
-      queryProperties: ['name'],
-      alpha: 0.6,
-      vector: [1, 2, 3],
-      targetVector: 'title',
-      fusionType: 'Ranked',
-      supportsTargets: false,
-      supportsVectorsForTargets: false,
-      supportsWeightsForTargets: false,
-    });
+    const args = Serialize.search.hybrid(
+      {
+        query: 'test',
+        supportsTargets: false,
+        supportsVectorsForTargets: false,
+        supportsWeightsForTargets: false,
+      },
+      {
+        queryProperties: ['name'],
+        alpha: 0.6,
+        vector: [1, 2, 3],
+        targetVector: 'title',
+        fusionType: 'Ranked',
+        maxVectorDistance: 0.4,
+      }
+    );
     expect(args).toEqual<SearchHybridArgs>({
       hybridSearch: Hybrid.fromPartial({
         query: 'test',
@@ -166,29 +168,34 @@ describe('Unit testing of Serialize', () => {
         vectorBytes: new Uint8Array(new Float32Array([1, 2, 3]).buffer),
         targetVectors: ['title'],
         fusionType: Hybrid_FusionType.FUSION_TYPE_RANKED,
+        vectorDistance: 0.4,
       }),
       metadata: MetadataRequest.fromPartial({ uuid: true }),
     });
   });
 
   it('should parse args for multi-vector & multi-target hybrid', () => {
-    const args = Serialize.hybrid({
-      query: 'test',
-      queryProperties: ['name'],
-      alpha: 0.6,
-      vector: {
-        title: [
-          [1, 2, 3],
-          [4, 5, 6],
-        ],
-        description: [7, 8, 9],
+    const args = Serialize.search.hybrid(
+      {
+        query: 'test',
+        supportsTargets: true,
+        supportsVectorsForTargets: true,
+        supportsWeightsForTargets: true,
       },
-      targetVector: multiTargetVector().manualWeights({ title: [0.5, 0.5], description: 0.5 }),
-      fusionType: 'Ranked',
-      supportsTargets: true,
-      supportsVectorsForTargets: true,
-      supportsWeightsForTargets: true,
-    });
+      {
+        queryProperties: ['name'],
+        alpha: 0.6,
+        vector: {
+          title: [
+            [1, 2, 3],
+            [4, 5, 6],
+          ],
+          description: [7, 8, 9],
+        },
+        targetVector: multiTargetVector().manualWeights({ title: [0.5, 0.5], description: 0.5 }),
+        fusionType: 'Ranked',
+      }
+    );
     expect(args).toEqual<SearchHybridArgs>({
       hybridSearch: Hybrid.fromPartial({
         query: 'test',
@@ -226,14 +233,18 @@ describe('Unit testing of Serialize', () => {
   });
 
   it('should parse args for nearAudio', () => {
-    const args = Serialize.nearAudio({
-      audio: 'audio',
-      certainty: 0.6,
-      distance: 0.4,
-      targetVector: 'audio',
-      supportsTargets: false,
-      supportsWeightsForTargets: false,
-    });
+    const args = Serialize.search.nearAudio(
+      {
+        audio: 'audio',
+        supportsTargets: false,
+        supportsWeightsForTargets: false,
+      },
+      {
+        certainty: 0.6,
+        distance: 0.4,
+        targetVector: 'audio',
+      }
+    );
     expect(args).toEqual<SearchNearAudioArgs>({
       nearAudio: NearAudioSearch.fromPartial({
         audio: 'audio',
@@ -246,7 +257,7 @@ describe('Unit testing of Serialize', () => {
   });
 
   it('should parse args for nearDepth', () => {
-    const args = Serialize.nearDepth({
+    const args = Serialize.search.nearDepth({
       depth: 'depth',
       supportsTargets: false,
       supportsWeightsForTargets: false,
@@ -260,7 +271,7 @@ describe('Unit testing of Serialize', () => {
   });
 
   it('should parse args for nearIMU', () => {
-    const args = Serialize.nearIMU({
+    const args = Serialize.search.nearIMU({
       imu: 'imu',
       supportsTargets: false,
       supportsWeightsForTargets: false,
@@ -274,7 +285,7 @@ describe('Unit testing of Serialize', () => {
   });
 
   it('should parse args for nearImage', () => {
-    const args = Serialize.nearImage({
+    const args = Serialize.search.nearImage({
       image: 'image',
       supportsTargets: false,
       supportsWeightsForTargets: false,
@@ -288,7 +299,7 @@ describe('Unit testing of Serialize', () => {
   });
 
   it('should parse args for nearObject', () => {
-    const args = Serialize.nearObject({
+    const args = Serialize.search.nearObject({
       id: 'id',
       supportsTargets: false,
       supportsWeightsForTargets: false,
@@ -302,21 +313,25 @@ describe('Unit testing of Serialize', () => {
   });
 
   it('should parse args for nearText', () => {
-    const args = Serialize.nearText({
-      query: 'test',
-      moveAway: {
-        objects: ['0'],
-        concepts: ['bad'],
-        force: 0.4,
+    const args = Serialize.search.nearText(
+      {
+        query: 'test',
+        supportsTargets: false,
+        supportsWeightsForTargets: false,
       },
-      moveTo: {
-        objects: ['1'],
-        concepts: ['good'],
-        force: 0.6,
-      },
-      supportsTargets: false,
-      supportsWeightsForTargets: false,
-    });
+      {
+        moveAway: {
+          objects: ['0'],
+          concepts: ['bad'],
+          force: 0.4,
+        },
+        moveTo: {
+          objects: ['1'],
+          concepts: ['good'],
+          force: 0.6,
+        },
+      }
+    );
     expect(args).toEqual<SearchNearTextArgs>({
       nearText: NearTextSearch.fromPartial({
         query: ['test'],
@@ -336,7 +351,7 @@ describe('Unit testing of Serialize', () => {
   });
 
   it('should parse args for nearThermal', () => {
-    const args = Serialize.nearThermal({
+    const args = Serialize.search.nearThermal({
       thermal: 'thermal',
       supportsTargets: false,
       supportsWeightsForTargets: false,
@@ -350,7 +365,7 @@ describe('Unit testing of Serialize', () => {
   });
 
   it('should parse args for nearVector with single vector', () => {
-    const args = Serialize.nearVector({
+    const args = Serialize.search.nearVector({
       vector: [1, 2, 3],
       supportsTargets: false,
       supportsVectorsForTargets: false,
@@ -365,7 +380,7 @@ describe('Unit testing of Serialize', () => {
   });
 
   it('should parse args for nearVector with two named vectors and supportsTargets (<1.27.0)', () => {
-    const args = Serialize.nearVector({
+    const args = Serialize.search.nearVector({
       vector: {
         a: [1, 2, 3],
         b: [4, 5, 6],
@@ -387,7 +402,7 @@ describe('Unit testing of Serialize', () => {
   });
 
   it('should parse args for nearVector with two named vectors and all supports (==1.27.x)', () => {
-    const args = Serialize.nearVector({
+    const args = Serialize.search.nearVector({
       vector: {
         a: [
           [1, 2, 3],
@@ -413,7 +428,7 @@ describe('Unit testing of Serialize', () => {
   });
 
   it('should parse args for nearVideo', () => {
-    const args = Serialize.nearVideo({
+    const args = Serialize.search.nearVideo({
       video: 'video',
       supportsTargets: false,
       supportsWeightsForTargets: false,
@@ -442,7 +457,7 @@ describe('Unit testing of Serialize', () => {
   });
 
   it('should parse args for groupBy', () => {
-    const args = Serialize.groupBy({
+    const args = Serialize.search.groupBy({
       property: 'name',
       numberOfGroups: 1,
       objectsPerGroup: 2,
@@ -455,14 +470,14 @@ describe('Unit testing of Serialize', () => {
   });
 
   it('should parse args for isGroupBy', () => {
-    const isGroupBy = Serialize.isGroupBy({
+    const isGroupBy = Serialize.search.isGroupBy({
       groupBy: {
         property: 'name',
         numberOfGroups: 1,
         objectsPerGroup: 2,
       },
     });
-    const isNotGroupBy = Serialize.isGroupBy({});
+    const isNotGroupBy = Serialize.search.isGroupBy({});
     expect(isGroupBy).toEqual(true);
     expect(isNotGroupBy).toEqual(false);
   });

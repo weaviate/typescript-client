@@ -24,6 +24,8 @@ export type Vectorizer =
   | 'multi2vec-bind'
   | Multi2VecPalmVectorizer
   | 'multi2vec-google'
+  | 'multi2vec-jinaai'
+  | 'multi2vec-voyageai'
   | 'ref2vec-centroid'
   | 'text2vec-aws'
   | 'text2vec-azure-openai'
@@ -32,7 +34,7 @@ export type Vectorizer =
   | 'text2vec-databricks'
   | 'text2vec-gpt4all'
   | 'text2vec-huggingface'
-  | 'text2vec-jina'
+  | 'text2vec-jinaai'
   | 'text2vec-mistral'
   | 'text2vec-ollama'
   | 'text2vec-openai'
@@ -40,6 +42,7 @@ export type Vectorizer =
   | 'text2vec-google'
   | 'text2vec-transformers'
   | 'text2vec-voyageai'
+  | 'text2vec-weaviate'
   | 'none';
 
 /** The configuration for image vectorization using a neural network module.
@@ -168,7 +171,7 @@ export type Multi2VecGoogleConfig = {
   videoFields?: string[];
   /** The model ID in use. */
   modelId?: string;
-  /** The number of dimensions in use. */
+  /** The dimensionality of the vector once embedded. */
   dimensions?: number;
   /** Whether the collection name is vectorized. */
   vectorizeCollectionName?: boolean;
@@ -180,6 +183,58 @@ export type Multi2VecGoogleConfig = {
     textFields?: number[];
     /** The weights of the video fields. */
     videoFields?: number[];
+  };
+};
+
+/** The configuration for multi-media vectorization using the Jina module.
+ *
+ * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/jinaai/embeddings-multimodal) for detailed usage.
+ */
+export type Multi2VecJinaAIConfig = {
+  /** The base URL to use where API requests should go. */
+  baseURL?: string;
+  /** The dimensionality of the vector once embedded. */
+  dimensions?: number;
+  /** The image fields used when vectorizing. */
+  imageFields?: string[];
+  /** The model to use. */
+  model?: string;
+  /** The text fields used when vectorizing. */
+  textFields?: string[];
+  /** Whether the collection name is vectorized. */
+  vectorizeCollectionName?: boolean;
+  /** The weights of the fields used for vectorization. */
+  weights?: {
+    /** The weights of the image fields. */
+    imageFields?: number[];
+    /** The weights of the text fields. */
+    textFields?: number[];
+  };
+};
+
+/** The configuration for multi-media vectorization using the VoyageAI module.
+ *
+ * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/transformers/embeddings-multimodal) for detailed usage.
+ */
+export type Multi2VecVoyageAIConfig = {
+  /** The base URL to use where API requests should go. */
+  baseURL?: string;
+  /** The image fields used when vectorizing. */
+  imageFields?: string[];
+  /** The model to use. */
+  model?: string;
+  /** The text fields used when vectorizing. */
+  textFields?: string[];
+  /** Whether the input should be truncated to fit in the context window. */
+  truncate?: boolean;
+  /** Whether the collection name is vectorized. */
+  vectorizeCollectionName?: boolean;
+  /** The weights of the fields used for vectorization. */
+  weights?: {
+    /** The weights of the image fields. */
+    imageFields?: number[];
+    /** The weights of the text fields. */
+    textFields?: number[];
   };
 };
 
@@ -235,7 +290,7 @@ export type Text2VecCohereConfig = {
   baseURL?: string;
   /** The model to use. */
   model?: string;
-  /** The truncation strategy to use. */
+  /** Whether to truncate the input texts to fit within the context length. */
   truncate?: boolean;
   /** Whether to vectorize the collection name. */
   vectorizeCollectionName?: boolean;
@@ -298,12 +353,15 @@ export type Text2VecHuggingFaceConfig = {
  *
  * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/jinaai/embeddings) for detailed usage.
  */
-export type Text2VecJinaConfig = {
+export type Text2VecJinaAIConfig = {
   /** The model to use. */
   model?: 'jina-embeddings-v2-base-en' | 'jina-embeddings-v2-small-en' | string;
   /** Whether to vectorize the collection name. */
   vectorizeCollectionName?: boolean;
 };
+
+/** @deprecated Use `Text2VecJinaAIConfig` instead. */
+export type Text2VecJinaConfig = Text2VecJinaAIConfig;
 
 /**
  * The configuration for text vectorization using the Mistral module.
@@ -339,7 +397,7 @@ export type Text2VecOllamaConfig = {
 export type Text2VecOpenAIConfig = {
   /** The base URL to use where API requests should go. */
   baseURL?: string;
-  /** The dimensions to use. */
+  /** The dimensionality of the vector once embedded. */
   dimensions?: number;
   /** The model to use. */
   model?: 'text-embedding-3-small' | 'text-embedding-3-large' | 'text-embedding-ada-002' | string;
@@ -406,6 +464,22 @@ export type Text2VecVoyageAIConfig = {
   vectorizeCollectionName?: boolean;
 };
 
+/**
+ * The configuration for text vectorization using Weaviate's self-hosted text-based embedding models.
+ *
+ * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/weaviate/embeddings) for detailed usage.
+ */
+export type Text2VecWeaviateConfig = {
+  /** The base URL to use where API requests should go. */
+  baseURL?: string;
+  /** The dimensionality of the vector once embedded. */
+  dimensions?: number;
+  /** The model to use. */
+  model?: 'Snowflake/snowflake-arctic-embed-l-v2.0' | 'Snowflake/snowflake-arctic-embed-m-v1.5' | string;
+  /** Whether to vectorize the collection name. */
+  vectorizeCollectionName?: boolean;
+};
+
 export type NoVectorizerConfig = {};
 
 export type VectorizerConfig =
@@ -413,7 +487,9 @@ export type VectorizerConfig =
   | Multi2VecClipConfig
   | Multi2VecBindConfig
   | Multi2VecGoogleConfig
+  | Multi2VecJinaAIConfig
   | Multi2VecPalmConfig
+  | Multi2VecVoyageAIConfig
   | Ref2VecCentroidConfig
   | Text2VecAWSConfig
   | Text2VecAzureOpenAIConfig
@@ -423,11 +499,12 @@ export type VectorizerConfig =
   | Text2VecGoogleConfig
   | Text2VecGPT4AllConfig
   | Text2VecHuggingFaceConfig
-  | Text2VecJinaConfig
+  | Text2VecJinaAIConfig
   | Text2VecOpenAIConfig
   | Text2VecPalmConfig
   | Text2VecTransformersConfig
   | Text2VecVoyageAIConfig
+  | Text2VecWeaviateConfig
   | NoVectorizerConfig;
 
 export type VectorizerConfigType<V> = V extends 'img2vec-neural'
@@ -440,8 +517,12 @@ export type VectorizerConfigType<V> = V extends 'img2vec-neural'
   ? Multi2VecBindConfig | undefined
   : V extends 'multi2vec-google'
   ? Multi2VecGoogleConfig
+  : V extends 'multi2vec-jinaai'
+  ? Multi2VecJinaAIConfig | undefined
   : V extends Multi2VecPalmVectorizer
   ? Multi2VecPalmConfig
+  : V extends 'multi2vec-voyageai'
+  ? Multi2VecVoyageAIConfig | undefined
   : V extends 'ref2vec-centroid'
   ? Ref2VecCentroidConfig
   : V extends 'text2vec-aws'
@@ -458,8 +539,8 @@ export type VectorizerConfigType<V> = V extends 'img2vec-neural'
   ? Text2VecGPT4AllConfig | undefined
   : V extends 'text2vec-huggingface'
   ? Text2VecHuggingFaceConfig | undefined
-  : V extends 'text2vec-jina'
-  ? Text2VecJinaConfig | undefined
+  : V extends 'text2vec-jinaai'
+  ? Text2VecJinaAIConfig | undefined
   : V extends 'text2vec-mistral'
   ? Text2VecMistralConfig | undefined
   : V extends 'text2vec-ollama'
@@ -474,6 +555,8 @@ export type VectorizerConfigType<V> = V extends 'img2vec-neural'
   ? Text2VecTransformersConfig | undefined
   : V extends 'text2vec-voyageai'
   ? Text2VecVoyageAIConfig | undefined
+  : V extends 'text2vec-weaviate'
+  ? Text2VecWeaviateConfig | undefined
   : V extends 'none'
   ? {}
   : V extends undefined

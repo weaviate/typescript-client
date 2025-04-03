@@ -2,6 +2,7 @@ import Connection from '../connection/index.js';
 import { WhereFilter } from '../openapi/types.js';
 import { CommandBase } from '../validation/commandBase.js';
 import { isValidPositiveIntProperty } from '../validation/number.js';
+import Hybrid, { HybridArgs } from './hybrid.js';
 import NearMedia, {
   NearAudioArgs,
   NearDepthArgs,
@@ -24,6 +25,7 @@ export default class Aggregator extends CommandBase {
   private className?: string;
   private fields?: string;
   private groupBy?: string[];
+  private hybridString?: string;
   private includesNearMediaFilter: boolean;
   private limit?: number;
   private nearMediaString?: string;
@@ -133,6 +135,15 @@ export default class Aggregator extends CommandBase {
     return this;
   };
 
+  withHybrid = (args: HybridArgs) => {
+    try {
+      this.hybridString = new Hybrid(args).toString();
+    } catch (e: any) {
+      this.addError(e.toString());
+    }
+    return this;
+  };
+
   withObjectLimit = (objectLimit: number) => {
     if (!isValidPositiveIntProperty(objectLimit)) {
       throw new Error('objectLimit must be a non-negative integer');
@@ -194,6 +205,7 @@ export default class Aggregator extends CommandBase {
       this.nearVectorString ||
       this.limit ||
       this.groupBy ||
+      this.hybridString ||
       this.tenant
     ) {
       let args: string[] = [];
@@ -222,6 +234,10 @@ export default class Aggregator extends CommandBase {
         args = [...args, `groupBy:${JSON.stringify(this.groupBy)}`];
       }
 
+      if (this.hybridString) {
+        args = [...args, `hybrid:${this.hybridString}`];
+      }
+
       if (this.limit) {
         args = [...args, `limit:${this.limit}`];
       }
@@ -236,7 +252,6 @@ export default class Aggregator extends CommandBase {
 
       params = `(${args.join(',')})`;
     }
-
     return this.client.query(`{Aggregate{${this.className}${params}{${this.fields}}}}`);
   };
 }

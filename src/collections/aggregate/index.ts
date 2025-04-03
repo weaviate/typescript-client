@@ -1,42 +1,58 @@
-import Connection from '../../connection/index.js';
+import Connection from '../../connection/grpc.js';
 
 import { ConsistencyLevel } from '../../data/index.js';
 import { DbVersionSupport } from '../../utils/dbVersion.js';
 
 import { FilterValue } from '../filters/index.js';
 
-import { WeaviateQueryError } from '../../errors.js';
+import { WeaviateInvalidInputError, WeaviateQueryError } from '../../errors.js';
 import { Aggregator } from '../../graphql/index.js';
-import { toBase64FromMedia } from '../../index.js';
+import { PrimitiveKeys, toBase64FromMedia } from '../../index.js';
+import { Deserialize } from '../deserialize/index.js';
+import { Bm25QueryProperty, NearVectorInputType } from '../query/types.js';
+import { NearVectorInputGuards } from '../query/utils.js';
 import { Serialize } from '../serialize/index.js';
 
-export type AggregateBaseOptions<T, M> = {
+export type AggregateBaseOptions<M> = {
   filters?: FilterValue;
   returnMetrics?: M;
 };
 
-export type AggregateGroupByOptions<T, M> = AggregateOptions<T, M> & {
-  groupBy: (keyof T & string) | GroupByAggregate<T>;
+export type PropertyOf<T> = T extends undefined ? string : keyof T & string;
+
+export type AggregateGroupByOptions<T, M> = AggregateBaseOptions<M> & {
+  groupBy: PropertyOf<T> | GroupByAggregate<T>;
 };
 
 export type GroupByAggregate<T> = {
-  property: keyof T & string;
+  property: PropertyOf<T>;
   limit?: number;
 };
 
-export type AggregateOptions<T, M> = AggregateBaseOptions<T, M>;
+export type AggregateOverAllOptions<M> = AggregateBaseOptions<M>;
 
-export type AggregateBaseOverAllOptions<T, M> = AggregateBaseOptions<T, M>;
-
-export type AggregateNearOptions<T, M> = AggregateBaseOptions<T, M> & {
+export type AggregateNearOptions<M> = AggregateBaseOptions<M> & {
   certainty?: number;
   distance?: number;
   objectLimit?: number;
   targetVector?: string;
 };
 
-export type AggregateGroupByNearOptions<T, M> = AggregateNearOptions<T, M> & {
-  groupBy: (keyof T & string) | GroupByAggregate<T>;
+export type AggregateHybridOptions<T, M> = AggregateBaseOptions<M> & {
+  alpha?: number;
+  maxVectorDistance?: number;
+  objectLimit?: number;
+  queryProperties?: (PrimitiveKeys<T> | Bm25QueryProperty<T>)[];
+  targetVector?: string;
+  vector?: number[];
+};
+
+export type AggregateGroupByHybridOptions<T, M> = AggregateHybridOptions<T, M> & {
+  groupBy: PropertyOf<T> | GroupByAggregate<T>;
+};
+
+export type AggregateGroupByNearOptions<T, M> = AggregateNearOptions<M> & {
+  groupBy: PropertyOf<T> | GroupByAggregate<T>;
 };
 
 export type AggregateBoolean = {
@@ -49,10 +65,10 @@ export type AggregateBoolean = {
 
 export type AggregateDate = {
   count?: number;
-  maximum?: number;
-  median?: number;
-  minimum?: number;
-  mode?: number;
+  maximum?: string;
+  median?: string;
+  minimum?: string;
+  mode?: string;
 };
 
 export type AggregateNumber = {
@@ -73,7 +89,7 @@ export type AggregateText = {
   count?: number;
   topOccurrences?: {
     occurs?: number;
-    value?: number;
+    value?: string;
   }[];
 };
 
@@ -126,11 +142,11 @@ export type AggregateMetrics<M> = {
   [K in keyof M]: M[K] extends true ? number : never;
 };
 
-export type MetricsProperty<T> = T extends undefined ? string : keyof T & string;
+export type MetricsProperty<T> = PropertyOf<T>;
 
 export const metrics = <T>() => {
   return {
-    aggregate: <P extends MetricsProperty<T>>(property: P) => new MetricsManager<T, P>(property),
+    aggregate: <P extends PropertyOf<T>>(property: P) => new MetricsManager<T, P>(property),
   };
 };
 
@@ -143,10 +159,10 @@ export interface Metrics<T> {
 
     See [the docs](https://weaviate.io/developers/weaviate/search/aggregate) for more details!
    */
-  aggregate: <P extends MetricsProperty<T>>(property: P) => MetricsManager<T, P>;
+  aggregate: <P extends PropertyOf<T>>(property: P) => MetricsManager<T, P>;
 }
 
-export class MetricsManager<T, P extends MetricsProperty<T>> {
+export class MetricsManager<T, P extends PropertyOf<T>> {
   private propertyName: P;
 
   constructor(property: P) {
@@ -314,13 +330,19 @@ export type AggregateResult<T, M extends PropertiesMetrics<T> | undefined = unde
   totalCount: number;
 };
 
+export type AggregatedGeoCoordinate = {
+  latitude: number;
+  longitude: number;
+  distance: number;
+};
+
 export type AggregateGroupByResult<
   T,
   M extends PropertiesMetrics<T> | undefined = undefined
 > = AggregateResult<T, M> & {
   groupedBy: {
     prop: string;
-    value: string;
+    value: string | number | boolean | AggregatedGeoCoordinate | string[] | number[] | boolean[];
   };
 };
 
@@ -331,6 +353,7 @@ class AggregateManager<T> implements Aggregate<T> {
   dbVersionSupport: DbVersionSupport;
   consistencyLevel?: ConsistencyLevel;
   tenant?: string;
+  grpcChecker: Promise<boolean>;
 
   private constructor(
     connection: Connection,
@@ -345,13 +368,57 @@ class AggregateManager<T> implements Aggregate<T> {
     this.consistencyLevel = consistencyLevel;
     this.tenant = tenant;
 
+    this.grpcChecker = this.dbVersionSupport.supportsAggregateGRPC().then((res) => res.supports);
+
     this.groupBy = {
-      nearImage: async <M extends PropertiesMetrics<T> | undefined = undefined>(
-        image: string | Buffer,
-        opts?: AggregateGroupByNearOptions<T, M>
+      hybrid: async <M extends PropertiesMetrics<T>>(
+        query: string,
+        opts: AggregateGroupByHybridOptions<T, M>
       ): Promise<AggregateGroupByResult<T, M>[]> => {
+        if (await this.grpcChecker) {
+          const group = typeof opts.groupBy === 'string' ? { property: opts.groupBy } : opts.groupBy;
+          return this.grpc()
+            .then((aggregate) =>
+              aggregate.withHybrid({
+                ...Serialize.aggregate.hybrid(query, opts),
+                groupBy: Serialize.aggregate.groupBy(group),
+                limit: group.limit,
+              })
+            )
+            .then((reply) => Deserialize.aggregateGroupBy(reply));
+        }
+        let builder = this.base(opts?.returnMetrics, opts?.filters, opts?.groupBy).withHybrid({
+          query: query,
+          alpha: opts?.alpha,
+          maxVectorDistance: opts?.maxVectorDistance,
+          properties: opts?.queryProperties as string[],
+          targetVectors: opts?.targetVector ? [opts.targetVector] : undefined,
+          vector: opts?.vector,
+        });
+        if (opts?.objectLimit) {
+          builder = builder.withObjectLimit(opts.objectLimit);
+        }
+        return this.doGroupBy(builder);
+      },
+      nearImage: async <M extends PropertiesMetrics<T>>(
+        image: string | Buffer,
+        opts: AggregateGroupByNearOptions<T, M>
+      ): Promise<AggregateGroupByResult<T, M>[]> => {
+        const [b64, usesGrpc] = await Promise.all([await toBase64FromMedia(image), await this.grpcChecker]);
+        if (usesGrpc) {
+          const group = typeof opts.groupBy === 'string' ? { property: opts.groupBy } : opts.groupBy;
+          return this.grpc()
+            .then((aggregate) =>
+              aggregate.withNearImage({
+                ...Serialize.aggregate.nearImage(b64, opts),
+                groupBy: Serialize.aggregate.groupBy(group),
+                limit: group.limit,
+              })
+            )
+            .then((reply) => Deserialize.aggregateGroupBy(reply));
+        }
         const builder = this.base(opts?.returnMetrics, opts?.filters, opts?.groupBy).withNearImage({
-          image: await toBase64FromMedia(image),
+          image: b64,
           certainty: opts?.certainty,
           distance: opts?.distance,
           targetVectors: opts?.targetVector ? [opts.targetVector] : undefined,
@@ -361,10 +428,22 @@ class AggregateManager<T> implements Aggregate<T> {
         }
         return this.doGroupBy(builder);
       },
-      nearObject: <M extends PropertiesMetrics<T> | undefined = undefined>(
+      nearObject: async <M extends PropertiesMetrics<T>>(
         id: string,
-        opts?: AggregateGroupByNearOptions<T, M>
+        opts: AggregateGroupByNearOptions<T, M>
       ): Promise<AggregateGroupByResult<T, M>[]> => {
+        if (await this.grpcChecker) {
+          const group = typeof opts.groupBy === 'string' ? { property: opts.groupBy } : opts.groupBy;
+          return this.grpc()
+            .then((aggregate) =>
+              aggregate.withNearObject({
+                ...Serialize.aggregate.nearObject(id, opts),
+                groupBy: Serialize.aggregate.groupBy(group),
+                limit: group.limit,
+              })
+            )
+            .then((reply) => Deserialize.aggregateGroupBy(reply));
+        }
         const builder = this.base(opts?.returnMetrics, opts?.filters, opts?.groupBy).withNearObject({
           id: id,
           certainty: opts?.certainty,
@@ -376,10 +455,22 @@ class AggregateManager<T> implements Aggregate<T> {
         }
         return this.doGroupBy(builder);
       },
-      nearText: <M extends PropertiesMetrics<T> | undefined = undefined>(
+      nearText: async <M extends PropertiesMetrics<T>>(
         query: string | string[],
-        opts?: AggregateGroupByNearOptions<T, M>
+        opts: AggregateGroupByNearOptions<T, M>
       ): Promise<AggregateGroupByResult<T, M>[]> => {
+        if (await this.grpcChecker) {
+          const group = typeof opts.groupBy === 'string' ? { property: opts.groupBy } : opts.groupBy;
+          return this.grpc()
+            .then((aggregate) =>
+              aggregate.withNearText({
+                ...Serialize.aggregate.nearText(query, opts),
+                groupBy: Serialize.aggregate.groupBy(group),
+                limit: group.limit,
+              })
+            )
+            .then((reply) => Deserialize.aggregateGroupBy(reply));
+        }
         const builder = this.base(opts?.returnMetrics, opts?.filters, opts?.groupBy).withNearText({
           concepts: Array.isArray(query) ? query : [query],
           certainty: opts?.certainty,
@@ -391,10 +482,22 @@ class AggregateManager<T> implements Aggregate<T> {
         }
         return this.doGroupBy(builder);
       },
-      nearVector: <M extends PropertiesMetrics<T> | undefined = undefined>(
+      nearVector: async <M extends PropertiesMetrics<T>>(
         vector: number[],
-        opts?: AggregateGroupByNearOptions<T, M>
+        opts: AggregateGroupByNearOptions<T, M>
       ): Promise<AggregateGroupByResult<T, M>[]> => {
+        if (await this.grpcChecker) {
+          const group = typeof opts.groupBy === 'string' ? { property: opts.groupBy } : opts.groupBy;
+          return this.grpc()
+            .then((aggregate) =>
+              aggregate.withNearVector({
+                ...Serialize.aggregate.nearVector(vector, opts),
+                groupBy: Serialize.aggregate.groupBy(group),
+                limit: group.limit,
+              })
+            )
+            .then((reply) => Deserialize.aggregateGroupBy(reply));
+        }
         const builder = this.base(opts?.returnMetrics, opts?.filters, opts?.groupBy).withNearVector({
           vector: vector,
           certainty: opts?.certainty,
@@ -406,26 +509,37 @@ class AggregateManager<T> implements Aggregate<T> {
         }
         return this.doGroupBy(builder);
       },
-      overAll: <M extends PropertiesMetrics<T> | undefined = undefined>(
+      overAll: async <M extends PropertiesMetrics<T>>(
         opts: AggregateGroupByOptions<T, M>
       ): Promise<AggregateGroupByResult<T, M>[]> => {
+        if (await this.grpcChecker) {
+          const group = typeof opts.groupBy === 'string' ? { property: opts.groupBy } : opts.groupBy;
+          return this.grpc()
+            .then((aggregate) =>
+              aggregate.withFetch({
+                ...Serialize.aggregate.overAll(opts),
+
+                groupBy: Serialize.aggregate.groupBy(group),
+                limit: group.limit,
+              })
+            )
+            .then((reply) => Deserialize.aggregateGroupBy(reply));
+        }
         const builder = this.base(opts?.returnMetrics, opts?.filters, opts?.groupBy);
         return this.doGroupBy(builder);
       },
     };
   }
 
-  query() {
+  private grpc = () => this.connection.aggregate(this.name, this.consistencyLevel, this.tenant);
+
+  private gql() {
     return new Aggregator(this.connection);
   }
 
-  base(
-    metrics?: PropertiesMetrics<T>,
-    filters?: FilterValue,
-    groupBy?: (keyof T & string) | GroupByAggregate<T>
-  ) {
+  base(metrics?: PropertiesMetrics<T>, filters?: FilterValue, groupBy?: PropertyOf<T> | GroupByAggregate<T>) {
     let fields = 'meta { count }';
-    let builder = this.query().withClassName(this.name);
+    let builder = this.gql().withClassName(this.name);
     if (metrics) {
       if (Array.isArray(metrics)) {
         fields += metrics.map((m) => this.metrics(m)).join(' ');
@@ -489,12 +603,41 @@ class AggregateManager<T> implements Aggregate<T> {
     return new AggregateManager<T>(connection, name, dbVersionSupport, consistencyLevel, tenant);
   }
 
+  async hybrid<M extends PropertiesMetrics<T>>(
+    query: string,
+    opts?: AggregateHybridOptions<T, M>
+  ): Promise<AggregateResult<T, M>> {
+    if (await this.grpcChecker) {
+      return this.grpc()
+        .then((aggregate) => aggregate.withHybrid(Serialize.aggregate.hybrid(query, opts)))
+        .then((reply) => Deserialize.aggregate(reply));
+    }
+    let builder = this.base(opts?.returnMetrics, opts?.filters).withHybrid({
+      query: query,
+      alpha: opts?.alpha,
+      maxVectorDistance: opts?.maxVectorDistance,
+      properties: opts?.queryProperties as string[],
+      targetVectors: opts?.targetVector ? [opts.targetVector] : undefined,
+      vector: opts?.vector,
+    });
+    if (opts?.objectLimit) {
+      builder = builder.withObjectLimit(opts.objectLimit);
+    }
+    return this.do(builder);
+  }
+
   async nearImage<M extends PropertiesMetrics<T>>(
     image: string | Buffer,
-    opts?: AggregateNearOptions<T, M>
+    opts?: AggregateNearOptions<M>
   ): Promise<AggregateResult<T, M>> {
+    const [b64, usesGrpc] = await Promise.all([await toBase64FromMedia(image), await this.grpcChecker]);
+    if (usesGrpc) {
+      return this.grpc()
+        .then((aggregate) => aggregate.withNearImage(Serialize.aggregate.nearImage(b64, opts)))
+        .then((reply) => Deserialize.aggregate(reply));
+    }
     const builder = this.base(opts?.returnMetrics, opts?.filters).withNearImage({
-      image: await toBase64FromMedia(image),
+      image: b64,
       certainty: opts?.certainty,
       distance: opts?.distance,
       targetVectors: opts?.targetVector ? [opts.targetVector] : undefined,
@@ -505,10 +648,15 @@ class AggregateManager<T> implements Aggregate<T> {
     return this.do(builder);
   }
 
-  nearObject<M extends PropertiesMetrics<T>>(
+  async nearObject<M extends PropertiesMetrics<T>>(
     id: string,
-    opts?: AggregateNearOptions<T, M>
+    opts?: AggregateNearOptions<M>
   ): Promise<AggregateResult<T, M>> {
+    if (await this.grpcChecker) {
+      return this.grpc()
+        .then((aggregate) => aggregate.withNearObject(Serialize.aggregate.nearObject(id, opts)))
+        .then((reply) => Deserialize.aggregate(reply));
+    }
     const builder = this.base(opts?.returnMetrics, opts?.filters).withNearObject({
       id: id,
       certainty: opts?.certainty,
@@ -521,10 +669,15 @@ class AggregateManager<T> implements Aggregate<T> {
     return this.do(builder);
   }
 
-  nearText<M extends PropertiesMetrics<T>>(
+  async nearText<M extends PropertiesMetrics<T>>(
     query: string | string[],
-    opts?: AggregateNearOptions<T, M>
+    opts?: AggregateNearOptions<M>
   ): Promise<AggregateResult<T, M>> {
+    if (await this.grpcChecker) {
+      return this.grpc()
+        .then((aggregate) => aggregate.withNearText(Serialize.aggregate.nearText(query, opts)))
+        .then((reply) => Deserialize.aggregate(reply));
+    }
     const builder = this.base(opts?.returnMetrics, opts?.filters).withNearText({
       concepts: Array.isArray(query) ? query : [query],
       certainty: opts?.certainty,
@@ -537,10 +690,20 @@ class AggregateManager<T> implements Aggregate<T> {
     return this.do(builder);
   }
 
-  nearVector<M extends PropertiesMetrics<T>>(
-    vector: number[],
-    opts?: AggregateNearOptions<T, M>
+  async nearVector<M extends PropertiesMetrics<T>>(
+    vector: NearVectorInputType,
+    opts?: AggregateNearOptions<M>
   ): Promise<AggregateResult<T, M>> {
+    if (await this.grpcChecker) {
+      return this.grpc()
+        .then((aggregate) => aggregate.withNearVector(Serialize.aggregate.nearVector(vector, opts)))
+        .then((reply) => Deserialize.aggregate(reply));
+    }
+    if (!NearVectorInputGuards.is1DArray(vector)) {
+      throw new WeaviateInvalidInputError(
+        'Vector can only be a 1D array of numbers when using `nearVector` with <1.29 Weaviate versions.'
+      );
+    }
     const builder = this.base(opts?.returnMetrics, opts?.filters).withNearVector({
       vector: vector,
       certainty: opts?.certainty,
@@ -553,9 +716,15 @@ class AggregateManager<T> implements Aggregate<T> {
     return this.do(builder);
   }
 
-  overAll<M extends PropertiesMetrics<T>>(opts?: AggregateOptions<T, M>): Promise<AggregateResult<T, M>> {
-    const builder = this.base(opts?.returnMetrics, opts?.filters);
-    return this.do(builder);
+  async overAll<M extends PropertiesMetrics<T>>(
+    opts?: AggregateOverAllOptions<M>
+  ): Promise<AggregateResult<T, M>> {
+    if (await this.grpcChecker) {
+      return this.grpc()
+        .then((aggregate) => aggregate.withFetch(Serialize.aggregate.overAll(opts)))
+        .then((reply) => Deserialize.aggregate(reply));
+    }
+    return this.do(this.base(opts?.returnMetrics, opts?.filters));
   }
 
   do = <M extends PropertiesMetrics<T> | undefined = undefined>(
@@ -588,7 +757,7 @@ class AggregateManager<T> implements Aggregate<T> {
               prop: groupedBy.path[0],
               value: groupedBy.value,
             },
-            properties: rest.length > 0 ? rest : undefined,
+            properties: rest,
             totalCount: meta?.count,
           };
         })
@@ -603,6 +772,19 @@ export interface Aggregate<T> {
   /** This namespace contains methods perform a group by search while aggregating metrics. */
   groupBy: AggregateGroupBy<T>;
   /**
+   * Aggregate metrics over the objects returned by a hybrid search on this collection.
+   *
+   * This method requires that the objects in the collection have associated vectors.
+   *
+   * @param {string} query The text query to search for.
+   * @param {AggregateHybridOptions<T, M>} opts The options for the request.
+   * @returns {Promise<AggregateResult<T, M>[]>} The aggregated metrics for the objects returned by the vector search.
+   */
+  hybrid<M extends PropertiesMetrics<T>>(
+    query: string,
+    opts?: AggregateHybridOptions<T, M>
+  ): Promise<AggregateResult<T, M>>;
+  /**
    * Aggregate metrics over the objects returned by a near image vector search on this collection.
    *
    * At least one of `certainty`, `distance`, or `object_limit` must be specified here for the vector search.
@@ -615,7 +797,7 @@ export interface Aggregate<T> {
    */
   nearImage<M extends PropertiesMetrics<T>>(
     image: string | Buffer,
-    opts?: AggregateNearOptions<T, M>
+    opts?: AggregateNearOptions<M>
   ): Promise<AggregateResult<T, M>>;
   /**
    * Aggregate metrics over the objects returned by a near object search on this collection.
@@ -630,7 +812,7 @@ export interface Aggregate<T> {
    */
   nearObject<M extends PropertiesMetrics<T>>(
     id: string,
-    opts?: AggregateNearOptions<T, M>
+    opts?: AggregateNearOptions<M>
   ): Promise<AggregateResult<T, M>>;
   /**
    * Aggregate metrics over the objects returned by a near vector search on this collection.
@@ -645,7 +827,7 @@ export interface Aggregate<T> {
    */
   nearText<M extends PropertiesMetrics<T>>(
     query: string | string[],
-    opts?: AggregateNearOptions<T, M>
+    opts?: AggregateNearOptions<M>
   ): Promise<AggregateResult<T, M>>;
   /**
    * Aggregate metrics over the objects returned by a near vector search on this collection.
@@ -660,7 +842,7 @@ export interface Aggregate<T> {
    */
   nearVector<M extends PropertiesMetrics<T>>(
     vector: number[],
-    opts?: AggregateNearOptions<T, M>
+    opts?: AggregateNearOptions<M>
   ): Promise<AggregateResult<T, M>>;
   /**
    * Aggregate metrics over all the objects in this collection without any vector search.
@@ -668,49 +850,62 @@ export interface Aggregate<T> {
    * @param {AggregateOptions<T, M>} [opts] The options for the request.
    * @returns {Promise<AggregateResult<T, M>[]>} The aggregated metrics for the objects in the collection.
    */
-  overAll<M extends PropertiesMetrics<T>>(opts?: AggregateOptions<T, M>): Promise<AggregateResult<T, M>>;
+  overAll<M extends PropertiesMetrics<T>>(opts?: AggregateOverAllOptions<M>): Promise<AggregateResult<T, M>>;
 }
 
 export interface AggregateGroupBy<T> {
   /**
-   * Aggregate metrics over the objects returned by a near image vector search on this collection.
+   * Aggregate metrics over the objects grouped by a specified property and returned by a hybrid search on this collection.
+   *
+   * This method requires that the objects in the collection have associated vectors.
+   *
+   * @param {string} query The text query to search for.
+   * @param {AggregateGroupByHybridOptions<T, M>} opts The options for the request.
+   * @returns {Promise<AggregateGroupByResult<T, M>[]>} The aggregated metrics for the objects returned by the vector search.
+   */
+  hybrid<M extends PropertiesMetrics<T>>(
+    query: string,
+    opts: AggregateGroupByHybridOptions<T, M>
+  ): Promise<AggregateGroupByResult<T, M>[]>;
+  /**
+   * Aggregate metrics over the objects grouped by a specified property and returned by a near image vector search on this collection.
    *
    * At least one of `certainty`, `distance`, or `object_limit` must be specified here for the vector search.
    *
    * This method requires a vectorizer capable of handling base64-encoded images, e.g. `img2vec-neural`, `multi2vec-clip`, and `multi2vec-bind`.
    *
    * @param {string | Buffer} image The image to search on. This can be a base64 string, a file path string, or a buffer.
-   * @param {AggregateGroupByNearOptions<T, M>} [opts] The options for the request.
+   * @param {AggregateGroupByNearOptions<T, M>} opts The options for the request.
    * @returns {Promise<AggregateGroupByResult<T, M>[]>} The aggregated metrics for the objects returned by the vector search.
    */
   nearImage<M extends PropertiesMetrics<T>>(
     image: string | Buffer,
-    opts?: AggregateGroupByNearOptions<T, M>
+    opts: AggregateGroupByNearOptions<T, M>
   ): Promise<AggregateGroupByResult<T, M>[]>;
   /**
-   * Aggregate metrics over the objects returned by a near object search on this collection.
+   * Aggregate metrics over the objects grouped by a specified property and returned by a near object search on this collection.
    *
    * At least one of `certainty`, `distance`, or `object_limit` must be specified here for the vector search.
    *
    * This method requires that the objects in the collection have associated vectors.
    *
    * @param {string} id The ID of the object to search for.
-   * @param {AggregateGroupByNearOptions<T, M>} [opts] The options for the request.
+   * @param {AggregateGroupByNearOptions<T, M>} opts The options for the request.
    * @returns {Promise<AggregateGroupByResult<T, M>[]>} The aggregated metrics for the objects returned by the vector search.
    */
   nearObject<M extends PropertiesMetrics<T>>(
     id: string,
-    opts?: AggregateGroupByNearOptions<T, M>
+    opts: AggregateGroupByNearOptions<T, M>
   ): Promise<AggregateGroupByResult<T, M>[]>;
   /**
-   * Aggregate metrics over the objects returned by a near text vector search on this collection.
+   * Aggregate metrics over the objects grouped by a specified property and returned by a near text vector search on this collection.
    *
    * At least one of `certainty`, `distance`, or `object_limit` must be specified here for the vector search.
    *
    * This method requires a vectorizer capable of handling text, e.g. `text2vec-contextionary`, `text2vec-openai`, etc.
    *
    * @param {string | string[]} query The text to search for.
-   * @param {AggregateGroupByNearOptions<T, M>} [opts] The options for the request.
+   * @param {AggregateGroupByNearOptions<T, M>} opts The options for the request.
    * @returns {Promise<AggregateGroupByResult<T, M>[]>} The aggregated metrics for the objects returned by the vector search.
    */
   nearText<M extends PropertiesMetrics<T>>(
@@ -718,22 +913,22 @@ export interface AggregateGroupBy<T> {
     opts: AggregateGroupByNearOptions<T, M>
   ): Promise<AggregateGroupByResult<T, M>[]>;
   /**
-   * Aggregate metrics over the objects returned by a near vector search on this collection.
+   * Aggregate metrics over the objects grouped by a specified property and returned by a near vector search on this collection.
    *
    * At least one of `certainty`, `distance`, or `object_limit` must be specified here for the vector search.
    *
    * This method requires that the objects in the collection have associated vectors.
    *
    * @param {number[]} vector The vector to search for.
-   * @param {AggregateGroupByNearOptions<T, M>} [opts] The options for the request.
+   * @param {AggregateGroupByNearOptions<T, M>} opts The options for the request.
    * @returns {Promise<AggregateGroupByResult<T, M>[]>} The aggregated metrics for the objects returned by the vector search.
    */
   nearVector<M extends PropertiesMetrics<T>>(
     vector: number[],
-    opts?: AggregateGroupByNearOptions<T, M>
+    opts: AggregateGroupByNearOptions<T, M>
   ): Promise<AggregateGroupByResult<T, M>[]>;
   /**
-   * Aggregate metrics over all the objects in this collection without any vector search.
+   * Aggregate metrics over all the objects in this collection grouped by a specified property without any vector search.
    *
    * @param {AggregateGroupByOptions<T, M>} [opts] The options for the request.
    * @returns {Promise<AggregateGroupByResult<T, M>[]>} The aggregated metrics for the objects in the collection.

@@ -91,19 +91,25 @@ const configure = {
     stopwordsRemovals?: string[];
   }): InvertedIndexConfigCreate => {
     return {
-      bm25: {
-        b: options.bm25b,
-        k1: options.bm25k1,
-      },
+      bm25:
+        options.bm25b || options.bm25k1
+          ? {
+              b: options.bm25b,
+              k1: options.bm25k1,
+            }
+          : undefined,
       cleanupIntervalSeconds: options.cleanupIntervalSeconds,
       indexTimestamps: options.indexTimestamps,
       indexPropertyLength: options.indexPropertyLength,
       indexNullState: options.indexNullState,
-      stopwords: {
-        preset: options.stopwordsPreset,
-        additions: options.stopwordsAdditions,
-        removals: options.stopwordsRemovals,
-      },
+      stopwords:
+        options.stopwordsAdditions || options.stopwordsRemovals || options.stopwordsPreset
+          ? {
+              preset: options.stopwordsPreset,
+              additions: options.stopwordsAdditions,
+              removals: options.stopwordsRemovals,
+            }
+          : undefined,
     };
   },
   /**
@@ -195,16 +201,22 @@ const reconfigure = {
     stopwordsRemovals?: string[];
   }): InvertedIndexConfigUpdate => {
     return {
-      bm25: {
-        b: options.bm25b,
-        k1: options.bm25k1,
-      },
+      bm25:
+        options.bm25b || options.bm25k1
+          ? {
+              b: options.bm25b,
+              k1: options.bm25k1,
+            }
+          : undefined,
       cleanupIntervalSeconds: options.cleanupIntervalSeconds,
-      stopwords: {
-        preset: options.stopwordsPreset,
-        additions: options.stopwordsAdditions,
-        removals: options.stopwordsRemovals,
-      },
+      stopwords:
+        options.stopwordsAdditions || options.stopwordsRemovals || options.stopwordsPreset
+          ? {
+              preset: options.stopwordsPreset,
+              additions: options.stopwordsAdditions,
+              removals: options.stopwordsRemovals,
+            }
+          : undefined,
     };
   },
   vectorizer: {
@@ -261,6 +273,8 @@ const reconfigure = {
       autoTenantCreation: options.autoTenantCreation,
     };
   },
+  generative: configure.generative,
+  reranker: configure.reranker,
 };
 
 export {

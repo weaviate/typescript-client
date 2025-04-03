@@ -54,6 +54,7 @@ export type WeaviateMultiTenancyConfig = WeaviateClass['multiTenancyConfig'];
 export type WeaviateReplicationConfig = WeaviateClass['replicationConfig'];
 export type WeaviateShardingConfig = WeaviateClass['shardingConfig'];
 export type WeaviateShardStatus = definitions['ShardStatusGetResponse'];
+export type WeaviateUser = definitions['UserOwnInfo'];
 export type WeaviateVectorIndexConfig = WeaviateClass['vectorIndexConfig'];
 export type WeaviateVectorsConfig = WeaviateClass['vectorConfig'];
 export type WeaviateVectorConfig = definitions['VectorConfig'];
@@ -64,3 +65,7 @@ export type BatchStats = definitions['BatchStats'];
 export type NodeShardStatus = definitions['NodeShardStatus'];
 // Meta
 export type Meta = definitions['Meta'];
+// RBAC
+export type Role = definitions['Role'];
+export type Permission = definitions['Permission'];
+export type Action = definitions['Permission']['action'];

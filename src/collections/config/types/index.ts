@@ -9,8 +9,8 @@ import {
   ReplicationConfigUpdate,
   VectorConfigUpdate,
 } from '../../configure/types/index.js';
-import { GenerativeConfig } from './generative.js';
-import { RerankerConfig } from './reranker.js';
+import { GenerativeConfig, GenerativeSearch } from './generative.js';
+import { Reranker, RerankerConfig } from './reranker.js';
 import { VectorIndexType } from './vectorIndex.js';
 import { VectorConfig } from './vectorizer.js';
 
@@ -41,7 +41,10 @@ export type MultiTenancyConfig = {
   enabled: boolean;
 };
 
-export type ReplicationDeletionStrategy = 'DeleteOnConflict' | 'NoAutomatedResolution';
+export type ReplicationDeletionStrategy =
+  | 'DeleteOnConflict'
+  | 'NoAutomatedResolution'
+  | 'TimeBasedResolution';
 
 export type ReplicationConfig = {
   asyncEnabled: boolean;
@@ -90,22 +93,24 @@ export type ShardingConfig = {
 export type CollectionConfig = {
   name: string;
   description?: string;
-  generative?: GenerativeConfig;
+  generative?: ModuleConfig<GenerativeSearch, GenerativeConfig>;
   invertedIndex: InvertedIndexConfig;
   multiTenancy: MultiTenancyConfig;
   properties: PropertyConfig[];
   references: ReferenceConfig[];
   replication: ReplicationConfig;
-  reranker?: RerankerConfig;
+  reranker?: ModuleConfig<Reranker, RerankerConfig>;
   sharding: ShardingConfig;
   vectorizers: VectorConfig;
 };
 
 export type CollectionConfigUpdate = {
   description?: string;
+  generative?: ModuleConfig<GenerativeSearch, GenerativeConfig>;
   invertedIndex?: InvertedIndexConfigUpdate;
   multiTenancy?: MultiTenancyConfigUpdate;
   replication?: ReplicationConfigUpdate;
+  reranker?: ModuleConfig<Reranker, RerankerConfig>;
   vectorizers?:
     | VectorConfigUpdate<undefined, VectorIndexType>
     | VectorConfigUpdate<string, VectorIndexType>[];

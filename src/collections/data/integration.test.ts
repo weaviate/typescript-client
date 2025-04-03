@@ -40,7 +40,7 @@ describe('Testing of the collection.data methods with a single target reference'
 
   beforeAll(async () => {
     client = await weaviate.connectToLocal();
-    collection = client.collections.get(collectionName);
+    collection = client.collections.use(collectionName);
     await client.collections
       .create<TestCollectionData>({
         name: collectionName,
@@ -500,8 +500,8 @@ describe('Testing of the collection.data methods with a multi target reference',
 
   beforeAll(async () => {
     client = await weaviate.connectToLocal();
-    collectionOne = client.collections.get(classNameOne);
-    collectionTwo = client.collections.get(classNameTwo);
+    collectionOne = client.collections.use(classNameOne);
+    collectionTwo = client.collections.use(classNameTwo);
     oneId = await client.collections
       .create({
         name: classNameOne,
@@ -1019,7 +1019,7 @@ describe('Testing of BYOV insertion with legacy vectorizer', () => {
 
   it('should insert and retrieve many vectors using the new client', async () => {
     const client = await weaviate.connectToLocal();
-    const collection = client.collections.get(collectionName);
+    const collection = client.collections.use(collectionName);
     const { uuids, hasErrors } = await collection.data.insertMany([
       { vectors: [1, 2, 3] },
       { vectors: [4, 5, 6] },
@@ -1035,7 +1035,7 @@ describe('Testing of BYOV insertion with legacy vectorizer', () => {
 
   it('should insert and retrieve single vectors using the new client', async () => {
     const client = await weaviate.connectToLocal();
-    const collection = client.collections.get(collectionName);
+    const collection = client.collections.use(collectionName);
     const id = await collection.data.insert({ vectors: [7, 8, 9] });
     const object = await collection.query.fetchObjectById(id, { includeVector: true });
     expect(object?.vectors.default).toEqual([7, 8, 9]);

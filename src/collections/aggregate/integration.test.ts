@@ -39,7 +39,7 @@ describe('Testing of the collection.aggregate methods', () => {
 
   beforeAll(async () => {
     client = await weaviate.connectToLocal();
-    collection = client.collections.get(collectionName);
+    collection = client.collections.use(collectionName);
     return client.collections
       .create({
         name: collectionName,
@@ -140,7 +140,7 @@ describe('Testing of the collection.aggregate methods', () => {
     expect(result[0].totalCount).toEqual(100);
     expect(result[0].groupedBy.prop).toEqual('text');
     expect(result[0].groupedBy.value).toEqual('test');
-    expect(result[0].properties).toBeUndefined();
+    expect(result[0].properties).toEqual({});
   });
 
   it('should aggregate grouped by data with a near text search and no property metrics', async () => {
@@ -152,7 +152,7 @@ describe('Testing of the collection.aggregate methods', () => {
     expect(result[0].totalCount).toEqual(100);
     expect(result[0].groupedBy.prop).toEqual('text');
     expect(result[0].groupedBy.value).toEqual('test');
-    expect(result[0].properties).toBeUndefined();
+    expect(result[0].properties).toEqual({});
   });
 
   it('should aggregate data without a search and one generic property metric', async () => {
@@ -168,7 +168,7 @@ describe('Testing of the collection.aggregate methods', () => {
   });
 
   it('should aggregate data without a search and one non-generic property metric', async () => {
-    const result = await (await client).collections.get(collectionName).aggregate.overAll({
+    const result = await (await client).collections.use(collectionName).aggregate.overAll({
       returnMetrics: collection.metrics
         .aggregate('text')
         .text(['count', 'topOccurrencesOccurs', 'topOccurrencesValue']),
@@ -307,7 +307,7 @@ describe('Testing of the collection.aggregate methods with named vectors', () =>
 
   beforeAll(async () => {
     client = await weaviate.connectToLocal();
-    collection = client.collections.get(collectionName);
+    collection = client.collections.use(collectionName);
     const query = () =>
       client.collections.create<TestCollectionAggregateVectors>({
         name: collectionName,
@@ -355,6 +355,7 @@ describe('Testing of collection.aggregate.overAll with a multi-tenancy collectio
 
   beforeAll(async () => {
     client = await weaviate.connectToLocal();
+    collection = client.collections.use(collectionName);
     return client.collections
       .create({
         name: collectionName,
@@ -388,4 +389,137 @@ describe('Testing of collection.aggregate.overAll with a multi-tenancy collectio
     expect(collection.withTenant('non-existing-tenant').aggregate.overAll()).rejects.toThrow(
       WeaviateQueryError
     ));
+});
+
+describe('Testing of collection.aggregate search methods', () => {
+  let client: WeaviateClient;
+  let collection: Collection;
+  const collectionName = 'TestCollectionAggregateSearches';
+
+  let uuid: string;
+
+  afterAll(async () => {
+    return (await client).collections.delete(collectionName).catch((err) => {
+      console.error(err);
+      throw err;
+    });
+  });
+
+  beforeAll(async () => {
+    client = await weaviate.connectToLocal();
+    collection = client.collections.use(collectionName);
+    return client.collections
+      .create({
+        name: collectionName,
+        properties: [
+          {
+            name: 'text',
+            dataType: 'text',
+          },
+        ],
+        vectorizers: weaviate.configure.vectorizer.text2VecContextionary(),
+      })
+      .then(() => {
+        const data: Array<any> = [];
+        for (let i = 0; i < 100; i++) {
+          data.push({
+            properties: {
+              text: 'test',
+            },
+          });
+        }
+        return collection.data.insertMany(data);
+      })
+      .then((res) => {
+        uuid = res.uuids[0];
+      });
+  });
+
+  it('should return an aggregation on a hybrid search', async () => {
+    if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 26, 0))) {
+      console.warn('Skipping test max vector distance not supported in 1.25.x');
+      return;
+    }
+    const result = await collection.aggregate.hybrid('test', {
+      alpha: 0.5,
+      maxVectorDistance: 1,
+      queryProperties: ['text'],
+      returnMetrics: collection.metrics.aggregate('text').text(['count']),
+    });
+    expect(result.totalCount).toBeGreaterThan(0);
+  });
+
+  it('should return a grouped aggregation on a hybrid search', async () => {
+    if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 25, 0))) {
+      console.warn('Skipping test as there is a bug with this in 1.24.26 that will not be fixed');
+      return;
+    }
+    const result = await collection.aggregate.groupBy.hybrid('test', {
+      objectLimit: 1000,
+      groupBy: 'text',
+      returnMetrics: collection.metrics.aggregate('text').text(['count']),
+    });
+    expect(result.length).toEqual(1);
+    expect(result[0].groupedBy.prop).toEqual('text');
+    expect(result[0].groupedBy.value).toEqual('test');
+  });
+
+  it('should return an aggregation on a nearText search', async () => {
+    const result = await collection.aggregate.nearText('test', {
+      objectLimit: 1000,
+      returnMetrics: collection.metrics.aggregate('text').text(['count']),
+    });
+    expect(result.totalCount).toBeGreaterThan(0);
+  });
+
+  it('should return a grouped aggregation on a nearText search', async () => {
+    const result = await collection.aggregate.groupBy.nearText('test', {
+      objectLimit: 1000,
+      groupBy: 'text',
+      returnMetrics: collection.metrics.aggregate('text').text(['count']),
+    });
+    expect(result.length).toEqual(1);
+    expect(result[0].groupedBy.prop).toEqual('text');
+    expect(result[0].groupedBy.value).toEqual('test');
+  });
+
+  it('should return an aggregation on a nearVector search', async () => {
+    const obj = await collection.query.fetchObjectById(uuid, { includeVector: true });
+    const result = await collection.aggregate.nearVector(obj?.vectors.default!, {
+      objectLimit: 1000,
+      returnMetrics: collection.metrics.aggregate('text').text(['count']),
+    });
+    expect(result.totalCount).toBeGreaterThan(0);
+  });
+
+  it('should return a grouped aggregation on a nearVector search', async () => {
+    const obj = await collection.query.fetchObjectById(uuid, { includeVector: true });
+    const result = await collection.aggregate.groupBy.nearVector(obj?.vectors.default!, {
+      objectLimit: 1000,
+      groupBy: 'text',
+      returnMetrics: collection.metrics.aggregate('text').text(['count']),
+    });
+    expect(result.length).toEqual(1);
+    expect(result[0].groupedBy.prop).toEqual('text');
+    expect(result[0].groupedBy.value).toEqual('test');
+  });
+
+  it('should return an aggregation on a nearObject search', async () => {
+    const result = await collection.aggregate.nearObject(uuid, {
+      objectLimit: 1000,
+      returnMetrics: collection.metrics.aggregate('text').text(['count']),
+    });
+    expect(result.totalCount).toBeGreaterThan(0);
+  });
+
+  it('should return a grouped aggregation on a nearText search', async () => {
+    const result = await collection.aggregate.groupBy.nearObject(uuid, {
+      objectLimit: 1000,
+      groupBy: 'text',
+      returnMetrics: collection.metrics.aggregate('text').text(['count']),
+    });
+    expect(result.length).toEqual(1);
+    expect(result[0].groupedBy.prop).toEqual('text');
+    expect(result[0].groupedBy.value).toEqual('test');
+  });
 });

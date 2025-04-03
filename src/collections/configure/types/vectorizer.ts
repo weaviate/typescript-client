@@ -11,12 +11,13 @@ import {
   Text2VecGPT4AllConfig,
   Text2VecGoogleConfig,
   Text2VecHuggingFaceConfig,
-  Text2VecJinaConfig,
+  Text2VecJinaAIConfig,
   Text2VecMistralConfig,
   Text2VecOllamaConfig,
   Text2VecOpenAIConfig,
   Text2VecTransformersConfig,
   Text2VecVoyageAIConfig,
+  Text2VecWeaviateConfig,
   VectorIndexType,
   Vectorizer,
   VectorizerConfigType,
@@ -126,6 +127,21 @@ export type Multi2VecCohereConfigCreate = {
   vectorizeCollectionName?: boolean;
 };
 
+export type Multi2VecJinaAIConfigCreate = {
+  /** The base URL to use where API requests should go. */
+  baseURL?: string;
+  /** The dimensionality of the vector once embedded. */
+  dimensions?: number;
+  /** The model to use. */
+  model?: string;
+  /** The image fields to use in vectorization. Can be string of `Multi2VecField` type. If string, weight 0 will be assumed. */
+  imageFields?: string[] | Multi2VecField[];
+  /** The text fields to use in vectorization. Can be string of `Multi2VecField` type. If string, weight 0 will be assumed. */
+  textFields?: string[] | Multi2VecField[];
+  /** Whether to vectorize the collection name. */
+  vectorizeCollectionName?: boolean;
+};
+
 /** @deprecated Use `Multi2VecGoogleConfigCreate` instead.*/
 export type Multi2VecPalmConfigCreate = Multi2VecGoogleConfigCreate;
 
@@ -143,8 +159,23 @@ export type Multi2VecGoogleConfigCreate = {
   videoFields?: string[] | Multi2VecField[];
   /** The model ID to use. */
   modelId?: string;
-  /** The number of dimensions to use. */
+  /** The dimensionality of the vector once embedded. */
   dimensions?: number;
+  /** Whether to vectorize the collection name. */
+  vectorizeCollectionName?: boolean;
+};
+
+export type Multi2VecVoyageAIConfigCreate = {
+  /** The base URL to use where API requests should go. */
+  baseURL?: string;
+  /** The image fields to use in vectorization. Can be string of `Multi2VecField` type. If string, weight 0 will be assumed. */
+  imageFields?: string[] | Multi2VecField[];
+  /** The model to use. */
+  model?: string;
+  /** The text fields to use in vectorization. Can be string of `Multi2VecField` type. If string, weight 0 will be assumed. */
+  textFields?: string[] | Multi2VecField[];
+  /** Whether the input should be truncated to fit the context window. */
+  truncate?: boolean;
   /** Whether to vectorize the collection name. */
   vectorizeCollectionName?: boolean;
 };
@@ -165,7 +196,7 @@ export type Text2VecGPT4AllConfigCreate = Text2VecGPT4AllConfig;
 
 export type Text2VecHuggingFaceConfigCreate = Text2VecHuggingFaceConfig;
 
-export type Text2VecJinaConfigCreate = Text2VecJinaConfig;
+export type Text2VecJinaAIConfigCreate = Text2VecJinaAIConfig;
 
 export type Text2VecMistralConfigCreate = Text2VecMistralConfig;
 
@@ -182,6 +213,8 @@ export type Text2VecTransformersConfigCreate = Text2VecTransformersConfig;
 
 export type Text2VecVoyageAIConfigCreate = Text2VecVoyageAIConfig;
 
+export type Text2VecWeaviateConfigCreate = Text2VecWeaviateConfig;
+
 export type VectorizerConfigCreateType<V> = V extends 'img2vec-neural'
   ? Img2VecNeuralConfigCreate | undefined
   : V extends 'multi2vec-clip'
@@ -190,10 +223,14 @@ export type VectorizerConfigCreateType<V> = V extends 'img2vec-neural'
   ? Multi2VecCohereConfigCreate | undefined
   : V extends 'multi2vec-bind'
   ? Multi2VecBindConfigCreate | undefined
+  : V extends 'multi2vec-jinaai'
+  ? Multi2VecJinaAIConfigCreate | undefined
   : V extends 'multi2vec-palm'
   ? Multi2VecPalmConfigCreate
   : V extends 'multi2vec-google'
   ? Multi2VecGoogleConfigCreate
+  : V extends 'multi2vec-voyageai'
+  ? Multi2VecVoyageAIConfigCreate | undefined
   : V extends 'ref2vec-centroid'
   ? Ref2VecCentroidConfigCreate
   : V extends 'text2vec-aws'
@@ -208,8 +245,8 @@ export type VectorizerConfigCreateType<V> = V extends 'img2vec-neural'
   ? Text2VecGPT4AllConfigCreate | undefined
   : V extends 'text2vec-huggingface'
   ? Text2VecHuggingFaceConfigCreate | undefined
-  : V extends 'text2vec-jina'
-  ? Text2VecJinaConfigCreate | undefined
+  : V extends 'text2vec-jinaai'
+  ? Text2VecJinaAIConfigCreate | undefined
   : V extends 'text2vec-mistral'
   ? Text2VecMistralConfigCreate | undefined
   : V extends 'text2vec-ollama'
@@ -226,6 +263,8 @@ export type VectorizerConfigCreateType<V> = V extends 'img2vec-neural'
   ? Text2VecTransformersConfigCreate | undefined
   : V extends 'text2vec-voyageai'
   ? Text2VecVoyageAIConfigCreate | undefined
+  : V extends 'text2vec-weaviate'
+  ? Text2VecWeaviateConfigCreate | undefined
   : V extends 'none'
   ? {}
   : V extends undefined

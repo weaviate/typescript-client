@@ -3,6 +3,7 @@ import {
   Multi2VecClipConfig,
   Multi2VecField,
   Multi2VecPalmConfig,
+  Multi2VecVoyageAIConfig,
   VectorIndexType,
   Vectorizer,
   VectorizerConfigType,
@@ -196,6 +197,39 @@ export const vectorizer = {
     });
   },
   /**
+   * Create a `VectorConfigCreate` object with the vectorizer set to `'multi2vec-jinaai'`.
+   *
+   * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/jinaai/embeddings-multimodal) for detailed usage.
+   *
+   * @param {ConfigureNonTextVectorizerOptions<N, I, 'multi2vec-jinaai'>} [opts] The configuration options for the `multi2vec-jinaai` vectorizer.
+   * @returns {VectorConfigCreate<PrimitiveKeys<T>[], N, I, 'multi2vec-jinaai'>} The configuration object.
+   */
+  multi2VecJinaAI: <N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
+    opts?: ConfigureNonTextVectorizerOptions<N, I, 'multi2vec-jinaai'>
+  ): VectorConfigCreate<never, N, I, 'multi2vec-jinaai'> => {
+    const { name, vectorIndexConfig, ...config } = opts || {};
+    const imageFields = config.imageFields?.map(mapMulti2VecField);
+    const textFields = config.textFields?.map(mapMulti2VecField);
+    let weights: Multi2VecBindConfig['weights'] = {};
+    weights = formatMulti2VecFields(weights, 'imageFields', imageFields);
+    weights = formatMulti2VecFields(weights, 'textFields', textFields);
+    return makeVectorizer(name, {
+      vectorIndexConfig,
+      vectorizerConfig: {
+        name: 'multi2vec-jinaai',
+        config:
+          Object.keys(config).length === 0
+            ? undefined
+            : {
+                ...config,
+                imageFields: imageFields?.map((f) => f.name),
+                textFields: textFields?.map((f) => f.name),
+                weights: Object.keys(weights).length === 0 ? undefined : weights,
+              },
+      },
+    });
+  },
+  /**
    * Create a `VectorConfigCreate` object with the vectorizer set to `'multi2vec-palm'`.
    *
    * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/google/embeddings-multimodal) for detailed usage.
@@ -260,6 +294,39 @@ export const vectorizer = {
           videoFields: videoFields?.map((f) => f.name),
           weights: Object.keys(weights).length === 0 ? undefined : weights,
         },
+      },
+    });
+  },
+  /**
+   * Create a `VectorConfigCreate` object with the vectorizer set to `'multi2vec-clip'`.
+   *
+   * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/transformers/embeddings-multimodal) for detailed usage.
+   *
+   * @param {ConfigureNonTextVectorizerOptions<N, I, 'multi2vec-voyageai'>} [opts] The configuration options for the `multi2vec-voyageai` vectorizer.
+   * @returns {VectorConfigCreate<PrimitiveKeys<T>[], N, I, 'multi2vec-voyageai'>} The configuration object.
+   */
+  multi2VecVoyageAI: <N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
+    opts?: ConfigureNonTextVectorizerOptions<N, I, 'multi2vec-voyageai'>
+  ): VectorConfigCreate<never, N, I, 'multi2vec-voyageai'> => {
+    const { name, vectorIndexConfig, ...config } = opts || {};
+    const imageFields = config.imageFields?.map(mapMulti2VecField);
+    const textFields = config.textFields?.map(mapMulti2VecField);
+    let weights: Multi2VecVoyageAIConfig['weights'] = {};
+    weights = formatMulti2VecFields(weights, 'imageFields', imageFields);
+    weights = formatMulti2VecFields(weights, 'textFields', textFields);
+    return makeVectorizer(name, {
+      vectorIndexConfig,
+      vectorizerConfig: {
+        name: 'multi2vec-voyageai',
+        config:
+          Object.keys(config).length === 0
+            ? undefined
+            : {
+                ...config,
+                imageFields: imageFields?.map((f) => f.name),
+                textFields: textFields?.map((f) => f.name),
+                weights: Object.keys(weights).length === 0 ? undefined : weights,
+              },
       },
     });
   },
@@ -431,22 +498,22 @@ export const vectorizer = {
     });
   },
   /**
-   * Create a `VectorConfigCreate` object with the vectorizer set to `'text2vec-jina'`.
+   * Create a `VectorConfigCreate` object with the vectorizer set to `'text2vec-jinaai'`.
    *
    * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/jinaai/embeddings) for detailed usage.
    *
-   * @param {ConfigureTextVectorizerOptions<T, N, I, 'text2vec-jina'>} [opts] The configuration for the `text2vec-jina` vectorizer.
-   * @returns {VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2vec-jina'>} The configuration object.
+   * @param {ConfigureTextVectorizerOptions<T, N, I, 'text2vec-jinaai'>} [opts] The configuration for the `text2vec-jinaai` vectorizer.
+   * @returns {VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2vec-jinaai'>} The configuration object.
    */
-  text2VecJina: <T, N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
-    opts?: ConfigureTextVectorizerOptions<T, N, I, 'text2vec-jina'>
-  ): VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2vec-jina'> => {
+  text2VecJinaAI: <T, N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
+    opts?: ConfigureTextVectorizerOptions<T, N, I, 'text2vec-jinaai'>
+  ): VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2vec-jinaai'> => {
     const { name, sourceProperties, vectorIndexConfig, ...config } = opts || {};
     return makeVectorizer(name, {
       sourceProperties,
       vectorIndexConfig,
       vectorizerConfig: {
-        name: 'text2vec-jina',
+        name: 'text2vec-jinaai',
         config: Object.keys(config).length === 0 ? undefined : config,
       },
     });
@@ -596,6 +663,28 @@ export const vectorizer = {
       vectorIndexConfig,
       vectorizerConfig: {
         name: 'text2vec-voyageai',
+        config: Object.keys(config).length === 0 ? undefined : config,
+      },
+    });
+  },
+
+  /**
+   * Create a `VectorConfigCreate` object with the vectorizer set to `'text2vec-weaviate'`.
+   *
+   * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/weaviate/embeddings) for detailed usage.
+   *
+   * @param {ConfigureTextVectorizerOptions<T, N, I, 'text2vec-weaviate'>} [opts] The configuration for the `text2vec-weaviate` vectorizer.
+   * @returns {VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2vec-weaviate'>} The configuration object.
+   */
+  text2VecWeaviate: <T, N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
+    opts?: ConfigureTextVectorizerOptions<T, N, I, 'text2vec-weaviate'>
+  ): VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2vec-weaviate'> => {
+    const { name, sourceProperties, vectorIndexConfig, ...config } = opts || {};
+    return makeVectorizer(name, {
+      sourceProperties,
+      vectorIndexConfig,
+      vectorizerConfig: {
+        name: 'text2vec-weaviate',
         config: Object.keys(config).length === 0 ? undefined : config,
       },
     });

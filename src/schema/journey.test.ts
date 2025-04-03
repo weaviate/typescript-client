@@ -732,6 +732,12 @@ async function newClassObject(className: string, client: WeaviateClient): Promis
       dynamicEfMin: 100,
       ef: -1,
       maxConnections: 64,
+      multivector: (await isVer(client, 29, 0))
+        ? {
+            aggregation: 'maxSim',
+            enabled: false,
+          }
+        : undefined,
       pq: {
         bitCompression: false,
         centroids: 256,

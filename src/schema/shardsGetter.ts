@@ -43,5 +43,5 @@ export default class ShardsGetter extends CommandBase {
 
 export function getShards(client: Connection, className: any, tenant?: string) {
   const path = `/schema/${className}/shards${tenant ? `?tenant=${tenant}` : ''}`;
-  return client.get(path);
+  return client.get<ShardStatusList>(path);
 }

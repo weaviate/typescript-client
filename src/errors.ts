@@ -38,6 +38,15 @@ export class WeaviateDeleteManyError extends WeaviateError {
 }
 
 /**
+ * Is thrown if a gRPC tenants get to Weaviate fails in any way.
+ */
+export class WeaviateTenantsGetError extends WeaviateError {
+  constructor(message: string) {
+    super(`Tenants get failed with message: ${message}`);
+  }
+}
+
+/**
  * Is thrown if a gRPC batch query to Weaviate fails in any way.
  */
 export class WeaviateBatchError extends WeaviateError {
@@ -146,5 +155,22 @@ export class WeaviateStartUpError extends WeaviateError {
 export class WeaviateRequestTimeoutError extends WeaviateError {
   constructor(message: string) {
     super(`Weaviate request timed out with message: ${message}`);
+  }
+}
+
+/**
+ * Is thrown if a request to Weaviate fails with a forbidden status code due to insufficient permissions.
+ */
+export class WeaviateInsufficientPermissionsError extends WeaviateError {
+  public code: number;
+  constructor(code: number, message: string) {
+    super(`Forbidden: ${message}`);
+    this.code = code;
+  }
+}
+
+export class WeaviateUnauthenticatedError extends WeaviateError {
+  constructor(message: string) {
+    super(`Unauthenticated: ${message}`);
   }
 }

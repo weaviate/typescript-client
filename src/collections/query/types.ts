@@ -84,11 +84,13 @@ export type Bm25QueryProperty<T> = {
   weight: number;
 };
 
-/** Base options available in the `query.bm25` method */
-export type BaseBm25Options<T> = SearchOptions<T> & {
+export type Bm25SearchOptions<T> = {
   /** Which properties of the collection to perform the keyword search on. */
   queryProperties?: (PrimitiveKeys<T> | Bm25QueryProperty<T>)[];
 };
+
+/** Base options available in the `query.bm25` method */
+export type BaseBm25Options<T> = SearchOptions<T> & Bm25SearchOptions<T>;
 
 /** Options available in the `query.bm25` method when specifying the `groupBy` parameter. */
 export type GroupByBm25Options<T> = BaseBm25Options<T> & {
@@ -99,19 +101,24 @@ export type GroupByBm25Options<T> = BaseBm25Options<T> & {
 /** Options available in the `query.bm25` method */
 export type Bm25Options<T> = BaseBm25Options<T> | GroupByBm25Options<T> | undefined;
 
-/** Base options available in the `query.hybrid` method */
-export type BaseHybridOptions<T> = SearchOptions<T> & {
+/** Options available to the hybrid search type only */
+export type HybridSearchOptions<T> = {
   /** The weight of the vector search score. If not specified, the default weight specified by the server is used. */
   alpha?: number;
-  /** The specific vector to search for or a specific vector subsearch. If not specified, the query is vectorized and used in the similarity search. */
-  vector?: NearVectorInputType | HybridNearTextSubSearch | HybridNearVectorSubSearch;
-  /** The properties to search in. If not specified, all properties are searched. */
-  queryProperties?: (PrimitiveKeys<T> | Bm25QueryProperty<T>)[];
   /** The type of fusion to apply. If not specified, the default fusion type specified by the server is used. */
   fusionType?: 'Ranked' | 'RelativeScore';
+  /** The maximum tolerated similarity in the vector search before the results are cutoff from the result set. */
+  maxVectorDistance?: number;
+  /** The properties to search in. If not specified, all properties are searched. */
+  queryProperties?: (PrimitiveKeys<T> | Bm25QueryProperty<T>)[];
   /** Specify which vector(s) to search on if using named vectors. */
   targetVector?: TargetVectorInputType;
+  /** The specific vector to search for or a specific vector subsearch. If not specified, the query is vectorized and used in the similarity search. */
+  vector?: NearVectorInputType | HybridNearTextSubSearch | HybridNearVectorSubSearch;
 };
+
+/** Base options available in the `query.hybrid` method */
+export type BaseHybridOptions<T> = SearchOptions<T> & HybridSearchOptions<T>;
 
 export type HybridSubSearchBase = {
   certainty?: number;
@@ -137,8 +144,7 @@ export type GroupByHybridOptions<T> = BaseHybridOptions<T> & {
 /** Options available in the `query.hybrid` method */
 export type HybridOptions<T> = BaseHybridOptions<T> | GroupByHybridOptions<T> | undefined;
 
-/** Base options for the near search queries. */
-export type BaseNearOptions<T> = SearchOptions<T> & {
+export type NearSearchOptions = {
   /** The minimum similarity score to return. Incompatible with the `distance` param. */
   certainty?: number;
   /** The maximum distance to search. Incompatible with the `certainty` param. */
@@ -146,6 +152,9 @@ export type BaseNearOptions<T> = SearchOptions<T> & {
   /** Specify which vector to search on if using named vectors. */
   targetVector?: TargetVectorInputType;
 };
+
+/** Base options for the near search queries. */
+export type BaseNearOptions<T> = SearchOptions<T> & NearSearchOptions;
 
 /** Options available in the near search queries when specifying the `groupBy` parameter. */
 export type GroupByNearOptions<T> = BaseNearOptions<T> & {
