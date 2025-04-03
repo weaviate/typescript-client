@@ -52,7 +52,7 @@
   "homepage": "https://github.com/weaviate/typescript-client#readme",
   "dependencies": {
     "abort-controller-x": "^0.4.3",
-    "graphql": "^16.9.0",
+    "graphql": "^16.10.0",
     "graphql-request": "^6.1.0",
     "long": "^5.2.4",
     "nice-grpc": "^2.1.11",
