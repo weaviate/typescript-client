@@ -8,7 +8,7 @@ import {
 } from '../openapi/types.js';
 import { Role } from '../roles/types.js';
 import { Map } from '../roles/util.js';
-import { AssignRevokeOptions, GetAssignedRolesOptions, User, UserDB } from './types.js';
+import { AssignRevokeOptions, DeactivateOptions, GetAssignedRolesOptions, User, UserDB } from './types.js';
 
 /**
  * Operations supported for 'db', 'oidc', and legacy (non-namespaced) users.
@@ -101,7 +101,7 @@ export interface DBUsers extends UsersBase {
    * @param {string} userId The ID of the user to deactivate.
    * @returns {Promise<boolean>} `true` if the user has been successfully deactivated.
    */
-  deactivate: (userId: string) => Promise<boolean>;
+  deactivate: (userId: string, opts?: DeactivateOptions) => Promise<boolean>;
 
   /**
    * Retrieve information about the 'db_user' / 'db_env_user' user.
@@ -182,9 +182,9 @@ const db = (connection: ConnectionREST): DBUsers => {
         .postEmpty<null>(`/users/db/${userId}/activate`, null)
         .then(() => true)
         .catch(expectCode(409)),
-    deactivate: (userId: string) =>
+    deactivate: (userId: string, opts?: DeactivateOptions) =>
       connection
-        .postEmpty<null>(`/users/db/${userId}/deactivate`, null)
+        .postEmpty<DeactivateOptions | null>(`/users/db/${userId}/deactivate`, opts || null)
         .then(() => true)
         .catch(expectCode(409)),
     byName: (userId: string) => connection.get<WeaviateDBUser>(`/users/db/${userId}`, true).then(Map.dbUser),

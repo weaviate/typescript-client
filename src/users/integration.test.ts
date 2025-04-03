@@ -85,7 +85,7 @@ requireAtLeast(
       await expectDave().toHaveProperty('active', false);
 
       // Second deactivation is a no-op
-      await expect(client.users.db.deactivate('dynamic-dave')).resolves.toEqual(true);
+      await expect(client.users.db.deactivate('dynamic-dave', { revokeKey: true })).resolves.toEqual(true);
 
       await client.users.db.delete('dynamic-dave');
       await expectDave(false).toHaveProperty('code', 404);

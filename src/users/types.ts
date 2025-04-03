@@ -20,3 +20,6 @@ export type GetAssignedRolesOptions = {
 
 /** Optional arguments to /assign and /revoke endpoints. */
 export type AssignRevokeOptions = { userType?: WeaviateUserTypeInternal };
+
+/** Optional arguments to /deactivate endpoint. */
+export type DeactivateOptions = { revokeKey?: boolean };
