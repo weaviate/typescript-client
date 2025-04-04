@@ -13,6 +13,7 @@ import {
   GenerativeNvidiaConfigRuntime,
   GenerativeOllamaConfigRuntime,
   GenerativeOpenAIConfigRuntime,
+  GenerativeXAIConfigRuntime,
 } from '../index.js';
 
 export const generativeParameters = {
@@ -273,6 +274,25 @@ export const generativeParameters = {
         ? {
             ...rest,
             stopSequences: TextArray.fromPartial({ values: stopSequences }),
+          }
+        : undefined,
+    };
+  },
+  /**
+   * Create a `ModuleConfig<'generative-xai', GenerativeConfigRuntimeType<'generative-xai'> | undefined>` object for use when performing runtime-specific AI generation using the `generative-xai` module.
+   *
+   * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/xai/generative) for detailed usage.
+   */
+  xai: (
+    config?: GenerativeXAIConfigRuntime
+  ): ModuleConfig<'generative-xai', GenerativeConfigRuntimeType<'generative-xai'> | undefined> => {
+    const { baseURL, ...rest } = config || {};
+    return {
+      name: 'generative-xai',
+      config: config
+        ? {
+            ...rest,
+            baseUrl: baseURL,
           }
         : undefined,
     };

@@ -8,6 +8,7 @@ import {
   GenerativeNvidiaConfig,
   GenerativeOllamaConfig,
   GenerativePaLMConfig,
+  GenerativeXAIConfig,
 } from '../../index.js';
 
 export type GenerativeOpenAIConfigBaseCreate = {
@@ -55,6 +56,8 @@ export type GenerativeOpenAIConfigCreate = GenerativeOpenAIConfigBaseCreate & {
 
 export type GenerativePaLMConfigCreate = GenerativePaLMConfig;
 
+export type GenerativeXAIConfigCreate = GenerativeXAIConfig;
+
 export type GenerativeConfigCreate =
   | GenerativeAnthropicConfigCreate
   | GenerativeAnyscaleConfigCreate
@@ -68,6 +71,7 @@ export type GenerativeConfigCreate =
   | GenerativeOllamaConfigCreate
   | GenerativeOpenAIConfigCreate
   | GenerativePaLMConfigCreate
+  | GenerativeXAIConfigCreate
   | Record<string, any>
   | undefined;
 
@@ -93,6 +97,8 @@ export type GenerativeConfigCreateType<G> = G extends 'generative-anthropic'
   ? GenerativeOpenAIConfigCreate
   : G extends 'generative-palm'
   ? GenerativePaLMConfigCreate
+  : G extends 'generative-xai'
+  ? GenerativeXAIConfigCreate
   : G extends 'none'
   ? undefined
   : Record<string, any> | undefined;

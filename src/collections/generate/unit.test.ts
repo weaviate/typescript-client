@@ -277,4 +277,37 @@ describe('Unit testing of the generativeParameters factory methods', () => {
       });
     });
   });
+
+  describe('xai', () => {
+    it('with defaults', () => {
+      const config = generativeParameters.xai();
+      expect(config).toEqual<
+        ModuleConfig<'generative-xai', GenerativeConfigRuntimeType<'generative-xai'> | undefined>
+      >({
+        name: 'generative-xai',
+        config: undefined,
+      });
+    });
+    it('with values', () => {
+      const config = generativeParameters.xai({
+        baseURL: 'http://localhost:8080',
+        maxTokens: 100,
+        model: 'model',
+        temperature: 0.5,
+        topP: 0.9,
+      });
+      expect(config).toEqual<
+        ModuleConfig<'generative-xai', GenerativeConfigRuntimeType<'generative-xai'> | undefined>
+      >({
+        name: 'generative-xai',
+        config: {
+          baseUrl: 'http://localhost:8080',
+          maxTokens: 100,
+          model: 'model',
+          temperature: 0.5,
+          topP: 0.9,
+        },
+      });
+    });
+  });
 });
