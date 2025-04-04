@@ -12,6 +12,7 @@ import {
   GenerativeOllamaConfig,
   GenerativeOpenAIConfig,
   GenerativePaLMConfig,
+  GenerativeXAIConfig,
   ModuleConfig,
 } from '../config/types/index.js';
 import {
@@ -27,6 +28,7 @@ import {
   GenerativeOllamaConfigCreate,
   GenerativeOpenAIConfigCreate,
   GenerativePaLMConfigCreate,
+  GenerativeXAIConfigCreate,
 } from '../index.js';
 
 export default {
@@ -260,6 +262,22 @@ export default {
   ): ModuleConfig<'generative-google', GenerativeGoogleConfig | undefined> => {
     return {
       name: 'generative-google',
+      config,
+    };
+  },
+  /**
+   * Create a `ModuleConfig<'generative-xai', GenerativeXAIConfig | undefined>` object for use when performing AI generation using the `generative-xai` module.
+   *
+   * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/xai/generative) for detailed usage.
+   *
+   * @param {GenerativeXAIConfigCreate} [config] The configuration for the `generative-xai` module.
+   * @returns {ModuleConfig<'generative-xai', GenerativeXAIConfig | undefined>} The configuration object.
+   */
+  xai: (
+    config?: GenerativeXAIConfigCreate
+  ): ModuleConfig<'generative-xai', GenerativeXAIConfig | undefined> => {
+    return {
+      name: 'generative-xai',
       config,
     };
   },

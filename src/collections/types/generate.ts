@@ -24,8 +24,10 @@ import {
   GenerativeOllamaMetadata,
   GenerativeOpenAI as GenerativeOpenAIGRPC,
   GenerativeOpenAIMetadata,
+  GenerativeXAI as GenerativeXAIGRPC,
+  GenerativeXAIMetadata,
 } from '../../proto/v1/generative.js';
-import { ModuleConfig } from '../index.js';
+import { GenerativeXAIConfig, ModuleConfig } from '../index.js';
 import { GroupByObject, GroupByResult, WeaviateGenericObject, WeaviateNonGenericObject } from './query.js';
 
 export type GenerativeGenericObject<
@@ -134,7 +136,8 @@ export type GenerativeConfigRuntime =
   | ModuleConfig<'generative-mistral', GenerativeConfigRuntimeType<'generative-mistral'> | undefined>
   | ModuleConfig<'generative-nvidia', GenerativeConfigRuntimeType<'generative-nvidia'> | undefined>
   | ModuleConfig<'generative-ollama', GenerativeConfigRuntimeType<'generative-ollama'> | undefined>
-  | ModuleConfig<'generative-openai', GenerativeConfigRuntimeType<'generative-openai'>>;
+  | ModuleConfig<'generative-openai', GenerativeConfigRuntimeType<'generative-openai'>>
+  | ModuleConfig<'generative-xai', GenerativeConfigRuntimeType<'generative-xai'> | undefined>;
 
 export type GenerativeConfigRuntimeType<G> = G extends 'generative-anthropic'
   ? Omit<GenerativeAnthropicGRPC, omitFields>
@@ -160,6 +163,8 @@ export type GenerativeConfigRuntimeType<G> = G extends 'generative-anthropic'
   ? Omit<GenerativeOllamaGRPC, omitFields>
   : G extends 'generative-openai'
   ? Omit<GenerativeOpenAIGRPC, omitFields> & { isAzure?: false }
+  : G extends 'generative-xai'
+  ? Omit<GenerativeXAIGRPC, omitFields>
   : G extends 'none'
   ? undefined
   : Record<string, any> | undefined;
@@ -191,6 +196,8 @@ export type GenerativeMetadata<C extends GenerativeConfigRuntime | undefined> = 
     ? GenerativeOllamaMetadata
     : R['name'] extends 'generative-openai'
     ? GenerativeOpenAIMetadata
+    : R['name'] extends 'generative-xai'
+    ? GenerativeXAIMetadata
     : never
   : never;
 
@@ -312,3 +319,5 @@ export type GenerativeOpenAIConfigRuntime = {
   resourceName?: string | undefined;
   deploymentId?: string | undefined;
 };
+
+export type GenerativeXAIConfigRuntime = GenerativeXAIConfig;

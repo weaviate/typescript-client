@@ -158,6 +158,8 @@ describe('Mock testing of generate with runtime config', () => {
     generativeParameters.ollama(model),
     generativeParameters.openAI(),
     generativeParameters.openAI(model),
+    generativeParameters.xai(),
+    generativeParameters.xai(model),
   ];
 
   tests.forEach((conf) => {
