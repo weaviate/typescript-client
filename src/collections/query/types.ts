@@ -103,7 +103,7 @@ export type Bm25Options<T, I> = BaseBm25Options<T, I> | GroupByBm25Options<T, I>
 
 /** Options available to the hybrid search type only */
 export type HybridSearchOptions<T, V> = {
-  /** The weight of the BM25 score. If not specified, the default weight specified by the server is used. */
+  /** The weight of the vector score. If not specified, the default weight specified by the server is used. */
   alpha?: number;
   /** The type of fusion to apply. If not specified, the default fusion type specified by the server is used. */
   fusionType?: 'Ranked' | 'RelativeScore';

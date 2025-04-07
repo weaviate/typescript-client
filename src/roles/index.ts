@@ -1,5 +1,9 @@
 import { ConnectionREST } from '../index.js';
-import { Permission as WeaviatePermission, Role as WeaviateRole } from '../openapi/types.js';
+import {
+  WeaviateAssignedUser,
+  Permission as WeaviatePermission,
+  Role as WeaviateRole,
+} from '../openapi/types.js';
 import {
   BackupsPermission,
   ClusterPermission,
@@ -10,6 +14,9 @@ import {
   PermissionsInput,
   Role,
   RolesPermission,
+  TenantsPermission,
+  UserAssignment,
+  UsersPermission,
 } from './types.js';
 import { Map } from './util.js';
 
@@ -28,12 +35,13 @@ export interface Roles {
    */
   byName: (roleName: string) => Promise<Role | null>;
   /**
-   * Retrieve the user IDs assigned to a role.
+   * Retrieve the user IDs assigned to a role. Each user has a qualifying user type,
+   * e.g. `'db_user' | 'db_env_user' | 'oidc'`.
    *
    * @param {string} roleName The name of the role to retrieve the assigned user IDs for.
    * @returns {Promise<string[]>} The user IDs assigned to the role.
    */
-  assignedUserIds: (roleName: string) => Promise<string[]>;
+  userAssignments: (roleName: string) => Promise<UserAssignment[]>;
   /**
    * Delete a role by its name.
    *
@@ -87,15 +95,20 @@ const roles = (connection: ConnectionREST): Roles => {
     listAll: () => connection.get<WeaviateRole[]>('/authz/roles').then(Map.roles),
     byName: (roleName: string) =>
       connection.get<WeaviateRole>(`/authz/roles/${roleName}`).then(Map.roleFromWeaviate),
-    assignedUserIds: (roleName: string) => connection.get<string[]>(`/authz/roles/${roleName}/users`),
-    create: (roleName: string, permissions: PermissionsInput) => {
-      const perms = Map.flattenPermissions(permissions).flatMap(Map.permissionToWeaviate);
+    userAssignments: (roleName: string) =>
+      connection
+        .get<WeaviateAssignedUser[]>(`/authz/roles/${roleName}/user-assignments`, true)
+        .then(Map.assignedUsers),
+    create: (roleName: string, permissions?: PermissionsInput) => {
+      const perms = permissions
+        ? Map.flattenPermissions(permissions).flatMap(Map.permissionToWeaviate)
+        : undefined;
       return connection
-        .postEmpty<WeaviateRole>('/authz/roles', {
+        .postEmpty('/authz/roles', {
           name: roleName,
           permissions: perms,
         })
-        .then(() => Map.roleFromWeaviate({ name: roleName, permissions: perms }));
+        .then(() => Map.roleFromWeaviate({ name: roleName, permissions: perms || [] }));
     },
     delete: (roleName: string) => connection.delete(`/authz/roles/${roleName}`, null),
     exists: (roleName: string) =>
@@ -104,9 +117,13 @@ const roles = (connection: ConnectionREST): Roles => {
         .then(() => true)
         .catch(() => false),
     addPermissions: (roleName: string, permissions: PermissionsInput) =>
-      connection.postEmpty(`/authz/roles/${roleName}/add-permissions`, { permissions }),
+      connection.postEmpty(`/authz/roles/${roleName}/add-permissions`, {
+        permissions: Map.flattenPermissions(permissions).flatMap(Map.permissionToWeaviate),
+      }),
     removePermissions: (roleName: string, permissions: PermissionsInput) =>
-      connection.postEmpty(`/authz/roles/${roleName}/remove-permissions`, { permissions }),
+      connection.postEmpty(`/authz/roles/${roleName}/remove-permissions`, {
+        permissions: Map.flattenPermissions(permissions).flatMap(Map.permissionToWeaviate),
+      }),
     hasPermissions: (roleName: string, permission: Permission | Permission[]) =>
       Promise.all(
         (Array.isArray(permission) ? permission : [permission])
@@ -119,6 +136,15 @@ const roles = (connection: ConnectionREST): Roles => {
 };
 
 export const permissions = {
+  /**
+   * Create a set of permissions specific to Weaviate's backup functionality.
+   *
+   * For all collections, provide the `collection` argument as `'*'`.
+   *
+   * @param {string | string[]} args.collection The collection or collections to create permissions for.
+   * @param {boolean} [args.manage] Whether to allow managing backups. Defaults to `false`.
+   * @returns {BackupsPermission[]} The permissions for the specified collections.
+   */
   backup: (args: { collection: string | string[]; manage?: boolean }): BackupsPermission[] => {
     const collections = Array.isArray(args.collection) ? args.collection : [args.collection];
     return collections.flatMap((collection) => {
@@ -127,11 +153,27 @@ export const permissions = {
       return out;
     });
   },
+  /**
+   * Create a set of permissions specific to Weaviate's cluster endpoints.
+   *
+   * @param {boolean} [args.read] Whether to allow reading cluster information. Defaults to `false`.
+   */
   cluster: (args: { read?: boolean }): ClusterPermission[] => {
     const out: ClusterPermission = { actions: [] };
     if (args.read) out.actions.push('read_cluster');
     return [out];
   },
+  /**
+   * Create a set of permissions specific to any operations involving collections.
+   *
+   * For all collections, provide the `collection` argument as `'*'`.
+   *
+   * @param {string | string[]} args.collection The collection or collections to create permissions for.
+   * @param {boolean} [args.create_collection] Whether to allow creating collections. Defaults to `false`.
+   * @param {boolean} [args.read_config] Whether to allow reading collection configurations. Defaults to `false`.
+   * @param {boolean} [args.update_config] Whether to allow updating collection configurations. Defaults to `false`.
+   * @param {boolean} [args.delete_collection] Whether to allow deleting collections. Defaults to `false`.
+   */
   collections: (args: {
     collection: string | string[];
     create_collection?: boolean;
@@ -149,16 +191,37 @@ export const permissions = {
       return out;
     });
   },
+  /**
+   * Create a set of permissions specific to any operations involving objects within collections and tenants.
+   *
+   * For all collections, provide the `collection` argument as `'*'`.
+   * For all tenants, provide the `tenant` argument as `'*'`.
+   *
+   * Providing arrays of collections and tenants will create permissions for each combination of collection and tenant.
+   * E.g., `data({ collection: ['A', 'B'], tenant: ['X', 'Y'] })` will create permissions for tenants `X` and `Y` in both collections `A` and `B`.
+   *
+   * @param {string | string[]} args.collection The collection or collections to create permissions for.
+   * @param {string | string[]} [args.tenant] The tenant or tenants to create permissions for. Defaults to `'*'`.
+   * @param {boolean} [args.create] Whether to allow creating objects. Defaults to `false`.
+   * @param {boolean} [args.read] Whether to allow reading objects. Defaults to `false`.
+   * @param {boolean} [args.update] Whether to allow updating objects. Defaults to `false`.
+   * @param {boolean} [args.delete] Whether to allow deleting objects. Defaults to `false`.
+   */
   data: (args: {
     collection: string | string[];
+    tenant?: string | string[];
     create?: boolean;
     read?: boolean;
     update?: boolean;
     delete?: boolean;
   }): DataPermission[] => {
     const collections = Array.isArray(args.collection) ? args.collection : [args.collection];
-    return collections.flatMap((collection) => {
-      const out: DataPermission = { collection, actions: [] };
+    const tenants = Array.isArray(args.tenant) ? args.tenant : [args.tenant ?? '*'];
+    const combinations = collections.flatMap((collection) =>
+      tenants.map((tenant) => ({ collection, tenant }))
+    );
+    return combinations.flatMap(({ collection, tenant }) => {
+      const out: DataPermission = { collection, tenant, actions: [] };
       if (args.create) out.actions.push('create_data');
       if (args.read) out.actions.push('read_data');
       if (args.update) out.actions.push('update_data');
@@ -166,22 +229,55 @@ export const permissions = {
       return out;
     });
   },
-  nodes: (args: {
-    collection: string | string[];
-    verbosity?: 'verbose' | 'minimal';
-    read?: boolean;
-  }): NodesPermission[] => {
-    const collections = Array.isArray(args.collection) ? args.collection : [args.collection];
-    return collections.flatMap((collection) => {
+  /**
+   * This namespace contains methods to create permissions specific to nodes.
+   */
+  nodes: {
+    /**
+     * Create a set of permissions specific to reading nodes with verbosity set to `minimal`.
+     *
+     * @param {boolean} [args.read] Whether to allow reading nodes. Defaults to `false`.
+     * @returns {NodesPermission[]} The permissions for reading nodes.
+     */
+    minimal: (args: { read?: boolean }): NodesPermission[] => {
       const out: NodesPermission = {
-        collection,
+        collection: '*',
         actions: [],
-        verbosity: args.verbosity || 'verbose',
+        verbosity: 'minimal',
       };
       if (args.read) out.actions.push('read_nodes');
-      return out;
-    });
+      return [out];
+    },
+    /**
+     * Create a set of permissions specific to reading nodes with verbosity set to `verbose`.
+     *
+     * @param {string | string[]} args.collection The collection or collections to create permissions for.
+     * @param {boolean} [args.read] Whether to allow reading nodes. Defaults to `false`.
+     * @returns {NodesPermission[]} The permissions for reading nodes.
+     */
+    verbose: (args: { collection: string | string[]; read?: boolean }): NodesPermission[] => {
+      const collections = Array.isArray(args.collection) ? args.collection : [args.collection];
+      return collections.flatMap((collection) => {
+        const out: NodesPermission = {
+          collection,
+          actions: [],
+          verbosity: 'verbose',
+        };
+        if (args.read) out.actions.push('read_nodes');
+        return out;
+      });
+    },
   },
+  /**
+   * Create a set of permissions specific to any operations involving roles.
+   *
+   * @param {string | string[]} args.role The role or roles to create permissions for.
+   * @param {boolean} [args.create] Whether to allow creating roles. Defaults to `false`.
+   * @param {boolean} [args.read] Whether to allow reading roles. Defaults to `false`.
+   * @param {boolean} [args.update] Whether to allow updating roles. Defaults to `false`.
+   * @param {boolean} [args.delete] Whether to allow deleting roles. Defaults to `false`.
+   * @returns {RolesPermission[]} The permissions for the specified roles.
+   */
   roles: (args: {
     role: string | string[];
     create?: boolean;
@@ -196,6 +292,66 @@ export const permissions = {
       if (args.read) out.actions.push('read_roles');
       if (args.update) out.actions.push('update_roles');
       if (args.delete) out.actions.push('delete_roles');
+      return out;
+    });
+  },
+  /**
+   * Create a set of permissions specific to any operations involving tenants.
+   *
+   * For all collections, provide the `collection` argument as `'*'`.
+   * For all tenants, provide the `tenant` argument as `'*'`.
+   *
+   * Providing arrays of collections and tenants will create permissions for each combination of collection and tenant.
+   * E.g., `tenants({ collection: ['A', 'B'], tenant: ['X', 'Y'] })` will create permissions for tenants `X` and `Y` in both collections `A` and `B`.
+   *
+   * @param {string | string[] | Record<string, string | string[]>} args.collection The collection or collections to create permissions for.
+   * @param {string | string[]} [args.tenant] The tenant or tenants to create permissions for. Defaults to `'*'`.
+   * @param {boolean} [args.create] Whether to allow creating tenants. Defaults to `false`.
+   * @param {boolean} [args.read] Whether to allow reading tenants. Defaults to `false`.
+   * @param {boolean} [args.update] Whether to allow updating tenants. Defaults to `false`.
+   * @param {boolean} [args.delete] Whether to allow deleting tenants. Defaults to `false`.
+   * @returns {TenantsPermission[]} The permissions for the specified tenants.
+   */
+  tenants: (args: {
+    collection: string | string[];
+    tenant?: string | string[];
+    create?: boolean;
+    read?: boolean;
+    update?: boolean;
+    delete?: boolean;
+  }): TenantsPermission[] => {
+    const collections = Array.isArray(args.collection) ? args.collection : [args.collection];
+    const tenants = Array.isArray(args.tenant) ? args.tenant : [args.tenant ?? '*'];
+    const combinations = collections.flatMap((collection) =>
+      tenants.map((tenant) => ({ collection, tenant }))
+    );
+    return combinations.flatMap(({ collection, tenant }) => {
+      const out: TenantsPermission = { collection, tenant, actions: [] };
+      if (args.create) out.actions.push('create_tenants');
+      if (args.read) out.actions.push('read_tenants');
+      if (args.update) out.actions.push('update_tenants');
+      if (args.delete) out.actions.push('delete_tenants');
+      return out;
+    });
+  },
+  /**
+   * Create a set of permissions specific to any operations involving users.
+   *
+   * @param {string | string[]} args.user The user or users to create permissions for.
+   * @param {boolean} [args.assignAndRevoke] Whether to allow assigning and revoking users. Defaults to `false`.
+   * @param {boolean} [args.read] Whether to allow reading users. Defaults to `false`.
+   * @returns {UsersPermission[]} The permissions for the specified users.
+   */
+  users: (args: {
+    user: string | string[];
+    assignAndRevoke?: boolean;
+    read?: boolean;
+  }): UsersPermission[] => {
+    const users = Array.isArray(args.user) ? args.user : [args.user];
+    return users.flatMap((user) => {
+      const out: UsersPermission = { users: user, actions: [] };
+      if (args.assignAndRevoke) out.actions.push('assign_and_revoke_users');
+      if (args.read) out.actions.push('read_users');
       return out;
     });
   },

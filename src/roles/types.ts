@@ -1,4 +1,4 @@
-import { Action } from '../openapi/types.js';
+import { Action, WeaviateUserType } from '../openapi/types.js';
 
 export type BackupsAction = Extract<Action, 'manage_backups'>;
 export type ClusterAction = Extract<Action, 'read_cluster'>;
@@ -16,6 +16,16 @@ export type DataAction = Extract<
 >;
 export type NodesAction = Extract<Action, 'read_nodes'>;
 export type RolesAction = Extract<Action, 'create_roles' | 'read_roles' | 'update_roles' | 'delete_roles'>;
+export type TenantsAction = Extract<
+  Action,
+  'create_tenants' | 'delete_tenants' | 'read_tenants' | 'update_tenants'
+>;
+export type UsersAction = Extract<Action, 'read_users' | 'assign_and_revoke_users'>;
+
+export type UserAssignment = {
+  id: string;
+  userType: WeaviateUserType;
+};
 
 export type BackupsPermission = {
   collection: string;
@@ -33,6 +43,7 @@ export type CollectionsPermission = {
 
 export type DataPermission = {
   collection: string;
+  tenant: string;
   actions: DataAction[];
 };
 
@@ -47,6 +58,17 @@ export type RolesPermission = {
   actions: RolesAction[];
 };
 
+export type TenantsPermission = {
+  collection: string;
+  tenant: string;
+  actions: TenantsAction[];
+};
+
+export type UsersPermission = {
+  users: string;
+  actions: UsersAction[];
+};
+
 export type Role = {
   name: string;
   backupsPermissions: BackupsPermission[];
@@ -55,6 +77,8 @@ export type Role = {
   dataPermissions: DataPermission[];
   nodesPermissions: NodesPermission[];
   rolesPermissions: RolesPermission[];
+  tenantsPermissions: TenantsPermission[];
+  usersPermissions: UsersPermission[];
 };
 
 export type Permission =
@@ -63,6 +87,8 @@ export type Permission =
   | CollectionsPermission
   | DataPermission
   | NodesPermission
-  | RolesPermission;
+  | RolesPermission
+  | TenantsPermission
+  | UsersPermission;
 
 export type PermissionsInput = Permission | Permission[] | Permission[][] | (Permission | Permission[])[];

@@ -8,9 +8,11 @@ import {
   GenerativeFriendliAIConfig,
   GenerativeGoogleConfig,
   GenerativeMistralConfig,
+  GenerativeNvidiaConfig,
   GenerativeOllamaConfig,
   GenerativeOpenAIConfig,
   GenerativePaLMConfig,
+  GenerativeXAIConfig,
   ModuleConfig,
 } from '../config/types/index.js';
 import {
@@ -22,9 +24,11 @@ import {
   GenerativeDatabricksConfigCreate,
   GenerativeFriendliAIConfigCreate,
   GenerativeMistralConfigCreate,
+  GenerativeNvidiaConfigCreate,
   GenerativeOllamaConfigCreate,
   GenerativeOpenAIConfigCreate,
   GenerativePaLMConfigCreate,
+  GenerativeXAIConfigCreate,
 } from '../index.js';
 
 export default {
@@ -170,6 +174,22 @@ export default {
     };
   },
   /**
+   * Create a `ModuleConfig<'generative-nvidia', GenerativeNvidiaConfig | undefined>` object for use when performing AI generation using the `generative-mistral` module.
+   *
+   * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/nvidia/generative) for detailed usage.
+   *
+   * @param {GenerativeNvidiaConfigCreate} [config] The configuration for the `generative-nvidia` module.
+   * @returns {ModuleConfig<'generative-nvidia', GenerativeNvidiaConfig | undefined>} The configuration object.
+   */
+  nvidia(
+    config?: GenerativeNvidiaConfigCreate
+  ): ModuleConfig<'generative-nvidia', GenerativeNvidiaConfig | undefined> {
+    return {
+      name: 'generative-nvidia',
+      config,
+    };
+  },
+  /**
    * Create a `ModuleConfig<'generative-ollama', GenerativeOllamaConfig | undefined>` object for use when performing AI generation using the `generative-ollama` module.
    *
    * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/ollama/generative) for detailed usage.
@@ -242,6 +262,22 @@ export default {
   ): ModuleConfig<'generative-google', GenerativeGoogleConfig | undefined> => {
     return {
       name: 'generative-google',
+      config,
+    };
+  },
+  /**
+   * Create a `ModuleConfig<'generative-xai', GenerativeXAIConfig | undefined>` object for use when performing AI generation using the `generative-xai` module.
+   *
+   * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/xai/generative) for detailed usage.
+   *
+   * @param {GenerativeXAIConfigCreate} [config] The configuration for the `generative-xai` module.
+   * @returns {ModuleConfig<'generative-xai', GenerativeXAIConfig | undefined>} The configuration object.
+   */
+  xai: (
+    config?: GenerativeXAIConfigCreate
+  ): ModuleConfig<'generative-xai', GenerativeXAIConfig | undefined> => {
+    return {
+      name: 'generative-xai',
       config,
     };
   },

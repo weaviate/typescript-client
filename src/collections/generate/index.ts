@@ -5,6 +5,7 @@ import { DbVersionSupport } from '../../utils/dbVersion.js';
 
 import { WeaviateInvalidInputError } from '../../errors.js';
 import { toBase64FromMedia } from '../../index.js';
+import { GenerativeSearch } from '../../proto/v1/generative.js';
 import { SearchReply } from '../../proto/v1/search_get.js';
 import { Deserialize } from '../deserialize/index.js';
 import { Check } from '../query/check.js';
@@ -28,6 +29,7 @@ import { Serialize } from '../serialize/index.js';
 import {
   GenerateOptions,
   GenerateReturn,
+  GenerativeConfigRuntime,
   GenerativeGroupByReturn,
   GenerativeReturn,
   GroupByOptions,
@@ -55,91 +57,113 @@ class GenerateManager<T, V> implements Generate<T, V> {
     );
   }
 
-  private async parseReply<RV>(reply: SearchReply) {
+  private async parseReply<RV, C extends GenerativeConfigRuntime | undefined>(reply: SearchReply) {
     const deserialize = await Deserialize.use(this.check.dbVersionSupport);
-    return deserialize.generate<T, RV>(reply);
+    return deserialize.generate<T, RV, C>(reply);
   }
 
-  private async parseGroupByReply<RV>(
+  private async parseGroupByReply<RV, C extends GenerativeConfigRuntime | undefined>(
     opts: SearchOptions<any, any> | GroupByOptions<any> | undefined,
     reply: SearchReply
   ) {
     const deserialize = await Deserialize.use(this.check.dbVersionSupport);
     return Serialize.search.isGroupBy(opts)
       ? deserialize.generateGroupBy<T, RV>(reply)
-      : deserialize.generate<T, RV>(reply);
+      : deserialize.generate<T, RV, C>(reply);
   }
 
-  public fetchObjects(
-    generate: GenerateOptions<T>,
+  public fetchObjects<C extends GenerativeConfigRuntime | undefined = undefined>(
+    generate: GenerateOptions<T, C>,
     opts?: FetchObjectsOptions<T, V>
-  ): Promise<GenerativeReturn<T, V>> {
-    return this.check
-      .fetchObjects(opts)
-      .then(({ search }) => ({
+  ): Promise<GenerativeReturn<T, V, C>> {
+    return Promise.all([
+      this.check.fetchObjects(opts),
+      this.check.supportForSingleGroupedGenerative(),
+      this.check.supportForGenerativeConfigRuntime(generate.config),
+    ])
+      .then(async ([{ search }, supportsSingleGrouped]) => ({
         search,
         args: {
           ...Serialize.search.fetchObjects(opts),
-          generative: Serialize.generative(generate),
+          generative: await Serialize.generative({ supportsSingleGrouped }, generate),
         },
       }))
       .then(({ search, args }) => search.withFetch(args))
       .then((reply) => this.parseReply(reply));
   }
 
-  public bm25<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
+  public bm25<
+    I extends IncludeVector<V>,
+    RV extends ReturnVectors<V, I>,
+    C extends GenerativeConfigRuntime | undefined = undefined
+  >(
     query: string,
-    generate: GenerateOptions<T>,
+    generate: GenerateOptions<T, C>,
     opts?: BaseBm25Options<T, I>
-  ): Promise<GenerativeReturn<T, RV>>;
-  public bm25<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
+  ): Promise<GenerativeReturn<T, RV, C>>;
+  public bm25<
+    I extends IncludeVector<V>,
+    RV extends ReturnVectors<V, I>,
+    C extends GenerativeConfigRuntime | undefined = undefined
+  >(
     query: string,
-    generate: GenerateOptions<T>,
+    generate: GenerateOptions<T, C>,
     opts: GroupByBm25Options<T, I>
-  ): Promise<GenerativeGroupByReturn<T, RV>>;
-  public bm25<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
-    query: string,
-    generate: GenerateOptions<T>,
-    opts?: Bm25Options<T, I>
-  ): GenerateReturn<T, RV> {
-    return this.check
-      .bm25(opts)
-      .then(({ search }) => ({
+  ): Promise<GenerativeGroupByReturn<T, RV, C>>;
+  public bm25<
+    I extends IncludeVector<V>,
+    RV extends ReturnVectors<V, I>,
+    C extends GenerativeConfigRuntime | undefined = undefined
+  >(query: string, generate: GenerateOptions<T, C>, opts?: Bm25Options<T, I>): GenerateReturn<T, RV, C> {
+    return Promise.all([
+      this.check.bm25(opts),
+      this.check.supportForSingleGroupedGenerative(),
+      this.check.supportForGenerativeConfigRuntime(generate.config),
+    ])
+      .then(async ([{ search }, supportsSingleGrouped]) => ({
         search,
         args: {
           ...Serialize.search.bm25(query, opts),
-          generative: Serialize.generative(generate),
+          generative: await Serialize.generative({ supportsSingleGrouped }, generate),
         },
       }))
       .then(({ search, args }) => search.withBm25(args))
       .then((reply) => this.parseGroupByReply(opts, reply));
   }
 
-  public hybrid<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
+  public hybrid<
+    I extends IncludeVector<V>,
+    RV extends ReturnVectors<V, I>,
+    C extends GenerativeConfigRuntime | undefined = undefined
+  >(
     query: string,
-    generate: GenerateOptions<T>,
+    generate: GenerateOptions<T, C>,
     opts?: BaseHybridOptions<T, V, I>
-  ): Promise<GenerativeReturn<T, RV>>;
-  public hybrid<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
+  ): Promise<GenerativeReturn<T, RV, C>>;
+  public hybrid<
+    I extends IncludeVector<V>,
+    RV extends ReturnVectors<V, I>,
+    C extends GenerativeConfigRuntime | undefined = undefined
+  >(
     query: string,
-    generate: GenerateOptions<T>,
+    generate: GenerateOptions<T, C>,
     opts: GroupByHybridOptions<T, V, I>
-  ): Promise<GenerativeGroupByReturn<T, RV>>;
-  public hybrid<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
-    query: string,
-    generate: GenerateOptions<T>,
-    opts?: HybridOptions<T, V, I>
-  ): GenerateReturn<T, RV> {
-    return this.check
-      .hybridSearch(opts)
+  ): Promise<GenerativeGroupByReturn<T, RV, C>>;
+  public hybrid<
+    I extends IncludeVector<V>,
+    RV extends ReturnVectors<V, I>,
+    C extends GenerativeConfigRuntime | undefined = undefined
+  >(query: string, generate: GenerateOptions<T, C>, opts?: HybridOptions<T, V, I>): GenerateReturn<T, RV, C> {
+    return Promise.all([
+      this.check.hybridSearch(opts),
+      this.check.supportForSingleGroupedGenerative(),
+      this.check.supportForGenerativeConfigRuntime(generate.config),
+    ])
       .then(
-        async ({
-          search,
-          supportsTargets,
-          supportsVectorsForTargets,
-          supportsWeightsForTargets,
-          supportsVectors,
-        }) => ({
+        async ([
+          { search, supportsTargets, supportsVectorsForTargets, supportsWeightsForTargets, supportsVectors },
+          supportsSingleGrouped,
+        ]) => ({
           search,
           args: {
             ...(await Serialize.search.hybrid(
@@ -152,7 +176,7 @@ class GenerateManager<T, V> implements Generate<T, V> {
               },
               opts
             )),
-            generative: Serialize.generative(generate),
+            generative: await Serialize.generative({ supportsSingleGrouped }, generate),
           },
         })
       )
@@ -160,24 +184,39 @@ class GenerateManager<T, V> implements Generate<T, V> {
       .then((reply) => this.parseGroupByReply(opts, reply));
   }
 
-  public nearImage<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
+  public nearImage<
+    I extends IncludeVector<V>,
+    RV extends ReturnVectors<V, I>,
+    C extends GenerativeConfigRuntime | undefined = undefined
+  >(
     image: string | Buffer,
-    generate: GenerateOptions<T>,
+    generate: GenerateOptions<T, C>,
     opts?: BaseNearOptions<T, V, I>
-  ): Promise<GenerativeReturn<T, RV>>;
-  public nearImage<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
+  ): Promise<GenerativeReturn<T, RV, C>>;
+  public nearImage<
+    I extends IncludeVector<V>,
+    RV extends ReturnVectors<V, I>,
+    C extends GenerativeConfigRuntime | undefined = undefined
+  >(
     image: string | Buffer,
-    generate: GenerateOptions<T>,
+    generate: GenerateOptions<T, C>,
     opts: GroupByNearOptions<T, V, I>
-  ): Promise<GenerativeGroupByReturn<T, RV>>;
-  public nearImage<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
+  ): Promise<GenerativeGroupByReturn<T, RV, C>>;
+  public nearImage<
+    I extends IncludeVector<V>,
+    RV extends ReturnVectors<V, I>,
+    C extends GenerativeConfigRuntime | undefined = undefined
+  >(
     image: string | Buffer,
-    generate: GenerateOptions<T>,
+    generate: GenerateOptions<T, C>,
     opts?: NearOptions<T, V, I>
-  ): GenerateReturn<T, RV> {
-    return this.check
-      .nearSearch(opts)
-      .then(async ({ search, supportsTargets, supportsWeightsForTargets }) => ({
+  ): GenerateReturn<T, RV, C> {
+    return Promise.all([
+      this.check.nearSearch(opts),
+      this.check.supportForSingleGroupedGenerative(),
+      this.check.supportForGenerativeConfigRuntime(generate.config),
+    ])
+      .then(async ([{ search, supportsTargets, supportsWeightsForTargets }, supportsSingleGrouped]) => ({
         search,
         args: {
           ...Serialize.search.nearImage(
@@ -188,31 +227,42 @@ class GenerateManager<T, V> implements Generate<T, V> {
             },
             opts
           ),
-          generative: Serialize.generative(generate),
+          generative: await Serialize.generative({ supportsSingleGrouped }, generate),
         },
       }))
       .then(({ search, args }) => search.withNearImage(args))
       .then((reply) => this.parseGroupByReply(opts, reply));
   }
 
-  public nearObject<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
+  public nearObject<
+    I extends IncludeVector<V>,
+    RV extends ReturnVectors<V, I>,
+    C extends GenerativeConfigRuntime | undefined = undefined
+  >(
     id: string,
-    generate: GenerateOptions<T>,
+    generate: GenerateOptions<T, C>,
     opts?: BaseNearOptions<T, V, I>
-  ): Promise<GenerativeReturn<T, RV>>;
-  public nearObject<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
+  ): Promise<GenerativeReturn<T, RV, C>>;
+  public nearObject<
+    I extends IncludeVector<V>,
+    RV extends ReturnVectors<V, I>,
+    C extends GenerativeConfigRuntime | undefined = undefined
+  >(
     id: string,
-    generate: GenerateOptions<T>,
+    generate: GenerateOptions<T, C>,
     opts: GroupByNearOptions<T, V, I>
-  ): Promise<GenerativeGroupByReturn<T, RV>>;
-  public nearObject<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
-    id: string,
-    generate: GenerateOptions<T>,
-    opts?: NearOptions<T, V, I>
-  ): GenerateReturn<T, RV> {
-    return this.check
-      .nearSearch(opts)
-      .then(({ search, supportsTargets, supportsWeightsForTargets }) => ({
+  ): Promise<GenerativeGroupByReturn<T, RV, C>>;
+  public nearObject<
+    I extends IncludeVector<V>,
+    RV extends ReturnVectors<V, I>,
+    C extends GenerativeConfigRuntime | undefined = undefined
+  >(id: string, generate: GenerateOptions<T, C>, opts?: NearOptions<T, V, I>): GenerateReturn<T, RV, C> {
+    return Promise.all([
+      this.check.nearSearch(opts),
+      this.check.supportForSingleGroupedGenerative(),
+      this.check.supportForGenerativeConfigRuntime(generate.config),
+    ])
+      .then(async ([{ search, supportsTargets, supportsWeightsForTargets }, supportsSingleGrouped]) => ({
         search,
         args: {
           ...Serialize.search.nearObject(
@@ -223,31 +273,46 @@ class GenerateManager<T, V> implements Generate<T, V> {
             },
             opts
           ),
-          generative: Serialize.generative(generate),
+          generative: await Serialize.generative({ supportsSingleGrouped }, generate),
         },
       }))
       .then(({ search, args }) => search.withNearObject(args))
       .then((reply) => this.parseGroupByReply(opts, reply));
   }
 
-  public nearText<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
+  public nearText<
+    I extends IncludeVector<V>,
+    RV extends ReturnVectors<V, I>,
+    C extends GenerativeConfigRuntime | undefined = undefined
+  >(
     query: string | string[],
-    generate: GenerateOptions<T>,
+    generate: GenerateOptions<T, C>,
     opts?: BaseNearTextOptions<T, V, I>
-  ): Promise<GenerativeReturn<T, RV>>;
-  public nearText<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
+  ): Promise<GenerativeReturn<T, RV, C>>;
+  public nearText<
+    I extends IncludeVector<V>,
+    RV extends ReturnVectors<V, I>,
+    C extends GenerativeConfigRuntime | undefined = undefined
+  >(
     query: string | string[],
-    generate: GenerateOptions<T>,
+    generate: GenerateOptions<T, C>,
     opts: GroupByNearTextOptions<T, V, I>
-  ): Promise<GenerativeGroupByReturn<T, RV>>;
-  public nearText<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
+  ): Promise<GenerativeGroupByReturn<T, RV, C>>;
+  public nearText<
+    I extends IncludeVector<V>,
+    RV extends ReturnVectors<V, I>,
+    C extends GenerativeConfigRuntime | undefined = undefined
+  >(
     query: string | string[],
-    generate: GenerateOptions<T>,
+    generate: GenerateOptions<T, C>,
     opts?: NearOptions<T, V, I>
-  ): GenerateReturn<T, RV> {
-    return this.check
-      .nearSearch(opts)
-      .then(({ search, supportsTargets, supportsWeightsForTargets }) => ({
+  ): GenerateReturn<T, RV, C> {
+    return Promise.all([
+      this.check.nearSearch(opts),
+      this.check.supportForSingleGroupedGenerative(),
+      this.check.supportForGenerativeConfigRuntime(generate.config),
+    ])
+      .then(async ([{ search, supportsTargets, supportsWeightsForTargets }, supportsSingleGrouped]) => ({
         search,
         args: {
           ...Serialize.search.nearText(
@@ -258,38 +323,50 @@ class GenerateManager<T, V> implements Generate<T, V> {
             },
             opts
           ),
-          generative: Serialize.generative(generate),
+          generative: await Serialize.generative({ supportsSingleGrouped }, generate),
         },
       }))
       .then(({ search, args }) => search.withNearText(args))
       .then((reply) => this.parseGroupByReply(opts, reply));
   }
 
-  public nearVector<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
+  public nearVector<
+    I extends IncludeVector<V>,
+    RV extends ReturnVectors<V, I>,
+    C extends GenerativeConfigRuntime | undefined = undefined
+  >(
     vector: number[],
-    generate: GenerateOptions<T>,
+    generate: GenerateOptions<T, C>,
     opts?: BaseNearOptions<T, V, I>
-  ): Promise<GenerativeReturn<T, RV>>;
-  public nearVector<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
+  ): Promise<GenerativeReturn<T, RV, C>>;
+  public nearVector<
+    I extends IncludeVector<V>,
+    RV extends ReturnVectors<V, I>,
+    C extends GenerativeConfigRuntime | undefined = undefined
+  >(
     vector: number[],
-    generate: GenerateOptions<T>,
+    generate: GenerateOptions<T, C>,
     opts: GroupByNearOptions<T, V, I>
-  ): Promise<GenerativeGroupByReturn<T, RV>>;
-  public nearVector<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
+  ): Promise<GenerativeGroupByReturn<T, RV, C>>;
+  public nearVector<
+    I extends IncludeVector<V>,
+    RV extends ReturnVectors<V, I>,
+    C extends GenerativeConfigRuntime | undefined = undefined
+  >(
     vector: number[],
-    generate: GenerateOptions<T>,
+    generate: GenerateOptions<T, C>,
     opts?: NearOptions<T, V, I>
-  ): GenerateReturn<T, RV> {
-    return this.check
-      .nearVector(vector, opts)
+  ): GenerateReturn<T, RV, C> {
+    return Promise.all([
+      this.check.nearVector(vector, opts),
+      this.check.supportForSingleGroupedGenerative(),
+      this.check.supportForGenerativeConfigRuntime(generate.config),
+    ])
       .then(
-        async ({
-          search,
-          supportsTargets,
-          supportsVectorsForTargets,
-          supportsWeightsForTargets,
-          supportsVectors,
-        }) => ({
+        async ([
+          { search, supportsTargets, supportsVectorsForTargets, supportsWeightsForTargets, supportsVectors },
+          supportsSingleGrouped,
+        ]) => ({
           search,
           args: {
             ...(await Serialize.search.nearVector(
@@ -302,7 +379,7 @@ class GenerateManager<T, V> implements Generate<T, V> {
               },
               opts
             )),
-            generative: Serialize.generative(generate),
+            generative: await Serialize.generative({ supportsSingleGrouped }, generate),
           },
         })
       )
@@ -310,74 +387,97 @@ class GenerateManager<T, V> implements Generate<T, V> {
       .then((reply) => this.parseGroupByReply(opts, reply));
   }
 
-  public nearMedia<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
+  public nearMedia<
+    I extends IncludeVector<V>,
+    RV extends ReturnVectors<V, I>,
+    C extends GenerativeConfigRuntime | undefined = undefined
+  >(
     media: string | Buffer,
     type: NearMediaType,
-    generate: GenerateOptions<T>,
+    generate: GenerateOptions<T, C>,
     opts?: BaseNearOptions<T, V, I>
-  ): Promise<GenerativeReturn<T, RV>>;
-  public nearMedia<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
+  ): Promise<GenerativeReturn<T, RV, C>>;
+  public nearMedia<
+    I extends IncludeVector<V>,
+    RV extends ReturnVectors<V, I>,
+    C extends GenerativeConfigRuntime | undefined = undefined
+  >(
     media: string | Buffer,
     type: NearMediaType,
-    generate: GenerateOptions<T>,
+    generate: GenerateOptions<T, C>,
     opts: GroupByNearOptions<T, V, I>
-  ): Promise<GenerativeGroupByReturn<T, RV>>;
-  public nearMedia<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
+  ): Promise<GenerativeGroupByReturn<T, RV, C>>;
+  public nearMedia<
+    I extends IncludeVector<V>,
+    RV extends ReturnVectors<V, I>,
+    C extends GenerativeConfigRuntime | undefined = undefined
+  >(
     media: string | Buffer,
     type: NearMediaType,
-    generate: GenerateOptions<T>,
+    generate: GenerateOptions<T, C>,
     opts?: NearOptions<T, V, I>
-  ): GenerateReturn<T, RV> {
-    return this.check
-      .nearSearch(opts)
-      .then(({ search, supportsTargets, supportsWeightsForTargets }) => {
+  ): GenerateReturn<T, RV, C> {
+    return Promise.all([
+      this.check.nearSearch(opts),
+      this.check.supportForSingleGroupedGenerative(),
+      this.check.supportForGenerativeConfigRuntime(generate.config),
+    ])
+      .then(([{ search, supportsTargets, supportsWeightsForTargets }, supportsSingleGrouped]) => {
         const args = {
           supportsTargets,
           supportsWeightsForTargets,
         };
-        const generative = Serialize.generative(generate);
-        let send: (media: string) => Promise<SearchReply>;
+        let send: (media: string, generative: GenerativeSearch) => Promise<SearchReply>;
         switch (type) {
           case 'audio':
-            send = (media) =>
+            send = (media, generative) =>
               search.withNearAudio({
                 ...Serialize.search.nearAudio({ audio: media, ...args }, opts),
                 generative,
               });
             break;
           case 'depth':
-            send = (media) =>
+            send = (media, generative) =>
               search.withNearDepth({
                 ...Serialize.search.nearDepth({ depth: media, ...args }, opts),
                 generative,
               });
             break;
           case 'image':
-            send = (media) =>
+            send = (media, generative) =>
               search.withNearImage({
                 ...Serialize.search.nearImage({ image: media, ...args }, opts),
                 generative,
               });
             break;
           case 'imu':
-            send = (media) =>
-              search.withNearIMU({ ...Serialize.search.nearIMU({ imu: media, ...args }, opts), generative });
+            send = (media, generative) =>
+              search.withNearIMU({
+                ...Serialize.search.nearIMU({ imu: media, ...args }, opts),
+                generative,
+              });
             break;
           case 'thermal':
-            send = (media) =>
+            send = (media, generative) =>
               search.withNearThermal({
                 ...Serialize.search.nearThermal({ thermal: media, ...args }, opts),
                 generative,
               });
             break;
           case 'video':
-            send = (media) =>
-              search.withNearVideo({ ...Serialize.search.nearVideo({ video: media, ...args }), generative });
+            send = (media, generative) =>
+              search.withNearVideo({
+                ...Serialize.search.nearVideo({ video: media, ...args }),
+                generative,
+              });
             break;
           default:
             throw new WeaviateInvalidInputError(`Invalid media type: ${type}`);
         }
-        return toBase64FromMedia(media).then(send);
+        return Promise.all([
+          toBase64FromMedia(media),
+          Serialize.generative({ supportsSingleGrouped }, generate),
+        ]).then(([media, generative]) => send(media, generative));
       })
       .then((reply) => this.parseGroupByReply(opts, reply));
   }
@@ -385,4 +485,5 @@ class GenerateManager<T, V> implements Generate<T, V> {
 
 export default GenerateManager.use;
 
+export { generativeParameters } from './config.js';
 export { Generate } from './types.js';

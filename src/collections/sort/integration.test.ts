@@ -34,8 +34,8 @@ describe('Testing of the Sort class with a simple collection', () => {
 
   beforeAll(async () => {
     client = await weaviate.connectToLocal();
-    collection = client.collections.get(collectionName);
-    collections = [collection, client.collections.get(collectionName)];
+    collection = client.collections.use(collectionName);
+    collections = [collection, client.collections.use(collectionName)];
     ids = await client.collections
       .create({
         name: collectionName,

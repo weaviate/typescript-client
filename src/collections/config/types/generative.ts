@@ -15,6 +15,7 @@ export type GenerativeAWSConfig = {
 };
 
 export type GenerativeAnthropicConfig = {
+  baseURL?: string;
   maxTokens?: number;
   model?: string;
   stopSequences?: string[];
@@ -58,6 +59,13 @@ export type GenerativeMistralConfig = {
   temperature?: number;
 };
 
+export type GenerativeNvidiaConfig = {
+  baseURL?: string;
+  maxTokens?: number;
+  model?: string;
+  temperature?: number;
+};
+
 export type GenerativeOllamaConfig = {
   apiEndpoint?: string;
   model?: string;
@@ -85,6 +93,14 @@ export type GenerativeGoogleConfig = {
   topP?: number;
 };
 
+export type GenerativeXAIConfig = {
+  baseURL?: string;
+  maxTokens?: number;
+  model?: string;
+  temperature?: number;
+  topP?: number;
+};
+
 export type GenerativeConfig =
   | GenerativeAnthropicConfig
   | GenerativeAnyscaleConfig
@@ -98,6 +114,7 @@ export type GenerativeConfig =
   | GenerativeOllamaConfig
   | GenerativeOpenAIConfig
   | GenerativePaLMConfig
+  | GenerativeXAIConfig
   | Record<string, any>
   | undefined;
 
@@ -125,6 +142,8 @@ export type GenerativeConfigType<G> = G extends 'generative-anthropic'
   ? GenerativeOpenAIConfig
   : G extends GenerativePalm
   ? GenerativePaLMConfig
+  : G extends 'generative-xai'
+  ? GenerativeXAIConfig
   : G extends 'none'
   ? undefined
   : Record<string, any> | undefined;
@@ -145,5 +164,6 @@ export type GenerativeSearch =
   | 'generative-ollama'
   | 'generative-openai'
   | GenerativePalm
+  | 'generative-xai'
   | 'none'
   | string;

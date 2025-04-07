@@ -5,8 +5,10 @@ import {
   GenerativeDatabricksConfig,
   GenerativeFriendliAIConfig,
   GenerativeMistralConfig,
+  GenerativeNvidiaConfig,
   GenerativeOllamaConfig,
   GenerativePaLMConfig,
+  GenerativeXAIConfig,
 } from '../../index.js';
 
 export type GenerativeOpenAIConfigBaseCreate = {
@@ -44,6 +46,8 @@ export type GenerativeFriendliAIConfigCreate = GenerativeFriendliAIConfig;
 
 export type GenerativeMistralConfigCreate = GenerativeMistralConfig;
 
+export type GenerativeNvidiaConfigCreate = GenerativeNvidiaConfig;
+
 export type GenerativeOllamaConfigCreate = GenerativeOllamaConfig;
 
 export type GenerativeOpenAIConfigCreate = GenerativeOpenAIConfigBaseCreate & {
@@ -51,6 +55,8 @@ export type GenerativeOpenAIConfigCreate = GenerativeOpenAIConfigBaseCreate & {
 };
 
 export type GenerativePaLMConfigCreate = GenerativePaLMConfig;
+
+export type GenerativeXAIConfigCreate = GenerativeXAIConfig;
 
 export type GenerativeConfigCreate =
   | GenerativeAnthropicConfigCreate
@@ -61,9 +67,11 @@ export type GenerativeConfigCreate =
   | GenerativeDatabricksConfigCreate
   | GenerativeFriendliAIConfigCreate
   | GenerativeMistralConfigCreate
+  | GenerativeNvidiaConfigCreate
   | GenerativeOllamaConfigCreate
   | GenerativeOpenAIConfigCreate
   | GenerativePaLMConfigCreate
+  | GenerativeXAIConfigCreate
   | Record<string, any>
   | undefined;
 
@@ -81,12 +89,16 @@ export type GenerativeConfigCreateType<G> = G extends 'generative-anthropic'
   ? GenerativeFriendliAIConfigCreate
   : G extends 'generative-mistral'
   ? GenerativeMistralConfigCreate
+  : G extends 'generative-nvidia'
+  ? GenerativeNvidiaConfigCreate
   : G extends 'generative-ollama'
   ? GenerativeOllamaConfigCreate
   : G extends 'generative-openai'
   ? GenerativeOpenAIConfigCreate
   : G extends 'generative-palm'
   ? GenerativePaLMConfigCreate
+  : G extends 'generative-xai'
+  ? GenerativeXAIConfigCreate
   : G extends 'none'
   ? undefined
   : Record<string, any> | undefined;

@@ -27,6 +27,8 @@ import {
   AggregateResult,
   AggregateText,
   AggregateType,
+  GenerativeConfigRuntime,
+  GenerativeMetadata,
   PropertiesMetrics,
   Vectors,
   WeaviateObject,
@@ -217,21 +219,54 @@ export class Deserialize {
     };
   }
 
-  public async generate<T, V>(reply: SearchReply): Promise<GenerativeReturn<T, V>> {
+  public async generate<T, V, C extends GenerativeConfigRuntime | undefined>(
+    reply: SearchReply
+  ): Promise<GenerativeReturn<T, V, C>> {
     return {
       objects: await Promise.all(
-        reply.results.map(async (result) => {
-          return {
-            generated: result.metadata?.generativePresent ? result.metadata?.generative : undefined,
-            metadata: Deserialize.metadata(result.metadata),
-            properties: this.properties(result.properties),
-            references: await this.references(result.properties),
-            uuid: Deserialize.uuid(result.metadata),
-            vectors: await Deserialize.vectors(result.metadata),
-          } as unknown as WeaviateObject<T, V>;
-        })
+        reply.results.map(
+          async (result) =>
+            ({
+              generated: result.metadata?.generativePresent
+                ? result.metadata?.generative
+                : result.generative
+                ? result.generative.values[0].result
+                : undefined,
+              generative: result.generative
+                ? {
+                    text: result.generative.values[0].result,
+                    debug: result.generative.values[0].debug,
+                    metadata: result.generative.values[0].metadata as GenerativeMetadata<C>,
+                  }
+                : result.metadata?.generativePresent
+                ? {
+                    text: result.metadata?.generative,
+                  }
+                : undefined,
+              metadata: Deserialize.metadata(result.metadata),
+              properties: this.properties(result.properties),
+              references: await this.references(result.properties),
+              uuid: Deserialize.uuid(result.metadata),
+              vectors: await Deserialize.vectors(result.metadata),
+            } as any)
+        )
       ),
-      generated: reply.generativeGroupedResult,
+      generated:
+        reply.generativeGroupedResult !== ''
+          ? reply.generativeGroupedResult
+          : reply.generativeGroupedResults
+          ? reply.generativeGroupedResults.values[0].result
+          : undefined,
+      generative: reply.generativeGroupedResults
+        ? {
+            text: reply.generativeGroupedResults?.values[0].result,
+            metadata: reply.generativeGroupedResults?.values[0].metadata as GenerativeMetadata<C>,
+          }
+        : reply.generativeGroupedResult !== ''
+        ? {
+            text: reply.generativeGroupedResult,
+          }
+        : undefined,
     };
   }
 
@@ -267,9 +302,9 @@ export class Deserialize {
     };
   }
 
-  public async generateGroupBy<T, V>(reply: SearchReply): Promise<GenerativeGroupByReturn<T, V>> {
+  public async generateGroupBy<T, V>(reply: SearchReply): Promise<GenerativeGroupByReturn<T, V, any>> {
     const objects: GroupByObject<T, V>[] = [];
-    const groups: Record<string, GenerativeGroupByResult<T, V>> = {};
+    const groups: Record<string, GenerativeGroupByResult<T, V, any>> = {};
     for (const result of reply.groupByResults) {
       // eslint-disable-next-line no-await-in-loop
       const objs = await Promise.all(

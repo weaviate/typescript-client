@@ -1,5 +1,5 @@
 import { ConnectionGRPC } from '../../connection/index.js';
-import { WeaviateUnsupportedFeatureError } from '../../errors.js';
+import { WeaviateUnexpectedStatusCodeError, WeaviateUnsupportedFeatureError } from '../../errors.js';
 import { Tenant as TenantREST } from '../../openapi/types.js';
 import { TenantsCreator, TenantsDeleter, TenantsGetter, TenantsUpdater } from '../../schema/index.js';
 import { DbVersionSupport } from '../../utils/dbVersion.js';
@@ -17,12 +17,10 @@ const parseValueOrValueArray = <V>(value: V | V[]) => (Array.isArray(value) ? va
 const parseStringOrTenant = <T extends TenantBase>(tenant: string | T) =>
   typeof tenant === 'string' ? tenant : tenant.name;
 
-const parseTenantREST = (tenant: TenantREST): Tenant => {
-  return {
-    name: tenant.name!,
-    activityStatus: Deserialize.activityStatusREST(tenant.activityStatus),
-  };
-};
+const parseTenantREST = (tenant: TenantREST): Tenant => ({
+  name: tenant.name!,
+  activityStatus: Deserialize.activityStatusREST(tenant.activityStatus),
+});
 
 const tenants = (
   connection: ConnectionGRPC,
@@ -53,9 +51,20 @@ const tenants = (
       return check.supports ? getGRPC() : getREST();
     },
     getByNames: <T extends TenantBase>(tenants: (string | T)[]) => getGRPC(tenants.map(parseStringOrTenant)),
-    getByName: <T extends TenantBase>(tenant: string | T) => {
+    getByName: async <T extends TenantBase>(tenant: string | T) => {
       const tenantName = parseStringOrTenant(tenant);
-      return getGRPC([tenantName]).then((tenants) => tenants[tenantName] || null);
+      if (await dbVersionSupport.supportsTenantGetRESTMethod().then((check) => !check.supports)) {
+        return getGRPC([tenantName]).then((tenants) => tenants[tenantName] ?? null);
+      }
+      return connection
+        .get<TenantREST>(`/schema/${collection}/tenants/${tenantName}`)
+        .then(parseTenantREST)
+        .catch((err) => {
+          if (err instanceof WeaviateUnexpectedStatusCodeError && err.code === 404) {
+            return null;
+          }
+          throw err;
+        });
     },
     remove: <T extends TenantBase>(tenants: string | T | (string | T)[]) =>
       new TenantsDeleter(

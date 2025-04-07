@@ -115,11 +115,9 @@ export default class ConnectionREST {
 
   postReturn = <B, T>(path: string, payload: B): Promise<T> => {
     if (this.authEnabled) {
-      return this.login().then((token) =>
-        this.http.post<B, T>(path, payload, true, token).then((res) => res as T)
-      );
+      return this.login().then((token) => this.http.post<B, T>(path, payload, true, token) as T);
     }
-    return this.http.post<B, T>(path, payload, true, '').then((res) => res as T);
+    return this.http.post<B, T>(path, payload, true, '') as Promise<T>;
   };
 
   postEmpty = <B>(path: string, payload: B): Promise<void> => {
@@ -243,11 +241,11 @@ export const httpClient = (config: InternalConnectionParams): HttpClient => {
         headers: {
           ...config.headers,
           'content-type': 'application/json',
+          ...getAuthHeaders(config, bearerToken),
         },
         body: JSON.stringify(payload),
         agent: config.agent,
       };
-      addAuthHeaderIfNeeded(request, bearerToken);
       return fetchWithTimeout(url(path), config.timeout?.insert || 90, request).then(
         checkStatus<T>(expectReturnContent)
       );
@@ -263,11 +261,11 @@ export const httpClient = (config: InternalConnectionParams): HttpClient => {
         headers: {
           ...config.headers,
           'content-type': 'application/json',
+          ...getAuthHeaders(config, bearerToken),
         },
         body: JSON.stringify(payload),
         agent: config.agent,
       };
-      addAuthHeaderIfNeeded(request, bearerToken);
       return fetchWithTimeout(url(path), config.timeout?.insert || 90, request).then(
         checkStatus<T>(expectReturnContent)
       );
@@ -278,11 +276,11 @@ export const httpClient = (config: InternalConnectionParams): HttpClient => {
         headers: {
           ...config.headers,
           'content-type': 'application/json',
+          ...getAuthHeaders(config, bearerToken),
         },
         body: JSON.stringify(payload),
         agent: config.agent,
       };
-      addAuthHeaderIfNeeded(request, bearerToken);
       return fetchWithTimeout(url(path), config.timeout?.insert || 90, request).then(checkStatus<T>(false));
     },
     delete: <B>(path: string, payload: B | null = null, expectReturnContent = false, bearerToken = '') => {
@@ -291,11 +289,11 @@ export const httpClient = (config: InternalConnectionParams): HttpClient => {
         headers: {
           ...config.headers,
           'content-type': 'application/json',
+          ...getAuthHeaders(config, bearerToken),
         },
         body: payload ? JSON.stringify(payload) : undefined,
         agent: config.agent,
       };
-      addAuthHeaderIfNeeded(request, bearerToken);
       return fetchWithTimeout(url(path), config.timeout?.insert || 90, request).then(
         checkStatus<undefined>(expectReturnContent)
       );
@@ -306,11 +304,11 @@ export const httpClient = (config: InternalConnectionParams): HttpClient => {
         headers: {
           ...config.headers,
           'content-type': 'application/json',
+          ...getAuthHeaders(config, bearerToken),
         },
         body: payload ? JSON.stringify(payload) : undefined,
         agent: config.agent,
       };
-      addAuthHeaderIfNeeded(request, bearerToken);
       return fetchWithTimeout(url(path), config.timeout?.query || 30, request).then(
         handleHeadResponse<undefined>(false)
       );
@@ -320,10 +318,10 @@ export const httpClient = (config: InternalConnectionParams): HttpClient => {
         method: 'GET',
         headers: {
           ...config.headers,
+          ...getAuthHeaders(config, bearerToken),
         },
         agent: config.agent,
       };
-      addAuthHeaderIfNeeded(request, bearerToken);
       return fetchWithTimeout(url(path), config.timeout?.query || 30, request).then(
         checkStatus<any>(expectReturnContent)
       );
@@ -334,10 +332,10 @@ export const httpClient = (config: InternalConnectionParams): HttpClient => {
         method: 'GET',
         headers: {
           ...config.headers,
+          ...getAuthHeaders(config, bearerToken),
         },
         agent: config.agent,
       };
-      addAuthHeaderIfNeeded(request, bearerToken);
       return fetchWithTimeout(url(path), config.timeout?.query || 30, request);
     },
     externalGet: (externalUrl: string) => {
@@ -406,8 +404,12 @@ const handleHeadResponse =
     return checkStatus<T>(expectResponseBody)(res);
   };
 
-function addAuthHeaderIfNeeded(request: any, bearerToken: string) {
-  if (bearerToken !== '') {
-    request.headers.Authorization = `Bearer ${bearerToken}`;
-  }
-}
+const getAuthHeaders = (config: InternalConnectionParams, bearerToken: string) =>
+  bearerToken
+    ? {
+        Authorization: `Bearer ${bearerToken}`,
+        'X-Weaviate-Cluster-Url': config.host,
+        //  keeping for backwards compatibility for older clusters for now. On newer clusters, Embedding Service reuses Authorization header.
+        'X-Weaviate-Api-Key': bearerToken,
+      }
+    : undefined;
