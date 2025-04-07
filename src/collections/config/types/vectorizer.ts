@@ -35,6 +35,7 @@ export type Vectorizer =
   | 'text2vec-gpt4all'
   | 'text2vec-huggingface'
   | 'text2vec-jinaai'
+  | 'text2vec-nvidia'
   | 'text2vec-mistral'
   | 'text2vec-ollama'
   | 'text2vec-openai'
@@ -169,6 +170,8 @@ export type Multi2VecGoogleConfig = {
   textFields?: string[];
   /** The video fields used when vectorizing. */
   videoFields?: string[];
+  /** Length of a video interval in seconds. */
+  videoIntervalSeconds?: number;
   /** The model ID in use. */
   modelId?: string;
   /** The dimensionality of the vector once embedded. */
@@ -223,6 +226,8 @@ export type Multi2VecVoyageAIConfig = {
   imageFields?: string[];
   /** The model to use. */
   model?: string;
+  /** How the output from the model should be encoded on return. */
+  outputEncoding?: string;
   /** The text fields used when vectorizing. */
   textFields?: string[];
   /** Whether the input should be truncated to fit in the context window. */
@@ -364,6 +369,22 @@ export type Text2VecJinaAIConfig = {
 export type Text2VecJinaConfig = Text2VecJinaAIConfig;
 
 /**
+ * The configuration for text vectorization using the Nvidia module.
+ *
+ * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/nvidia/embeddings) for detailed usage.
+ */
+export type Text2VecNvidiaConfig = {
+  /** The base URL to use where API requests should go. */
+  baseURL?: string;
+  /** The model to use. */
+  model?: string;
+  /** Whether to truncate when vectorising. */
+  truncate?: boolean;
+  /** Whether to vectorize the collection name. */
+  vectorizeCollectionName?: boolean;
+};
+
+/**
  * The configuration for text vectorization using the Mistral module.
  *
  * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/mistral/embeddings) for detailed usage.
@@ -475,7 +496,7 @@ export type Text2VecWeaviateConfig = {
   /** The dimensionality of the vector once embedded. */
   dimensions?: number;
   /** The model to use. */
-  model?: 'Snowflake/snowflake-arctic-embed-m-v1.5' | string;
+  model?: 'Snowflake/snowflake-arctic-embed-l-v2.0' | 'Snowflake/snowflake-arctic-embed-m-v1.5' | string;
   /** Whether to vectorize the collection name. */
   vectorizeCollectionName?: boolean;
 };
@@ -541,6 +562,8 @@ export type VectorizerConfigType<V> = V extends 'img2vec-neural'
   ? Text2VecHuggingFaceConfig | undefined
   : V extends 'text2vec-jinaai'
   ? Text2VecJinaAIConfig | undefined
+  : V extends 'text2vec-nvidia'
+  ? Text2VecNvidiaConfig | undefined
   : V extends 'text2vec-mistral'
   ? Text2VecMistralConfig | undefined
   : V extends 'text2vec-ollama'

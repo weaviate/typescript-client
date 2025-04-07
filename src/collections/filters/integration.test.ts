@@ -32,7 +32,7 @@ describe('Testing of the filter class with a simple collection', () => {
 
   beforeAll(async () => {
     client = await weaviate.connectToLocal();
-    collection = client.collections.get(collectionName);
+    collection = client.collections.use(collectionName);
     ids = await client.collections
       .create({
         name: collectionName,
@@ -111,8 +111,8 @@ describe('Testing of the filter class with a simple collection', () => {
   });
 
   it('should filter a fetch objects query with a single filter and non-generic collection', async () => {
-    const res = await client.collections.get(collectionName).query.fetchObjects({
-      filters: client.collections.get(collectionName).filter.byProperty('text').equal('two'),
+    const res = await client.collections.use(collectionName).query.fetchObjects({
+      filters: client.collections.use(collectionName).filter.byProperty('text').equal('two'),
     });
     expect(res.objects.length).toEqual(1);
     const obj = res.objects[0];
@@ -295,7 +295,7 @@ describe('Testing of the filter class with complex data types', () => {
 
   beforeAll(async () => {
     client = await weaviate.connectToLocal();
-    collection = client.collections.get(collectionName);
+    collection = client.collections.use(collectionName);
     await client.collections
       .create<TestCollectionFilterComplex>({
         name: collectionName,

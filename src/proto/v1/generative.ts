@@ -52,6 +52,7 @@ export interface GenerativeProvider {
   databricks?: GenerativeDatabricks | undefined;
   friendliai?: GenerativeFriendliAI | undefined;
   nvidia?: GenerativeNvidia | undefined;
+  xai?: GenerativeXAI | undefined;
 }
 
 export interface GenerativeAnthropic {
@@ -63,6 +64,7 @@ export interface GenerativeAnthropic {
   topP?: number | undefined;
   stopSequences?: TextArray | undefined;
   images?: TextArray | undefined;
+  imageProperties?: TextArray | undefined;
 }
 
 export interface GenerativeAnyscale {
@@ -80,6 +82,7 @@ export interface GenerativeAWS {
   targetModel?: string | undefined;
   targetVariant?: string | undefined;
   images?: TextArray | undefined;
+  imageProperties?: TextArray | undefined;
 }
 
 export interface GenerativeCohere {
@@ -110,12 +113,13 @@ export interface GenerativeOllama {
   model?: string | undefined;
   temperature?: number | undefined;
   images?: TextArray | undefined;
+  imageProperties?: TextArray | undefined;
 }
 
 export interface GenerativeOpenAI {
   frequencyPenalty?: number | undefined;
   maxTokens?: number | undefined;
-  model: string;
+  model?: string | undefined;
   n?: number | undefined;
   presencePenalty?: number | undefined;
   stop?: TextArray | undefined;
@@ -127,6 +131,7 @@ export interface GenerativeOpenAI {
   deploymentId?: string | undefined;
   isAzure?: boolean | undefined;
   images?: TextArray | undefined;
+  imageProperties?: TextArray | undefined;
 }
 
 export interface GenerativeGoogle {
@@ -143,6 +148,7 @@ export interface GenerativeGoogle {
   endpointId?: string | undefined;
   region?: string | undefined;
   images?: TextArray | undefined;
+  imageProperties?: TextArray | undefined;
 }
 
 export interface GenerativeDatabricks {
@@ -174,6 +180,16 @@ export interface GenerativeNvidia {
   temperature?: number | undefined;
   topP?: number | undefined;
   maxTokens?: number | undefined;
+}
+
+export interface GenerativeXAI {
+  baseUrl?: string | undefined;
+  model?: string | undefined;
+  temperature?: number | undefined;
+  topP?: number | undefined;
+  maxTokens?: number | undefined;
+  images?: TextArray | undefined;
+  imageProperties?: TextArray | undefined;
 }
 
 export interface GenerativeAnthropicMetadata {
@@ -297,6 +313,16 @@ export interface GenerativeNvidiaMetadata_Usage {
   totalTokens?: number | undefined;
 }
 
+export interface GenerativeXAIMetadata {
+  usage?: GenerativeXAIMetadata_Usage | undefined;
+}
+
+export interface GenerativeXAIMetadata_Usage {
+  promptTokens?: number | undefined;
+  completionTokens?: number | undefined;
+  totalTokens?: number | undefined;
+}
+
 export interface GenerativeMetadata {
   anthropic?: GenerativeAnthropicMetadata | undefined;
   anyscale?: GenerativeAnyscaleMetadata | undefined;
@@ -310,6 +336,7 @@ export interface GenerativeMetadata {
   databricks?: GenerativeDatabricksMetadata | undefined;
   friendliai?: GenerativeFriendliAIMetadata | undefined;
   nvidia?: GenerativeNvidiaMetadata | undefined;
+  xai?: GenerativeXAIMetadata | undefined;
 }
 
 export interface GenerativeReply {
@@ -656,6 +683,7 @@ function createBaseGenerativeProvider(): GenerativeProvider {
     databricks: undefined,
     friendliai: undefined,
     nvidia: undefined,
+    xai: undefined,
   };
 }
 
@@ -699,6 +727,9 @@ export const GenerativeProvider = {
     }
     if (message.nvidia !== undefined) {
       GenerativeNvidia.encode(message.nvidia, writer.uint32(106).fork()).ldelim();
+    }
+    if (message.xai !== undefined) {
+      GenerativeXAI.encode(message.xai, writer.uint32(114).fork()).ldelim();
     }
     return writer;
   },
@@ -801,6 +832,13 @@ export const GenerativeProvider = {
 
           message.nvidia = GenerativeNvidia.decode(reader, reader.uint32());
           continue;
+        case 14:
+          if (tag !== 114) {
+            break;
+          }
+
+          message.xai = GenerativeXAI.decode(reader, reader.uint32());
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -825,6 +863,7 @@ export const GenerativeProvider = {
       databricks: isSet(object.databricks) ? GenerativeDatabricks.fromJSON(object.databricks) : undefined,
       friendliai: isSet(object.friendliai) ? GenerativeFriendliAI.fromJSON(object.friendliai) : undefined,
       nvidia: isSet(object.nvidia) ? GenerativeNvidia.fromJSON(object.nvidia) : undefined,
+      xai: isSet(object.xai) ? GenerativeXAI.fromJSON(object.xai) : undefined,
     };
   },
 
@@ -869,6 +908,9 @@ export const GenerativeProvider = {
     if (message.nvidia !== undefined) {
       obj.nvidia = GenerativeNvidia.toJSON(message.nvidia);
     }
+    if (message.xai !== undefined) {
+      obj.xai = GenerativeXAI.toJSON(message.xai);
+    }
     return obj;
   },
 
@@ -912,6 +954,7 @@ export const GenerativeProvider = {
     message.nvidia = (object.nvidia !== undefined && object.nvidia !== null)
       ? GenerativeNvidia.fromPartial(object.nvidia)
       : undefined;
+    message.xai = (object.xai !== undefined && object.xai !== null) ? GenerativeXAI.fromPartial(object.xai) : undefined;
     return message;
   },
 };
@@ -926,6 +969,7 @@ function createBaseGenerativeAnthropic(): GenerativeAnthropic {
     topP: undefined,
     stopSequences: undefined,
     images: undefined,
+    imageProperties: undefined,
   };
 }
 
@@ -954,6 +998,9 @@ export const GenerativeAnthropic = {
     }
     if (message.images !== undefined) {
       TextArray.encode(message.images, writer.uint32(66).fork()).ldelim();
+    }
+    if (message.imageProperties !== undefined) {
+      TextArray.encode(message.imageProperties, writer.uint32(74).fork()).ldelim();
     }
     return writer;
   },
@@ -1021,6 +1068,13 @@ export const GenerativeAnthropic = {
 
           message.images = TextArray.decode(reader, reader.uint32());
           continue;
+        case 9:
+          if (tag !== 74) {
+            break;
+          }
+
+          message.imageProperties = TextArray.decode(reader, reader.uint32());
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1040,6 +1094,7 @@ export const GenerativeAnthropic = {
       topP: isSet(object.topP) ? globalThis.Number(object.topP) : undefined,
       stopSequences: isSet(object.stopSequences) ? TextArray.fromJSON(object.stopSequences) : undefined,
       images: isSet(object.images) ? TextArray.fromJSON(object.images) : undefined,
+      imageProperties: isSet(object.imageProperties) ? TextArray.fromJSON(object.imageProperties) : undefined,
     };
   },
 
@@ -1069,6 +1124,9 @@ export const GenerativeAnthropic = {
     if (message.images !== undefined) {
       obj.images = TextArray.toJSON(message.images);
     }
+    if (message.imageProperties !== undefined) {
+      obj.imageProperties = TextArray.toJSON(message.imageProperties);
+    }
     return obj;
   },
 
@@ -1088,6 +1146,9 @@ export const GenerativeAnthropic = {
       : undefined;
     message.images = (object.images !== undefined && object.images !== null)
       ? TextArray.fromPartial(object.images)
+      : undefined;
+    message.imageProperties = (object.imageProperties !== undefined && object.imageProperties !== null)
+      ? TextArray.fromPartial(object.imageProperties)
       : undefined;
     return message;
   },
@@ -1192,6 +1253,7 @@ function createBaseGenerativeAWS(): GenerativeAWS {
     targetModel: undefined,
     targetVariant: undefined,
     images: undefined,
+    imageProperties: undefined,
   };
 }
 
@@ -1220,6 +1282,9 @@ export const GenerativeAWS = {
     }
     if (message.images !== undefined) {
       TextArray.encode(message.images, writer.uint32(114).fork()).ldelim();
+    }
+    if (message.imageProperties !== undefined) {
+      TextArray.encode(message.imageProperties, writer.uint32(122).fork()).ldelim();
     }
     return writer;
   },
@@ -1287,6 +1352,13 @@ export const GenerativeAWS = {
 
           message.images = TextArray.decode(reader, reader.uint32());
           continue;
+        case 15:
+          if (tag !== 122) {
+            break;
+          }
+
+          message.imageProperties = TextArray.decode(reader, reader.uint32());
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1306,6 +1378,7 @@ export const GenerativeAWS = {
       targetModel: isSet(object.targetModel) ? globalThis.String(object.targetModel) : undefined,
       targetVariant: isSet(object.targetVariant) ? globalThis.String(object.targetVariant) : undefined,
       images: isSet(object.images) ? TextArray.fromJSON(object.images) : undefined,
+      imageProperties: isSet(object.imageProperties) ? TextArray.fromJSON(object.imageProperties) : undefined,
     };
   },
 
@@ -1335,6 +1408,9 @@ export const GenerativeAWS = {
     if (message.images !== undefined) {
       obj.images = TextArray.toJSON(message.images);
     }
+    if (message.imageProperties !== undefined) {
+      obj.imageProperties = TextArray.toJSON(message.imageProperties);
+    }
     return obj;
   },
 
@@ -1352,6 +1428,9 @@ export const GenerativeAWS = {
     message.targetVariant = object.targetVariant ?? undefined;
     message.images = (object.images !== undefined && object.images !== null)
       ? TextArray.fromPartial(object.images)
+      : undefined;
+    message.imageProperties = (object.imageProperties !== undefined && object.imageProperties !== null)
+      ? TextArray.fromPartial(object.imageProperties)
       : undefined;
     return message;
   },
@@ -1711,7 +1790,13 @@ export const GenerativeMistral = {
 };
 
 function createBaseGenerativeOllama(): GenerativeOllama {
-  return { apiEndpoint: undefined, model: undefined, temperature: undefined, images: undefined };
+  return {
+    apiEndpoint: undefined,
+    model: undefined,
+    temperature: undefined,
+    images: undefined,
+    imageProperties: undefined,
+  };
 }
 
 export const GenerativeOllama = {
@@ -1727,6 +1812,9 @@ export const GenerativeOllama = {
     }
     if (message.images !== undefined) {
       TextArray.encode(message.images, writer.uint32(34).fork()).ldelim();
+    }
+    if (message.imageProperties !== undefined) {
+      TextArray.encode(message.imageProperties, writer.uint32(42).fork()).ldelim();
     }
     return writer;
   },
@@ -1766,6 +1854,13 @@ export const GenerativeOllama = {
 
           message.images = TextArray.decode(reader, reader.uint32());
           continue;
+        case 5:
+          if (tag !== 42) {
+            break;
+          }
+
+          message.imageProperties = TextArray.decode(reader, reader.uint32());
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1781,6 +1876,7 @@ export const GenerativeOllama = {
       model: isSet(object.model) ? globalThis.String(object.model) : undefined,
       temperature: isSet(object.temperature) ? globalThis.Number(object.temperature) : undefined,
       images: isSet(object.images) ? TextArray.fromJSON(object.images) : undefined,
+      imageProperties: isSet(object.imageProperties) ? TextArray.fromJSON(object.imageProperties) : undefined,
     };
   },
 
@@ -1798,6 +1894,9 @@ export const GenerativeOllama = {
     if (message.images !== undefined) {
       obj.images = TextArray.toJSON(message.images);
     }
+    if (message.imageProperties !== undefined) {
+      obj.imageProperties = TextArray.toJSON(message.imageProperties);
+    }
     return obj;
   },
 
@@ -1812,6 +1911,9 @@ export const GenerativeOllama = {
     message.images = (object.images !== undefined && object.images !== null)
       ? TextArray.fromPartial(object.images)
       : undefined;
+    message.imageProperties = (object.imageProperties !== undefined && object.imageProperties !== null)
+      ? TextArray.fromPartial(object.imageProperties)
+      : undefined;
     return message;
   },
 };
@@ -1820,7 +1922,7 @@ function createBaseGenerativeOpenAI(): GenerativeOpenAI {
   return {
     frequencyPenalty: undefined,
     maxTokens: undefined,
-    model: "",
+    model: undefined,
     n: undefined,
     presencePenalty: undefined,
     stop: undefined,
@@ -1832,6 +1934,7 @@ function createBaseGenerativeOpenAI(): GenerativeOpenAI {
     deploymentId: undefined,
     isAzure: undefined,
     images: undefined,
+    imageProperties: undefined,
   };
 }
 
@@ -1843,7 +1946,7 @@ export const GenerativeOpenAI = {
     if (message.maxTokens !== undefined) {
       writer.uint32(16).int64(message.maxTokens);
     }
-    if (message.model !== "") {
+    if (message.model !== undefined) {
       writer.uint32(26).string(message.model);
     }
     if (message.n !== undefined) {
@@ -1878,6 +1981,9 @@ export const GenerativeOpenAI = {
     }
     if (message.images !== undefined) {
       TextArray.encode(message.images, writer.uint32(114).fork()).ldelim();
+    }
+    if (message.imageProperties !== undefined) {
+      TextArray.encode(message.imageProperties, writer.uint32(122).fork()).ldelim();
     }
     return writer;
   },
@@ -1987,6 +2093,13 @@ export const GenerativeOpenAI = {
 
           message.images = TextArray.decode(reader, reader.uint32());
           continue;
+        case 15:
+          if (tag !== 122) {
+            break;
+          }
+
+          message.imageProperties = TextArray.decode(reader, reader.uint32());
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -2000,7 +2113,7 @@ export const GenerativeOpenAI = {
     return {
       frequencyPenalty: isSet(object.frequencyPenalty) ? globalThis.Number(object.frequencyPenalty) : undefined,
       maxTokens: isSet(object.maxTokens) ? globalThis.Number(object.maxTokens) : undefined,
-      model: isSet(object.model) ? globalThis.String(object.model) : "",
+      model: isSet(object.model) ? globalThis.String(object.model) : undefined,
       n: isSet(object.n) ? globalThis.Number(object.n) : undefined,
       presencePenalty: isSet(object.presencePenalty) ? globalThis.Number(object.presencePenalty) : undefined,
       stop: isSet(object.stop) ? TextArray.fromJSON(object.stop) : undefined,
@@ -2012,6 +2125,7 @@ export const GenerativeOpenAI = {
       deploymentId: isSet(object.deploymentId) ? globalThis.String(object.deploymentId) : undefined,
       isAzure: isSet(object.isAzure) ? globalThis.Boolean(object.isAzure) : undefined,
       images: isSet(object.images) ? TextArray.fromJSON(object.images) : undefined,
+      imageProperties: isSet(object.imageProperties) ? TextArray.fromJSON(object.imageProperties) : undefined,
     };
   },
 
@@ -2023,7 +2137,7 @@ export const GenerativeOpenAI = {
     if (message.maxTokens !== undefined) {
       obj.maxTokens = Math.round(message.maxTokens);
     }
-    if (message.model !== "") {
+    if (message.model !== undefined) {
       obj.model = message.model;
     }
     if (message.n !== undefined) {
@@ -2059,6 +2173,9 @@ export const GenerativeOpenAI = {
     if (message.images !== undefined) {
       obj.images = TextArray.toJSON(message.images);
     }
+    if (message.imageProperties !== undefined) {
+      obj.imageProperties = TextArray.toJSON(message.imageProperties);
+    }
     return obj;
   },
 
@@ -2069,7 +2186,7 @@ export const GenerativeOpenAI = {
     const message = createBaseGenerativeOpenAI();
     message.frequencyPenalty = object.frequencyPenalty ?? undefined;
     message.maxTokens = object.maxTokens ?? undefined;
-    message.model = object.model ?? "";
+    message.model = object.model ?? undefined;
     message.n = object.n ?? undefined;
     message.presencePenalty = object.presencePenalty ?? undefined;
     message.stop = (object.stop !== undefined && object.stop !== null) ? TextArray.fromPartial(object.stop) : undefined;
@@ -2082,6 +2199,9 @@ export const GenerativeOpenAI = {
     message.isAzure = object.isAzure ?? undefined;
     message.images = (object.images !== undefined && object.images !== null)
       ? TextArray.fromPartial(object.images)
+      : undefined;
+    message.imageProperties = (object.imageProperties !== undefined && object.imageProperties !== null)
+      ? TextArray.fromPartial(object.imageProperties)
       : undefined;
     return message;
   },
@@ -2102,6 +2222,7 @@ function createBaseGenerativeGoogle(): GenerativeGoogle {
     endpointId: undefined,
     region: undefined,
     images: undefined,
+    imageProperties: undefined,
   };
 }
 
@@ -2145,6 +2266,9 @@ export const GenerativeGoogle = {
     }
     if (message.images !== undefined) {
       TextArray.encode(message.images, writer.uint32(106).fork()).ldelim();
+    }
+    if (message.imageProperties !== undefined) {
+      TextArray.encode(message.imageProperties, writer.uint32(114).fork()).ldelim();
     }
     return writer;
   },
@@ -2247,6 +2371,13 @@ export const GenerativeGoogle = {
 
           message.images = TextArray.decode(reader, reader.uint32());
           continue;
+        case 14:
+          if (tag !== 114) {
+            break;
+          }
+
+          message.imageProperties = TextArray.decode(reader, reader.uint32());
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -2271,6 +2402,7 @@ export const GenerativeGoogle = {
       endpointId: isSet(object.endpointId) ? globalThis.String(object.endpointId) : undefined,
       region: isSet(object.region) ? globalThis.String(object.region) : undefined,
       images: isSet(object.images) ? TextArray.fromJSON(object.images) : undefined,
+      imageProperties: isSet(object.imageProperties) ? TextArray.fromJSON(object.imageProperties) : undefined,
     };
   },
 
@@ -2315,6 +2447,9 @@ export const GenerativeGoogle = {
     if (message.images !== undefined) {
       obj.images = TextArray.toJSON(message.images);
     }
+    if (message.imageProperties !== undefined) {
+      obj.imageProperties = TextArray.toJSON(message.imageProperties);
+    }
     return obj;
   },
 
@@ -2339,6 +2474,9 @@ export const GenerativeGoogle = {
     message.region = object.region ?? undefined;
     message.images = (object.images !== undefined && object.images !== null)
       ? TextArray.fromPartial(object.images)
+      : undefined;
+    message.imageProperties = (object.imageProperties !== undefined && object.imageProperties !== null)
+      ? TextArray.fromPartial(object.imageProperties)
       : undefined;
     return message;
   },
@@ -2821,6 +2959,167 @@ export const GenerativeNvidia = {
     message.temperature = object.temperature ?? undefined;
     message.topP = object.topP ?? undefined;
     message.maxTokens = object.maxTokens ?? undefined;
+    return message;
+  },
+};
+
+function createBaseGenerativeXAI(): GenerativeXAI {
+  return {
+    baseUrl: undefined,
+    model: undefined,
+    temperature: undefined,
+    topP: undefined,
+    maxTokens: undefined,
+    images: undefined,
+    imageProperties: undefined,
+  };
+}
+
+export const GenerativeXAI = {
+  encode(message: GenerativeXAI, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.baseUrl !== undefined) {
+      writer.uint32(10).string(message.baseUrl);
+    }
+    if (message.model !== undefined) {
+      writer.uint32(18).string(message.model);
+    }
+    if (message.temperature !== undefined) {
+      writer.uint32(25).double(message.temperature);
+    }
+    if (message.topP !== undefined) {
+      writer.uint32(33).double(message.topP);
+    }
+    if (message.maxTokens !== undefined) {
+      writer.uint32(40).int64(message.maxTokens);
+    }
+    if (message.images !== undefined) {
+      TextArray.encode(message.images, writer.uint32(50).fork()).ldelim();
+    }
+    if (message.imageProperties !== undefined) {
+      TextArray.encode(message.imageProperties, writer.uint32(58).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): GenerativeXAI {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGenerativeXAI();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.baseUrl = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.model = reader.string();
+          continue;
+        case 3:
+          if (tag !== 25) {
+            break;
+          }
+
+          message.temperature = reader.double();
+          continue;
+        case 4:
+          if (tag !== 33) {
+            break;
+          }
+
+          message.topP = reader.double();
+          continue;
+        case 5:
+          if (tag !== 40) {
+            break;
+          }
+
+          message.maxTokens = longToNumber(reader.int64() as Long);
+          continue;
+        case 6:
+          if (tag !== 50) {
+            break;
+          }
+
+          message.images = TextArray.decode(reader, reader.uint32());
+          continue;
+        case 7:
+          if (tag !== 58) {
+            break;
+          }
+
+          message.imageProperties = TextArray.decode(reader, reader.uint32());
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GenerativeXAI {
+    return {
+      baseUrl: isSet(object.baseUrl) ? globalThis.String(object.baseUrl) : undefined,
+      model: isSet(object.model) ? globalThis.String(object.model) : undefined,
+      temperature: isSet(object.temperature) ? globalThis.Number(object.temperature) : undefined,
+      topP: isSet(object.topP) ? globalThis.Number(object.topP) : undefined,
+      maxTokens: isSet(object.maxTokens) ? globalThis.Number(object.maxTokens) : undefined,
+      images: isSet(object.images) ? TextArray.fromJSON(object.images) : undefined,
+      imageProperties: isSet(object.imageProperties) ? TextArray.fromJSON(object.imageProperties) : undefined,
+    };
+  },
+
+  toJSON(message: GenerativeXAI): unknown {
+    const obj: any = {};
+    if (message.baseUrl !== undefined) {
+      obj.baseUrl = message.baseUrl;
+    }
+    if (message.model !== undefined) {
+      obj.model = message.model;
+    }
+    if (message.temperature !== undefined) {
+      obj.temperature = message.temperature;
+    }
+    if (message.topP !== undefined) {
+      obj.topP = message.topP;
+    }
+    if (message.maxTokens !== undefined) {
+      obj.maxTokens = Math.round(message.maxTokens);
+    }
+    if (message.images !== undefined) {
+      obj.images = TextArray.toJSON(message.images);
+    }
+    if (message.imageProperties !== undefined) {
+      obj.imageProperties = TextArray.toJSON(message.imageProperties);
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<GenerativeXAI>): GenerativeXAI {
+    return GenerativeXAI.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<GenerativeXAI>): GenerativeXAI {
+    const message = createBaseGenerativeXAI();
+    message.baseUrl = object.baseUrl ?? undefined;
+    message.model = object.model ?? undefined;
+    message.temperature = object.temperature ?? undefined;
+    message.topP = object.topP ?? undefined;
+    message.maxTokens = object.maxTokens ?? undefined;
+    message.images = (object.images !== undefined && object.images !== null)
+      ? TextArray.fromPartial(object.images)
+      : undefined;
+    message.imageProperties = (object.imageProperties !== undefined && object.imageProperties !== null)
+      ? TextArray.fromPartial(object.imageProperties)
+      : undefined;
     return message;
   },
 };
@@ -4645,6 +4944,154 @@ export const GenerativeNvidiaMetadata_Usage = {
   },
 };
 
+function createBaseGenerativeXAIMetadata(): GenerativeXAIMetadata {
+  return { usage: undefined };
+}
+
+export const GenerativeXAIMetadata = {
+  encode(message: GenerativeXAIMetadata, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.usage !== undefined) {
+      GenerativeXAIMetadata_Usage.encode(message.usage, writer.uint32(10).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): GenerativeXAIMetadata {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGenerativeXAIMetadata();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.usage = GenerativeXAIMetadata_Usage.decode(reader, reader.uint32());
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GenerativeXAIMetadata {
+    return { usage: isSet(object.usage) ? GenerativeXAIMetadata_Usage.fromJSON(object.usage) : undefined };
+  },
+
+  toJSON(message: GenerativeXAIMetadata): unknown {
+    const obj: any = {};
+    if (message.usage !== undefined) {
+      obj.usage = GenerativeXAIMetadata_Usage.toJSON(message.usage);
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<GenerativeXAIMetadata>): GenerativeXAIMetadata {
+    return GenerativeXAIMetadata.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<GenerativeXAIMetadata>): GenerativeXAIMetadata {
+    const message = createBaseGenerativeXAIMetadata();
+    message.usage = (object.usage !== undefined && object.usage !== null)
+      ? GenerativeXAIMetadata_Usage.fromPartial(object.usage)
+      : undefined;
+    return message;
+  },
+};
+
+function createBaseGenerativeXAIMetadata_Usage(): GenerativeXAIMetadata_Usage {
+  return { promptTokens: undefined, completionTokens: undefined, totalTokens: undefined };
+}
+
+export const GenerativeXAIMetadata_Usage = {
+  encode(message: GenerativeXAIMetadata_Usage, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.promptTokens !== undefined) {
+      writer.uint32(8).int64(message.promptTokens);
+    }
+    if (message.completionTokens !== undefined) {
+      writer.uint32(16).int64(message.completionTokens);
+    }
+    if (message.totalTokens !== undefined) {
+      writer.uint32(24).int64(message.totalTokens);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): GenerativeXAIMetadata_Usage {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGenerativeXAIMetadata_Usage();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 8) {
+            break;
+          }
+
+          message.promptTokens = longToNumber(reader.int64() as Long);
+          continue;
+        case 2:
+          if (tag !== 16) {
+            break;
+          }
+
+          message.completionTokens = longToNumber(reader.int64() as Long);
+          continue;
+        case 3:
+          if (tag !== 24) {
+            break;
+          }
+
+          message.totalTokens = longToNumber(reader.int64() as Long);
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GenerativeXAIMetadata_Usage {
+    return {
+      promptTokens: isSet(object.promptTokens) ? globalThis.Number(object.promptTokens) : undefined,
+      completionTokens: isSet(object.completionTokens) ? globalThis.Number(object.completionTokens) : undefined,
+      totalTokens: isSet(object.totalTokens) ? globalThis.Number(object.totalTokens) : undefined,
+    };
+  },
+
+  toJSON(message: GenerativeXAIMetadata_Usage): unknown {
+    const obj: any = {};
+    if (message.promptTokens !== undefined) {
+      obj.promptTokens = Math.round(message.promptTokens);
+    }
+    if (message.completionTokens !== undefined) {
+      obj.completionTokens = Math.round(message.completionTokens);
+    }
+    if (message.totalTokens !== undefined) {
+      obj.totalTokens = Math.round(message.totalTokens);
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<GenerativeXAIMetadata_Usage>): GenerativeXAIMetadata_Usage {
+    return GenerativeXAIMetadata_Usage.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<GenerativeXAIMetadata_Usage>): GenerativeXAIMetadata_Usage {
+    const message = createBaseGenerativeXAIMetadata_Usage();
+    message.promptTokens = object.promptTokens ?? undefined;
+    message.completionTokens = object.completionTokens ?? undefined;
+    message.totalTokens = object.totalTokens ?? undefined;
+    return message;
+  },
+};
+
 function createBaseGenerativeMetadata(): GenerativeMetadata {
   return {
     anthropic: undefined,
@@ -4659,6 +5106,7 @@ function createBaseGenerativeMetadata(): GenerativeMetadata {
     databricks: undefined,
     friendliai: undefined,
     nvidia: undefined,
+    xai: undefined,
   };
 }
 
@@ -4699,6 +5147,9 @@ export const GenerativeMetadata = {
     }
     if (message.nvidia !== undefined) {
       GenerativeNvidiaMetadata.encode(message.nvidia, writer.uint32(98).fork()).ldelim();
+    }
+    if (message.xai !== undefined) {
+      GenerativeXAIMetadata.encode(message.xai, writer.uint32(106).fork()).ldelim();
     }
     return writer;
   },
@@ -4794,6 +5245,13 @@ export const GenerativeMetadata = {
 
           message.nvidia = GenerativeNvidiaMetadata.decode(reader, reader.uint32());
           continue;
+        case 13:
+          if (tag !== 106) {
+            break;
+          }
+
+          message.xai = GenerativeXAIMetadata.decode(reader, reader.uint32());
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -4817,6 +5275,7 @@ export const GenerativeMetadata = {
       databricks: isSet(object.databricks) ? GenerativeDatabricksMetadata.fromJSON(object.databricks) : undefined,
       friendliai: isSet(object.friendliai) ? GenerativeFriendliAIMetadata.fromJSON(object.friendliai) : undefined,
       nvidia: isSet(object.nvidia) ? GenerativeNvidiaMetadata.fromJSON(object.nvidia) : undefined,
+      xai: isSet(object.xai) ? GenerativeXAIMetadata.fromJSON(object.xai) : undefined,
     };
   },
 
@@ -4857,6 +5316,9 @@ export const GenerativeMetadata = {
     }
     if (message.nvidia !== undefined) {
       obj.nvidia = GenerativeNvidiaMetadata.toJSON(message.nvidia);
+    }
+    if (message.xai !== undefined) {
+      obj.xai = GenerativeXAIMetadata.toJSON(message.xai);
     }
     return obj;
   },
@@ -4901,6 +5363,9 @@ export const GenerativeMetadata = {
       : undefined;
     message.nvidia = (object.nvidia !== undefined && object.nvidia !== null)
       ? GenerativeNvidiaMetadata.fromPartial(object.nvidia)
+      : undefined;
+    message.xai = (object.xai !== undefined && object.xai !== null)
+      ? GenerativeXAIMetadata.fromPartial(object.xai)
       : undefined;
     return message;
   },

@@ -314,7 +314,7 @@ describe('Mock testing of timeout behaviour', () => {
   beforeAll(async () => {
     servers = await makeMockServers('1.29.0', 8954, 'localhost:8955');
     client = await weaviate.connectToLocal({ port: 8954, grpcPort: 8955, timeout: { query: 1, insert: 1 } });
-    collection = client.collections.get(COLLECTION_NAME);
+    collection = client.collections.use(COLLECTION_NAME);
   });
 
   it('should timeout when calling REST GET v1/schema', () =>

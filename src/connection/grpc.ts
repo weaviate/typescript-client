@@ -194,7 +194,7 @@ export const grpcClient = (config: GrpcConnectionParams & { grpcMaxMessageLength
       Batcher.use(
         client,
         collection,
-        new Metadata(bearerToken ? { ...config.headers, authorization: bearerToken } : config.headers),
+        getMetadataWithEmbeddingServiceAuth(config, bearerToken),
         config.timeout?.insert || 90,
         consistencyLevel,
         tenant
@@ -223,7 +223,7 @@ export const grpcClient = (config: GrpcConnectionParams & { grpcMaxMessageLength
       Searcher.use(
         client,
         collection,
-        new Metadata(bearerToken ? { ...config.headers, authorization: bearerToken } : config.headers),
+        getMetadataWithEmbeddingServiceAuth(config, bearerToken),
         config.timeout?.query || 30,
         consistencyLevel,
         tenant
@@ -237,3 +237,16 @@ export const grpcClient = (config: GrpcConnectionParams & { grpcMaxMessageLength
       ),
   };
 };
+
+const getMetadataWithEmbeddingServiceAuth = (config: GrpcConnectionParams, bearerToken?: string) =>
+  new Metadata(
+    bearerToken
+      ? {
+          ...config.headers,
+          authorization: bearerToken,
+          'X-Weaviate-Cluster-Url': config.host,
+          //  keeping for backwards compatibility for older clusters for now. On newer clusters, Embedding Service reuses Authorization header.
+          'X-Weaviate-Api-Key': bearerToken,
+        }
+      : config.headers
+  );

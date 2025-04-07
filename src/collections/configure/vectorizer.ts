@@ -518,6 +518,19 @@ export const vectorizer = {
       },
     });
   },
+  text2VecNvidia: <T, N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
+    opts?: ConfigureTextVectorizerOptions<T, N, I, 'text2vec-nvidia'>
+  ): VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2vec-nvidia'> => {
+    const { name, sourceProperties, vectorIndexConfig, ...config } = opts || {};
+    return makeVectorizer(name, {
+      sourceProperties,
+      vectorIndexConfig,
+      vectorizerConfig: {
+        name: 'text2vec-nvidia',
+        config: Object.keys(config).length === 0 ? undefined : config,
+      },
+    });
+  },
   /**
    * Create a `VectorConfigCreate` object with the vectorizer set to `'text2vec-mistral'`.
    *

@@ -8,11 +8,16 @@ on:
 
 env:
   WEAVIATE_124: 1.24.26
-  WEAVIATE_125: 1.25.30
-  WEAVIATE_126: 1.26.14
-  WEAVIATE_127: 1.27.11
-  WEAVIATE_128: 1.28.4
-  WEAVIATE_129: 1.29.0-rc.1
+  WEAVIATE_125: 1.25.34
+  WEAVIATE_126: 1.26.17
+  WEAVIATE_127: 1.27.15
+  WEAVIATE_128: 1.28.11
+  WEAVIATE_129: 1.29.1
+  WEAVIATE_130: 1.30.0-rc.0-6b9a01c
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   checks:
@@ -29,7 +34,7 @@ jobs:
         npm run format:check
         npm run docs
 
-  tests:
+  tests-without-auth:
     needs: checks
     runs-on: ubuntu-latest
     strategy:
@@ -41,9 +46,41 @@ jobs:
           { node: "22.x", weaviate: $WEAVIATE_126},
           { node: "22.x", weaviate: $WEAVIATE_127},
           { node: "22.x", weaviate: $WEAVIATE_128},
-          { node: "18.x", weaviate: $WEAVIATE_129},
-          { node: "20.x", weaviate: $WEAVIATE_129},
-          { node: "22.x", weaviate: $WEAVIATE_129}
+          { node: "22.x", weaviate: $WEAVIATE_129},
+          { node: "18.x", weaviate: $WEAVIATE_130},
+          { node: "20.x", weaviate: $WEAVIATE_130},
+          { node: "22.x", weaviate: $WEAVIATE_130}
+        ]
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.versions.node }}
+    - name: Login to Docker Hub
+      if: ${{ !github.event.pull_request.head.repo.fork && github.triggering_actor != 'dependabot[bot]' }}
+      uses: docker/login-action@v3
+      with:
+        username: ${{secrets.DOCKER_USERNAME}}
+        password: ${{secrets.DOCKER_PASSWORD}}
+    - name: "Install dependencies"
+      run: |
+        npm ci
+        ci/run_dependencies.sh ${{ matrix.versions.weaviate }}
+    - name: "Run tests without authentication tests"
+      run: WEAVIATE_VERSION=${{ matrix.versions.weaviate }} npm test
+    - name: "Transpile the package"
+      run: npm run build
+    - name: "Stop Weaviate"
+      run: ci/stop_dependencies.sh ${{ matrix.versions.weaviate }}
+
+  tests-with-auth:
+    needs: checks
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        versions: [
+          { node: "22.x", weaviate: $WEAVIATE_130}
         ]
     steps:
     - uses: actions/checkout@v3
@@ -68,16 +105,11 @@ jobs:
         AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
         OKTA_CLIENT_SECRET: ${{ secrets.OKTA_CLIENT_SECRET }}
       run: WEAVIATE_VERSION=${{ matrix.versions.weaviate }} npm test
-    - name: "Run tests without authentication tests (for forks)"
-      if: ${{ github.event.pull_request.head.repo.fork }}
-      run: WEAVIATE_VERSION=${{ matrix.versions.weaviate }} npm test
-    - name: "Transpile the package"
-      run: npm run build
     - name: "Stop Weaviate"
       run: ci/stop_dependencies.sh ${{ matrix.versions.weaviate }}
 
   publish:
-    needs: tests
+    needs: [tests-with-auth, tests-without-auth]
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
     runs-on: ubuntu-latest
     permissions:

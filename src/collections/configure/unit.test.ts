@@ -10,6 +10,7 @@ import {
   GenerativeMistralConfig,
   GenerativeOllamaConfig,
   GenerativeOpenAIConfig,
+  GenerativeXAIConfig,
   ModuleConfig,
   VectorConfigCreate,
 } from '../types/index.js';
@@ -1181,6 +1182,47 @@ describe('Unit testing of the vectorizer factory class', () => {
     });
   });
 
+  it('should create the correct Text2VecNvidiaConfig type with defaults', () => {
+    const config = configure.vectorizer.text2VecNvidia();
+    expect(config).toEqual<VectorConfigCreate<never, undefined, 'hnsw', 'text2vec-nvidia'>>({
+      name: undefined,
+      vectorIndex: {
+        name: 'hnsw',
+        config: undefined,
+      },
+      vectorizer: {
+        name: 'text2vec-nvidia',
+        config: undefined,
+      },
+    });
+  });
+
+  it('should create the correct Text2VecNvidiaConfig type with all values', () => {
+    const config = configure.vectorizer.text2VecNvidia({
+      name: 'test',
+      baseURL: 'base-url',
+      model: 'model',
+      truncate: true,
+      vectorizeCollectionName: true,
+    });
+    expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'text2vec-nvidia'>>({
+      name: 'test',
+      vectorIndex: {
+        name: 'hnsw',
+        config: undefined,
+      },
+      vectorizer: {
+        name: 'text2vec-nvidia',
+        config: {
+          baseURL: 'base-url',
+          model: 'model',
+          truncate: true,
+          vectorizeCollectionName: true,
+        },
+      },
+    });
+  });
+
   it('should create the correct Text2VecMistralConfig type with defaults', () => {
     const config = configure.vectorizer.text2VecMistral();
     expect(config).toEqual<VectorConfigCreate<never, undefined, 'hnsw', 'text2vec-mistral'>>({
@@ -1791,6 +1833,34 @@ describe('Unit testing of the generative factory class', () => {
         presencePenaltyProperty: 0.3,
         temperatureProperty: 0.7,
         topPProperty: 0.8,
+      },
+    });
+  });
+
+  it('should create the correct GenerativeXAIConfig type with required & default values', () => {
+    const config = configure.generative.xai();
+    expect(config).toEqual<ModuleConfig<'generative-xai', GenerativeXAIConfig | undefined>>({
+      name: 'generative-xai',
+      config: undefined,
+    });
+  });
+
+  it('should create the correct GenerativeXAIConfig type with all values', () => {
+    const config = configure.generative.xai({
+      baseURL: 'base-url',
+      maxTokens: 100,
+      model: 'model',
+      temperature: 0.5,
+      topP: 0.8,
+    });
+    expect(config).toEqual<ModuleConfig<'generative-xai', GenerativeXAIConfig | undefined>>({
+      name: 'generative-xai',
+      config: {
+        baseURL: 'base-url',
+        maxTokens: 100,
+        model: 'model',
+        temperature: 0.5,
+        topP: 0.8,
       },
     });
   });

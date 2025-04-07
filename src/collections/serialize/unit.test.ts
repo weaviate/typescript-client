@@ -506,12 +506,15 @@ describe('Unit testing of Serialize', () => {
     });
   });
 
-  it('should parse args for generative', () => {
-    const args = Serialize.generative({
-      singlePrompt: 'test',
-      groupedProperties: ['name'],
-      groupedTask: 'testing',
-    });
+  it('should parse args for generative', async () => {
+    const args = await Serialize.generative(
+      { supportsSingleGrouped: false },
+      {
+        singlePrompt: 'test',
+        groupedProperties: ['name'],
+        groupedTask: 'testing',
+      }
+    );
     expect(args).toEqual<GenerativeSearch>({
       singleResponsePrompt: 'test',
       groupedProperties: ['name'],
