@@ -147,11 +147,12 @@ const users = (connection: ConnectionREST): Users => {
 const db = (connection: ConnectionREST): DBUsers => {
   const ns = namespacedUsers(connection);
 
-  /** expectCode returns true if the error contained an expected status code. */
+  /** expectCode returns false if the contained WeaviateUnexpectedStatusCodeError
+   * has an known error code and rethrows the error otherwise. */
   const expectCode = (code: number): ((_: any) => boolean) => {
     return (error) => {
-      if (error instanceof WeaviateUnexpectedStatusCodeError) {
-        return error.code === code;
+      if (error instanceof WeaviateUnexpectedStatusCodeError && error.code === code) {
+        return false;
       }
       throw error;
     };
