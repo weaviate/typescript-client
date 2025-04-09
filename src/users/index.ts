@@ -50,6 +50,8 @@ export interface Users extends UsersBase {
    *
    * @param {string} userId The ID of the user to retrieve the assigned roles for.
    * @returns {Promise<Record<string, Role>>} A map of role names to their respective roles.
+   *
+   * @deprecated: Use `users.db.getAssignedRoles` or `users.oidc.getAssignedRoles` instead.
    */
   getAssignedRoles: (userId: string) => Promise<Record<string, Role>>;
 
