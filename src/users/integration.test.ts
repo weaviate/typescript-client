@@ -79,16 +79,22 @@ requireAtLeast(
       await expectDave().toHaveProperty('active', true);
 
       // Second activation is a no-op
-      await expect(client.users.db.activate('dynamic-dave')).resolves.toEqual(true);
+      await expect(client.users.db.activate('dynamic-dave')).resolves.toEqual(false);
 
-      await client.users.db.deactivate('dynamic-dave');
+      await expect(client.users.db.deactivate('dynamic-dave')).resolves.toEqual(true);
       await expectDave().toHaveProperty('active', false);
 
       // Second deactivation is a no-op
-      await expect(client.users.db.deactivate('dynamic-dave', { revokeKey: true })).resolves.toEqual(true);
+      await expect(client.users.db.deactivate('dynamic-dave', { revokeKey: true })).resolves.toEqual(false);
 
-      await client.users.db.delete('dynamic-dave');
+      // Re-activate
+      await expect(client.users.db.activate('dynamic-dave')).resolves.toEqual(true);
+
+      await expect(client.users.db.delete('dynamic-dave')).resolves.toEqual(true);
       await expectDave(false).toHaveProperty('code', 404);
+
+      // Second deletion is a no-op
+      await expect(client.users.db.delete('dynamic-dave')).resolves.toEqual(false);
     });
 
     it('should be able to obtain and rotate api keys', async () => {
