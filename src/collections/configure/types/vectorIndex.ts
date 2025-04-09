@@ -1,6 +1,7 @@
 import {
   BQConfig,
   ModuleConfig,
+  MultiVectorConfig,
   PQConfig,
   PQEncoderDistribution,
   PQEncoderType,
@@ -45,6 +46,8 @@ export type SQConfigUpdate = {
   trainingLimit?: number;
   type: 'sq';
 };
+
+export type MultiVectorConfigCreate = RecursivePartial<MultiVectorConfig>;
 
 export type VectorIndexConfigHNSWCreate = RecursivePartial<VectorIndexConfigHNSW>;
 
@@ -130,6 +133,8 @@ export type VectorIndexConfigHNSWCreateOptions = {
   filterStrategy?: VectorIndexFilterStrategy;
   /** The maximum number of connections. Default is 64. */
   maxConnections?: number;
+  /** The multi-vector configuration to use. Use `vectorIndex.multiVector` to make one. */
+  multiVector?: MultiVectorConfigCreate;
   /** The quantizer configuration to use. Use `vectorIndex.quantizer.bq` or `vectorIndex.quantizer.pq` to make one. */
   quantizer?: PQConfigCreate | BQConfigCreate | SQConfigCreate;
   /** Whether to skip the index. Default is false. */

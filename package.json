@@ -1,6 +1,6 @@
 {
   "name": "weaviate-client",
-  "version": "3.5.1",
+  "version": "3.6.0-alpha.0",
   "description": "JS/TS client for Weaviate",
   "main": "dist/node/cjs/index.js",
   "type": "module",
@@ -100,7 +100,8 @@
   "lint-staged": {
     "*.{ts,js}": [
       "npm run format:check",
-      "npm run lint -- --cache"
+      "npm run lint -- --cache",
+      "npm run prepack"
     ]
   }
 }

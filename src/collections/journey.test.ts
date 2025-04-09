@@ -187,6 +187,7 @@ describe('Journey testing of the client using a WCD cluster', () => {
                 maxConnections: (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 26, 0)))
                   ? 64
                   : 32,
+                multiVector: undefined,
                 skip: false,
                 vectorCacheMaxObjects: 1000000000000,
                 quantizer: undefined,

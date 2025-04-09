@@ -11,12 +11,14 @@ import {
   AggregateReply_Aggregations_Aggregation_Text,
   AggregateReply_Group_GroupedBy,
 } from '../../proto/v1/aggregate.js';
+import { Vectors_VectorType } from '../../proto/v1/base.js';
 import { BatchObject as BatchObjectGRPC, BatchObjectsReply } from '../../proto/v1/batch.js';
 import { BatchDeleteReply } from '../../proto/v1/batch_delete.js';
 import { ListValue, Properties as PropertiesGrpc, Value } from '../../proto/v1/properties.js';
 import { MetadataResult, PropertiesResult, SearchReply } from '../../proto/v1/search_get.js';
 import { TenantActivityStatus, TenantsGetReply } from '../../proto/v1/tenants.js';
 import { DbVersionSupport } from '../../utils/dbVersion.js';
+import { yieldToEventLoop } from '../../utils/yield.js';
 import {
   AggregateBoolean,
   AggregateDate,
@@ -28,7 +30,10 @@ import {
   GenerativeConfigRuntime,
   GenerativeMetadata,
   PropertiesMetrics,
+  Vectors,
+  WeaviateObject,
 } from '../index.js';
+import { MultiVectorType, SingleVectorType } from '../query/types.js';
 import { referenceFromObjects } from '../references/utils.js';
 import { Tenant } from '../tenants/index.js';
 import {
@@ -46,6 +51,9 @@ import {
   ReturnMetadata,
   WeaviateReturn,
 } from '../types/index.js';
+
+const UINT16LEN = 2;
+const UINT32LEN = 4;
 
 export class Deserialize {
   private supports125ListValue: boolean;
@@ -195,49 +203,54 @@ export class Deserialize {
     });
   }
 
-  public query<T>(reply: SearchReply): WeaviateReturn<T> {
+  public async query<T, V>(reply: SearchReply): Promise<WeaviateReturn<T, V>> {
     return {
-      objects: reply.results.map((result) => {
-        return {
-          metadata: Deserialize.metadata(result.metadata),
-          properties: this.properties(result.properties),
-          references: this.references(result.properties),
-          uuid: Deserialize.uuid(result.metadata),
-          vectors: Deserialize.vectors(result.metadata),
-        } as any;
-      }),
+      objects: await Promise.all(
+        reply.results.map(async (result) => {
+          return {
+            metadata: Deserialize.metadata(result.metadata),
+            properties: this.properties(result.properties),
+            references: await this.references(result.properties),
+            uuid: Deserialize.uuid(result.metadata),
+            vectors: await Deserialize.vectors(result.metadata),
+          } as unknown as WeaviateObject<T, V>;
+        })
+      ),
     };
   }
 
-  public generate<T, C extends GenerativeConfigRuntime | undefined>(
+  public async generate<T, V, C extends GenerativeConfigRuntime | undefined>(
     reply: SearchReply
-  ): GenerativeReturn<T, C> {
+  ): Promise<GenerativeReturn<T, V, C>> {
     return {
-      objects: reply.results.map((result) => {
-        return {
-          generated: result.metadata?.generativePresent
-            ? result.metadata?.generative
-            : result.generative
-            ? result.generative.values[0].result
-            : undefined,
-          generative: result.generative
-            ? {
-                text: result.generative.values[0].result,
-                debug: result.generative.values[0].debug,
-                metadata: result.generative.values[0].metadata as GenerativeMetadata<C>,
-              }
-            : result.metadata?.generativePresent
-            ? {
-                text: result.metadata?.generative,
-              }
-            : undefined,
-          metadata: Deserialize.metadata(result.metadata),
-          properties: this.properties(result.properties),
-          references: this.references(result.properties),
-          uuid: Deserialize.uuid(result.metadata),
-          vectors: Deserialize.vectors(result.metadata),
-        } as any;
-      }),
+      objects: await Promise.all(
+        reply.results.map(
+          async (result) =>
+            ({
+              generated: result.metadata?.generativePresent
+                ? result.metadata?.generative
+                : result.generative
+                ? result.generative.values[0].result
+                : undefined,
+              generative: result.generative
+                ? {
+                    text: result.generative.values[0].result,
+                    debug: result.generative.values[0].debug,
+                    metadata: result.generative.values[0].metadata as GenerativeMetadata<C>,
+                  }
+                : result.metadata?.generativePresent
+                ? {
+                    text: result.metadata?.generative,
+                  }
+                : undefined,
+              metadata: Deserialize.metadata(result.metadata),
+              properties: this.properties(result.properties),
+              references: await this.references(result.properties),
+              uuid: Deserialize.uuid(result.metadata),
+              vectors: await Deserialize.vectors(result.metadata),
+            } as any)
+        )
+      ),
       generated:
         reply.generativeGroupedResult !== ''
           ? reply.generativeGroupedResult
@@ -257,20 +270,23 @@ export class Deserialize {
     };
   }
 
-  public queryGroupBy<T>(reply: SearchReply): GroupByReturn<T> {
-    const objects: GroupByObject<T>[] = [];
-    const groups: Record<string, GroupByResult<T>> = {};
-    reply.groupByResults.forEach((result) => {
-      const objs = result.objects.map((object) => {
-        return {
-          belongsToGroup: result.name,
-          metadata: Deserialize.metadata(object.metadata),
-          properties: this.properties(object.properties),
-          references: this.references(object.properties),
-          uuid: Deserialize.uuid(object.metadata),
-          vectors: Deserialize.vectors(object.metadata),
-        } as any;
-      });
+  public async queryGroupBy<T, V>(reply: SearchReply): Promise<GroupByReturn<T, V>> {
+    const objects: GroupByObject<T, V>[] = [];
+    const groups: Record<string, GroupByResult<T, V>> = {};
+    for (const result of reply.groupByResults) {
+      // eslint-disable-next-line no-await-in-loop
+      const objs = await Promise.all(
+        result.objects.map(async (object) => {
+          return {
+            belongsToGroup: result.name,
+            metadata: Deserialize.metadata(object.metadata),
+            properties: this.properties(object.properties),
+            references: await this.references(object.properties),
+            uuid: Deserialize.uuid(object.metadata),
+            vectors: await Deserialize.vectors(object.metadata),
+          } as unknown as GroupByObject<T, V>;
+        })
+      );
       groups[result.name] = {
         maxDistance: result.maxDistance,
         minDistance: result.minDistance,
@@ -279,27 +295,30 @@ export class Deserialize {
         objects: objs,
       };
       objects.push(...objs);
-    });
+    }
     return {
       objects: objects,
       groups: groups,
     };
   }
 
-  public generateGroupBy<T>(reply: SearchReply): GenerativeGroupByReturn<T, any> {
-    const objects: GroupByObject<T>[] = [];
-    const groups: Record<string, GenerativeGroupByResult<T, any>> = {};
-    reply.groupByResults.forEach((result) => {
-      const objs = result.objects.map((object) => {
-        return {
-          belongsToGroup: result.name,
-          metadata: Deserialize.metadata(object.metadata),
-          properties: this.properties(object.properties),
-          references: this.references(object.properties),
-          uuid: Deserialize.uuid(object.metadata),
-          vectors: Deserialize.vectors(object.metadata),
-        } as any;
-      });
+  public async generateGroupBy<T, V>(reply: SearchReply): Promise<GenerativeGroupByReturn<T, V, any>> {
+    const objects: GroupByObject<T, V>[] = [];
+    const groups: Record<string, GenerativeGroupByResult<T, V, any>> = {};
+    for (const result of reply.groupByResults) {
+      // eslint-disable-next-line no-await-in-loop
+      const objs = await Promise.all(
+        result.objects.map(async (object) => {
+          return {
+            belongsToGroup: result.name,
+            metadata: Deserialize.metadata(object.metadata),
+            properties: this.properties(object.properties),
+            references: await this.references(object.properties),
+            uuid: Deserialize.uuid(object.metadata),
+            vectors: await Deserialize.vectors(object.metadata),
+          } as unknown as GroupByObject<T, V>;
+        })
+      );
       groups[result.name] = {
         maxDistance: result.maxDistance,
         minDistance: result.minDistance,
@@ -309,7 +328,7 @@ export class Deserialize {
         generated: result.generative?.result,
       };
       objects.push(...objs);
-    });
+    }
     return {
       objects: objects,
       groups: groups,
@@ -322,28 +341,31 @@ export class Deserialize {
     return this.objectProperties(properties.nonRefProps);
   }
 
-  private references(properties?: PropertiesResult) {
+  private async references(properties?: PropertiesResult) {
     if (!properties) return undefined;
     if (properties.refProps.length === 0) return properties.refPropsRequested ? {} : undefined;
     const out: any = {};
-    properties.refProps.forEach((property) => {
+    for (const property of properties.refProps) {
       const uuids: string[] = [];
       out[property.propName] = referenceFromObjects(
-        property.properties.map((property) => {
-          const uuid = Deserialize.uuid(property.metadata);
-          uuids.push(uuid);
-          return {
-            metadata: Deserialize.metadata(property.metadata),
-            properties: this.properties(property),
-            references: this.references(property),
-            uuid: uuid,
-            vectors: Deserialize.vectors(property.metadata),
-          };
-        }),
+        // eslint-disable-next-line no-await-in-loop
+        await Promise.all(
+          property.properties.map(async (property) => {
+            const uuid = Deserialize.uuid(property.metadata);
+            uuids.push(uuid);
+            return {
+              metadata: Deserialize.metadata(property.metadata),
+              properties: this.properties(property),
+              references: await this.references(property),
+              uuid: uuid,
+              vectors: await Deserialize.vectors(property.metadata),
+            };
+          })
+        ),
         property.properties.length > 0 ? property.properties[0].targetCollection : '',
         uuids
       );
-    });
+    }
     return out;
   }
 
@@ -409,7 +431,33 @@ export class Deserialize {
     return metadata.id;
   }
 
-  private static vectorFromBytes(bytes: Uint8Array) {
+  /**
+   * Convert an Uint8Array into a 2D vector array.
+   *
+   * Defined as an async method so that control can be relinquished back to the event loop on each outer loop for large vectors.
+   */
+  private static vectorsFromBytes(bytes: Uint8Array): Promise<MultiVectorType> {
+    const dimOffset = UINT16LEN;
+    const dimBytes = Buffer.from(bytes.slice(0, dimOffset));
+    const vectorDimension = dimBytes.readUInt16LE(0);
+
+    const vecByteLength = UINT32LEN * vectorDimension;
+    const howMany = (bytes.byteLength - dimOffset) / vecByteLength;
+
+    return Promise.all(
+      Array(howMany)
+        .fill(0)
+        .map((_, i) =>
+          yieldToEventLoop().then(() =>
+            Deserialize.vectorFromBytes(
+              bytes.slice(dimOffset + i * vecByteLength, dimOffset + (i + 1) * vecByteLength)
+            )
+          )
+        )
+    );
+  }
+
+  private static vectorFromBytes(bytes: Uint8Array): SingleVectorType {
     const buffer = Buffer.from(bytes);
     const view = new Float32Array(buffer.buffer, buffer.byteOffset, buffer.byteLength / 4); // vector is float32 in weaviate
     return Array.from(view);
@@ -427,14 +475,21 @@ export class Deserialize {
     return Array.from(view);
   }
 
-  private static vectors(metadata?: MetadataResult): Record<string, number[]> {
+  private static async vectors(metadata?: MetadataResult): Promise<Vectors> {
     if (!metadata) return {};
     if (metadata.vectorBytes.length === 0 && metadata.vector.length === 0 && metadata.vectors.length === 0)
       return {};
     if (metadata.vectorBytes.length > 0)
       return { default: Deserialize.vectorFromBytes(metadata.vectorBytes) };
     return Object.fromEntries(
-      metadata.vectors.map((vector) => [vector.name, Deserialize.vectorFromBytes(vector.vectorBytes)])
+      await Promise.all(
+        metadata.vectors.map(async (vector) => [
+          vector.name,
+          vector.type === Vectors_VectorType.VECTOR_TYPE_MULTI_FP32
+            ? await Deserialize.vectorsFromBytes(vector.vectorBytes)
+            : Deserialize.vectorFromBytes(vector.vectorBytes),
+        ])
+      )
     );
   }
 

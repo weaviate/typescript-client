@@ -40,9 +40,6 @@ export interface paths {
       };
     };
   };
-  '/replication/replicate': {
-    post: operations['replicate'];
-  };
   '/users/own-info': {
     get: operations['getOwnInfo'];
   };
@@ -286,6 +283,11 @@ export interface definitions {
     dbUserType: 'db_user' | 'db_env_user';
     /** @description activity status of the returned user */
     active: boolean;
+    /**
+     * Format: date-time
+     * @description Date and time in ISO 8601 format (YYYY-MM-DDTHH:MM:SSZ)
+     */
+    createdAt?: unknown;
   };
   UserApiKey: {
     /** @description The apikey */
@@ -568,6 +570,8 @@ export interface definitions {
     indexNullState?: boolean;
     /** @description Index length of properties (default: 'false'). */
     indexPropertyLength?: boolean;
+    /** @description Using BlockMax WAND for query execution (default: 'false', will be 'true' for new collections created after 1.30). */
+    usingBlockMaxWAND?: boolean;
   };
   /** @description Configure how replication is executed in a cluster */
   ReplicationConfig: {
@@ -659,35 +663,6 @@ export interface definitions {
     /** @description The value to be used within the operations. */
     value?: { [key: string]: unknown };
     merge?: definitions['Object'];
-  };
-  /** @description Request body to add a replica of given shard of a given collection */
-  ReplicationReplicateReplicaRequest: {
-    /** @description The node containing the replica */
-    sourceNodeName: string;
-    /** @description The node to add a copy of the replica on */
-    destinationNodeName: string;
-    /** @description The collection name holding the shard */
-    collectionId: string;
-    /** @description The shard id holding the replica to be copied */
-    shardId: string;
-  };
-  /** @description Request body to disable (soft-delete) a replica of given shard of a given collection */
-  ReplicationDisableReplicaRequest: {
-    /** @description The node containing the replica to be disabled */
-    nodeName: string;
-    /** @description The collection name holding the replica to be disabled */
-    collectionId: string;
-    /** @description The shard id holding the replica to be disabled */
-    shardId: string;
-  };
-  /** @description Request body to delete a replica of given shard of a given collection */
-  ReplicationDeleteReplicaRequest: {
-    /** @description The node containing the replica to be deleted */
-    nodeName: string;
-    /** @description The collection name holding the replica to be delete */
-    collectionId: string;
-    /** @description The shard id holding the replica to be deleted */
-    shardId: string;
   };
   /** @description A single peer in the network. */
   PeerUpdate: {
@@ -1699,35 +1674,6 @@ export interface operations {
       503: unknown;
     };
   };
-  replicate: {
-    parameters: {
-      body: {
-        body: definitions['ReplicationReplicateReplicaRequest'];
-      };
-    };
-    responses: {
-      /** Replication operation registered successfully */
-      200: unknown;
-      /** Malformed request. */
-      400: {
-        schema: definitions['ErrorResponse'];
-      };
-      /** Unauthorized or invalid credentials. */
-      401: unknown;
-      /** Forbidden */
-      403: {
-        schema: definitions['ErrorResponse'];
-      };
-      /** Request body is well-formed (i.e., syntactically correct), but semantically erroneous. */
-      422: {
-        schema: definitions['ErrorResponse'];
-      };
-      /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
-      500: {
-        schema: definitions['ErrorResponse'];
-      };
-    };
-  };
   getOwnInfo: {
     responses: {
       /** Info about the user */
@@ -1780,6 +1726,10 @@ export interface operations {
       };
       /** user not found */
       404: unknown;
+      /** Request body is well-formed (i.e., syntactically correct), but semantically erroneous. */
+      422: {
+        schema: definitions['ErrorResponse'];
+      };
       /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
       500: {
         schema: definitions['ErrorResponse'];
