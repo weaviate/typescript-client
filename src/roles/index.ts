@@ -34,12 +34,25 @@ export interface Roles {
    * @returns {Promise<Role | null>} The role if it exists, or null if it does not.
    */
   byName: (roleName: string) => Promise<Role | null>;
+
+  /**
+   * Retrieve the user IDs assigned to a role.
+   *
+   * @param {string} roleName The name of the role to retrieve the assigned user IDs for.
+   * @returns {Promise<string[]>} The user IDs assigned to the role.
+   *
+   * @deprecated: Use `userAssignments` instead.
+   */
+  assignedUserIds: (roleName: string) => Promise<string[]>;
   /**
    * Retrieve the user IDs assigned to a role. Each user has a qualifying user type,
    * e.g. `'db_user' | 'db_env_user' | 'oidc'`.
    *
+   * Note, unlike `assignedUserIds`, this method may return multiple entries for the same username,
+   * if OIDC authentication is enabled: once with 'db_*' and once with 'oidc' user type.
+   *
    * @param {string} roleName The name of the role to retrieve the assigned user IDs for.
-   * @returns {Promise<string[]>} The user IDs assigned to the role.
+   * @returns {Promise<UserAssignment[]>} User IDs and user types assigned to the role.
    */
   userAssignments: (roleName: string) => Promise<UserAssignment[]>;
   /**
@@ -95,6 +108,7 @@ const roles = (connection: ConnectionREST): Roles => {
     listAll: () => connection.get<WeaviateRole[]>('/authz/roles').then(Map.roles),
     byName: (roleName: string) =>
       connection.get<WeaviateRole>(`/authz/roles/${roleName}`).then(Map.roleFromWeaviate),
+    assignedUserIds: (roleName: string) => connection.get<string[]>(`/authz/roles/${roleName}/users`),
     userAssignments: (roleName: string) =>
       connection
         .get<WeaviateAssignedUser[]>(`/authz/roles/${roleName}/user-assignments`, true)
