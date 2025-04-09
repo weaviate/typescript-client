@@ -34,6 +34,11 @@ interface UsersBase {
 }
 
 export interface Users extends UsersBase {
+  /** @deprecated: Use `users.db.assignRoles` or `users.oidc.assignRoles` instead. */
+  assignRoles: (roleNames: string | string[], userId: string) => Promise<void>;
+  /** @deprecated: Use `users.db.revokeRoles` or `users.oidc.revokeRoles` instead. */
+  revokeRoles: (roleNames: string | string[], userId: string) => Promise<void>;
+
   /**
    * Retrieve the information relevant to the currently authenticated user.
    *
