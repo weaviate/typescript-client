@@ -34,6 +34,11 @@ interface UsersBase {
 }
 
 export interface Users extends UsersBase {
+  /** @deprecated: Use `users.db.assignRoles` or `users.oidc.assignRoles` instead. */
+  assignRoles: (roleNames: string | string[], userId: string) => Promise<void>;
+  /** @deprecated: Use `users.db.revokeRoles` or `users.oidc.revokeRoles` instead. */
+  revokeRoles: (roleNames: string | string[], userId: string) => Promise<void>;
+
   /**
    * Retrieve the information relevant to the currently authenticated user.
    *
@@ -45,6 +50,8 @@ export interface Users extends UsersBase {
    *
    * @param {string} userId The ID of the user to retrieve the assigned roles for.
    * @returns {Promise<Record<string, Role>>} A map of role names to their respective roles.
+   *
+   * @deprecated: Use `users.db.getAssignedRoles` or `users.oidc.getAssignedRoles` instead.
    */
   getAssignedRoles: (userId: string) => Promise<Record<string, Role>>;
 
@@ -147,11 +154,12 @@ const users = (connection: ConnectionREST): Users => {
 const db = (connection: ConnectionREST): DBUsers => {
   const ns = namespacedUsers(connection);
 
-  /** expectCode returns true if the error contained an expected status code. */
+  /** expectCode returns false if the contained WeaviateUnexpectedStatusCodeError
+   * has an known error code and rethrows the error otherwise. */
   const expectCode = (code: number): ((_: any) => boolean) => {
     return (error) => {
-      if (error instanceof WeaviateUnexpectedStatusCodeError) {
-        return error.code === code;
+      if (error instanceof WeaviateUnexpectedStatusCodeError && error.code === code) {
+        return false;
       }
       throw error;
     };
