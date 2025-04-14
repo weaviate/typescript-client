@@ -25,6 +25,7 @@ export type GenerativeAnthropicConfig = {
 };
 
 export type GenerativeAnyscaleConfig = {
+  baseURL?: string;
   model?: string;
   temperature?: number;
 };
@@ -54,6 +55,7 @@ export type GenerativeFriendliAIConfig = {
 };
 
 export type GenerativeMistralConfig = {
+  baseURL?: string;
   maxTokens?: number;
   model?: string;
   temperature?: number;

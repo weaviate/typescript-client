@@ -2,6 +2,7 @@ import {
   ModuleConfig,
   RerankerCohereConfig,
   RerankerJinaAIConfig,
+  RerankerNvidiaConfig,
   RerankerVoyageAIConfig,
 } from '../config/types/index.js';
 
@@ -35,6 +36,22 @@ export default {
   ): ModuleConfig<'reranker-jinaai', RerankerJinaAIConfig | undefined> => {
     return {
       name: 'reranker-jinaai',
+      config: config,
+    };
+  },
+  /**
+   * Create a `ModuleConfig<'reranker-nvidia', RerankerNvidiaConfig>` object for use when reranking using the `reranker-nvidia` module.
+   *
+   * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/nvidia/reranker) for detailed usage.
+   *
+   * @param {RerankerNvidiaConfig} [config] The configuration for the `reranker-nvidia` module.
+   * @returns {ModuleConfig<'reranker-nvidia', RerankerNvidiaConfig | undefined>} The configuration object.
+   */
+  nvidia: (
+    config?: RerankerNvidiaConfig
+  ): ModuleConfig<'reranker-nvidia', RerankerNvidiaConfig | undefined> => {
+    return {
+      name: 'reranker-nvidia',
       config: config,
     };
   },
