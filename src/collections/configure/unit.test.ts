@@ -1986,9 +1986,9 @@ describe('Unit testing of the reranker factory class', () => {
 
   it('should create the correct RerankerTransformersConfig type using required & default values', () => {
     const config = configure.reranker.transformers();
-    expect(config).toEqual<ModuleConfig<'reranker-transformers', RerankerTransformersConfig | undefined>>({
+    expect(config).toEqual<ModuleConfig<'reranker-transformers', RerankerTransformersConfig>>({
       name: 'reranker-transformers',
-      config: undefined,
+      config: {},
     });
   });
 
