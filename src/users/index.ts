@@ -8,7 +8,7 @@ import {
 } from '../openapi/types.js';
 import { Role } from '../roles/types.js';
 import { Map } from '../roles/util.js';
-import { AssignRevokeOptions, DeactivateOptions, GetAssignedRolesOptions, User, UserDB } from './types.js';
+import { AssignRevokeOptions, DeactivateOptions, GetAssignedRolesOptions, GetUserOptions, User, UserDB } from './types.js';
 
 /**
  * Operations supported for 'db', 'oidc', and legacy (non-namespaced) users.
@@ -116,14 +116,14 @@ export interface DBUsers extends UsersBase {
    * @param {string} userId The ID of the user to get.
    * @returns {Promise<UserDB>} ID, status, and assigned roles of a 'db_*' user.
    */
-  byName: (userId: string) => Promise<UserDB>;
+  byName: (userId: string, opts?: GetUserOptions) => Promise<UserDB>;
 
   /**
    * List all 'db_user' / 'db_env_user' users.
    *
    * @returns {Promise<UserDB[]>} ID, status, and assigned roles for each 'db_*' user.
    */
-  listAll: () => Promise<UserDB[]>;
+  listAll: (opts?: GetUserOptions) => Promise<UserDB[]>;
 }
 
 /** Operations supported for namespaced 'oidc' users.*/
@@ -195,8 +195,8 @@ const db = (connection: ConnectionREST): DBUsers => {
         .postEmpty<DeactivateOptions | null>(`/users/db/${userId}/deactivate`, opts || null)
         .then(() => true)
         .catch(expectCode(409)),
-    byName: (userId: string) => connection.get<WeaviateDBUser>(`/users/db/${userId}`, true).then(Map.dbUser),
-    listAll: () => connection.get<WeaviateDBUser[]>('/users/db', true).then(Map.dbUsers),
+    byName: (userId: string, opts?: GetUserOptions) => connection.get<WeaviateDBUser>(`/users/db/${userId}?includeLastUsedTime=${opts?.includeLastUsedTime || false}`, true).then(Map.dbUser),
+    listAll: (opts?: GetUserOptions) => connection.get<WeaviateDBUser[]>(`/users/db?includeLastUsedTime=${opts?.includeLastUsedTime || false}`, true).then(Map.dbUsers),
   };
 };
 
@@ -238,9 +238,7 @@ const namespacedUsers = (connection: ConnectionREST): NamespacedUsers => {
     getAssignedRoles: (userType: UserTypeInternal, userId: string, opts?: GetAssignedRolesOptions) =>
       connection
         .get<WeaviateRole[]>(
-          `/authz/users/${userId}/roles/${userType}${
-            opts?.includePermissions ? '?&includeFullRoles=true' : ''
-          }`
+          `/authz/users/${userId}/roles/${userType}?includeFullRoles=${opts?.includePermissions || false}`
         )
         .then(Map.roles),
     assignRoles: (roleNames: string | string[], userId: string, opts?: AssignRevokeOptions) =>
