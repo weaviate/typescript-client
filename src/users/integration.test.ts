@@ -160,10 +160,46 @@ requireAtLeast(
       expect(roles.test.nodesPermissions).toHaveLength(1);
     });
 
+    requireAtLeast(1, 30, 1)('additional DUM features', () => {
+      it('should be able to fetch additional user info', async () => {
+        const admin = await makeClient('admin-key');
+        const timKey = await admin.users.db.create('timely-tim');
+
+        // Get user info with / without lastUserTime
+        let timUser = await admin.users.db.byName('timely-tim');
+        expect(timUser.createdAt).not.toBeUndefined(); // always returned
+        expect(timUser.lastUsedAt).toBeUndefined();
+
+        await expect(admin.users.db.byName('timely-tim', { includeLastUsedTime: true }))
+          .resolves.toEqual(expect.any(Date));
+
+        // apiKeyFirstLetters contain first letters of the API key
+        expect(timUser.apiKeyFirstLetters).not.toBeUndefined();
+        expect(timKey).toMatch(new RegExp(`^${timUser.apiKeyFirstLetters}.*`))
+
+        // Check that Tim cannnot see the first letters of the API key
+        const tim = await makeClient(timKey);
+        expect(await tim.users.getMyUser()).resolves.toHaveProperty('apiKeyFirstLetters', undefined);
+      });
+
+      it('should be able to list all users with additional info', async () => {
+        const admin = await makeClient('admin-key');
+        await admin.users.db.listAll({ includeLastUsedTime: true }).then(res => {
+          res.forEach((user, _) => {
+            expect(user).toEqual(expect.objectContaining({
+              createdAt: expect.any(Date),
+              lastUsedAt: expect.any(Date),
+              apiKeyFirstLetters: expect.any(String),
+            }));
+          });
+        });
+      });
+    })
+
     afterAll(() =>
       makeClient('admin-key').then(async (c) => {
         await Promise.all(
-          ['jim', 'pam', 'dwight', 'dynamic-dave', 'api-ashley', 'role-rick', 'permission-peter'].map((n) =>
+          ['jim', 'pam', 'dwight', 'dynamic-dave', 'api-ashley', 'role-rick', 'permission-peter', 'timely-tim'].map((n) =>
             c.users.db.delete(n)
           )
         );

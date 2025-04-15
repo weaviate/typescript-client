@@ -155,6 +155,8 @@ export class Map {
     id: user.userId,
     roleNames: user.roles,
     active: user.active,
+    createdAt: Map.unknownDate(user.createdAt),
+    lastUsedAt: Map.unknownDate(user.lastUsedAt),
   });
   static dbUsers = (users: WeaviateDBUser[]): UserDB[] => users.map(Map.dbUser);
   static assignedUsers = (users: WeaviateAssignedUser[]): UserAssignment[] =>
@@ -162,6 +164,9 @@ export class Map {
       id: user.userId || '',
       userType: user.userType,
     }));
+  static unknownDate = (date?: unknown): Date | undefined => (
+    date !== undefined && typeof date === "string"
+      ? new Date(date) : undefined);
 }
 
 class PermissionsMapping {
