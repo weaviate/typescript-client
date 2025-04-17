@@ -29,6 +29,9 @@ import {
   UsersPermission,
 } from './types.js';
 
+/** ZERO_TIME is the timestamp Weaviate server sends in abscence of a value (null value). */
+const ZERO_TIME = '0001-01-01T00:00:00.000Z';
+
 export class PermissionGuards {
   private static includes = <A extends string>(permission: Permission, ...actions: A[]): boolean =>
     actions.filter((a) => Array.from<string>(permission.actions).includes(a)).length > 0;
@@ -157,6 +160,7 @@ export class Map {
     active: user.active,
     createdAt: Map.unknownDate(user.createdAt),
     lastUsedAt: Map.unknownDate(user.lastUsedAt),
+    apiKeyFirstLetters: user.apiKeyFirstLetters as string,
   });
   static dbUsers = (users: WeaviateDBUser[]): UserDB[] => users.map(Map.dbUser);
   static assignedUsers = (users: WeaviateAssignedUser[]): UserAssignment[] =>
@@ -164,9 +168,8 @@ export class Map {
       id: user.userId || '',
       userType: user.userType,
     }));
-  static unknownDate = (date?: unknown): Date | undefined => (
-    date !== undefined && typeof date === "string"
-      ? new Date(date) : undefined);
+  static unknownDate = (date?: unknown): Date | undefined =>
+    date !== undefined && typeof date === 'string' && date !== ZERO_TIME ? new Date(date) : undefined;
 }
 
 class PermissionsMapping {
