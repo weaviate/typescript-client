@@ -1,7 +1,7 @@
-import weaviate, { ApiKey } from '..';
+import weaviate, { ApiKey, WeaviateClient } from '..';
 import { requireAtLeast } from '../../test/version.js';
 import { WeaviateUserTypeDB } from '../openapi/types.js';
-import { UserDB } from './types.js';
+import { GetUserOptions, UserDB } from './types.js';
 
 requireAtLeast(
   1,
@@ -67,6 +67,17 @@ requireAtLeast(
     30,
     0
   )('dynamic user management', () => {
+    /** List dynamic DB users. */
+    const listDBUsers = (c: WeaviateClient, opts?: GetUserOptions) =>
+      c.users.db.listAll(opts).then((all) => all.filter((u) => u.userType == 'db_user'));
+
+    const deleteAllUsers = async (c: WeaviateClient) => {
+      const users = await listDBUsers(c);
+      await Promise.all(users.map((user) => c.users.db.delete(user.id)));
+    };
+
+    beforeAll(() => makeClient('admin-key').then(deleteAllUsers));
+
     it('should be able to manage "db" user lifecycle', async () => {
       const admin = await makeClient('admin-key');
 
@@ -199,46 +210,32 @@ requireAtLeast(
       it('should be able to list all users with additional info', async () => {
         const admin = await makeClient('admin-key');
 
-        await admin.users.db.listAll({ includeLastUsedTime: true }).then((res) => {
-          res
-            // Users created in environment (db_env_user) do not have
-            // createdAt and apiKeyFirstLetters fields.
-            .filter((user) => user.userType == 'db_user')
-            .map(async (user) => {
-              // Use each user at least once
-              const key = await admin.users.db.rotateKey(user.id);
-              await makeClient(key).then((c) => c.users.getMyUser());
-              return user;
+        // Create test users and use each at least once
+        const created = await Promise.all(
+          ['A', 'B', 'C'].map(async (user) => {
+            const key = await admin.users.db.create(user);
+            await makeClient(key).then((c) => c.users.getMyUser());
+            return user;
+          })
+        );
+
+        const users = await listDBUsers(admin, { includeLastUsedTime: true }).then((users) =>
+          users.filter((user) => created.includes(user.id))
+        );
+
+        users.forEach((user) =>
+          expect(user).toEqual(
+            expect.objectContaining({
+              createdAt: expect.any(Date),
+              lastUsedAt: expect.any(Date),
+              apiKeyFirstLetters: expect.any(String),
             })
-            .forEach(async (user, _) =>
-              expect(await user).toEqual(
-                expect.objectContaining({
-                  createdAt: expect.any(Date),
-                  lastUsedAt: expect.any(Date),
-                  apiKeyFirstLetters: expect.any(String),
-                })
-              )
-            );
-        });
+          )
+        );
       });
     });
 
-    afterAll(() =>
-      makeClient('admin-key').then(async (c) => {
-        await Promise.all(
-          [
-            'jim',
-            'pam',
-            'dwight',
-            'dynamic-dave',
-            'api-ashley',
-            'role-rick',
-            'permission-peter',
-            'timely-tim',
-          ].map((n) => c.users.db.delete(n))
-        );
-      })
-    );
+    afterAll(() => makeClient('admin-key').then(deleteAllUsers));
   });
 
   afterAll(() => makeClient('admin-key').then((c) => c.roles.delete('test')));
