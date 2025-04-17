@@ -43,6 +43,10 @@ export interface paths {
   '/replication/replicate': {
     post: operations['replicate'];
   };
+  '/replication/replicate/{id}': {
+    /** Returns the details of a replication operation for a given shard, identified by the provided replication operation id. */
+    get: operations['replicationDetails'];
+  };
   '/users/own-info': {
     get: operations['getOwnInfo'];
   };
@@ -286,6 +290,18 @@ export interface definitions {
     dbUserType: 'db_user' | 'db_env_user';
     /** @description activity status of the returned user */
     active: boolean;
+    /**
+     * Format: date-time
+     * @description Date and time in ISO 8601 format (YYYY-MM-DDTHH:MM:SSZ)
+     */
+    createdAt?: unknown;
+    /** @description First 3 letters of the associated API-key */
+    apiKeyFirstLetters?: unknown;
+    /**
+     * Format: date-time
+     * @description Date and time in ISO 8601 format (YYYY-MM-DDTHH:MM:SSZ)
+     */
+    lastUsedAt?: unknown;
   };
   UserApiKey: {
     /** @description The apikey */
@@ -568,6 +584,8 @@ export interface definitions {
     indexNullState?: boolean;
     /** @description Index length of properties (default: 'false'). */
     indexPropertyLength?: boolean;
+    /** @description Using BlockMax WAND for query execution (default: 'false', will be 'true' for new collections created after 1.30). */
+    usingBlockMaxWAND?: boolean;
   };
   /** @description Configure how replication is executed in a cluster */
   ReplicationConfig: {
@@ -688,6 +706,29 @@ export interface definitions {
     collectionId: string;
     /** @description The shard id holding the replica to be deleted */
     shardId: string;
+  };
+  /** @description The current status and details of a replication operation, including information about the resources involved in the replication process. */
+  ReplicationReplicateDetailsReplicaResponse: {
+    /** @description The unique id of the replication operation. */
+    id: string;
+    /** @description The id of the shard to collect replication details for. */
+    shardId: string;
+    /** @description The name of the collection holding data being replicated. */
+    collection: string;
+    /** @description The id of the node where the source replica is allocated. */
+    sourceNodeId: string;
+    /** @description The id of the node where the target replica is allocated. */
+    targetNodeId: string;
+    /**
+     * @description The current status of the replication operation, indicating the replication phase the operation is in.
+     * @enum {string}
+     */
+    status:
+      | 'READY'
+      | 'INDEXING'
+      | 'REPLICATION_FINALIZING'
+      | 'REPLICATION_HYDRATING'
+      | 'REPLICATION_DEHYDRATING';
   };
   /** @description A single peer in the network. */
   PeerUpdate: {
@@ -1728,6 +1769,37 @@ export interface operations {
       };
     };
   };
+  /** Returns the details of a replication operation for a given shard, identified by the provided replication operation id. */
+  replicationDetails: {
+    parameters: {
+      path: {
+        /** The replication operation id to get details for. */
+        id: string;
+      };
+    };
+    responses: {
+      /** The details of the replication operation. */
+      200: {
+        schema: definitions['ReplicationReplicateDetailsReplicaResponse'];
+      };
+      /** Malformed request. */
+      400: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Unauthorized or invalid credentials. */
+      401: unknown;
+      /** Forbidden */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Shard replica operation not found */
+      404: unknown;
+      /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
   getOwnInfo: {
     responses: {
       /** Info about the user */
@@ -1743,8 +1815,14 @@ export interface operations {
     };
   };
   listAllUsers: {
+    parameters: {
+      query: {
+        /** Whether to include the last used time of the users */
+        includeLastUsedTime?: boolean;
+      };
+    };
     responses: {
-      /** Info about the user */
+      /** Info about the users */
       200: {
         schema: definitions['DBUserInfo'][];
       };
@@ -1766,6 +1844,10 @@ export interface operations {
         /** user id */
         user_id: string;
       };
+      query: {
+        /** Whether to include the last used time of the given user */
+        includeLastUsedTime?: boolean;
+      };
     };
     responses: {
       /** Info about the user */
@@ -1780,6 +1862,10 @@ export interface operations {
       };
       /** user not found */
       404: unknown;
+      /** Request body is well-formed (i.e., syntactically correct), but semantically erroneous. */
+      422: {
+        schema: definitions['ErrorResponse'];
+      };
       /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
       500: {
         schema: definitions['ErrorResponse'];
