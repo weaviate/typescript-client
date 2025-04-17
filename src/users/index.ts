@@ -8,7 +8,14 @@ import {
 } from '../openapi/types.js';
 import { Role } from '../roles/types.js';
 import { Map } from '../roles/util.js';
-import { AssignRevokeOptions, DeactivateOptions, GetAssignedRolesOptions, GetUserOptions, User, UserDB } from './types.js';
+import {
+  AssignRevokeOptions,
+  DeactivateOptions,
+  GetAssignedRolesOptions,
+  GetUserOptions,
+  User,
+  UserDB,
+} from './types.js';
 
 /**
  * Operations supported for 'db', 'oidc', and legacy (non-namespaced) users.
@@ -195,8 +202,17 @@ const db = (connection: ConnectionREST): DBUsers => {
         .postEmpty<DeactivateOptions | null>(`/users/db/${userId}/deactivate`, opts || null)
         .then(() => true)
         .catch(expectCode(409)),
-    byName: (userId: string, opts?: GetUserOptions) => connection.get<WeaviateDBUser>(`/users/db/${userId}?includeLastUsedTime=${opts?.includeLastUsedTime || false}`, true).then(Map.dbUser),
-    listAll: (opts?: GetUserOptions) => connection.get<WeaviateDBUser[]>(`/users/db?includeLastUsedTime=${opts?.includeLastUsedTime || false}`, true).then(Map.dbUsers),
+    byName: (userId: string, opts?: GetUserOptions) =>
+      connection
+        .get<WeaviateDBUser>(
+          `/users/db/${userId}?includeLastUsedTime=${opts?.includeLastUsedTime || false}`,
+          true
+        )
+        .then(Map.dbUser),
+    listAll: (opts?: GetUserOptions) =>
+      connection
+        .get<WeaviateDBUser[]>(`/users/db?includeLastUsedTime=${opts?.includeLastUsedTime || false}`, true)
+        .then(Map.dbUsers),
   };
 };
 
