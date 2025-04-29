@@ -25,7 +25,7 @@ import {
   ConnectToWCSOptions,
   ConnectToWeaviateCloudOptions,
 } from './connection/helpers.js';
-import { ProxiesParams, TimeoutParams } from './connection/http.js';
+import { ConnectionDetails, ProxiesParams, TimeoutParams } from './connection/http.js';
 import { ConnectionGRPC } from './connection/index.js';
 import MetaGetter from './misc/metaGetter.js';
 import { Meta } from './openapi/types.js';
@@ -110,6 +110,7 @@ export interface WeaviateClient {
 
   close: () => Promise<void>;
   getMeta: () => Promise<Meta>;
+  getConnectionDetails: () => Promise<ConnectionDetails>;
   getOpenIDConfig?: () => Promise<any>;
   getWeaviateVersion: () => Promise<DbVersion>;
   isLive: () => Promise<boolean>;
@@ -229,6 +230,7 @@ async function client(params: ClientParams): Promise<WeaviateClient> {
     users: users(connection),
     close: () => Promise.resolve(connection.close()), // hedge against future changes to add I/O to .close()
     getMeta: () => new MetaGetter(connection).do(),
+    getConnectionDetails: connection.getDetails,
     getOpenIDConfig: () => new OpenidConfigurationGetter(connection.http).do(),
     getWeaviateVersion: () => dbVersionSupport.getVersion(),
     isLive: () => new LiveChecker(connection, dbVersionProvider).do(),
