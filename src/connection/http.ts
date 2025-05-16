@@ -52,8 +52,15 @@ export type InternalConnectionParams = {
   skipInitChecks?: boolean;
 };
 
+export interface ConnectionDetails {
+  host: string;
+  bearerToken?: string;
+  headers?: HeadersInit;
+}
+
 export default class ConnectionREST {
   private apiKey?: string;
+  private headers?: HeadersInit;
   protected authEnabled: boolean;
   public readonly host: string;
   public readonly http: HttpClient;
@@ -62,6 +69,7 @@ export default class ConnectionREST {
   constructor(params: InternalConnectionParams) {
     params = this.sanitizeParams(params);
     this.host = params.host;
+    this.headers = params.headers;
     this.http = httpClient(params);
     this.authEnabled = this.parseAuthParams(params);
   }
@@ -183,6 +191,12 @@ export default class ConnectionREST {
     }
     return this.oidcAuth.getAccessToken();
   };
+
+  getDetails = async (): Promise<ConnectionDetails> => ({
+    host: new URL(this.host).host, // removes default port
+    bearerToken: this.authEnabled ? await this.login().then((token) => `Bearer ${token}`) : undefined,
+    headers: this.headers,
+  });
 }
 
 export * from './auth.js';
