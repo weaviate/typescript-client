@@ -386,6 +386,27 @@ describe('Testing of the collection.config namespace', () => {
     ]);
   });
 
+  it('should be able to add a reference to a collection', async () => {
+    const collectionName = 'TestCollectionConfigAddVector' as const;
+    const collection = await client.collections.create({
+      name: collectionName,
+      vectorizers: [weaviate.configure.vectorizer.none({ name: 'original' })],
+    });
+    // Add a single named vector
+    await collection.config.addVector(weaviate.configure.vectorizer.none({ name: 'vector-a' }));
+
+    // Add several named vectors
+    await collection.config.addVector([
+      weaviate.configure.vectorizer.none({ name: 'vector-b' }),
+      weaviate.configure.vectorizer.none({ name: 'vector-c' }),
+    ]);
+
+    const config = await collection.config.get();
+    expect(config.vectorizers).toHaveProperty('vector-a');
+    expect(config.vectorizers).toHaveProperty('vector-b');
+    expect(config.vectorizers).toHaveProperty('vector-c');
+  });
+
   it('should get the shards of a sharded collection', async () => {
     const shards = await client.collections
       .create({

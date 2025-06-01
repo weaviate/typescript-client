@@ -58,6 +58,10 @@ export type VectorizersConfigCreate<T> =
   | VectorConfigCreate<PrimitiveKeys<T>, undefined, VectorIndexType, Vectorizer>
   | VectorConfigCreate<PrimitiveKeys<T>, string, VectorIndexType, Vectorizer>[];
 
+export type VectorizersConfigAdd<T> =
+  | VectorConfigCreate<PrimitiveKeys<T>, string, VectorIndexType, Vectorizer>
+  | VectorConfigCreate<PrimitiveKeys<T>, string, VectorIndexType, Vectorizer>[];
+
 export type ConfigureNonTextVectorizerOptions<
   N extends string | undefined,
   I extends VectorIndexType,

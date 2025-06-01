@@ -4,11 +4,13 @@ import { WeaviateShardStatus } from '../../openapi/types.js';
 import ClassUpdater from '../../schema/classUpdater.js';
 import { ClassGetter, PropertyCreator, ShardUpdater } from '../../schema/index.js';
 import ShardsGetter from '../../schema/shardsGetter.js';
+import VectorAdder from '../../schema/vectorAdder.js';
 import { DbVersionSupport } from '../../utils/dbVersion.js';
 import {
   PropertyConfigCreate,
   ReferenceMultiTargetConfigCreate,
   ReferenceSingleTargetConfigCreate,
+  VectorizersConfigAdd,
 } from '../configure/types/index.js';
 import { MergeWithExisting } from './classes.js';
 import {
@@ -23,7 +25,7 @@ import {
   VectorIndexConfigFlat,
   VectorIndexConfigHNSW,
 } from './types/index.js';
-import { classToCollection, resolveProperty, resolveReference } from './utils.js';
+import { classToCollection, makeVectorsConfig, resolveProperty, resolveReference } from './utils.js';
 
 const config = <T>(
   connection: Connection,
@@ -47,6 +49,11 @@ const config = <T>(
         .withProperty(resolveReference<any>(reference))
         .do()
         .then(() => {}),
+    addVector: async (vectors: VectorizersConfigAdd<T>) => {
+      const supportsDynamicVectorIndex = await dbVersionSupport.supportsDynamicVectorIndex();
+      const { vectorsConfig } = makeVectorsConfig(vectors, supportsDynamicVectorIndex);
+      return new VectorAdder(connection).withClassName(name).withVectors(vectorsConfig).do();
+    },
     get: () => getRaw().then(classToCollection<T>),
     getShards: () => {
       let builder = new ShardsGetter(connection).withClassName(name);
@@ -114,6 +121,7 @@ export interface Config<T> {
   addReference: (
     reference: ReferenceSingleTargetConfigCreate<T> | ReferenceMultiTargetConfigCreate<T>
   ) => Promise<void>;
+  addVector: (vectors: VectorizersConfigAdd<T>) => Promise<void>;
   /**
    * Get the configuration for this collection from Weaviate.
    *
