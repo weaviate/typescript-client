@@ -78,8 +78,9 @@ export type GenerativeOpenAIConfig = GenerativeOpenAIConfigBase & {
 };
 
 export type GenerativeAzureOpenAIConfig = GenerativeOpenAIConfigBase & {
-  resourceName: string;
-  deploymentId: string;
+  resourceName?: string;
+  deploymentId?: string;
+  isAzure?: true;
 };
 
 /** @deprecated Use `GenerativeGoogleConfig` instead. */

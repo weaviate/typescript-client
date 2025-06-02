@@ -895,6 +895,24 @@ describe('Unit testing of the vectorizer factory class', () => {
         config: {
           deploymentId: 'deployment-id',
           resourceName: 'resource-name',
+          isAzure: true,
+        },
+      },
+    });
+  });
+
+  it('should create the correct Text2VecAzureOpenAIConfig type with just isAzure: true', () => {
+    const config = configure.vectorizer.text2VecAzureOpenAI();
+    expect(config).toEqual<VectorConfigCreate<never, undefined, 'hnsw', 'text2vec-azure-openai'>>({
+      name: undefined,
+      vectorIndex: {
+        name: 'hnsw',
+        config: undefined,
+      },
+      vectorizer: {
+        name: 'text2vec-azure-openai',
+        config: {
+          isAzure: true,
         },
       },
     });
@@ -921,6 +939,7 @@ describe('Unit testing of the vectorizer factory class', () => {
           deploymentId: 'deployment-id',
           resourceName: 'resource-name',
           vectorizeCollectionName: true,
+          isAzure: true,
         },
       },
     });
@@ -1628,6 +1647,7 @@ describe('Unit testing of the generative factory class', () => {
     expect(config).toEqual<ModuleConfig<'generative-openai', GenerativeAzureOpenAIConfig>>({
       name: 'generative-openai',
       config: {
+        isAzure: true,
         resourceName: 'resource-name',
         deploymentId: 'deployment-id',
       },
@@ -1648,6 +1668,7 @@ describe('Unit testing of the generative factory class', () => {
     expect(config).toEqual<ModuleConfig<'generative-openai', GenerativeAzureOpenAIConfig>>({
       name: 'generative-openai',
       config: {
+        isAzure: true,
         resourceName: 'resource-name',
         deploymentId: 'deployment-id',
         baseURL: 'base-url',
