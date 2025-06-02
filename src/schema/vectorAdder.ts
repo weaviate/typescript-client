@@ -46,6 +46,9 @@ export default class VectorAdder<T> extends CommandBase {
         }
 
         for (const [key, value] of Object.entries(this.vectors)) {
+          if (schema.vectorConfig[key] !== undefined) {
+            continue;
+          }
           schema.vectorConfig![key] = { ...value };
         }
 

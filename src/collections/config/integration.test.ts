@@ -403,10 +403,18 @@ describe('Testing of the collection.config namespace', () => {
         weaviate.configure.vectorizer.none({ name: 'vector-c' }),
       ]);
 
+      // Trying to update 'original' vector -- should be omitted from request.
+      await collection.config.addVector(weaviate.configure.vectorizer.none({
+        name: 'original',
+        vectorIndexConfig: weaviate.configure.vectorIndex.flat(),
+      }));
+
       const config = await collection.config.get();
       expect(config.vectorizers).toHaveProperty('vector-a');
       expect(config.vectorizers).toHaveProperty('vector-b');
       expect(config.vectorizers).toHaveProperty('vector-c');
+
+      expect(config.vectorizers['original']).toHaveProperty('indexType', 'hnsw');
     });
   });
 
