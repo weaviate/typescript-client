@@ -420,7 +420,7 @@ describe('Testing of the collection.config namespace', () => {
       expect(config.vectorizers).toHaveProperty('vector-b');
       expect(config.vectorizers).toHaveProperty('vector-c');
 
-      expect(config.vectorizers['default']).toHaveProperty('indexType', 'hnsw');
+      expect(config.vectorizers.default).toHaveProperty('indexType', 'hnsw');
     });
   });
 
