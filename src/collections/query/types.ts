@@ -84,9 +84,15 @@ export type Bm25QueryProperty<T> = {
   weight: number;
 };
 
+export type Bm25OperatorOr = { operator: 'Or'; minimumMatch: number };
+export type Bm25OperatorAnd = { operator: 'And' };
+
+export type Bm25OperatorOptions = Bm25OperatorOr | Bm25OperatorAnd;
+
 export type Bm25SearchOptions<T> = {
   /** Which properties of the collection to perform the keyword search on. */
   queryProperties?: (PrimitiveKeys<T> | Bm25QueryProperty<T>)[];
+  operator?: Bm25OperatorOptions;
 };
 
 /** Base options available in the `query.bm25` method */
@@ -115,6 +121,7 @@ export type HybridSearchOptions<T> = {
   targetVector?: TargetVectorInputType;
   /** The specific vector to search for or a specific vector subsearch. If not specified, the query is vectorized and used in the similarity search. */
   vector?: NearVectorInputType | HybridNearTextSubSearch | HybridNearVectorSubSearch;
+  bm25Operator?: Bm25OperatorOptions;
 };
 
 /** Base options available in the `query.hybrid` method */

@@ -100,6 +100,50 @@ export interface VectorForTarget {
   vectors: Vectors[];
 }
 
+export interface SearchOperatorOptions {
+  operator: SearchOperatorOptions_Operator;
+  minimumOrTokensMatch?: number | undefined;
+}
+
+export enum SearchOperatorOptions_Operator {
+  OPERATOR_UNSPECIFIED = 0,
+  OPERATOR_OR = 1,
+  OPERATOR_AND = 2,
+  UNRECOGNIZED = -1,
+}
+
+export function searchOperatorOptions_OperatorFromJSON(object: any): SearchOperatorOptions_Operator {
+  switch (object) {
+    case 0:
+    case "OPERATOR_UNSPECIFIED":
+      return SearchOperatorOptions_Operator.OPERATOR_UNSPECIFIED;
+    case 1:
+    case "OPERATOR_OR":
+      return SearchOperatorOptions_Operator.OPERATOR_OR;
+    case 2:
+    case "OPERATOR_AND":
+      return SearchOperatorOptions_Operator.OPERATOR_AND;
+    case -1:
+    case "UNRECOGNIZED":
+    default:
+      return SearchOperatorOptions_Operator.UNRECOGNIZED;
+  }
+}
+
+export function searchOperatorOptions_OperatorToJSON(object: SearchOperatorOptions_Operator): string {
+  switch (object) {
+    case SearchOperatorOptions_Operator.OPERATOR_UNSPECIFIED:
+      return "OPERATOR_UNSPECIFIED";
+    case SearchOperatorOptions_Operator.OPERATOR_OR:
+      return "OPERATOR_OR";
+    case SearchOperatorOptions_Operator.OPERATOR_AND:
+      return "OPERATOR_AND";
+    case SearchOperatorOptions_Operator.UNRECOGNIZED:
+    default:
+      return "UNRECOGNIZED";
+  }
+}
+
 export interface Hybrid {
   query: string;
   properties: string[];
@@ -130,6 +174,7 @@ export interface Hybrid {
   /** same as above. Use the target vector in the hybrid message */
   nearVector: NearVector | undefined;
   targets: Targets | undefined;
+  bm25SearchOperator?: SearchOperatorOptions | undefined;
   vectorDistance?: number | undefined;
   vectors: Vectors[];
 }
@@ -346,6 +391,7 @@ export interface NearIMUSearch {
 export interface BM25 {
   query: string;
   properties: string[];
+  searchOperator?: SearchOperatorOptions | undefined;
 }
 
 function createBaseWeightsForTarget(): WeightsForTarget {
@@ -712,6 +758,82 @@ export const VectorForTarget = {
   },
 };
 
+function createBaseSearchOperatorOptions(): SearchOperatorOptions {
+  return { operator: 0, minimumOrTokensMatch: undefined };
+}
+
+export const SearchOperatorOptions = {
+  encode(message: SearchOperatorOptions, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.operator !== 0) {
+      writer.uint32(8).int32(message.operator);
+    }
+    if (message.minimumOrTokensMatch !== undefined) {
+      writer.uint32(16).int32(message.minimumOrTokensMatch);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): SearchOperatorOptions {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseSearchOperatorOptions();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 8) {
+            break;
+          }
+
+          message.operator = reader.int32() as any;
+          continue;
+        case 2:
+          if (tag !== 16) {
+            break;
+          }
+
+          message.minimumOrTokensMatch = reader.int32();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): SearchOperatorOptions {
+    return {
+      operator: isSet(object.operator) ? searchOperatorOptions_OperatorFromJSON(object.operator) : 0,
+      minimumOrTokensMatch: isSet(object.minimumOrTokensMatch)
+        ? globalThis.Number(object.minimumOrTokensMatch)
+        : undefined,
+    };
+  },
+
+  toJSON(message: SearchOperatorOptions): unknown {
+    const obj: any = {};
+    if (message.operator !== 0) {
+      obj.operator = searchOperatorOptions_OperatorToJSON(message.operator);
+    }
+    if (message.minimumOrTokensMatch !== undefined) {
+      obj.minimumOrTokensMatch = Math.round(message.minimumOrTokensMatch);
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<SearchOperatorOptions>): SearchOperatorOptions {
+    return SearchOperatorOptions.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<SearchOperatorOptions>): SearchOperatorOptions {
+    const message = createBaseSearchOperatorOptions();
+    message.operator = object.operator ?? 0;
+    message.minimumOrTokensMatch = object.minimumOrTokensMatch ?? undefined;
+    return message;
+  },
+};
+
 function createBaseHybrid(): Hybrid {
   return {
     query: "",
@@ -724,6 +846,7 @@ function createBaseHybrid(): Hybrid {
     nearText: undefined,
     nearVector: undefined,
     targets: undefined,
+    bm25SearchOperator: undefined,
     vectorDistance: undefined,
     vectors: [],
   };
@@ -762,6 +885,9 @@ export const Hybrid = {
     }
     if (message.targets !== undefined) {
       Targets.encode(message.targets, writer.uint32(82).fork()).ldelim();
+    }
+    if (message.bm25SearchOperator !== undefined) {
+      SearchOperatorOptions.encode(message.bm25SearchOperator, writer.uint32(90).fork()).ldelim();
     }
     if (message.vectorDistance !== undefined) {
       writer.uint32(165).float(message.vectorDistance);
@@ -859,6 +985,13 @@ export const Hybrid = {
 
           message.targets = Targets.decode(reader, reader.uint32());
           continue;
+        case 11:
+          if (tag !== 90) {
+            break;
+          }
+
+          message.bm25SearchOperator = SearchOperatorOptions.decode(reader, reader.uint32());
+          continue;
         case 20:
           if (tag !== 165) {
             break;
@@ -898,6 +1031,9 @@ export const Hybrid = {
       nearText: isSet(object.nearText) ? NearTextSearch.fromJSON(object.nearText) : undefined,
       nearVector: isSet(object.nearVector) ? NearVector.fromJSON(object.nearVector) : undefined,
       targets: isSet(object.targets) ? Targets.fromJSON(object.targets) : undefined,
+      bm25SearchOperator: isSet(object.bm25SearchOperator)
+        ? SearchOperatorOptions.fromJSON(object.bm25SearchOperator)
+        : undefined,
       vectorDistance: isSet(object.vectorDistance) ? globalThis.Number(object.vectorDistance) : undefined,
       vectors: globalThis.Array.isArray(object?.vectors) ? object.vectors.map((e: any) => Vectors.fromJSON(e)) : [],
     };
@@ -935,6 +1071,9 @@ export const Hybrid = {
     if (message.targets !== undefined) {
       obj.targets = Targets.toJSON(message.targets);
     }
+    if (message.bm25SearchOperator !== undefined) {
+      obj.bm25SearchOperator = SearchOperatorOptions.toJSON(message.bm25SearchOperator);
+    }
     if (message.vectorDistance !== undefined) {
       obj.vectorDistance = message.vectorDistance;
     }
@@ -964,6 +1103,9 @@ export const Hybrid = {
       : undefined;
     message.targets = (object.targets !== undefined && object.targets !== null)
       ? Targets.fromPartial(object.targets)
+      : undefined;
+    message.bm25SearchOperator = (object.bm25SearchOperator !== undefined && object.bm25SearchOperator !== null)
+      ? SearchOperatorOptions.fromPartial(object.bm25SearchOperator)
       : undefined;
     message.vectorDistance = object.vectorDistance ?? undefined;
     message.vectors = object.vectors?.map((e) => Vectors.fromPartial(e)) || [];
@@ -2390,7 +2532,7 @@ export const NearIMUSearch = {
 };
 
 function createBaseBM25(): BM25 {
-  return { query: "", properties: [] };
+  return { query: "", properties: [], searchOperator: undefined };
 }
 
 export const BM25 = {
@@ -2400,6 +2542,9 @@ export const BM25 = {
     }
     for (const v of message.properties) {
       writer.uint32(18).string(v!);
+    }
+    if (message.searchOperator !== undefined) {
+      SearchOperatorOptions.encode(message.searchOperator, writer.uint32(26).fork()).ldelim();
     }
     return writer;
   },
@@ -2425,6 +2570,13 @@ export const BM25 = {
 
           message.properties.push(reader.string());
           continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.searchOperator = SearchOperatorOptions.decode(reader, reader.uint32());
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -2440,6 +2592,7 @@ export const BM25 = {
       properties: globalThis.Array.isArray(object?.properties)
         ? object.properties.map((e: any) => globalThis.String(e))
         : [],
+      searchOperator: isSet(object.searchOperator) ? SearchOperatorOptions.fromJSON(object.searchOperator) : undefined,
     };
   },
 
@@ -2451,6 +2604,9 @@ export const BM25 = {
     if (message.properties?.length) {
       obj.properties = message.properties;
     }
+    if (message.searchOperator !== undefined) {
+      obj.searchOperator = SearchOperatorOptions.toJSON(message.searchOperator);
+    }
     return obj;
   },
 
@@ -2461,6 +2617,9 @@ export const BM25 = {
     const message = createBaseBM25();
     message.query = object.query ?? "";
     message.properties = object.properties?.map((e) => e) || [];
+    message.searchOperator = (object.searchOperator !== undefined && object.searchOperator !== null)
+      ? SearchOperatorOptions.fromPartial(object.searchOperator)
+      : undefined;
     return message;
   },
 };
