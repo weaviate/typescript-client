@@ -15,6 +15,8 @@ import {
   NearThermalSearch,
   NearVector,
   NearVideoSearch,
+  SearchOperatorOptions,
+  SearchOperatorOptions_Operator,
   Targets,
   VectorForTarget,
   WeightsForTarget,
@@ -115,6 +117,7 @@ import {
 import {
   BaseHybridOptions,
   BaseNearOptions,
+  Bm25OperatorOptions,
   Bm25Options,
   Bm25QueryProperty,
   Bm25SearchOptions,
@@ -385,10 +388,10 @@ class Aggregate {
         text:
           metric.kind === 'text'
             ? AggregateRequest_Aggregation_Text.fromPartial({
-                count: metric.count,
-                topOccurencesLimit: metric.minOccurrences,
-                topOccurences: metric.topOccurrences != undefined,
-              })
+              count: metric.count,
+              topOccurencesLimit: metric.minOccurrences,
+              topOccurences: metric.topOccurrences != undefined,
+            })
             : undefined,
       })
     );
@@ -522,27 +525,27 @@ class Search {
       returnAllNonrefProperties: nonRefProperties === undefined,
       refProperties: refProperties
         ? refProperties.map((property) => {
-            return {
-              referenceProperty: property.linkOn,
-              properties: Search.queryProperties(property.returnProperties as any),
-              metadata: Search.metadata(property.includeVector, property.returnMetadata),
-              targetCollection: property.targetCollection ? property.targetCollection : '',
-            };
-          })
+          return {
+            referenceProperty: property.linkOn,
+            properties: Search.queryProperties(property.returnProperties as any),
+            metadata: Search.metadata(property.includeVector, property.returnMetadata),
+            targetCollection: property.targetCollection ? property.targetCollection : '',
+          };
+        })
         : [],
       objectProperties: objectProperties
         ? objectProperties.map((property) => {
-            const objProps = property.properties.filter(
-              (property) => typeof property !== 'string'
-            ) as unknown; // cannot get types to work currently :(
-            return {
-              propName: property.name,
-              primitiveProperties: property.properties.filter(
-                (property) => typeof property === 'string'
-              ) as string[],
-              objectProperties: (objProps as QueryNested<T>[]).map(resolveObjectProperty),
-            };
-          })
+          const objProps = property.properties.filter(
+            (property) => typeof property !== 'string'
+          ) as unknown; // cannot get types to work currently :(
+          return {
+            propName: property.name,
+            primitiveProperties: property.properties.filter(
+              (property) => typeof property === 'string'
+            ) as string[],
+            objectProperties: (objProps as QueryNested<T>[]).map(resolveObjectProperty),
+          };
+        })
         : [],
     };
   };
@@ -914,30 +917,30 @@ export class Serialize {
 
     return args.supportsSingleGrouped
       ? GenerativeSearch.fromPartial({
-          single: opts?.singlePrompt
-            ? GenerativeSearch_Single.fromPartial({
-                prompt: singlePrompt,
-                debug: singlePromptDebug,
-                queries: opts.config ? [await Serialize.generativeQuery(opts.config, singleOpts)] : undefined,
-              })
-            : undefined,
-          grouped: opts?.groupedTask
-            ? GenerativeSearch_Grouped.fromPartial({
-                task: groupedTask,
-                queries: opts.config
-                  ? [await Serialize.generativeQuery(opts.config, groupedOpts)]
-                  : undefined,
-                properties: groupedProperties
-                  ? TextArray.fromPartial({ values: groupedProperties as string[] })
-                  : undefined,
-              })
-            : undefined,
-        })
+        single: opts?.singlePrompt
+          ? GenerativeSearch_Single.fromPartial({
+            prompt: singlePrompt,
+            debug: singlePromptDebug,
+            queries: opts.config ? [await Serialize.generativeQuery(opts.config, singleOpts)] : undefined,
+          })
+          : undefined,
+        grouped: opts?.groupedTask
+          ? GenerativeSearch_Grouped.fromPartial({
+            task: groupedTask,
+            queries: opts.config
+              ? [await Serialize.generativeQuery(opts.config, groupedOpts)]
+              : undefined,
+            properties: groupedProperties
+              ? TextArray.fromPartial({ values: groupedProperties as string[] })
+              : undefined,
+          })
+          : undefined,
+      })
       : GenerativeSearch.fromPartial({
-          singleResponsePrompt: singlePrompt,
-          groupedResponseTask: groupedTask,
-          groupedProperties: groupedProperties as string[],
-        });
+        singleResponsePrompt: singlePrompt,
+        groupedResponseTask: groupedTask,
+        groupedProperties: groupedProperties as string[],
+      });
   };
 
   public static isSinglePrompt(arg?: string | SinglePrompt): arg is SinglePrompt {
@@ -960,10 +963,20 @@ export class Serialize {
     });
   };
 
+  private static bm25SearchOperator = (searchOperator?: Bm25OperatorOptions): SearchOperatorOptions | undefined => {
+    if (searchOperator) {
+      return SearchOperatorOptions.fromPartial({
+        minimumOrTokensMatch: searchOperator.minimumMatch,
+        operator: searchOperator.operator === 'and' as const ? SearchOperatorOptions_Operator.OPERATOR_AND : SearchOperatorOptions_Operator.OPERATOR_OR,
+      });
+    }
+  }
+
   public static bm25Search = <T>(args: { query: string } & Bm25SearchOptions<T>): BM25 => {
     return BM25.fromPartial({
       query: args.query,
       properties: this.bm25QueryProperties(args.queryProperties),
+      searchOperator: this.bm25SearchOperator(args.operator),
     });
   };
 
@@ -1005,13 +1018,13 @@ export class Serialize {
       return vectorBytes !== undefined
         ? { vectorBytes, targetVectors, targets }
         : {
-            targetVectors,
-            targets,
-            nearVector: NearVector.fromPartial({
-              vectorForTargets,
-              vectorPerTarget,
-            }),
-          };
+          targetVectors,
+          targets,
+          nearVector: NearVector.fromPartial({
+            vectorForTargets,
+            vectorPerTarget,
+          }),
+        };
     } else if (Serialize.isHybridNearTextSearch(vector)) {
       const { targetVectors, targets } = Serialize.targetVector(args);
       return {
@@ -1074,6 +1087,7 @@ export class Serialize {
       vectorBytes: vectorBytes,
       vectorDistance: args.maxVectorDistance,
       fusionType: fusionType(args.fusionType),
+      bm25SearchOperator: this.bm25SearchOperator(args.bm25Operator),
       targetVectors,
       targets,
       nearText,
@@ -1165,17 +1179,17 @@ export class Serialize {
       targetVectors,
       moveAway: args.moveAway
         ? NearTextSearch_Move.fromPartial({
-            concepts: args.moveAway.concepts,
-            force: args.moveAway.force,
-            uuids: args.moveAway.objects,
-          })
+          concepts: args.moveAway.concepts,
+          force: args.moveAway.force,
+          uuids: args.moveAway.objects,
+        })
         : undefined,
       moveTo: args.moveTo
         ? NearTextSearch_Move.fromPartial({
-            concepts: args.moveTo.concepts,
-            force: args.moveTo.force,
-            uuids: args.moveTo.objects,
-          })
+          concepts: args.moveTo.concepts,
+          force: args.moveTo.force,
+          uuids: args.moveTo.objects,
+        })
         : undefined,
     });
   };
@@ -1231,18 +1245,18 @@ export class Serialize {
     } else if (TargetVectorInputGuards.isSingle(args.targetVector)) {
       return args.supportsTargets
         ? {
-            targets: Targets.fromPartial({
-              targetVectors: [args.targetVector],
-            }),
-          }
+          targets: Targets.fromPartial({
+            targetVectors: [args.targetVector],
+          }),
+        }
         : { targetVectors: [args.targetVector] };
     } else if (TargetVectorInputGuards.isMulti(args.targetVector)) {
       return args.supportsTargets
         ? {
-            targets: Targets.fromPartial({
-              targetVectors: args.targetVector,
-            }),
-          }
+          targets: Targets.fromPartial({
+            targetVectors: args.targetVector,
+          }),
+        }
         : { targetVectors: args.targetVector };
     } else {
       return { targets: Serialize.targets(args.targetVector, args.supportsWeightsForTargets) };
@@ -1287,22 +1301,22 @@ export class Serialize {
           .reduce((acc, { target, vector }) => {
             return ArrayInputGuards.is2DArray(vector)
               ? acc.concat(
-                  vector.map((v) => ({ name: target, vectorBytes: Serialize.vectorToBytes(v), vectors: [] }))
-                )
+                vector.map((v) => ({ name: target, vectorBytes: Serialize.vectorToBytes(v), vectors: [] }))
+              )
               : acc.concat([{ name: target, vectorBytes: Serialize.vectorToBytes(vector), vectors: [] }]);
           }, [] as VectorForTarget[]);
         return args.targetVector !== undefined
           ? {
-              ...Serialize.targetVector(args),
-              vectorForTargets,
-            }
+            ...Serialize.targetVector(args),
+            vectorForTargets,
+          }
           : {
-              targetVectors: undefined,
-              targets: Targets.fromPartial({
-                targetVectors: vectorForTargets.map((v) => v.name),
-              }),
-              vectorForTargets,
-            };
+            targetVectors: undefined,
+            targets: Targets.fromPartial({
+              targetVectors: vectorForTargets.map((v) => v.name),
+            }),
+            vectorForTargets,
+          };
       } else {
         const vectorPerTarget: Record<string, Uint8Array> = {};
         Object.entries(args.vector).forEach(([k, v]) => {
@@ -1321,15 +1335,15 @@ export class Serialize {
         } else {
           return args.supportsTargets
             ? {
-                targets: Targets.fromPartial({
-                  targetVectors: Object.keys(vectorPerTarget),
-                }),
-                vectorPerTarget,
-              }
-            : {
+              targets: Targets.fromPartial({
                 targetVectors: Object.keys(vectorPerTarget),
-                vectorPerTarget,
-              };
+              }),
+              vectorPerTarget,
+            }
+            : {
+              targetVectors: Object.keys(vectorPerTarget),
+              vectorPerTarget,
+            };
         }
       }
     } else {
