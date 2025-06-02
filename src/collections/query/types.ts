@@ -87,7 +87,7 @@ export type Bm25QueryProperty<T> = {
 export type Bm25OperatorOptions = {
   operator: 'And' | 'Or';
   minimumMatch: number;
-}
+};
 
 export type Bm25SearchOptions<T> = {
   /** Which properties of the collection to perform the keyword search on. */
@@ -507,12 +507,12 @@ interface NearVector<T> {
 /** All the available methods on the `.query` namespace. */
 export interface Query<T>
   extends Bm25<T>,
-  Hybrid<T>,
-  NearImage<T>,
-  NearMedia<T>,
-  NearObject<T>,
-  NearText<T>,
-  NearVector<T> {
+    Hybrid<T>,
+    NearImage<T>,
+    NearMedia<T>,
+    NearObject<T>,
+    NearText<T>,
+    NearVector<T> {
   /**
    * Retrieve an object from the server by its UUID.
    *

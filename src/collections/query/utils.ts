@@ -43,5 +43,4 @@ export class Bm25Operator {
   static or(opts: Omit<Bm25OperatorOptions, 'operator'>): Bm25OperatorOptions {
     return { ...opts, operator: 'Or' };
   }
-
 }
