@@ -64,7 +64,17 @@ export type PQConfig = {
 
 export type MultiVectorConfig = {
   aggregation: 'maxSim' | string;
+  encoding?: MultiVectorEncodingConfig;
 };
+
+export type MuveraEncodingConfig = {
+  ksim?: number;
+  dprojections?: number;
+  repetitions?: number;
+  type: 'muvera';
+};
+
+export type MultiVectorEncodingConfig = MuveraEncodingConfig | Record<string, any>;
 
 export type PQEncoderConfig = {
   type: PQEncoderType;

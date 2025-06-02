@@ -1,3 +1,4 @@
+import { MuveraEncodingConfigCreate } from '../index.js';
 import {
   BQConfigCreate,
   BQConfigUpdate,
@@ -54,6 +55,12 @@ export class VectorIndexGuards {
   }
   static isDynamic(config?: VectorIndexConfig): config is VectorIndexConfigDynamicCreate {
     return (config as VectorIndexConfigDynamicCreate)?.type === 'dynamic';
+  }
+}
+
+export class MultiVectorEncodingGuards {
+  static isMuvera(config?: Record<string, any>): config is MuveraEncodingConfigCreate {
+    return (config as { type: string })?.type === 'muvera';
   }
 }
 

@@ -279,11 +279,7 @@ const testCases: TestCase[] = [
   },
 ];
 
-requireAtLeast(
-  1,
-  29,
-  0
-)('Integration testing of the roles namespace', () => {
+requireAtLeast(1, 29, 0)(describe)('Integration testing of the roles namespace', () => {
   let client: WeaviateClient;
 
   beforeAll(async () => {
@@ -317,11 +313,7 @@ requireAtLeast(
     expect(exists).toBeFalsy();
   });
 
-  requireAtLeast(
-    1,
-    30,
-    0
-  )('namespaced users', () => {
+  requireAtLeast(1, 30, 0)(describe)('namespaced users', () => {
     it('retrieves assigned users with/without namespace', async () => {
       await client.roles.create('landlord', {
         collection: 'Buildings',

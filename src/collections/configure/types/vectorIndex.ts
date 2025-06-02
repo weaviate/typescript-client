@@ -2,6 +2,7 @@ import {
   BQConfig,
   ModuleConfig,
   MultiVectorConfig,
+  MuveraEncodingConfig,
   PQConfig,
   PQEncoderDistribution,
   PQEncoderType,
@@ -48,6 +49,8 @@ export type SQConfigUpdate = {
 };
 
 export type MultiVectorConfigCreate = RecursivePartial<MultiVectorConfig>;
+
+export type MuveraEncodingConfigCreate = RecursivePartial<MuveraEncodingConfig>;
 
 export type VectorIndexConfigHNSWCreate = RecursivePartial<VectorIndexConfigHNSW>;
 

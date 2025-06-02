@@ -18,7 +18,7 @@ import {
   WeaviateVectorsConfig,
 } from '../../openapi/types.js';
 import { DbVersionSupport } from '../../utils/dbVersion.js';
-import { QuantizerGuards, VectorIndexGuards } from '../configure/parsing.js';
+import { MultiVectorEncodingGuards, QuantizerGuards, VectorIndexGuards } from '../configure/parsing.js';
 import {
   PropertyConfigCreate,
   ReferenceConfigCreate,
@@ -39,6 +39,7 @@ import {
   ModuleConfig,
   MultiTenancyConfig,
   MultiVectorConfig,
+  MultiVectorEncodingConfig,
   PQConfig,
   PQEncoderConfig,
   PQEncoderDistribution,
@@ -147,18 +148,34 @@ export const parseVectorIndex = (module: ModuleConfig<VectorIndexType, VectorInd
     };
   }
 
-  let multiVector;
+  let multivector: any;
   if (VectorIndexGuards.isHNSW(module.config) && module.config.multiVector !== undefined) {
-    multiVector = {
-      ...module.config.multiVector,
+    multivector = {
+      aggregation: module.config.multiVector.aggregation,
       enabled: true,
     };
+    if (
+      module.config.multiVector.encoding !== undefined &&
+      MultiVectorEncodingGuards.isMuvera(module.config.multiVector.encoding)
+    ) {
+      multivector.muvera = {
+        enabled: true,
+        ksim: module.config.multiVector.encoding.ksim,
+        dprojections: module.config.multiVector.encoding.dprojections,
+        repetitions: module.config.multiVector.encoding.repetitions,
+      };
+    }
   }
 
-  const { quantizer, ...conf } = module.config as
+  const { quantizer, ...rest } = module.config as
     | VectorIndexConfigFlatCreate
     | VectorIndexConfigHNSWCreate
     | Record<string, any>;
+
+  const conf = {
+    ...rest,
+    multivector,
+  };
   if (quantizer === undefined) return conf;
   if (QuantizerGuards.isBQCreate(quantizer)) {
     const { type, ...quant } = quantizer;
@@ -476,6 +493,7 @@ class ConfigMapping {
     } else {
       quantizer = undefined;
     }
+
     return {
       cleanupIntervalSeconds: v.cleanupIntervalSeconds,
       distance: v.distance,
@@ -502,8 +520,25 @@ class ConfigMapping {
     if (v.enabled === false) return undefined;
     if (!exists<string>(v.aggregation))
       throw new WeaviateDeserializationError('Multi vector aggregation was not returned by Weaviate');
+    let encoding: MultiVectorEncodingConfig | undefined;
+    if (
+      exists<{
+        ksim: number;
+        dprojections: number;
+        repetitions: number;
+        enabled: boolean;
+      }>(v.muvera)
+    ) {
+      encoding = v.muvera.enabled
+        ? {
+            type: 'muvera',
+            ...v.muvera,
+          }
+        : undefined;
+    }
     return {
       aggregation: v.aggregation,
+      encoding,
     };
   }
   static bq(v?: Record<string, unknown>): BQConfig | undefined {
