@@ -1,12 +1,18 @@
 import Connection from '../connection/grpc.js';
-import { WeaviateInvalidInputError, WeaviateUnsupportedFeatureError } from '../errors.js';
+import { WeaviateUnsupportedFeatureError } from '../errors.js';
 import { WeaviateClass } from '../openapi/types.js';
 import ClassExists from '../schema/classExists.js';
 import { ClassCreator, ClassDeleter, ClassGetter, SchemaGetter } from '../schema/index.js';
 import { DbVersionSupport } from '../utils/dbVersion.js';
 import collection, { Collection } from './collection/index.js';
-import { classToCollection, resolveProperty, resolveReference } from './config/utils.js';
-import { QuantizerGuards, VectorIndexGuards } from './configure/parsing.js';
+import {
+  classToCollection,
+  makeVectorsConfig,
+  parseVectorIndex,
+  parseVectorizerConfig,
+  resolveProperty,
+  resolveReference,
+} from './config/utils.js';
 import { configGuards } from './index.js';
 import {
   CollectionConfig,
@@ -23,12 +29,7 @@ import {
   RerankerConfig,
   ShardingConfigCreate,
   VectorConfigCreate,
-  VectorIndexConfigCreate,
-  VectorIndexConfigFlatCreate,
-  VectorIndexConfigHNSWCreate,
-  VectorIndexType,
   Vectorizer,
-  VectorizerConfig,
   VectorizersConfigCreate,
   Vectors,
 } from './types/index.js';
@@ -65,65 +66,6 @@ export type CollectionConfigCreate<TProperties = undefined, N = string, TVectors
   vectorizers?: VectorizersConfigCreate<TProperties, TVectors>;
 };
 
-const parseVectorIndex = (module: ModuleConfig<VectorIndexType, VectorIndexConfigCreate>): any => {
-  if (module.config === undefined) return undefined;
-  if (VectorIndexGuards.isDynamic(module.config)) {
-    const { hnsw, flat, ...conf } = module.config;
-    return {
-      ...conf,
-      hnsw: parseVectorIndex({ name: 'hnsw', config: hnsw }),
-      flat: parseVectorIndex({ name: 'flat', config: flat }),
-    };
-  }
-
-  let multiVector;
-  if (VectorIndexGuards.isHNSW(module.config) && module.config.multiVector !== undefined) {
-    multiVector = {
-      ...module.config.multiVector,
-      enabled: true,
-    };
-  }
-
-  const { quantizer, ...rest } = module.config as
-    | VectorIndexConfigFlatCreate
-    | VectorIndexConfigHNSWCreate
-    | Record<string, any>;
-  const conf = {
-    ...rest,
-    multivector: multiVector,
-  };
-  if (quantizer === undefined) return conf;
-  if (QuantizerGuards.isBQCreate(quantizer)) {
-    const { type, ...quant } = quantizer;
-    return {
-      ...conf,
-      bq: {
-        ...quant,
-        enabled: true,
-      },
-    };
-  }
-  if (QuantizerGuards.isPQCreate(quantizer)) {
-    const { type, ...quant } = quantizer;
-    return {
-      ...conf,
-      pq: {
-        ...quant,
-        enabled: true,
-      },
-    };
-  }
-};
-
-const parseVectorizerConfig = (config?: VectorizerConfig): any => {
-  if (config === undefined) return {};
-  const { vectorizeCollectionName, ...rest } = config as any;
-  return {
-    ...rest,
-    vectorizeClassName: vectorizeCollectionName,
-  };
-};
-
 const collections = (connection: Connection, dbVersionSupport: DbVersionSupport) => {
   const listAll = () =>
     new SchemaGetter(connection)
@@ -151,43 +93,6 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
       if (config.reranker) {
         moduleConfig[config.reranker.name] = config.reranker.config ? config.reranker.config : {};
       }
-
-      const makeVectorsConfig = (configVectorizers: VectorizersConfigCreate<TProperties, TVectors>) => {
-        let vectorizers: string[] = [];
-        const vectorsConfig: Record<string, any> = {};
-        const vectorizersConfig = Array.isArray(configVectorizers)
-          ? configVectorizers
-          : [
-              {
-                ...configVectorizers,
-                name: 'default',
-              },
-            ];
-        vectorizersConfig.forEach((v) => {
-          if (v.vectorIndex.name === 'dynamic' && !supportsDynamicVectorIndex.supports) {
-            throw new WeaviateUnsupportedFeatureError(supportsDynamicVectorIndex.message);
-          }
-          const vectorConfig: any = {
-            vectorIndexConfig: parseVectorIndex(v.vectorIndex),
-            vectorIndexType: v.vectorIndex.name,
-            vectorizer: {},
-          };
-          const vectorizer =
-            v.vectorizer.name === 'text2vec-azure-openai' ? 'text2vec-openai' : v.vectorizer.name;
-          vectorizers = [...vectorizers, vectorizer];
-          vectorConfig.vectorizer[vectorizer] = {
-            properties: v.properties,
-            ...parseVectorizerConfig(v.vectorizer.config),
-          };
-          if (v.name === undefined) {
-            throw new WeaviateInvalidInputError(
-              'vectorName is required for each vectorizer when specifying more than one vectorizer'
-            );
-          }
-          vectorsConfig[v.name] = vectorConfig;
-        });
-        return { vectorsConfig, vectorizers };
-      };
 
       const makeLegacyVectorizer = (
         configVectorizers: VectorConfigCreate<PrimitiveKeys<TProperties>, undefined, string, Vectorizer>
@@ -236,7 +141,7 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
       let vectorizers: string[] = [];
       if (supportsNamedVectors.supports) {
         const { vectorsConfig, vectorizers: vecs } = config.vectorizers
-          ? makeVectorsConfig(config.vectorizers)
+          ? makeVectorsConfig(config.vectorizers, supportsDynamicVectorIndex)
           : { vectorsConfig: undefined, vectorizers: [] };
         schema.vectorConfig = vectorsConfig;
         vectorizers = [...vecs];
@@ -245,7 +150,7 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
           throw new WeaviateUnsupportedFeatureError(supportsNamedVectors.message);
         }
         const configs = config.vectorizers
-          ? makeLegacyVectorizer(config.vectorizers)
+          ? makeLegacyVectorizer({ ...config.vectorizers, name: undefined })
           : {
               vectorizer: undefined,
               moduleConfig: undefined,

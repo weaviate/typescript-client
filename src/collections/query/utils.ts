@@ -1,5 +1,7 @@
 import { MultiTargetVectorJoin, Vectors } from '../index.js';
 import {
+  Bm25OperatorOptions,
+  Bm25OperatorOr,
   ListOfVectors,
   MultiVectorType,
   NearVectorInputType,
@@ -62,5 +64,15 @@ export class TargetVectorInputGuards {
   public static isMultiJoin(input: TargetVectorInputType<Vectors>): input is MultiTargetVectorJoin<Vectors> {
     const i = input as MultiTargetVectorJoin<Vectors>;
     return i.combination !== undefined && i.targetVectors !== undefined;
+  }
+}
+
+export class Bm25Operator {
+  static and(): Bm25OperatorOptions {
+    return { operator: 'And' };
+  }
+
+  static or(opts: Omit<Bm25OperatorOr, 'operator'>): Bm25OperatorOptions {
+    return { ...opts, operator: 'Or' };
   }
 }

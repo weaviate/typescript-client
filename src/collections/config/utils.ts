@@ -1,4 +1,8 @@
-import { WeaviateDeserializationError } from '../../errors.js';
+import {
+  WeaviateDeserializationError,
+  WeaviateInvalidInputError,
+  WeaviateUnsupportedFeatureError,
+} from '../../errors.js';
 import {
   WeaviateBM25Config,
   WeaviateClass,
@@ -13,11 +17,18 @@ import {
   WeaviateVectorIndexConfig,
   WeaviateVectorsConfig,
 } from '../../openapi/types.js';
+import { DbVersionSupport } from '../../utils/dbVersion.js';
+import { QuantizerGuards, VectorIndexGuards } from '../configure/parsing.js';
 import {
   PropertyConfigCreate,
   ReferenceConfigCreate,
   ReferenceMultiTargetConfigCreate,
   ReferenceSingleTargetConfigCreate,
+  VectorIndexConfigCreate,
+  VectorIndexConfigFlatCreate,
+  VectorIndexConfigHNSWCreate,
+  VectorizersConfigAdd,
+  VectorizersConfigCreate,
 } from '../configure/types/index.js';
 import {
   BQConfig,
@@ -47,6 +58,7 @@ import {
   VectorIndexConfigHNSW,
   VectorIndexConfigType,
   VectorIndexFilterStrategy,
+  VectorIndexType,
   VectorizerConfig,
 } from './types/index.js';
 
@@ -122,6 +134,100 @@ export const classToCollection = <T>(cls: WeaviateClass): CollectionConfig => {
     sharding: ConfigMapping.sharding(cls.shardingConfig),
     vectorizers: ConfigMapping.vectorizer(cls),
   };
+};
+
+export const parseVectorIndex = (module: ModuleConfig<VectorIndexType, VectorIndexConfigCreate>): any => {
+  if (module.config === undefined) return undefined;
+  if (VectorIndexGuards.isDynamic(module.config)) {
+    const { hnsw, flat, ...conf } = module.config;
+    return {
+      ...conf,
+      hnsw: parseVectorIndex({ name: 'hnsw', config: hnsw }),
+      flat: parseVectorIndex({ name: 'flat', config: flat }),
+    };
+  }
+
+  let multiVector;
+  if (VectorIndexGuards.isHNSW(module.config) && module.config.multiVector !== undefined) {
+    multiVector = {
+      ...module.config.multiVector,
+      enabled: true,
+    };
+  }
+
+  const { quantizer, ...conf } = module.config as
+    | VectorIndexConfigFlatCreate
+    | VectorIndexConfigHNSWCreate
+    | Record<string, any>;
+  if (quantizer === undefined) return conf;
+  if (QuantizerGuards.isBQCreate(quantizer)) {
+    const { type, ...quant } = quantizer;
+    return {
+      ...conf,
+      bq: {
+        ...quant,
+        enabled: true,
+      },
+    };
+  }
+  if (QuantizerGuards.isPQCreate(quantizer)) {
+    const { type, ...quant } = quantizer;
+    return {
+      ...conf,
+      pq: {
+        ...quant,
+        enabled: true,
+      },
+    };
+  }
+};
+
+export const parseVectorizerConfig = (config?: VectorizerConfig): any => {
+  if (config === undefined) return {};
+  const { vectorizeCollectionName, ...rest } = config as any;
+  return {
+    ...rest,
+    vectorizeClassName: vectorizeCollectionName,
+  };
+};
+
+export const makeVectorsConfig = (
+  configVectorizers: VectorizersConfigCreate<any, any> | VectorizersConfigAdd<any>,
+  supportsDynamicVectorIndex: Awaited<ReturnType<DbVersionSupport['supportsDynamicVectorIndex']>>
+) => {
+  let vectorizers: string[] = [];
+  const vectorsConfig: Record<string, any> = {};
+  const vectorizersConfig = Array.isArray(configVectorizers)
+    ? configVectorizers
+    : [
+        {
+          ...configVectorizers,
+          name: configVectorizers.name || 'default',
+        },
+      ];
+  vectorizersConfig.forEach((v) => {
+    if (v.vectorIndex.name === 'dynamic' && !supportsDynamicVectorIndex.supports) {
+      throw new WeaviateUnsupportedFeatureError(supportsDynamicVectorIndex.message);
+    }
+    const vectorConfig: any = {
+      vectorIndexConfig: parseVectorIndex(v.vectorIndex),
+      vectorIndexType: v.vectorIndex.name,
+      vectorizer: {},
+    };
+    const vectorizer = v.vectorizer.name === 'text2vec-azure-openai' ? 'text2vec-openai' : v.vectorizer.name;
+    vectorizers = [...vectorizers, vectorizer];
+    vectorConfig.vectorizer[vectorizer] = {
+      properties: v.properties,
+      ...parseVectorizerConfig(v.vectorizer.config),
+    };
+    if (v.name === undefined) {
+      throw new WeaviateInvalidInputError(
+        'vectorName is required for each vectorizer when specifying more than one vectorizer'
+      );
+    }
+    vectorsConfig[v.name] = vectorConfig;
+  });
+  return { vectorsConfig, vectorizers };
 };
 
 function populated<T>(v: T | null | undefined): v is T {
