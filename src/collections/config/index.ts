@@ -40,7 +40,7 @@ const config = <T>(
         .withClassName(name)
         .withProperty(resolveProperty<any>(property, []))
         .do()
-        .then(() => { }),
+        .then(() => {}),
     addReference: (
       reference: ReferenceSingleTargetConfigCreate<any> | ReferenceMultiTargetConfigCreate<any>
     ) =>
@@ -48,7 +48,7 @@ const config = <T>(
         .withClassName(name)
         .withProperty(resolveReference<any>(reference))
         .do()
-        .then(() => { }),
+        .then(() => {}),
     addVector: async (vectors: VectorizersConfigAdd<T>) => {
       const supportsDynamicVectorIndex = await dbVersionSupport.supportsDynamicVectorIndex();
       const { vectorsConfig } = makeVectorsConfig(vectors, supportsDynamicVectorIndex);
@@ -72,7 +72,7 @@ const config = <T>(
         })
       );
     },
-    updateShards: async function(status: 'READY' | 'READONLY', names?: string | string[]) {
+    updateShards: async function (status: 'READY' | 'READONLY', names?: string | string[]) {
       let shardNames: string[];
       if (names === undefined) {
         shardNames = await this.getShards().then((shards) => shards.map((s) => s.name));
@@ -97,7 +97,7 @@ const config = <T>(
           )
         )
         .then((merged) => new ClassUpdater(connection).withClass(merged).do())
-        .then(() => { });
+        .then(() => {});
     },
   };
 };
@@ -122,15 +122,15 @@ export interface Config<T> {
     reference: ReferenceSingleTargetConfigCreate<T> | ReferenceMultiTargetConfigCreate<T>
   ) => Promise<void>;
   /**
-    * Add one or more named vectors to the collection in Weaviate.
-    * Named vectors can be added to collections with existing named vectors only.
-    *
-    * Existing named vectors are immutable in Weaviate. The client will not include
-  * any of those in the request.
-    *
-    * @param {VectorizersConfigAdd<any>} vectors Vector configurations.
-    * @returns {Promise<void>} A promise that resolves when the named vector has been created.
-    */
+   * Add one or more named vectors to the collection in Weaviate.
+   * Named vectors can be added to collections with existing named vectors only.
+   *
+   * Existing named vectors are immutable in Weaviate. The client will not include
+   * any of those in the request.
+   *
+   * @param {VectorizersConfigAdd<any>} vectors Vector configurations.
+   * @returns {Promise<void>} A promise that resolves when the named vector has been created.
+   */
   addVector: (vectors: VectorizersConfigAdd<T>) => Promise<void>;
   /**
    * Get the configuration for this collection from Weaviate.

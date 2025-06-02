@@ -387,7 +387,11 @@ describe('Testing of the collection.config namespace', () => {
     ]);
   });
 
-  requireAtLeast(1, 31, 0)('Mutable named vectors', () => {
+  requireAtLeast(
+    1,
+    31,
+    0
+  )('Mutable named vectors', () => {
     it('should be able to add named vectors to a collection', async () => {
       const collectionName = 'TestCollectionConfigAddVector' as const;
       const collection = await client.collections.create({
@@ -404,17 +408,19 @@ describe('Testing of the collection.config namespace', () => {
       ]);
 
       // Trying to update 'original' vector -- should be omitted from request.
-      await collection.config.addVector(weaviate.configure.vectorizer.none({
-        name: 'original',
-        vectorIndexConfig: weaviate.configure.vectorIndex.flat(),
-      }));
+      await collection.config.addVector(
+        weaviate.configure.vectorizer.none({
+          name: 'original',
+          vectorIndexConfig: weaviate.configure.vectorIndex.flat(),
+        })
+      );
 
       const config = await collection.config.get();
       expect(config.vectorizers).toHaveProperty('vector-a');
       expect(config.vectorizers).toHaveProperty('vector-b');
       expect(config.vectorizers).toHaveProperty('vector-c');
 
-      expect(config.vectorizers['original']).toHaveProperty('indexType', 'hnsw');
+      expect(config.vectorizers.original).toHaveProperty('indexType', 'hnsw');
     });
   });
 
