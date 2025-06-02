@@ -5,6 +5,7 @@ export type RerankerCohereConfig = {
 };
 
 export type RerankerVoyageAIConfig = {
+  baseURL?: string;
   model?: 'rerank-lite-1' | string;
 };
 
@@ -18,9 +19,15 @@ export type RerankerJinaAIConfig = {
     | string;
 };
 
+export type RerankerNvidiaConfig = {
+  baseURL?: string;
+  model?: 'nvidia/rerank-qa-mistral-4b' | string;
+};
+
 export type RerankerConfig =
   | RerankerCohereConfig
   | RerankerJinaAIConfig
+  | RerankerNvidiaConfig
   | RerankerTransformersConfig
   | RerankerVoyageAIConfig
   | Record<string, any>
@@ -29,6 +36,7 @@ export type RerankerConfig =
 export type Reranker =
   | 'reranker-cohere'
   | 'reranker-jinaai'
+  | 'reranker-nvidia'
   | 'reranker-transformers'
   | 'reranker-voyageai'
   | 'none'
@@ -38,6 +46,8 @@ export type RerankerConfigType<R> = R extends 'reranker-cohere'
   ? RerankerCohereConfig
   : R extends 'reranker-jinaai'
   ? RerankerJinaAIConfig
+  : R extends 'reranker-nvidia'
+  ? RerankerNvidiaConfig
   : R extends 'reranker-transformers'
   ? RerankerTransformersConfig
   : R extends 'reranker-voyageai'

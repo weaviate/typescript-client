@@ -322,7 +322,7 @@ requireAtLeast(
     30,
     0
   )('namespaced users', () => {
-    it('retrieves assigned users with namespace', async () => {
+    it('retrieves assigned users with/without namespace', async () => {
       await client.roles.create('landlord', {
         collection: 'Buildings',
         tenant: 'john-doe',
@@ -341,6 +341,10 @@ requireAtLeast(
           expect.objectContaining<UserAssignment>({ id: 'Innkeeper', userType: 'db_user' }),
         ])
       );
+
+      // Legacy
+      const assignedUsers = await client.roles.assignedUserIds('landlord');
+      expect(assignedUsers).toEqual(['Innkeeper', 'custom-user']);
 
       await client.users.db.delete('Innkeeper');
       await client.roles.delete('landlord');

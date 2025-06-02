@@ -1,7 +1,7 @@
-import weaviate, { ApiKey } from '..';
+import weaviate, { ApiKey, WeaviateClient } from '..';
 import { requireAtLeast } from '../../test/version.js';
-import { WeaviateUserTypeDB } from '../v2';
-import { UserDB } from './types.js';
+import { WeaviateUserTypeDB } from '../openapi/types.js';
+import { GetUserOptions, UserDB } from './types.js';
 
 requireAtLeast(
   1,
@@ -16,9 +16,10 @@ requireAtLeast(
     });
 
   beforeAll(() =>
-    makeClient('admin-key').then((c) =>
-      c.roles.create('test', weaviate.permissions.data({ collection: 'Thing', read: true }))
-    )
+    makeClient('admin-key').then((c) => {
+      c.roles.delete('test');
+      c.roles.create('test', weaviate.permissions.data({ collection: 'Thing', read: true }));
+    })
   );
 
   it('should be able to retrieve own admin user with root roles', async () => {
@@ -66,29 +67,46 @@ requireAtLeast(
     30,
     0
   )('dynamic user management', () => {
+    /** List dynamic DB users. */
+    const listDBUsers = (c: WeaviateClient, opts?: GetUserOptions) =>
+      c.users.db.listAll(opts).then((all) => all.filter((u) => u.userType == 'db_user'));
+
+    const deleteAllUsers = async (c: WeaviateClient) => {
+      const users = await listDBUsers(c);
+      await Promise.all(users.map((user) => c.users.db.delete(user.id)));
+    };
+
+    beforeAll(() => makeClient('admin-key').then(deleteAllUsers));
+
     it('should be able to manage "db" user lifecycle', async () => {
-      const client = await makeClient('admin-key');
+      const admin = await makeClient('admin-key');
 
       /** Pass false to expect a rejected promise, chain assertions about dynamic-dave otherwise. */
       const expectDave = (ok: boolean = true) => {
-        const promise = expect(client.users.db.byName('dynamic-dave'));
+        const promise = expect(admin.users.db.byName('dynamic-dave'));
         return ok ? promise.resolves : promise.rejects;
       };
 
-      await client.users.db.create('dynamic-dave');
+      await admin.users.db.create('dynamic-dave');
       await expectDave().toHaveProperty('active', true);
 
       // Second activation is a no-op
-      await expect(client.users.db.activate('dynamic-dave')).resolves.toEqual(true);
+      await expect(admin.users.db.activate('dynamic-dave')).resolves.toEqual(false);
 
-      await client.users.db.deactivate('dynamic-dave');
+      await expect(admin.users.db.deactivate('dynamic-dave')).resolves.toEqual(true);
       await expectDave().toHaveProperty('active', false);
 
       // Second deactivation is a no-op
-      await expect(client.users.db.deactivate('dynamic-dave', { revokeKey: true })).resolves.toEqual(true);
+      await expect(admin.users.db.deactivate('dynamic-dave', { revokeKey: true })).resolves.toEqual(false);
 
-      await client.users.db.delete('dynamic-dave');
+      // Re-activate
+      await expect(admin.users.db.activate('dynamic-dave')).resolves.toEqual(true);
+
+      await expect(admin.users.db.delete('dynamic-dave')).resolves.toEqual(true);
       await expectDave(false).toHaveProperty('code', 404);
+
+      // Second deletion is a no-op
+      await expect(admin.users.db.delete('dynamic-dave')).resolves.toEqual(false);
     });
 
     it('should be able to obtain and rotate api keys', async () => {
@@ -139,30 +157,85 @@ requireAtLeast(
     it('should be able to fetch assigned roles with all permissions', async () => {
       const admin = await makeClient('admin-key');
 
-      await admin.roles.delete('test');
-      await admin.roles.create('test', [
+      await admin.roles.delete('Permissioner');
+      await admin.roles.create('Permissioner', [
         { collection: 'Things', actions: ['manage_backups'] },
         { collection: 'Things', tenant: 'data-tenant', actions: ['create_data'] },
         { collection: 'Things', verbosity: 'minimal', actions: ['read_nodes'] },
       ]);
       await admin.users.db.create('permission-peter');
-      await admin.users.db.assignRoles('test', 'permission-peter');
+      await admin.users.db.assignRoles('Permissioner', 'permission-peter');
 
       const roles = await admin.users.db.getAssignedRoles('permission-peter', { includePermissions: true });
-      expect(roles.test.backupsPermissions).toHaveLength(1);
-      expect(roles.test.dataPermissions).toHaveLength(1);
-      expect(roles.test.nodesPermissions).toHaveLength(1);
+      expect(roles.Permissioner.backupsPermissions).toHaveLength(1);
+      expect(roles.Permissioner.dataPermissions).toHaveLength(1);
+      expect(roles.Permissioner.nodesPermissions).toHaveLength(1);
     });
 
-    afterAll(() =>
-      makeClient('admin-key').then(async (c) => {
-        await Promise.all(
-          ['jim', 'pam', 'dwight', 'dynamic-dave', 'api-ashley', 'role-rick', 'permission-peter'].map((n) =>
-            c.users.db.delete(n)
+    requireAtLeast(
+      1,
+      30,
+      1
+    )('additional DUM features', () => {
+      it('should be able to fetch additional user info', async () => {
+        const admin = await makeClient('admin-key');
+        const timKey = await admin.users.db.create('timely-tim');
+
+        // Allow timely-tim to read own role
+        await admin.roles.delete('TimReader');
+        await admin.roles.create('TimReader', [{ actions: ['read_users'], users: 'timely-tim' }]);
+        await admin.users.db.assignRoles('TimReader', 'timely-tim');
+
+        // Get user info with / without lastUserTime
+        const timUser = await admin.users.db.byName('timely-tim');
+        expect(timUser.createdAt).not.toBeUndefined(); // always returned
+        expect(timUser.lastUsedAt).toBeUndefined();
+        expect(timUser.apiKeyFirstLetters).not.toBeUndefined();
+
+        // Check that Tim cannnot see the first letters of the API key
+        const tim = await makeClient(timKey);
+        await expect(tim.users.db.byName('timely-tim')).resolves.toHaveProperty(
+          'apiKeyFirstLetters',
+          undefined
+        );
+
+        await expect(admin.users.db.byName('timely-tim', { includeLastUsedTime: true })).resolves.toEqual(
+          expect.objectContaining({ lastUsedAt: expect.any(Date) })
+        );
+
+        // apiKeyFirstLetters contain first letters of the API key
+        expect(timKey).toMatch(new RegExp(`^${timUser.apiKeyFirstLetters}.*`));
+      });
+
+      it('should be able to list all users with additional info', async () => {
+        const admin = await makeClient('admin-key');
+
+        // Create test users and use each at least once
+        const created = await Promise.all(
+          ['A', 'B', 'C'].map(async (user) => {
+            const key = await admin.users.db.create(user);
+            await makeClient(key).then((c) => c.users.getMyUser());
+            return user;
+          })
+        );
+
+        const users = await listDBUsers(admin, { includeLastUsedTime: true }).then((users) =>
+          users.filter((user) => created.includes(user.id))
+        );
+
+        users.forEach((user) =>
+          expect(user).toEqual(
+            expect.objectContaining({
+              createdAt: expect.any(Date),
+              lastUsedAt: expect.any(Date),
+              apiKeyFirstLetters: expect.any(String),
+            })
           )
         );
-      })
-    );
+      });
+    });
+
+    afterAll(() => makeClient('admin-key').then(deleteAllUsers));
   });
 
   afterAll(() => makeClient('admin-key').then((c) => c.roles.delete('test')));

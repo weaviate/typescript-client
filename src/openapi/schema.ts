@@ -40,6 +40,33 @@ export interface paths {
       };
     };
   };
+  '/replication/replicate': {
+    /** Begins an asynchronous operation to move or copy a specific shard replica from its current node to a designated target node. The operation involves copying data, synchronizing, and potentially decommissioning the source replica. */
+    post: operations['replicate'];
+    delete: operations['deleteAllReplications'];
+  };
+  '/replication/replicate/force-delete': {
+    /** USE AT OWN RISK! Synchronously force delete operations from the FSM. This will not perform any checks on which state the operation is in so may lead to data corruption or loss. It is recommended to first scale the number of replication engine workers to 0 before calling this endpoint to ensure no operations are in-flight. */
+    post: operations['forceDeleteReplications'];
+  };
+  '/replication/replicate/{id}': {
+    /** Fetches the current status and detailed information for a specific replication operation, identified by its unique ID. Optionally includes historical data of the operation's progress if requested. */
+    get: operations['replicationDetails'];
+    /** Removes a specific replication operation. If the operation is currently active, it will be cancelled and its resources cleaned up before the operation is deleted. */
+    delete: operations['deleteReplication'];
+  };
+  '/replication/replicate/list': {
+    /** Retrieves a list of currently registered replication operations, optionally filtered by collection, shard, or node ID. */
+    get: operations['listReplication'];
+  };
+  '/replication/replicate/{id}/cancel': {
+    /** Requests the cancellation of an active replication operation identified by its ID. The operation will be stopped, but its record will remain in the 'CANCELLED' state (can't be resumed) and will not be automatically deleted. */
+    post: operations['cancelReplication'];
+  };
+  '/replication/sharding-state': {
+    /** Fetches the current sharding state, including replica locations and statuses, for all collections or a specified collection. If a shard name is provided along with a collection, the state for that specific shard is returned. */
+    get: operations['getCollectionShardingState'];
+  };
   '/users/own-info': {
     get: operations['getOwnInfo'];
   };
@@ -243,6 +270,9 @@ export interface paths {
     /** Returns node information for the nodes relevant to the collection. */
     get: operations['nodes.get.class'];
   };
+  '/tasks': {
+    get: operations['distributedTasks.get'];
+  };
   '/classifications/': {
     /** Trigger a classification based on the specified params. Classifications will run in the background, use GET /classifications/<id> to retrieve the status of your classification. */
     post: operations['classifications.post'];
@@ -288,6 +318,13 @@ export interface definitions {
      * @description Date and time in ISO 8601 format (YYYY-MM-DDTHH:MM:SSZ)
      */
     createdAt?: unknown;
+    /** @description First 3 letters of the associated API-key */
+    apiKeyFirstLetters?: unknown;
+    /**
+     * Format: date-time
+     * @description Date and time in ISO 8601 format (YYYY-MM-DDTHH:MM:SSZ)
+     */
+    lastUsedAt?: unknown;
   };
   UserApiKey: {
     /** @description The apikey */
@@ -383,6 +420,19 @@ export interface definitions {
        */
       collection?: string;
     };
+    /** @description resources applicable for replicate actions */
+    replicate?: {
+      /**
+       * @description string or regex. if a specific collection name, if left empty it will be ALL or *
+       * @default *
+       */
+      collection?: string;
+      /**
+       * @description string or regex. if a specific shard name, if left empty it will be ALL or *
+       * @default *
+       */
+      shard?: string;
+    };
     /**
      * @description allowed actions in weaviate.
      * @enum {string}
@@ -411,7 +461,11 @@ export interface definitions {
       | 'create_tenants'
       | 'read_tenants'
       | 'update_tenants'
-      | 'delete_tenants';
+      | 'delete_tenants'
+      | 'create_replicate'
+      | 'read_replicate'
+      | 'update_replicate'
+      | 'delete_replicate';
   };
   /** @description list of roles */
   RolesListResponse: definitions['Role'][];
@@ -663,6 +717,126 @@ export interface definitions {
     /** @description The value to be used within the operations. */
     value?: { [key: string]: unknown };
     merge?: definitions['Object'];
+  };
+  /** @description Specifies the parameters required to initiate a shard replica movement operation between two nodes for a given collection and shard. This request defines the source and destination node, the collection and type of transfer. */
+  ReplicationReplicateReplicaRequest: {
+    /** @description The name of the Weaviate node currently hosting the shard replica that needs to be moved or copied. */
+    sourceNodeName: string;
+    /** @description The name of the Weaviate node where the new shard replica will be created as part of the movement or copy operation. */
+    destinationNodeName: string;
+    /** @description The unique identifier (name) of the collection to which the target shard belongs. */
+    collectionId: string;
+    /** @description The ID of the shard whose replica is to be moved or copied. */
+    shardId: string;
+    /**
+     * @description Specifies the type of replication operation to perform. 'COPY' creates a new replica on the destination node while keeping the source replica. 'MOVE' creates a new replica on the destination node and then removes the source replica upon successful completion. Defaults to 'COPY' if omitted.
+     * @default COPY
+     * @enum {string}
+     */
+    transferType?: 'COPY' | 'MOVE';
+  };
+  /** @description Contains the unique identifier for a successfully initiated asynchronous replica movement operation. This ID can be used to track the progress of the operation. */
+  ReplicationReplicateReplicaResponse: {
+    /**
+     * Format: uuid
+     * @description The unique identifier (ID) assigned to the registered replication operation.
+     */
+    id: string;
+  };
+  /** @description Provides the detailed sharding state for one or more collections, including the distribution of shards and their replicas across the cluster nodes. */
+  ReplicationShardingStateResponse: {
+    shardingState?: definitions['ReplicationShardingState'];
+  };
+  /** @description Specifies the parameters required to mark a specific shard replica as inactive (soft-delete) on a particular node. This action typically prevents the replica from serving requests but does not immediately remove its data. */
+  ReplicationDisableReplicaRequest: {
+    /** @description The name of the Weaviate node hosting the shard replica that is to be disabled. */
+    nodeName: string;
+    /** @description The name of the collection to which the shard replica belongs. */
+    collectionId: string;
+    /** @description The ID of the shard whose replica is to be disabled. */
+    shardId: string;
+  };
+  /** @description Specifies the parameters required to permanently delete a specific shard replica from a particular node. This action will remove the replica's data from the node. */
+  ReplicationDeleteReplicaRequest: {
+    /** @description The name of the Weaviate node from which the shard replica will be deleted. */
+    nodeName: string;
+    /** @description The name of the collection to which the shard replica belongs. */
+    collectionId: string;
+    /** @description The ID of the shard whose replica is to be deleted. */
+    shardId: string;
+  };
+  /** @description Represents a shard and lists the nodes that currently host its replicas. */
+  ReplicationShardReplicas: {
+    shard?: string;
+    replicas?: string[];
+  };
+  /** @description Details the sharding layout for a specific collection, mapping each shard to its set of replicas across the cluster. */
+  ReplicationShardingState: {
+    /** @description The name of the collection. */
+    collection?: string;
+    /** @description An array detailing each shard within the collection and the nodes hosting its replicas. */
+    shards?: definitions['ReplicationShardReplicas'][];
+  };
+  /** @description Represents the current or historical status of a shard replica involved in a replication operation, including its operational state and any associated errors. */
+  ReplicationReplicateDetailsReplicaStatus: {
+    /**
+     * @description The current operational state of the replica during the replication process.
+     * @enum {string}
+     */
+    state?: 'REGISTERED' | 'HYDRATING' | 'FINALIZING' | 'DEHYDRATING' | 'READY' | 'CANCELLED';
+    /** @description A list of error messages encountered by this replica during the replication operation, if any. */
+    errors?: string[];
+  };
+  /** @description Provides a comprehensive overview of a specific replication operation, detailing its unique ID, the involved collection, shard, source and target nodes, transfer type, current status, and optionally, its status history. */
+  ReplicationReplicateDetailsReplicaResponse: {
+    /**
+     * Format: uuid
+     * @description The unique identifier (ID) of this specific replication operation.
+     */
+    id: string;
+    /** @description The identifier of the shard involved in this replication operation. */
+    shardId: string;
+    /** @description The name of the collection to which the shard being replicated belongs. */
+    collection: string;
+    /** @description The identifier of the node from which the replica is being moved or copied (the source node). */
+    sourceNodeId: string;
+    /** @description The identifier of the node to which the replica is being moved or copied (the destination node). */
+    targetNodeId: string;
+    /**
+     * @description Indicates whether the operation is a 'COPY' (source replica remains) or a 'MOVE' (source replica is removed after successful transfer).
+     * @enum {string}
+     */
+    transferType: 'COPY' | 'MOVE';
+    /** @description An object detailing the current operational state of the replica movement and any errors encountered. */
+    status: definitions['ReplicationReplicateDetailsReplicaStatus'];
+    /** @description An array detailing the historical sequence of statuses the replication operation has transitioned through, if requested and available. */
+    statusHistory?: definitions['ReplicationReplicateDetailsReplicaStatus'][];
+  };
+  /** @description Specifies the parameters available when force deleting replication operations. */
+  ReplicationReplicateForceDeleteRequest: {
+    /**
+     * Format: uuid
+     * @description The unique identifier (ID) of the replication operation to be forcefully deleted.
+     */
+    id?: string;
+    /** @description The name of the collection to which the shard being replicated belongs. */
+    collection?: string;
+    /** @description The identifier of the shard involved in the replication operations. */
+    shard?: string;
+    /** @description The name of the target node where the replication operations are registered. */
+    node?: string;
+    /**
+     * @description If true, the operation will not actually delete anything but will return the expected outcome of the deletion.
+     * @default false
+     */
+    dryRun?: boolean;
+  };
+  /** @description Provides the UUIDs that were successfully force deleted as part of the replication operation. If dryRun is true, this will return the expected outcome without actually deleting anything. */
+  ReplicationReplicateForceDeleteResponse: {
+    /** @description The unique identifiers (IDs) of the replication operations that were forcefully deleted. */
+    deleted?: string[];
+    /** @description Indicates whether the operation was a dry run (true) or an actual deletion (false). */
+    dryRun?: boolean;
   };
   /** @description A single peer in the network. */
   PeerUpdate: {
@@ -1022,6 +1196,33 @@ export interface definitions {
     vectorQueueLength?: number;
     /** @description The load status of the shard. */
     loaded?: boolean;
+    /** @description The status of the async replication. */
+    asyncReplicationStatus?: definitions['AsyncReplicationStatus'][];
+    /**
+     * Format: int64
+     * @description Number of replicas for the shard.
+     */
+    numberOfReplicas?: unknown;
+    /**
+     * Format: int64
+     * @description Minimum number of replicas for the shard.
+     */
+    replicationFactor?: unknown;
+  };
+  /** @description The status of the async replication. */
+  AsyncReplicationStatus: {
+    /**
+     * Format: uint64
+     * @description The number of objects propagated in the most recent iteration.
+     */
+    objectsPropagated?: number;
+    /**
+     * Format: int64
+     * @description The start time of the most recent iteration.
+     */
+    startDiffTimeUnixMillis?: number;
+    /** @description The target node of the replication, if set, otherwise empty. */
+    targetNode?: string;
   };
   /** @description The definition of a backup node status response body */
   NodeStatus: {
@@ -1048,6 +1249,33 @@ export interface definitions {
   NodesStatusResponse: {
     nodes?: definitions['NodeStatus'][];
   };
+  /** @description Distributed task metadata. */
+  DistributedTask: {
+    /** @description The ID of the task. */
+    id?: string;
+    /** @description The version of the task. */
+    version?: number;
+    /** @description The status of the task. */
+    status?: string;
+    /**
+     * Format: date-time
+     * @description The time when the task was created.
+     */
+    startedAt?: string;
+    /**
+     * Format: date-time
+     * @description The time when the task was finished.
+     */
+    finishedAt?: string;
+    /** @description The nodes that finished the task. */
+    finishedNodes?: string[];
+    /** @description The high level reason why the task failed. */
+    error?: string;
+    /** @description The payload of the task. */
+    payload?: { [key: string]: unknown };
+  };
+  /** @description Active distributed tasks by namespace. */
+  DistributedTasks: { [key: string]: definitions['DistributedTask'][] };
   /** @description The definition of Raft statistics. */
   RaftStatistics: {
     appliedIndex?: string;
@@ -1604,11 +1832,6 @@ export interface definitions {
       | 'FREEZING'
       | 'UNFREEZING';
   };
-  /** @description attributes representing a single tenant response within weaviate */
-  TenantResponse: definitions['Tenant'] & {
-    /** @description The list of nodes that owns that tenant data. */
-    belongsToNodes?: string[];
-  };
 }
 
 export interface parameters {
@@ -1674,6 +1897,297 @@ export interface operations {
       503: unknown;
     };
   };
+  /** Begins an asynchronous operation to move or copy a specific shard replica from its current node to a designated target node. The operation involves copying data, synchronizing, and potentially decommissioning the source replica. */
+  replicate: {
+    parameters: {
+      body: {
+        body: definitions['ReplicationReplicateReplicaRequest'];
+      };
+    };
+    responses: {
+      /** Replication operation registered successfully. ID of the operation is returned. */
+      200: {
+        schema: definitions['ReplicationReplicateReplicaResponse'];
+      };
+      /** Malformed request. */
+      400: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Unauthorized or invalid credentials. */
+      401: unknown;
+      /** Forbidden */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Request body is well-formed (i.e., syntactically correct), but semantically erroneous. */
+      422: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Replica movement operations are disabled. */
+      501: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
+  deleteAllReplications: {
+    responses: {
+      /** Replication operation registered successfully */
+      204: never;
+      /** Malformed request. */
+      400: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Unauthorized or invalid credentials. */
+      401: unknown;
+      /** Forbidden */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Request body is well-formed (i.e., syntactically correct), but semantically erroneous. */
+      422: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Replica movement operations are disabled. */
+      501: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
+  /** USE AT OWN RISK! Synchronously force delete operations from the FSM. This will not perform any checks on which state the operation is in so may lead to data corruption or loss. It is recommended to first scale the number of replication engine workers to 0 before calling this endpoint to ensure no operations are in-flight. */
+  forceDeleteReplications: {
+    parameters: {
+      body: {
+        body?: definitions['ReplicationReplicateForceDeleteRequest'];
+      };
+    };
+    responses: {
+      /** Replication operations force deleted successfully. */
+      200: {
+        schema: definitions['ReplicationReplicateForceDeleteResponse'];
+      };
+      /** Malformed request. */
+      400: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Unauthorized or invalid credentials. */
+      401: unknown;
+      /** Forbidden */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Request body is well-formed (i.e., syntactically correct), but semantically erroneous. */
+      422: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
+  /** Fetches the current status and detailed information for a specific replication operation, identified by its unique ID. Optionally includes historical data of the operation's progress if requested. */
+  replicationDetails: {
+    parameters: {
+      path: {
+        /** The ID of the replication operation to get details for. */
+        id: string;
+      };
+      query: {
+        /** Whether to include the history of the replication operation. */
+        includeHistory?: boolean;
+      };
+    };
+    responses: {
+      /** The details of the replication operation. */
+      200: {
+        schema: definitions['ReplicationReplicateDetailsReplicaResponse'];
+      };
+      /** Unauthorized or invalid credentials. */
+      401: unknown;
+      /** Forbidden. */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Shard replica operation not found. */
+      404: unknown;
+      /** Request body is well-formed (i.e., syntactically correct), but semantically erroneous. */
+      422: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Replica movement operations are disabled. */
+      501: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
+  /** Removes a specific replication operation. If the operation is currently active, it will be cancelled and its resources cleaned up before the operation is deleted. */
+  deleteReplication: {
+    parameters: {
+      path: {
+        /** The ID of the replication operation to delete. */
+        id: string;
+      };
+    };
+    responses: {
+      /** Successfully deleted. */
+      204: never;
+      /** Unauthorized or invalid credentials. */
+      401: unknown;
+      /** Forbidden. */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Shard replica operation not found. */
+      404: unknown;
+      /** The operation is not in a deletable state, e.g. it is a MOVE op in the DEHYDRATING state. */
+      409: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Request body is well-formed (i.e., syntactically correct), but semantically erroneous. */
+      422: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Replica movement operations are disabled. */
+      501: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
+  /** Retrieves a list of currently registered replication operations, optionally filtered by collection, shard, or node ID. */
+  listReplication: {
+    parameters: {
+      query: {
+        /** The ID of the target node to get details for. */
+        nodeId?: string;
+        /** The name of the collection to get details for. */
+        collection?: string;
+        /** The shard to get details for. */
+        shard?: string;
+        /** Whether to include the history of the replication operation. */
+        includeHistory?: boolean;
+      };
+    };
+    responses: {
+      /** The details of the replication operations. */
+      200: {
+        schema: definitions['ReplicationReplicateDetailsReplicaResponse'][];
+      };
+      /** Bad request. */
+      400: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Unauthorized or invalid credentials. */
+      401: unknown;
+      /** Forbidden */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Shard replica operation not found. */
+      404: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Replica movement operations are disabled. */
+      501: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
+  /** Requests the cancellation of an active replication operation identified by its ID. The operation will be stopped, but its record will remain in the 'CANCELLED' state (can't be resumed) and will not be automatically deleted. */
+  cancelReplication: {
+    parameters: {
+      path: {
+        /** The ID of the replication operation to cancel. */
+        id: string;
+      };
+    };
+    responses: {
+      /** Successfully cancelled. */
+      204: never;
+      /** Unauthorized or invalid credentials. */
+      401: unknown;
+      /** Forbidden */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Shard replica operation not found. */
+      404: unknown;
+      /** The operation is not in a cancellable state, e.g. it is READY or is a MOVE op in the DEHYDRATING state. */
+      409: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Request body is well-formed (i.e., syntactically correct), but semantically erroneous. */
+      422: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Replica movement operations are disabled. */
+      501: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
+  /** Fetches the current sharding state, including replica locations and statuses, for all collections or a specified collection. If a shard name is provided along with a collection, the state for that specific shard is returned. */
+  getCollectionShardingState: {
+    parameters: {
+      query: {
+        /** The collection name to get the sharding state for. */
+        collection?: string;
+        /** The shard to get the sharding state for. */
+        shard?: string;
+      };
+    };
+    responses: {
+      /** Successfully retrieved sharding state. */
+      200: {
+        schema: definitions['ReplicationShardingStateResponse'];
+      };
+      /** Bad request. */
+      400: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Unauthorized or invalid credentials. */
+      401: unknown;
+      /** Forbidden */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Collection or shard not found. */
+      404: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Replica movement operations are disabled. */
+      501: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
   getOwnInfo: {
     responses: {
       /** Info about the user */
@@ -1686,11 +2200,21 @@ export interface operations {
       500: {
         schema: definitions['ErrorResponse'];
       };
+      /** Replica movement operations are disabled. */
+      501: {
+        schema: definitions['ErrorResponse'];
+      };
     };
   };
   listAllUsers: {
+    parameters: {
+      query: {
+        /** Whether to include the last used time of the users */
+        includeLastUsedTime?: boolean;
+      };
+    };
     responses: {
-      /** Info about the user */
+      /** Info about the users */
       200: {
         schema: definitions['DBUserInfo'][];
       };
@@ -1711,6 +2235,10 @@ export interface operations {
       path: {
         /** user id */
         user_id: string;
+      };
+      query: {
+        /** Whether to include the last used time of the given user */
+        includeLastUsedTime?: boolean;
       };
     };
     responses: {
@@ -3722,7 +4250,7 @@ export interface operations {
     responses: {
       /** load the tenant given the specified class */
       200: {
-        schema: definitions['TenantResponse'];
+        schema: definitions['Tenant'];
       };
       /** Unauthorized or invalid credentials. */
       401: unknown;
@@ -4050,6 +4578,7 @@ export interface operations {
         className: string;
       };
       query: {
+        shardName?: string;
         /** Controls the verbosity of the output, possible values are: "minimal", "verbose". Defaults to "minimal". */
         output?: parameters['CommonOutputVerbosityParameterQuery'];
       };
@@ -4071,6 +4600,22 @@ export interface operations {
       };
       /** Invalid backup restoration status attempt. */
       422: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
+  'distributedTasks.get': {
+    responses: {
+      /** Distributed tasks successfully returned */
+      200: {
+        schema: definitions['DistributedTasks'];
+      };
+      /** Unauthorized or invalid credentials. */
+      403: {
         schema: definitions['ErrorResponse'];
       };
       /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */

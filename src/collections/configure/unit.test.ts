@@ -12,6 +12,11 @@ import {
   GenerativeOpenAIConfig,
   GenerativeXAIConfig,
   ModuleConfig,
+  RerankerCohereConfig,
+  RerankerJinaAIConfig,
+  RerankerNvidiaConfig,
+  RerankerTransformersConfig,
+  RerankerVoyageAIConfig,
   VectorConfigCreate,
 } from '../types/index.js';
 import { configure } from './index.js';
@@ -1240,6 +1245,7 @@ describe('Unit testing of the vectorizer factory class', () => {
 
   it('should create the correct Text2VecMistralConfig type with all values', () => {
     const config = configure.vectorizer.text2VecMistral({
+      baseURL: 'base-url',
       name: 'test',
       model: 'model',
       vectorizeCollectionName: true,
@@ -1253,6 +1259,7 @@ describe('Unit testing of the vectorizer factory class', () => {
       vectorizer: {
         name: 'text2vec-mistral',
         config: {
+          baseURL: 'base-url',
           model: 'model',
           vectorizeCollectionName: true,
         },
@@ -1587,12 +1594,14 @@ describe('Unit testing of the generative factory class', () => {
 
   it('should create the correct GenerativeAnyscaleConfig type with all values', () => {
     const config = configure.generative.anyscale({
+      baseURL: 'base-url',
       model: 'model',
       temperature: 0.5,
     });
     expect(config).toEqual<ModuleConfig<'generative-anyscale', GenerativeAnyscaleConfig | undefined>>({
       name: 'generative-anyscale',
       config: {
+        baseURL: 'base-url',
         model: 'model',
         temperature: 0.5,
       },
@@ -1769,6 +1778,7 @@ describe('Unit testing of the generative factory class', () => {
 
   it('should create the correct GenerativeMistralConfig type with all values', () => {
     const config = configure.generative.mistral({
+      baseURL: 'base-url',
       maxTokens: 100,
       model: 'model',
       temperature: 0.5,
@@ -1776,6 +1786,7 @@ describe('Unit testing of the generative factory class', () => {
     expect(config).toEqual<ModuleConfig<'generative-mistral', GenerativeMistralConfig | undefined>>({
       name: 'generative-mistral',
       config: {
+        baseURL: 'base-url',
         maxTokens: 100,
         model: 'model',
         temperature: 0.5,
@@ -1925,6 +1936,100 @@ describe('Unit testing of the generative factory class', () => {
         temperature: 0.5,
         topK: 5,
         topP: 0.8,
+      },
+    });
+  });
+});
+
+describe('Unit testing of the reranker factory class', () => {
+  it('should create the correct RerankerCohereConfig type using required & default values', () => {
+    const config = configure.reranker.cohere();
+    expect(config).toEqual<ModuleConfig<'reranker-cohere', RerankerCohereConfig | undefined>>({
+      name: 'reranker-cohere',
+      config: undefined,
+    });
+  });
+
+  it('should create the correct RerankerCohereConfig type with all values', () => {
+    const config = configure.reranker.cohere({
+      model: 'model',
+    });
+    expect(config).toEqual<ModuleConfig<'reranker-cohere', RerankerCohereConfig | undefined>>({
+      name: 'reranker-cohere',
+      config: {
+        model: 'model',
+      },
+    });
+  });
+
+  it('should create the correct RerankerJinaAIConfig type using required & default values', () => {
+    const config = configure.reranker.jinaai();
+    expect(config).toEqual<ModuleConfig<'reranker-jinaai', RerankerJinaAIConfig | undefined>>({
+      name: 'reranker-jinaai',
+      config: undefined,
+    });
+  });
+
+  it('should create the correct RerankerJinaAIConfig type with all values', () => {
+    const config = configure.reranker.jinaai({
+      model: 'model',
+    });
+    expect(config).toEqual<ModuleConfig<'reranker-jinaai', RerankerJinaAIConfig | undefined>>({
+      name: 'reranker-jinaai',
+      config: {
+        model: 'model',
+      },
+    });
+  });
+
+  it('should create the correct RerankerNvidiaConfig type with required & default values', () => {
+    const config = configure.reranker.nvidia();
+    expect(config).toEqual<ModuleConfig<'reranker-nvidia', RerankerNvidiaConfig | undefined>>({
+      name: 'reranker-nvidia',
+      config: undefined,
+    });
+  });
+
+  it('should create the correct RerankerNvidiaConfig type with all values', () => {
+    const config = configure.reranker.nvidia({
+      baseURL: 'base-url',
+      model: 'model',
+    });
+    expect(config).toEqual<ModuleConfig<'reranker-nvidia', RerankerNvidiaConfig | undefined>>({
+      name: 'reranker-nvidia',
+      config: {
+        baseURL: 'base-url',
+        model: 'model',
+      },
+    });
+  });
+
+  it('should create the correct RerankerTransformersConfig type using required & default values', () => {
+    const config = configure.reranker.transformers();
+    expect(config).toEqual<ModuleConfig<'reranker-transformers', RerankerTransformersConfig>>({
+      name: 'reranker-transformers',
+      config: {},
+    });
+  });
+
+  it('should create the correct RerankerVoyageAIConfig with required & default values', () => {
+    const config = configure.reranker.voyageAI();
+    expect(config).toEqual<ModuleConfig<'reranker-voyageai', RerankerVoyageAIConfig | undefined>>({
+      name: 'reranker-voyageai',
+      config: undefined,
+    });
+  });
+
+  it('should create the correct RerankerVoyageAIConfig type with all values', () => {
+    const config = configure.reranker.voyageAI({
+      baseURL: 'base-url',
+      model: 'model',
+    });
+    expect(config).toEqual<ModuleConfig<'reranker-voyageai', RerankerVoyageAIConfig | undefined>>({
+      name: 'reranker-voyageai',
+      config: {
+        baseURL: 'base-url',
+        model: 'model',
       },
     });
   });

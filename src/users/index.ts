@@ -8,7 +8,14 @@ import {
 } from '../openapi/types.js';
 import { Role } from '../roles/types.js';
 import { Map } from '../roles/util.js';
-import { AssignRevokeOptions, DeactivateOptions, GetAssignedRolesOptions, User, UserDB } from './types.js';
+import {
+  AssignRevokeOptions,
+  DeactivateOptions,
+  GetAssignedRolesOptions,
+  GetUserOptions,
+  User,
+  UserDB,
+} from './types.js';
 
 /**
  * Operations supported for 'db', 'oidc', and legacy (non-namespaced) users.
@@ -34,6 +41,11 @@ interface UsersBase {
 }
 
 export interface Users extends UsersBase {
+  /** @deprecated: Use `users.db.assignRoles` or `users.oidc.assignRoles` instead. */
+  assignRoles: (roleNames: string | string[], userId: string) => Promise<void>;
+  /** @deprecated: Use `users.db.revokeRoles` or `users.oidc.revokeRoles` instead. */
+  revokeRoles: (roleNames: string | string[], userId: string) => Promise<void>;
+
   /**
    * Retrieve the information relevant to the currently authenticated user.
    *
@@ -45,6 +57,8 @@ export interface Users extends UsersBase {
    *
    * @param {string} userId The ID of the user to retrieve the assigned roles for.
    * @returns {Promise<Record<string, Role>>} A map of role names to their respective roles.
+   *
+   * @deprecated: Use `users.db.getAssignedRoles` or `users.oidc.getAssignedRoles` instead.
    */
   getAssignedRoles: (userId: string) => Promise<Record<string, Role>>;
 
@@ -109,14 +123,14 @@ export interface DBUsers extends UsersBase {
    * @param {string} userId The ID of the user to get.
    * @returns {Promise<UserDB>} ID, status, and assigned roles of a 'db_*' user.
    */
-  byName: (userId: string) => Promise<UserDB>;
+  byName: (userId: string, opts?: GetUserOptions) => Promise<UserDB>;
 
   /**
    * List all 'db_user' / 'db_env_user' users.
    *
    * @returns {Promise<UserDB[]>} ID, status, and assigned roles for each 'db_*' user.
    */
-  listAll: () => Promise<UserDB[]>;
+  listAll: (opts?: GetUserOptions) => Promise<UserDB[]>;
 }
 
 /** Operations supported for namespaced 'oidc' users.*/
@@ -147,11 +161,12 @@ const users = (connection: ConnectionREST): Users => {
 const db = (connection: ConnectionREST): DBUsers => {
   const ns = namespacedUsers(connection);
 
-  /** expectCode returns true if the error contained an expected status code. */
+  /** expectCode returns false if the contained WeaviateUnexpectedStatusCodeError
+   * has an known error code and rethrows the error otherwise. */
   const expectCode = (code: number): ((_: any) => boolean) => {
     return (error) => {
-      if (error instanceof WeaviateUnexpectedStatusCodeError) {
-        return error.code === code;
+      if (error instanceof WeaviateUnexpectedStatusCodeError && error.code === code) {
+        return false;
       }
       throw error;
     };
@@ -187,8 +202,17 @@ const db = (connection: ConnectionREST): DBUsers => {
         .postEmpty<DeactivateOptions | null>(`/users/db/${userId}/deactivate`, opts || null)
         .then(() => true)
         .catch(expectCode(409)),
-    byName: (userId: string) => connection.get<WeaviateDBUser>(`/users/db/${userId}`, true).then(Map.dbUser),
-    listAll: () => connection.get<WeaviateDBUser[]>('/users/db', true).then(Map.dbUsers),
+    byName: (userId: string, opts?: GetUserOptions) =>
+      connection
+        .get<WeaviateDBUser>(
+          `/users/db/${userId}?includeLastUsedTime=${opts?.includeLastUsedTime || false}`,
+          true
+        )
+        .then(Map.dbUser),
+    listAll: (opts?: GetUserOptions) =>
+      connection
+        .get<WeaviateDBUser[]>(`/users/db?includeLastUsedTime=${opts?.includeLastUsedTime || false}`, true)
+        .then(Map.dbUsers),
   };
 };
 
@@ -230,9 +254,7 @@ const namespacedUsers = (connection: ConnectionREST): NamespacedUsers => {
     getAssignedRoles: (userType: UserTypeInternal, userId: string, opts?: GetAssignedRolesOptions) =>
       connection
         .get<WeaviateRole[]>(
-          `/authz/users/${userId}/roles/${userType}${
-            opts?.includePermissions ? '?&includeFullRoles=true' : ''
-          }`
+          `/authz/users/${userId}/roles/${userType}?includeFullRoles=${opts?.includePermissions || false}`
         )
         .then(Map.roles),
     assignRoles: (roleNames: string | string[], userId: string, opts?: AssignRevokeOptions) =>

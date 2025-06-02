@@ -143,7 +143,7 @@ export interface BaseRefProperty<T> {
   /** The metadata to return for the referenced objects. */
   returnMetadata?: QueryMetadata;
   /** The properties to return for the referenced objects. */
-  returnProperties?: QueryProperty<T>[];
+  returnProperties?: QueryProperty<ExtractCrossReferenceType<T[this['linkOn']]>>[];
   /** The references to return for the referenced objects. */
   returnReferences?: QueryReference<ExtractCrossReferenceType<T[this['linkOn']]>>[];
   /** The collection to target when traversing the references. Required for multi-target references. */

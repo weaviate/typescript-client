@@ -5,7 +5,15 @@ import { InternalConnectionParams } from './http.js';
 
 import { ConsistencyLevel } from '../data/index.js';
 
-import { ChannelCredentials, ChannelOptions, createChannel, createClientFactory, Metadata } from 'nice-grpc';
+import {
+  ChannelCredentials,
+  ChannelOptions,
+  ClientError,
+  createChannel,
+  createClientFactory,
+  Metadata,
+  Status,
+} from 'nice-grpc';
 import { retryMiddleware } from 'nice-grpc-client-middleware-retry';
 
 import { HealthCheckResponse_ServingStatus, HealthDefinition } from '../proto/google/health/v1/health.js';
@@ -204,7 +212,18 @@ export const grpcClient = (config: GrpcConnectionParams & { grpcMaxMessageLength
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), (config.timeout?.init || 2) * 1000);
       return health
-        .check({ service: '/grpc.health.v1.Health/Check' }, { signal: controller.signal })
+        .check(
+          { service: '/grpc.health.v1.Health/Check' },
+          {
+            signal: controller.signal,
+            retry: true,
+            retryMaxAttempts: 1,
+            retryableStatuses: [Status.UNAVAILABLE],
+            onRetryableError(error: ClientError, attempt: number, delayMs: number) {
+              console.warn(error, `Healthcheck ${attempt} failed. Retrying in ${delayMs}ms.`);
+            },
+          }
+        )
         .then((res) => res.status === HealthCheckResponse_ServingStatus.SERVING)
         .catch((err) => {
           if (isAbortError(err)) {
