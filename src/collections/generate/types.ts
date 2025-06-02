@@ -21,9 +21,11 @@ import {
   GenerativeConfigRuntime,
   GenerativeGroupByReturn,
   GenerativeReturn,
+  ReturnVectors,
 } from '../types/index.js';
+import { IncludeVector } from '../types/internal.js';
 
-interface Bm25<T> {
+interface Bm25<T, V> {
   /**
    * Perform retrieval-augmented generation (RaG) on the results of a keyword-based BM25 search of objects in this collection.
    *
@@ -33,14 +35,18 @@ interface Bm25<T> {
    *
    * @param {string} query - The query to search for.
    * @param {GenerateOptions<T, C>} generate - The available options for performing the generation.
-   * @param {BaseBm25Options<T>} [opts] - The available options for performing the BM25 search.
-   * @return {Promise<GenerativeReturn<T, C>>} - The results of the search including the generated data.
+   * @param {BaseBm25Options<T, V>} [opts] - The available options for performing the BM25 search.
+   * @return {Promise<GenerativeReturn<T, V, C>>} - The results of the search including the generated data.
    */
-  bm25<C extends GenerativeConfigRuntime | undefined = undefined>(
+  bm25<
+    I extends IncludeVector<V>,
+    RV extends ReturnVectors<V, I>,
+    C extends GenerativeConfigRuntime | undefined = undefined
+  >(
     query: string,
     generate: GenerateOptions<T, C>,
-    opts?: BaseBm25Options<T>
-  ): Promise<GenerativeReturn<T, C>>;
+    opts?: BaseBm25Options<T, I>
+  ): Promise<GenerativeReturn<T, RV, C>>;
   /**
    * Perform retrieval-augmented generation (RaG) on the results of a keyword-based BM25 search of objects in this collection.
    *
@@ -50,14 +56,18 @@ interface Bm25<T> {
    *
    * @param {string} query - The query to search for.
    * @param {GenerateOptions<T, C>} generate - The available options for performing the generation.
-   * @param {GroupByBm25Options<T>} opts - The available options for performing the BM25 search.
-   * @return {Promise<GenerativeGroupByReturn<T, C>>} - The results of the search including the generated data grouped by the specified properties.
+   * @param {GroupByBm25Options<T, V>} opts - The available options for performing the BM25 search.
+   * @return {Promise<GenerativeGroupByReturn<T, V, C>>} - The results of the search including the generated data grouped by the specified properties.
    */
-  bm25<C extends GenerativeConfigRuntime | undefined = undefined>(
+  bm25<
+    I extends IncludeVector<V>,
+    RV extends ReturnVectors<V, I>,
+    C extends GenerativeConfigRuntime | undefined = undefined
+  >(
     query: string,
     generate: GenerateOptions<T, C>,
-    opts: GroupByBm25Options<T>
-  ): Promise<GenerativeGroupByReturn<T, C>>;
+    opts: GroupByBm25Options<T, I>
+  ): Promise<GenerativeGroupByReturn<T, RV, C>>;
   /**
    * Perform retrieval-augmented generation (RaG) on the results of a keyword-based BM25 search of objects in this collection.
    *
@@ -67,17 +77,21 @@ interface Bm25<T> {
    *
    * @param {string} query - The query to search for.
    * @param {GenerateOptions<T, C>} generate - The available options for performing the generation.
-   * @param {Bm25Options<T>} [opts] - The available options for performing the BM25 search.
-   * @return {GenerateReturn<T, C>} - The results of the search including the generated data.
+   * @param {Bm25Options<T, V>} [opts] - The available options for performing the BM25 search.
+   * @return {GenerateReturn<T, V, C>} - The results of the search including the generated data.
    */
-  bm25<C extends GenerativeConfigRuntime | undefined = undefined>(
+  bm25<
+    I extends IncludeVector<V>,
+    RV extends ReturnVectors<V, I>,
+    C extends GenerativeConfigRuntime | undefined = undefined
+  >(
     query: string,
     generate: GenerateOptions<T, C>,
-    opts?: Bm25Options<T>
-  ): GenerateReturn<T, C>;
+    opts?: Bm25Options<T, I>
+  ): GenerateReturn<T, RV, C>;
 }
 
-interface Hybrid<T> {
+interface Hybrid<T, V> {
   /**
    * Perform retrieval-augmented generation (RaG) on the results of an object search in this collection using the hybrid algorithm blending keyword-based BM25 and vector-based similarity.
    *
@@ -87,14 +101,18 @@ interface Hybrid<T> {
    *
    * @param {string} query - The query to search for.
    * @param {GenerateOptions<T, C>} generate - The available options for performing the generation.
-   * @param {BaseHybridOptions<T>} [opts] - The available options for performing the hybrid search.
-   * @return {Promise<GenerativeReturn<T, C>>} - The results of the search including the generated data.
+   * @param {BaseHybridOptions<T, V>} [opts] - The available options for performing the hybrid search.
+   * @return {Promise<GenerativeReturn<T, V, C>>} - The results of the search including the generated data.
    */
-  hybrid<C extends GenerativeConfigRuntime | undefined = undefined>(
+  hybrid<
+    I extends IncludeVector<V>,
+    RV extends ReturnVectors<V, I>,
+    C extends GenerativeConfigRuntime | undefined = undefined
+  >(
     query: string,
     generate: GenerateOptions<T, C>,
-    opts?: BaseHybridOptions<T>
-  ): Promise<GenerativeReturn<T, C>>;
+    opts?: BaseHybridOptions<T, V, I>
+  ): Promise<GenerativeReturn<T, RV, C>>;
   /**
    * Perform retrieval-augmented generation (RaG) on the results of an object search in this collection using the hybrid algorithm blending keyword-based BM25 and vector-based similarity.
    *
@@ -104,14 +122,18 @@ interface Hybrid<T> {
    *
    * @param {string} query - The query to search for.
    * @param {GenerateOptions<T, C>} generate - The available options for performing the generation.
-   * @param {GroupByHybridOptions<T>} opts - The available options for performing the hybrid search.
-   * @return {Promise<GenerativeGroupByReturn<T, C>>} - The results of the search including the generated data grouped by the specified properties.
+   * @param {GroupByHybridOptions<T, V>} opts - The available options for performing the hybrid search.
+   * @return {Promise<GenerativeGroupByReturn<T, V, C>>} - The results of the search including the generated data grouped by the specified properties.
    */
-  hybrid<C extends GenerativeConfigRuntime | undefined = undefined>(
+  hybrid<
+    I extends IncludeVector<V>,
+    RV extends ReturnVectors<V, I>,
+    C extends GenerativeConfigRuntime | undefined = undefined
+  >(
     query: string,
     generate: GenerateOptions<T, C>,
-    opts: GroupByHybridOptions<T>
-  ): Promise<GenerativeGroupByReturn<T, C>>;
+    opts: GroupByHybridOptions<T, V, I>
+  ): Promise<GenerativeGroupByReturn<T, RV, C>>;
   /**
    * Perform retrieval-augmented generation (RaG) on the results of an object search in this collection using the hybrid algorithm blending keyword-based BM25 and vector-based similarity.
    *
@@ -121,17 +143,21 @@ interface Hybrid<T> {
    *
    * @param {string} query - The query to search for.
    * @param {GenerateOptions<T, C>} generate - The available options for performing the generation.
-   * @param {HybridOptions<T>} [opts] - The available options for performing the hybrid search.
-   * @return {GenerateReturn<T, C>} - The results of the search including the generated data.
+   * @param {HybridOptions<T, V>} [opts] - The available options for performing the hybrid search.
+   * @return {GenerateReturn<T, V, C>} - The results of the search including the generated data.
    */
-  hybrid<C extends GenerativeConfigRuntime | undefined = undefined>(
+  hybrid<
+    I extends IncludeVector<V>,
+    RV extends ReturnVectors<V, I>,
+    C extends GenerativeConfigRuntime | undefined = undefined
+  >(
     query: string,
     generate: GenerateOptions<T, C>,
-    opts?: HybridOptions<T>
-  ): GenerateReturn<T, C>;
+    opts?: HybridOptions<T, V, I>
+  ): GenerateReturn<T, RV, C>;
 }
 
-interface NearMedia<T> {
+interface NearMedia<T, V> {
   /**
    * Perform retrieval-augmented generation (RaG) on the results of a by-audio object search in this collection using an audio-capable vectorization module and vector-based similarity search.
    *
@@ -144,15 +170,19 @@ interface NearMedia<T> {
    * @param {string | Buffer} media - The media file to search on. This can be a base64 string, a file path string, or a buffer.
    * @param {NearMediaType} type - The type of media to search on.
    * @param {GenerateOptions<T, C>} generate - The available options for performing the generation.
-   * @param {BaseNearOptions<T>} [opts] - The available options for performing the near-media search.
-   * @return {Promise<GenerativeReturn<T, C>>} - The results of the search including the generated data.
+   * @param {BaseNearOptions<T, V>} [opts] - The available options for performing the near-media search.
+   * @return {Promise<GenerativeReturn<T, V, C>>} - The results of the search including the generated data.
    */
-  nearMedia<C extends GenerativeConfigRuntime | undefined = undefined>(
+  nearMedia<
+    I extends IncludeVector<V>,
+    RV extends ReturnVectors<V, I>,
+    C extends GenerativeConfigRuntime | undefined = undefined
+  >(
     media: string | Buffer,
     type: NearMediaType,
     generate: GenerateOptions<T, C>,
-    opts?: BaseNearOptions<T>
-  ): Promise<GenerativeReturn<T, C>>;
+    opts?: BaseNearOptions<T, V, I>
+  ): Promise<GenerativeReturn<T, RV, C>>;
   /**
    * Perform retrieval-augmented generation (RaG) on the results of a by-audio object search in this collection using an audio-capable vectorization module and vector-based similarity search.
    *
@@ -165,15 +195,19 @@ interface NearMedia<T> {
    * @param {string | Buffer} media - The media file to search on. This can be a base64 string, a file path string, or a buffer.
    * @param {NearMediaType} type - The type of media to search on.
    * @param {GenerateOptions<T, C>} generate - The available options for performing the generation.
-   * @param {GroupByNearOptions<T>} opts - The available options for performing the near-media search.
-   * @return {Promise<GenerativeGroupByReturn<T, C>>} - The results of the search including the generated data grouped by the specified properties.
+   * @param {GroupByNearOptions<T, V>} opts - The available options for performing the near-media search.
+   * @return {Promise<GenerativeGroupByReturn<T, V, C>>} - The results of the search including the generated data grouped by the specified properties.
    */
-  nearMedia<C extends GenerativeConfigRuntime | undefined = undefined>(
+  nearMedia<
+    I extends IncludeVector<V>,
+    RV extends ReturnVectors<V, I>,
+    C extends GenerativeConfigRuntime | undefined = undefined
+  >(
     media: string | Buffer,
     type: NearMediaType,
     generate: GenerateOptions<T, C>,
-    opts: GroupByNearOptions<T>
-  ): Promise<GenerativeGroupByReturn<T, C>>;
+    opts: GroupByNearOptions<T, V, I>
+  ): Promise<GenerativeGroupByReturn<T, RV, C>>;
   /**
    * Perform retrieval-augmented generation (RaG) on the results of a by-audio object search in this collection using an audio-capable vectorization module and vector-based similarity search.
    *
@@ -186,18 +220,22 @@ interface NearMedia<T> {
    * @param {string | Buffer} media - The media to search on. This can be a base64 string, a file path string, or a buffer.
    * @param {NearMediaType} type - The type of media to search on.
    * @param {GenerateOptions<T, C>} generate - The available options for performing the generation.
-   * @param {NearOptions<T>} [opts] - The available options for performing the near-media search.
-   * @return {GenerateReturn<T, C>} - The results of the search including the generated data.
+   * @param {NearOptions<T, V>} [opts] - The available options for performing the near-media search.
+   * @return {GenerateReturn<T, V, C>} - The results of the search including the generated data.
    */
-  nearMedia<C extends GenerativeConfigRuntime | undefined = undefined>(
+  nearMedia<
+    I extends IncludeVector<V>,
+    RV extends ReturnVectors<V, I>,
+    C extends GenerativeConfigRuntime | undefined = undefined
+  >(
     media: string | Buffer,
     type: NearMediaType,
     generate: GenerateOptions<T, C>,
-    opts?: NearOptions<T>
-  ): GenerateReturn<T, C>;
+    opts?: NearOptions<T, V, I>
+  ): GenerateReturn<T, RV, C>;
 }
 
-interface NearObject<T> {
+interface NearObject<T, V> {
   /**
    * Perform retrieval-augmented generation (RaG) on the results of a by-object object search in this collection using a vector-based similarity search.
    *
@@ -207,14 +245,18 @@ interface NearObject<T> {
    *
    * @param {string} id - The ID of the object to search for.
    * @param {GenerateOptions<T, C>} generate - The available options for performing the generation.
-   * @param {BaseNearOptions<T>} [opts] - The available options for performing the near-object search.
-   * @return {Promise<GenerativeReturn<T, C>>} - The results of the search including the generated data.
+   * @param {BaseNearOptions<T, V>} [opts] - The available options for performing the near-object search.
+   * @return {Promise<GenerativeReturn<T, V, C>>} - The results of the search including the generated data.
    */
-  nearObject<C extends GenerativeConfigRuntime | undefined = undefined>(
+  nearObject<
+    I extends IncludeVector<V>,
+    RV extends ReturnVectors<V, I>,
+    C extends GenerativeConfigRuntime | undefined = undefined
+  >(
     id: string,
     generate: GenerateOptions<T, C>,
-    opts?: BaseNearOptions<T>
-  ): Promise<GenerativeReturn<T, C>>;
+    opts?: BaseNearOptions<T, V, I>
+  ): Promise<GenerativeReturn<T, RV, C>>;
   /**
    * Perform retrieval-augmented generation (RaG) on the results of a by-object object search in this collection using a vector-based similarity search.
    *
@@ -224,14 +266,18 @@ interface NearObject<T> {
    *
    * @param {string} id - The ID of the object to search for.
    * @param {GenerateOptions<T, C>} generate - The available options for performing the generation.
-   * @param {GroupByNearOptions<T>} opts - The available options for performing the near-object search.
-   * @return {Promise<GenerativeGroupByReturn<T, C>>} - The results of the search including the generated data grouped by the specified properties.
+   * @param {GroupByNearOptions<T, V>} opts - The available options for performing the near-object search.
+   * @return {Promise<GenerativeGroupByReturn<T, V, C>>} - The results of the search including the generated data grouped by the specified properties.
    */
-  nearObject<C extends GenerativeConfigRuntime | undefined = undefined>(
+  nearObject<
+    I extends IncludeVector<V>,
+    RV extends ReturnVectors<V, I>,
+    C extends GenerativeConfigRuntime | undefined = undefined
+  >(
     id: string,
     generate: GenerateOptions<T, C>,
-    opts: GroupByNearOptions<T>
-  ): Promise<GenerativeGroupByReturn<T, C>>;
+    opts: GroupByNearOptions<T, V, I>
+  ): Promise<GenerativeGroupByReturn<T, RV, C>>;
   /**
    * Perform retrieval-augmented generation (RaG) on the results of a by-object object search in this collection using a vector-based similarity search.
    *
@@ -241,17 +287,21 @@ interface NearObject<T> {
    *
    * @param {string} id - The ID of the object to search for.
    * @param {GenerateOptions<T, C>} generate - The available options for performing the generation.
-   * @param {NearOptions<T>} [opts] - The available options for performing the near-object search.
-   * @return {GenerateReturn<T, C>} - The results of the search including the generated data.
+   * @param {NearOptions<T, V>} [opts] - The available options for performing the near-object search.
+   * @return {GenerateReturn<T, V, C>} - The results of the search including the generated data.
    */
-  nearObject<C extends GenerativeConfigRuntime | undefined = undefined>(
+  nearObject<
+    I extends IncludeVector<V>,
+    RV extends ReturnVectors<V, I>,
+    C extends GenerativeConfigRuntime | undefined = undefined
+  >(
     id: string,
     generate: GenerateOptions<T, C>,
-    opts?: NearOptions<T>
-  ): GenerateReturn<T, C>;
+    opts?: NearOptions<T, V, I>
+  ): GenerateReturn<T, RV, C>;
 }
 
-interface NearText<T> {
+interface NearText<T, V> {
   /**
    * Perform retrieval-augmented generation (RaG) on the results of a by-image object search in this collection using the image-capable vectorization module and vector-based similarity search.
    *
@@ -263,14 +313,18 @@ interface NearText<T> {
    *
    * @param {string | string[]} query - The query to search for.
    * @param {GenerateOptions<T, C>} generate - The available options for performing the generation.
-   * @param {BaseNearTextOptions<T>} [opts] - The available options for performing the near-text search.
-   * @return {Promise<GenerativeReturn<T, C>>} - The results of the search including the generated data.
+   * @param {BaseNearTextOptions<T, V>} [opts] - The available options for performing the near-text search.
+   * @return {Promise<GenerativeReturn<T, V, C>>} - The results of the search including the generated data.
    */
-  nearText<C extends GenerativeConfigRuntime | undefined = undefined>(
+  nearText<
+    I extends IncludeVector<V>,
+    RV extends ReturnVectors<V, I>,
+    C extends GenerativeConfigRuntime | undefined = undefined
+  >(
     query: string | string[],
     generate: GenerateOptions<T, C>,
-    opts?: BaseNearTextOptions<T>
-  ): Promise<GenerativeReturn<T, C>>;
+    opts?: BaseNearTextOptions<T, V, I>
+  ): Promise<GenerativeReturn<T, RV, C>>;
   /**
    * Perform retrieval-augmented generation (RaG) on the results of a by-image object search in this collection using the image-capable vectorization module and vector-based similarity search.
    *
@@ -282,14 +336,18 @@ interface NearText<T> {
    *
    * @param {string | string[]} query - The query to search for.
    * @param {GenerateOptions<T, C>} generate - The available options for performing the generation.
-   * @param {GroupByNearTextOptions<T>} opts - The available options for performing the near-text search.
-   * @return {Promise<GenerativeGroupByReturn<T, C>>} - The results of the search including the generated data grouped by the specified properties.
+   * @param {GroupByNearTextOptions<T, V>} opts - The available options for performing the near-text search.
+   * @return {Promise<GenerativeGroupByReturn<T, V, C>>} - The results of the search including the generated data grouped by the specified properties.
    */
-  nearText<C extends GenerativeConfigRuntime | undefined = undefined>(
+  nearText<
+    I extends IncludeVector<V>,
+    RV extends ReturnVectors<V, I>,
+    C extends GenerativeConfigRuntime | undefined = undefined
+  >(
     query: string | string[],
     generate: GenerateOptions<T, C>,
-    opts: GroupByNearTextOptions<T>
-  ): Promise<GenerativeGroupByReturn<T, C>>;
+    opts: GroupByNearTextOptions<T, V, I>
+  ): Promise<GenerativeGroupByReturn<T, RV, C>>;
   /**
    * Perform retrieval-augmented generation (RaG) on the results of a by-image object search in this collection using the image-capable vectorization module and vector-based similarity search.
    *
@@ -301,17 +359,21 @@ interface NearText<T> {
    *
    * @param {string | string[]} query - The query to search for.
    * @param {GenerateOptions<T, C>} generate - The available options for performing the generation.
-   * @param {NearTextOptions<T>} [opts] - The available options for performing the near-text search.
-   * @return {GenerateReturn<T, C>} - The results of the search including the generated data.
+   * @param {NearTextOptions<T, V>} [opts] - The available options for performing the near-text search.
+   * @return {GenerateReturn<T, V, C>} - The results of the search including the generated data.
    */
-  nearText<C extends GenerativeConfigRuntime | undefined = undefined>(
+  nearText<
+    I extends IncludeVector<V>,
+    RV extends ReturnVectors<V, I>,
+    C extends GenerativeConfigRuntime | undefined = undefined
+  >(
     query: string | string[],
     generate: GenerateOptions<T, C>,
-    opts?: NearTextOptions<T>
-  ): GenerateReturn<T, C>;
+    opts?: NearTextOptions<T, V, I>
+  ): GenerateReturn<T, RV, C>;
 }
 
-interface NearVector<T> {
+interface NearVector<T, V> {
   /**
    * Perform retrieval-augmented generation (RaG) on the results of a by-vector object search in this collection using vector-based similarity search.
    *
@@ -321,14 +383,18 @@ interface NearVector<T> {
    *
    * @param {NearVectorInputType} vector - The vector(s) to search for.
    * @param {GenerateOptions<T, C>} generate - The available options for performing the generation.
-   * @param {BaseNearOptions<T>} [opts] - The available options for performing the near-vector search.
-   * @return {Promise<GenerativeReturn<T, C>>} - The results of the search including the generated data.
+   * @param {BaseNearOptions<T, V>} [opts] - The available options for performing the near-vector search.
+   * @return {Promise<GenerativeReturn<T, V, C>>} - The results of the search including the generated data.
    */
-  nearVector<C extends GenerativeConfigRuntime | undefined = undefined>(
+  nearVector<
+    I extends IncludeVector<V>,
+    RV extends ReturnVectors<V, I>,
+    C extends GenerativeConfigRuntime | undefined = undefined
+  >(
     vector: NearVectorInputType,
     generate: GenerateOptions<T, C>,
-    opts?: BaseNearOptions<T>
-  ): Promise<GenerativeReturn<T, C>>;
+    opts?: BaseNearOptions<T, V, I>
+  ): Promise<GenerativeReturn<T, RV, C>>;
   /**
    * Perform retrieval-augmented generation (RaG) on the results of a by-vector object search in this collection using vector-based similarity search.
    *
@@ -338,14 +404,18 @@ interface NearVector<T> {
    *
    * @param {NearVectorInputType} vector - The vector(s) to search for.
    * @param {GenerateOptions<T, C>} generate - The available options for performing the generation.
-   * @param {GroupByNearOptions<T>} opts - The available options for performing the near-vector search.
-   * @return {Promise<GenerativeGroupByReturn<T, C>>} - The results of the search including the generated data grouped by the specified properties.
+   * @param {GroupByNearOptions<T, V>} opts - The available options for performing the near-vector search.
+   * @return {Promise<GenerativeGroupByReturn<T, V, C>>} - The results of the search including the generated data grouped by the specified properties.
    */
-  nearVector<C extends GenerativeConfigRuntime | undefined = undefined>(
+  nearVector<
+    I extends IncludeVector<V>,
+    RV extends ReturnVectors<V, I>,
+    C extends GenerativeConfigRuntime | undefined = undefined
+  >(
     vector: NearVectorInputType,
     generate: GenerateOptions<T, C>,
-    opts: GroupByNearOptions<T>
-  ): Promise<GenerativeGroupByReturn<T, C>>;
+    opts: GroupByNearOptions<T, V, I>
+  ): Promise<GenerativeGroupByReturn<T, RV, C>>;
   /**
    * Perform retrieval-augmented generation (RaG) on the results of a by-vector object search in this collection using vector-based similarity search.
    *
@@ -355,25 +425,29 @@ interface NearVector<T> {
    *
    * @param {NearVectorInputType} vector - The vector(s) to search for.
    * @param {GenerateOptions<T, C>} generate - The available options for performing the generation.
-   * @param {NearOptions<T>} [opts] - The available options for performing the near-vector search.
-   * @return {GenerateReturn<T, C>} - The results of the search including the generated data.
+   * @param {NearOptions<T, V>} [opts] - The available options for performing the near-vector search.
+   * @return {GenerateReturn<T, V, C>} - The results of the search including the generated data.
    */
-  nearVector<C extends GenerativeConfigRuntime | undefined = undefined>(
+  nearVector<
+    I extends IncludeVector<V>,
+    RV extends ReturnVectors<V, I>,
+    C extends GenerativeConfigRuntime | undefined = undefined
+  >(
     vector: NearVectorInputType,
     generate: GenerateOptions<T, C>,
-    opts?: NearOptions<T>
-  ): GenerateReturn<T, C>;
+    opts?: NearOptions<T, V, I>
+  ): GenerateReturn<T, RV, C>;
 }
 
-export interface Generate<T>
-  extends Bm25<T>,
-    Hybrid<T>,
-    NearMedia<T>,
-    NearObject<T>,
-    NearText<T>,
-    NearVector<T> {
+export interface Generate<T, V>
+  extends Bm25<T, V>,
+    Hybrid<T, V>,
+    NearMedia<T, V>,
+    NearObject<T, V>,
+    NearText<T, V>,
+    NearVector<T, V> {
   fetchObjects: <C extends GenerativeConfigRuntime | undefined = undefined>(
     generate: GenerateOptions<T, C>,
-    opts?: FetchObjectsOptions<T>
-  ) => Promise<GenerativeReturn<T, C>>;
+    opts?: FetchObjectsOptions<T, V>
+  ) => Promise<GenerativeReturn<T, V, C>>;
 }

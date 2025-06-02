@@ -54,9 +54,13 @@ export type VectorConfigUpdate<N extends string | undefined, I extends VectorInd
   vectorIndex: ModuleConfig<I, VectorIndexConfigUpdateType<I>>;
 };
 
-export type VectorizersConfigCreate<T> =
-  | VectorConfigCreate<PrimitiveKeys<T>, string | undefined, VectorIndexType, Vectorizer>
-  | VectorConfigCreate<PrimitiveKeys<T>, string, VectorIndexType, Vectorizer>[];
+export type VectorizersConfigCreate<T, V> = V extends undefined
+  ?
+      | VectorConfigCreate<PrimitiveKeys<T>, string | undefined, VectorIndexType, Vectorizer>
+      | VectorConfigCreate<PrimitiveKeys<T>, string, VectorIndexType, Vectorizer>[]
+  :
+      | VectorConfigCreate<PrimitiveKeys<T>, (keyof V & string) | undefined, VectorIndexType, Vectorizer>
+      | VectorConfigCreate<PrimitiveKeys<T>, keyof V & string, VectorIndexType, Vectorizer>[];
 
 export type VectorizersConfigAdd<T> =
   | VectorConfigCreate<PrimitiveKeys<T>, string, VectorIndexType, Vectorizer>

@@ -40,6 +40,10 @@ export type QueryReference<T> = T extends undefined ? RefPropertyDefault : RefPr
 export type NonRefProperty<T> = keyof T | QueryNested<T>;
 export type NonPrimitiveProperty<T> = RefProperty<T> | QueryNested<T>;
 
+export type QueryVector<V> = V extends undefined ? string : keyof V & string;
+
+export type IncludeVector<V> = boolean | QueryVector<V>[] | undefined;
+
 export type IsEmptyType<T> = keyof T extends never ? true : false;
 
 export type ReferenceInput<T> =
