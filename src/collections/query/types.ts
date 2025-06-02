@@ -85,7 +85,7 @@ export type Bm25QueryProperty<T> = {
 };
 
 export type Bm25OperatorOptions = {
-  operator: 'and' | 'or';
+  operator: 'And' | 'Or';
   minimumMatch: number;
 }
 

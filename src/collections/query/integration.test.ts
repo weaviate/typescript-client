@@ -1,10 +1,12 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
+import { requireAtLeast } from '../../../test/version.js';
 import { WeaviateUnsupportedFeatureError } from '../../errors.js';
 import weaviate, { WeaviateClient } from '../../index.js';
 import { Collection } from '../collection/index.js';
 import { CrossReference, Reference } from '../references/index.js';
 import { GroupByOptions } from '../types/index.js';
+import { Bm25Operator } from './utils.js';
 
 describe('Testing of the collection.query methods with a simple collection', () => {
   let client: WeaviateClient;
@@ -130,6 +132,28 @@ describe('Testing of the collection.query methods with a simple collection', () 
     expect(ret.objects.length).toEqual(1);
     expect(ret.objects[0].properties.testProp).toEqual('carrot');
     expect(ret.objects[0].uuid).toEqual(id);
+  });
+
+  requireAtLeast(1, 31, 0)('bm25 search operator (minimum_should_match)', () => {
+    it('should query with bm25 + operator', async () => {
+      const ret = await collection.query.bm25('carrot', {
+        limit: 1,
+        operator: Bm25Operator.or({ minimumMatch: 1 }),
+      });
+      expect(ret.objects.length).toEqual(1);
+      expect(ret.objects[0].properties.testProp).toEqual('carrot');
+      expect(ret.objects[0].uuid).toEqual(id);
+    });
+
+    it('should query with hybrid + bm25Operator', async () => {
+      const ret = await collection.query.hybrid('carrot', {
+        limit: 1,
+        bm25Operator: Bm25Operator.and({ minimumMatch: 1 }),
+      });
+      expect(ret.objects.length).toEqual(1);
+      expect(ret.objects[0].properties.testProp).toEqual('carrot');
+      expect(ret.objects[0].uuid).toEqual(id);
+    });
   });
 
   it('should query with hybrid and vector', async () => {
