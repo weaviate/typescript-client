@@ -1085,12 +1085,6 @@ export class Serialize {
       }
     };
     const { targets, targetVectors, vectorBytes, nearText, nearVector } = Serialize.hybridVector(args);
-
-    console.info(
-      `search operator: ${JSON.stringify(
-        SearchOperatorOptions.toJSON(this.bm25SearchOperator(args.bm25Operator)!)
-      )}`
-    );
     return Hybrid.fromPartial({
       query: args.query,
       alpha: args.alpha ? args.alpha : 0.5,
