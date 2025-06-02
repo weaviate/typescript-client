@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
+import { requireAtLeast } from '../../../test/version.js';
 import { WeaviateUnsupportedFeatureError } from '../../errors.js';
 import weaviate, { WeaviateClient, weaviateV2 } from '../../index.js';
 import {
@@ -386,25 +387,27 @@ describe('Testing of the collection.config namespace', () => {
     ]);
   });
 
-  it('should be able to add a reference to a collection', async () => {
-    const collectionName = 'TestCollectionConfigAddVector' as const;
-    const collection = await client.collections.create({
-      name: collectionName,
-      vectorizers: [weaviate.configure.vectorizer.none({ name: 'original' })],
+  requireAtLeast(1, 31, 0)('Mutable named vectors', () => {
+    it('should be able to add named vectors to a collection', async () => {
+      const collectionName = 'TestCollectionConfigAddVector' as const;
+      const collection = await client.collections.create({
+        name: collectionName,
+        vectorizers: [weaviate.configure.vectorizer.none({ name: 'original' })],
+      });
+      // Add a single named vector
+      await collection.config.addVector(weaviate.configure.vectorizer.none({ name: 'vector-a' }));
+
+      // Add several named vectors
+      await collection.config.addVector([
+        weaviate.configure.vectorizer.none({ name: 'vector-b' }),
+        weaviate.configure.vectorizer.none({ name: 'vector-c' }),
+      ]);
+
+      const config = await collection.config.get();
+      expect(config.vectorizers).toHaveProperty('vector-a');
+      expect(config.vectorizers).toHaveProperty('vector-b');
+      expect(config.vectorizers).toHaveProperty('vector-c');
     });
-    // Add a single named vector
-    await collection.config.addVector(weaviate.configure.vectorizer.none({ name: 'vector-a' }));
-
-    // Add several named vectors
-    await collection.config.addVector([
-      weaviate.configure.vectorizer.none({ name: 'vector-b' }),
-      weaviate.configure.vectorizer.none({ name: 'vector-c' }),
-    ]);
-
-    const config = await collection.config.get();
-    expect(config.vectorizers).toHaveProperty('vector-a');
-    expect(config.vectorizers).toHaveProperty('vector-b');
-    expect(config.vectorizers).toHaveProperty('vector-c');
   });
 
   it('should get the shards of a sharded collection', async () => {
