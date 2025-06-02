@@ -147,7 +147,7 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
           throw new WeaviateUnsupportedFeatureError(supportsNamedVectors.message);
         }
         const configs = config.vectorizers
-          ? makeLegacyVectorizer(config.vectorizers)
+          ? makeLegacyVectorizer({ ...config.vectorizers, name: undefined })
           : {
               vectorizer: undefined,
               moduleConfig: undefined,

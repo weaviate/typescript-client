@@ -55,7 +55,7 @@ export type VectorConfigUpdate<N extends string | undefined, I extends VectorInd
 };
 
 export type VectorizersConfigCreate<T> =
-  | VectorConfigCreate<PrimitiveKeys<T>, undefined, VectorIndexType, Vectorizer>
+  | VectorConfigCreate<PrimitiveKeys<T>, string | undefined, VectorIndexType, Vectorizer>
   | VectorConfigCreate<PrimitiveKeys<T>, string, VectorIndexType, Vectorizer>[];
 
 export type VectorizersConfigAdd<T> =

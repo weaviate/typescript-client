@@ -174,6 +174,20 @@ describe('Testing of the collections.create method', () => {
     expect(response.vectorizers.default.vectorizer.name).toEqual('text2vec-contextionary');
   });
 
+  it('should be able to create a collection with 1 custom named vector', async () => {
+    const collectionName = 'TestCollectionSingleCustomNamedVector';
+    const response = await contextionary.collections
+      .create({
+        name: collectionName,
+        vectorizers: weaviate.configure.vectorizer.none({ name: 'custom' }),
+      })
+      .then(() => contextionary.collections.use(collectionName).config.get());
+    expect(response.name).toEqual(collectionName);
+    expect(response.properties?.length).toEqual(0);
+    expect(response.vectorizers.custom.indexConfig).toBeDefined();
+    expect(response.vectorizers.custom.indexType).toEqual('hnsw');
+  });
+
   it('should be able to create a simple collection without a generic using a schema var', async () => {
     const collectionName = 'TestCollectionSimpleNonGenericVar';
     const schema = {
