@@ -967,13 +967,14 @@ export class Serialize {
     searchOperator?: Bm25OperatorOptions
   ): SearchOperatorOptions | undefined => {
     if (searchOperator) {
-      return SearchOperatorOptions.fromPartial({
-        minimumOrTokensMatch: searchOperator.minimumMatch,
-        operator:
-          searchOperator.operator === ('And' as const)
-            ? SearchOperatorOptions_Operator.OPERATOR_AND
-            : SearchOperatorOptions_Operator.OPERATOR_OR,
-      });
+      return SearchOperatorOptions.fromPartial(
+        searchOperator.operator === ('And' as const)
+          ? { operator: SearchOperatorOptions_Operator.OPERATOR_AND }
+          : {
+              operator: SearchOperatorOptions_Operator.OPERATOR_OR,
+              minimumOrTokensMatch: searchOperator.minimumMatch,
+            }
+      );
     }
   };
 

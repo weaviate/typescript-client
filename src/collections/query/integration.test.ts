@@ -152,7 +152,7 @@ describe('Testing of the collection.query methods with a simple collection', () 
     it('should query with hybrid + bm25Operator', async () => {
       const ret = await collection.query.hybrid('carrot', {
         limit: 1,
-        bm25Operator: Bm25Operator.and({ minimumMatch: 1 }),
+        bm25Operator: Bm25Operator.and(),
       });
       expect(ret.objects.length).toEqual(1);
       expect(ret.objects[0].properties.testProp).toEqual('carrot');

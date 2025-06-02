@@ -84,10 +84,10 @@ export type Bm25QueryProperty<T> = {
   weight: number;
 };
 
-export type Bm25OperatorOptions = {
-  operator: 'And' | 'Or';
-  minimumMatch: number;
-};
+export type Bm25OperatorOr = { operator: 'Or'; minimumMatch: number };
+export type Bm25OperatorAnd = { operator: 'And' };
+
+export type Bm25OperatorOptions = Bm25OperatorOr | Bm25OperatorAnd;
 
 export type Bm25SearchOptions<T> = {
   /** Which properties of the collection to perform the keyword search on. */

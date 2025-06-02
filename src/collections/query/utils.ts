@@ -1,5 +1,5 @@
 import { MultiTargetVectorJoin } from '../index.js';
-import { Bm25OperatorOptions, NearVectorInputType, TargetVectorInputType } from './types.js';
+import { Bm25OperatorOptions, Bm25OperatorOr, NearVectorInputType, TargetVectorInputType } from './types.js';
 
 export class NearVectorInputGuards {
   public static is1DArray(input: NearVectorInputType): input is number[] {
@@ -36,11 +36,11 @@ export class TargetVectorInputGuards {
 }
 
 export class Bm25Operator {
-  static and(opts: Omit<Bm25OperatorOptions, 'operator'>): Bm25OperatorOptions {
-    return { ...opts, operator: 'And' };
+  static and(): Bm25OperatorOptions {
+    return { operator: 'And' };
   }
 
-  static or(opts: Omit<Bm25OperatorOptions, 'operator'>): Bm25OperatorOptions {
+  static or(opts: Omit<Bm25OperatorOr, 'operator'>): Bm25OperatorOptions {
     return { ...opts, operator: 'Or' };
   }
 }
