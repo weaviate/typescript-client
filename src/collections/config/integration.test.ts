@@ -396,7 +396,7 @@ describe('Testing of the collection.config namespace', () => {
       const collectionName = 'TestCollectionConfigAddVector' as const;
       const collection = await client.collections.create({
         name: collectionName,
-        vectorizers: [weaviate.configure.vectorizer.none({ name: 'original' })],
+        vectorizers: weaviate.configure.vectorizer.none(),
       });
       // Add a single named vector
       await collection.config.addVector(weaviate.configure.vectorizer.none({ name: 'vector-a' }));
@@ -407,10 +407,10 @@ describe('Testing of the collection.config namespace', () => {
         weaviate.configure.vectorizer.none({ name: 'vector-c' }),
       ]);
 
-      // Trying to update 'original' vector -- should be omitted from request.
+      // Trying to update 'default' vector -- should be omitted from request.
       await collection.config.addVector(
         weaviate.configure.vectorizer.none({
-          name: 'original',
+          name: 'default',
           vectorIndexConfig: weaviate.configure.vectorIndex.flat(),
         })
       );
@@ -420,7 +420,7 @@ describe('Testing of the collection.config namespace', () => {
       expect(config.vectorizers).toHaveProperty('vector-b');
       expect(config.vectorizers).toHaveProperty('vector-c');
 
-      expect(config.vectorizers.original).toHaveProperty('indexType', 'hnsw');
+      expect(config.vectorizers['default']).toHaveProperty('indexType', 'hnsw');
     });
   });
 
