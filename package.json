@@ -45,7 +45,7 @@
     "weaviate"
   ],
   "author": "Weaviate",
-  "license": "SEE LICENSE IN LICENSE",
+  "license": "BSD-3-Clause",
   "bugs": {
     "url": "https://github.com/weaviate/typescript-client/issues"
   },
