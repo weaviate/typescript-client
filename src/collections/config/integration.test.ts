@@ -239,7 +239,7 @@ describe('Testing of the collection.config namespace', () => {
     expect(config.vectorizers.default.vectorizer.name).toEqual('none');
   });
 
-  requireAtLeast(1, 26, 0)(it)('should be able to get the config of a collection with hnsw-sq', async () => {
+  requireAtLeast(1, 26, 0).it('should be able to get the config of a collection with hnsw-sq', async () => {
     const collectionName = 'TestCollectionConfigGetHNSWPlusSQ';
     const collection = await client.collections.create({
       name: collectionName,
@@ -418,7 +418,7 @@ describe('Testing of the collection.config namespace', () => {
     ]);
   });
 
-  requireAtLeast(1, 31, 0)(describe)('Mutable named vectors', () => {
+  requireAtLeast(1, 31, 0).describe('Mutable named vectors', () => {
     it('should be able to add named vectors to a collection', async () => {
       const collectionName = 'TestCollectionConfigAddVector' as const;
       const collection = await client.collections.create({

@@ -3,7 +3,7 @@ import { requireAtLeast } from '../../test/version.js';
 import { WeaviateUserTypeDB } from '../openapi/types.js';
 import { GetUserOptions, UserDB } from './types.js';
 
-requireAtLeast(1, 29, 0)(describe)('Integration testing of the users namespace', () => {
+requireAtLeast(1, 29, 0).describe('Integration testing of the users namespace', () => {
   const makeClient = (key: string) =>
     weaviate.connectToLocal({
       port: 8091,
@@ -58,7 +58,7 @@ requireAtLeast(1, 29, 0)(describe)('Integration testing of the users namespace',
     expect(roles.test).toBeUndefined();
   });
 
-  requireAtLeast(1, 30, 0)(describe)('dynamic user management', () => {
+  requireAtLeast(1, 30, 0).describe('dynamic user management', () => {
     /** List dynamic DB users. */
     const listDBUsers = (c: WeaviateClient, opts?: GetUserOptions) =>
       c.users.db.listAll(opts).then((all) => all.filter((u) => u.userType == 'db_user'));
@@ -164,7 +164,7 @@ requireAtLeast(1, 29, 0)(describe)('Integration testing of the users namespace',
       expect(roles.Permissioner.nodesPermissions).toHaveLength(1);
     });
 
-    requireAtLeast(1, 30, 1)(describe)('additional DUM features', () => {
+    requireAtLeast(1, 30, 1).describe('additional DUM features', () => {
       it('should be able to fetch additional user info', async () => {
         const admin = await makeClient('admin-key');
         const timKey = await admin.users.db.create('timely-tim');
