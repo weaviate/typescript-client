@@ -23,6 +23,7 @@ import {
   GenerativeConfig,
   GenerativeSearch,
   ModuleConfig,
+  PropertyDescriptionsUpdate,
   Reranker,
   RerankerConfig,
   VectorIndexType,
@@ -32,10 +33,12 @@ export class MergeWithExisting {
   static schema(
     current: WeaviateClass,
     supportsNamedVectors: boolean,
-    update?: CollectionConfigUpdate
+    update?: CollectionConfigUpdate<any>
   ): WeaviateClass {
     if (update === undefined) return current;
     if (update.description !== undefined) current.description = update.description;
+    if (update.propertyDescriptions !== undefined)
+      current.properties = MergeWithExisting.properties(current.properties, update.propertyDescriptions);
     if (update.generative !== undefined)
       current.moduleConfig = MergeWithExisting.generative(current.moduleConfig, update.generative);
     if (update.invertedIndex !== undefined)
@@ -72,6 +75,18 @@ export class MergeWithExisting {
       }
     }
     return current;
+  }
+
+  static properties(
+    current: WeaviateClass['properties'],
+    update: PropertyDescriptionsUpdate<any>
+  ): WeaviateClass['properties'] {
+    if (current === undefined) throw Error('Properties are missing from the class schema.');
+    if (current.length === 0) return current;
+    return current.map((property) => ({
+      ...property,
+      description: update[property.name!] ?? property.description,
+    }));
   }
 
   static generative(

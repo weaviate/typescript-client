@@ -511,7 +511,7 @@ describe('Testing of the collection.config namespace', () => {
     expect(notUpdated?.status).toEqual('READY');
   });
 
-  it('should be able update the config of a collection', async () => {
+  it.only('should be able update the config of a collection', async () => {
     const collectionName = 'TestCollectionConfigUpdate';
     const collection = await client.collections.create({
       name: collectionName,
@@ -523,8 +523,16 @@ describe('Testing of the collection.config namespace', () => {
       ],
       vectorizers: weaviate.configure.vectorizer.none(),
     });
+    const supportsUpdatingPropertyDescriptions = await client
+      .getWeaviateVersion()
+      .then((ver) => ver.isAtLeast(1, 27, 0));
     const config = await collection.config
       .update({
+        propertyDescriptions: supportsUpdatingPropertyDescriptions
+          ? {
+              testProp: 'This is a test property',
+            }
+          : undefined,
         vectorizers: weaviate.reconfigure.vectorizer.update({
           vectorIndexConfig: weaviate.reconfigure.vectorIndex.hnsw({
             quantizer: weaviate.reconfigure.vectorIndex.quantizer.pq(),
@@ -539,7 +547,7 @@ describe('Testing of the collection.config namespace', () => {
       {
         name: 'testProp',
         dataType: 'text',
-        description: undefined,
+        description: supportsUpdatingPropertyDescriptions ? 'This is a test property' : undefined,
         indexRangeFilters: false,
         indexSearchable: true,
         indexFilterable: true,
