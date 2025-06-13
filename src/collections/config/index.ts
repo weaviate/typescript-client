@@ -87,7 +87,7 @@ const config = <T>(
         )
       ).then(() => this.getShards());
     },
-    update: (config?: CollectionConfigUpdate) => {
+    update: (config?: CollectionConfigUpdate<T>) => {
       return getRaw()
         .then(async (current) =>
           MergeWithExisting.schema(
@@ -164,10 +164,10 @@ export interface Config<T> {
    *
    * Use the `weaviate.classes.Reconfigure` class to generate the necessary configuration objects for this method.
    *
-   * @param {CollectionConfigUpdate} [config] The configuration to update. Only a subset of the actual collection configuration can be updated.
+   * @param {CollectionConfigUpdate<T>} [config] The configuration to update. Only a subset of the actual collection configuration can be updated.
    * @returns {Promise<void>} A promise that resolves when the collection has been updated.
    */
-  update: (config?: CollectionConfigUpdate) => Promise<void>;
+  update: (config?: CollectionConfigUpdate<T>) => Promise<void>;
 }
 
 export class VectorIndex {

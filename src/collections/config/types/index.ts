@@ -104,8 +104,15 @@ export type CollectionConfig = {
   vectorizers: VectorConfig;
 };
 
-export type CollectionConfigUpdate = {
+export type PropertyDescriptionsUpdate<T> = T extends undefined
+  ? Record<string, string>
+  : {
+      [Property in keyof T]: string;
+    };
+
+export type CollectionConfigUpdate<T> = {
   description?: string;
+  propertyDescriptions?: PropertyDescriptionsUpdate<T>;
   generative?: ModuleConfig<GenerativeSearch, GenerativeConfig>;
   invertedIndex?: InvertedIndexConfigUpdate;
   multiTenancy?: MultiTenancyConfigUpdate;
