@@ -134,11 +134,7 @@ describe('Testing of the collection.query methods with a simple collection', () 
     expect(ret.objects[0].uuid).toEqual(id);
   });
 
-  requireAtLeast(
-    1,
-    31,
-    0
-  )('bm25 search operator (minimum_should_match)', () => {
+  requireAtLeast(1, 31, 0).describe('bm25 search operator (minimum_should_match)', () => {
     it('should query with bm25 + operator', async () => {
       const ret = await collection.query.bm25('carrot', {
         limit: 1,
