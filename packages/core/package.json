@@ -1,0 +1,65 @@
+{
+  "name": "@weaviate/core",
+  "version": "1.0.0",
+  "description": "JS/TS client for Weaviate",
+  "main": "dist/core/src/index.js",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/core/src/index.d.ts",
+      "default": "./dist/cjs/src/index.js"
+    },
+    "./proto": {
+      "types": "./dist/core/src/proto/index.d.ts",
+      "default": "./dist/core/src/proto/index.js"
+    },
+    "./errors": {
+      "types": "./dist/core/src/errors.d.ts",
+      "default": "./dist/core/src/errors.js"
+    }
+  },
+  "files": [
+    "dist/core"
+  ],
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "build": "tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/weaviate/typescript-client.git"
+  },
+  "keywords": [
+    "weaviate"
+  ],
+  "author": "Weaviate",
+  "license": "BSD 3-Clause",
+  "bugs": {
+    "url": "https://github.com/weaviate/typescript-client/issues"
+  },
+  "homepage": "https://github.com/weaviate/typescript-client#readme",
+  "dependencies": {
+    "abort-controller-x": "^0.4.3",
+    "graphql": "^16.10.0",
+    "graphql-request": "^6.1.0",
+    "long": "^5.2.4",
+    "nice-grpc-common": "^2.0.2",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^18.14.0",
+    "@types/uuid": "^9.0.1",
+    "grpc-tools": "^1.12.4",
+    "openapi-typescript": "^5.4.1",
+    "protobufjs": "^7.2.6",
+    "typescript": "^5.3.3"
+  },
+  "lint-staged": {
+    "*.{ts,js}": [
+      "npm run format:check",
+      "npm run lint -- --cache"
+    ]
+  }
+}

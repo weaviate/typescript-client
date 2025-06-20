@@ -1,0 +1,16 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "composite": true,
+    "types": ["express", "uuid", "vitest"],
+    "strict": true,
+    "esModuleInterop": true,
+    "paths": {
+      "@weaviate/core/*": ["../core/src/*"],
+      "@weaviate/node": ["../node/src"]
+    }
+  },
+  "include": ["src"],
+  "references": [{ "path": "../core" }, { "path": "../node" }]
+  
+}
