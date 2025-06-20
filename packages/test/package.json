@@ -1,0 +1,15 @@
+{
+  "name": "@weaviate/test",
+  "private": true,
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "@weaviate/core": "workspace:^1.0.0",
+    "@weaviate/node": "workspace:^1.0.0",
+    "express": "^4.21.2",
+    "nice-grpc": "^2.1.12",
+    "vitest": "^3.2.4"
+  }
+}

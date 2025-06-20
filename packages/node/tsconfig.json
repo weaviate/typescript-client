@@ -1,0 +1,27 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "composite": true,
+    "target": "ES6",
+    "strict": true,
+    "preserveConstEnums": true,
+    "alwaysStrict": true,
+    "noImplicitAny": true,
+    "noImplicitThis": true,
+    "strictFunctionTypes": true,
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "esModuleInterop": true,
+    "declaration": true,
+    "rootDir": ".",
+    "types": ["node", "uuid"],
+    "paths": {
+      "@weaviate/core": ["../core/src"],
+      "@weaviate/core/proto": ["../core/src/proto"]
+    }
+  },
+  "include": ["src"],
+  "references": [{ "path": "../core" }]
+}

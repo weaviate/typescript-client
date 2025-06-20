@@ -1,22 +1,30 @@
+// {
+//   "compilerOptions": {
+//     "target": "ES6",
+//     "strict": true,
+//     "preserveConstEnums": true,
+//     "alwaysStrict": true,
+//     "noImplicitAny": true,
+//     "noImplicitThis": true,
+//     "strictFunctionTypes": true,
+//     "module": "NodeNext",
+//     "moduleResolution": "NodeNext",
+//     "skipLibCheck": true,
+//     "forceConsistentCasingInFileNames": true,
+//     "esModuleInterop": true,
+//     "declaration": true,
+//     "rootDir": ".",
+//     "types": ["node", "jest", "uuid"],
+//   },
+//   "include": ["./**/*"],
+//   "exclude": ["./**/*.test.ts", "./dist/**/*"]
+// }
 {
-  "compilerOptions": {
-    "target": "ES6",
-    "strict": true,
-    "preserveConstEnums": true,
-    "alwaysStrict": true,
-    "noImplicitAny": true,
-    "noImplicitThis": true,
-    "strictFunctionTypes": true,
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "esModuleInterop": true,
-    "outDir": "./dist/node",
-    "declaration": true,
-    "rootDir": "./src",
-    "types": ["node", "uuid", "jest"]
-  },
-  "include": ["./src/**/*"],
-  "exclude": ["**/*.test.ts"]
+  "files": [],
+  "references": [
+    { "path": "packages/core" },
+    { "path": "packages/node" },
+    { "path": "packages/web" },
+    { "path": "packages/test" }
+  ]
 }

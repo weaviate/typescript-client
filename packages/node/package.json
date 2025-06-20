@@ -1,0 +1,54 @@
+{
+  "name": "@weaviate/node",
+  "version": "1.0.0",
+  "description": "JS/TS node client for Weaviate",
+  "main": "dist/cjs/src/index.js",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": {
+        "require": "./dist/cjs/src/index.d.ts",
+        "default": "./dist/esm/src/index.d.ts"
+      },
+      "default": {
+        "require": "./dist/cjs/src/index.js",
+        "default": "./dist/esm/src/index.js"
+      }
+    }
+  },
+  "files": [
+    "dist/cjs",
+    "dist/esm"
+  ],
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "build:cjs": "tsc --module commonjs --moduleResolution node10 --outDir dist/cjs && touch dist/cjs/package.json && echo '{\"type\": \"commonjs\"}' > dist/cjs/package.json",
+    "build:esm": "tsc --outDir dist/esm && touch dist/esm/package.json && echo '{\"type\": \"module\"}' > dist/esm/package.json",
+    "build": "npm run build:cjs && npm run build:esm"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/weaviate/typescript-client.git"
+  },
+  "keywords": [
+    "weaviate"
+  ],
+  "author": "Weaviate",
+  "license": "BSD 3-Clause",
+  "bugs": {
+    "url": "https://github.com/weaviate/typescript-client/issues"
+  },
+  "homepage": "https://github.com/weaviate/typescript-client#readme",
+  "dependencies": {
+    "@weaviate/core": "workspace:^1.0.0",
+    "nice-grpc": "^2.1.12",
+    "nice-grpc-client-middleware-retry": "^3.1.10",
+    "vitest": "^3.2.4"
+  },
+  "devDependencies": {
+    "@types/node": "^18.14.0",
+    "@types/uuid": "^9.0.1"
+  }
+}
