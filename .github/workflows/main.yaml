@@ -33,6 +33,7 @@ jobs:
         npm ci
         npm run lint
         npm run format:check
+        npm run build:all
         npm run docs
 
   tests-without-auth:
@@ -64,7 +65,7 @@ jobs:
         username: ${{secrets.DOCKER_USERNAME}}
         password: ${{secrets.DOCKER_PASSWORD}}
     - name: "Transpile the package"
-      run: npm run build
+      run: npm run build:all
     - name: "Install dependencies"
       run: |
         npm ci
@@ -95,7 +96,7 @@ jobs:
         username: ${{secrets.DOCKER_USERNAME}}
         password: ${{secrets.DOCKER_PASSWORD}}
     - name: "Transpile the package"
-      run: npm run build
+      run: npm run build:all
     - name: "Install dependencies"
       run: |
         npm ci
@@ -127,7 +128,7 @@ jobs:
           node-version: '22.x'
           registry-url: 'https://registry.npmjs.org'
       - run: npm ci
-      - run: npm run build
+      - run: npm run build:all
       - run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTOMATION_TOKEN }}
