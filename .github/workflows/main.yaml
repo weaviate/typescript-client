@@ -30,10 +30,10 @@ jobs:
         node-version: '22.x'
     - name: "Run checks"
       run: |
+        npm run build:core
         npm ci
         npm run lint
         npm run format:check
-        npm run build:all
         npm run docs
 
   tests-without-auth:
