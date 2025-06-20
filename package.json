@@ -11,7 +11,7 @@
     "packages/*"
   ],
   "scripts": {
-    "test": "pnpm --filter @weaviate/test test",
+    "test": "pnpm --filter @weaviate/test run test",
     "lint": "eslint --ext .ts,.js .",
     "lint:fix": "npm run lint -- --fix",
     "lint:staged": "npm run format:check && npm run lint -- --cache",
@@ -24,10 +24,9 @@
     "install:core": "pnpm install --filter @weaviate/core --no-frozen-lockfile",
     "install:node": "pnpm install --filter @weaviate/node --no-frozen-lockfile",
     "install:web": "pnpm install --filter @weaviate/web --no-frozen-lockfile",
-    "install": "npm run install:core && npm run install:node && npm run install:web",
-    "build:core": "pnpm install --filter @weaviate/core... run build",
-    "build:node": "pnpm install --filter @weaviate/node... run build",
-    "build:web": "pnpm install --filter @weaviate/web... run build",
+    "build:core": "pnpm --filter @weaviate/core... run build",
+    "build:node": "pnpm --filter @weaviate/node... run build",
+    "build:web": "pnpm --filter @weaviate/web... run build",
     "build": "npm run build:core && npm run build:node && npm run build:web",
     "ci": "npm run install:core && npm run build:core && npm run install:node && npm run install:web"
   },
