@@ -38,6 +38,7 @@ jobs:
         npm run lint
         npm run format:check
         npm run docs
+        npm run build
 
   tests-without-auth:
     needs: checks
@@ -71,8 +72,6 @@ jobs:
       with:
         username: ${{secrets.DOCKER_USERNAME}}
         password: ${{secrets.DOCKER_PASSWORD}}
-    - name: "Transpile the package"
-      run: npm run build:all
     - name: "Install dependencies"
       run: |
         npm run ci
@@ -141,7 +140,7 @@ jobs:
           cache: 'pnpm'
           registry-url: 'https://registry.npmjs.org'
       - run: npm run ci
-      - run: npm run build:all
+      - run: npm run build
       - run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTOMATION_TOKEN }}
