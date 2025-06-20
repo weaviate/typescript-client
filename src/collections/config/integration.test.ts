@@ -511,7 +511,7 @@ describe('Testing of the collection.config namespace', () => {
     expect(notUpdated?.status).toEqual('READY');
   });
 
-  it.only('should be able update the config of a collection', async () => {
+  it('should be able update the config of a collection', async () => {
     const collectionName = 'TestCollectionConfigUpdate';
     const collection = await client.collections.create({
       name: collectionName,
