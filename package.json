@@ -12,7 +12,6 @@
   ],
   "scripts": {
     "test": "pnpm --filter @weaviate/test test",
-    "prepack": "npm run build",
     "lint": "eslint --ext .ts,.js .",
     "lint:fix": "npm run lint -- --fix",
     "lint:staged": "npm run format:check && npm run lint -- --cache",
@@ -22,10 +21,15 @@
     "refresh-schema": "./tools/refresh_schema.sh",
     "refresh-protos": "./tools/refresh_protos.sh",
     "docs": "typedoc --plugin typedoc-plugin-extras --favicon public/favicon.ico --out docs/ ./packages/core/src ./packages/node/src ./packages/web/src",
-    "build:core": "cd packages/core && npm run build",
-    "build:web": "cd packages/web && npm run build",
-    "build:node": "cd packages/node && npm run build",
-    "build:all": "npm run build:core && npm run build:web && npm run build:node"
+    "install:core": "pnpm install --filter @weaviate/core... --no-frozen-lockfile",
+    "install:node": "pnpm install --filter @weaviate/node... --no-frozen-lockfile",
+    "install:web": "pnpm install --filter @weaviate/web... --no-frozen-lockfile",
+    "install": "npm run install:core && npm run install:node && npm run install:web",
+    "build:core": "pnpm install --filter @weaviate/core... run build",
+    "build:node": "pnpm install --filter @weaviate/node... run build",
+    "build:web": "pnpm install --filter @weaviate/web... run build",
+    "build": "npm run build:core && npm run build:node && npm run build:web",
+    "ci": "npm run install:core && npm run build:core && npm run install:node && npm run install:web"
   },
   "repository": {
     "type": "git",

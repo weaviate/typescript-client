@@ -28,10 +28,13 @@ jobs:
     - uses: actions/setup-node@v3
       with:
         node-version: '22.x'
+        cache: 'pnpm'
+    - uses: pnpm/action-setup@v3
+      with:
+        version: '10.x'
     - name: "Run checks"
       run: |
-        npm run build:core
-        npm ci
+        npm run ci
         npm run lint
         npm run format:check
         npm run docs
@@ -58,6 +61,10 @@ jobs:
     - uses: actions/setup-node@v3
       with:
         node-version: ${{ matrix.versions.node }}
+        cache: 'pnpm'
+    - uses: pnpm/action-setup@v3
+      with:
+        version: '10.x'
     - name: Login to Docker Hub
       if: ${{ !github.event.pull_request.head.repo.fork && github.triggering_actor != 'dependabot[bot]' }}
       uses: docker/login-action@v3
@@ -68,10 +75,10 @@ jobs:
       run: npm run build:all
     - name: "Install dependencies"
       run: |
-        npm ci
+        npm run ci
         ci/run_dependencies.sh ${{ matrix.versions.weaviate }}
     - name: "Run tests without authentication tests"
-      run: WEAVIATE_VERSION=${{ matrix.versions.weaviate }} npm test
+      run: WEAVIATE_VERSION=${{ matrix.versions.weaviate }} npm run test
     - name: "Stop Weaviate"
       run: ci/stop_dependencies.sh ${{ matrix.versions.weaviate }}
 
@@ -89,17 +96,19 @@ jobs:
     - uses: actions/setup-node@v3
       with:
         node-version: ${{ matrix.versions.node }}
+        cache: 'pnpm'
+    - uses: pnpm/action-setup@v3
+      with:
+        version: '10.x'
     - name: Login to Docker Hub
       if: ${{ !github.event.pull_request.head.repo.fork && github.triggering_actor != 'dependabot[bot]' }}
       uses: docker/login-action@v3
       with:
         username: ${{secrets.DOCKER_USERNAME}}
         password: ${{secrets.DOCKER_PASSWORD}}
-    - name: "Transpile the package"
-      run: npm run build:all
     - name: "Install dependencies"
       run: |
-        npm ci
+        npm run ci
         ci/run_dependencies.sh ${{ matrix.versions.weaviate }}
     - name: "Run tests with authentication tests"
       if: ${{ !github.event.pull_request.head.repo.fork }}
@@ -108,7 +117,7 @@ jobs:
         WCS_DUMMY_CI_PW: ${{ secrets.WCS_DUMMY_CI_PW }}
         AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
         OKTA_CLIENT_SECRET: ${{ secrets.OKTA_CLIENT_SECRET }}
-      run: WEAVIATE_VERSION=${{ matrix.versions.weaviate }} npm test
+      run: WEAVIATE_VERSION=${{ matrix.versions.weaviate }} npm run test
     - name: "Stop Weaviate"
       run: ci/stop_dependencies.sh ${{ matrix.versions.weaviate }}
 
@@ -127,7 +136,7 @@ jobs:
         with:
           node-version: '22.x'
           registry-url: 'https://registry.npmjs.org'
-      - run: npm ci
+      - run: npm run ci
       - run: npm run build:all
       - run: npm publish
         env:

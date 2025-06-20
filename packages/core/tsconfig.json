@@ -39,7 +39,7 @@
     "outDir": "./dist/core",
     "declaration": true,
     "rootDir": ".",
-    "types": ["node", "uuid", "jest"]
+    "types": ["node", "uuid"]
   },
   "include": ["src"],
   "exclude": ["src/**/*.test.ts", "dist/**/*"],
