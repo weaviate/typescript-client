@@ -34,7 +34,7 @@ jobs:
         cache: 'pnpm'
     - name: "Run checks"
       run: |
-        npm run ci
+        npm run ci:checks
         npm run lint
         npm run format:check
         npm run docs
@@ -74,7 +74,7 @@ jobs:
         password: ${{secrets.DOCKER_PASSWORD}}
     - name: "Install dependencies"
       run: |
-        npm run ci
+        npm run ci:test
         ci/run_dependencies.sh ${{ matrix.versions.weaviate }}
     - name: "Run tests without authentication tests"
       run: WEAVIATE_VERSION=${{ matrix.versions.weaviate }} npm run test
@@ -107,7 +107,7 @@ jobs:
         password: ${{secrets.DOCKER_PASSWORD}}
     - name: "Install dependencies"
       run: |
-        npm run ci
+        npm run ci:test
         ci/run_dependencies.sh ${{ matrix.versions.weaviate }}
     - name: "Run tests with authentication tests"
       if: ${{ !github.event.pull_request.head.repo.fork }}
@@ -139,7 +139,7 @@ jobs:
           node-version: 22
           cache: 'pnpm'
           registry-url: 'https://registry.npmjs.org'
-      - run: npm run ci
+      - run: npm run ci:publish
       - run: npm run build
       - run: npm publish
         env:

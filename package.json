@@ -28,7 +28,9 @@
     "build:node": "pnpm --filter @weaviate/node... run build",
     "build:web": "pnpm --filter @weaviate/web... run build",
     "build": "npm run build:core && npm run build:node && npm run build:web",
-    "ci": "npm run install:core && npm run build:core && npm run install:node && npm run install:web"
+    "ci:checks": "npm run install:core && npm run build:core && npm run install:node && npm run install:web",
+    "ci:test": "npm run ci:checks && npm run build:node",
+    "ci:publish": "npm run ci:test && npm run build:web"
   },
   "repository": {
     "type": "git",
