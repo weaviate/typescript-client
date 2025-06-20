@@ -24,13 +24,14 @@
     "install:core": "pnpm install --filter @weaviate/core --no-frozen-lockfile",
     "install:node": "pnpm install --filter @weaviate/node --no-frozen-lockfile",
     "install:web": "pnpm install --filter @weaviate/web --no-frozen-lockfile",
+    "install:test": "pnpm install --filter @weaviate/test --no-frozen-lockfile",
     "build:core": "pnpm --filter @weaviate/core... run build",
     "build:node": "pnpm --filter @weaviate/node... run build",
     "build:web": "pnpm --filter @weaviate/web... run build",
     "build": "npm run build:core && npm run build:node && npm run build:web",
     "ci:checks": "npm run install:core && npm run build:core && npm run install:node && npm run install:web",
-    "ci:test": "npm run ci:checks && npm run build:node",
-    "ci:publish": "npm run ci:test && npm run build:web"
+    "ci:test": "npm run ci:checks && npm run build:node && npm run install:test",
+    "ci:publish": "npm run ci:checks"
   },
   "repository": {
     "type": "git",

@@ -140,7 +140,8 @@ jobs:
           cache: 'pnpm'
           registry-url: 'https://registry.npmjs.org'
       - run: npm run ci:publish
-      - run: npm run build
+      - run: npm run build:node
+      - run: npm run build:web
       - run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTOMATION_TOKEN }}
