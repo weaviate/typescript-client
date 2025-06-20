@@ -190,6 +190,18 @@ importers:
 
   packages/test:
     devDependencies:
+      '@curveball/bodyparser':
+        specifier: 0.5.0
+        version: 0.5.0(@curveball/kernel@0.20.1)
+      '@testcontainers/weaviate':
+        specifier: ^10.28.0
+        version: 10.28.0
+      '@types/express':
+        specifier: ^4.17.23
+        version: 4.17.23
+      '@types/uuid':
+        specifier: ^9.0.8
+        version: 9.0.8
       '@weaviate/core':
         specifier: workspace:^1.0.0
         version: link:../core
@@ -202,6 +214,9 @@ importers:
       nice-grpc:
         specifier: ^2.1.12
         version: 2.1.12
+      uuid:
+        specifier: ^9.0.1
+        version: 9.0.1
       vitest:
         specifier: ^3.2.4
         version: 3.2.4(@types/node@18.19.112)

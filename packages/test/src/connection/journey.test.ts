@@ -8,7 +8,7 @@ import Connection from '@weaviate/core/connection';
 
 import { WeaviateStartUpError } from '@weaviate/core/errors';
 import weaviate from '@weaviate/node';
-import { afterAll, beforeAll, describe, expect, it, vitest } from 'vitest';
+import { describe, expect, it, vitest } from 'vitest';
 
 describe('connection', () => {
   it('makes a logged-in request when client host param has trailing slashes', async () => {

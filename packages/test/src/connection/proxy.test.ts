@@ -1,5 +1,5 @@
 import weaviate from '@weaviate/node';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
 describe('Testing of the client connecting to a proxied Weaviate instance', () => {
   // Skip because Envoy Proxy in CI is too flaky with strange error:

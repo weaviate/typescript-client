@@ -2,7 +2,7 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "composite": true,
-    "types": ["vitest"],
+    "types": ["express", "uuid", "vitest"],
     "strict": true,
     "esModuleInterop": true,
     "paths": {

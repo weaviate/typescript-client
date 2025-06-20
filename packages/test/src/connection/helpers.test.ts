@@ -1,5 +1,5 @@
 import weaviate from '@weaviate/node';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
 const WCD_URL = 'https://piblpmmdsiknacjnm1ltla.c1.europe-west3.gcp.weaviate.cloud';
 const WCD_KEY = 'cy4ua772mBlMdfw3YnclqAWzFhQt0RLIN0sl';
