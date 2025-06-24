@@ -41,6 +41,16 @@ const tenants = (
       });
       return result;
     });
+  const update = async (tenants: TenantBC | TenantUpdate | (TenantBC | TenantUpdate)[]) => {
+    const out: Tenant[] = [];
+    for await (const res of Serialize.tenants(parseValueOrValueArray(tenants), Serialize.tenantUpdate).map(
+      (tenants) =>
+        new TenantsUpdater(connection, collection, tenants).do().then((res) => res.map(parseTenantREST))
+    )) {
+      out.push(...res);
+    }
+    return out;
+  };
   return {
     create: (tenants: TenantBC | TenantCreate | (TenantBC | TenantCreate)[]) =>
       new TenantsCreator(connection, collection, parseValueOrValueArray(tenants).map(Serialize.tenantCreate))
@@ -72,15 +82,24 @@ const tenants = (
         collection,
         parseValueOrValueArray(tenants).map(parseStringOrTenant)
       ).do(),
-    update: async (tenants: TenantBC | TenantUpdate | (TenantBC | TenantUpdate)[]) => {
-      const out: Tenant[] = [];
-      for await (const res of Serialize.tenants(parseValueOrValueArray(tenants), Serialize.tenantUpdate).map(
-        (tenants) =>
-          new TenantsUpdater(connection, collection, tenants).do().then((res) => res.map(parseTenantREST))
-      )) {
-        out.push(...res);
-      }
-      return out;
+    update,
+    activate: (tenant: string | TenantBase) => {
+      return update({
+        name: parseStringOrTenant(tenant),
+        activityStatus: 'ACTIVE',
+      });
+    },
+    deactivate: (tenant: string | TenantBase) => {
+      return update({
+        name: parseStringOrTenant(tenant),
+        activityStatus: 'INACTIVE',
+      });
+    },
+    offload: (tenant: string | TenantBase) => {
+      return update({
+        name: parseStringOrTenant(tenant),
+        activityStatus: 'OFFLOADED',
+      });
     },
   };
 };
@@ -169,4 +188,28 @@ export interface Tenants {
    * @returns {Promise<Tenant[]>} The updated tenant(s) as a list of Tenant.
    */
   update: (tenants: TenantBC | TenantUpdate | (TenantBC | TenantUpdate)[]) => Promise<Tenant[]>;
+  /**
+   * Activate the specified tenant for a collection in Weaviate.
+   * The collection must have been created with multi-tenancy enabled.
+   *
+   * @param {TenantBase | string} tenant The tenant to activate.
+   * @returns {Promise<Tenant[]>} The activated tenant as a list of Tenant.
+   */
+  activate: (tenant: string | TenantBase) => Promise<Tenant[]>;
+  /**
+   * Deactivate the specified tenant for a collection in Weaviate.
+   * The collection must have been created with multi-tenancy enabled.
+   *
+   * @param {TenantBase | string} tenant The tenant to deactivate.
+   * @returns {Promise<Tenant[]>} The deactivated tenant as a list of Tenant
+   */
+  deactivate: (tenant: string | TenantBase) => Promise<Tenant[]>;
+  /**
+   * Offload the specified tenant for a collection in Weaviate.
+   * The collection must have been created with multi-tenancy enabled.
+   *
+   * @param {TenantBase | string} tenant The tenant to offload.
+   * @returns {Promise<Tenant[]>} The offloaded tenant as a list of Tenant
+   */
+  offload: (tenant: string | TenantBase) => Promise<Tenant[]>;
 }
