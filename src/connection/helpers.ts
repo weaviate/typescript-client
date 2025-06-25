@@ -99,7 +99,7 @@ export function connectToWeaviateCloud(
     )
   ) {
     console.warn(
-      'Connecting to WCD using OIDC is deprecated and will be removed in August 2025. Please use API keys instead.'
+      'Connecting to Weaviate Cloud (WCD) using OIDC is deprecated and will be removed in August 2025. Please use API keys instead.'
     );
   }
 
