@@ -197,6 +197,16 @@ export const parseVectorIndex = (module: ModuleConfig<VectorIndexType, VectorInd
       },
     };
   }
+  if (QuantizerGuards.isSQCreate(quantizer)) {
+    const { type, ...quant } = quantizer;
+    return {
+      ...conf,
+      sq: {
+        ...quant,
+        enabled: true,
+      },
+    };
+  }
 };
 
 export const parseVectorizerConfig = (config?: VectorizerConfig): any => {

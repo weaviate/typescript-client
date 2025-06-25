@@ -38,6 +38,7 @@ import { LiveChecker, OpenidConfigurationGetter, ReadyChecker } from './misc/ind
 
 import weaviateV2 from './v2/index.js';
 
+import filter from './collections/filters/index.js';
 import { ConsistencyLevel } from './data/replication.js';
 import users, { Users } from './users/index.js';
 
@@ -254,6 +255,7 @@ const app = {
   AuthClientCredentials,
   configure,
   configGuards,
+  filter: filter<any>(),
   reconfigure,
   permissions,
   query: queryFactory,

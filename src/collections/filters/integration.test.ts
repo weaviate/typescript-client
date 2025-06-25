@@ -112,7 +112,7 @@ describe('Testing of the filter class with a simple collection', () => {
 
   it('should filter a fetch objects query with a single filter and non-generic collection', async () => {
     const res = await client.collections.use(collectionName).query.fetchObjects({
-      filters: client.collections.use(collectionName).filter.byProperty('text').equal('two'),
+      filters: weaviate.filter.byProperty('text').equal('two'),
     });
     expect(res.objects.length).toEqual(1);
     const obj = res.objects[0];

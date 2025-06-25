@@ -1,6 +1,6 @@
 {
   "name": "weaviate-client",
-  "version": "3.5.5",
+  "version": "3.6.2",
   "description": "JS/TS client for Weaviate",
   "main": "dist/node/cjs/index.js",
   "type": "module",
@@ -45,7 +45,7 @@
     "weaviate"
   ],
   "author": "Weaviate",
-  "license": "SEE LICENSE IN LICENSE",
+  "license": "BSD 3-Clause",
   "bugs": {
     "url": "https://github.com/weaviate/typescript-client/issues"
   },
