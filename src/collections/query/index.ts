@@ -247,6 +247,7 @@ export {
   BaseHybridOptions,
   BaseNearOptions,
   BaseNearTextOptions,
+  Bm25OperatorOptions,
   Bm25Options,
   FetchObjectByIdOptions,
   FetchObjectsOptions,
@@ -266,3 +267,5 @@ export {
   QueryReturn,
   SearchOptions,
 } from './types.js';
+
+export { Bm25Operator } from './utils.js';
