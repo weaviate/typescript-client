@@ -390,6 +390,8 @@ export type Text2VecNvidiaConfig = {
  * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/mistral/embeddings) for detailed usage.
  */
 export type Text2VecMistralConfig = {
+  /** The base URL to use where API requests should go. */
+  baseURL?: string;
   /** The model to use. */
   model?: 'mistral-embed' | string;
   /** Whether to vectorize the collection name. */

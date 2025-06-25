@@ -4,11 +4,13 @@ import { WeaviateShardStatus } from '../../openapi/types.js';
 import ClassUpdater from '../../schema/classUpdater.js';
 import { ClassGetter, PropertyCreator, ShardUpdater } from '../../schema/index.js';
 import ShardsGetter from '../../schema/shardsGetter.js';
+import VectorAdder from '../../schema/vectorAdder.js';
 import { DbVersionSupport } from '../../utils/dbVersion.js';
 import {
   PropertyConfigCreate,
   ReferenceMultiTargetConfigCreate,
   ReferenceSingleTargetConfigCreate,
+  VectorizersConfigAdd,
 } from '../configure/types/index.js';
 import { MergeWithExisting } from './classes.js';
 import {
@@ -23,7 +25,7 @@ import {
   VectorIndexConfigFlat,
   VectorIndexConfigHNSW,
 } from './types/index.js';
-import { classToCollection, resolveProperty, resolveReference } from './utils.js';
+import { classToCollection, makeVectorsConfig, resolveProperty, resolveReference } from './utils.js';
 
 const config = <T>(
   connection: Connection,
@@ -47,6 +49,11 @@ const config = <T>(
         .withProperty(resolveReference<any>(reference))
         .do()
         .then(() => {}),
+    addVector: async (vectors: VectorizersConfigAdd<T>) => {
+      const supportsDynamicVectorIndex = await dbVersionSupport.supportsDynamicVectorIndex();
+      const { vectorsConfig } = makeVectorsConfig(vectors, supportsDynamicVectorIndex);
+      return new VectorAdder(connection).withClassName(name).withVectors(vectorsConfig).do();
+    },
     get: () => getRaw().then(classToCollection<T>),
     getShards: () => {
       let builder = new ShardsGetter(connection).withClassName(name);
@@ -80,7 +87,7 @@ const config = <T>(
         )
       ).then(() => this.getShards());
     },
-    update: (config?: CollectionConfigUpdate) => {
+    update: (config?: CollectionConfigUpdate<T>) => {
       return getRaw()
         .then(async (current) =>
           MergeWithExisting.schema(
@@ -115,6 +122,17 @@ export interface Config<T> {
     reference: ReferenceSingleTargetConfigCreate<T> | ReferenceMultiTargetConfigCreate<T>
   ) => Promise<void>;
   /**
+   * Add one or more named vectors to the collection in Weaviate.
+   * Named vectors can be added to collections with existing named vectors only.
+   *
+   * Existing named vectors are immutable in Weaviate. The client will not include
+   * any of those in the request.
+   *
+   * @param {VectorizersConfigAdd<any>} vectors Vector configurations.
+   * @returns {Promise<void>} A promise that resolves when the named vector has been created.
+   */
+  addVector: (vectors: VectorizersConfigAdd<T>) => Promise<void>;
+  /**
    * Get the configuration for this collection from Weaviate.
    *
    * @returns {Promise<CollectionConfig<T>>} A promise that resolves with the collection configuration.
@@ -146,10 +164,10 @@ export interface Config<T> {
    *
    * Use the `weaviate.classes.Reconfigure` class to generate the necessary configuration objects for this method.
    *
-   * @param {CollectionConfigUpdate} [config] The configuration to update. Only a subset of the actual collection configuration can be updated.
+   * @param {CollectionConfigUpdate<T>} [config] The configuration to update. Only a subset of the actual collection configuration can be updated.
    * @returns {Promise<void>} A promise that resolves when the collection has been updated.
    */
-  update: (config?: CollectionConfigUpdate) => Promise<void>;
+  update: (config?: CollectionConfigUpdate<T>) => Promise<void>;
 }
 
 export class VectorIndex {

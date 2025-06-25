@@ -279,11 +279,7 @@ const testCases: TestCase[] = [
   },
 ];
 
-requireAtLeast(
-  1,
-  29,
-  0
-)('Integration testing of the roles namespace', () => {
+requireAtLeast(1, 29, 0).describe('Integration testing of the roles namespace', () => {
   let client: WeaviateClient;
 
   beforeAll(async () => {
@@ -317,12 +313,8 @@ requireAtLeast(
     expect(exists).toBeFalsy();
   });
 
-  requireAtLeast(
-    1,
-    30,
-    0
-  )('namespaced users', () => {
-    it('retrieves assigned users with namespace', async () => {
+  requireAtLeast(1, 30, 0).describe('namespaced users', () => {
+    it('retrieves assigned users with/without namespace', async () => {
       await client.roles.create('landlord', {
         collection: 'Buildings',
         tenant: 'john-doe',
@@ -341,6 +333,10 @@ requireAtLeast(
           expect.objectContaining<UserAssignment>({ id: 'Innkeeper', userType: 'db_user' }),
         ])
       );
+
+      // Legacy
+      const assignedUsers = await client.roles.assignedUserIds('landlord');
+      expect(assignedUsers).toEqual(['Innkeeper', 'custom-user']);
 
       await client.users.db.delete('Innkeeper');
       await client.roles.delete('landlord');

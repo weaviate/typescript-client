@@ -15,6 +15,8 @@ import {
   NearThermalSearch,
   NearVector,
   NearVideoSearch,
+  SearchOperatorOptions,
+  SearchOperatorOptions_Operator,
   Targets,
   VectorForTarget,
   WeightsForTarget,
@@ -115,6 +117,7 @@ import {
 import {
   BaseHybridOptions,
   BaseNearOptions,
+  Bm25OperatorOptions,
   Bm25Options,
   Bm25QueryProperty,
   Bm25SearchOptions,
@@ -960,10 +963,26 @@ export class Serialize {
     });
   };
 
+  private static bm25SearchOperator = (
+    searchOperator?: Bm25OperatorOptions
+  ): SearchOperatorOptions | undefined => {
+    if (searchOperator) {
+      return SearchOperatorOptions.fromPartial(
+        searchOperator.operator === ('And' as const)
+          ? { operator: SearchOperatorOptions_Operator.OPERATOR_AND }
+          : {
+              operator: SearchOperatorOptions_Operator.OPERATOR_OR,
+              minimumOrTokensMatch: searchOperator.minimumMatch,
+            }
+      );
+    }
+  };
+
   public static bm25Search = <T>(args: { query: string } & Bm25SearchOptions<T>): BM25 => {
     return BM25.fromPartial({
       query: args.query,
       properties: this.bm25QueryProperties(args.queryProperties),
+      searchOperator: this.bm25SearchOperator(args.operator),
     });
   };
 
@@ -1074,6 +1093,7 @@ export class Serialize {
       vectorBytes: vectorBytes,
       vectorDistance: args.maxVectorDistance,
       fusionType: fusionType(args.fusionType),
+      bm25SearchOperator: this.bm25SearchOperator(args.bm25Operator),
       targetVectors,
       targets,
       nearText,

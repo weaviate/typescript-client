@@ -1,6 +1,6 @@
 {
   "name": "weaviate-client",
-  "version": "3.5.1",
+  "version": "3.6.2",
   "description": "JS/TS client for Weaviate",
   "main": "dist/node/cjs/index.js",
   "type": "module",
@@ -45,18 +45,18 @@
     "weaviate"
   ],
   "author": "Weaviate",
-  "license": "SEE LICENSE IN LICENSE",
+  "license": "BSD 3-Clause",
   "bugs": {
     "url": "https://github.com/weaviate/typescript-client/issues"
   },
   "homepage": "https://github.com/weaviate/typescript-client#readme",
   "dependencies": {
     "abort-controller-x": "^0.4.3",
-    "graphql": "^16.10.0",
+    "graphql": "^16.11.0",
     "graphql-request": "^6.1.0",
     "long": "^5.3.1",
-    "nice-grpc": "^2.1.11",
-    "nice-grpc-client-middleware-retry": "^3.1.10",
+    "nice-grpc": "^2.1.12",
+    "nice-grpc-client-middleware-retry": "^3.1.11",
     "nice-grpc-common": "^2.0.2",
     "uuid": "^9.0.1"
   },
