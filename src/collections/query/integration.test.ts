@@ -64,7 +64,7 @@ describe('Testing of the collection.query methods with a simple collection', () 
         });
       });
     const res = await collection.query.fetchObjectById(id, { includeVector: true });
-    vector = res?.vectors.default!;
+    vector = res?.vectors.default as number[];
   });
 
   it('should fetch an object by its id', async () => {
@@ -580,14 +580,23 @@ describe('Testing of the collection.query methods with a collection with a neste
 
 describe('Testing of the collection.query methods with a collection with a multiple vectors', () => {
   let client: WeaviateClient;
-  let collection: Collection<TestCollectionQueryWithMultiVector, 'TestCollectionQueryWithMultiVector'>;
+  let collection: Collection<
+    TestCollectionQueryWithMultiVectorProps,
+    'TestCollectionQueryWithMultiVector',
+    TestCollectionQueryWithMultiVectorVectors
+  >;
   const collectionName = 'TestCollectionQueryWithMultiVector';
 
   let id1: string;
   let id2: string;
 
-  type TestCollectionQueryWithMultiVector = {
+  type TestCollectionQueryWithMultiVectorProps = {
     title: string;
+  };
+
+  type TestCollectionQueryWithMultiVectorVectors = {
+    title: number[];
+    title2: number[];
   };
 
   afterAll(() => {
@@ -602,7 +611,7 @@ describe('Testing of the collection.query methods with a collection with a multi
     collection = client.collections.use(collectionName);
     const query = () =>
       client.collections
-        .create<TestCollectionQueryWithMultiVector>({
+        .create({
           name: collectionName,
           properties: [
             {
@@ -1131,7 +1140,7 @@ describe('Testing of the groupBy collection.query methods with a simple collecti
         });
       });
     const res = await collection.query.fetchObjectById(id, { includeVector: true });
-    vector = res?.vectors.default!;
+    vector = res?.vectors.default as number[];
   });
 
   // it('should groupBy without search', async () => {

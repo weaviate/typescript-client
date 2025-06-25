@@ -66,7 +66,7 @@ maybe('Testing of the collection.generate methods with a simple collection', () 
         });
       });
     const res = await collection.query.fetchObjectById(id, { includeVector: true });
-    vector = res?.vectors.default!;
+    vector = res?.vectors.default as number[];
   });
 
   describe('using a non-generic collection', () => {
@@ -227,7 +227,7 @@ maybe('Testing of the groupBy collection.generate methods with a simple collecti
         });
       });
     const res = await collection.query.fetchObjectById(id, { includeVector: true });
-    vector = res?.vectors.default!;
+    vector = res?.vectors.default as number[];
   });
 
   // it('should groupBy without search', async () => {
@@ -387,8 +387,8 @@ maybe('Testing of the collection.generate methods with a multi vector collection
             },
           });
           const res = await collection.query.fetchObjectById(id1, { includeVector: true });
-          titleVector = res!.vectors.title!;
-          title2Vector = res!.vectors.title2!;
+          titleVector = res!.vectors.title as number[];
+          title2Vector = res!.vectors.title2 as number[];
         });
     if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 24, 0))) {
       await expect(query()).rejects.toThrow(WeaviateUnsupportedFeatureError);

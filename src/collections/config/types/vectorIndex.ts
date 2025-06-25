@@ -9,6 +9,7 @@ export type VectorIndexConfigHNSW = {
   filterStrategy: VectorIndexFilterStrategy;
   flatSearchCutoff: number;
   maxConnections: number;
+  multiVector: MultiVectorConfig | undefined;
   quantizer: PQConfig | BQConfig | SQConfig | undefined;
   skip: boolean;
   vectorCacheMaxObjects: number;
@@ -60,6 +61,20 @@ export type PQConfig = {
   trainingLimit: number;
   type: 'pq';
 };
+
+export type MultiVectorConfig = {
+  aggregation: 'maxSim' | string;
+  encoding?: MultiVectorEncodingConfig;
+};
+
+export type MuveraEncodingConfig = {
+  ksim?: number;
+  dprojections?: number;
+  repetitions?: number;
+  type: 'muvera';
+};
+
+export type MultiVectorEncodingConfig = MuveraEncodingConfig | Record<string, any>;
 
 export type PQEncoderConfig = {
   type: PQEncoderType;

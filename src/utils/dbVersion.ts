@@ -227,6 +227,15 @@ export class DbVersionSupport {
     });
   };
 
+  supportsVectorsFieldInGRPC = () => {
+    return this.dbVersionProvider.getVersion().then((version) => {
+      return {
+        version: version,
+        supports: version.isAtLeast(1, 29, 0),
+        message: undefined,
+      };
+    });
+  };
   supportsSingleGrouped = () =>
     this.dbVersionProvider.getVersion().then((version) => ({
       version,

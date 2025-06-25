@@ -1,3 +1,4 @@
+import { MuveraEncodingConfigCreate } from '../index.js';
 import {
   BQConfigCreate,
   BQConfigUpdate,
@@ -5,6 +6,9 @@ import {
   PQConfigUpdate,
   SQConfigCreate,
   SQConfigUpdate,
+  VectorIndexConfigDynamicCreate,
+  VectorIndexConfigFlatCreate,
+  VectorIndexConfigHNSWCreate,
 } from './types/index.js';
 
 type QuantizerConfig =
@@ -33,6 +37,30 @@ export class QuantizerGuards {
   }
   static isSQUpdate(config?: QuantizerConfig): config is SQConfigUpdate {
     return (config as SQConfigUpdate)?.type === 'sq';
+  }
+}
+
+type VectorIndexConfig =
+  | VectorIndexConfigHNSWCreate
+  | VectorIndexConfigFlatCreate
+  | VectorIndexConfigDynamicCreate
+  | Record<string, any>;
+
+export class VectorIndexGuards {
+  static isHNSW(config?: VectorIndexConfig): config is VectorIndexConfigHNSWCreate {
+    return (config as VectorIndexConfigHNSWCreate)?.type === 'hnsw';
+  }
+  static isFlat(config?: VectorIndexConfig): config is VectorIndexConfigFlatCreate {
+    return (config as VectorIndexConfigFlatCreate)?.type === 'flat';
+  }
+  static isDynamic(config?: VectorIndexConfig): config is VectorIndexConfigDynamicCreate {
+    return (config as VectorIndexConfigDynamicCreate)?.type === 'dynamic';
+  }
+}
+
+export class MultiVectorEncodingGuards {
+  static isMuvera(config?: Record<string, any>): config is MuveraEncodingConfigCreate {
+    return (config as { type: string })?.type === 'muvera';
   }
 }
 

@@ -31,6 +31,7 @@ import {
   VectorConfigCreate,
   Vectorizer,
   VectorizersConfigCreate,
+  Vectors,
 } from './types/index.js';
 import { PrimitiveKeys } from './types/internal.js';
 
@@ -40,7 +41,7 @@ import { PrimitiveKeys } from './types/internal.js';
  * Inspect [the docs](https://weaviate.io/developers/weaviate/configuration) for more information on the
  * different configuration options and how they affect the behavior of your collection.
  */
-export type CollectionConfigCreate<TProperties = undefined, N = string> = {
+export type CollectionConfigCreate<TProperties = undefined, N = string, TVectors = undefined> = {
   /** The name of the collection. */
   name: N;
   /** The description of the collection. */
@@ -62,7 +63,7 @@ export type CollectionConfigCreate<TProperties = undefined, N = string> = {
   /** The configuration for Weaviate's sharding strategy. Is mutually exclusive with `replication`. */
   sharding?: ShardingConfigCreate;
   /** The configuration for Weaviate's vectorizer(s) capabilities. */
-  vectorizers?: VectorizersConfigCreate<TProperties>;
+  vectorizers?: VectorizersConfigCreate<TProperties, TVectors>;
 };
 
 const collections = (connection: Connection, dbVersionSupport: DbVersionSupport) => {
@@ -72,9 +73,11 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
       .then((schema) => (schema.classes ? schema.classes.map(classToCollection<any>) : []));
   const deleteCollection = (name: string) => new ClassDeleter(connection).withClassName(name).do();
   return {
-    create: async function <TProperties extends Properties | undefined = undefined, TName = string>(
-      config: CollectionConfigCreate<TProperties, TName>
-    ) {
+    create: async function <
+      TProperties extends Properties | undefined = undefined,
+      TName = string,
+      TVectors extends Vectors | undefined = undefined
+    >(config: CollectionConfigCreate<TProperties, TName, TVectors>) {
       const { name, invertedIndex, multiTenancy, replication, sharding, ...rest } = config;
 
       const supportsDynamicVectorIndex = await dbVersionSupport.supportsDynamicVectorIndex();
@@ -175,11 +178,11 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
       schema.properties = [...properties, ...references];
 
       await new ClassCreator(connection).withClass(schema).do();
-      return collection<TProperties, TName>(connection, name, dbVersionSupport);
+      return collection<TProperties, TName, TVectors>(connection, name, dbVersionSupport);
     },
     createFromSchema: async function (config: WeaviateClass) {
       const { class: name } = await new ClassCreator(connection).withClass(config).do();
-      return collection<Properties, string>(connection, name as string, dbVersionSupport);
+      return collection<Properties, string, undefined>(connection, name as string, dbVersionSupport);
     },
     delete: deleteCollection,
     deleteAll: () => listAll().then((configs) => Promise.all(configs?.map((c) => deleteCollection(c.name)))),
@@ -192,17 +195,25 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
     listAll: listAll,
     get: <TProperties extends Properties | undefined = undefined, TName extends string = string>(
       name: TName
-    ) => collection<TProperties, TName>(connection, name, dbVersionSupport),
-    use: <TProperties extends Properties | undefined = undefined, TName extends string = string>(
+    ) => collection<TProperties, TName, undefined>(connection, name, dbVersionSupport),
+    use: <
+      TProperties extends Properties | undefined = undefined,
+      TName extends string = string,
+      TVectors extends Vectors | undefined = undefined
+    >(
       name: TName
-    ) => collection<TProperties, TName>(connection, name, dbVersionSupport),
+    ) => collection<TProperties, TName, TVectors>(connection, name, dbVersionSupport),
   };
 };
 
 export interface Collections {
-  create<TProperties extends Properties | undefined = undefined, TName = string>(
-    config: CollectionConfigCreate<TProperties, TName>
-  ): Promise<Collection<TProperties, TName>>;
+  create<
+    TProperties extends Properties | undefined = undefined,
+    TName = string,
+    TVectors extends Vectors | undefined = undefined
+  >(
+    config: CollectionConfigCreate<TProperties, TName, TVectors>
+  ): Promise<Collection<TProperties, TName, TVectors>>;
   createFromSchema(config: WeaviateClass): Promise<Collection<Properties, string>>;
   delete(collection: string): Promise<void>;
   deleteAll(): Promise<void[]>;
@@ -212,9 +223,13 @@ export interface Collections {
     name: TName
   ): Collection<TProperties, TName>;
   listAll(): Promise<CollectionConfig[]>;
-  use<TProperties extends Properties | undefined = undefined, TName extends string = string>(
+  use<
+    TName extends string = string,
+    TProperties extends Properties | undefined = undefined,
+    TVectors extends Vectors | undefined = undefined
+  >(
     name: TName
-  ): Collection<TProperties, TName>;
+  ): Collection<TProperties, TName, TVectors>;
 }
 
 export default collections;
