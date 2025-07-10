@@ -65,9 +65,9 @@ const configure = {
       name: 'hnsw',
       config: rest
         ? {
-          ...rest,
-          distance: distanceMetric,
-        }
+            ...rest,
+            distance: distanceMetric,
+          }
         : undefined,
     };
   },
@@ -86,11 +86,11 @@ const configure = {
       name: 'dynamic',
       config: opts
         ? {
-          distance: opts.distanceMetric,
-          threshold: opts.threshold,
-          hnsw: isModuleConfig(opts.hnsw) ? opts.hnsw.config : configure.hnsw(opts.hnsw).config,
-          flat: isModuleConfig(opts.flat) ? opts.flat.config : configure.flat(opts.flat).config,
-        }
+            distance: opts.distanceMetric,
+            threshold: opts.threshold,
+            hnsw: isModuleConfig(opts.hnsw) ? opts.hnsw.config : configure.hnsw(opts.hnsw).config,
+            flat: isModuleConfig(opts.flat) ? opts.flat.config : configure.flat(opts.flat).config,
+          }
         : undefined,
     };
   },
@@ -115,7 +115,7 @@ const configure = {
     /**
      * Create an object of type `RQConfigCreate` to be used when defining the quantizer configuration of a vector index.
      *
-     * @param {number} [options.bits] TODO: WRITE DOCS
+     * @param {number} [options.bits] Number of bits to user per vector element.
      * @param {number} [options.rescoreLimit] The rescore limit. Default is 1000.
      * @returns {RQConfigCreate} The object of type `RQConfigCreate`.
      */
@@ -152,9 +152,9 @@ const configure = {
         centroids: options?.centroids,
         encoder: options?.encoder
           ? {
-            distribution: options.encoder.distribution,
-            type: options.encoder.type,
-          }
+              distribution: options.encoder.distribution,
+              type: options.encoder.type,
+            }
           : undefined,
         segments: options?.segments,
         trainingLimit: options?.trainingLimit,
@@ -254,7 +254,6 @@ const reconfigure = {
      * NOTE: If the vector index already has a quantizer configured, you cannot change its quantizer type; only its values.
      * So if you want to change the quantizer type, you must recreate the collection.
      *
-     * @param {number} [options.bits] TODO: WRITE DOCS
      * @param {number} [options.rescoreLimit] The new rescore limit.
      * @returns {BQConfigUpdate} The configuration object.
      */
@@ -290,9 +289,9 @@ const reconfigure = {
         encoder:
           pqEncoderDistribution || pqEncoderType
             ? {
-              distribution: pqEncoderDistribution,
-              type: pqEncoderType,
-            }
+                distribution: pqEncoderDistribution,
+                type: pqEncoderType,
+              }
             : undefined,
         type: 'pq',
       };

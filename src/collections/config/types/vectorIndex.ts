@@ -65,7 +65,7 @@ export type RQConfig = {
   bits?: number;
   rescoreLimit?: number;
   type: 'rq';
-}
+};
 
 export type PQEncoderConfig = {
   type: PQEncoderType;

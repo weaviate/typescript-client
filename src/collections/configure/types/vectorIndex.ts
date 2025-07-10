@@ -23,7 +23,7 @@ export type RQConfigCreate = QuantizerRecursivePartial<RQConfig>;
 export type RQConfigUpdate = {
   rescoreLimit?: number;
   type: 'rq';
-}
+};
 
 export type PQConfigCreate = QuantizerRecursivePartial<PQConfig>;
 

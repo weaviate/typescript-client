@@ -149,11 +149,11 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
         const configs = config.vectorizers
           ? makeLegacyVectorizer({ ...config.vectorizers, name: undefined })
           : {
-            vectorizer: undefined,
-            moduleConfig: undefined,
-            vectorIndexConfig: undefined,
-            vectorIndexType: undefined,
-          };
+              vectorizer: undefined,
+              moduleConfig: undefined,
+              vectorIndexConfig: undefined,
+              vectorIndexType: undefined,
+            };
         schema = {
           ...schema,
           moduleConfig: {
@@ -177,7 +177,7 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
       await new ClassCreator(connection).withClass(schema).do();
       return collection<TProperties, TName>(connection, name, dbVersionSupport);
     },
-    createFromSchema: async function(config: WeaviateClass) {
+    createFromSchema: async function (config: WeaviateClass) {
       const { class: name } = await new ClassCreator(connection).withClass(config).do();
       return collection<Properties, string>(connection, name as string, dbVersionSupport);
     },

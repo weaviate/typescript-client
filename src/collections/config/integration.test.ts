@@ -12,7 +12,6 @@ import {
   VectorIndexConfigHNSW,
 } from './types/index.js';
 
-
 describe('Testing of the collection.config namespace', () => {
   let client: WeaviateClient;
 
@@ -555,8 +554,8 @@ describe('Testing of the collection.config namespace', () => {
       .update({
         propertyDescriptions: supportsUpdatingPropertyDescriptions
           ? {
-            testProp: 'This is a test property',
-          }
+              testProp: 'This is a test property',
+            }
           : undefined,
         vectorizers: weaviate.reconfigure.vectorizer.update({
           vectorIndexConfig: weaviate.reconfigure.vectorIndex.hnsw({
