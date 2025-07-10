@@ -49,9 +49,11 @@ jobs:
           { node: "22.x", weaviate: $WEAVIATE_127},
           { node: "22.x", weaviate: $WEAVIATE_128},
           { node: "22.x", weaviate: $WEAVIATE_129},
-          { node: "18.x", weaviate: $WEAVIATE_130},
-          { node: "20.x", weaviate: $WEAVIATE_130},
-          { node: "22.x", weaviate: $WEAVIATE_130}
+          { node: "22.x", weaviate: $WEAVIATE_130},
+          { node: "22.x", weaviate: $WEAVIATE_131},
+          { node: "18.x", weaviate: $WEAVIATE_132},
+          { node: "20.x", weaviate: $WEAVIATE_132},
+          { node: "22.x", weaviate: $WEAVIATE_132}
         ]
     steps:
     - uses: actions/checkout@v3
