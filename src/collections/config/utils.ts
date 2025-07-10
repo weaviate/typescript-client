@@ -46,6 +46,7 @@ import {
   PQEncoderType,
   PropertyConfig,
   PropertyVectorizerConfig,
+  RQConfig,
   ReferenceConfig,
   ReplicationConfig,
   Reranker,
@@ -182,6 +183,16 @@ export const parseVectorIndex = (module: ModuleConfig<VectorIndexType, VectorInd
       },
     };
   }
+  if (QuantizerGuards.isRQCreate(quantizer)) {
+    const { type, ...quant } = quantizer;
+    return {
+      ...conf,
+      rq: {
+        ...quant,
+        enabled: true,
+      },
+    };
+  }
 };
 
 export const parseVectorizerConfig = (config?: VectorizerConfig): any => {
@@ -202,11 +213,11 @@ export const makeVectorsConfig = <TProperties extends Properties | undefined = u
   const vectorizersConfig = Array.isArray(configVectorizers)
     ? configVectorizers
     : [
-        {
-          ...configVectorizers,
-          name: configVectorizers.name || 'default',
-        },
-      ];
+      {
+        ...configVectorizers,
+        name: configVectorizers.name || 'default',
+      },
+    ];
   vectorizersConfig.forEach((v) => {
     if (v.vectorIndex.name === 'dynamic' && !supportsDynamicVectorIndex.supports) {
       throw new WeaviateUnsupportedFeatureError(supportsDynamicVectorIndex.message);
@@ -329,18 +340,18 @@ class ConfigMapping {
         vectorizer:
           v.vectorizer === 'none'
             ? {
-                name: 'none',
-                config: undefined,
-              }
+              name: 'none',
+              config: undefined,
+            }
             : {
-                name: v.vectorizer,
-                config: v.moduleConfig
-                  ? ({
-                      ...(v.moduleConfig[v.vectorizer] as any),
-                      vectorizeCollectionName: (v.moduleConfig[v.vectorizer] as any).vectorizeClassName,
-                    } as VectorizerConfig)
-                  : undefined,
-              },
+              name: v.vectorizer,
+              config: v.moduleConfig
+                ? ({
+                  ...(v.moduleConfig[v.vectorizer] as any),
+                  vectorizeCollectionName: (v.moduleConfig[v.vectorizer] as any).vectorizeClassName,
+                } as VectorizerConfig)
+                : undefined,
+            },
         indexConfig: ConfigMapping.vectorIndex(v.vectorIndexConfig, v.vectorIndexType),
         indexType: ConfigMapping.vectorIndexType(v.vectorIndexType),
       },
@@ -468,11 +479,13 @@ class ConfigMapping {
       throw new WeaviateDeserializationError(
         'Vector index vector cache max objects was not returned by Weaviate'
       );
-    let quantizer: PQConfig | BQConfig | SQConfig | undefined;
+    let quantizer: PQConfig | BQConfig | SQConfig | RQConfig | undefined;
     if (exists<Record<string, any>>(v.pq) && v.pq.enabled === true) {
       quantizer = ConfigMapping.pq(v.pq);
     } else if (exists<Record<string, any>>(v.bq) && v.bq.enabled === true) {
       quantizer = ConfigMapping.bq(v.bq);
+    } else if (exists<Record<string, any>>(v.rq) && v.rq.enabled === true) {
+      quantizer = ConfigMapping.rq(v.rq);
     } else if (exists<Record<string, any>>(v.sq) && v.sq.enabled === true) {
       quantizer = ConfigMapping.sq(v.sq);
     } else {
@@ -506,6 +519,19 @@ class ConfigMapping {
       cache,
       rescoreLimit,
       type: 'bq',
+    };
+  }
+  static rq(v?: Record<string, unknown>): RQConfig | undefined {
+    if (v === undefined) throw new WeaviateDeserializationError('RQ was not returned by Weaviate');
+    if (!exists<boolean>(v.enabled))
+      throw new WeaviateDeserializationError('RQ enabled was not returned by Weaviate');
+    if (v.enabled === false) return undefined;
+    const bits = v.bits === undefined ? 6 : (v.bits as number);
+    const rescoreLimit = v.rescoreLimit === undefined ? 20 : (v.rescoreLimit as number);
+    return {
+      bits,
+      rescoreLimit,
+      type: 'rq',
     };
   }
   static sq(v?: Record<string, unknown>): SQConfig | undefined {

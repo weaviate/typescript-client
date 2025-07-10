@@ -12,9 +12,6 @@ import {
   VectorIndexConfigHNSW,
 } from './types/index.js';
 
-const fail = (msg: string) => {
-  throw new Error(msg);
-};
 
 describe('Testing of the collection.config namespace', () => {
   let client: WeaviateClient;
@@ -205,6 +202,30 @@ describe('Testing of the collection.config namespace', () => {
     expect(vectorIndexConfig).toBeDefined();
     expect(vectorIndexConfig.quantizer).toBeDefined();
     expect(vectorIndexConfig.quantizer?.type).toEqual('pq');
+    expect(config.vectorizers.default.indexType).toEqual('hnsw');
+    expect(config.vectorizers.default.properties).toBeUndefined();
+    expect(config.vectorizers.default.vectorizer.name).toEqual('none');
+  });
+
+  it('should be able to get the config of a collection with hnsw-rq', async () => {
+    const collectionName = 'TestCollectionConfigGetHNSWPlusRQ';
+    const collection = await client.collections.create({
+      name: collectionName,
+      vectorizers: weaviate.configure.vectorizer.none({
+        vectorIndexConfig: weaviate.configure.vectorIndex.hnsw({
+          quantizer: weaviate.configure.vectorIndex.quantizer.rq(),
+        }),
+      }),
+    });
+    const config = await collection.config.get();
+
+    const vectorIndexConfig = config.vectorizers.default.indexConfig as VectorIndexConfigHNSW;
+    expect(config.name).toEqual(collectionName);
+    expect(config.generative).toBeUndefined();
+    expect(config.reranker).toBeUndefined();
+    expect(vectorIndexConfig).toBeDefined();
+    expect(vectorIndexConfig.quantizer).toBeDefined();
+    expect(vectorIndexConfig.quantizer?.type).toEqual('rq');
     expect(config.vectorizers.default.indexType).toEqual('hnsw');
     expect(config.vectorizers.default.properties).toBeUndefined();
     expect(config.vectorizers.default.vectorizer.name).toEqual('none');
@@ -534,8 +555,8 @@ describe('Testing of the collection.config namespace', () => {
       .update({
         propertyDescriptions: supportsUpdatingPropertyDescriptions
           ? {
-              testProp: 'This is a test property',
-            }
+            testProp: 'This is a test property',
+          }
           : undefined,
         vectorizers: weaviate.reconfigure.vectorizer.update({
           vectorIndexConfig: weaviate.reconfigure.vectorIndex.hnsw({
