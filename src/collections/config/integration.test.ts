@@ -206,7 +206,7 @@ describe('Testing of the collection.config namespace', () => {
     expect(config.vectorizers.default.vectorizer.name).toEqual('none');
   });
 
-  it('should be able to get the config of a collection with hnsw-rq', async () => {
+  requireAtLeast(1, 32, 0).it('should be able to get the config of a collection with hnsw-rq', async () => {
     const collectionName = 'TestCollectionConfigGetHNSWPlusRQ';
     const collection = await client.collections.create({
       name: collectionName,
@@ -554,8 +554,8 @@ describe('Testing of the collection.config namespace', () => {
       .update({
         propertyDescriptions: supportsUpdatingPropertyDescriptions
           ? {
-              testProp: 'This is a test property',
-            }
+            testProp: 'This is a test property',
+          }
           : undefined,
         vectorizers: weaviate.reconfigure.vectorizer.update({
           vectorIndexConfig: weaviate.reconfigure.vectorIndex.hnsw({
