@@ -160,6 +160,13 @@ export type Multi2VecCohereConfigCreate = {
   vectorizeCollectionName?: boolean;
 };
 
+export type Multi2MultivecJinaAIConfigCreate = {
+  /** The image fields to use in vectorization. */
+  imageFields?: string[];
+  /** The text fields to use in vectorization. */
+  textFields?: string[];
+};
+
 export type Multi2VecJinaAIConfigCreate = {
   /** The base URL to use where API requests should go. */
   baseURL?: string;
@@ -262,6 +269,8 @@ export type VectorizerConfigCreateType<V> = V extends 'img2vec-neural'
   ? Multi2VecBindConfigCreate | undefined
   : V extends 'multi2vec-jinaai'
   ? Multi2VecJinaAIConfigCreate | undefined
+  : V extends 'multi2multivec-jinaai'
+  ? Multi2MultivecJinaAIConfigCreate | undefined
   : V extends 'multi2vec-palm'
   ? Multi2VecPalmConfigCreate
   : V extends 'multi2vec-google'

@@ -184,16 +184,16 @@ export const vectors = {
           Object.keys(config).length === 0
             ? undefined
             : {
-                ...config,
-                audioFields: audioFields?.map((f) => f.name),
-                depthFields: depthFields?.map((f) => f.name),
-                imageFields: imageFields?.map((f) => f.name),
-                IMUFields: IMUFields?.map((f) => f.name),
-                textFields: textFields?.map((f) => f.name),
-                thermalFields: thermalFields?.map((f) => f.name),
-                videoFields: videoFields?.map((f) => f.name),
-                weights: Object.keys(weights).length === 0 ? undefined : weights,
-              },
+              ...config,
+              audioFields: audioFields?.map((f) => f.name),
+              depthFields: depthFields?.map((f) => f.name),
+              imageFields: imageFields?.map((f) => f.name),
+              IMUFields: IMUFields?.map((f) => f.name),
+              textFields: textFields?.map((f) => f.name),
+              thermalFields: thermalFields?.map((f) => f.name),
+              videoFields: videoFields?.map((f) => f.name),
+              weights: Object.keys(weights).length === 0 ? undefined : weights,
+            },
       },
     });
   },
@@ -223,11 +223,11 @@ export const vectors = {
           Object.keys(config).length === 0
             ? undefined
             : {
-                ...config,
-                imageFields: imageFields?.map((f) => f.name),
-                textFields: textFields?.map((f) => f.name),
-                weights: Object.keys(weights).length === 0 ? undefined : weights,
-              },
+              ...config,
+              imageFields: imageFields?.map((f) => f.name),
+              textFields: textFields?.map((f) => f.name),
+              weights: Object.keys(weights).length === 0 ? undefined : weights,
+            },
       },
     });
   },
@@ -257,14 +257,36 @@ export const vectors = {
           Object.keys(config).length === 0
             ? undefined
             : {
-                ...config,
-                imageFields: imageFields?.map((f) => f.name),
-                textFields: textFields?.map((f) => f.name),
-                weights: Object.keys(weights).length === 0 ? undefined : weights,
-              },
+              ...config,
+              imageFields: imageFields?.map((f) => f.name),
+              textFields: textFields?.map((f) => f.name),
+              weights: Object.keys(weights).length === 0 ? undefined : weights,
+            },
       },
     });
   },
+
+  /**
+   * Create a `VectorConfigCreate` object with the vectorizer set to `'multi2vec-jinaai'`.
+   *
+   * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/jinaai/embeddings-multimodal) for detailed usage.
+   *
+   * @param {ConfigureNonTextVectorizerOptions<N, I, 'multi2multivec-jinaai'>} [opts] The configuration options for the `multi2multivec-jinaai` vectorizer.
+   * @returns {VectorConfigCreate<PrimitiveKeys<T>[], N, I, 'multi2multivec-jinaai'>} The configuration object.
+   */
+  multi2MultivecJinaAI: <N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
+    opts?: ConfigureNonTextVectorizerOptions<N, I, 'multi2multivec-jinaai'>
+  ): VectorConfigCreate<never, N, I, 'multi2multivec-jinaai'> => {
+    const { name, vectorIndexConfig, ...config } = opts || {};
+    return makeVectorizer(name, {
+      vectorIndexConfig,
+      vectorizerConfig: {
+        name: 'multi2multivec-jinaai',
+        config
+      },
+    });
+  },
+
   /**
    * Create a `VectorConfigCreate` object with the vectorizer set to `'multi2vec-jinaai'`.
    *
@@ -291,11 +313,11 @@ export const vectors = {
           Object.keys(config).length === 0
             ? undefined
             : {
-                ...config,
-                imageFields: imageFields?.map((f) => f.name),
-                textFields: textFields?.map((f) => f.name),
-                weights: Object.keys(weights).length === 0 ? undefined : weights,
-              },
+              ...config,
+              imageFields: imageFields?.map((f) => f.name),
+              textFields: textFields?.map((f) => f.name),
+              weights: Object.keys(weights).length === 0 ? undefined : weights,
+            },
       },
     });
   },
@@ -395,11 +417,11 @@ export const vectors = {
           Object.keys(config).length === 0
             ? undefined
             : {
-                ...config,
-                imageFields: imageFields?.map((f) => f.name),
-                textFields: textFields?.map((f) => f.name),
-                weights: Object.keys(weights).length === 0 ? undefined : weights,
-              },
+              ...config,
+              imageFields: imageFields?.map((f) => f.name),
+              textFields: textFields?.map((f) => f.name),
+              weights: Object.keys(weights).length === 0 ? undefined : weights,
+            },
       },
     });
   },

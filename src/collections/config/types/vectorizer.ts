@@ -25,6 +25,7 @@ export type Vectorizer =
   | Multi2VecPalmVectorizer
   | 'multi2vec-google'
   | 'multi2vec-jinaai'
+  | 'multi2multivec-jinaai'
   | 'multi2vec-voyageai'
   | 'ref2vec-centroid'
   | 'text2vec-aws'
@@ -189,6 +190,19 @@ export type Multi2VecGoogleConfig = {
     videoFields?: number[];
   };
 };
+
+/** The configuration for multi-media-to-multi-vector vectorization using
+  * the jina-embeddings-v4 model
+*
+ * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/jinaai/embeddings-multimodal) for detailed usage.
+*/
+export type Multi2MultivecJinaAIConfig = {
+  /** The image fields used when vectorizing. */
+  imageFields?: string[];
+
+  /** The text fields used when vectorizing. */
+  textFields?: string[];
+}
 
 /** The configuration for multi-media vectorization using the Jina module.
  *
@@ -525,6 +539,7 @@ export type VectorizerConfig =
   | Multi2VecBindConfig
   | Multi2VecGoogleConfig
   | Multi2VecJinaAIConfig
+  | Multi2MultivecJinaAIConfig
   | Multi2VecPalmConfig
   | Multi2VecVoyageAIConfig
   | Ref2VecCentroidConfig
@@ -556,6 +571,8 @@ export type VectorizerConfigType<V> = V extends 'img2vec-neural'
   ? Multi2VecGoogleConfig
   : V extends 'multi2vec-jinaai'
   ? Multi2VecJinaAIConfig | undefined
+  : V extends 'multi2multivec-jinaai'
+  ? Multi2MultivecJinaAIConfig | undefined
   : V extends Multi2VecPalmVectorizer
   ? Multi2VecPalmConfig
   : V extends 'multi2vec-voyageai'

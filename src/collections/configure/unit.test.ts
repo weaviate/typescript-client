@@ -1,3 +1,4 @@
+import { requireAtLeast } from '../../../test/version.js';
 import {
   GenerativeAWSConfig,
   GenerativeAnthropicConfig,
@@ -697,6 +698,29 @@ describe('Unit testing of the vectorizer factory class', () => {
             imageFields: [0.1, 0.2],
             textFields: [0.3, 0.4],
           },
+        },
+      },
+    });
+  });
+
+
+  requireAtLeast(1, 32, 0).it('should create the correct Multi2MultivecJinaAIConfig with values', () => {
+    const config = configure.vectorizer.multi2MultivecJinaAI({
+      name: 'multi-jina',
+      imageFields: ['field1', 'field2'],
+      textFields: ['field3', 'field4'],
+    });
+    expect(config).toEqual<VectorConfigCreate<never, string, 'hnsw', 'multi2multivec-jinaai'>>({
+      name: 'multi-jina',
+      vectorIndex: {
+        name: 'hnsw',
+        config: undefined,
+      },
+      vectorizer: {
+        name: 'multi2multivec-jinaai',
+        config: {
+          imageFields: ['field1', 'field2'],
+          textFields: ['field3', 'field4'],
         },
       },
     });
