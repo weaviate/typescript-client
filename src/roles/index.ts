@@ -154,10 +154,8 @@ export const permissions = {
   /**
    * Create a set of permissions specific to Weaviate's collection aliasing functionality.
    *
-   * For all collections, provide the `collection` argument as `'*'`.
-   *
-   * @param {string | string[]} [args.alias] Aliases to create permissions for.
-   * @returns {BackupsPermission[]} The permissions for the specified collections.
+   * @param {string | string[]} [args.alias] Aliases that will be associated with these permissions.
+   * @returns {AliasPermission[]} The permissions for the specified aliases.
    */
   aliases: (args: {
     alias: string | string[];
