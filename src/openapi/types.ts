@@ -74,3 +74,8 @@ export type WeaviateUserType = definitions['UserTypeOutput'];
 export type WeaviateUserTypeInternal = definitions['UserTypeInput'];
 export type WeaviateUserTypeDB = definitions['DBUserInfo']['dbUserType'];
 export type WeaviateAssignedUser = operations['getUsersForRole']['responses']['200']['schema'][0];
+// Alias
+export type WeaviateAlias = definitions['Alias'];
+export type WeaviateAliasResponse = {
+  aliases?: Required<Exclude<definitions['AliasResponse']['aliases'], undefined>[0]>[] | undefined;
+};
