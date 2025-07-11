@@ -5,6 +5,7 @@ import {
   Role as WeaviateRole,
 } from '../openapi/types.js';
 import {
+  AliasPermission,
   BackupsPermission,
   ClusterPermission,
   CollectionsPermission,
@@ -150,6 +151,32 @@ const roles = (connection: ConnectionREST): Roles => {
 };
 
 export const permissions = {
+  /**
+   * Create a set of permissions specific to Weaviate's collection aliasing functionality.
+   *
+   * For all collections, provide the `collection` argument as `'*'`.
+   *
+   * @param {string | string[]} [args.alias] Aliases to create permissions for.
+   * @returns {BackupsPermission[]} The permissions for the specified collections.
+   */
+  aliases: (args: {
+    alias: string | string[];
+    create?: boolean;
+    read?: boolean;
+    update?: boolean;
+    delete?: boolean;
+  }): AliasPermission[] => {
+    const aliases = Array.isArray(args.alias) ? args.alias : [args.alias];
+    return aliases.flatMap((alias) => {
+      const out: AliasPermission = { alias, actions: [] };
+      if (args.create) out.actions.push('create_aliases');
+      if (args.read) out.actions.push('read_aliases');
+      if (args.update) out.actions.push('update_aliases');
+      if (args.delete) out.actions.push('delete_aliases');
+      return out;
+    });
+  },
+
   /**
    * Create a set of permissions specific to Weaviate's backup functionality.
    *

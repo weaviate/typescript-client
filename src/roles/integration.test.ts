@@ -16,9 +16,11 @@ type TestCase = {
   roleName: string;
   permissions: Permission[];
   expected: Role;
+  requireVersion?: [number, number, number];
 };
 
 const emptyPermissions = {
+  aliasPermissions: [],
   backupsPermissions: [],
   clusterPermissions: [],
   collectionsPermissions: [],
@@ -277,6 +279,20 @@ const testCases: TestCase[] = [
       usersPermissions: [{ users: 'some-user', actions: ['assign_and_revoke_users', 'read_users'] }],
     },
   },
+  {
+    roleName: 'aliases',
+    requireVersion: [1, 32, 0],
+    permissions: weaviate.permissions.aliases({
+      alias: 'SomeAlias',
+      create: true,
+      delete: true,
+    }),
+    expected: {
+      name: 'aliases',
+      ...emptyPermissions,
+      aliasPermissions: [{ alias: 'SomeAlias', actions: ['create_aliases', 'delete_aliases'] }],
+    }
+  },
 ];
 
 requireAtLeast(1, 29, 0).describe('Integration testing of the roles namespace', () => {
@@ -345,11 +361,13 @@ requireAtLeast(1, 29, 0).describe('Integration testing of the roles namespace', 
 
   describe('should be able to create roles using the permissions factory', () => {
     testCases.forEach((testCase) => {
-      it(`with ${testCase.roleName} permissions`, async () => {
-        await client.roles.create(testCase.roleName, testCase.permissions);
-        const role = await client.roles.byName(testCase.roleName);
-        expect(role).toEqual(testCase.expected);
-      });
+      (testCase.requireVersion !== undefined
+        ? requireAtLeast(...testCase.requireVersion).it
+        : it)(`with ${testCase.roleName} permissions`, async () => {
+          await client.roles.create(testCase.roleName, testCase.permissions);
+          const role = await client.roles.byName(testCase.roleName);
+          expect(role).toEqual(testCase.expected);
+        });
     });
   });
 

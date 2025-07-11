@@ -1,5 +1,6 @@
 import { Action, WeaviateUserType } from '../openapi/types.js';
 
+export type AliasAction = Extract<Action, 'create_aliases' | 'read_aliases' | 'update_aliases' | 'delete_aliases'>;
 export type BackupsAction = Extract<Action, 'manage_backups'>;
 export type ClusterAction = Extract<Action, 'read_cluster'>;
 export type CollectionsAction = Extract<
@@ -26,6 +27,11 @@ export type UserAssignment = {
   id: string;
   userType: WeaviateUserType;
 };
+
+export type AliasPermission = {
+  alias: string;
+  actions: AliasAction[];
+}
 
 export type BackupsPermission = {
   collection: string;
@@ -71,6 +77,7 @@ export type UsersPermission = {
 
 export type Role = {
   name: string;
+  aliasPermissions: AliasPermission[];
   backupsPermissions: BackupsPermission[];
   clusterPermissions: ClusterPermission[];
   collectionsPermissions: CollectionsPermission[];
@@ -82,6 +89,7 @@ export type Role = {
 };
 
 export type Permission =
+  | AliasPermission
   | BackupsPermission
   | ClusterPermission
   | CollectionsPermission
