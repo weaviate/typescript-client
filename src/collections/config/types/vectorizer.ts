@@ -192,17 +192,17 @@ export type Multi2VecGoogleConfig = {
 };
 
 /** The configuration for multi-media-to-multi-vector vectorization using
-  * the jina-embeddings-v4 model
-*
+ * the jina-embeddings-v4 model
+ *
  * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/jinaai/embeddings-multimodal) for detailed usage.
-*/
+ */
 export type Multi2MultivecJinaAIConfig = {
   /** The image fields used when vectorizing. */
   imageFields?: string[];
 
   /** The text fields used when vectorizing. */
   textFields?: string[];
-}
+};
 
 /** The configuration for multi-media vectorization using the Jina module.
  *
@@ -219,7 +219,11 @@ export type Multi2VecJinaAIConfig = {
   model?: string;
   /** The text fields used when vectorizing. */
   textFields?: string[];
-  /** Whether the collection name is vectorized. */
+  /**
+   * Whether the collection name is vectorized.
+   *
+   * @deprecated This parameter is not applicable and has no effect on the underlying module.
+   * */
   vectorizeCollectionName?: boolean;
   /** The weights of the fields used for vectorization. */
   weights?: {

@@ -703,7 +703,6 @@ describe('Unit testing of the vectorizer factory class', () => {
     });
   });
 
-
   requireAtLeast(1, 32, 0).it('should create the correct Multi2MultivecJinaAIConfig with values', () => {
     const config = configure.vectorizer.multi2MultivecJinaAI({
       name: 'multi-jina',
