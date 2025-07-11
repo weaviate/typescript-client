@@ -43,7 +43,7 @@ export class PermissionGuards {
       'create_aliases',
       'read_aliases',
       'update_aliases',
-      'delete_aliases',
+      'delete_aliases'
     );
   static isBackups = (permission: Permission): permission is BackupsPermission =>
     PermissionGuards.includes<BackupsAction>(permission, 'manage_backups');
@@ -236,7 +236,7 @@ class PermissionsMapping {
       if (this.mappings.aliases[key] === undefined) this.mappings.aliases[key] = { alias: key, actions: [] };
       this.mappings.aliases[key].actions.push(permission.action as AliasAction);
     }
-  }
+  };
 
   private backups = (permission: WeaviatePermission) => {
     if (permission.backups !== undefined) {

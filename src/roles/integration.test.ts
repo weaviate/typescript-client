@@ -291,7 +291,7 @@ const testCases: TestCase[] = [
       name: 'aliases',
       ...emptyPermissions,
       aliasPermissions: [{ alias: 'SomeAlias', actions: ['create_aliases', 'delete_aliases'] }],
-    }
+    },
   },
 ];
 
@@ -361,13 +361,14 @@ requireAtLeast(1, 29, 0).describe('Integration testing of the roles namespace', 
 
   describe('should be able to create roles using the permissions factory', () => {
     testCases.forEach((testCase) => {
-      (testCase.requireVersion !== undefined
-        ? requireAtLeast(...testCase.requireVersion).it
-        : it)(`with ${testCase.roleName} permissions`, async () => {
+      (testCase.requireVersion !== undefined ? requireAtLeast(...testCase.requireVersion).it : it)(
+        `with ${testCase.roleName} permissions`,
+        async () => {
           await client.roles.create(testCase.roleName, testCase.permissions);
           const role = await client.roles.byName(testCase.roleName);
           expect(role).toEqual(testCase.expected);
-        });
+        }
+      );
     });
   });
 

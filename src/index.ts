@@ -38,10 +38,10 @@ import { LiveChecker, OpenidConfigurationGetter, ReadyChecker } from './misc/ind
 
 import weaviateV2 from './v2/index.js';
 
+import alias, { Aliases } from './alias/index.js';
 import filter from './collections/filters/index.js';
 import { ConsistencyLevel } from './data/replication.js';
 import users, { Users } from './users/index.js';
-import alias, { Aliases } from './alias/index.js';
 
 export type ProtocolParams = {
   /**
