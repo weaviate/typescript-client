@@ -734,19 +734,19 @@ async function newClassObject(className: string, client: WeaviateClient): Promis
       maxConnections: 64,
       multivector: (await isVer(client, 29, 0))
         ? {
-            aggregation: 'maxSim',
-            enabled: false,
-            ...((await isVer(client, 31, 0))
-              ? {
-                  muvera: {
-                    enabled: false,
-                    dprojections: 16,
-                    ksim: 4,
-                    repetitions: 10,
-                  },
-                }
-              : {}),
-          }
+          aggregation: 'maxSim',
+          enabled: false,
+          ...((await isVer(client, 31, 0))
+            ? {
+              muvera: {
+                enabled: false,
+                dprojections: 16,
+                ksim: 4,
+                repetitions: 10,
+              },
+            }
+            : {}),
+        }
         : undefined,
       pq: {
         bitCompression: false,
@@ -764,17 +764,17 @@ async function newClassObject(className: string, client: WeaviateClient): Promis
       },
       sq: (await isVer(client, 26, 0))
         ? {
-            enabled: false,
-            rescoreLimit: 20,
-            trainingLimit: 100000,
-          }
+          enabled: false,
+          rescoreLimit: 20,
+          trainingLimit: 100000,
+        }
         : undefined,
       rq: (await isVer(client, 32, 0))
         ? {
-            enabled: false,
-            bits: 8,
-            rescoreLimit: 20,
-          }
+          enabled: false,
+          bits: 8,
+          rescoreLimit: 20,
+        }
         : undefined,
       skip: false,
       efConstruction: 128,
