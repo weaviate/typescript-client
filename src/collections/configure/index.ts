@@ -59,7 +59,11 @@ const vectorDistances = {
 const configure = {
   generative,
   reranker,
+  /**
+   * @deprecated Use `vectors` or `multiVectors` instead.
+   */
   vectorizer,
+  vectors: vectorizer,
   vectorIndex: configureVectorIndex,
   dataType,
   tokenization,

@@ -89,7 +89,7 @@ describe('Testing of the collection.aggregate methods', () => {
           //   dataType: [collectionName],
           // },
         ],
-        vectorizers: weaviate.configure.vectorizer.text2VecContextionary({
+        vectorizers: weaviate.configure.vectors.text2VecContextionary({
           vectorizeCollectionName: false,
           vectorIndexConfig: weaviate.configure.vectorIndex.hnsw({ maxConnections: 64 }),
         }),
@@ -318,7 +318,7 @@ describe('Testing of the collection.aggregate methods with named vectors', () =>
           },
         ],
         vectorizers: [
-          weaviate.configure.vectorizer.text2VecContextionary({
+          weaviate.configure.vectors.text2VecContextionary({
             name: 'text',
             sourceProperties: ['text'],
             vectorIndexConfig: weaviate.configure.vectorIndex.hnsw(),
@@ -417,7 +417,7 @@ describe('Testing of collection.aggregate search methods', () => {
             dataType: 'text',
           },
         ],
-        vectorizers: weaviate.configure.vectorizer.text2VecContextionary(),
+        vectorizers: weaviate.configure.vectors.text2VecContextionary(),
       })
       .then(() => {
         const data: Array<any> = [];
