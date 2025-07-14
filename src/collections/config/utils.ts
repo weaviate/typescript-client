@@ -46,6 +46,7 @@ import {
   PQEncoderType,
   PropertyConfig,
   PropertyVectorizerConfig,
+  QuantizerConfig,
   RQConfig,
   ReferenceConfig,
   ReplicationConfig,
@@ -213,11 +214,11 @@ export const makeVectorsConfig = <TProperties extends Properties | undefined = u
   const vectorizersConfig = Array.isArray(configVectorizers)
     ? configVectorizers
     : [
-        {
-          ...configVectorizers,
-          name: configVectorizers.name || 'default',
-        },
-      ];
+      {
+        ...configVectorizers,
+        name: configVectorizers.name || 'default',
+      },
+    ];
   vectorizersConfig.forEach((v) => {
     if (v.vectorIndex.name === 'dynamic' && !supportsDynamicVectorIndex.supports) {
       throw new WeaviateUnsupportedFeatureError(supportsDynamicVectorIndex.message);
@@ -340,18 +341,18 @@ class ConfigMapping {
         vectorizer:
           v.vectorizer === 'none'
             ? {
-                name: 'none',
-                config: undefined,
-              }
+              name: 'none',
+              config: undefined,
+            }
             : {
-                name: v.vectorizer,
-                config: v.moduleConfig
-                  ? ({
-                      ...(v.moduleConfig[v.vectorizer] as any),
-                      vectorizeCollectionName: (v.moduleConfig[v.vectorizer] as any).vectorizeClassName,
-                    } as VectorizerConfig)
-                  : undefined,
-              },
+              name: v.vectorizer,
+              config: v.moduleConfig
+                ? ({
+                  ...(v.moduleConfig[v.vectorizer] as any),
+                  vectorizeCollectionName: (v.moduleConfig[v.vectorizer] as any).vectorizeClassName,
+                } as VectorizerConfig)
+                : undefined,
+            },
         indexConfig: ConfigMapping.vectorIndex(v.vectorIndexConfig, v.vectorIndexType),
         indexType: ConfigMapping.vectorIndexType(v.vectorIndexType),
       },
@@ -479,7 +480,7 @@ class ConfigMapping {
       throw new WeaviateDeserializationError(
         'Vector index vector cache max objects was not returned by Weaviate'
       );
-    let quantizer: PQConfig | BQConfig | SQConfig | RQConfig | undefined;
+    let quantizer: QuantizerConfig | undefined;
     if (exists<Record<string, any>>(v.pq) && v.pq.enabled === true) {
       quantizer = ConfigMapping.pq(v.pq);
     } else if (exists<Record<string, any>>(v.bq) && v.bq.enabled === true) {

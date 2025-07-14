@@ -9,7 +9,7 @@ export type VectorIndexConfigHNSW = {
   filterStrategy: VectorIndexFilterStrategy;
   flatSearchCutoff: number;
   maxConnections: number;
-  quantizer: PQConfig | BQConfig | SQConfig | RQConfig | undefined;
+  quantizer: QuantizerConfig | undefined;
   skip: boolean;
   vectorCacheMaxObjects: number;
   type: 'hnsw';
