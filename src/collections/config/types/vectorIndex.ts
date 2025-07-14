@@ -62,6 +62,12 @@ export type PQConfig = {
   type: 'pq';
 };
 
+export type RQConfig = {
+  bits?: number;
+  rescoreLimit?: number;
+  type: 'rq';
+};
+
 export type MultiVectorConfig = {
   aggregation: 'maxSim' | string;
   encoding?: MultiVectorEncodingConfig;
@@ -92,4 +98,4 @@ export type VectorIndexFilterStrategy = 'sweeping' | 'acorn';
 
 export type VectorIndexConfig = VectorIndexConfigHNSW | VectorIndexConfigFlat | VectorIndexConfigDynamic;
 
-export type QuantizerConfig = PQConfig | BQConfig | SQConfig;
+export type QuantizerConfig = PQConfig | BQConfig | SQConfig | RQConfig;

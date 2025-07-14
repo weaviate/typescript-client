@@ -31,15 +31,11 @@ describe('Testing of the collection.data methods with a single target reference'
   const toBeDeletedID = v4();
   const nonExistingID = v4();
 
-  afterAll(() => {
-    return client.collections.delete(collectionName).catch((err) => {
-      console.error(err);
-      throw err;
-    });
-  });
-
   beforeAll(async () => {
     client = await weaviate.connectToLocal();
+
+    await client.collections.delete(collectionName);
+
     collection = client.collections.use(collectionName);
     await client.collections
       .create<TestCollectionData>({
@@ -344,32 +340,58 @@ describe('Testing of the collection.data methods with a single target reference'
   });
 
   it('should be able to delete a reference between two objects', () => {
-    return Promise.all([
-      collection.data.referenceDelete({
-        fromProperty: 'ref',
-        fromUuid: toBeUpdatedID,
-        to: Reference.to(existingID),
-      }),
-      collection.data.referenceDelete({
-        fromProperty: 'ref',
-        fromUuid: toBeUpdatedID,
-        to: toBeUpdatedID,
-      }),
-      collection.data.referenceDelete({
-        fromProperty: 'ref',
-        fromUuid: toBeUpdatedID,
-        to: [toBeReplacedID],
-      }),
-    ])
-      .then(() =>
-        collection.query.fetchObjectById(toBeUpdatedID, {
-          returnReferences: [{ linkOn: 'ref' }],
+    // Insert 2 objects
+    return (
+      collection.data
+        .insertMany([{ testProp: 'refLeft' }, { testProp: 'refRight' }])
+        // Create a reference between them
+        .then((inserted) =>
+          collection.data
+            .referenceAdd({
+              fromProperty: 'ref',
+              fromUuid: inserted.allResponses[0] as string,
+              to: inserted.allResponses[1] as string,
+            })
+            .then(() => inserted)
+        )
+
+        // Assert that the reference exists
+        .then((inserted) =>
+          collection.query
+            .fetchObjectById(inserted.allResponses[0] as string, {
+              returnReferences: [{ linkOn: 'ref' }],
+            })
+            .then((obj) => {
+              expect(obj).not.toBeNull();
+              expect(obj?.references?.ref?.objects).toHaveLength(1);
+
+              // Propagate the list of inserted IDs
+              return Promise.resolve(inserted);
+            })
+        )
+
+        // Delete reference between them
+        .then((inserted) =>
+          collection.data
+            .referenceDelete({
+              fromProperty: 'ref',
+              fromUuid: inserted.allResponses[0] as string,
+              to: inserted.allResponses[1] as string,
+            })
+            .then(() => inserted)
+        )
+
+        // Assert the reference does not exist
+        .then((inserted) =>
+          collection.query.fetchObjectById(inserted.allResponses[0] as string, {
+            returnReferences: [{ linkOn: 'ref' }],
+          })
+        )
+        .then((obj) => {
+          expect(obj).not.toBeNull();
+          expect(obj?.references?.ref?.objects).toEqual([]);
         })
-      )
-      .then((obj) => {
-        expect(obj).not.toBeNull();
-        expect(obj?.references?.ref?.objects).toEqual([]);
-      });
+    );
   });
 
   it('should be able to add many references in batch', () => {

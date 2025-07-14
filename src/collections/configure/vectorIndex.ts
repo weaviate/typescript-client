@@ -11,6 +11,8 @@ import {
   MuveraEncodingConfigCreate,
   PQConfigCreate,
   PQConfigUpdate,
+  RQConfigCreate,
+  RQConfigUpdate,
   SQConfigCreate,
   SQConfigUpdate,
   VectorIndexConfigDynamicCreate,
@@ -68,7 +70,6 @@ const configure = {
         ? {
             ...rest,
             distance: distanceMetric,
-            quantizer: rest.quantizer,
             type: 'hnsw',
           }
         : undefined,
@@ -163,11 +164,25 @@ const configure = {
       };
     },
     /**
+     * Create an object of type `RQConfigCreate` to be used when defining the quantizer configuration of a vector index.
+     *
+     * @param {number} [options.bits] Number of bits to user per vector element.
+     * @param {number} [options.rescoreLimit] The rescore limit. Default is 1000.
+     * @returns {RQConfigCreate} The object of type `RQConfigCreate`.
+     */
+    rq: (options?: { bits?: number; rescoreLimit?: number }): RQConfigCreate => {
+      return {
+        bits: options?.bits,
+        rescoreLimit: options?.rescoreLimit,
+        type: 'rq',
+      };
+    },
+    /**
      * Create an object of type `PQConfigCreate` to be used when defining the quantizer configuration of a vector index.
      *
      * @param {boolean} [options.bitCompression] Whether to use bit compression.
-     * @param {number} [options.centroids] The number of centroids[.
-     * @param {PQEncoderDistribution} ]options.encoder.distribution The encoder distribution.
+     * @param {number} [options.centroids] The number of centroids.
+     * @param {PQEncoderDistribution} [options.encoder.distribution] The encoder distribution.
      * @param {PQEncoderType} [options.encoder.type] The encoder type.
      * @param {number} [options.segments] The number of segments.
      * @param {number} [options.trainingLimit] The training limit.
@@ -245,7 +260,7 @@ const reconfigure = {
    * @param {number} [options.ef] The ef parameter. Default is -1.
    * @param {VectorIndexFilterStrategy} [options.filterStrategy] The filter strategy. Default is 'sweeping'.
    * @param {number} [options.flatSearchCutoff] The flat search cutoff. Default is 40000.
-   * @param {PQConfigUpdate | BQConfigUpdate} [options.quantizer] The quantizer configuration to use. Use `vectorIndex.quantizer.bq` or `vectorIndex.quantizer.pq` to make one.
+   * @param {PQConfigUpdate | BQConfigUpdate | SQConfigUpdate | RQConfigUpdate} [options.quantizer] The quantizer configuration to use. Use `vectorIndex.quantizer.bq` or `vectorIndex.quantizer.pq` to make one.
    * @param {number} [options.vectorCacheMaxObjects] The maximum number of objects to cache in the vector cache. Default is 1000000000000.
    * @returns {ModuleConfig<'hnsw', VectorIndexConfigHNSWUpdate>} The configuration object.
    */
@@ -256,7 +271,7 @@ const reconfigure = {
     ef?: number;
     filterStrategy?: VectorIndexFilterStrategy;
     flatSearchCutoff?: number;
-    quantizer?: PQConfigUpdate | BQConfigUpdate | SQConfigUpdate;
+    quantizer?: PQConfigUpdate | BQConfigUpdate | SQConfigUpdate | RQConfigUpdate;
     vectorCacheMaxObjects?: number;
   }): ModuleConfig<'hnsw', VectorIndexConfigHNSWUpdate> => {
     return {
@@ -276,12 +291,27 @@ const reconfigure = {
      *
      * @param {boolean} [options.cache] Whether to cache the quantizer.
      * @param {number} [options.rescoreLimit] The new rescore limit.
-     * @returns {BQConfigCreate} The configuration object.
+     * @returns {BQConfigUpdate} The configuration object.
      */
     bq: (options?: { cache?: boolean; rescoreLimit?: number }): BQConfigUpdate => {
       return {
         ...options,
         type: 'bq',
+      };
+    },
+    /**
+     * Create an object of type `RQConfigUpdate` to be used when updating the quantizer configuration of a vector index.
+     *
+     * NOTE: If the vector index already has a quantizer configured, you cannot change its quantizer type; only its values.
+     * So if you want to change the quantizer type, you must recreate the collection.
+     *
+     * @param {number} [options.rescoreLimit] The new rescore limit.
+     * @returns {BQConfigUpdate} The configuration object.
+     */
+    rq: (options?: { rescoreLimit?: number }): RQConfigUpdate => {
+      return {
+        ...options,
+        type: 'rq',
       };
     },
     /**

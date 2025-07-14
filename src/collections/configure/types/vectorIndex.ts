@@ -6,6 +6,7 @@ import {
   PQConfig,
   PQEncoderDistribution,
   PQEncoderType,
+  RQConfig,
   SQConfig,
   VectorDistance,
   VectorIndexConfigDynamic,
@@ -17,6 +18,13 @@ import { RecursivePartial } from './base.js';
 
 export type QuantizerRecursivePartial<T> = {
   [P in keyof T]: P extends 'type' ? T[P] : RecursivePartial<T[P]> | undefined;
+};
+
+export type RQConfigCreate = QuantizerRecursivePartial<RQConfig>;
+
+export type RQConfigUpdate = {
+  rescoreLimit?: number;
+  type: 'rq';
 };
 
 export type PQConfigCreate = QuantizerRecursivePartial<PQConfig>;
@@ -52,8 +60,15 @@ export type QuantizerConfigCreate =
   | PQConfigCreate
   | BQConfigCreate
   | SQConfigCreate
-  | Record<string, any>
-  | undefined;
+  | RQConfigCreate
+  | Record<string, any>;
+
+export type QuantizerConfigUpdate =
+  | PQConfigUpdate
+  | BQConfigUpdate
+  | SQConfigUpdate
+  | RQConfigUpdate
+  | Record<string, any>;
 
 export type MultiVectorConfigCreate = {
   aggregation?: MultiVectorConfig['aggregation'];
@@ -77,7 +92,7 @@ export type VectorIndexConfigHNSWUpdate = {
   ef?: number;
   filterStrategy?: VectorIndexFilterStrategy;
   flatSearchCutoff?: number;
-  quantizer?: PQConfigUpdate | BQConfigUpdate | SQConfigUpdate;
+  quantizer?: QuantizerConfigUpdate;
   vectorCacheMaxObjects?: number;
 };
 

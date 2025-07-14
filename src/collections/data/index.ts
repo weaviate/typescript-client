@@ -266,7 +266,8 @@ const data = <T>(
         const start = Date.now();
         const reply = await batch.withObjects({ objects: serialized.mapped });
         const end = Date.now();
-        return Deserialize.batchObjects<T>(reply, serialized.batch, serialized.mapped, end - start);
+        const elapsedSeconds = (end - start) / 1000;
+        return Deserialize.batchObjects<T>(reply, serialized.batch, serialized.mapped, elapsedSeconds);
       }),
     referenceAdd: <P extends Properties>(args: ReferenceArgs<P>): Promise<void> =>
       referencesPath
@@ -306,7 +307,7 @@ const data = <T>(
             }
           });
           return {
-            elapsedSeconds: end - start,
+            elapsedSeconds: (end - start) / 1000,
             errors: errors,
             hasErrors: Object.keys(errors).length > 0,
           };

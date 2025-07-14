@@ -4,6 +4,8 @@ import {
   BQConfigUpdate,
   PQConfigCreate,
   PQConfigUpdate,
+  RQConfigCreate,
+  RQConfigUpdate,
   SQConfigCreate,
   SQConfigUpdate,
   VectorIndexConfigDynamicCreate,
@@ -17,7 +19,10 @@ type QuantizerConfig =
   | BQConfigCreate
   | BQConfigUpdate
   | SQConfigCreate
-  | SQConfigUpdate;
+  | SQConfigUpdate
+  | RQConfigCreate
+  | RQConfigUpdate
+  | Record<string, any>;
 
 export class QuantizerGuards {
   static isPQCreate(config?: QuantizerConfig): config is PQConfigCreate {
@@ -37,6 +42,12 @@ export class QuantizerGuards {
   }
   static isSQUpdate(config?: QuantizerConfig): config is SQConfigUpdate {
     return (config as SQConfigUpdate)?.type === 'sq';
+  }
+  static isRQCreate(config?: QuantizerConfig): config is RQConfigCreate {
+    return (config as RQConfigCreate)?.type === 'rq';
+  }
+  static isRQUpdate(config?: QuantizerConfig): config is RQConfigUpdate {
+    return (config as RQConfigUpdate)?.type === 'rq';
   }
 }
 

@@ -1,6 +1,11 @@
 import { WeaviateStartUpError } from '../errors.js';
 import { ClientParams, WeaviateClient } from '../index.js';
-import { AuthCredentials } from './auth.js';
+import {
+  AuthAccessTokenCredentials,
+  AuthClientCredentials,
+  AuthCredentials,
+  AuthUserPasswordCredentials,
+} from './auth.js';
 import { ProxiesParams, TimeoutParams } from './http.js';
 
 /** The options available to the `weaviate.connectToWeaviateCloud` method. */
@@ -87,6 +92,16 @@ export function connectToWeaviateCloud(
   }
 
   const { authCredentials: auth, headers, ...rest } = options || {};
+
+  if (
+    [AuthAccessTokenCredentials, AuthClientCredentials, AuthUserPasswordCredentials].some(
+      (c) => auth instanceof c
+    )
+  ) {
+    console.warn(
+      'Connecting to Weaviate Cloud (WCD) using OIDC is deprecated and will be removed in August 2025. Please use API keys instead.'
+    );
+  }
 
   return clientMaker({
     connectionParams: {

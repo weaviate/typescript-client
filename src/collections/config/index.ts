@@ -19,6 +19,7 @@ import {
   CollectionConfigUpdate,
   PQConfig,
   QuantizerConfig,
+  RQConfig,
   SQConfig,
   VectorIndexConfig,
   VectorIndexConfigDynamic,
@@ -191,6 +192,9 @@ export class Quantizer {
   }
   static isSQ(config?: QuantizerConfig): config is SQConfig {
     return config?.type === 'sq';
+  }
+  static isRQ(config?: QuantizerConfig): config is RQConfig {
+    return config?.type === 'rq';
   }
 }
 
