@@ -44,6 +44,7 @@ export type Vectorizer =
   | 'text2vec-transformers'
   | 'text2vec-voyageai'
   | 'text2vec-weaviate'
+  | 'text2multivec-jinaai'
   | 'none';
 
 /** The configuration for image vectorization using a neural network module.
@@ -365,6 +366,19 @@ export type Text2VecJinaAIConfig = {
   vectorizeCollectionName?: boolean;
 };
 
+/** The configuration for text vectorization using the Jina AI multi-vector module.
+ *
+ * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/jinaai/embeddings-colbert) for detailed usage.
+ */
+export type Text2MultiVecJinaAIConfig = {
+  /** The dimensionality of the multi-vector. */
+  dimensions?: number;
+  /** The model to use. */
+  model?: string;
+  /** Whether to vectorize the collection name. */
+  vectorizeCollectionName?: boolean;
+};
+
 /** @deprecated Use `Text2VecJinaAIConfig` instead. */
 export type Text2VecJinaConfig = Text2VecJinaAIConfig;
 
@@ -582,6 +596,8 @@ export type VectorizerConfigType<V> = V extends 'img2vec-neural'
   ? Text2VecVoyageAIConfig | undefined
   : V extends 'text2vec-weaviate'
   ? Text2VecWeaviateConfig | undefined
+  : V extends 'text2multivec-jinaai'
+  ? Text2MultiVecJinaAIConfig | undefined
   : V extends 'none'
   ? {}
   : V extends undefined

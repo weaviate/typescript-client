@@ -40,20 +40,20 @@ export class QuantizerGuards {
   }
 }
 
-type VectorIndexConfig =
+type VectorIndexConfigCreate =
   | VectorIndexConfigHNSWCreate
   | VectorIndexConfigFlatCreate
   | VectorIndexConfigDynamicCreate
   | Record<string, any>;
 
 export class VectorIndexGuards {
-  static isHNSW(config?: VectorIndexConfig): config is VectorIndexConfigHNSWCreate {
+  static isHNSW(config?: VectorIndexConfigCreate): config is VectorIndexConfigHNSWCreate {
     return (config as VectorIndexConfigHNSWCreate)?.type === 'hnsw';
   }
-  static isFlat(config?: VectorIndexConfig): config is VectorIndexConfigFlatCreate {
+  static isFlat(config?: VectorIndexConfigCreate): config is VectorIndexConfigFlatCreate {
     return (config as VectorIndexConfigFlatCreate)?.type === 'flat';
   }
-  static isDynamic(config?: VectorIndexConfig): config is VectorIndexConfigDynamicCreate {
+  static isDynamic(config?: VectorIndexConfigCreate): config is VectorIndexConfigDynamicCreate {
     return (config as VectorIndexConfigDynamicCreate)?.type === 'dynamic';
   }
 }

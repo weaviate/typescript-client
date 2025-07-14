@@ -3,6 +3,7 @@ import {
   ModuleConfig,
   Multi2VecField,
   Ref2VecCentroidConfig,
+  Text2MultiVecJinaAIConfig,
   Text2VecAWSConfig,
   Text2VecAzureOpenAIConfig,
   Text2VecCohereConfig,
@@ -24,9 +25,16 @@ import {
   VectorizerConfigType,
 } from '../../config/types/index.js';
 import { PrimitiveKeys } from '../../types/internal.js';
-import { VectorIndexConfigCreateType, VectorIndexConfigUpdateType } from './vectorIndex.js';
+import {
+  MultiVectorEncodingConfigCreate,
+  QuantizerConfigCreate,
+  VectorIndexConfigCreateType,
+  VectorIndexConfigUpdateType,
+} from './vectorIndex.js';
 
 export type VectorizerCreateOptions<P, I, V> = {
+  encoding?: MultiVectorEncodingConfigCreate;
+  quantizer?: QuantizerConfigCreate;
   sourceProperties?: P;
   vectorIndexConfig?: ModuleConfig<I, VectorIndexConfigCreateType<I>>;
   vectorizerConfig?: ModuleConfig<V, VectorizerConfigType<V>>;
@@ -72,6 +80,7 @@ export type ConfigureNonTextVectorizerOptions<
   V extends Vectorizer
 > = VectorizerConfigCreateType<V> & {
   name?: N;
+  quantizer?: QuantizerConfigCreate;
   vectorIndexConfig?: ModuleConfig<I, VectorIndexConfigCreateType<I>>;
 };
 
@@ -80,10 +89,25 @@ export type ConfigureTextVectorizerOptions<
   N extends string | undefined,
   I extends VectorIndexType,
   V extends Vectorizer
-> = VectorizerConfigCreateType<V> & {
-  name?: N;
+> = ConfigureNonTextVectorizerOptions<N, I, V> & {
   sourceProperties?: PrimitiveKeys<T>[];
-  vectorIndexConfig?: ModuleConfig<I, VectorIndexConfigCreateType<I>>;
+};
+
+export type ConfigureNonTextMultiVectorizerOptions<
+  N extends string | undefined,
+  I extends VectorIndexType,
+  V extends Vectorizer
+> = ConfigureNonTextVectorizerOptions<N, I, V> & {
+  encoding?: MultiVectorEncodingConfigCreate;
+};
+
+export type ConfigureTextMultiVectorizerOptions<
+  T,
+  N extends string | undefined,
+  I extends VectorIndexType,
+  V extends Vectorizer
+> = ConfigureTextVectorizerOptions<T, N, I, V> & {
+  encoding?: MultiVectorEncodingConfigCreate;
 };
 
 export type Img2VecNeuralConfigCreate = Img2VecNeuralConfig;
@@ -226,6 +250,8 @@ export type Text2VecVoyageAIConfigCreate = Text2VecVoyageAIConfig;
 
 export type Text2VecWeaviateConfigCreate = Text2VecWeaviateConfig;
 
+export type Text2MultiVecJinaAIConfigCreate = Text2MultiVecJinaAIConfig;
+
 export type VectorizerConfigCreateType<V> = V extends 'img2vec-neural'
   ? Img2VecNeuralConfigCreate | undefined
   : V extends 'multi2vec-clip'
@@ -278,6 +304,8 @@ export type VectorizerConfigCreateType<V> = V extends 'img2vec-neural'
   ? Text2VecVoyageAIConfigCreate | undefined
   : V extends 'text2vec-weaviate'
   ? Text2VecWeaviateConfigCreate | undefined
+  : V extends 'text2multivec-jinaai'
+  ? Text2MultiVecJinaAIConfigCreate | undefined
   : V extends 'none'
   ? {}
   : V extends undefined

@@ -48,9 +48,21 @@ export type SQConfigUpdate = {
   type: 'sq';
 };
 
-export type MultiVectorConfigCreate = RecursivePartial<MultiVectorConfig>;
+export type QuantizerConfigCreate =
+  | PQConfigCreate
+  | BQConfigCreate
+  | SQConfigCreate
+  | Record<string, any>
+  | undefined;
+
+export type MultiVectorConfigCreate = {
+  aggregation?: MultiVectorConfig['aggregation'];
+  encoding?: MultiVectorEncodingConfigCreate;
+};
 
 export type MuveraEncodingConfigCreate = RecursivePartial<MuveraEncodingConfig>;
+
+export type MultiVectorEncodingConfigCreate = MuveraEncodingConfigCreate;
 
 export type VectorIndexConfigHNSWCreate = RecursivePartial<VectorIndexConfigHNSW>;
 
@@ -139,7 +151,7 @@ export type VectorIndexConfigHNSWCreateOptions = {
   /** The multi-vector configuration to use. Use `vectorIndex.multiVector` to make one. */
   multiVector?: MultiVectorConfigCreate;
   /** The quantizer configuration to use. Use `vectorIndex.quantizer.bq` or `vectorIndex.quantizer.pq` to make one. */
-  quantizer?: PQConfigCreate | BQConfigCreate | SQConfigCreate;
+  quantizer?: QuantizerConfigCreate;
   /** Whether to skip the index. Default is false. */
   skip?: boolean;
   /** The maximum number of objects to cache in the vector cache. Default is 1000000000000. */
@@ -152,7 +164,7 @@ export type VectorIndexConfigFlatCreateOptions = {
   /** The maximum number of objects to cache in the vector cache. Default is 1000000000000. */
   vectorCacheMaxObjects?: number;
   /** The quantizer configuration to use. Default is `bq`. */
-  quantizer?: BQConfigCreate;
+  quantizer?: QuantizerConfigCreate;
 };
 
 export type VectorIndexConfigDynamicCreateOptions = {

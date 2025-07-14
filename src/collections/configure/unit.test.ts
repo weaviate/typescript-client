@@ -1532,19 +1532,87 @@ describe('Unit testing of the vectorizer factory class', () => {
       baseURL: 'base-url',
       dimensions: 256,
       model: 'model',
+      quantizer: configure.vectorIndex.quantizer.pq(),
       vectorizeCollectionName: true,
     });
     expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'text2vec-weaviate'>>({
       name: 'test',
       vectorIndex: {
         name: 'hnsw',
-        config: undefined,
+        config: {
+          quantizer: {
+            bitCompression: undefined,
+            centroids: undefined,
+            encoder: undefined,
+            segments: undefined,
+            trainingLimit: undefined,
+            type: 'pq',
+          },
+          type: 'hnsw',
+        },
       },
       vectorizer: {
         name: 'text2vec-weaviate',
         config: {
           baseURL: 'base-url',
           dimensions: 256,
+          model: 'model',
+          vectorizeCollectionName: true,
+        },
+      },
+    });
+  });
+});
+
+describe('Unit testing of the multiVectors factory class', () => {
+  it('should create the correct Text2MultiVecJinaAIConfig type with defaults', () => {
+    const config = configure.multiVectors.text2VecJinaAI();
+    expect(config).toEqual<VectorConfigCreate<never, undefined, 'hnsw', 'text2multivec-jinaai'>>({
+      name: undefined,
+      vectorIndex: {
+        name: 'hnsw',
+        config: {
+          multiVector: {
+            aggregation: undefined,
+            encoding: undefined,
+          },
+          type: 'hnsw',
+        },
+      },
+      vectorizer: {
+        name: 'text2multivec-jinaai',
+        config: undefined,
+      },
+    });
+  });
+
+  it('should create the correct Text2MultiVecJinaAIConfig type with all values', () => {
+    const config = configure.multiVectors.text2VecJinaAI({
+      name: 'test',
+      encoding: configure.vectorIndex.multiVector.encoding.muvera({ ksim: 10 }),
+      model: 'model',
+      vectorizeCollectionName: true,
+    });
+    expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'text2multivec-jinaai'>>({
+      name: 'test',
+      vectorIndex: {
+        name: 'hnsw',
+        config: {
+          multiVector: {
+            aggregation: undefined,
+            encoding: {
+              dprojections: undefined,
+              ksim: 10,
+              repetitions: undefined,
+              type: 'muvera',
+            },
+          },
+          type: 'hnsw',
+        },
+      },
+      vectorizer: {
+        name: 'text2multivec-jinaai',
+        config: {
           model: 'model',
           vectorizeCollectionName: true,
         },

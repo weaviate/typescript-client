@@ -10,7 +10,7 @@ export type VectorIndexConfigHNSW = {
   flatSearchCutoff: number;
   maxConnections: number;
   multiVector: MultiVectorConfig | undefined;
-  quantizer: PQConfig | BQConfig | SQConfig | undefined;
+  quantizer: QuantizerConfig | undefined;
   skip: boolean;
   vectorCacheMaxObjects: number;
   type: 'hnsw';
@@ -19,7 +19,7 @@ export type VectorIndexConfigHNSW = {
 export type VectorIndexConfigFlat = {
   distance: VectorDistance;
   vectorCacheMaxObjects: number;
-  quantizer: BQConfig | undefined;
+  quantizer: QuantizerConfig | undefined;
   type: 'flat';
 };
 

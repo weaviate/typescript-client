@@ -15,7 +15,7 @@ import {
 import generative from './generative.js';
 import reranker from './reranker.js';
 import { configure as configureVectorIndex, reconfigure as reconfigureVectorIndex } from './vectorIndex.js';
-import { vectorizer } from './vectorizer.js';
+import { multiVectors, vectorizer } from './vectorizer.js';
 
 import { parseWithDefault } from './parsing.js';
 
@@ -58,6 +58,7 @@ const vectorDistances = {
 
 const configure = {
   generative,
+  multiVectors,
   reranker,
   vectorizer,
   vectorIndex: configureVectorIndex,

@@ -1,4 +1,6 @@
+import { WeaviateInvalidInputError } from '../../errors.js';
 import {
+  ModuleConfig,
   Multi2VecBindConfig,
   Multi2VecClipConfig,
   Multi2VecField,
@@ -8,20 +10,83 @@ import {
   Vectorizer,
   VectorizerConfigType,
 } from '../config/types/index.js';
-import { VectorConfigCreate, VectorIndexConfigCreateType, VectorizerCreateOptions } from '../index.js';
+import {
+  ConfigureNonTextMultiVectorizerOptions,
+  ConfigureTextMultiVectorizerOptions,
+  MultiVectorEncodingConfigCreate,
+  QuantizerConfigCreate,
+  VectorConfigCreate,
+  VectorIndexConfigCreateType,
+  VectorizerCreateOptions,
+  vectorIndex,
+} from '../index.js';
 import { PrimitiveKeys } from '../types/internal.js';
+import { VectorIndexGuards } from './parsing.js';
 import { ConfigureNonTextVectorizerOptions, ConfigureTextVectorizerOptions } from './types/index.js';
+
+const makeVectorIndex = (opts?: {
+  config?: ModuleConfig<any, VectorIndexConfigCreateType<any>>;
+  quantizer?: QuantizerConfigCreate;
+  encoding?: MultiVectorEncodingConfigCreate;
+  multiVec?: boolean;
+}) => {
+  let conf = opts?.config?.config;
+  if (opts?.encoding || opts?.multiVec) {
+    if (conf && !VectorIndexGuards.isHNSW(conf)) {
+      throw new WeaviateInvalidInputError('Cannot set multi-vector encoding on a non-HNSW index');
+    }
+    conf = conf
+      ? {
+          ...conf,
+          multiVector: conf.multiVector
+            ? {
+                ...conf.multiVector,
+                encoding: conf.multiVector.encoding
+                  ? { ...conf.multiVector.encoding, ...opts.encoding }
+                  : opts.encoding,
+              }
+            : vectorIndex.multiVector.multiVector({ encoding: opts.encoding }),
+        }
+      : {
+          multiVector: vectorIndex.multiVector.multiVector({ encoding: opts.encoding }),
+          type: 'hnsw',
+        };
+  }
+  if (opts?.quantizer) {
+    if (!conf) {
+      conf = vectorIndex.hnsw({ quantizer: opts.quantizer }).config!;
+    }
+    if (VectorIndexGuards.isDynamic(conf)) {
+      conf.hnsw = conf.hnsw
+        ? { ...conf.hnsw, quantizer: opts.quantizer }
+        : vectorIndex.hnsw({ quantizer: opts.quantizer }).config;
+      conf.flat = conf.flat
+        ? { ...conf.flat, quantizer: opts.quantizer }
+        : vectorIndex.flat({ quantizer: opts.quantizer }).config;
+    } else {
+      conf.quantizer = opts.quantizer;
+    }
+  }
+  return {
+    name: opts?.config?.name || 'hnsw',
+    config: conf,
+  };
+};
 
 const makeVectorizer = <T, N extends string | undefined, I extends VectorIndexType, V extends Vectorizer>(
   name: N | undefined,
-  options?: VectorizerCreateOptions<PrimitiveKeys<T>[], I, V>
+  options?: VectorizerCreateOptions<PrimitiveKeys<T>[], I, V>,
+  multiVec?: boolean
 ) => {
   return {
     name: name as N,
     properties: options?.sourceProperties,
-    vectorIndex: options?.vectorIndexConfig
-      ? options.vectorIndexConfig
-      : { name: 'hnsw' as I, config: undefined as VectorIndexConfigCreateType<I> },
+    vectorIndex: makeVectorIndex({
+      config: options?.vectorIndexConfig,
+      encoding: options?.encoding,
+      quantizer: options?.quantizer,
+      multiVec,
+    }) as ModuleConfig<any, VectorIndexConfigCreateType<I>>,
     vectorizer: options?.vectorizerConfig
       ? options.vectorizerConfig
       : { name: 'none' as V, config: undefined as VectorizerConfigType<V> },
@@ -59,8 +124,8 @@ export const vectorizer = {
   none: <N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
     opts?: ConfigureNonTextVectorizerOptions<N, I, 'none'>
   ): VectorConfigCreate<never, N, I, 'none'> => {
-    const { name, vectorIndexConfig } = opts || {};
-    return makeVectorizer(name, { vectorIndexConfig });
+    const { name, quantizer, vectorIndexConfig } = opts || {};
+    return makeVectorizer(name, { quantizer, vectorIndexConfig });
   },
   /**
    * Create a `VectorConfigCreate` object with the vectorizer set to `'img2vec-neural'`.
@@ -73,8 +138,9 @@ export const vectorizer = {
   img2VecNeural: <N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
     opts: ConfigureNonTextVectorizerOptions<N, I, 'img2vec-neural'>
   ): VectorConfigCreate<never, N, I, 'img2vec-neural'> => {
-    const { name, vectorIndexConfig, ...config } = opts;
+    const { name, quantizer, vectorIndexConfig, ...config } = opts;
     return makeVectorizer(name, {
+      quantizer,
       vectorIndexConfig,
       vectorizerConfig: {
         name: 'img2vec-neural',
@@ -93,7 +159,7 @@ export const vectorizer = {
   multi2VecBind: <N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
     opts?: ConfigureNonTextVectorizerOptions<N, I, 'multi2vec-bind'>
   ): VectorConfigCreate<never, N, I, 'multi2vec-bind'> => {
-    const { name, vectorIndexConfig, ...config } = opts || {};
+    const { name, quantizer, vectorIndexConfig, ...config } = opts || {};
     const audioFields = config.audioFields?.map(mapMulti2VecField);
     const depthFields = config.depthFields?.map(mapMulti2VecField);
     const imageFields = config.imageFields?.map(mapMulti2VecField);
@@ -110,6 +176,7 @@ export const vectorizer = {
     weights = formatMulti2VecFields(weights, 'thermalFields', thermalFields);
     weights = formatMulti2VecFields(weights, 'videoFields', videoFields);
     return makeVectorizer(name, {
+      quantizer,
       vectorIndexConfig,
       vectorizerConfig: {
         name: 'multi2vec-bind',
@@ -141,13 +208,14 @@ export const vectorizer = {
   multi2VecCohere: <N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
     opts?: ConfigureNonTextVectorizerOptions<N, I, 'multi2vec-cohere'>
   ): VectorConfigCreate<never, N, I, 'multi2vec-cohere'> => {
-    const { name, vectorIndexConfig, ...config } = opts || {};
+    const { name, quantizer, vectorIndexConfig, ...config } = opts || {};
     const imageFields = config.imageFields?.map(mapMulti2VecField);
     const textFields = config.textFields?.map(mapMulti2VecField);
     let weights: Multi2VecBindConfig['weights'] = {};
     weights = formatMulti2VecFields(weights, 'imageFields', imageFields);
     weights = formatMulti2VecFields(weights, 'textFields', textFields);
     return makeVectorizer(name, {
+      quantizer,
       vectorIndexConfig,
       vectorizerConfig: {
         name: 'multi2vec-cohere',
@@ -174,13 +242,14 @@ export const vectorizer = {
   multi2VecClip: <N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
     opts?: ConfigureNonTextVectorizerOptions<N, I, 'multi2vec-clip'>
   ): VectorConfigCreate<never, N, I, 'multi2vec-clip'> => {
-    const { name, vectorIndexConfig, ...config } = opts || {};
+    const { name, quantizer, vectorIndexConfig, ...config } = opts || {};
     const imageFields = config.imageFields?.map(mapMulti2VecField);
     const textFields = config.textFields?.map(mapMulti2VecField);
     let weights: Multi2VecBindConfig['weights'] = {};
     weights = formatMulti2VecFields(weights, 'imageFields', imageFields);
     weights = formatMulti2VecFields(weights, 'textFields', textFields);
     return makeVectorizer(name, {
+      quantizer,
       vectorIndexConfig,
       vectorizerConfig: {
         name: 'multi2vec-clip',
@@ -207,13 +276,14 @@ export const vectorizer = {
   multi2VecJinaAI: <N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
     opts?: ConfigureNonTextVectorizerOptions<N, I, 'multi2vec-jinaai'>
   ): VectorConfigCreate<never, N, I, 'multi2vec-jinaai'> => {
-    const { name, vectorIndexConfig, ...config } = opts || {};
+    const { name, quantizer, vectorIndexConfig, ...config } = opts || {};
     const imageFields = config.imageFields?.map(mapMulti2VecField);
     const textFields = config.textFields?.map(mapMulti2VecField);
     let weights: Multi2VecBindConfig['weights'] = {};
     weights = formatMulti2VecFields(weights, 'imageFields', imageFields);
     weights = formatMulti2VecFields(weights, 'textFields', textFields);
     return makeVectorizer(name, {
+      quantizer,
       vectorIndexConfig,
       vectorizerConfig: {
         name: 'multi2vec-jinaai',
@@ -242,7 +312,7 @@ export const vectorizer = {
     opts: ConfigureNonTextVectorizerOptions<N, I, 'multi2vec-palm'>
   ): VectorConfigCreate<never, N, I, 'multi2vec-palm'> => {
     console.warn('The `multi2vec-palm` vectorizer is deprecated. Use `multi2vec-google` instead.');
-    const { name, vectorIndexConfig, ...config } = opts;
+    const { name, quantizer, vectorIndexConfig, ...config } = opts;
     const imageFields = config.imageFields?.map(mapMulti2VecField);
     const textFields = config.textFields?.map(mapMulti2VecField);
     const videoFields = config.videoFields?.map(mapMulti2VecField);
@@ -251,6 +321,7 @@ export const vectorizer = {
     weights = formatMulti2VecFields(weights, 'textFields', textFields);
     weights = formatMulti2VecFields(weights, 'videoFields', videoFields);
     return makeVectorizer(name, {
+      quantizer,
       vectorIndexConfig,
       vectorizerConfig: {
         name: 'multi2vec-palm',
@@ -275,7 +346,7 @@ export const vectorizer = {
   multi2VecGoogle: <N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
     opts: ConfigureNonTextVectorizerOptions<N, I, 'multi2vec-google'>
   ): VectorConfigCreate<never, N, I, 'multi2vec-google'> => {
-    const { name, vectorIndexConfig, ...config } = opts;
+    const { name, quantizer, vectorIndexConfig, ...config } = opts;
     const imageFields = config.imageFields?.map(mapMulti2VecField);
     const textFields = config.textFields?.map(mapMulti2VecField);
     const videoFields = config.videoFields?.map(mapMulti2VecField);
@@ -284,6 +355,7 @@ export const vectorizer = {
     weights = formatMulti2VecFields(weights, 'textFields', textFields);
     weights = formatMulti2VecFields(weights, 'videoFields', videoFields);
     return makeVectorizer(name, {
+      quantizer,
       vectorIndexConfig,
       vectorizerConfig: {
         name: 'multi2vec-google',
@@ -308,13 +380,14 @@ export const vectorizer = {
   multi2VecVoyageAI: <N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
     opts?: ConfigureNonTextVectorizerOptions<N, I, 'multi2vec-voyageai'>
   ): VectorConfigCreate<never, N, I, 'multi2vec-voyageai'> => {
-    const { name, vectorIndexConfig, ...config } = opts || {};
+    const { name, quantizer, vectorIndexConfig, ...config } = opts || {};
     const imageFields = config.imageFields?.map(mapMulti2VecField);
     const textFields = config.textFields?.map(mapMulti2VecField);
     let weights: Multi2VecVoyageAIConfig['weights'] = {};
     weights = formatMulti2VecFields(weights, 'imageFields', imageFields);
     weights = formatMulti2VecFields(weights, 'textFields', textFields);
     return makeVectorizer(name, {
+      quantizer,
       vectorIndexConfig,
       vectorizerConfig: {
         name: 'multi2vec-voyageai',
@@ -341,8 +414,9 @@ export const vectorizer = {
   ref2VecCentroid: <N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
     opts: ConfigureNonTextVectorizerOptions<N, I, 'ref2vec-centroid'>
   ): VectorConfigCreate<never, N, I, 'ref2vec-centroid'> => {
-    const { name, vectorIndexConfig, ...config } = opts;
+    const { name, quantizer, vectorIndexConfig, ...config } = opts;
     return makeVectorizer(name, {
+      quantizer,
       vectorIndexConfig,
       vectorizerConfig: {
         name: 'ref2vec-centroid',
@@ -361,8 +435,9 @@ export const vectorizer = {
   text2VecAWS: <T, N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
     opts: ConfigureTextVectorizerOptions<T, N, I, 'text2vec-aws'>
   ): VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2vec-aws'> => {
-    const { name, sourceProperties, vectorIndexConfig, ...config } = opts;
+    const { name, quantizer, sourceProperties, vectorIndexConfig, ...config } = opts;
     return makeVectorizer(name, {
+      quantizer,
       sourceProperties,
       vectorIndexConfig,
       vectorizerConfig: {
@@ -382,8 +457,9 @@ export const vectorizer = {
   text2VecAzureOpenAI: <T, N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
     opts: ConfigureTextVectorizerOptions<T, N, I, 'text2vec-azure-openai'>
   ): VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2vec-azure-openai'> => {
-    const { name, sourceProperties, vectorIndexConfig, ...config } = opts;
+    const { name, quantizer, sourceProperties, vectorIndexConfig, ...config } = opts;
     return makeVectorizer(name, {
+      quantizer,
       sourceProperties,
       vectorIndexConfig,
       vectorizerConfig: {
@@ -403,8 +479,9 @@ export const vectorizer = {
   text2VecCohere: <T, N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
     opts?: ConfigureTextVectorizerOptions<T, N, I, 'text2vec-cohere'>
   ): VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2vec-cohere'> => {
-    const { name, sourceProperties, vectorIndexConfig, ...config } = opts || {};
+    const { name, quantizer, sourceProperties, vectorIndexConfig, ...config } = opts || {};
     return makeVectorizer(name, {
+      quantizer,
       sourceProperties,
       vectorIndexConfig,
       vectorizerConfig: {
@@ -424,8 +501,9 @@ export const vectorizer = {
   text2VecContextionary: <T, N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
     opts?: ConfigureTextVectorizerOptions<T, N, I, 'text2vec-contextionary'>
   ): VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2vec-contextionary'> => {
-    const { name, sourceProperties, vectorIndexConfig, ...config } = opts || {};
+    const { name, quantizer, sourceProperties, vectorIndexConfig, ...config } = opts || {};
     return makeVectorizer(name, {
+      quantizer,
       sourceProperties,
       vectorIndexConfig,
       vectorizerConfig: {
@@ -445,8 +523,9 @@ export const vectorizer = {
   text2VecDatabricks: <T, N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
     opts: ConfigureTextVectorizerOptions<T, N, I, 'text2vec-databricks'>
   ): VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2vec-databricks'> => {
-    const { name, sourceProperties, vectorIndexConfig, ...config } = opts;
+    const { name, quantizer, sourceProperties, vectorIndexConfig, ...config } = opts;
     return makeVectorizer(name, {
+      quantizer,
       sourceProperties,
       vectorIndexConfig,
       vectorizerConfig: {
@@ -466,8 +545,9 @@ export const vectorizer = {
   text2VecGPT4All: <T, N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
     opts?: ConfigureTextVectorizerOptions<T, N, I, 'text2vec-gpt4all'>
   ): VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2vec-gpt4all'> => {
-    const { name, sourceProperties, vectorIndexConfig, ...config } = opts || {};
+    const { name, quantizer, sourceProperties, vectorIndexConfig, ...config } = opts || {};
     return makeVectorizer(name, {
+      quantizer,
       sourceProperties,
       vectorIndexConfig,
       vectorizerConfig: {
@@ -487,8 +567,9 @@ export const vectorizer = {
   text2VecHuggingFace: <T, N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
     opts?: ConfigureTextVectorizerOptions<T, N, I, 'text2vec-huggingface'>
   ): VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2vec-huggingface'> => {
-    const { name, sourceProperties, vectorIndexConfig, ...config } = opts || {};
+    const { name, quantizer, sourceProperties, vectorIndexConfig, ...config } = opts || {};
     return makeVectorizer(name, {
+      quantizer,
       sourceProperties,
       vectorIndexConfig,
       vectorizerConfig: {
@@ -508,8 +589,9 @@ export const vectorizer = {
   text2VecJinaAI: <T, N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
     opts?: ConfigureTextVectorizerOptions<T, N, I, 'text2vec-jinaai'>
   ): VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2vec-jinaai'> => {
-    const { name, sourceProperties, vectorIndexConfig, ...config } = opts || {};
+    const { name, quantizer, sourceProperties, vectorIndexConfig, ...config } = opts || {};
     return makeVectorizer(name, {
+      quantizer,
       sourceProperties,
       vectorIndexConfig,
       vectorizerConfig: {
@@ -521,8 +603,9 @@ export const vectorizer = {
   text2VecNvidia: <T, N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
     opts?: ConfigureTextVectorizerOptions<T, N, I, 'text2vec-nvidia'>
   ): VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2vec-nvidia'> => {
-    const { name, sourceProperties, vectorIndexConfig, ...config } = opts || {};
+    const { name, quantizer, sourceProperties, vectorIndexConfig, ...config } = opts || {};
     return makeVectorizer(name, {
+      quantizer,
       sourceProperties,
       vectorIndexConfig,
       vectorizerConfig: {
@@ -542,8 +625,9 @@ export const vectorizer = {
   text2VecMistral: <T, N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
     opts?: ConfigureTextVectorizerOptions<T, N, I, 'text2vec-mistral'>
   ): VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2vec-mistral'> => {
-    const { name, sourceProperties, vectorIndexConfig, ...config } = opts || {};
+    const { name, quantizer, sourceProperties, vectorIndexConfig, ...config } = opts || {};
     return makeVectorizer(name, {
+      quantizer,
       sourceProperties,
       vectorIndexConfig,
       vectorizerConfig: {
@@ -563,8 +647,9 @@ export const vectorizer = {
   text2VecOpenAI: <T, N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
     opts?: ConfigureTextVectorizerOptions<T, N, I, 'text2vec-openai'>
   ): VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2vec-openai'> => {
-    const { name, sourceProperties, vectorIndexConfig, ...config } = opts || {};
+    const { name, quantizer, sourceProperties, vectorIndexConfig, ...config } = opts || {};
     return makeVectorizer(name, {
+      quantizer,
       sourceProperties,
       vectorIndexConfig,
       vectorizerConfig: {
@@ -584,8 +669,9 @@ export const vectorizer = {
   text2VecOllama: <T, N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
     opts?: ConfigureTextVectorizerOptions<T, N, I, 'text2vec-ollama'>
   ): VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2vec-ollama'> => {
-    const { name, sourceProperties, vectorIndexConfig, ...config } = opts || {};
+    const { name, quantizer, sourceProperties, vectorIndexConfig, ...config } = opts || {};
     return makeVectorizer(name, {
+      quantizer,
       sourceProperties,
       vectorIndexConfig,
       vectorizerConfig: {
@@ -607,8 +693,9 @@ export const vectorizer = {
     opts?: ConfigureTextVectorizerOptions<T, N, I, 'text2vec-palm'>
   ): VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2vec-palm'> => {
     console.warn('The `text2VecPalm` vectorizer is deprecated. Use `text2VecGoogle` instead.');
-    const { name, sourceProperties, vectorIndexConfig, ...config } = opts || {};
+    const { name, quantizer, sourceProperties, vectorIndexConfig, ...config } = opts || {};
     return makeVectorizer(name, {
+      quantizer,
       sourceProperties,
       vectorIndexConfig,
       vectorizerConfig: {
@@ -628,8 +715,9 @@ export const vectorizer = {
   text2VecGoogle: <T, N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
     opts?: ConfigureTextVectorizerOptions<T, N, I, 'text2vec-google'>
   ): VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2vec-google'> => {
-    const { name, sourceProperties, vectorIndexConfig, ...config } = opts || {};
+    const { name, sourceProperties, quantizer, vectorIndexConfig, ...config } = opts || {};
     return makeVectorizer(name, {
+      quantizer,
       sourceProperties,
       vectorIndexConfig,
       vectorizerConfig: {
@@ -649,8 +737,9 @@ export const vectorizer = {
   text2VecTransformers: <T, N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
     opts?: ConfigureTextVectorizerOptions<T, N, I, 'text2vec-transformers'>
   ): VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2vec-transformers'> => {
-    const { name, sourceProperties, vectorIndexConfig, ...config } = opts || {};
+    const { name, sourceProperties, quantizer, vectorIndexConfig, ...config } = opts || {};
     return makeVectorizer(name, {
+      quantizer,
       sourceProperties,
       vectorIndexConfig,
       vectorizerConfig: {
@@ -670,8 +759,9 @@ export const vectorizer = {
   text2VecVoyageAI: <T, N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
     opts?: ConfigureTextVectorizerOptions<T, N, I, 'text2vec-voyageai'>
   ): VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2vec-voyageai'> => {
-    const { name, sourceProperties, vectorIndexConfig, ...config } = opts || {};
+    const { name, sourceProperties, quantizer, vectorIndexConfig, ...config } = opts || {};
     return makeVectorizer(name, {
+      quantizer,
       sourceProperties,
       vectorIndexConfig,
       vectorizerConfig: {
@@ -692,14 +782,66 @@ export const vectorizer = {
   text2VecWeaviate: <T, N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
     opts?: ConfigureTextVectorizerOptions<T, N, I, 'text2vec-weaviate'>
   ): VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2vec-weaviate'> => {
-    const { name, sourceProperties, vectorIndexConfig, ...config } = opts || {};
+    const { name, sourceProperties, quantizer, vectorIndexConfig, ...config } = opts || {};
     return makeVectorizer(name, {
       sourceProperties,
       vectorIndexConfig,
+      quantizer,
       vectorizerConfig: {
         name: 'text2vec-weaviate',
         config: Object.keys(config).length === 0 ? undefined : config,
       },
     });
+  },
+};
+
+export const multiVectors = {
+  /**
+   * Create a multi-vector `VectorConfigCreate` object with the vectorizer set to `'none'`.
+   *
+   * @param {ConfigureNonTextMultiVectorizerOptions<N, I, 'none'>} [opts] The configuration options for the `none` vectorizer.
+   * @returns {VectorConfigCreate<PrimitiveKeys<T>, N, I, 'none'>} The configuration object.
+   */
+  selfProvided: <T, N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
+    opts?: ConfigureNonTextMultiVectorizerOptions<N, I, 'none'>
+  ): VectorConfigCreate<PrimitiveKeys<T>, N, I, 'none'> => {
+    const { name, encoding, quantizer, vectorIndexConfig, ...config } = opts || {};
+    return makeVectorizer(name, {
+      encoding,
+      quantizer,
+      vectorIndexConfig,
+      vectorizerConfig: {
+        name: 'none',
+        config: Object.keys(config).length === 0 ? {} : config,
+      },
+    });
+  },
+
+  /**
+   * Create a multi-vector `VectorConfigCreate` object with the vectorizer set to `'text2multivec-jinaai'`.
+   *
+   * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/jinaai/embeddings-colbert) for detailed usage.
+   *
+   * @param {ConfigureTextVectorizerOptions<T, N, I, 'text2multivec-jinaai'>} [opts] The configuration options for the `text2multivec-jinaai` vectorizer.
+   * @returns {VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2multivec-jinaai'>} The configuration object.
+   */
+  text2VecJinaAI: <T, N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
+    opts?: ConfigureTextMultiVectorizerOptions<T, N, I, 'text2multivec-jinaai'>
+  ): VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2multivec-jinaai'> => {
+    const { name, encoding, sourceProperties, quantizer, vectorIndexConfig, ...config } = opts || {};
+    return makeVectorizer(
+      name,
+      {
+        encoding,
+        quantizer,
+        sourceProperties,
+        vectorIndexConfig,
+        vectorizerConfig: {
+          name: 'text2multivec-jinaai',
+          config: Object.keys(config).length === 0 ? undefined : config,
+        },
+      },
+      true
+    );
   },
 };
