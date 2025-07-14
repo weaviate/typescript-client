@@ -104,8 +104,8 @@ describe('schema', () => {
       .withProperty(prop)
       .do()
       .catch((err: Error) => {
-        expect(err.message).toEqual(
-          'The request to Weaviate failed with status code: 422 and message: {"error":[{"message":"Tokenization is not allowed for data type \'int[]\'"}]}'
+        expect(err.message.toLowerCase()).toEqual(
+          'The request to Weaviate failed with status code: 422 and message: {"error":[{"message":"tokenization is not allowed for data type \'int[]\'"}]}'.toLowerCase()
         );
       });
   });
@@ -736,6 +736,16 @@ async function newClassObject(className: string, client: WeaviateClient): Promis
         ? {
             aggregation: 'maxSim',
             enabled: false,
+            ...((await isVer(client, 31, 0))
+              ? {
+                  muvera: {
+                    enabled: false,
+                    dprojections: 16,
+                    ksim: 4,
+                    repetitions: 10,
+                  },
+                }
+              : {}),
           }
         : undefined,
       pq: {
@@ -757,6 +767,13 @@ async function newClassObject(className: string, client: WeaviateClient): Promis
             enabled: false,
             rescoreLimit: 20,
             trainingLimit: 100000,
+          }
+        : undefined,
+      rq: (await isVer(client, 32, 0))
+        ? {
+            enabled: false,
+            bits: 8,
+            rescoreLimit: 20,
           }
         : undefined,
       skip: false,

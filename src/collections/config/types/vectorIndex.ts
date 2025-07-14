@@ -9,7 +9,7 @@ export type VectorIndexConfigHNSW = {
   filterStrategy: VectorIndexFilterStrategy;
   flatSearchCutoff: number;
   maxConnections: number;
-  quantizer: PQConfig | BQConfig | SQConfig | undefined;
+  quantizer: QuantizerConfig | undefined;
   skip: boolean;
   vectorCacheMaxObjects: number;
   type: 'hnsw';
@@ -61,6 +61,12 @@ export type PQConfig = {
   type: 'pq';
 };
 
+export type RQConfig = {
+  bits?: number;
+  rescoreLimit?: number;
+  type: 'rq';
+};
+
 export type PQEncoderConfig = {
   type: PQEncoderType;
   distribution: PQEncoderDistribution;
@@ -77,4 +83,4 @@ export type VectorIndexFilterStrategy = 'sweeping' | 'acorn';
 
 export type VectorIndexConfig = VectorIndexConfigHNSW | VectorIndexConfigFlat | VectorIndexConfigDynamic;
 
-export type QuantizerConfig = PQConfig | BQConfig | SQConfig;
+export type QuantizerConfig = PQConfig | BQConfig | SQConfig | RQConfig;

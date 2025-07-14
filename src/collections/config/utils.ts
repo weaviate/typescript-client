@@ -46,6 +46,8 @@ import {
   PQEncoderType,
   PropertyConfig,
   PropertyVectorizerConfig,
+  QuantizerConfig,
+  RQConfig,
   ReferenceConfig,
   ReplicationConfig,
   Reranker,
@@ -177,6 +179,16 @@ export const parseVectorIndex = (module: ModuleConfig<VectorIndexType, VectorInd
     return {
       ...conf,
       sq: {
+        ...quant,
+        enabled: true,
+      },
+    };
+  }
+  if (QuantizerGuards.isRQCreate(quantizer)) {
+    const { type, ...quant } = quantizer;
+    return {
+      ...conf,
+      rq: {
         ...quant,
         enabled: true,
       },
@@ -468,11 +480,13 @@ class ConfigMapping {
       throw new WeaviateDeserializationError(
         'Vector index vector cache max objects was not returned by Weaviate'
       );
-    let quantizer: PQConfig | BQConfig | SQConfig | undefined;
+    let quantizer: QuantizerConfig | undefined;
     if (exists<Record<string, any>>(v.pq) && v.pq.enabled === true) {
       quantizer = ConfigMapping.pq(v.pq);
     } else if (exists<Record<string, any>>(v.bq) && v.bq.enabled === true) {
       quantizer = ConfigMapping.bq(v.bq);
+    } else if (exists<Record<string, any>>(v.rq) && v.rq.enabled === true) {
+      quantizer = ConfigMapping.rq(v.rq);
     } else if (exists<Record<string, any>>(v.sq) && v.sq.enabled === true) {
       quantizer = ConfigMapping.sq(v.sq);
     } else {
@@ -506,6 +520,19 @@ class ConfigMapping {
       cache,
       rescoreLimit,
       type: 'bq',
+    };
+  }
+  static rq(v?: Record<string, unknown>): RQConfig | undefined {
+    if (v === undefined) throw new WeaviateDeserializationError('RQ was not returned by Weaviate');
+    if (!exists<boolean>(v.enabled))
+      throw new WeaviateDeserializationError('RQ enabled was not returned by Weaviate');
+    if (v.enabled === false) return undefined;
+    const bits = v.bits === undefined ? 6 : (v.bits as number);
+    const rescoreLimit = v.rescoreLimit === undefined ? 20 : (v.rescoreLimit as number);
+    return {
+      bits,
+      rescoreLimit,
+      type: 'rq',
     };
   }
   static sq(v?: Record<string, unknown>): SQConfig | undefined {
