@@ -806,15 +806,19 @@ export const multiVectors = {
     opts?: ConfigureNonTextMultiVectorizerOptions<N, I, 'none'>
   ): VectorConfigCreate<PrimitiveKeys<T>, N, I, 'none'> => {
     const { name, encoding, quantizer, vectorIndexConfig, ...config } = opts || {};
-    return makeVectorizer(name, {
-      encoding,
-      quantizer,
-      vectorIndexConfig,
-      vectorizerConfig: {
-        name: 'none',
-        config: Object.keys(config).length === 0 ? {} : config,
+    return makeVectorizer(
+      name,
+      {
+        encoding,
+        quantizer,
+        vectorIndexConfig,
+        vectorizerConfig: {
+          name: 'none',
+          config: Object.keys(config).length === 0 ? {} : config,
+        },
       },
-    });
+      true
+    );
   },
 
   /**

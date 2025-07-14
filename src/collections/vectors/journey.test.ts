@@ -46,7 +46,7 @@ requireAtLeast(1, 29, 0).describe(
       collection = await client.collections.create({
         name: collectionName,
         vectorizers: [
-          weaviate.configure.multiVectors.selfProvided({
+          weaviate.configure.vectorizer.none({
             name: 'regular',
           }),
           weaviate.configure.multiVectors.selfProvided({

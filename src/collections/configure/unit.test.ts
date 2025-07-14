@@ -1565,6 +1565,54 @@ describe('Unit testing of the vectorizer factory class', () => {
 });
 
 describe('Unit testing of the multiVectors factory class', () => {
+  it('should create the correct self provided type with defaults', () => {
+    const config = configure.multiVectors.selfProvided();
+    expect(config).toEqual<VectorConfigCreate<never, undefined, 'hnsw', 'none'>>({
+      name: undefined,
+      vectorIndex: {
+        name: 'hnsw',
+        config: {
+          multiVector: {
+            aggregation: undefined,
+            encoding: undefined,
+          },
+          type: 'hnsw',
+        },
+      },
+      vectorizer: {
+        name: 'none',
+        config: {},
+      },
+    });
+  });
+  it('should create the correct self provided type with all values', () => {
+    const config = configure.multiVectors.selfProvided({
+      name: 'test',
+      encoding: configure.vectorIndex.multiVector.encoding.muvera({ ksim: 10 }),
+    });
+    expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'none'>>({
+      name: 'test',
+      vectorIndex: {
+        name: 'hnsw',
+        config: {
+          multiVector: {
+            aggregation: undefined,
+            encoding: {
+              dprojections: undefined,
+              ksim: 10,
+              repetitions: undefined,
+              type: 'muvera',
+            },
+          },
+          type: 'hnsw',
+        },
+      },
+      vectorizer: {
+        name: 'none',
+        config: {},
+      },
+    });
+  });
   it('should create the correct Text2MultiVecJinaAIConfig type with defaults', () => {
     const config = configure.multiVectors.text2VecJinaAI();
     expect(config).toEqual<VectorConfigCreate<never, undefined, 'hnsw', 'text2multivec-jinaai'>>({
