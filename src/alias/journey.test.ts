@@ -40,14 +40,14 @@ requireAtLeast(1, 32, 0).describe('manages collection aliases', () => {
   it('should delete alias Bono', () => {
     return client.alias
       .delete('Bono')
-      .then(() => client.alias.listAll('PaulHewson'))
+      .then(() => client.alias.listAll({ collection: 'PaulHewson' }))
       .then((aliases) => expect(aliases).toEqual([]));
   });
 
   it('should delete alias MachineGunKelly', () => {
     return client.alias
       .delete('MachineGunKelly')
-      .then(() => client.alias.listAll('ColsonBaker'))
+      .then(() => client.alias.listAll({ collection: 'ColsonBaker' }))
       .then((aliases) => expect(aliases).toEqual([]));
   });
 });
