@@ -231,10 +231,12 @@ class PermissionsMapping {
 
   private aliases = (permission: WeaviatePermission) => {
     if (permission.aliases !== undefined) {
-      const key = permission.aliases.alias;
-      if (key === undefined) throw new Error('Alias permission missing an alias');
-      if (this.mappings.aliases[key] === undefined) this.mappings.aliases[key] = { alias: key, actions: [] };
-      this.mappings.aliases[key].actions.push(permission.action as AliasAction);
+      const { alias, collection } = permission.aliases;
+      if (alias === undefined) throw new Error('Alias permission missing an alias');
+      if (this.mappings.aliases[alias] === undefined) {
+        this.mappings.aliases[alias] = { alias, collection: collection || "*", actions: [] };
+      }
+      this.mappings.aliases[alias].actions.push(permission.action as AliasAction);
     }
   };
 
