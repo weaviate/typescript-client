@@ -1,6 +1,6 @@
 import { ConnectionREST } from '../index.js';
 import { WeaviateAlias, WeaviateAliasResponse } from '../openapi/types.js';
-import { Alias, CreateAliasInput, UpdateAliasInput } from './types.js';
+import { Alias, AliasListAllOpts, CreateAliasArgs, UpdateAliasArgs } from './types.js';
 
 export interface Aliases {
   /**
@@ -9,19 +9,19 @@ export interface Aliases {
    * The collection must exist prior to aliasing it.
    * One alias cannot be created for multiple collections simultaneously.
    *
-   * @param {string} [opt.collection] Original collection name.
-   * @param {string} [opt.alias] Alias for collection.
+   * @param {string} args.collection Original collection name.
+   * @param {string} args.alias Alias for collection.
    * @returns {Promise<void>} Awaitable promise.
    * */
-  create: (opt: CreateAliasInput) => Promise<void>;
+  create: (args: CreateAliasArgs) => Promise<void>;
 
   /**
    * List all aliases defined in the schema.
    *
-   * @param {string | undefined} collection Get all aliases defined for this collection.
+   * @param {string | undefined} [opts.collection] Get all aliases defined for this collection.
    * @returns {Promise<Alias[] | undefined>} An array of aliases.
    */
-  listAll: (collection?: string) => Promise<Alias[] | undefined>;
+  listAll: (opts?: AliasListAllOpts) => Promise<Alias[] | undefined>;
 
   /**
    * Get information about an alias.
@@ -37,11 +37,11 @@ export interface Aliases {
    * To change the alias that points to the collection,
    * delete the alias and create a new one.
    *
-   * @param {string} [opt.alias] Alias to update.
-   * @param {string} [opt.collection] New collection the alias should point to.
+   * @param {string} args.alias Alias to update.
+   * @param {string} args.collection New collection the alias should point to.
    * @return {Promise<void>} Awaitable promise.
    */
-  update: (opt: UpdateAliasInput) => Promise<void>;
+  update: (args: UpdateAliasArgs) => Promise<void>;
 
   /**
    * Delete a collection alias.
@@ -54,11 +54,13 @@ export interface Aliases {
 
 const alias = (connection: ConnectionREST): Aliases => {
   return {
-    create: (opt: CreateAliasInput) =>
-      connection.postReturn<WeaviateAlias, void>(`/aliases/`, { ...opt, class: opt.collection }),
-    listAll: (collection?: string) =>
+    create: (args: CreateAliasArgs) =>
+      connection.postReturn<WeaviateAlias, void>(`/aliases/`, { ...args, class: args.collection }),
+    listAll: (opts?: AliasListAllOpts) =>
       connection
-        .get<WeaviateAliasResponse>(`/aliases${collection !== undefined ? '/?class=' + collection : ''}`)
+        .get<WeaviateAliasResponse>(
+          `/aliases${opts?.collection !== undefined ? '/?class=' + opts.collection : ''}`
+        )
         .then((aliases) =>
           aliases.aliases !== undefined
             ? aliases.aliases.map((alias) => ({ alias: alias.alias, collection: alias.class }))
@@ -68,8 +70,8 @@ const alias = (connection: ConnectionREST): Aliases => {
       connection
         .get<WeaviateAlias>(`/aliases/${alias}`)
         .then((alias) => ({ alias: alias.alias!, collection: alias.class! })),
-    update: (opt: UpdateAliasInput) =>
-      connection.put(`/aliases/${opt.alias}`, { class: opt.newTargetCollection }),
+    update: (args: UpdateAliasArgs) =>
+      connection.put(`/aliases/${args.alias}`, { class: args.newTargetCollection }),
     delete: (alias: string) => connection.delete(`/aliases/${alias}`, null),
   };
 };

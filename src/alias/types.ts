@@ -3,12 +3,16 @@ export type Alias = {
   alias: string;
 };
 
-export type CreateAliasInput = {
+export type CreateAliasArgs = {
   collection: string;
   alias: string;
 };
 
-export type UpdateAliasInput = {
+export type UpdateAliasArgs = {
   newTargetCollection: string;
   alias: string;
+};
+
+export type AliasListAllOpts = {
+  collection?: string | undefined;
 };
