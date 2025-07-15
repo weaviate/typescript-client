@@ -159,14 +159,17 @@ export const permissions = {
    */
   aliases: (args: {
     alias: string | string[];
+    collection: string | string[];
     create?: boolean;
     read?: boolean;
     update?: boolean;
     delete?: boolean;
   }): AliasPermission[] => {
     const aliases = Array.isArray(args.alias) ? args.alias : [args.alias];
-    return aliases.flatMap((alias) => {
-      const out: AliasPermission = { alias, actions: [] };
+    const collections = Array.isArray(args.collection) ? args.collection : [args.collection];
+    const combinations = aliases.flatMap((alias) => collections.map((collection) => ({ alias, collection })));
+    return combinations.map(({ collection, alias }) => {
+      const out: AliasPermission = { alias, collection, actions: [] };
       if (args.create) out.actions.push('create_aliases');
       if (args.read) out.actions.push('read_aliases');
       if (args.update) out.actions.push('update_aliases');

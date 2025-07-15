@@ -33,6 +33,7 @@ export type UserAssignment = {
 
 export type AliasPermission = {
   alias: string;
+  collection: string;
   actions: AliasAction[];
 };
 

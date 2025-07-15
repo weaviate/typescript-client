@@ -284,13 +284,16 @@ const testCases: TestCase[] = [
     requireVersion: [1, 32, 0],
     permissions: weaviate.permissions.aliases({
       alias: 'SomeAlias',
+      collection: 'SomeCollection',
       create: true,
       delete: true,
     }),
     expected: {
       name: 'aliases',
       ...emptyPermissions,
-      aliasPermissions: [{ alias: 'SomeAlias', actions: ['create_aliases', 'delete_aliases'] }],
+      aliasPermissions: [
+        { alias: 'SomeAlias', collection: 'SomeCollection', actions: ['create_aliases', 'delete_aliases'] },
+      ],
     },
   },
 ];
