@@ -114,7 +114,7 @@ const formatMulti2VecFields = (
   return weights;
 };
 
-export const vectorizer = {
+export const vectors = {
   /**
    * Create a `VectorConfigCreate` object with the vectorizer set to `'none'`.
    *
