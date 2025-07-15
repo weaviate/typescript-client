@@ -134,3 +134,11 @@ type AtLeastOne<T> = {
 }[keyof T];
 
 export type NonEmpty<T> = keyof T extends never ? never : T;
+
+export type DeepRequired<T> = T extends Function
+  ? T
+  : T extends Array<infer U>
+  ? Array<DeepRequired<U>>
+  : T extends object
+  ? { [K in keyof T]-?: DeepRequired<NonNullable<T[K]>> }
+  : T;

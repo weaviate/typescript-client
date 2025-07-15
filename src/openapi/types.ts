@@ -74,3 +74,9 @@ export type WeaviateUserType = definitions['UserTypeOutput'];
 export type WeaviateUserTypeInternal = definitions['UserTypeInput'];
 export type WeaviateUserTypeDB = definitions['DBUserInfo']['dbUserType'];
 export type WeaviateAssignedUser = operations['getUsersForRole']['responses']['200']['schema'][0];
+// Cluster
+export type WeaviateShardingState = definitions['ReplicationShardingState'];
+export type WeaviateReplicationType = definitions['ReplicationReplicateDetailsReplicaResponse']['type'];
+export type WeaviateReplicateRequest = definitions['ReplicationReplicateReplicaRequest'];
+export type WeaviateReplicateResponse = definitions['ReplicationReplicateReplicaResponse'];
+export type WeaviateReplicationResponse = definitions['ReplicationReplicateDetailsReplicaResponse'];
