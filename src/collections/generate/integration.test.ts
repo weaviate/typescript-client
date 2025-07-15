@@ -54,7 +54,7 @@ maybe('Testing of the collection.generate methods with a simple collection', () 
           },
         ],
         generative: weaviate.configure.generative.openAI(),
-        vectorizers: weaviate.configure.vectorizer.text2VecOpenAI({
+        vectorizers: weaviate.configure.vectors.text2VecOpenAI({
           vectorizeCollectionName: false,
         }),
       })
@@ -215,7 +215,7 @@ maybe('Testing of the groupBy collection.generate methods with a simple collecti
           },
         ],
         generative: weaviate.configure.generative.openAI(),
-        vectorizers: weaviate.configure.vectorizer.text2VecOpenAI({
+        vectorizers: weaviate.configure.vectors.text2VecOpenAI({
           vectorizeCollectionName: false,
         }),
       })
@@ -365,11 +365,11 @@ maybe('Testing of the collection.generate methods with a multi vector collection
             },
           ],
           vectorizers: [
-            weaviate.configure.vectorizer.text2VecOpenAI({
+            weaviate.configure.vectors.text2VecOpenAI({
               name: 'title',
               sourceProperties: ['title'],
             }),
-            weaviate.configure.vectorizer.text2VecOpenAI({
+            weaviate.configure.vectors.text2VecOpenAI({
               name: 'title2',
               sourceProperties: ['title'],
             }),

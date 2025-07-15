@@ -102,7 +102,7 @@ describe('Testing of the collections.create method', () => {
             vectorizePropertyName: true,
           },
         ],
-        vectorizers: weaviate.configure.vectorizer.text2VecContextionary(),
+        vectorizers: weaviate.configure.vectors.text2VecContextionary(),
       })
       .then((collection) => collection.config.get())
       .then((config) =>
@@ -138,7 +138,7 @@ describe('Testing of the collections.create method', () => {
             vectorizePropertyName: true,
           },
         ],
-        vectorizers: weaviate.configure.vectorizer.text2VecContextionary(),
+        vectorizers: weaviate.configure.vectors.text2VecContextionary(),
       })
       .then((collection) => collection.config.get())
       .then(async (config) =>
@@ -179,7 +179,7 @@ describe('Testing of the collections.create method', () => {
     const response = await contextionary.collections
       .create({
         name: collectionName,
-        vectorizers: weaviate.configure.vectorizer.none({ name: 'custom' }),
+        vectorizers: weaviate.configure.vectors.none({ name: 'custom' }),
       })
       .then(() => contextionary.collections.use(collectionName).config.get());
     expect(response.name).toEqual(collectionName);
@@ -507,7 +507,7 @@ describe('Testing of the collections.create method', () => {
         replication: {
           factor: 2,
         },
-        vectorizers: weaviate.configure.vectorizer.text2VecContextionary({
+        vectorizers: weaviate.configure.vectors.text2VecContextionary({
           vectorIndexConfig: {
             name: 'hnsw' as const,
             config: {
@@ -628,7 +628,7 @@ describe('Testing of the collections.create method', () => {
     expect(response.vectorizers.default.vectorizer.name).toEqual('text2vec-contextionary');
   });
 
-  it('should be able to create a collection with the contextionary vectorizer using configure.vectorizer', async () => {
+  it('should be able to create a collection with the contextionary vectorizer using configure.vectors', async () => {
     const collectionName = 'ThisOneIsATest'; // must include words in contextionary's vocabulary to pass since vectorizeCollectionName will be true
     const response = await contextionary.collections
       .create({
@@ -639,7 +639,7 @@ describe('Testing of the collections.create method', () => {
             dataType: 'text',
           },
         ],
-        vectorizers: weaviate.configure.vectorizer.text2VecContextionary(),
+        vectorizers: weaviate.configure.vectors.text2VecContextionary(),
       })
       .then(async (collection) => expect(await collection.exists()).toEqual(true))
       .then(() => contextionary.collections.use(collectionName).config.get());
@@ -656,7 +656,7 @@ describe('Testing of the collections.create method', () => {
     ).toEqual(true);
   });
 
-  it('should be able to create a collection with an openai vectorizer with configure.vectorizer', async () => {
+  it('should be able to create a collection with an openai vectorizer with configure.vectors', async () => {
     const collectionName = 'TestCollectionOpenAIVectorizerWithConfigureVectorizer';
     const response = await openai.collections
       .create({
@@ -667,7 +667,7 @@ describe('Testing of the collections.create method', () => {
             dataType: 'text',
           },
         ],
-        vectorizers: weaviate.configure.vectorizer.text2VecOpenAI(),
+        vectorizers: weaviate.configure.vectors.text2VecOpenAI(),
       })
       .then(async (collection) => expect(await collection.exists()).toEqual(true))
       .then(() => openai.collections.use(collectionName).config.get());

@@ -820,8 +820,8 @@ describe('Testing of the collection.data methods with bring your own multi vecto
           },
         ],
         vectorizers: [
-          weaviate.configure.vectorizer.none({ name: 'one' }),
-          weaviate.configure.vectorizer.none({ name: 'two' }),
+          weaviate.configure.vectors.none({ name: 'one' }),
+          weaviate.configure.vectors.none({ name: 'two' }),
         ],
       });
     if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 24, 0))) {
@@ -951,7 +951,7 @@ describe('Testing of the collection.data methods with a vector index', () => {
           dataType: 'text',
         },
       ],
-      vectorizers: weaviate.configure.vectorizer.none(),
+      vectorizers: weaviate.configure.vectors.none(),
     });
   });
 
