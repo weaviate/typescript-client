@@ -4,7 +4,6 @@ import {
   WeaviateUnsupportedFeatureError,
 } from '../../errors.js';
 import {
-  Properties,
   WeaviateBM25Config,
   WeaviateClass,
   WeaviateInvertedIndexConfig,
@@ -19,14 +18,13 @@ import {
   WeaviateVectorsConfig,
 } from '../../openapi/types.js';
 import { DbVersionSupport } from '../../utils/dbVersion.js';
-import { QuantizerGuards } from '../configure/parsing.js';
+import { MultiVectorEncodingGuards, QuantizerGuards, VectorIndexGuards } from '../configure/parsing.js';
 import {
   PropertyConfigCreate,
   ReferenceConfigCreate,
   ReferenceMultiTargetConfigCreate,
   ReferenceSingleTargetConfigCreate,
   VectorIndexConfigCreate,
-  VectorIndexConfigDynamicCreate,
   VectorIndexConfigFlatCreate,
   VectorIndexConfigHNSWCreate,
   VectorizersConfigAdd,
@@ -40,6 +38,8 @@ import {
   InvertedIndexConfig,
   ModuleConfig,
   MultiTenancyConfig,
+  MultiVectorConfig,
+  MultiVectorEncodingConfig,
   PQConfig,
   PQEncoderConfig,
   PQEncoderDistribution,
@@ -141,18 +141,43 @@ export const classToCollection = <T>(cls: WeaviateClass): CollectionConfig => {
 
 export const parseVectorIndex = (module: ModuleConfig<VectorIndexType, VectorIndexConfigCreate>): any => {
   if (module.config === undefined) return undefined;
-  if (module.name === 'dynamic') {
-    const { hnsw, flat, ...conf } = module.config as VectorIndexConfigDynamicCreate;
+  if (VectorIndexGuards.isDynamic(module.config)) {
+    const { hnsw, flat, ...conf } = module.config;
     return {
       ...conf,
       hnsw: parseVectorIndex({ name: 'hnsw', config: hnsw }),
       flat: parseVectorIndex({ name: 'flat', config: flat }),
     };
   }
-  const { quantizer, ...conf } = module.config as
+
+  let multivector: any;
+  if (VectorIndexGuards.isHNSW(module.config) && module.config.multiVector !== undefined) {
+    multivector = {
+      aggregation: module.config.multiVector.aggregation,
+      enabled: true,
+    };
+    if (
+      module.config.multiVector.encoding !== undefined &&
+      MultiVectorEncodingGuards.isMuvera(module.config.multiVector.encoding)
+    ) {
+      multivector.muvera = {
+        enabled: true,
+        ksim: module.config.multiVector.encoding.ksim,
+        dprojections: module.config.multiVector.encoding.dprojections,
+        repetitions: module.config.multiVector.encoding.repetitions,
+      };
+    }
+  }
+
+  const { quantizer, ...rest } = module.config as
     | VectorIndexConfigFlatCreate
     | VectorIndexConfigHNSWCreate
     | Record<string, any>;
+
+  const conf = {
+    ...rest,
+    multivector,
+  };
   if (quantizer === undefined) return conf;
   if (QuantizerGuards.isBQCreate(quantizer)) {
     const { type, ...quant } = quantizer;
@@ -205,8 +230,8 @@ export const parseVectorizerConfig = (config?: VectorizerConfig): any => {
   };
 };
 
-export const makeVectorsConfig = <TProperties extends Properties | undefined = undefined>(
-  configVectorizers: VectorizersConfigCreate<TProperties> | VectorizersConfigAdd<TProperties>,
+export const makeVectorsConfig = (
+  configVectorizers: VectorizersConfigCreate<any, any> | VectorizersConfigAdd<any>,
   supportsDynamicVectorIndex: Awaited<ReturnType<DbVersionSupport['supportsDynamicVectorIndex']>>
 ) => {
   let vectorizers: string[] = [];
@@ -492,6 +517,7 @@ class ConfigMapping {
     } else {
       quantizer = undefined;
     }
+
     return {
       cleanupIntervalSeconds: v.cleanupIntervalSeconds,
       distance: v.distance,
@@ -503,10 +529,40 @@ class ConfigMapping {
       filterStrategy: exists<VectorIndexFilterStrategy>(v.filterStrategy) ? v.filterStrategy : 'sweeping',
       flatSearchCutoff: v.flatSearchCutoff,
       maxConnections: v.maxConnections,
+      multiVector: exists<MultiVectorConfig>(v.multivector)
+        ? ConfigMapping.multiVector(v.multivector)
+        : undefined,
       quantizer: quantizer,
       skip: v.skip,
       vectorCacheMaxObjects: v.vectorCacheMaxObjects,
       type: 'hnsw',
+    };
+  }
+  static multiVector(v: Record<string, unknown>): MultiVectorConfig | undefined {
+    if (!exists<boolean>(v.enabled))
+      throw new WeaviateDeserializationError('Multi vector enabled was not returned by Weaviate');
+    if (v.enabled === false) return undefined;
+    if (!exists<string>(v.aggregation))
+      throw new WeaviateDeserializationError('Multi vector aggregation was not returned by Weaviate');
+    let encoding: MultiVectorEncodingConfig | undefined;
+    if (
+      exists<{
+        ksim: number;
+        dprojections: number;
+        repetitions: number;
+        enabled: boolean;
+      }>(v.muvera)
+    ) {
+      encoding = v.muvera.enabled
+        ? {
+            type: 'muvera',
+            ...v.muvera,
+          }
+        : undefined;
+    }
+    return {
+      aggregation: v.aggregation,
+      encoding,
     };
   }
   static bq(v?: Record<string, unknown>): BQConfig | undefined {

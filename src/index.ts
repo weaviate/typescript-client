@@ -3,7 +3,7 @@ import { Backup, backup } from './collections/backup/client.js';
 import cluster, { Cluster } from './collections/cluster/index.js';
 import { configGuards } from './collections/config/index.js';
 import { configure, reconfigure } from './collections/configure/index.js';
-import collections, { Collections } from './collections/index.js';
+import collections, { Collections, queryFactory } from './collections/index.js';
 import {
   AccessTokenCredentialsInput,
   ApiKey,
@@ -258,6 +258,7 @@ const app = {
   filter: filter<any>(),
   reconfigure,
   permissions,
+  query: queryFactory,
 };
 
 export default app;

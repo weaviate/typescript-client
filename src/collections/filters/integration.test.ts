@@ -57,7 +57,7 @@ describe('Testing of the filter class with a simple collection', () => {
           },
         ],
         invertedIndex: weaviate.configure.invertedIndex({ indexTimestamps: true }),
-        vectorizers: weaviate.configure.vectorizer.text2VecContextionary({
+        vectorizers: weaviate.configure.vectors.text2VecContextionary({
           vectorizeCollectionName: false,
         }),
       })
@@ -95,7 +95,7 @@ describe('Testing of the filter class with a simple collection', () => {
         return uuids;
       });
     const res = await collection.query.fetchObjectById(ids[0], { includeVector: true });
-    vector = res?.vectors.default!;
+    vector = res?.vectors.default as number[];
   });
 
   it('should filter a fetch objects query with a single filter and generic collection', async () => {
@@ -320,7 +320,7 @@ describe('Testing of the filter class with complex data types', () => {
             dataType: 'uuid',
           },
         ],
-        vectorizers: weaviate.configure.vectorizer.text2VecContextionary(),
+        vectorizers: weaviate.configure.vectors.text2VecContextionary(),
       })
       .then(() =>
         collection.data.insertMany([

@@ -89,7 +89,7 @@ describe('Testing of the collection.aggregate methods', () => {
           //   dataType: [collectionName],
           // },
         ],
-        vectorizers: weaviate.configure.vectorizer.text2VecContextionary({
+        vectorizers: weaviate.configure.vectors.text2VecContextionary({
           vectorizeCollectionName: false,
           vectorIndexConfig: weaviate.configure.vectorIndex.hnsw({ maxConnections: 64 }),
         }),
@@ -318,7 +318,7 @@ describe('Testing of the collection.aggregate methods with named vectors', () =>
           },
         ],
         vectorizers: [
-          weaviate.configure.vectorizer.text2VecContextionary({
+          weaviate.configure.vectors.text2VecContextionary({
             name: 'text',
             sourceProperties: ['text'],
             vectorIndexConfig: weaviate.configure.vectorIndex.hnsw(),
@@ -417,7 +417,7 @@ describe('Testing of collection.aggregate search methods', () => {
             dataType: 'text',
           },
         ],
-        vectorizers: weaviate.configure.vectorizer.text2VecContextionary(),
+        vectorizers: weaviate.configure.vectors.text2VecContextionary(),
       })
       .then(() => {
         const data: Array<any> = [];
@@ -485,7 +485,7 @@ describe('Testing of collection.aggregate search methods', () => {
 
   it('should return an aggregation on a nearVector search', async () => {
     const obj = await collection.query.fetchObjectById(uuid, { includeVector: true });
-    const result = await collection.aggregate.nearVector(obj?.vectors.default!, {
+    const result = await collection.aggregate.nearVector(obj?.vectors.default as number[], {
       objectLimit: 1000,
       returnMetrics: collection.metrics.aggregate('text').text(['count']),
     });
@@ -494,7 +494,7 @@ describe('Testing of collection.aggregate search methods', () => {
 
   it('should return a grouped aggregation on a nearVector search', async () => {
     const obj = await collection.query.fetchObjectById(uuid, { includeVector: true });
-    const result = await collection.aggregate.groupBy.nearVector(obj?.vectors.default!, {
+    const result = await collection.aggregate.groupBy.nearVector(obj?.vectors.default as number[], {
       objectLimit: 1000,
       groupBy: 'text',
       returnMetrics: collection.metrics.aggregate('text').text(['count']),

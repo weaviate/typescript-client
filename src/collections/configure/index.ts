@@ -15,7 +15,7 @@ import {
 import generative from './generative.js';
 import reranker from './reranker.js';
 import { configure as configureVectorIndex, reconfigure as reconfigureVectorIndex } from './vectorIndex.js';
-import { vectorizer } from './vectorizer.js';
+import { multiVectors, vectors } from './vectorizer.js';
 
 import { parseWithDefault } from './parsing.js';
 
@@ -58,8 +58,13 @@ const vectorDistances = {
 
 const configure = {
   generative,
+  multiVectors,
   reranker,
-  vectorizer,
+  /**
+   * @deprecated Use `vectors` instead.
+   */
+  vectorizer: vectors,
+  vectors,
   vectorIndex: configureVectorIndex,
   dataType,
   tokenization,
@@ -219,7 +224,26 @@ const reconfigure = {
           : undefined,
     };
   },
+  /**
+   * @deprecated Use `vectors` instead.
+   */
   vectorizer: {
+    /**
+     * Create a `VectorConfigUpdate` object to be used when updating the named vector configuration of Weaviate.
+     *
+     * @param {string} name The name of the vector.
+     * @param {VectorizerOptions} options The options for the named vector.
+     */
+    update: <N extends string | undefined, I extends VectorIndexType>(
+      options: VectorizerUpdateOptions<N, I>
+    ): VectorConfigUpdate<N, I> => {
+      return {
+        name: options?.name as N,
+        vectorIndex: options.vectorIndexConfig,
+      };
+    },
+  },
+  vectors: {
     /**
      * Create a `VectorConfigUpdate` object to be used when updating the named vector configuration of Weaviate.
      *
@@ -281,10 +305,11 @@ export {
   configure,
   dataType,
   generative,
+  multiVectors,
   reconfigure,
   reranker,
   tokenization,
   vectorDistances,
   configureVectorIndex as vectorIndex,
-  vectorizer,
+  vectors,
 };

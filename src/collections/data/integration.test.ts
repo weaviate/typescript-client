@@ -324,7 +324,7 @@ describe('Testing of the collection.data methods with a single target reference'
       collection.query.fetchObjectById(toBeReplacedID, {
         returnReferences: [{ linkOn: 'ref' }],
       });
-    const assert = (obj: WeaviateObject<TestCollectionData> | null, id: string) => {
+    const assert = (obj: WeaviateObject<TestCollectionData, undefined> | null, id: string) => {
       expect(obj).not.toBeNull();
       expect(obj?.references?.ref?.objects[0].uuid).toEqual(id);
     };
@@ -820,8 +820,8 @@ describe('Testing of the collection.data methods with bring your own multi vecto
           },
         ],
         vectorizers: [
-          weaviate.configure.vectorizer.none({ name: 'one' }),
-          weaviate.configure.vectorizer.none({ name: 'two' }),
+          weaviate.configure.vectors.none({ name: 'one' }),
+          weaviate.configure.vectors.none({ name: 'two' }),
         ],
       });
     if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 24, 0))) {
@@ -951,7 +951,7 @@ describe('Testing of the collection.data methods with a vector index', () => {
           dataType: 'text',
         },
       ],
-      vectorizers: weaviate.configure.vectorizer.none(),
+      vectorizers: weaviate.configure.vectors.none(),
     });
   });
 

@@ -9,7 +9,7 @@ import { WeaviateInvalidInputError, WeaviateQueryError } from '../../errors.js';
 import { Aggregator } from '../../graphql/index.js';
 import { PrimitiveKeys, toBase64FromMedia } from '../../index.js';
 import { Deserialize } from '../deserialize/index.js';
-import { Bm25QueryProperty, NearVectorInputType } from '../query/types.js';
+import { Bm25QueryProperty, NearVectorInputType, TargetVector } from '../query/types.js';
 import { NearVectorInputGuards } from '../query/utils.js';
 import { Serialize } from '../serialize/index.js';
 
@@ -31,27 +31,27 @@ export type GroupByAggregate<T> = {
 
 export type AggregateOverAllOptions<M> = AggregateBaseOptions<M>;
 
-export type AggregateNearOptions<M> = AggregateBaseOptions<M> & {
+export type AggregateNearOptions<M, V> = AggregateBaseOptions<M> & {
   certainty?: number;
   distance?: number;
   objectLimit?: number;
-  targetVector?: string;
+  targetVector?: TargetVector<V>;
 };
 
-export type AggregateHybridOptions<T, M> = AggregateBaseOptions<M> & {
+export type AggregateHybridOptions<T, M, V> = AggregateBaseOptions<M> & {
   alpha?: number;
   maxVectorDistance?: number;
   objectLimit?: number;
   queryProperties?: (PrimitiveKeys<T> | Bm25QueryProperty<T>)[];
-  targetVector?: string;
+  targetVector?: TargetVector<V>;
   vector?: number[];
 };
 
-export type AggregateGroupByHybridOptions<T, M> = AggregateHybridOptions<T, M> & {
+export type AggregateGroupByHybridOptions<T, M, V> = AggregateHybridOptions<T, M, V> & {
   groupBy: PropertyOf<T> | GroupByAggregate<T>;
 };
 
-export type AggregateGroupByNearOptions<T, M> = AggregateNearOptions<M> & {
+export type AggregateGroupByNearOptions<T, M, V> = AggregateNearOptions<M, V> & {
   groupBy: PropertyOf<T> | GroupByAggregate<T>;
 };
 
@@ -346,9 +346,9 @@ export type AggregateGroupByResult<
   };
 };
 
-class AggregateManager<T> implements Aggregate<T> {
+class AggregateManager<T, V> implements Aggregate<T, V> {
   connection: Connection;
-  groupBy: AggregateGroupBy<T>;
+  groupBy: AggregateGroupBy<T, V>;
   name: string;
   dbVersionSupport: DbVersionSupport;
   consistencyLevel?: ConsistencyLevel;
@@ -373,14 +373,14 @@ class AggregateManager<T> implements Aggregate<T> {
     this.groupBy = {
       hybrid: async <M extends PropertiesMetrics<T>>(
         query: string,
-        opts: AggregateGroupByHybridOptions<T, M>
+        opts: AggregateGroupByHybridOptions<T, M, V>
       ): Promise<AggregateGroupByResult<T, M>[]> => {
         if (await this.grpcChecker) {
           const group = typeof opts.groupBy === 'string' ? { property: opts.groupBy } : opts.groupBy;
           return this.grpc()
-            .then((aggregate) =>
+            .then(async (aggregate) =>
               aggregate.withHybrid({
-                ...Serialize.aggregate.hybrid(query, opts),
+                ...(await Serialize.aggregate.hybrid(query, opts)),
                 groupBy: Serialize.aggregate.groupBy(group),
                 limit: group.limit,
               })
@@ -402,7 +402,7 @@ class AggregateManager<T> implements Aggregate<T> {
       },
       nearImage: async <M extends PropertiesMetrics<T>>(
         image: string | Buffer,
-        opts: AggregateGroupByNearOptions<T, M>
+        opts: AggregateGroupByNearOptions<T, M, V>
       ): Promise<AggregateGroupByResult<T, M>[]> => {
         const [b64, usesGrpc] = await Promise.all([await toBase64FromMedia(image), await this.grpcChecker]);
         if (usesGrpc) {
@@ -430,7 +430,7 @@ class AggregateManager<T> implements Aggregate<T> {
       },
       nearObject: async <M extends PropertiesMetrics<T>>(
         id: string,
-        opts: AggregateGroupByNearOptions<T, M>
+        opts: AggregateGroupByNearOptions<T, M, V>
       ): Promise<AggregateGroupByResult<T, M>[]> => {
         if (await this.grpcChecker) {
           const group = typeof opts.groupBy === 'string' ? { property: opts.groupBy } : opts.groupBy;
@@ -457,7 +457,7 @@ class AggregateManager<T> implements Aggregate<T> {
       },
       nearText: async <M extends PropertiesMetrics<T>>(
         query: string | string[],
-        opts: AggregateGroupByNearOptions<T, M>
+        opts: AggregateGroupByNearOptions<T, M, V>
       ): Promise<AggregateGroupByResult<T, M>[]> => {
         if (await this.grpcChecker) {
           const group = typeof opts.groupBy === 'string' ? { property: opts.groupBy } : opts.groupBy;
@@ -484,14 +484,14 @@ class AggregateManager<T> implements Aggregate<T> {
       },
       nearVector: async <M extends PropertiesMetrics<T>>(
         vector: number[],
-        opts: AggregateGroupByNearOptions<T, M>
+        opts: AggregateGroupByNearOptions<T, M, V>
       ): Promise<AggregateGroupByResult<T, M>[]> => {
         if (await this.grpcChecker) {
           const group = typeof opts.groupBy === 'string' ? { property: opts.groupBy } : opts.groupBy;
           return this.grpc()
-            .then((aggregate) =>
+            .then(async (aggregate) =>
               aggregate.withNearVector({
-                ...Serialize.aggregate.nearVector(vector, opts),
+                ...(await Serialize.aggregate.nearVector(vector, opts)),
                 groupBy: Serialize.aggregate.groupBy(group),
                 limit: group.limit,
               })
@@ -593,23 +593,23 @@ class AggregateManager<T> implements Aggregate<T> {
     return `${propertyName} { ${body} }`;
   }
 
-  static use<T>(
+  static use<T, V>(
     connection: Connection,
     name: string,
     dbVersionSupport: DbVersionSupport,
     consistencyLevel?: ConsistencyLevel,
     tenant?: string
-  ): AggregateManager<T> {
-    return new AggregateManager<T>(connection, name, dbVersionSupport, consistencyLevel, tenant);
+  ): AggregateManager<T, V> {
+    return new AggregateManager<T, V>(connection, name, dbVersionSupport, consistencyLevel, tenant);
   }
 
   async hybrid<M extends PropertiesMetrics<T>>(
     query: string,
-    opts?: AggregateHybridOptions<T, M>
+    opts?: AggregateHybridOptions<T, M, V>
   ): Promise<AggregateResult<T, M>> {
     if (await this.grpcChecker) {
       return this.grpc()
-        .then((aggregate) => aggregate.withHybrid(Serialize.aggregate.hybrid(query, opts)))
+        .then(async (aggregate) => aggregate.withHybrid(await Serialize.aggregate.hybrid(query, opts)))
         .then((reply) => Deserialize.aggregate(reply));
     }
     let builder = this.base(opts?.returnMetrics, opts?.filters).withHybrid({
@@ -628,7 +628,7 @@ class AggregateManager<T> implements Aggregate<T> {
 
   async nearImage<M extends PropertiesMetrics<T>>(
     image: string | Buffer,
-    opts?: AggregateNearOptions<M>
+    opts?: AggregateNearOptions<M, V>
   ): Promise<AggregateResult<T, M>> {
     const [b64, usesGrpc] = await Promise.all([await toBase64FromMedia(image), await this.grpcChecker]);
     if (usesGrpc) {
@@ -650,7 +650,7 @@ class AggregateManager<T> implements Aggregate<T> {
 
   async nearObject<M extends PropertiesMetrics<T>>(
     id: string,
-    opts?: AggregateNearOptions<M>
+    opts?: AggregateNearOptions<M, V>
   ): Promise<AggregateResult<T, M>> {
     if (await this.grpcChecker) {
       return this.grpc()
@@ -671,7 +671,7 @@ class AggregateManager<T> implements Aggregate<T> {
 
   async nearText<M extends PropertiesMetrics<T>>(
     query: string | string[],
-    opts?: AggregateNearOptions<M>
+    opts?: AggregateNearOptions<M, V>
   ): Promise<AggregateResult<T, M>> {
     if (await this.grpcChecker) {
       return this.grpc()
@@ -692,14 +692,16 @@ class AggregateManager<T> implements Aggregate<T> {
 
   async nearVector<M extends PropertiesMetrics<T>>(
     vector: NearVectorInputType,
-    opts?: AggregateNearOptions<M>
+    opts?: AggregateNearOptions<M, V>
   ): Promise<AggregateResult<T, M>> {
     if (await this.grpcChecker) {
       return this.grpc()
-        .then((aggregate) => aggregate.withNearVector(Serialize.aggregate.nearVector(vector, opts)))
+        .then(async (aggregate) =>
+          aggregate.withNearVector(await Serialize.aggregate.nearVector(vector, opts))
+        )
         .then((reply) => Deserialize.aggregate(reply));
     }
-    if (!NearVectorInputGuards.is1DArray(vector)) {
+    if (!NearVectorInputGuards.is1D(vector)) {
       throw new WeaviateInvalidInputError(
         'Vector can only be a 1D array of numbers when using `nearVector` with <1.29 Weaviate versions.'
       );
@@ -768,9 +770,9 @@ class AggregateManager<T> implements Aggregate<T> {
   };
 }
 
-export interface Aggregate<T> {
+export interface Aggregate<T, V> {
   /** This namespace contains methods perform a group by search while aggregating metrics. */
-  groupBy: AggregateGroupBy<T>;
+  groupBy: AggregateGroupBy<T, V>;
   /**
    * Aggregate metrics over the objects returned by a hybrid search on this collection.
    *
@@ -782,7 +784,7 @@ export interface Aggregate<T> {
    */
   hybrid<M extends PropertiesMetrics<T>>(
     query: string,
-    opts?: AggregateHybridOptions<T, M>
+    opts?: AggregateHybridOptions<T, M, V>
   ): Promise<AggregateResult<T, M>>;
   /**
    * Aggregate metrics over the objects returned by a near image vector search on this collection.
@@ -797,7 +799,7 @@ export interface Aggregate<T> {
    */
   nearImage<M extends PropertiesMetrics<T>>(
     image: string | Buffer,
-    opts?: AggregateNearOptions<M>
+    opts?: AggregateNearOptions<M, V>
   ): Promise<AggregateResult<T, M>>;
   /**
    * Aggregate metrics over the objects returned by a near object search on this collection.
@@ -812,7 +814,7 @@ export interface Aggregate<T> {
    */
   nearObject<M extends PropertiesMetrics<T>>(
     id: string,
-    opts?: AggregateNearOptions<M>
+    opts?: AggregateNearOptions<M, V>
   ): Promise<AggregateResult<T, M>>;
   /**
    * Aggregate metrics over the objects returned by a near vector search on this collection.
@@ -827,7 +829,7 @@ export interface Aggregate<T> {
    */
   nearText<M extends PropertiesMetrics<T>>(
     query: string | string[],
-    opts?: AggregateNearOptions<M>
+    opts?: AggregateNearOptions<M, V>
   ): Promise<AggregateResult<T, M>>;
   /**
    * Aggregate metrics over the objects returned by a near vector search on this collection.
@@ -842,7 +844,7 @@ export interface Aggregate<T> {
    */
   nearVector<M extends PropertiesMetrics<T>>(
     vector: number[],
-    opts?: AggregateNearOptions<M>
+    opts?: AggregateNearOptions<M, V>
   ): Promise<AggregateResult<T, M>>;
   /**
    * Aggregate metrics over all the objects in this collection without any vector search.
@@ -853,7 +855,7 @@ export interface Aggregate<T> {
   overAll<M extends PropertiesMetrics<T>>(opts?: AggregateOverAllOptions<M>): Promise<AggregateResult<T, M>>;
 }
 
-export interface AggregateGroupBy<T> {
+export interface AggregateGroupBy<T, V> {
   /**
    * Aggregate metrics over the objects grouped by a specified property and returned by a hybrid search on this collection.
    *
@@ -865,7 +867,7 @@ export interface AggregateGroupBy<T> {
    */
   hybrid<M extends PropertiesMetrics<T>>(
     query: string,
-    opts: AggregateGroupByHybridOptions<T, M>
+    opts: AggregateGroupByHybridOptions<T, M, V>
   ): Promise<AggregateGroupByResult<T, M>[]>;
   /**
    * Aggregate metrics over the objects grouped by a specified property and returned by a near image vector search on this collection.
@@ -880,7 +882,7 @@ export interface AggregateGroupBy<T> {
    */
   nearImage<M extends PropertiesMetrics<T>>(
     image: string | Buffer,
-    opts: AggregateGroupByNearOptions<T, M>
+    opts: AggregateGroupByNearOptions<T, M, V>
   ): Promise<AggregateGroupByResult<T, M>[]>;
   /**
    * Aggregate metrics over the objects grouped by a specified property and returned by a near object search on this collection.
@@ -895,7 +897,7 @@ export interface AggregateGroupBy<T> {
    */
   nearObject<M extends PropertiesMetrics<T>>(
     id: string,
-    opts: AggregateGroupByNearOptions<T, M>
+    opts: AggregateGroupByNearOptions<T, M, V>
   ): Promise<AggregateGroupByResult<T, M>[]>;
   /**
    * Aggregate metrics over the objects grouped by a specified property and returned by a near text vector search on this collection.
@@ -910,7 +912,7 @@ export interface AggregateGroupBy<T> {
    */
   nearText<M extends PropertiesMetrics<T>>(
     query: string | string[],
-    opts: AggregateGroupByNearOptions<T, M>
+    opts: AggregateGroupByNearOptions<T, M, V>
   ): Promise<AggregateGroupByResult<T, M>[]>;
   /**
    * Aggregate metrics over the objects grouped by a specified property and returned by a near vector search on this collection.
@@ -925,7 +927,7 @@ export interface AggregateGroupBy<T> {
    */
   nearVector<M extends PropertiesMetrics<T>>(
     vector: number[],
-    opts: AggregateGroupByNearOptions<T, M>
+    opts: AggregateGroupByNearOptions<T, M, V>
   ): Promise<AggregateGroupByResult<T, M>[]>;
   /**
    * Aggregate metrics over all the objects in this collection grouped by a specified property without any vector search.

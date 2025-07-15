@@ -46,7 +46,7 @@ describe('Journey testing of the client using a WCD cluster', () => {
       ],
       generative: weaviate.configure.generative.cohere(),
       reranker: weaviate.configure.reranker.cohere(),
-      vectorizers: weaviate.configure.vectorizer.text2VecCohere(),
+      vectorizers: weaviate.configure.vectors.text2VecCohere(),
     });
   });
 
@@ -187,6 +187,7 @@ describe('Journey testing of the client using a WCD cluster', () => {
                 maxConnections: (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 26, 0)))
                   ? 64
                   : 32,
+                multiVector: undefined,
                 skip: false,
                 vectorCacheMaxObjects: 1000000000000,
                 quantizer: undefined,

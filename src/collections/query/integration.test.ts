@@ -45,7 +45,7 @@ describe('Testing of the collection.query methods with a simple collection', () 
             vectorizePropertyName: false,
           },
         ],
-        vectorizers: weaviate.configure.vectorizer.text2VecContextionary({
+        vectorizers: weaviate.configure.vectors.text2VecContextionary({
           vectorizeCollectionName: false,
         }),
       })
@@ -64,7 +64,7 @@ describe('Testing of the collection.query methods with a simple collection', () 
         });
       });
     const res = await collection.query.fetchObjectById(id, { includeVector: true });
-    vector = res?.vectors.default!;
+    vector = res?.vectors.default as number[];
   });
 
   it('should fetch an object by its id', async () => {
@@ -271,7 +271,7 @@ describe('Testing of the collection.query methods with a collection with a refer
             targetCollection: collectionName,
           },
         ],
-        vectorizers: weaviate.configure.vectorizer.text2VecContextionary({
+        vectorizers: weaviate.configure.vectors.text2VecContextionary({
           vectorizeCollectionName: false,
         }),
       })
@@ -520,7 +520,7 @@ describe('Testing of the collection.query methods with a collection with a neste
             ],
           },
         ],
-        vectorizers: weaviate.configure.vectorizer.text2VecContextionary(),
+        vectorizers: weaviate.configure.vectors.text2VecContextionary(),
       })
       .then(async () => {
         id1 = await collection.data.insert({
@@ -580,14 +580,23 @@ describe('Testing of the collection.query methods with a collection with a neste
 
 describe('Testing of the collection.query methods with a collection with a multiple vectors', () => {
   let client: WeaviateClient;
-  let collection: Collection<TestCollectionQueryWithMultiVector, 'TestCollectionQueryWithMultiVector'>;
+  let collection: Collection<
+    TestCollectionQueryWithMultiVectorProps,
+    'TestCollectionQueryWithMultiVector',
+    TestCollectionQueryWithMultiVectorVectors
+  >;
   const collectionName = 'TestCollectionQueryWithMultiVector';
 
   let id1: string;
   let id2: string;
 
-  type TestCollectionQueryWithMultiVector = {
+  type TestCollectionQueryWithMultiVectorProps = {
     title: string;
+  };
+
+  type TestCollectionQueryWithMultiVectorVectors = {
+    title: number[];
+    title2: number[];
   };
 
   afterAll(() => {
@@ -602,7 +611,7 @@ describe('Testing of the collection.query methods with a collection with a multi
     collection = client.collections.use(collectionName);
     const query = () =>
       client.collections
-        .create<TestCollectionQueryWithMultiVector>({
+        .create({
           name: collectionName,
           properties: [
             {
@@ -612,11 +621,11 @@ describe('Testing of the collection.query methods with a collection with a multi
             },
           ],
           vectorizers: [
-            weaviate.configure.vectorizer.text2VecContextionary({
+            weaviate.configure.vectors.text2VecContextionary({
               name: 'title',
               sourceProperties: ['title'],
             }),
-            weaviate.configure.vectorizer.text2VecContextionary({
+            weaviate.configure.vectors.text2VecContextionary({
               name: 'title2',
               sourceProperties: ['title'],
             }),
@@ -1119,7 +1128,7 @@ describe('Testing of the groupBy collection.query methods with a simple collecti
             dataType: 'text',
           },
         ],
-        vectorizers: weaviate.configure.vectorizer.text2VecContextionary({
+        vectorizers: weaviate.configure.vectors.text2VecContextionary({
           vectorizeCollectionName: false,
         }),
       })
@@ -1131,7 +1140,7 @@ describe('Testing of the groupBy collection.query methods with a simple collecti
         });
       });
     const res = await collection.query.fetchObjectById(id, { includeVector: true });
-    vector = res?.vectors.default!;
+    vector = res?.vectors.default as number[];
   });
 
   // it('should groupBy without search', async () => {
@@ -1281,7 +1290,7 @@ describe('Testing of the collection.query methods with a multi-tenancy collectio
           },
         ],
         multiTenancy: weaviate.configure.multiTenancy({ enabled: true }),
-        vectorizers: weaviate.configure.vectorizer.text2VecContextionary({
+        vectorizers: weaviate.configure.vectors.text2VecContextionary({
           vectorizeCollectionName: false,
         }),
       })
@@ -1429,7 +1438,7 @@ describe('Testing of the collection.query methods with a multi-tenancy collectio
 //           },
 //         ],
 //         reranker: weaviate.configure.reranker.transformers(),
-//         vectorizers: weaviate.configure.vectorizer.text2VecOpenAI(),
+//         vectorizers: weaviate.configure.vectors.text2VecOpenAI(),
 //       })
 //       .then(() =>
 //         Promise.all([

@@ -32,8 +32,9 @@ import { GroupByObject, GroupByResult, WeaviateGenericObject, WeaviateNonGeneric
 
 export type GenerativeGenericObject<
   T,
+  V,
   C extends GenerativeConfigRuntime | undefined
-> = WeaviateGenericObject<T> & {
+> = WeaviateGenericObject<T, V> & {
   /** @deprecated (use `generative.text` instead) The LLM-generated output applicable to this single object. */
   generated?: string;
   /** Generative data returned from the LLM inference on this object. */
@@ -53,9 +54,13 @@ export type GenerativeNonGenericObject<C extends GenerativeConfigRuntime | undef
  * Depending on the generic type `T`, the object will have subfields that map from `T`'s specific type definition.
  * If not, then the object will be non-generic and have a `properties` field that maps from a generic string to a `WeaviateField`.
  */
-export type GenerativeObject<T, C extends GenerativeConfigRuntime | undefined> = T extends undefined
-  ? GenerativeNonGenericObject<C>
-  : GenerativeGenericObject<T, C>;
+export type GenerativeObject<T, V, C extends GenerativeConfigRuntime | undefined> = T extends undefined
+  ? V extends undefined
+    ? GenerativeNonGenericObject<C>
+    : GenerativeGenericObject<GenerativeNonGenericObject<C>['properties'], V, C>
+  : V extends undefined
+  ? GenerativeGenericObject<T, GenerativeNonGenericObject<C>['vectors'], C>
+  : GenerativeGenericObject<T, V, C>;
 
 export type GenerativeSingle<C extends GenerativeConfigRuntime | undefined> = {
   debug?: GenerativeDebug;
@@ -69,26 +74,29 @@ export type GenerativeGrouped<C extends GenerativeConfigRuntime | undefined> = {
 };
 
 /** The return of a query method in the `collection.generate` namespace. */
-export type GenerativeReturn<T, C extends GenerativeConfigRuntime | undefined> = {
+export type GenerativeReturn<T, V, C extends GenerativeConfigRuntime | undefined> = {
   /** The objects that were found by the query. */
-  objects: GenerativeObject<T, C>[];
+  objects: GenerativeObject<T, V, C>[];
   /** @deprecated (use `generative.text` instead) The LLM-generated output applicable to this query as a whole. */
   generated?: string;
   generative?: GenerativeGrouped<C>;
 };
 
-export type GenerativeGroupByResult<T, C extends GenerativeConfigRuntime | undefined> = GroupByResult<T> & {
+export type GenerativeGroupByResult<T, V, C extends GenerativeConfigRuntime | undefined> = GroupByResult<
+  T,
+  V
+> & {
   /** @deprecated (use `generative.text` instead) The LLM-generated output applicable to this query as a whole. */
   generated?: string;
   generative?: GenerativeSingle<C>;
 };
 
 /** The return of a query method in the `collection.generate` namespace where the `groupBy` argument was specified. */
-export type GenerativeGroupByReturn<T, C extends GenerativeConfigRuntime | undefined> = {
+export type GenerativeGroupByReturn<T, V, C extends GenerativeConfigRuntime | undefined> = {
   /** The objects that were found by the query. */
-  objects: GroupByObject<T>[];
+  objects: GroupByObject<T, V>[];
   /** The groups that were created by the query. */
-  groups: Record<string, GenerativeGroupByResult<T, C>>;
+  groups: Record<string, GenerativeGroupByResult<T, V, C>>;
   /** @deprecated (use `generative.text` instead) The LLM-generated output applicable to this query as a whole. */
   generated?: string;
   generative?: GenerativeGrouped<C>;
@@ -201,9 +209,9 @@ export type GenerativeMetadata<C extends GenerativeConfigRuntime | undefined> = 
     : never
   : never;
 
-export type GenerateReturn<T, C extends GenerativeConfigRuntime | undefined> =
-  | Promise<GenerativeReturn<T, C>>
-  | Promise<GenerativeGroupByReturn<T, C>>;
+export type GenerateReturn<T, V, C extends GenerativeConfigRuntime | undefined> =
+  | Promise<GenerativeReturn<T, V, C>>
+  | Promise<GenerativeGroupByReturn<T, V, C>>;
 
 export type GenerativeAnthropicConfigRuntime = {
   baseURL?: string | undefined;
