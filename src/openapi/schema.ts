@@ -135,19 +135,19 @@ export interface paths {
     post: operations['objects.create'];
   };
   '/objects/{id}': {
-    /** Get a specific object based on its UUID. Also available as Websocket bus. */
+    /** Get a specific object based on its UUID. Also available as Websocket bus. <br/><br/>**Note**: This endpoint is deprecated and will be removed in a future version. Use the `/objects/{className}/{id}` endpoint instead. */
     get: operations['objects.get'];
-    /** Updates an object based on its UUID. Given meta-data and schema values are validated. LastUpdateTime is set to the time this function is called. */
+    /** Updates an object based on its UUID. Given meta-data and schema values are validated. LastUpdateTime is set to the time this function is called. <br/><br/>**Note**: This endpoint is deprecated and will be removed in a future version. Use the `/objects/{className}/{id}` endpoint instead. */
     put: operations['objects.update'];
-    /** Deletes an object from the database based on its UUID. */
+    /** Deletes an object from the database based on its UUID. <br/><br/>**Note**: This endpoint is deprecated and will be removed in a future version. Use the `/objects/{className}/{id}` endpoint instead. */
     delete: operations['objects.delete'];
-    /** Checks if an object exists in the system based on its UUID. */
+    /** Checks if an object exists in the system based on its UUID. <br/><br/>**Note**: This endpoint is deprecated and will be removed in a future version. Use the `/objects/{className}/{id}` endpoint instead. */
     head: operations['objects.head'];
-    /** Update an object based on its UUID (using patch semantics). This method supports json-merge style patch semantics (RFC 7396). Provided meta-data and schema values are validated. LastUpdateTime is set to the time this function is called. */
+    /** Update an object based on its UUID (using patch semantics). This method supports json-merge style patch semantics (RFC 7396). Provided meta-data and schema values are validated. LastUpdateTime is set to the time this function is called. <br/><br/>**Note**: This endpoint is deprecated and will be removed in a future version. Use the `/objects/{className}/{id}` endpoint instead. */
     patch: operations['objects.patch'];
   };
   '/objects/{className}/{id}': {
-    /** Get a data object based on its collection and UUID. Also available as Websocket bus. */
+    /** Get a data object based on its collection and UUID. */
     get: operations['objects.class.get'];
     /** Update an object based on its uuid and collection. This (`put`) method replaces the object with the provided object. */
     put: operations['objects.class.put'];
@@ -159,11 +159,11 @@ export interface paths {
     patch: operations['objects.class.patch'];
   };
   '/objects/{id}/references/{propertyName}': {
-    /** Replace all references in cross-reference property of an object. */
+    /** Replace all references in cross-reference property of an object. <br/><br/>**Note**: This endpoint is deprecated and will be removed in a future version. Use the `/objects/{className}/{id}/references/{propertyName}` endpoint instead. */
     put: operations['objects.references.update'];
-    /** Add a cross-reference. */
+    /** Add a cross-reference. <br/><br/>**Note**: This endpoint is deprecated and will be removed in a future version. Use the `/objects/{className}/{id}/references/{propertyName}` endpoint instead. */
     post: operations['objects.references.create'];
-    /** Delete the single reference that is given in the body from the list of references that this property has. */
+    /** Delete the single reference that is given in the body from the list of references that this property has. <br/><br/>**Note**: This endpoint is deprecated and will be removed in a future version. Use the `/objects/{className}/{id}/references/{propertyName}` endpoint instead. */
     delete: operations['objects.references.delete'];
   };
   '/objects/{className}/{id}/references/{propertyName}': {
@@ -239,6 +239,20 @@ export interface paths {
     get: operations['tenants.get.one'];
     /** Check if a tenant exists for a specific class */
     head: operations['tenant.exists'];
+  };
+  '/aliases': {
+    /** Retrieve a list of all aliases in the system. Results can be filtered by specifying a collection (class) name to get aliases for a specific collection only. */
+    get: operations['aliases.get'];
+    /** Create a new alias mapping between an alias name and a collection (class). The alias acts as an alternative name for accessing the collection. */
+    post: operations['aliases.create'];
+  };
+  '/aliases/{aliasName}': {
+    /** Retrieve details about a specific alias by its name, including which collection (class) it points to. */
+    get: operations['aliases.get.alias'];
+    /** Update an existing alias to point to a different collection (class). This allows you to redirect an alias from one collection to another without changing the alias name. */
+    put: operations['aliases.update'];
+    /** Remove an existing alias from the system. This will delete the alias mapping but will not affect the underlying collection (class). */
+    delete: operations['aliases.delete'];
   };
   '/backups/{backend}': {
     /** [Coming soon] List all backups in progress not implemented yet. */
@@ -433,6 +447,19 @@ export interface definitions {
        */
       shard?: string;
     };
+    /** @description Resource definition for alias-related actions and permissions. Used to specify which aliases and collections can be accessed or modified. */
+    aliases?: {
+      /**
+       * @description A string that specifies which collections this permission applies to. Can be an exact collection name or a regex pattern. The default value `*` applies the permission to all collections.
+       * @default *
+       */
+      collection?: string;
+      /**
+       * @description A string that specifies which aliases this permission applies to. Can be an exact alias name or a regex pattern. The default value `*` applies the permission to all aliases.
+       * @default *
+       */
+      alias?: string;
+    };
     /**
      * @description allowed actions in weaviate.
      * @enum {string}
@@ -465,7 +492,11 @@ export interface definitions {
       | 'create_replicate'
       | 'read_replicate'
       | 'update_replicate'
-      | 'delete_replicate';
+      | 'delete_replicate'
+      | 'create_aliases'
+      | 'read_aliases'
+      | 'update_aliases'
+      | 'delete_aliases';
   };
   /** @description list of roles */
   RolesListResponse: definitions['Role'][];
@@ -718,22 +749,22 @@ export interface definitions {
     value?: { [key: string]: unknown };
     merge?: definitions['Object'];
   };
-  /** @description Specifies the parameters required to initiate a shard replica movement operation between two nodes for a given collection and shard. This request defines the source and destination node, the collection and type of transfer. */
+  /** @description Specifies the parameters required to initiate a shard replica movement operation between two nodes for a given collection and shard. This request defines the source and target node, the collection and type of transfer. */
   ReplicationReplicateReplicaRequest: {
     /** @description The name of the Weaviate node currently hosting the shard replica that needs to be moved or copied. */
-    sourceNodeName: string;
+    sourceNode: string;
     /** @description The name of the Weaviate node where the new shard replica will be created as part of the movement or copy operation. */
-    destinationNodeName: string;
-    /** @description The unique identifier (name) of the collection to which the target shard belongs. */
-    collectionId: string;
-    /** @description The ID of the shard whose replica is to be moved or copied. */
-    shardId: string;
+    targetNode: string;
+    /** @description The name of the collection to which the target shard belongs. */
+    collection: string;
+    /** @description The name of the shard whose replica is to be moved or copied. */
+    shard: string;
     /**
-     * @description Specifies the type of replication operation to perform. 'COPY' creates a new replica on the destination node while keeping the source replica. 'MOVE' creates a new replica on the destination node and then removes the source replica upon successful completion. Defaults to 'COPY' if omitted.
+     * @description Specifies the type of replication operation to perform. 'COPY' creates a new replica on the target node while keeping the source replica. 'MOVE' creates a new replica on the target node and then removes the source replica upon successful completion. Defaults to 'COPY' if omitted.
      * @default COPY
      * @enum {string}
      */
-    transferType?: 'COPY' | 'MOVE';
+    type?: 'COPY' | 'MOVE';
   };
   /** @description Contains the unique identifier for a successfully initiated asynchronous replica movement operation. This ID can be used to track the progress of the operation. */
   ReplicationReplicateReplicaResponse: {
@@ -750,20 +781,20 @@ export interface definitions {
   /** @description Specifies the parameters required to mark a specific shard replica as inactive (soft-delete) on a particular node. This action typically prevents the replica from serving requests but does not immediately remove its data. */
   ReplicationDisableReplicaRequest: {
     /** @description The name of the Weaviate node hosting the shard replica that is to be disabled. */
-    nodeName: string;
+    node: string;
     /** @description The name of the collection to which the shard replica belongs. */
-    collectionId: string;
+    collection: string;
     /** @description The ID of the shard whose replica is to be disabled. */
-    shardId: string;
+    shard: string;
   };
   /** @description Specifies the parameters required to permanently delete a specific shard replica from a particular node. This action will remove the replica's data from the node. */
   ReplicationDeleteReplicaRequest: {
     /** @description The name of the Weaviate node from which the shard replica will be deleted. */
-    nodeName: string;
+    node: string;
     /** @description The name of the collection to which the shard replica belongs. */
-    collectionId: string;
+    collection: string;
     /** @description The ID of the shard whose replica is to be deleted. */
-    shardId: string;
+    shard: string;
   };
   /** @description Represents a shard and lists the nodes that currently host its replicas. */
   ReplicationShardReplicas: {
@@ -777,6 +808,16 @@ export interface definitions {
     /** @description An array detailing each shard within the collection and the nodes hosting its replicas. */
     shards?: definitions['ReplicationShardReplicas'][];
   };
+  /** @description Represents an error encountered during a replication operation, including its timestamp and a human-readable message. */
+  ReplicationReplicateDetailsReplicaStatusError: {
+    /**
+     * Format: int64
+     * @description The unix timestamp in ms when the error occurred. This is an approximate time and so should not be used for precise timing.
+     */
+    whenErroredUnixMs?: number;
+    /** @description A human-readable message describing the error. */
+    message?: string;
+  };
   /** @description Represents the current or historical status of a shard replica involved in a replication operation, including its operational state and any associated errors. */
   ReplicationReplicateDetailsReplicaStatus: {
     /**
@@ -784,8 +825,13 @@ export interface definitions {
      * @enum {string}
      */
     state?: 'REGISTERED' | 'HYDRATING' | 'FINALIZING' | 'DEHYDRATING' | 'READY' | 'CANCELLED';
+    /**
+     * Format: int64
+     * @description The UNIX timestamp in ms when this state was first entered. This is an approximate time and so should not be used for precise timing.
+     */
+    whenStartedUnixMs?: number;
     /** @description A list of error messages encountered by this replica during the replication operation, if any. */
-    errors?: string[];
+    errors?: definitions['ReplicationReplicateDetailsReplicaStatusError'][];
   };
   /** @description Provides a comprehensive overview of a specific replication operation, detailing its unique ID, the involved collection, shard, source and target nodes, transfer type, current status, and optionally, its status history. */
   ReplicationReplicateDetailsReplicaResponse: {
@@ -794,23 +840,34 @@ export interface definitions {
      * @description The unique identifier (ID) of this specific replication operation.
      */
     id: string;
-    /** @description The identifier of the shard involved in this replication operation. */
-    shardId: string;
+    /** @description The name of the shard involved in this replication operation. */
+    shard: string;
     /** @description The name of the collection to which the shard being replicated belongs. */
     collection: string;
     /** @description The identifier of the node from which the replica is being moved or copied (the source node). */
-    sourceNodeId: string;
-    /** @description The identifier of the node to which the replica is being moved or copied (the destination node). */
-    targetNodeId: string;
+    sourceNode: string;
+    /** @description The identifier of the node to which the replica is being moved or copied (the target node). */
+    targetNode: string;
     /**
      * @description Indicates whether the operation is a 'COPY' (source replica remains) or a 'MOVE' (source replica is removed after successful transfer).
      * @enum {string}
      */
-    transferType: 'COPY' | 'MOVE';
+    type: 'COPY' | 'MOVE';
+    /** @description Whether the replica operation is uncancelable. */
+    uncancelable?: boolean;
+    /** @description Whether the replica operation is scheduled for cancellation. */
+    scheduledForCancel?: boolean;
+    /** @description Whether the replica operation is scheduled for deletion. */
+    scheduledForDelete?: boolean;
     /** @description An object detailing the current operational state of the replica movement and any errors encountered. */
     status: definitions['ReplicationReplicateDetailsReplicaStatus'];
     /** @description An array detailing the historical sequence of statuses the replication operation has transitioned through, if requested and available. */
     statusHistory?: definitions['ReplicationReplicateDetailsReplicaStatus'][];
+    /**
+     * Format: int64
+     * @description The UNIX timestamp in ms when the replication operation was initiated. This is an approximate time and so should not be used for precise timing.
+     */
+    whenStartedUnixMs?: number;
   };
   /** @description Specifies the parameters available when force deleting replication operations. */
   ReplicationReplicateForceDeleteRequest: {
@@ -1065,6 +1122,18 @@ export interface definitions {
      * @default 50
      */
     CPUPercentage?: number;
+    /**
+     * @description How roles should be restored
+     * @default noRestore
+     * @enum {string}
+     */
+    rolesOptions?: 'noRestore' | 'all';
+    /**
+     * @description How users should be restored
+     * @default noRestore
+     * @enum {string}
+     */
+    usersOptions?: 'noRestore' | 'all';
   };
   /** @description Request body for creating a backup of a set of classes */
   BackupCreateRequest: {
@@ -1832,6 +1901,18 @@ export interface definitions {
       | 'FREEZING'
       | 'UNFREEZING';
   };
+  /** @description Represents the mapping between an alias name and a collection. An alias provides an alternative name for accessing a collection. */
+  Alias: {
+    /** @description The unique name of the alias that serves as an alternative identifier for the collection. */
+    alias?: string;
+    /** @description The name of the collection (class) to which this alias is mapped. */
+    class?: string;
+  };
+  /** @description Response object containing a list of alias mappings. */
+  AliasResponse: {
+    /** @description Array of alias objects, each containing an alias-to-collection mapping. */
+    aliases?: definitions['Alias'][];
+  };
 }
 
 export interface parameters {
@@ -2073,8 +2154,8 @@ export interface operations {
   listReplication: {
     parameters: {
       query: {
-        /** The ID of the target node to get details for. */
-        nodeId?: string;
+        /** The name of the target node to get details for. */
+        targetNode?: string;
         /** The name of the collection to get details for. */
         collection?: string;
         /** The shard to get details for. */
@@ -2096,10 +2177,6 @@ export interface operations {
       401: unknown;
       /** Forbidden */
       403: {
-        schema: definitions['ErrorResponse'];
-      };
-      /** Shard replica operation not found. */
-      404: {
         schema: definitions['ErrorResponse'];
       };
       /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
@@ -2270,6 +2347,20 @@ export interface operations {
         /** user id */
         user_id: string;
       };
+      body: {
+        body?: {
+          /**
+           * @description EXPERIMENTAL, DONT USE. THIS WILL BE REMOVED AGAIN. - import api key from static user
+           * @default false
+           */
+          import?: boolean;
+          /**
+           * Format: date-time
+           * @description EXPERIMENTAL, DONT USE. THIS WILL BE REMOVED AGAIN. - set the given time as creation time
+           */
+          createTime?: string;
+        };
+      };
     };
     responses: {
       /** User created successfully */
@@ -2284,6 +2375,10 @@ export interface operations {
       401: unknown;
       /** Forbidden */
       403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** user not found */
+      404: {
         schema: definitions['ErrorResponse'];
       };
       /** User already exists */
@@ -3033,7 +3128,7 @@ export interface operations {
       };
     };
   };
-  /** Get a specific object based on its UUID. Also available as Websocket bus. */
+  /** Get a specific object based on its UUID. Also available as Websocket bus. <br/><br/>**Note**: This endpoint is deprecated and will be removed in a future version. Use the `/objects/{className}/{id}` endpoint instead. */
   'objects.get': {
     parameters: {
       path: {
@@ -3068,7 +3163,7 @@ export interface operations {
       };
     };
   };
-  /** Updates an object based on its UUID. Given meta-data and schema values are validated. LastUpdateTime is set to the time this function is called. */
+  /** Updates an object based on its UUID. Given meta-data and schema values are validated. LastUpdateTime is set to the time this function is called. <br/><br/>**Note**: This endpoint is deprecated and will be removed in a future version. Use the `/objects/{className}/{id}` endpoint instead. */
   'objects.update': {
     parameters: {
       path: {
@@ -3106,7 +3201,7 @@ export interface operations {
       };
     };
   };
-  /** Deletes an object from the database based on its UUID. */
+  /** Deletes an object from the database based on its UUID. <br/><br/>**Note**: This endpoint is deprecated and will be removed in a future version. Use the `/objects/{className}/{id}` endpoint instead. */
   'objects.delete': {
     parameters: {
       path: {
@@ -3137,7 +3232,7 @@ export interface operations {
       };
     };
   };
-  /** Checks if an object exists in the system based on its UUID. */
+  /** Checks if an object exists in the system based on its UUID. <br/><br/>**Note**: This endpoint is deprecated and will be removed in a future version. Use the `/objects/{className}/{id}` endpoint instead. */
   'objects.head': {
     parameters: {
       path: {
@@ -3162,7 +3257,7 @@ export interface operations {
       };
     };
   };
-  /** Update an object based on its UUID (using patch semantics). This method supports json-merge style patch semantics (RFC 7396). Provided meta-data and schema values are validated. LastUpdateTime is set to the time this function is called. */
+  /** Update an object based on its UUID (using patch semantics). This method supports json-merge style patch semantics (RFC 7396). Provided meta-data and schema values are validated. LastUpdateTime is set to the time this function is called. <br/><br/>**Note**: This endpoint is deprecated and will be removed in a future version. Use the `/objects/{className}/{id}` endpoint instead. */
   'objects.patch': {
     parameters: {
       path: {
@@ -3201,7 +3296,7 @@ export interface operations {
       };
     };
   };
-  /** Get a data object based on its collection and UUID. Also available as Websocket bus. */
+  /** Get a data object based on its collection and UUID. */
   'objects.class.get': {
     parameters: {
       path: {
@@ -3406,7 +3501,7 @@ export interface operations {
       };
     };
   };
-  /** Replace all references in cross-reference property of an object. */
+  /** Replace all references in cross-reference property of an object. <br/><br/>**Note**: This endpoint is deprecated and will be removed in a future version. Use the `/objects/{className}/{id}/references/{propertyName}` endpoint instead. */
   'objects.references.update': {
     parameters: {
       path: {
@@ -3442,7 +3537,7 @@ export interface operations {
       };
     };
   };
-  /** Add a cross-reference. */
+  /** Add a cross-reference. <br/><br/>**Note**: This endpoint is deprecated and will be removed in a future version. Use the `/objects/{className}/{id}/references/{propertyName}` endpoint instead. */
   'objects.references.create': {
     parameters: {
       path: {
@@ -3478,7 +3573,7 @@ export interface operations {
       };
     };
   };
-  /** Delete the single reference that is given in the body from the list of references that this property has. */
+  /** Delete the single reference that is given in the body from the list of references that this property has. <br/><br/>**Note**: This endpoint is deprecated and will be removed in a future version. Use the `/objects/{className}/{id}/references/{propertyName}` endpoint instead. */
   'objects.references.delete': {
     parameters: {
       path: {
@@ -4294,6 +4389,163 @@ export interface operations {
       /** The tenant not found */
       404: unknown;
       /** Invalid Tenant class */
+      422: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
+  /** Retrieve a list of all aliases in the system. Results can be filtered by specifying a collection (class) name to get aliases for a specific collection only. */
+  'aliases.get': {
+    parameters: {
+      query: {
+        /** Optional filter to retrieve aliases for a specific collection (class) only. If not provided, returns all aliases. */
+        class?: string;
+      };
+    };
+    responses: {
+      /** Successfully retrieved the list of aliases */
+      200: {
+        schema: definitions['AliasResponse'];
+      };
+      /** Unauthorized or invalid credentials. */
+      401: unknown;
+      /** Forbidden */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Invalid collection (class) parameter provided */
+      422: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
+  /** Create a new alias mapping between an alias name and a collection (class). The alias acts as an alternative name for accessing the collection. */
+  'aliases.create': {
+    parameters: {
+      body: {
+        body: definitions['Alias'];
+      };
+    };
+    responses: {
+      /** Successfully created a new alias for the specified collection (class) */
+      200: {
+        schema: definitions['Alias'];
+      };
+      /** Unauthorized or invalid credentials. */
+      401: unknown;
+      /** Forbidden */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Invalid create alias request. */
+      422: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
+  /** Retrieve details about a specific alias by its name, including which collection (class) it points to. */
+  'aliases.get.alias': {
+    parameters: {
+      path: {
+        aliasName: string;
+      };
+    };
+    responses: {
+      /** Successfully retrieved the alias details. */
+      200: {
+        schema: definitions['Alias'];
+      };
+      /** Unauthorized or invalid credentials. */
+      401: unknown;
+      /** Forbidden */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Not Found - Alias does not exist */
+      404: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Invalid alias name provided. */
+      422: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
+  /** Update an existing alias to point to a different collection (class). This allows you to redirect an alias from one collection to another without changing the alias name. */
+  'aliases.update': {
+    parameters: {
+      path: {
+        aliasName: string;
+      };
+      body: {
+        body: {
+          /** @description The new collection (class) that the alias should point to. */
+          class?: string;
+        };
+      };
+    };
+    responses: {
+      /** Successfully updated the alias to point to the new collection (class). */
+      200: {
+        schema: definitions['Alias'];
+      };
+      /** Unauthorized or invalid credentials. */
+      401: unknown;
+      /** Forbidden */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Not Found - Alias does not exist */
+      404: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Invalid update alias request. */
+      422: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
+  /** Remove an existing alias from the system. This will delete the alias mapping but will not affect the underlying collection (class). */
+  'aliases.delete': {
+    parameters: {
+      path: {
+        aliasName: string;
+      };
+    };
+    responses: {
+      /** Successfully deleted the alias. */
+      204: never;
+      /** Unauthorized or invalid credentials. */
+      401: unknown;
+      /** Forbidden */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Not Found - Alias does not exist */
+      404: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Invalid delete alias request. */
       422: {
         schema: definitions['ErrorResponse'];
       };
