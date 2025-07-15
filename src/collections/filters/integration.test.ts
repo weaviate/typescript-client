@@ -57,7 +57,7 @@ describe('Testing of the filter class with a simple collection', () => {
           },
         ],
         invertedIndex: weaviate.configure.invertedIndex({ indexTimestamps: true }),
-        vectorizers: weaviate.configure.vectorizer.text2VecContextionary({
+        vectorizers: weaviate.configure.vectors.text2VecContextionary({
           vectorizeCollectionName: false,
         }),
       })
@@ -320,7 +320,7 @@ describe('Testing of the filter class with complex data types', () => {
             dataType: 'uuid',
           },
         ],
-        vectorizers: weaviate.configure.vectorizer.text2VecContextionary(),
+        vectorizers: weaviate.configure.vectors.text2VecContextionary(),
       })
       .then(() =>
         collection.data.insertMany([

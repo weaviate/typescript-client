@@ -59,7 +59,11 @@ const vectorDistances = {
 const configure = {
   generative,
   reranker,
+  /**
+   * @deprecated Use `vectors` instead.
+   */
   vectorizer,
+  vectors: vectorizer,
   vectorIndex: configureVectorIndex,
   dataType,
   tokenization,
@@ -219,7 +223,26 @@ const reconfigure = {
           : undefined,
     };
   },
+  /**
+   * @deprecated Use `vectors` instead.
+   */
   vectorizer: {
+    /**
+     * Create a `VectorConfigUpdate` object to be used when updating the named vector configuration of Weaviate.
+     *
+     * @param {string} name The name of the vector.
+     * @param {VectorizerOptions} options The options for the named vector.
+     */
+    update: <N extends string | undefined, I extends VectorIndexType>(
+      options: VectorizerUpdateOptions<N, I>
+    ): VectorConfigUpdate<N, I> => {
+      return {
+        name: options?.name as N,
+        vectorIndex: options.vectorIndexConfig,
+      };
+    },
+  },
+  vectors: {
     /**
      * Create a `VectorConfigUpdate` object to be used when updating the named vector configuration of Weaviate.
      *
