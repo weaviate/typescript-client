@@ -9,6 +9,7 @@ export type VectorIndexConfigHNSW = {
   filterStrategy: VectorIndexFilterStrategy;
   flatSearchCutoff: number;
   maxConnections: number;
+  multiVector: MultiVectorConfig | undefined;
   quantizer: QuantizerConfig | undefined;
   skip: boolean;
   vectorCacheMaxObjects: number;
@@ -18,7 +19,7 @@ export type VectorIndexConfigHNSW = {
 export type VectorIndexConfigFlat = {
   distance: VectorDistance;
   vectorCacheMaxObjects: number;
-  quantizer: BQConfig | undefined;
+  quantizer: QuantizerConfig | undefined;
   type: 'flat';
 };
 
@@ -66,6 +67,20 @@ export type RQConfig = {
   rescoreLimit?: number;
   type: 'rq';
 };
+
+export type MultiVectorConfig = {
+  aggregation: 'maxSim' | string;
+  encoding?: MultiVectorEncodingConfig;
+};
+
+export type MuveraEncodingConfig = {
+  ksim?: number;
+  dprojections?: number;
+  repetitions?: number;
+  type: 'muvera';
+};
+
+export type MultiVectorEncodingConfig = MuveraEncodingConfig | Record<string, any>;
 
 export type PQEncoderConfig = {
   type: PQEncoderType;

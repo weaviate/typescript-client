@@ -69,6 +69,7 @@ describe('Testing of the collection.config namespace', () => {
       filterStrategy: 'sweeping',
       flatSearchCutoff: 40000,
       distance: 'cosine',
+      multiVector: undefined,
       quantizer: undefined,
       type: 'hnsw',
     });
@@ -124,6 +125,7 @@ describe('Testing of the collection.config namespace', () => {
       filterStrategy: 'sweeping',
       flatSearchCutoff: 40000,
       distance: 'cosine',
+      multiVector: undefined,
       quantizer: undefined,
       type: 'hnsw',
     });
@@ -608,6 +610,7 @@ describe('Testing of the collection.config namespace', () => {
       filterStrategy: 'sweeping',
       flatSearchCutoff: 40000,
       distance: 'cosine',
+      multiVector: undefined,
       quantizer: {
         bitCompression: false,
         segments: 0,
@@ -717,6 +720,7 @@ describe('Testing of the collection.config namespace', () => {
       filterStrategy: 'sweeping',
       flatSearchCutoff: 40000,
       distance: 'cosine',
+      multiVector: undefined,
       type: 'hnsw',
       quantizer: {
         bitCompression: false,
@@ -782,4 +786,51 @@ describe('Testing of the collection.config namespace', () => {
       },
     });
   });
+
+  requireAtLeast(1, 31, 0).it(
+    'should be able to create and get a multi-vector collection with encoding',
+    async () => {
+      const collectionName = 'TestCollectionConfigCreateWithMuveraEncoding';
+      const collection = await client.collections.create({
+        name: collectionName,
+        vectorizers: weaviate.configure.vectorizer.none({
+          vectorIndexConfig: weaviate.configure.vectorIndex.hnsw({
+            multiVector: weaviate.configure.vectorIndex.multiVector.multiVector({
+              aggregation: 'maxSim',
+              encoding: weaviate.configure.vectorIndex.multiVector.encoding.muvera(),
+            }),
+          }),
+        }),
+      });
+      const config = await collection.config.get();
+      expect(config.name).toEqual(collectionName);
+
+      const indexConfig = config.vectorizers.default.indexConfig as VectorIndexConfigHNSW;
+      expect(indexConfig.multiVector).toBeDefined();
+      expect(indexConfig.multiVector?.aggregation).toEqual('maxSim');
+      expect(indexConfig.multiVector?.encoding).toBeDefined();
+    }
+  );
+
+  requireAtLeast(1, 31, 0).it(
+    'should be able to create and get a multi-vector collection without encoding',
+    async () => {
+      const collectionName = 'TestCollectionConfigCreateWithoutMuveraEncoding';
+      const collection = await client.collections.create({
+        name: collectionName,
+        vectorizers: weaviate.configure.vectorizer.none({
+          vectorIndexConfig: weaviate.configure.vectorIndex.hnsw({
+            multiVector: weaviate.configure.vectorIndex.multiVector.multiVector(),
+          }),
+        }),
+      });
+      const config = await collection.config.get();
+      expect(config.name).toEqual(collectionName);
+
+      const indexConfig = config.vectorizers.default.indexConfig as VectorIndexConfigHNSW;
+      expect(indexConfig.multiVector).toBeDefined();
+      expect(indexConfig.multiVector?.aggregation).toEqual('maxSim');
+      expect(indexConfig.multiVector?.encoding).toBeUndefined();
+    }
+  );
 });

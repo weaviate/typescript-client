@@ -1,6 +1,8 @@
 import {
   BQConfig,
   ModuleConfig,
+  MultiVectorConfig,
+  MuveraEncodingConfig,
   PQConfig,
   PQEncoderDistribution,
   PQEncoderType,
@@ -54,6 +56,29 @@ export type SQConfigUpdate = {
   type: 'sq';
 };
 
+export type QuantizerConfigCreate =
+  | PQConfigCreate
+  | BQConfigCreate
+  | SQConfigCreate
+  | RQConfigCreate
+  | Record<string, any>;
+
+export type QuantizerConfigUpdate =
+  | PQConfigUpdate
+  | BQConfigUpdate
+  | SQConfigUpdate
+  | RQConfigUpdate
+  | Record<string, any>;
+
+export type MultiVectorConfigCreate = {
+  aggregation?: MultiVectorConfig['aggregation'];
+  encoding?: MultiVectorEncodingConfigCreate;
+};
+
+export type MuveraEncodingConfigCreate = RecursivePartial<MuveraEncodingConfig>;
+
+export type MultiVectorEncodingConfigCreate = MuveraEncodingConfigCreate;
+
 export type VectorIndexConfigHNSWCreate = RecursivePartial<VectorIndexConfigHNSW>;
 
 export type VectorIndexConfigDynamicCreate = RecursivePartial<VectorIndexConfigDynamic>;
@@ -67,7 +92,7 @@ export type VectorIndexConfigHNSWUpdate = {
   ef?: number;
   filterStrategy?: VectorIndexFilterStrategy;
   flatSearchCutoff?: number;
-  quantizer?: PQConfigUpdate | BQConfigUpdate | SQConfigUpdate | RQConfigUpdate;
+  quantizer?: QuantizerConfigUpdate;
   vectorCacheMaxObjects?: number;
 };
 
@@ -138,8 +163,10 @@ export type VectorIndexConfigHNSWCreateOptions = {
   filterStrategy?: VectorIndexFilterStrategy;
   /** The maximum number of connections. Default is 64. */
   maxConnections?: number;
+  /** The multi-vector configuration to use. Use `vectorIndex.multiVector` to make one. */
+  multiVector?: MultiVectorConfigCreate;
   /** The quantizer configuration to use. Use `vectorIndex.quantizer.bq` or `vectorIndex.quantizer.pq` to make one. */
-  quantizer?: PQConfigCreate | BQConfigCreate | SQConfigCreate | RQConfigCreate;
+  quantizer?: QuantizerConfigCreate;
   /** Whether to skip the index. Default is false. */
   skip?: boolean;
   /** The maximum number of objects to cache in the vector cache. Default is 1000000000000. */
@@ -152,7 +179,7 @@ export type VectorIndexConfigFlatCreateOptions = {
   /** The maximum number of objects to cache in the vector cache. Default is 1000000000000. */
   vectorCacheMaxObjects?: number;
   /** The quantizer configuration to use. Default is `bq`. */
-  quantizer?: BQConfigCreate;
+  quantizer?: QuantizerConfigCreate;
 };
 
 export type VectorIndexConfigDynamicCreateOptions = {

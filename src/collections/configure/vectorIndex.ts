@@ -7,6 +7,8 @@ import {
 import {
   BQConfigCreate,
   BQConfigUpdate,
+  MultiVectorConfigCreate,
+  MuveraEncodingConfigCreate,
   PQConfigCreate,
   PQConfigUpdate,
   RQConfigCreate,
@@ -46,6 +48,7 @@ const configure = {
         distance,
         vectorCacheMaxObjects,
         quantizer: quantizer,
+        type: 'flat',
       },
     };
   },
@@ -67,6 +70,7 @@ const configure = {
         ? {
             ...rest,
             distance: distanceMetric,
+            type: 'hnsw',
           }
         : undefined,
     };
@@ -90,9 +94,56 @@ const configure = {
             threshold: opts.threshold,
             hnsw: isModuleConfig(opts.hnsw) ? opts.hnsw.config : configure.hnsw(opts.hnsw).config,
             flat: isModuleConfig(opts.flat) ? opts.flat.config : configure.flat(opts.flat).config,
+            type: 'dynamic',
           }
         : undefined,
     };
+  },
+  /**
+   * Define the configuration for a multi-vector index.
+   */
+  multiVector: {
+    /**
+     * Specify the encoding configuration for a multi-vector index.
+     */
+    encoding: {
+      /**
+       * Create an object of type `MuveraEncodingConfigCreate` to be used when defining the encoding configuration of a multi-vector index using MUVERA.
+       *
+       * @param {number} [options.ksim] The number of nearest neighbors to consider for similarity. Default is undefined.
+       * @param {number} [options.dprojections] The number of projections to use. Default is undefined.
+       * @param {number} [options.repetitions] The number of repetitions to use. Default is undefined.
+       * @returns {MuveraEncodingConfigCreate} The object of type `MuveraEncodingConfigCreate`.
+       */
+      muvera: (options?: {
+        ksim?: number;
+        dprojections?: number;
+        repetitions?: number;
+      }): MuveraEncodingConfigCreate => {
+        return {
+          ksim: options?.ksim,
+          dprojections: options?.dprojections,
+          repetitions: options?.repetitions,
+          type: 'muvera',
+        };
+      },
+    },
+    /**
+     * Create an object of type `MultiVectorConfigCreate` to be used when defining the configuration of a multi-vector index.
+     *
+     * @param {string} [options.aggregation] The aggregation method to use. Default is 'maxSim'.
+     * @param {MultiVectorConfig['encoding']} [options.encoding] The encoding configuration for the multi-vector index. Default is undefined.
+     * @returns {MultiVectorConfigCreate} The object of type `MultiVectorConfigCreate`.
+     */
+    multiVector: (options?: {
+      aggregation?: 'maxSim' | string;
+      encoding?: MultiVectorConfigCreate['encoding'];
+    }): MultiVectorConfigCreate => {
+      return {
+        aggregation: options?.aggregation,
+        encoding: options?.encoding,
+      };
+    },
   },
   /**
    * Define the quantizer configuration to use when creating a vector index.

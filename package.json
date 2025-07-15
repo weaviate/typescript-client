@@ -100,7 +100,8 @@
   "lint-staged": {
     "*.{ts,js}": [
       "npm run format:check",
-      "npm run lint -- --cache"
+      "npm run lint -- --cache",
+      "npm run prepack"
     ]
   }
 }

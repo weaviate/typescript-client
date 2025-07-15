@@ -135,6 +135,7 @@ describe('Unit testing of the configure & reconfigure factory classes', () => {
           quantizer: {
             type: 'pq',
           },
+          type: 'hnsw',
         },
       });
     });
@@ -189,6 +190,7 @@ describe('Unit testing of the configure & reconfigure factory classes', () => {
             type: 'pq',
           },
           skip: true,
+          type: 'hnsw',
           vectorCacheMaxObjects: 2000000000000,
         },
       });
@@ -202,6 +204,7 @@ describe('Unit testing of the configure & reconfigure factory classes', () => {
           quantizer: {
             type: 'bq',
           },
+          type: 'flat',
         },
       });
     });
@@ -226,6 +229,7 @@ describe('Unit testing of the configure & reconfigure factory classes', () => {
           rescoreLimit: 100,
           type: 'bq',
         },
+        type: 'flat',
       },
     });
   });
@@ -245,6 +249,22 @@ describe('Unit testing of the configure & reconfigure factory classes', () => {
           trainingLimit: 200,
           type: 'sq',
         },
+        type: 'hnsw',
+      },
+    });
+  });
+
+  it('should create an hnsw VectorIndexConfig type with multivector enabled', () => {
+    const config = configure.vectorIndex.hnsw({
+      multiVector: configure.vectorIndex.multiVector.multiVector({ aggregation: 'maxSim' }),
+    });
+    expect(config).toEqual<ModuleConfig<'hnsw', VectorIndexConfigHNSWCreate>>({
+      name: 'hnsw',
+      config: {
+        multiVector: {
+          aggregation: 'maxSim',
+        },
+        type: 'hnsw',
       },
     });
   });
@@ -1512,19 +1532,135 @@ describe('Unit testing of the vectorizer factory class', () => {
       baseURL: 'base-url',
       dimensions: 256,
       model: 'model',
+      quantizer: configure.vectorIndex.quantizer.pq(),
       vectorizeCollectionName: true,
     });
     expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'text2vec-weaviate'>>({
       name: 'test',
       vectorIndex: {
         name: 'hnsw',
-        config: undefined,
+        config: {
+          quantizer: {
+            bitCompression: undefined,
+            centroids: undefined,
+            encoder: undefined,
+            segments: undefined,
+            trainingLimit: undefined,
+            type: 'pq',
+          },
+          type: 'hnsw',
+        },
       },
       vectorizer: {
         name: 'text2vec-weaviate',
         config: {
           baseURL: 'base-url',
           dimensions: 256,
+          model: 'model',
+          vectorizeCollectionName: true,
+        },
+      },
+    });
+  });
+});
+
+describe('Unit testing of the multiVectors factory class', () => {
+  it('should create the correct self provided type with defaults', () => {
+    const config = configure.multiVectors.selfProvided();
+    expect(config).toEqual<VectorConfigCreate<never, undefined, 'hnsw', 'none'>>({
+      name: undefined,
+      vectorIndex: {
+        name: 'hnsw',
+        config: {
+          multiVector: {
+            aggregation: undefined,
+            encoding: undefined,
+          },
+          type: 'hnsw',
+        },
+      },
+      vectorizer: {
+        name: 'none',
+        config: {},
+      },
+    });
+  });
+  it('should create the correct self provided type with all values', () => {
+    const config = configure.multiVectors.selfProvided({
+      name: 'test',
+      encoding: configure.vectorIndex.multiVector.encoding.muvera({ ksim: 10 }),
+    });
+    expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'none'>>({
+      name: 'test',
+      vectorIndex: {
+        name: 'hnsw',
+        config: {
+          multiVector: {
+            aggregation: undefined,
+            encoding: {
+              dprojections: undefined,
+              ksim: 10,
+              repetitions: undefined,
+              type: 'muvera',
+            },
+          },
+          type: 'hnsw',
+        },
+      },
+      vectorizer: {
+        name: 'none',
+        config: {},
+      },
+    });
+  });
+  it('should create the correct Text2MultiVecJinaAIConfig type with defaults', () => {
+    const config = configure.multiVectors.text2VecJinaAI();
+    expect(config).toEqual<VectorConfigCreate<never, undefined, 'hnsw', 'text2multivec-jinaai'>>({
+      name: undefined,
+      vectorIndex: {
+        name: 'hnsw',
+        config: {
+          multiVector: {
+            aggregation: undefined,
+            encoding: undefined,
+          },
+          type: 'hnsw',
+        },
+      },
+      vectorizer: {
+        name: 'text2multivec-jinaai',
+        config: undefined,
+      },
+    });
+  });
+
+  it('should create the correct Text2MultiVecJinaAIConfig type with all values', () => {
+    const config = configure.multiVectors.text2VecJinaAI({
+      name: 'test',
+      encoding: configure.vectorIndex.multiVector.encoding.muvera({ ksim: 10 }),
+      model: 'model',
+      vectorizeCollectionName: true,
+    });
+    expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'text2multivec-jinaai'>>({
+      name: 'test',
+      vectorIndex: {
+        name: 'hnsw',
+        config: {
+          multiVector: {
+            aggregation: undefined,
+            encoding: {
+              dprojections: undefined,
+              ksim: 10,
+              repetitions: undefined,
+              type: 'muvera',
+            },
+          },
+          type: 'hnsw',
+        },
+      },
+      vectorizer: {
+        name: 'text2multivec-jinaai',
+        config: {
           model: 'model',
           vectorizeCollectionName: true,
         },
