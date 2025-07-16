@@ -13,6 +13,6 @@ export type UpdateAliasArgs = {
   alias: string;
 };
 
-export type AliasListAllOpts = {
+export type AliasListAllOptions = {
   collection?: string | undefined;
 };

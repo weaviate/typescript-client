@@ -1,6 +1,6 @@
 import { ConnectionREST } from '../index.js';
 import { WeaviateAlias, WeaviateAliasResponse } from '../openapi/types.js';
-import { Alias, AliasListAllOpts, CreateAliasArgs, UpdateAliasArgs } from './types.js';
+import { Alias, AliasListAllOptions, CreateAliasArgs, UpdateAliasArgs } from './types.js';
 
 export interface Aliases {
   /**
@@ -21,7 +21,7 @@ export interface Aliases {
    * @param {string | undefined} [opts.collection] Get all aliases defined for this collection.
    * @returns {Promise<Alias[] | undefined>} An array of aliases.
    */
-  listAll: (opts?: AliasListAllOpts) => Promise<Alias[] | undefined>;
+  listAll: (opts?: AliasListAllOptions) => Promise<Alias[] | undefined>;
 
   /**
    * Get information about an alias.
@@ -56,7 +56,7 @@ const alias = (connection: ConnectionREST): Aliases => {
   return {
     create: (args: CreateAliasArgs) =>
       connection.postReturn<WeaviateAlias, void>(`/aliases/`, { ...args, class: args.collection }),
-    listAll: (opts?: AliasListAllOpts) =>
+    listAll: (opts?: AliasListAllOptions) =>
       connection
         .get<WeaviateAliasResponse>(
           `/aliases${opts?.collection !== undefined ? '/?class=' + opts.collection : ''}`
