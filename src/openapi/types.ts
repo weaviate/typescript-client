@@ -80,3 +80,8 @@ export type WeaviateReplicationType = definitions['ReplicationReplicateDetailsRe
 export type WeaviateReplicateRequest = definitions['ReplicationReplicateReplicaRequest'];
 export type WeaviateReplicateResponse = definitions['ReplicationReplicateReplicaResponse'];
 export type WeaviateReplicationResponse = definitions['ReplicationReplicateDetailsReplicaResponse'];
+// Alias
+export type WeaviateAlias = definitions['Alias'];
+export type WeaviateAliasResponse = {
+  aliases?: Required<Exclude<definitions['AliasResponse']['aliases'], undefined>[0]>[] | undefined;
+};

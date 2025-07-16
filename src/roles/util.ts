@@ -7,6 +7,8 @@ import {
 } from '../openapi/types.js';
 import { User, UserDB } from '../users/types.js';
 import {
+  AliasAction,
+  AliasPermission,
   BackupsAction,
   BackupsPermission,
   ClusterAction,
@@ -35,6 +37,14 @@ const ZERO_TIME = '0001-01-01T00:00:00.000Z';
 export class PermissionGuards {
   private static includes = <A extends string>(permission: Permission, ...actions: A[]): boolean =>
     actions.filter((a) => Array.from<string>(permission.actions).includes(a)).length > 0;
+  static isAlias = (permission: Permission): permission is AliasPermission =>
+    PermissionGuards.includes<AliasAction>(
+      permission,
+      'create_aliases',
+      'read_aliases',
+      'update_aliases',
+      'delete_aliases'
+    );
   static isBackups = (permission: Permission): permission is BackupsPermission =>
     PermissionGuards.includes<BackupsAction>(permission, 'manage_backups');
   static isCluster = (permission: Permission): permission is ClusterPermission =>
@@ -94,6 +104,12 @@ export class Map {
     !Array.isArray(permissions) ? [permissions] : permissions.flat(2);
 
   static permissionToWeaviate = (permission: Permission): WeaviatePermission[] => {
+    if (PermissionGuards.isAlias(permission)) {
+      return Array.from(permission.actions).map((action) => ({
+        aliases: permission,
+        action,
+      }));
+    }
     if (PermissionGuards.isBackups(permission)) {
       return Array.from(permission.actions).map((action) => ({
         backups: permission,
@@ -178,6 +194,7 @@ class PermissionsMapping {
 
   private constructor(role: WeaviateRole) {
     this.mappings = {
+      aliases: {},
       backups: {},
       cluster: {},
       collections: {},
@@ -200,6 +217,7 @@ class PermissionsMapping {
     }
     return {
       name: this.role.name,
+      aliasPermissions: Object.values(this.mappings.aliases),
       backupsPermissions: Object.values(this.mappings.backups),
       clusterPermissions: Object.values(this.mappings.cluster),
       collectionsPermissions: Object.values(this.mappings.collections),
@@ -209,6 +227,17 @@ class PermissionsMapping {
       tenantsPermissions: Object.values(this.mappings.tenants),
       usersPermissions: Object.values(this.mappings.users),
     };
+  };
+
+  private aliases = (permission: WeaviatePermission) => {
+    if (permission.aliases !== undefined) {
+      const { alias, collection } = permission.aliases;
+      if (alias === undefined) throw new Error('Alias permission missing an alias');
+      if (this.mappings.aliases[alias] === undefined) {
+        this.mappings.aliases[alias] = { alias, collection: collection || '*', actions: [] };
+      }
+      this.mappings.aliases[alias].actions.push(permission.action as AliasAction);
+    }
   };
 
   private backups = (permission: WeaviatePermission) => {
@@ -295,6 +324,7 @@ class PermissionsMapping {
   };
 
   private permissionFromWeaviate = (permission: WeaviatePermission) => {
+    this.aliases(permission);
     this.backups(permission);
     this.cluster(permission);
     this.collections(permission);
@@ -307,6 +337,7 @@ class PermissionsMapping {
 }
 
 type PermissionMappings = {
+  aliases: Record<string, AliasPermission>;
   backups: Record<string, BackupsPermission>;
   cluster: Record<string, ClusterPermission>;
   collections: Record<string, CollectionsPermission>;

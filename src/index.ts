@@ -38,6 +38,7 @@ import { LiveChecker, OpenidConfigurationGetter, ReadyChecker } from './misc/ind
 
 import weaviateV2 from './v2/index.js';
 
+import alias, { Aliases } from './alias/index.js';
 import filter from './collections/filters/index.js';
 import { ConsistencyLevel } from './data/replication.js';
 import users, { Users } from './users/index.js';
@@ -102,6 +103,7 @@ export type ClientParams = {
 };
 
 export interface WeaviateClient {
+  alias: Aliases;
   backup: Backup;
   cluster: Cluster;
   collections: Collections;
@@ -224,6 +226,7 @@ async function client(params: ClientParams): Promise<WeaviateClient> {
   });
 
   const ifc: WeaviateClient = {
+    alias: alias(connection),
     backup: backup(connection),
     cluster: cluster(connection),
     collections: collections(connection, dbVersionSupport),
