@@ -33,7 +33,6 @@ describe('Unit testing of the client.cluster methods', () => {
 
   it('should query the sharding state correctly for a collection with a shard', () => {
     const opts = {
-      collection: 'Collection',
       shard: 'shard',
     };
     const mockResult = {
@@ -46,13 +45,10 @@ describe('Unit testing of the client.cluster methods', () => {
         return Promise.resolve(mockResult);
       },
     };
-    clusterMaker(mockConnection).queryShardingState(opts).then(assert(mockResult));
+    clusterMaker(mockConnection).queryShardingState('Collection', opts).then(assert(mockResult));
   });
 
   it('should query the sharding state correctly for a collection without a specific shard', () => {
-    const opts = {
-      collection: 'Collection',
-    };
     const mockResult = {
       collection: 'Collection',
       shards: [
@@ -66,7 +62,7 @@ describe('Unit testing of the client.cluster methods', () => {
         return Promise.resolve(mockResult);
       },
     };
-    clusterMaker(mockConnection).queryShardingState(opts).then(assert(mockResult));
+    clusterMaker(mockConnection).queryShardingState('Collection').then(assert(mockResult));
   });
 
   it('should replicate a shard correctly', () => {

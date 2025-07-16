@@ -10,7 +10,7 @@ import {
   WeaviateReplicationType,
   WeaviateShardingState,
 } from '../../openapi/types.js';
-import { DeepRequired } from '../types/internal.js';
+import { DeepRequired } from '../../utils/types.js';
 
 export type Output = 'minimal' | 'verbose' | undefined;
 
@@ -22,13 +22,11 @@ export type NodesOptions<O extends Output> = {
 };
 
 export type QueryShardingStateOptions = {
-  /** The name of the collection to query. */
-  collection: string;
   /** The name of the shard to query. If not provided, all shards will be queried. */
   shard?: string;
 };
 
-export type ReplicateArguments = {
+export type ReplicateArgs = {
   /** The name of the collection in which to replicate a shard. */
   collection: string;
   /** The name of the shard to replicate. */
@@ -56,6 +54,11 @@ export type QueryReplicationOpsOptions = {
   includeHistory?: boolean;
 };
 
+export type GetReplicationOpOptions = {
+  /** Whether to include the status history in the response. Defaults to false. */
+  includeHistory?: boolean;
+};
+
 export type Node<O extends Output> = {
   name: string;
   status: 'HEALTHY' | 'UNHEALTHY' | 'UNAVAILABLE';
@@ -79,17 +82,17 @@ const cluster = (connection: IConnection) => {
         .get<NodesStatusResponse>(`${path}?${params.toString()}`)
         .then((res) => res.nodes as Node<O>[]);
     },
-    queryShardingState: (opts: QueryShardingStateOptions) => {
+    queryShardingState: (collection: string, opts?: QueryShardingStateOptions) => {
       const params = new URLSearchParams();
-      params.append('collection', opts.collection);
-      if (opts.shard) {
+      params.append('collection', collection);
+      if (opts?.shard) {
         params.append('shard', opts.shard);
       }
       return connection
         .get<ShardingState | undefined>(`/replication/sharding-state?${params.toString()}`)
         .then((res) => res as ShardingState);
     },
-    replicate: (args: ReplicateArguments): Promise<string> =>
+    replicate: (args: ReplicateArgs): Promise<string> =>
       connection
         .postReturn<WeaviateReplicateRequest, WeaviateReplicateResponse>(
           `/replication/replicate`,
@@ -100,7 +103,7 @@ const cluster = (connection: IConnection) => {
       cancel: (id: string) => connection.postEmpty(`/replication/replicate/${id}/cancel`, {}),
       delete: (id: string) => connection.delete(`/replication/replicate/${id}`, {}, false),
       deleteAll: () => connection.delete(`/replication/replicate`, {}, false),
-      get: (id: string, opts?: { includeHistory?: boolean }): Promise<ReplicationOperation | null> =>
+      get: (id: string, opts?: GetReplicationOpOptions): Promise<ReplicationOperation | null> =>
         connection
           .get<ReplicationOperation | undefined>(
             `/replication/replicate/${id}?includeHistory=${
@@ -142,24 +145,25 @@ export interface Cluster {
   /**
    * Query the sharding state of a specific collection.
    *
-   * @param {QueryShardingStateOptions} opts The options for the request.
+   * @param {string} collection The name of the collection to query.
+   * @param {QueryShardingStateOptions} [opts] The options for the request.
    * @returns {Promise<ShardingState>} The sharding state of the collection.
    */
-  queryShardingState: (opts: QueryShardingStateOptions) => Promise<ShardingState>;
+  queryShardingState: (collection: string, opts?: QueryShardingStateOptions) => Promise<ShardingState>;
   /**
    * Replicate a shard from one node to another.
    *
-   * @param {ReplicateArguments} args The arguments for the replication request.
+   * @param {ReplicateArgs} args The arguments for the replication request.
    * @returns {Promise<string>} The ID of the replication request.
    */
-  replicate: (args: ReplicateArguments) => Promise<string>;
+  replicate: (args: ReplicateArgs) => Promise<string>;
   /**
    * Access replication operations.
    */
-  replications: Replciations;
+  replications: Replications;
 }
 
-export interface Replciations {
+export interface Replications {
   /**
    * Cancel a replication operation.
    *
