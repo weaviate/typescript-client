@@ -265,6 +265,7 @@ export const vectors = {
       },
     });
   },
+
   /**
    * Create a `VectorConfigCreate` object with the vectorizer set to `'multi2vec-jinaai'`.
    *
@@ -847,5 +848,26 @@ export const multiVectors = {
       },
       true
     );
+  },
+
+  /**
+   * Create a `VectorConfigCreate` object with the vectorizer set to `'multi2multivec-jinaai'`.
+   *
+   * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/jinaai/embeddings-multimodal) for detailed usage.
+   *
+   * @param {ConfigureNonTextVectorizerOptions<N, I, 'multi2multivec-jinaai'>} [opts] The configuration options for the `multi2multivec-jinaai` vectorizer.
+   * @returns {VectorConfigCreate<PrimitiveKeys<T>[], N, I, 'multi2multivec-jinaai'>} The configuration object.
+   */
+  multi2VecJinaAI: <N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
+    opts?: ConfigureNonTextVectorizerOptions<N, I, 'multi2multivec-jinaai'>
+  ): VectorConfigCreate<never, N, I, 'multi2multivec-jinaai'> => {
+    const { name, vectorIndexConfig, ...config } = opts || {};
+    return makeVectorizer(name, {
+      vectorIndexConfig,
+      vectorizerConfig: {
+        name: 'multi2multivec-jinaai',
+        config,
+      },
+    });
   },
 };
