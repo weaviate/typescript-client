@@ -858,7 +858,7 @@ export const multiVectors = {
    * @param {ConfigureNonTextVectorizerOptions<N, I, 'multi2multivec-jinaai'>} [opts] The configuration options for the `multi2multivec-jinaai` vectorizer.
    * @returns {VectorConfigCreate<PrimitiveKeys<T>[], N, I, 'multi2multivec-jinaai'>} The configuration object.
    */
-  multi2MultivecJinaAI: <N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
+  multi2VecJinaAI: <N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
     opts?: ConfigureNonTextVectorizerOptions<N, I, 'multi2multivec-jinaai'>
   ): VectorConfigCreate<never, N, I, 'multi2multivec-jinaai'> => {
     const { name, vectorIndexConfig, ...config } = opts || {};

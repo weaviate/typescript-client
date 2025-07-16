@@ -704,7 +704,7 @@ describe('Unit testing of the vectorizer factory class', () => {
   });
 
   requireAtLeast(1, 32, 0).it('should create the correct Multi2MultivecJinaAIConfig with values', () => {
-    const config = configure.multiVectors.multi2MultivecJinaAI({
+    const config = configure.multiVectors.multi2VecJinaAI({
       name: 'multi-jina',
       imageFields: ['field1', 'field2'],
       textFields: ['field3', 'field4'],
