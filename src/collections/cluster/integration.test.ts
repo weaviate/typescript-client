@@ -1,6 +1,6 @@
 import weaviate, { WeaviateClient } from '../../index.js';
 
-describe('Testing of the client.cluster methods', () => {
+describe('Integration testing of the client.cluster methods', () => {
   let client: WeaviateClient;
 
   const one = 'TestClusterCollectionOne';

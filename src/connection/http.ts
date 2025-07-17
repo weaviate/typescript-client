@@ -58,7 +58,19 @@ export interface ConnectionDetails {
   headers?: HeadersInit;
 }
 
-export default class ConnectionREST {
+export interface IConnection {
+  postReturn: <B, T>(path: string, payload: B) => Promise<T>;
+  postEmpty: <B>(path: string, payload: B) => Promise<void>;
+  put: (path: string, payload: any, expectReturnContent?: boolean) => Promise<any>;
+  patch: (path: string, payload: any) => Promise<any>;
+  delete: (path: string, payload: any, expectReturnContent?: boolean) => Promise<any>;
+  head: (path: string, payload: any) => Promise<boolean>;
+  get: <T>(path: string, expectReturnContent?: boolean) => Promise<T>;
+  login(): Promise<string>;
+  getDetails(): Promise<ConnectionDetails>;
+}
+
+export default class ConnectionREST implements IConnection {
   private apiKey?: string;
   private headers?: HeadersInit;
   protected authEnabled: boolean;
