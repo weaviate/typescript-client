@@ -1,4 +1,6 @@
 import {
+  ConfigureNonTextVectorizerOptions,
+  ConfigureTextVectorizerOptions,
   InvertedIndexConfigCreate,
   InvertedIndexConfigUpdate,
   MultiTenancyConfigCreate,
@@ -9,6 +11,8 @@ import {
   ShardingConfigCreate,
   VectorConfigUpdate,
   VectorIndexType,
+  Vectorizer,
+  VectorizerConfigCreateType,
   VectorizerUpdateOptions,
 } from '../types/index.js';
 
@@ -18,6 +22,7 @@ import { configure as configureVectorIndex, reconfigure as reconfigureVectorInde
 import { multiVectors, vectors } from './vectorizer.js';
 
 import { parseWithDefault } from './parsing.js';
+import { RemoveConfiguration } from './types/util.js';
 
 const dataType = {
   INT: 'int' as const,
@@ -64,7 +69,7 @@ const configure = {
    * @deprecated Use `vectors` instead.
    */
   vectorizer: vectors,
-  vectors,
+  vectors: vectors as RemoveConfiguration<typeof vectors, 'vectorizeCollectionName'>,
   vectorIndex: configureVectorIndex,
   dataType,
   tokenization,
@@ -99,9 +104,9 @@ const configure = {
       bm25:
         options.bm25b || options.bm25k1
           ? {
-              b: options.bm25b,
-              k1: options.bm25k1,
-            }
+            b: options.bm25b,
+            k1: options.bm25k1,
+          }
           : undefined,
       cleanupIntervalSeconds: options.cleanupIntervalSeconds,
       indexTimestamps: options.indexTimestamps,
@@ -110,10 +115,10 @@ const configure = {
       stopwords:
         options.stopwordsAdditions || options.stopwordsRemovals || options.stopwordsPreset
           ? {
-              preset: options.stopwordsPreset,
-              additions: options.stopwordsAdditions,
-              removals: options.stopwordsRemovals,
-            }
+            preset: options.stopwordsPreset,
+            additions: options.stopwordsAdditions,
+            removals: options.stopwordsRemovals,
+          }
           : undefined,
     };
   },
@@ -131,10 +136,10 @@ const configure = {
   }): MultiTenancyConfigCreate => {
     return options
       ? {
-          autoTenantActivation: parseWithDefault(options.autoTenantActivation, false),
-          autoTenantCreation: parseWithDefault(options.autoTenantCreation, false),
-          enabled: parseWithDefault(options.enabled, true),
-        }
+        autoTenantActivation: parseWithDefault(options.autoTenantActivation, false),
+        autoTenantCreation: parseWithDefault(options.autoTenantCreation, false),
+        enabled: parseWithDefault(options.enabled, true),
+      }
       : { autoTenantActivation: false, autoTenantCreation: false, enabled: true };
   },
   /**
@@ -209,18 +214,18 @@ const reconfigure = {
       bm25:
         options.bm25b || options.bm25k1
           ? {
-              b: options.bm25b,
-              k1: options.bm25k1,
-            }
+            b: options.bm25b,
+            k1: options.bm25k1,
+          }
           : undefined,
       cleanupIntervalSeconds: options.cleanupIntervalSeconds,
       stopwords:
         options.stopwordsAdditions || options.stopwordsRemovals || options.stopwordsPreset
           ? {
-              preset: options.stopwordsPreset,
-              additions: options.stopwordsAdditions,
-              removals: options.stopwordsRemovals,
-            }
+            preset: options.stopwordsPreset,
+            additions: options.stopwordsAdditions,
+            removals: options.stopwordsRemovals,
+          }
           : undefined,
     };
   },

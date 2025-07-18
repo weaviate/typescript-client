@@ -37,20 +37,20 @@ const makeVectorIndex = (opts?: {
     }
     conf = conf
       ? {
-          ...conf,
-          multiVector: conf.multiVector
-            ? {
-                ...conf.multiVector,
-                encoding: conf.multiVector.encoding
-                  ? { ...conf.multiVector.encoding, ...opts.encoding }
-                  : opts.encoding,
-              }
-            : vectorIndex.multiVector.multiVector({ encoding: opts.encoding }),
-        }
+        ...conf,
+        multiVector: conf.multiVector
+          ? {
+            ...conf.multiVector,
+            encoding: conf.multiVector.encoding
+              ? { ...conf.multiVector.encoding, ...opts.encoding }
+              : opts.encoding,
+          }
+          : vectorIndex.multiVector.multiVector({ encoding: opts.encoding }),
+      }
       : {
-          multiVector: vectorIndex.multiVector.multiVector({ encoding: opts.encoding }),
-          type: 'hnsw',
-        };
+        multiVector: vectorIndex.multiVector.multiVector({ encoding: opts.encoding }),
+        type: 'hnsw',
+      };
   }
   if (opts?.quantizer) {
     if (!conf) {
@@ -184,16 +184,16 @@ export const vectors = {
           Object.keys(config).length === 0
             ? undefined
             : {
-                ...config,
-                audioFields: audioFields?.map((f) => f.name),
-                depthFields: depthFields?.map((f) => f.name),
-                imageFields: imageFields?.map((f) => f.name),
-                IMUFields: IMUFields?.map((f) => f.name),
-                textFields: textFields?.map((f) => f.name),
-                thermalFields: thermalFields?.map((f) => f.name),
-                videoFields: videoFields?.map((f) => f.name),
-                weights: Object.keys(weights).length === 0 ? undefined : weights,
-              },
+              ...config,
+              audioFields: audioFields?.map((f) => f.name),
+              depthFields: depthFields?.map((f) => f.name),
+              imageFields: imageFields?.map((f) => f.name),
+              IMUFields: IMUFields?.map((f) => f.name),
+              textFields: textFields?.map((f) => f.name),
+              thermalFields: thermalFields?.map((f) => f.name),
+              videoFields: videoFields?.map((f) => f.name),
+              weights: Object.keys(weights).length === 0 ? undefined : weights,
+            },
       },
     });
   },
@@ -223,11 +223,11 @@ export const vectors = {
           Object.keys(config).length === 0
             ? undefined
             : {
-                ...config,
-                imageFields: imageFields?.map((f) => f.name),
-                textFields: textFields?.map((f) => f.name),
-                weights: Object.keys(weights).length === 0 ? undefined : weights,
-              },
+              ...config,
+              imageFields: imageFields?.map((f) => f.name),
+              textFields: textFields?.map((f) => f.name),
+              weights: Object.keys(weights).length === 0 ? undefined : weights,
+            },
       },
     });
   },
@@ -257,11 +257,11 @@ export const vectors = {
           Object.keys(config).length === 0
             ? undefined
             : {
-                ...config,
-                imageFields: imageFields?.map((f) => f.name),
-                textFields: textFields?.map((f) => f.name),
-                weights: Object.keys(weights).length === 0 ? undefined : weights,
-              },
+              ...config,
+              imageFields: imageFields?.map((f) => f.name),
+              textFields: textFields?.map((f) => f.name),
+              weights: Object.keys(weights).length === 0 ? undefined : weights,
+            },
       },
     });
   },
@@ -292,11 +292,11 @@ export const vectors = {
           Object.keys(config).length === 0
             ? undefined
             : {
-                ...config,
-                imageFields: imageFields?.map((f) => f.name),
-                textFields: textFields?.map((f) => f.name),
-                weights: Object.keys(weights).length === 0 ? undefined : weights,
-              },
+              ...config,
+              imageFields: imageFields?.map((f) => f.name),
+              textFields: textFields?.map((f) => f.name),
+              weights: Object.keys(weights).length === 0 ? undefined : weights,
+            },
       },
     });
   },
@@ -396,11 +396,11 @@ export const vectors = {
           Object.keys(config).length === 0
             ? undefined
             : {
-                ...config,
-                imageFields: imageFields?.map((f) => f.name),
-                textFields: textFields?.map((f) => f.name),
-                weights: Object.keys(weights).length === 0 ? undefined : weights,
-              },
+              ...config,
+              imageFields: imageFields?.map((f) => f.name),
+              textFields: textFields?.map((f) => f.name),
+              weights: Object.keys(weights).length === 0 ? undefined : weights,
+            },
       },
     });
   },

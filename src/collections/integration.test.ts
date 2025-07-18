@@ -628,6 +628,7 @@ describe('Testing of the collections.create method', () => {
     expect(response.vectorizers.default.vectorizer.name).toEqual('text2vec-contextionary');
   });
 
+  // TODO: check what happens in CI
   it('should be able to create a collection with the contextionary vectorizer using configure.vectors', async () => {
     const collectionName = 'ThisOneIsATest'; // must include words in contextionary's vocabulary to pass since vectorizeCollectionName will be true
     const response = await contextionary.collections
