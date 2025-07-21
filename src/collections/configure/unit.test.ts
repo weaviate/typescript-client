@@ -20,7 +20,7 @@ import {
   RerankerVoyageAIConfig,
   VectorConfigCreate,
 } from '../types/index.js';
-import { configure, vectorizer } from './index.js';
+import { configure } from './index.js';
 import {
   InvertedIndexConfigCreate,
   MultiTenancyConfigCreate,
@@ -1007,7 +1007,7 @@ describe('Unit testing of the vectorizer factory class', () => {
       },
       vectorizer: {
         name: 'text2vec-contextionary',
-        config: {},
+        config: undefined,
       },
     });
   });
@@ -1069,8 +1069,8 @@ describe('Unit testing of the vectorizer factory class', () => {
     });
   });
 
-  it.only('should create the correct Text2VecGPT4AllConfig type with all values', () => {
-    const config = vectorizer.text2VecGPT4All({
+  it('should create the correct Text2VecGPT4AllConfig type with all values', () => {
+    const config = configure.vectors.text2VecGPT4All({
       name: 'test',
     });
     expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'text2vec-gpt4all'>>({
@@ -1081,7 +1081,7 @@ describe('Unit testing of the vectorizer factory class', () => {
       },
       vectorizer: {
         name: 'text2vec-gpt4all',
-        config: {},
+        config: undefined,
       },
     });
   });
