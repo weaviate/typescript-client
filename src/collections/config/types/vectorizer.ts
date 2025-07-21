@@ -393,8 +393,6 @@ export type Text2MultiVecJinaAIConfig = {
   dimensions?: number;
   /** The model to use. */
   model?: string;
-  /** Whether to vectorize the collection name. */
-  vectorizeCollectionName?: boolean;
 };
 
 /** @deprecated Use `Text2VecJinaAIConfig` instead. */

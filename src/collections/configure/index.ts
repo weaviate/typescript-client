@@ -15,7 +15,7 @@ import {
 import generative from './generative.js';
 import reranker from './reranker.js';
 import { configure as configureVectorIndex, reconfigure as reconfigureVectorIndex } from './vectorIndex.js';
-import { multiVectors, vectors } from './vectorizer.js';
+import { legacyVectors, multiVectors, vectors } from './vectorizer.js';
 
 import { parseWithDefault } from './parsing.js';
 
@@ -63,7 +63,7 @@ const configure = {
   /**
    * @deprecated Use `vectors` instead.
    */
-  vectorizer: vectors,
+  vectorizer: legacyVectors,
   vectors,
   vectorIndex: configureVectorIndex,
   dataType,
@@ -311,5 +311,6 @@ export {
   tokenization,
   vectorDistances,
   configureVectorIndex as vectorIndex,
+  legacyVectors as vectorizer,
   vectors,
 };

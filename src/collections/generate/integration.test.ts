@@ -54,9 +54,7 @@ maybe('Testing of the collection.generate methods with a simple collection', () 
           },
         ],
         generative: weaviate.configure.generative.openAI(),
-        vectorizers: weaviate.configure.vectors.text2VecOpenAI({
-          vectorizeCollectionName: false,
-        }),
+        vectorizers: weaviate.configure.vectors.text2VecOpenAI({}),
       })
       .then(() => {
         return collection.data.insert({
@@ -215,9 +213,7 @@ maybe('Testing of the groupBy collection.generate methods with a simple collecti
           },
         ],
         generative: weaviate.configure.generative.openAI(),
-        vectorizers: weaviate.configure.vectors.text2VecOpenAI({
-          vectorizeCollectionName: false,
-        }),
+        vectorizers: weaviate.configure.vectors.text2VecOpenAI({}),
       })
       .then(() => {
         return collection.data.insert({

@@ -37,20 +37,20 @@ const makeVectorIndex = (opts?: {
     }
     conf = conf
       ? {
-          ...conf,
-          multiVector: conf.multiVector
-            ? {
-                ...conf.multiVector,
-                encoding: conf.multiVector.encoding
-                  ? { ...conf.multiVector.encoding, ...opts.encoding }
-                  : opts.encoding,
-              }
-            : vectorIndex.multiVector.multiVector({ encoding: opts.encoding }),
-        }
+        ...conf,
+        multiVector: conf.multiVector
+          ? {
+            ...conf.multiVector,
+            encoding: conf.multiVector.encoding
+              ? { ...conf.multiVector.encoding, ...opts.encoding }
+              : opts.encoding,
+          }
+          : vectorIndex.multiVector.multiVector({ encoding: opts.encoding }),
+      }
       : {
-          multiVector: vectorIndex.multiVector.multiVector({ encoding: opts.encoding }),
-          type: 'hnsw',
-        };
+        multiVector: vectorIndex.multiVector.multiVector({ encoding: opts.encoding }),
+        type: 'hnsw',
+      };
   }
   if (opts?.quantizer) {
     if (!conf) {
@@ -114,7 +114,11 @@ const formatMulti2VecFields = (
   return weights;
 };
 
-export const vectors = {
+/** Previously all text-based vectorizers accepted `vectorizeCollectionName` parameter, which was meaningless for some modules and caused others to produce confusing results (see details below). Moving forward, we want to deprecate the usage of this parameter.
+ *
+ * Collections with `vectorizeCollectionName: true` generate embeddings even if they have no vectorizeable properties. This means all generated embeddings would embed the collection name itself, which makes them rather meaningless.
+ * */
+export const legacyVectors = {
   /**
    * Create a `VectorConfigCreate` object with the vectorizer set to `'none'`.
    *
@@ -184,16 +188,16 @@ export const vectors = {
           Object.keys(config).length === 0
             ? undefined
             : {
-                ...config,
-                audioFields: audioFields?.map((f) => f.name),
-                depthFields: depthFields?.map((f) => f.name),
-                imageFields: imageFields?.map((f) => f.name),
-                IMUFields: IMUFields?.map((f) => f.name),
-                textFields: textFields?.map((f) => f.name),
-                thermalFields: thermalFields?.map((f) => f.name),
-                videoFields: videoFields?.map((f) => f.name),
-                weights: Object.keys(weights).length === 0 ? undefined : weights,
-              },
+              ...config,
+              audioFields: audioFields?.map((f) => f.name),
+              depthFields: depthFields?.map((f) => f.name),
+              imageFields: imageFields?.map((f) => f.name),
+              IMUFields: IMUFields?.map((f) => f.name),
+              textFields: textFields?.map((f) => f.name),
+              thermalFields: thermalFields?.map((f) => f.name),
+              videoFields: videoFields?.map((f) => f.name),
+              weights: Object.keys(weights).length === 0 ? undefined : weights,
+            },
       },
     });
   },
@@ -223,11 +227,11 @@ export const vectors = {
           Object.keys(config).length === 0
             ? undefined
             : {
-                ...config,
-                imageFields: imageFields?.map((f) => f.name),
-                textFields: textFields?.map((f) => f.name),
-                weights: Object.keys(weights).length === 0 ? undefined : weights,
-              },
+              ...config,
+              imageFields: imageFields?.map((f) => f.name),
+              textFields: textFields?.map((f) => f.name),
+              weights: Object.keys(weights).length === 0 ? undefined : weights,
+            },
       },
     });
   },
@@ -257,11 +261,11 @@ export const vectors = {
           Object.keys(config).length === 0
             ? undefined
             : {
-                ...config,
-                imageFields: imageFields?.map((f) => f.name),
-                textFields: textFields?.map((f) => f.name),
-                weights: Object.keys(weights).length === 0 ? undefined : weights,
-              },
+              ...config,
+              imageFields: imageFields?.map((f) => f.name),
+              textFields: textFields?.map((f) => f.name),
+              weights: Object.keys(weights).length === 0 ? undefined : weights,
+            },
       },
     });
   },
@@ -292,11 +296,11 @@ export const vectors = {
           Object.keys(config).length === 0
             ? undefined
             : {
-                ...config,
-                imageFields: imageFields?.map((f) => f.name),
-                textFields: textFields?.map((f) => f.name),
-                weights: Object.keys(weights).length === 0 ? undefined : weights,
-              },
+              ...config,
+              imageFields: imageFields?.map((f) => f.name),
+              textFields: textFields?.map((f) => f.name),
+              weights: Object.keys(weights).length === 0 ? undefined : weights,
+            },
       },
     });
   },
@@ -396,11 +400,11 @@ export const vectors = {
           Object.keys(config).length === 0
             ? undefined
             : {
-                ...config,
-                imageFields: imageFields?.map((f) => f.name),
-                textFields: textFields?.map((f) => f.name),
-                weights: Object.keys(weights).length === 0 ? undefined : weights,
-              },
+              ...config,
+              imageFields: imageFields?.map((f) => f.name),
+              textFields: textFields?.map((f) => f.name),
+              weights: Object.keys(weights).length === 0 ? undefined : weights,
+            },
       },
     });
   },
@@ -796,14 +800,85 @@ export const vectors = {
   },
 };
 
-type __VectorsShaded = typeof vectors & {
-  multi2VecClipConfig: <N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
+/** __vectors_shaded hide `vectorizeCollectionName` parameter from all constructors in `legacyVectors` where it was previously accepted.
+ *
+ * */
+// eslint-disable-next-line @typescript-eslint/naming-convention
+const __vectors_shaded = {
+  text2VecWeaviate: <T, N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
+    opts?: Omit<ConfigureTextVectorizerOptions<T, N, I, 'text2vec-weaviate'>, 'vectorizeCollectionName'>
+  ) => legacyVectors.text2VecWeaviate(opts),
+  text2VecContextionary: <T, N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
+    opts?: Omit<ConfigureTextVectorizerOptions<T, N, I, 'text2vec-contextionary'>, 'vectorizeCollectionName'>
+  ) => legacyVectors.text2VecContextionary(opts),
+  text2VecNvidia: <T, N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
+    opts?: Omit<ConfigureTextVectorizerOptions<T, N, I, 'text2vec-nvidia'>, 'vectorizeCollectionName'>
+  ) => legacyVectors.text2VecNvidia(opts),
+  text2VecTransformers: <T, N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
+    opts?: Omit<ConfigureTextVectorizerOptions<T, N, I, 'text2vec-transformers'>, 'vectorizeCollectionName'>
+  ) => legacyVectors.text2VecTransformers(opts),
+  text2VecVoyageAI: <T, N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
+    opts?: Omit<ConfigureTextVectorizerOptions<T, N, I, 'text2vec-voyageai'>, 'vectorizeCollectionName'>
+  ) => legacyVectors.text2VecVoyageAI(opts),
+  text2VecGoogle: <T, N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
+    opts?: Omit<ConfigureTextVectorizerOptions<T, N, I, 'text2vec-google'>, 'vectorizeCollectionName'>
+  ) => legacyVectors.text2VecGoogle(opts),
+  text2VecOpenAI: <T, N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
+    opts?: Omit<ConfigureTextVectorizerOptions<T, N, I, 'text2vec-openai'>, 'vectorizeCollectionName'>
+  ) => legacyVectors.text2VecOpenAI(opts),
+  text2VecOllama: <T, N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
+    opts?: Omit<ConfigureTextVectorizerOptions<T, N, I, 'text2vec-ollama'>, 'vectorizeCollectionName'>
+  ) => legacyVectors.text2VecOllama(opts),
+  text2VecMistral: <T, N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
+    opts?: Omit<ConfigureTextVectorizerOptions<T, N, I, 'text2vec-mistral'>, 'vectorizeCollectionName'>
+  ) => legacyVectors.text2VecMistral(opts),
+  text2VecJinaAI: <T, N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
+    opts?: Omit<ConfigureTextVectorizerOptions<T, N, I, 'text2vec-jinaai'>, 'vectorizeCollectionName'>
+  ) => legacyVectors.text2VecJinaAI(opts),
+  text2VecHuggingFace: <T, N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
+    opts?: Omit<ConfigureTextVectorizerOptions<T, N, I, 'text2vec-huggingface'>, 'vectorizeCollectionName'>
+  ) => legacyVectors.text2VecHuggingFace(opts),
+  text2VecGPT4All: <T, N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
+    opts?: Omit<ConfigureTextVectorizerOptions<T, N, I, 'text2vec-gpt4all'>, 'vectorizeCollectionName'>
+  ) => legacyVectors.text2VecGPT4All(opts),
+  text2VecDatabricks: <T, N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
+    opts: Omit<ConfigureTextVectorizerOptions<T, N, I, 'text2vec-databricks'>, 'vectorizeCollectionName'>
+  ) => legacyVectors.text2VecDatabricks(opts),
+  text2VecCohere: <T, N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
+    opts?: Omit<ConfigureTextVectorizerOptions<T, N, I, 'text2vec-cohere'>, 'vectorizeCollectionName'>
+  ) => legacyVectors.text2VecCohere(opts),
+  text2VecAzureOpenAI: <T, N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
+    opts: Omit<ConfigureTextVectorizerOptions<T, N, I, 'text2vec-azure-openai'>, 'vectorizeCollectionName'>
+  ) => legacyVectors.text2VecAzureOpenAI(opts),
+  text2VecAWS: <T, N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
+    opts: Omit<ConfigureTextVectorizerOptions<T, N, I, 'text2vec-aws'>, 'vectorizeCollectionName'>
+  ) => legacyVectors.text2VecAWS(opts),
+  multi2VecClip: <N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
     opts?: Omit<ConfigureNonTextVectorizerOptions<N, I, 'multi2vec-clip'>, 'vectorizeCollectionName'>
-  ) => VectorConfigCreate<never, N, I, 'multi2vec-clip'>,
+  ) => legacyVectors.multi2VecClip(opts),
   multi2VecCohere: <N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
     opts?: Omit<ConfigureNonTextVectorizerOptions<N, I, 'multi2vec-cohere'>, 'vectorizeCollectionName'>
-  ) => VectorConfigCreate<never, N, I, 'multi2vec-cohere'>,
-}
+  ) => legacyVectors.multi2VecCohere(opts),
+  multi2VecBind: <N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
+    opts?: Omit<ConfigureNonTextVectorizerOptions<N, I, 'multi2vec-bind'>, 'vectorizeCollectionName'>
+  ) => legacyVectors.multi2VecBind(opts),
+  multi2VecJinaAI: <N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
+    opts?: Omit<ConfigureNonTextVectorizerOptions<N, I, 'multi2vec-jinaai'>, 'vectorizeCollectionName'>
+  ) => legacyVectors.multi2VecJinaAI(opts),
+  multi2VecGoogle: <N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
+    opts: Omit<ConfigureNonTextVectorizerOptions<N, I, 'multi2vec-google'>, 'vectorizeCollectionName'>
+  ) => legacyVectors.multi2VecGoogle(opts),
+  multi2VecVoyageAI: <N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
+    opts?: Omit<ConfigureNonTextVectorizerOptions<N, I, 'multi2vec-voyageai'>, 'vectorizeCollectionName'>
+  ) => legacyVectors.multi2VecVoyageAI(opts),
+};
+
+/** Legacy export, maintained for backwards compatibility.
+ * See the comment for `legacyVectors`.
+ * @deprecated Use `vectors` instead. */
+export const vectorizer = legacyVectors;
+
+export const vectors = { ...legacyVectors, ...__vectors_shaded };
 
 export const multiVectors = {
   /**
@@ -840,7 +915,7 @@ export const multiVectors = {
    * @returns {VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2multivec-jinaai'>} The configuration object.
    */
   text2VecJinaAI: <T, N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
-    opts?: Omit<ConfigureTextMultiVectorizerOptions<T, N, I, 'text2multivec-jinaai'>, 'vectorizeCollectionName'>
+    opts?: ConfigureTextMultiVectorizerOptions<T, N, I, 'text2multivec-jinaai'>
   ): VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2multivec-jinaai'> => {
     const { name, encoding, sourceProperties, quantizer, vectorIndexConfig, ...config } = opts || {};
     return makeVectorizer(
@@ -868,7 +943,7 @@ export const multiVectors = {
    * @returns {VectorConfigCreate<PrimitiveKeys<T>[], N, I, 'multi2multivec-jinaai'>} The configuration object.
    */
   multi2VecJinaAI: <N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
-    opts?: Omit<ConfigureNonTextVectorizerOptions<N, I, 'multi2multivec-jinaai'>, 'vectorizeCollectionName'>
+    opts?: ConfigureNonTextVectorizerOptions<N, I, 'multi2multivec-jinaai'>
   ): VectorConfigCreate<never, N, I, 'multi2multivec-jinaai'> => {
     const { name, vectorIndexConfig, ...config } = opts || {};
     return makeVectorizer(name, {
