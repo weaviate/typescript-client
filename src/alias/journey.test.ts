@@ -21,10 +21,12 @@ requireAtLeast(1, 32, 0).describe('manages collection aliases', () => {
       .then((aliases) => {
         expect(aliases).not.toBeUndefined();
         expect(aliases).toHaveLength(2);
-        expect(aliases).toEqual<Alias[]>([
-          { collection: 'PaulHewson', alias: 'Bono' },
-          { collection: 'GeorgeBarnes', alias: 'MachineGunKelly' },
-        ]);
+        expect(aliases).toEqual(
+          expect.arrayContaining<Alias>([
+            { collection: 'PaulHewson', alias: 'Bono' },
+            { collection: 'GeorgeBarnes', alias: 'MachineGunKelly' },
+          ])
+        );
       });
   });
 
