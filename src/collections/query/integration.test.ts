@@ -45,7 +45,9 @@ describe('Testing of the collection.query methods with a simple collection', () 
             vectorizePropertyName: false,
           },
         ],
-        vectorizers: weaviate.configure.vectors.text2VecContextionary(),
+        vectorizers: weaviate.configure.vectors.text2VecContextionary({
+          vectorizeCollectionName: false,
+        }),
       })
       .then(async () => {
         await collection.data.insert({
@@ -269,7 +271,9 @@ describe('Testing of the collection.query methods with a collection with a refer
             targetCollection: collectionName,
           },
         ],
-        vectorizers: weaviate.configure.vectors.text2VecContextionary(),
+        vectorizers: weaviate.configure.vectors.text2VecContextionary({
+          vectorizeCollectionName: false,
+        }),
       })
       .then(async () => {
         id1 = await collection.data.insert({
@@ -1124,7 +1128,9 @@ describe('Testing of the groupBy collection.query methods with a simple collecti
             dataType: 'text',
           },
         ],
-        vectorizers: weaviate.configure.vectors.text2VecContextionary(),
+        vectorizers: weaviate.configure.vectors.text2VecContextionary({
+          vectorizeCollectionName: false,
+        }),
       })
       .then(() => {
         return collection.data.insert({
@@ -1284,7 +1290,9 @@ describe('Testing of the collection.query methods with a multi-tenancy collectio
           },
         ],
         multiTenancy: weaviate.configure.multiTenancy({ enabled: true }),
-        vectorizers: weaviate.configure.vectors.text2VecContextionary(),
+        vectorizers: weaviate.configure.vectors.text2VecContextionary({
+          vectorizeCollectionName: false,
+        }),
       })
       .then(async (col) => {
         await col.tenants.create([tenantOne, tenantTwo]);
