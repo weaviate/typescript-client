@@ -796,6 +796,15 @@ export const vectors = {
   },
 };
 
+type __VectorsShaded = typeof vectors & {
+  multi2VecClipConfig: <N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
+    opts?: Omit<ConfigureNonTextVectorizerOptions<N, I, 'multi2vec-clip'>, 'vectorizeCollectionName'>
+  ) => VectorConfigCreate<never, N, I, 'multi2vec-clip'>,
+  multi2VecCohere: <N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
+    opts?: Omit<ConfigureNonTextVectorizerOptions<N, I, 'multi2vec-cohere'>, 'vectorizeCollectionName'>
+  ) => VectorConfigCreate<never, N, I, 'multi2vec-cohere'>,
+}
+
 export const multiVectors = {
   /**
    * Create a multi-vector `VectorConfigCreate` object with the vectorizer set to `'none'`.
@@ -831,7 +840,7 @@ export const multiVectors = {
    * @returns {VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2multivec-jinaai'>} The configuration object.
    */
   text2VecJinaAI: <T, N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
-    opts?: ConfigureTextMultiVectorizerOptions<T, N, I, 'text2multivec-jinaai'>
+    opts?: Omit<ConfigureTextMultiVectorizerOptions<T, N, I, 'text2multivec-jinaai'>, 'vectorizeCollectionName'>
   ): VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2multivec-jinaai'> => {
     const { name, encoding, sourceProperties, quantizer, vectorIndexConfig, ...config } = opts || {};
     return makeVectorizer(
@@ -859,7 +868,7 @@ export const multiVectors = {
    * @returns {VectorConfigCreate<PrimitiveKeys<T>[], N, I, 'multi2multivec-jinaai'>} The configuration object.
    */
   multi2VecJinaAI: <N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
-    opts?: ConfigureNonTextVectorizerOptions<N, I, 'multi2multivec-jinaai'>
+    opts?: Omit<ConfigureNonTextVectorizerOptions<N, I, 'multi2multivec-jinaai'>, 'vectorizeCollectionName'>
   ): VectorConfigCreate<never, N, I, 'multi2multivec-jinaai'> => {
     const { name, vectorIndexConfig, ...config } = opts || {};
     return makeVectorizer(name, {
