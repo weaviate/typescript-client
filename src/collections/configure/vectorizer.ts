@@ -37,20 +37,20 @@ const makeVectorIndex = (opts?: {
     }
     conf = conf
       ? {
-        ...conf,
-        multiVector: conf.multiVector
-          ? {
-            ...conf.multiVector,
-            encoding: conf.multiVector.encoding
-              ? { ...conf.multiVector.encoding, ...opts.encoding }
-              : opts.encoding,
-          }
-          : vectorIndex.multiVector.multiVector({ encoding: opts.encoding }),
-      }
+          ...conf,
+          multiVector: conf.multiVector
+            ? {
+                ...conf.multiVector,
+                encoding: conf.multiVector.encoding
+                  ? { ...conf.multiVector.encoding, ...opts.encoding }
+                  : opts.encoding,
+              }
+            : vectorIndex.multiVector.multiVector({ encoding: opts.encoding }),
+        }
       : {
-        multiVector: vectorIndex.multiVector.multiVector({ encoding: opts.encoding }),
-        type: 'hnsw',
-      };
+          multiVector: vectorIndex.multiVector.multiVector({ encoding: opts.encoding }),
+          type: 'hnsw',
+        };
   }
   if (opts?.quantizer) {
     if (!conf) {
@@ -201,16 +201,16 @@ export const legacyVectors = {
           Object.keys(config).length === 0
             ? undefined
             : {
-              ...config,
-              audioFields: audioFields?.map((f) => f.name),
-              depthFields: depthFields?.map((f) => f.name),
-              imageFields: imageFields?.map((f) => f.name),
-              IMUFields: IMUFields?.map((f) => f.name),
-              textFields: textFields?.map((f) => f.name),
-              thermalFields: thermalFields?.map((f) => f.name),
-              videoFields: videoFields?.map((f) => f.name),
-              weights: Object.keys(weights).length === 0 ? undefined : weights,
-            },
+                ...config,
+                audioFields: audioFields?.map((f) => f.name),
+                depthFields: depthFields?.map((f) => f.name),
+                imageFields: imageFields?.map((f) => f.name),
+                IMUFields: IMUFields?.map((f) => f.name),
+                textFields: textFields?.map((f) => f.name),
+                thermalFields: thermalFields?.map((f) => f.name),
+                videoFields: videoFields?.map((f) => f.name),
+                weights: Object.keys(weights).length === 0 ? undefined : weights,
+              },
       },
     });
   },
@@ -240,11 +240,11 @@ export const legacyVectors = {
           Object.keys(config).length === 0
             ? undefined
             : {
-              ...config,
-              imageFields: imageFields?.map((f) => f.name),
-              textFields: textFields?.map((f) => f.name),
-              weights: Object.keys(weights).length === 0 ? undefined : weights,
-            },
+                ...config,
+                imageFields: imageFields?.map((f) => f.name),
+                textFields: textFields?.map((f) => f.name),
+                weights: Object.keys(weights).length === 0 ? undefined : weights,
+              },
       },
     });
   },
@@ -274,11 +274,11 @@ export const legacyVectors = {
           Object.keys(config).length === 0
             ? undefined
             : {
-              ...config,
-              imageFields: imageFields?.map((f) => f.name),
-              textFields: textFields?.map((f) => f.name),
-              weights: Object.keys(weights).length === 0 ? undefined : weights,
-            },
+                ...config,
+                imageFields: imageFields?.map((f) => f.name),
+                textFields: textFields?.map((f) => f.name),
+                weights: Object.keys(weights).length === 0 ? undefined : weights,
+              },
       },
     });
   },
@@ -309,11 +309,11 @@ export const legacyVectors = {
           Object.keys(config).length === 0
             ? undefined
             : {
-              ...config,
-              imageFields: imageFields?.map((f) => f.name),
-              textFields: textFields?.map((f) => f.name),
-              weights: Object.keys(weights).length === 0 ? undefined : weights,
-            },
+                ...config,
+                imageFields: imageFields?.map((f) => f.name),
+                textFields: textFields?.map((f) => f.name),
+                weights: Object.keys(weights).length === 0 ? undefined : weights,
+              },
       },
     });
   },
@@ -413,11 +413,11 @@ export const legacyVectors = {
           Object.keys(config).length === 0
             ? undefined
             : {
-              ...config,
-              imageFields: imageFields?.map((f) => f.name),
-              textFields: textFields?.map((f) => f.name),
-              weights: Object.keys(weights).length === 0 ? undefined : weights,
-            },
+                ...config,
+                imageFields: imageFields?.map((f) => f.name),
+                textFields: textFields?.map((f) => f.name),
+                weights: Object.keys(weights).length === 0 ? undefined : weights,
+              },
       },
     });
   },
@@ -814,9 +814,9 @@ export const legacyVectors = {
 };
 
 /** __vectors_shaded modifies some parameters in legacy vectorizer configuration.
-  *
-  * - Hide `vectorizeCollectionName` parameter from all constructors in `legacyVectors` where it was previously accepted.
-  * - Rename `modelId` to `model` for `text2vec-google` and `multi2vec-google` vectorizers.
+ *
+ * - Hide `vectorizeCollectionName` parameter from all constructors in `legacyVectors` where it was previously accepted.
+ * - Rename `modelId` to `model` for `text2vec-google` and `multi2vec-google` vectorizers.
  * */
 // eslint-disable-next-line @typescript-eslint/naming-convention
 const __vectors_shaded = {
@@ -840,7 +840,15 @@ const __vectors_shaded = {
       model?: string;
       modelId?: never; // hard-deprecated in `vectors`
     }
-  ) => legacyVectors.text2VecGoogle({ ...opts, modelId: opts?.modelId || opts?.model }),
+  ) =>
+    legacyVectors.text2VecGoogle(
+      opts
+        ? {
+            ...opts,
+            ...(opts?.modelId || opts?.model ? { modelId: opts?.modelId || opts?.model } : undefined),
+          }
+        : undefined
+    ),
   text2VecOpenAI: <T, N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
     opts?: Omit<ConfigureTextVectorizerOptions<T, N, I, 'text2vec-openai'>, 'vectorizeCollectionName'>
   ) => legacyVectors.text2VecOpenAI(opts),
@@ -902,7 +910,9 @@ export const vectorizer = legacyVectors;
 // Remove deprecated vectorizers and module configuration parameters:
 // - PaLM vectorizers are called -Google now.
 // - __vectors_shaded hide/rename some parameters
-export const vectors = (({ text2VecPalm, multi2VecPalm, ...rest }) => ({ ...rest, ...__vectors_shaded }))(legacyVectors);
+export const vectors = (({ text2VecPalm, multi2VecPalm, ...rest }) => ({ ...rest, ...__vectors_shaded }))(
+  legacyVectors
+);
 
 export const multiVectors = {
   /**

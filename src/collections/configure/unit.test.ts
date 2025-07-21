@@ -568,7 +568,7 @@ describe('Unit testing of the vectorizer factory class', () => {
       textFields: ['field3', 'field4'],
       videoFields: ['field5', 'field6'],
       location: 'location',
-      modelId: 'model-id',
+      model: 'model-id',
       dimensions: 256,
     });
     expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'multi2vec-google'>>({
@@ -585,6 +585,7 @@ describe('Unit testing of the vectorizer factory class', () => {
           textFields: ['field3', 'field4'],
           videoFields: ['field5', 'field6'],
           location: 'location',
+          model: 'model-id',
           modelId: 'model-id',
           dimensions: 256,
         },
@@ -609,7 +610,7 @@ describe('Unit testing of the vectorizer factory class', () => {
         { name: 'field6', weight: 0.6 },
       ],
       location: 'location',
-      modelId: 'model-id',
+      model: 'model-id',
       dimensions: 256,
     });
     expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'multi2vec-google'>>({
@@ -626,6 +627,7 @@ describe('Unit testing of the vectorizer factory class', () => {
           textFields: ['field3', 'field4'],
           videoFields: ['field5', 'field6'],
           location: 'location',
+          model: 'model-id',
           modelId: 'model-id',
           dimensions: 256,
           weights: {
@@ -1343,7 +1345,7 @@ describe('Unit testing of the vectorizer factory class', () => {
     const config = configure.vectors.text2VecGoogle({
       name: 'test',
       apiEndpoint: 'api-endpoint',
-      modelId: 'model-id',
+      model: 'model-id',
       projectId: 'project-id',
     });
     expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'text2vec-google'>>({
@@ -1356,6 +1358,7 @@ describe('Unit testing of the vectorizer factory class', () => {
         name: 'text2vec-google',
         config: {
           apiEndpoint: 'api-endpoint',
+          model: 'model-id',
           modelId: 'model-id',
           projectId: 'project-id',
         },
@@ -1364,7 +1367,7 @@ describe('Unit testing of the vectorizer factory class', () => {
   });
 
   it('should create the correct Text2VecPalmConfig type using deprecated method with defaults', () => {
-    const config = configure.vectors.text2VecPalm();
+    const config = configure.vectorizer.text2VecPalm();
     expect(config).toEqual<VectorConfigCreate<never, undefined, 'hnsw', 'text2vec-palm'>>({
       name: undefined,
       vectorIndex: {
@@ -1379,7 +1382,7 @@ describe('Unit testing of the vectorizer factory class', () => {
   });
 
   it('should create the correct Text2VecPalmConfig type using deprecated method with all values', () => {
-    const config = configure.vectors.text2VecPalm({
+    const config = configure.vectorizer.text2VecPalm({
       name: 'test',
       apiEndpoint: 'api-endpoint',
       modelId: 'model-id',
@@ -1959,7 +1962,7 @@ describe('Unit testing of the generative factory class', () => {
     });
   });
 
-  it('should create the correct GeneratGoogleConfig type with required & default values', () => {
+  it('should create the correct GenerateGoogleConfig type with required & default values', () => {
     const config = configure.generative.google();
     expect(config).toEqual<ModuleConfig<'generative-google', undefined>>({
       name: 'generative-google',
@@ -1979,7 +1982,7 @@ describe('Unit testing of the generative factory class', () => {
     const config = configure.generative.palm({
       apiEndpoint: 'api-endpoint',
       maxOutputTokens: 100,
-      modelId: 'model-id',
+      model: 'model-id',
       projectId: 'project-id',
       temperature: 0.5,
       topK: 5,
@@ -1990,6 +1993,7 @@ describe('Unit testing of the generative factory class', () => {
       config: {
         apiEndpoint: 'api-endpoint',
         maxOutputTokens: 100,
+        model: 'model-id',
         modelId: 'model-id',
         projectId: 'project-id',
         temperature: 0.5,
@@ -2003,7 +2007,7 @@ describe('Unit testing of the generative factory class', () => {
     const config = configure.generative.google({
       apiEndpoint: 'api-endpoint',
       maxOutputTokens: 100,
-      modelId: 'model-id',
+      model: 'model-id',
       projectId: 'project-id',
       temperature: 0.5,
       topK: 5,
@@ -2014,6 +2018,7 @@ describe('Unit testing of the generative factory class', () => {
       config: {
         apiEndpoint: 'api-endpoint',
         maxOutputTokens: 100,
+        model: 'model-id',
         modelId: 'model-id',
         projectId: 'project-id',
         temperature: 0.5,

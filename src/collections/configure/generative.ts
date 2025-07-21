@@ -246,7 +246,12 @@ export default {
     console.warn('The `generative-palm` module is deprecated. Use `generative-google` instead.');
     return {
       name: 'generative-palm',
-      config,
+      config: config
+        ? {
+            ...config,
+            ...(config?.modelId || config?.model ? { modelId: config?.model ?? config?.model } : undefined),
+          }
+        : undefined,
     };
   },
   /**
@@ -262,7 +267,12 @@ export default {
   ): ModuleConfig<'generative-google', GenerativeGoogleConfig | undefined> => {
     return {
       name: 'generative-google',
-      config,
+      config: config
+        ? {
+            ...config,
+            ...(config?.modelId || config?.model ? { modelId: config?.model ?? config?.model } : undefined),
+          }
+        : undefined,
     };
   },
   /**

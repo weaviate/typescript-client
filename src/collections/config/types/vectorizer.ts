@@ -175,6 +175,9 @@ export type Multi2VecGoogleConfig = {
   /** Length of a video interval in seconds. */
   videoIntervalSeconds?: number;
   /** The model ID in use. */
+  model?: string;
+  /** The model ID in use.
+   * @deprecated Use `model` instead.*/
   modelId?: string;
   /** The dimensionality of the vector once embedded. */
   dimensions?: number;
@@ -474,6 +477,9 @@ export type Text2VecGoogleConfig = {
   /** The API endpoint to use without a leading scheme such as `http://`. */
   apiEndpoint?: string;
   /** The model ID to use. */
+  model?: string;
+  /** The model ID to use.
+   * @deprecated Use `model `instead.*/
   modelId?: string;
   /** The project ID to use. */
   projectId?: string;

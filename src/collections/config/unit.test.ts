@@ -65,7 +65,6 @@ describe('Unit testing of the MergeWithExisting class', () => {
     },
   };
 
-
   it('should merge a full invertedIndexUpdate with existing schema', () => {
     const merged = MergeWithExisting.invertedIndex(deepCopy(invertedIndex), {
       bm25: {
