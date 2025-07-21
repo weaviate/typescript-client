@@ -311,5 +311,7 @@ export {
   tokenization,
   vectorDistances,
   configureVectorIndex as vectorIndex,
+  /** @deprecated Use `vectors` instead. */
+  vectors as vectorizer,
   vectors,
 };
