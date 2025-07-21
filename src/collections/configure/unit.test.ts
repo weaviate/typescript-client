@@ -1527,6 +1527,12 @@ describe('Unit testing of the vectorizer factory class', () => {
   });
 });
 
+it('should alias "selfProvided" to "none"', () => {
+  expect(configure.vectors.selfProvided()).toEqual<VectorConfigCreate<never, undefined, 'hnsw', 'none'>>(
+    configure.vectors.none()
+  );
+});
+
 describe('Unit testing of the multiVectors factory class', () => {
   it('should create the correct self provided type with defaults', () => {
     const config = configure.multiVectors.selfProvided();

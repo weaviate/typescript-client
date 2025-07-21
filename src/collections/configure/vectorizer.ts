@@ -126,6 +126,8 @@ export const legacyVectors = {
    *
    * @param {ConfigureNonTextVectorizerOptions<N, I, 'none'>} [opts] The configuration options for the `none` vectorizer.
    * @returns {VectorConfigCreate<PrimitiveKeys<T>[], N, I, 'none'>} The configuration object.
+   *
+   * @deprecated Use `selfProvided` instead.
    */
   none: <N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
     opts?: ConfigureNonTextVectorizerOptions<N, I, 'none'>
@@ -133,6 +135,15 @@ export const legacyVectors = {
     const { name, quantizer, vectorIndexConfig } = opts || {};
     return makeVectorizer(name, { quantizer, vectorIndexConfig });
   },
+  /**
+   * Create a `VectorConfigCreate` object with the vectorizer set to `'none'`.
+   *
+   * @param {ConfigureNonTextVectorizerOptions<N, I, 'none'>} [opts] The configuration options for the `none` vectorizer.
+   * @returns {VectorConfigCreate<PrimitiveKeys<T>[], N, I, 'none'>} The configuration object.
+   */
+  selfProvided: <N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
+    opts?: ConfigureNonTextVectorizerOptions<N, I, 'none'>
+  ): VectorConfigCreate<never, N, I, 'none'> => legacyVectors.none(opts),
   /**
    * Create a `VectorConfigCreate` object with the vectorizer set to `'img2vec-neural'`.
    *
