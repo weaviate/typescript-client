@@ -246,9 +246,11 @@ export default {
     console.warn('The `generative-palm` module is deprecated. Use `generative-google` instead.');
     return {
       name: 'generative-palm',
+      // Do not populate config key if config === undefined.
       config: config
         ? {
             ...config,
+            // Only create modelId key if either config.model or config.modelId are defined.
             ...(config?.modelId || config?.model ? { modelId: config?.model ?? config?.model } : undefined),
           }
         : undefined,
@@ -267,9 +269,11 @@ export default {
   ): ModuleConfig<'generative-google', GenerativeGoogleConfig | undefined> => {
     return {
       name: 'generative-google',
+      // Do not populate config key if config === undefined.
       config: config
         ? {
             ...config,
+            // Only create modelId key if either config.model or config.modelId are defined.
             ...(config?.modelId || config?.model ? { modelId: config?.model ?? config?.model } : undefined),
           }
         : undefined,
