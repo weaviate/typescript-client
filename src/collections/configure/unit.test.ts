@@ -708,7 +708,7 @@ describe('Unit testing of the vectorizer factory class', () => {
   });
 
   it('should create the correct Multi2VecPalmConfig type using deprecated method with defaults', () => {
-    const config = configure.vectors.multi2VecPalm({
+    const config = configure.vectorizer.multi2VecPalm({
       projectId: 'project-id',
       location: 'location',
     });
@@ -729,7 +729,7 @@ describe('Unit testing of the vectorizer factory class', () => {
   });
 
   it('should create the correct Multi2VecPalmConfig type using deprecated method with all values', () => {
-    const config = configure.vectors.multi2VecPalm({
+    const config = configure.vectorizer.multi2VecPalm({
       name: 'test',
       projectId: 'project-id',
       imageFields: ['field1', 'field2'],
@@ -761,7 +761,7 @@ describe('Unit testing of the vectorizer factory class', () => {
   });
 
   it('should create the correct Multi2VecPalmConfig type using deprecated method with all values and weights', () => {
-    const config = configure.vectors.multi2VecPalm({
+    const config = configure.vectorizer.multi2VecPalm({
       name: 'test',
       projectId: 'project-id',
       imageFields: [

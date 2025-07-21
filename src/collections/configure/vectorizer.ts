@@ -37,20 +37,20 @@ const makeVectorIndex = (opts?: {
     }
     conf = conf
       ? {
-          ...conf,
-          multiVector: conf.multiVector
-            ? {
-                ...conf.multiVector,
-                encoding: conf.multiVector.encoding
-                  ? { ...conf.multiVector.encoding, ...opts.encoding }
-                  : opts.encoding,
-              }
-            : vectorIndex.multiVector.multiVector({ encoding: opts.encoding }),
-        }
+        ...conf,
+        multiVector: conf.multiVector
+          ? {
+            ...conf.multiVector,
+            encoding: conf.multiVector.encoding
+              ? { ...conf.multiVector.encoding, ...opts.encoding }
+              : opts.encoding,
+          }
+          : vectorIndex.multiVector.multiVector({ encoding: opts.encoding }),
+      }
       : {
-          multiVector: vectorIndex.multiVector.multiVector({ encoding: opts.encoding }),
-          type: 'hnsw',
-        };
+        multiVector: vectorIndex.multiVector.multiVector({ encoding: opts.encoding }),
+        type: 'hnsw',
+      };
   }
   if (opts?.quantizer) {
     if (!conf) {
@@ -201,16 +201,16 @@ export const legacyVectors = {
           Object.keys(config).length === 0
             ? undefined
             : {
-                ...config,
-                audioFields: audioFields?.map((f) => f.name),
-                depthFields: depthFields?.map((f) => f.name),
-                imageFields: imageFields?.map((f) => f.name),
-                IMUFields: IMUFields?.map((f) => f.name),
-                textFields: textFields?.map((f) => f.name),
-                thermalFields: thermalFields?.map((f) => f.name),
-                videoFields: videoFields?.map((f) => f.name),
-                weights: Object.keys(weights).length === 0 ? undefined : weights,
-              },
+              ...config,
+              audioFields: audioFields?.map((f) => f.name),
+              depthFields: depthFields?.map((f) => f.name),
+              imageFields: imageFields?.map((f) => f.name),
+              IMUFields: IMUFields?.map((f) => f.name),
+              textFields: textFields?.map((f) => f.name),
+              thermalFields: thermalFields?.map((f) => f.name),
+              videoFields: videoFields?.map((f) => f.name),
+              weights: Object.keys(weights).length === 0 ? undefined : weights,
+            },
       },
     });
   },
@@ -240,11 +240,11 @@ export const legacyVectors = {
           Object.keys(config).length === 0
             ? undefined
             : {
-                ...config,
-                imageFields: imageFields?.map((f) => f.name),
-                textFields: textFields?.map((f) => f.name),
-                weights: Object.keys(weights).length === 0 ? undefined : weights,
-              },
+              ...config,
+              imageFields: imageFields?.map((f) => f.name),
+              textFields: textFields?.map((f) => f.name),
+              weights: Object.keys(weights).length === 0 ? undefined : weights,
+            },
       },
     });
   },
@@ -274,11 +274,11 @@ export const legacyVectors = {
           Object.keys(config).length === 0
             ? undefined
             : {
-                ...config,
-                imageFields: imageFields?.map((f) => f.name),
-                textFields: textFields?.map((f) => f.name),
-                weights: Object.keys(weights).length === 0 ? undefined : weights,
-              },
+              ...config,
+              imageFields: imageFields?.map((f) => f.name),
+              textFields: textFields?.map((f) => f.name),
+              weights: Object.keys(weights).length === 0 ? undefined : weights,
+            },
       },
     });
   },
@@ -309,11 +309,11 @@ export const legacyVectors = {
           Object.keys(config).length === 0
             ? undefined
             : {
-                ...config,
-                imageFields: imageFields?.map((f) => f.name),
-                textFields: textFields?.map((f) => f.name),
-                weights: Object.keys(weights).length === 0 ? undefined : weights,
-              },
+              ...config,
+              imageFields: imageFields?.map((f) => f.name),
+              textFields: textFields?.map((f) => f.name),
+              weights: Object.keys(weights).length === 0 ? undefined : weights,
+            },
       },
     });
   },
@@ -413,11 +413,11 @@ export const legacyVectors = {
           Object.keys(config).length === 0
             ? undefined
             : {
-                ...config,
-                imageFields: imageFields?.map((f) => f.name),
-                textFields: textFields?.map((f) => f.name),
-                weights: Object.keys(weights).length === 0 ? undefined : weights,
-              },
+              ...config,
+              imageFields: imageFields?.map((f) => f.name),
+              textFields: textFields?.map((f) => f.name),
+              weights: Object.keys(weights).length === 0 ? undefined : weights,
+            },
       },
     });
   },
@@ -813,8 +813,10 @@ export const legacyVectors = {
   },
 };
 
-/** __vectors_shaded hide `vectorizeCollectionName` parameter from all constructors in `legacyVectors` where it was previously accepted.
- *
+/** __vectors_shaded modifies some parameters in legacy vectorizer configuration.
+  *
+  * - Hide `vectorizeCollectionName` parameter from all constructors in `legacyVectors` where it was previously accepted.
+  * - Rename `modelId` to `model` for `text2vec-google` and `multi2vec-google` vectorizers.
  * */
 // eslint-disable-next-line @typescript-eslint/naming-convention
 const __vectors_shaded = {
@@ -834,8 +836,11 @@ const __vectors_shaded = {
     opts?: Omit<ConfigureTextVectorizerOptions<T, N, I, 'text2vec-voyageai'>, 'vectorizeCollectionName'>
   ) => legacyVectors.text2VecVoyageAI(opts),
   text2VecGoogle: <T, N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
-    opts?: Omit<ConfigureTextVectorizerOptions<T, N, I, 'text2vec-google'>, 'vectorizeCollectionName'>
-  ) => legacyVectors.text2VecGoogle(opts),
+    opts?: Omit<ConfigureTextVectorizerOptions<T, N, I, 'text2vec-google'>, 'vectorizeCollectionName'> & {
+      model?: string;
+      modelId?: never; // hard-deprecated in `vectors`
+    }
+  ) => legacyVectors.text2VecGoogle({ ...opts, modelId: opts?.modelId || opts?.model }),
   text2VecOpenAI: <T, N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
     opts?: Omit<ConfigureTextVectorizerOptions<T, N, I, 'text2vec-openai'>, 'vectorizeCollectionName'>
   ) => legacyVectors.text2VecOpenAI(opts),
@@ -879,8 +884,11 @@ const __vectors_shaded = {
     opts?: Omit<ConfigureNonTextVectorizerOptions<N, I, 'multi2vec-jinaai'>, 'vectorizeCollectionName'>
   ) => legacyVectors.multi2VecJinaAI(opts),
   multi2VecGoogle: <N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
-    opts: Omit<ConfigureNonTextVectorizerOptions<N, I, 'multi2vec-google'>, 'vectorizeCollectionName'>
-  ) => legacyVectors.multi2VecGoogle(opts),
+    opts: Omit<ConfigureNonTextVectorizerOptions<N, I, 'multi2vec-google'>, 'vectorizeCollectionName'> & {
+      model?: string;
+      modelId?: never; // hard-deprecated in `vectors`
+    }
+  ) => legacyVectors.multi2VecGoogle({ ...opts, modelId: opts.modelId || opts.model }),
   multi2VecVoyageAI: <N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
     opts?: Omit<ConfigureNonTextVectorizerOptions<N, I, 'multi2vec-voyageai'>, 'vectorizeCollectionName'>
   ) => legacyVectors.multi2VecVoyageAI(opts),
@@ -891,7 +899,10 @@ const __vectors_shaded = {
  * @deprecated Use `vectors` instead. */
 export const vectorizer = legacyVectors;
 
-export const vectors = { ...legacyVectors, ...__vectors_shaded };
+// Remove deprecated vectorizers and module configuration parameters:
+// - PaLM vectorizers are called -Google now.
+// - __vectors_shaded hide/rename some parameters
+export const vectors = (({ text2VecPalm, multi2VecPalm, ...rest }) => ({ ...rest, ...__vectors_shaded }))(legacyVectors);
 
 export const multiVectors = {
   /**
