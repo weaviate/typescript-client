@@ -117,10 +117,8 @@ const formatMulti2VecFields = (
 /** Previously all text-based vectorizers accepted `vectorizeCollectionName` parameter, which was meaningless for some modules and caused others to produce confusing results (see details below). Moving forward, we want to deprecate the usage of this parameter.
  *
  * Collections with `vectorizeCollectionName: true` generate embeddings even if they have no vectorizeable properties. This means all generated embeddings would embed the collection name itself, which makes them rather meaningless.
- *
- * @deprecated Use `vectors` instead.
- * */
-export const legacyVectors = {
+ */
+const legacyVectors = {
   /**
    * Create a `VectorConfigCreate` object with the vectorizer set to `'none'`.
    *
