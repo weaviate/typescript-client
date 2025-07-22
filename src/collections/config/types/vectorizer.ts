@@ -77,8 +77,6 @@ export type Multi2VecNvidiaConfig = {
   baseURL?: string;
   /** Whether to apply truncation. */
   truncation?: boolean;
-  /** Format in which the embeddings are encoded. Defaults to `None`, so the embeddings are represented as a list of floating-point numbers. */
-  output_encoding?: string;
   /** The image fields used when vectorizing. */
   imageFields?: string[];
   /** The text fields used when vectorizing. */

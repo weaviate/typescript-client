@@ -924,7 +924,7 @@ export const vectors = (({ text2VecPalm, multi2VecPalm, ...rest }) => ({
   multi2VecNvidia: <N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
     opts?: ConfigureNonTextVectorizerOptions<N, I, 'multi2vec-nvidia'>
   ): VectorConfigCreate<never, N, I, 'multi2vec-nvidia'> => {
-    const { name, quantizer, vectorIndexConfig, outputEncoding, ...config } = opts || {};
+    const { name, quantizer, vectorIndexConfig, ...config } = opts || {};
     const imageFields = config.imageFields?.map(mapMulti2VecField);
     const textFields = config.textFields?.map(mapMulti2VecField);
     let weights: Multi2VecNvidiaConfig['weights'] = {};
@@ -937,7 +937,6 @@ export const vectors = (({ text2VecPalm, multi2VecPalm, ...rest }) => ({
         name: 'multi2vec-nvidia',
         config: {
           ...config,
-          output_encoding: outputEncoding,
           imageFields: imageFields?.map((f) => f.name),
           textFields: textFields?.map((f) => f.name),
           weights: Object.keys(weights).length === 0 ? undefined : weights,

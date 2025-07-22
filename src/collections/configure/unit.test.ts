@@ -643,7 +643,6 @@ describe('Unit testing of the vectorizer factory class', () => {
     const config = configure.vectors.multi2VecNvidia({
       name: 'test',
       model: 'model-id',
-      outputEncoding: 'base64',
       truncation: true,
       baseURL: 'example.com',
       imageFields: [
@@ -664,7 +663,6 @@ describe('Unit testing of the vectorizer factory class', () => {
       vectorizer: {
         name: 'multi2vec-nvidia',
         config: {
-          output_encoding: 'base64',
           truncation: true,
           baseURL: 'example.com',
           imageFields: ['field1', 'field2'],
