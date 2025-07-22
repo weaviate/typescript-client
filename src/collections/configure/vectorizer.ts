@@ -4,6 +4,7 @@ import {
   Multi2VecBindConfig,
   Multi2VecClipConfig,
   Multi2VecField,
+  Multi2VecNvidiaConfig,
   Multi2VecPalmConfig,
   Multi2VecVoyageAIConfig,
   VectorIndexType,
@@ -908,9 +909,43 @@ export const vectorizer = legacyVectors;
 // Remove deprecated vectorizers and module configuration parameters:
 // - PaLM vectorizers are called -Google now.
 // - __vectors_shaded hide/rename some parameters
-export const vectors = (({ text2VecPalm, multi2VecPalm, ...rest }) => ({ ...rest, ...__vectors_shaded }))(
-  legacyVectors
-);
+export const vectors = (({ text2VecPalm, multi2VecPalm, ...rest }) => ({
+  ...rest,
+  ...__vectors_shaded,
+
+  /**
+   * Create a `VectorConfigCreate` object with the vectorizer set to `'multi2vec-nvidia'`.
+   *
+   * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/nvidia/embeddings-multimodal) for detailed usage.
+   *
+   * @param {ConfigureNonTextVectorizerOptions<N, I, 'multi2vec-nvidia'>} [opts] The configuration options for the `multi2vec-nvidia` vectorizer.
+   * @returns {VectorConfigCreate<PrimitiveKeys<T>[], N, I, 'multi2vec-nvidia'>} The configuration object.
+   */
+  multi2VecNvidia: <N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
+    opts?: ConfigureNonTextVectorizerOptions<N, I, 'multi2vec-nvidia'>
+  ): VectorConfigCreate<never, N, I, 'multi2vec-nvidia'> => {
+    const { name, quantizer, vectorIndexConfig, outputEncoding, ...config } = opts || {};
+    const imageFields = config.imageFields?.map(mapMulti2VecField);
+    const textFields = config.textFields?.map(mapMulti2VecField);
+    let weights: Multi2VecNvidiaConfig['weights'] = {};
+    weights = formatMulti2VecFields(weights, 'imageFields', imageFields);
+    weights = formatMulti2VecFields(weights, 'textFields', textFields);
+    return makeVectorizer(name, {
+      quantizer,
+      vectorIndexConfig,
+      vectorizerConfig: {
+        name: 'multi2vec-nvidia',
+        config: {
+          ...config,
+          output_encoding: outputEncoding,
+          imageFields: imageFields?.map((f) => f.name),
+          textFields: textFields?.map((f) => f.name),
+          weights: Object.keys(weights).length === 0 ? undefined : weights,
+        },
+      },
+    });
+  },
+}))(legacyVectors);
 
 export const multiVectors = {
   /**

@@ -112,6 +112,37 @@ export type ConfigureTextMultiVectorizerOptions<
 
 export type Img2VecNeuralConfigCreate = Img2VecNeuralConfig;
 
+// model: Optional[str] = None,
+// truncation: Optional[bool] = None,
+// output_encoding: Optional[str],
+// vectorize_collection_name: bool = True,
+// base_url: Optional[AnyHttpUrl] = None,
+// image_fields: Optional[Union[List[str], List[Multi2VecField]]] = None,
+// text_fields: Optional[Union[List[str], List[Multi2VecField]]] = None,
+
+// model: The model to use. Defaults to `None`, which uses the server-defined default.
+// output_encoding: Format in which the embeddings are encoded. Defaults to `None`, so the embeddings are represented as a list of floating-point numbers.
+// vectorize_collection_name: Whether to vectorize the collection name. Defaults to `True`.
+// base_url: The base URL to use where API requests should go. Defaults to `None`, which uses the server-defined default.
+// image_fields: The image fields to use in vectorization.
+// text_fields: The text fields to use in vectorization.
+
+/** The configuration for the `multi2vec-nvidia` vectorizer. */
+export type Multi2VecNvidiaConfigCreate = {
+  /** The model to use. Defaults to `None`, which uses the server-defined default. */
+  model?: string;
+  /** The base URL where API requests should go. */
+  baseURL?: string;
+  /** Whether to apply truncation. */
+  truncation?: boolean;
+  /** Format in which the embeddings are encoded. Defaults to `None`, so the embeddings are represented as a list of floating-point numbers. */
+  outputEncoding?: string;
+  /** The image fields to use in vectorization. Can be string of `Multi2VecField` type. If string, weight 0 will be assumed. */
+  imageFields?: string[] | Multi2VecField[];
+  /** The text fields to use in vectorization. Can be string of `Multi2VecField` type. If string, weight 0 will be assumed. */
+  textFields?: string[] | Multi2VecField[];
+};
+
 /** The configuration for the `multi2vec-clip` vectorizer. */
 export type Multi2VecClipConfigCreate = {
   /** The image fields to use in vectorization. Can be string of `Multi2VecField` type. If string, weight 0 will be assumed. */
@@ -261,6 +292,8 @@ export type Text2MultiVecJinaAIConfigCreate = Text2MultiVecJinaAIConfig;
 
 export type VectorizerConfigCreateType<V> = V extends 'img2vec-neural'
   ? Img2VecNeuralConfigCreate | undefined
+  : V extends 'multi2vec-nvidia'
+  ? Multi2VecNvidiaConfigCreate | undefined
   : V extends 'multi2vec-clip'
   ? Multi2VecClipConfigCreate | undefined
   : V extends 'multi2vec-cohere'

@@ -639,6 +639,45 @@ describe('Unit testing of the vectorizer factory class', () => {
       },
     });
   });
+  it('should create the correct Multi2VecNvidiaConfig type with all values and weights', () => {
+    const config = configure.vectors.multi2VecNvidia({
+      name: 'test',
+      model: 'model-id',
+      outputEncoding: 'base64',
+      truncation: true,
+      baseURL: 'example.com',
+      imageFields: [
+        { name: 'field1', weight: 0.1 },
+        { name: 'field2', weight: 0.2 },
+      ],
+      textFields: [
+        { name: 'field3', weight: 0.3 },
+        { name: 'field4', weight: 0.4 },
+      ],
+    });
+    expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'multi2vec-nvidia'>>({
+      name: 'test',
+      vectorIndex: {
+        name: 'hnsw',
+        config: undefined,
+      },
+      vectorizer: {
+        name: 'multi2vec-nvidia',
+        config: {
+          output_encoding: 'base64',
+          truncation: true,
+          baseURL: 'example.com',
+          imageFields: ['field1', 'field2'],
+          textFields: ['field3', 'field4'],
+          model: 'model-id',
+          weights: {
+            imageFields: [0.1, 0.2],
+            textFields: [0.3, 0.4],
+          },
+        },
+      },
+    });
+  });
 
   it('should create the correct Multi2VecJinaAIConfig type with defaults', () => {
     const config = configure.vectors.multi2VecJinaAI();

@@ -19,6 +19,7 @@ type Text2VecPalmVectorizer = 'text2vec-palm';
 
 export type Vectorizer =
   | 'img2vec-neural'
+  | 'multi2vec-nvidia'
   | 'multi2vec-clip'
   | 'multi2vec-cohere'
   | 'multi2vec-bind'
@@ -63,6 +64,32 @@ export type Multi2VecField = {
   name: string;
   /** The weight of the field when performing multi-media vectorization. */
   weight?: number;
+};
+
+/** The configuration for multi-media vectorization using the NVIDIA module.
+ *
+ * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/nvidia/embeddings-multimodal) for detailed usage.
+ */
+export type Multi2VecNvidiaConfig = {
+  /** The model to use. Defaults to `None`, which uses the server-defined default. */
+  model?: string;
+  /** The base URL where API requests should go. */
+  baseURL?: string;
+  /** Whether to apply truncation. */
+  truncation?: boolean;
+  /** Format in which the embeddings are encoded. Defaults to `None`, so the embeddings are represented as a list of floating-point numbers. */
+  output_encoding?: string;
+  /** The image fields used when vectorizing. */
+  imageFields?: string[];
+  /** The text fields used when vectorizing. */
+  textFields?: string[];
+  /** The weights of the fields used for vectorization. */
+  weights?: {
+    /** The weights of the image fields. */
+    imageFields?: number[];
+    /** The weights of the text fields. */
+    textFields?: number[];
+  };
 };
 
 /** The configuration for multi-media vectorization using the CLIP module.
@@ -569,6 +596,8 @@ export type VectorizerConfig =
 
 export type VectorizerConfigType<V> = V extends 'img2vec-neural'
   ? Img2VecNeuralConfig | undefined
+  : V extends 'multi2vec-nvidia'
+  ? Multi2VecNvidiaConfig | undefined
   : V extends 'multi2vec-clip'
   ? Multi2VecClipConfig | undefined
   : V extends 'multi2vec-cohere'
