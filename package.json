@@ -1,6 +1,6 @@
 {
   "name": "weaviate-client",
-  "version": "3.7.0",
+  "version": "3.8.0-alpha.1",
   "description": "JS/TS client for Weaviate",
   "main": "dist/node/cjs/index.js",
   "type": "module",
