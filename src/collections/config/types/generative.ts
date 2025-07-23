@@ -88,6 +88,8 @@ export type GenerativePaLMConfig = GenerativeGoogleConfig;
 export type GenerativeGoogleConfig = {
   apiEndpoint?: string;
   maxOutputTokens?: number;
+  model?: string;
+  /** @deprecated Use `model` instead. */
   modelId?: string;
   projectId?: string;
   temperature?: number;

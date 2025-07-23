@@ -33,9 +33,7 @@ describe('Testing of the collection.iterator method with a simple collection', (
             dataType: 'text',
           },
         ],
-        vectorizers: weaviate.configure.vectors.text2VecContextionary({
-          vectorizeCollectionName: false,
-        }),
+        vectorizers: weaviate.configure.vectors.text2VecContextionary({}),
       })
       .then(() => {
         return collection.data.insert({
