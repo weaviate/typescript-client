@@ -187,7 +187,7 @@ describe('Testing of the collection.tenants methods', () => {
       .then((tenants) => expect(tenants[tenantName].activityStatus).toBe('INACTIVE'));
 
     await collection.tenants
-      .activate(tenantName)
+      .activate([tenantName])
       .then(() => collection.tenants.get())
       .then((tenants) => expect(tenants[tenantName].activityStatus).toBe('ACTIVE'));
   });
