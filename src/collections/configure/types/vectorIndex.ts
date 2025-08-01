@@ -23,6 +23,7 @@ export type QuantizerRecursivePartial<T> = {
 export type RQConfigCreate = QuantizerRecursivePartial<RQConfig>;
 
 export type RQConfigUpdate = {
+  bit?: number;
   rescoreLimit?: number;
   type: 'rq';
 };
