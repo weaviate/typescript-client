@@ -191,31 +191,31 @@ export interface Tenants {
    * For details on the new activity statuses, see the docstring for the `Tenants` interface type.
    *
    * @param {TenantInput | TenantInput[]} tenants The tenant or tenants to update.
-   * @returns {Promise<Tenant[]>} The updated tenant(s) as a list of Tenant.
+   * @returns {Promise<Tenant[]>} The updated tenants as a list of Tenant.
    */
   update: (tenants: TenantBC | TenantUpdate | (TenantBC | TenantUpdate)[]) => Promise<Tenant[]>;
   /**
-   * Activate the specified tenant for a collection in Weaviate.
+   * Activate the specified tenants for a collection in Weaviate.
    * The collection must have been created with multi-tenancy enabled.
    *
-   * @param {string | TenantBase | (string | TenantBase)[]} tenant The tenant to activate.
-   * @returns {Promise<Tenant[]>} The activated tenant as a list of Tenant.
+   * @param {string | TenantBase | (string | TenantBase)[]} tenant The tenants to activate.
+   * @returns {Promise<Tenant[]>} The list of Tenants that have been activated.
    */
-  activate: (tenant: string | TenantBase | (string | TenantBase)[]) => Promise<Tenant[]>;
+  activate: (tenants: string | TenantBase | (string | TenantBase)[]) => Promise<Tenant[]>;
   /**
-   * Deactivate the specified tenant for a collection in Weaviate.
+   * Deactivate the specified tenants for a collection in Weaviate.
    * The collection must have been created with multi-tenancy enabled.
    *
-   * @param {string | TenantBase | (string | TenantBase)[]} tenant The tenant to deactivate.
-   * @returns {Promise<Tenant[]>} The deactivated tenant as a list of Tenant
+   * @param {string | TenantBase | (string | TenantBase)[]} tenants The tenants to deactivate.
+   * @returns {Promise<Tenant[]>} The list of Tenants that have been deactivated.
    */
-  deactivate: (tenant: string | TenantBase | (string | TenantBase)[]) => Promise<Tenant[]>;
+  deactivate: (tenants: string | TenantBase | (string | TenantBase)[]) => Promise<Tenant[]>;
   /**
-   * Offload the specified tenant for a collection in Weaviate.
+   * Offload the specified tenants for a collection in Weaviate.
    * The collection must have been created with multi-tenancy enabled.
    *
-   * @param {string | TenantBase | (string | TenantBase)[]} tenant The tenant to offload.
-   * @returns {Promise<Tenant[]>} The offloaded tenant as a list of Tenant
+   * @param {string | TenantBase | (string | TenantBase)[]} tenants The tenants to offload.
+   * @returns {Promise<Tenant[]>} The list of Tenants that have been offloaded.
    */
-  offload: (tenant: string | TenantBase | (string | TenantBase)[]) => Promise<Tenant[]>;
+  offload: (tenants: string | TenantBase | (string | TenantBase)[]) => Promise<Tenant[]>;
 }
