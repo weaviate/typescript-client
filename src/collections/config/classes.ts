@@ -186,15 +186,18 @@ export class MergeWithExisting {
     current: WeaviateVectorIndexConfig,
     update: VectorIndexConfigHNSWUpdate
   ): WeaviateVectorIndexConfig {
+    const hasOtherQuantizerAlready = (quantizer: string) =>
+      ['pq', 'bq', 'sq', 'rq'].some(
+        (q) => q !== quantizer && (current?.[q as keyof WeaviateVectorIndexConfig] as any)?.enabled
+      );
     if (
-      (QuantizerGuards.isBQUpdate(update.quantizer) &&
-        (((current?.pq as any) || {}).enabled || ((current?.sq as any) || {}).enabled)) ||
-      (QuantizerGuards.isPQUpdate(update.quantizer) &&
-        (((current?.bq as any) || {}).enabled || ((current?.sq as any) || {}).enabled)) ||
-      (QuantizerGuards.isSQUpdate(update.quantizer) &&
-        (((current?.pq as any) || {}).enabled || ((current?.bq as any) || {}).enabled))
-    )
+      (QuantizerGuards.isBQUpdate(update.quantizer) && hasOtherQuantizerAlready('bq')) ||
+      (QuantizerGuards.isPQUpdate(update.quantizer) && hasOtherQuantizerAlready('pq')) ||
+      (QuantizerGuards.isSQUpdate(update.quantizer) && hasOtherQuantizerAlready('sq')) ||
+      (QuantizerGuards.isRQUpdate(update.quantizer) && hasOtherQuantizerAlready('rq'))
+    ) {
       throw new WeaviateInvalidInputError(`Cannot update the quantizer type of an enabled vector index.`);
+    }
     const { quantizer, ...rest } = update;
     const merged: WeaviateVectorIndexConfig = { ...current, ...rest };
     if (QuantizerGuards.isBQUpdate(quantizer)) {
@@ -208,6 +211,10 @@ export class MergeWithExisting {
     if (QuantizerGuards.isSQUpdate(quantizer)) {
       const { type, ...quant } = quantizer;
       merged.sq = { ...current!.sq!, ...quant, enabled: true };
+    }
+    if (QuantizerGuards.isRQUpdate(quantizer)) {
+      const { type, ...quant } = quantizer;
+      merged.rq = { ...current!.rq!, ...quant, enabled: true };
     }
     return merged;
   }
