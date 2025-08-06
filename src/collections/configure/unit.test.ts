@@ -1463,6 +1463,7 @@ describe('Unit testing of the vectorizer factory class', () => {
     const config = configure.vectors.text2VecTransformers({
       name: 'test',
       poolingStrategy: 'pooling-strategy',
+      dimensions: 512,
     });
     expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'text2vec-transformers'>>({
       name: 'test',
@@ -1474,6 +1475,7 @@ describe('Unit testing of the vectorizer factory class', () => {
         name: 'text2vec-transformers',
         config: {
           poolingStrategy: 'pooling-strategy',
+          dimensions: 512,
         },
       },
     });
@@ -1567,12 +1569,49 @@ describe('Unit testing of the vectorizer factory class', () => {
       },
     });
   });
-});
 
-it('should alias "selfProvided" to "none"', () => {
-  expect(configure.vectors.selfProvided()).toEqual<VectorConfigCreate<never, undefined, 'hnsw', 'none'>>(
-    configure.vectors.none()
-  );
+  it('should alias "selfProvided" to "none"', () => {
+    expect(configure.vectors.selfProvided()).toEqual<VectorConfigCreate<never, undefined, 'hnsw', 'none'>>(
+      configure.vectors.none()
+    );
+  });
+
+  it('should create the correct Text2VecModel2VecConfig type with defaults', () => {
+    const config = configure.vectors.text2VecModel2Vec();
+    expect(config).toEqual<VectorConfigCreate<never, undefined, 'hnsw', 'text2vec-model2vec'>>({
+      name: undefined,
+      vectorIndex: {
+        name: 'hnsw',
+        config: undefined,
+      },
+      vectorizer: {
+        name: 'text2vec-model2vec',
+        config: undefined,
+      },
+    });
+  });
+
+  it('should create the correct Text2VecModel2VecConfig type with all values', () => {
+    const config = configure.vectors.text2VecModel2Vec({
+      name: 'test',
+      inferenceURL: 'url',
+      vectorizeCollectionName: true,
+    });
+    expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'text2vec-model2vec'>>({
+      name: 'test',
+      vectorIndex: {
+        name: 'hnsw',
+        config: undefined,
+      },
+      vectorizer: {
+        name: 'text2vec-model2vec',
+        config: {
+          inferenceURL: 'url',
+          vectorizeCollectionName: true,
+        },
+      },
+    });
+  });
 });
 
 describe('Unit testing of the multiVectors factory class', () => {
