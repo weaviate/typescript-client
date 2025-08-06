@@ -1463,6 +1463,7 @@ describe('Unit testing of the vectorizer factory class', () => {
     const config = configure.vectors.text2VecTransformers({
       name: 'test',
       poolingStrategy: 'pooling-strategy',
+      dimensions: 512,
     });
     expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'text2vec-transformers'>>({
       name: 'test',
@@ -1474,6 +1475,7 @@ describe('Unit testing of the vectorizer factory class', () => {
         name: 'text2vec-transformers',
         config: {
           poolingStrategy: 'pooling-strategy',
+          dimensions: 512,
         },
       },
     });
