@@ -39,6 +39,7 @@ export type Vectorizer =
   | 'text2vec-jinaai'
   | 'text2vec-nvidia'
   | 'text2vec-mistral'
+  | 'text2vec-model2vec'
   | 'text2vec-ollama'
   | 'text2vec-openai'
   | Text2VecPalmVectorizer
@@ -522,6 +523,8 @@ export type Text2VecGoogleConfig = {
  * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/transformers/embeddings) for detailed usage.
  */
 export type Text2VecTransformersConfig = {
+  /** The number of dimensions for the generated embeddings. */
+  dimensions?: number;
   /** The inference url to use where API requests should go. You can use either this OR (`passage_inference_url` & `query_inference_url`). */
   inferenceUrl?: string;
   /** The inference url to use where passage API requests should go. You can use either (this AND query_inference_url) OR `inference_url`. */
@@ -566,6 +569,16 @@ export type Text2VecWeaviateConfig = {
   vectorizeCollectionName?: boolean;
 };
 
+/**
+ * The configuration for text vectorization using the Model2Vec module.
+ */
+export type Text2VecModel2Vec = {
+  /** The URL to use where API requests should go. */
+  inferenceURL?: string;
+  /** Whether to vectorize the collection name. */
+  vectorizeCollectionName?: boolean;
+};
+
 export type NoVectorizerConfig = {};
 
 export type VectorizerConfig =
@@ -586,6 +599,7 @@ export type VectorizerConfig =
   | Text2VecGoogleConfig
   | Text2VecGPT4AllConfig
   | Text2VecHuggingFaceConfig
+  | Text2VecModel2Vec
   | Text2VecJinaAIConfig
   | Text2VecOpenAIConfig
   | Text2VecPalmConfig
@@ -636,6 +650,8 @@ export type VectorizerConfigType<V> = V extends 'img2vec-neural'
   ? Text2VecNvidiaConfig | undefined
   : V extends 'text2vec-mistral'
   ? Text2VecMistralConfig | undefined
+  : V extends 'text2vec-model2vec'
+  ? Text2VecModel2Vec | undefined
   : V extends 'text2vec-ollama'
   ? Text2VecOllamaConfig | undefined
   : V extends 'text2vec-openai'

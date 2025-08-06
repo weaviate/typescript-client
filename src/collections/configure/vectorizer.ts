@@ -514,6 +514,7 @@ const legacyVectors = {
    *
    * @param {ConfigureTextVectorizerOptions<T, N, I, 'text2vec-contextionary'>} [opts] The configuration for the `text2vec-contextionary` vectorizer.
    * @returns {VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2vec-contextionary'>} The configuration object.
+   * @deprecated The contextionary model is old and not recommended for use. If you are looking for a local, lightweight model try the new text2vec-model2vec module instead.
    */
   text2VecContextionary: <T, N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
     opts?: ConfigureTextVectorizerOptions<T, N, I, 'text2vec-contextionary'>
@@ -556,7 +557,7 @@ const legacyVectors = {
    *
    * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/gpt4all/embeddings) for detailed usage.
    *
-   * @param {ConfigureTextVectorizerOptions<T, N, I, 'text2vec-gpt4all'>} [opts] The configuration for the `text2vec-contextionary` vectorizer.
+   * @param {ConfigureTextVectorizerOptions<T, N, I, 'text2vec-gpt4all'>} [opts] The configuration for the `text2vec-gpt4all` vectorizer.
    * @returns {VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2vec-gpt4all'>} The configuration object.
    */
   text2VecGPT4All: <T, N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
@@ -578,7 +579,7 @@ const legacyVectors = {
    *
    * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/huggingface/embeddings) for detailed usage.
    *
-   * @param {ConfigureTextVectorizerOptions<T, N, I, 'text2vec-huggingface'>} [opts] The configuration for the `text2vec-contextionary` vectorizer.
+   * @param {ConfigureTextVectorizerOptions<T, N, I, 'text2vec-huggingface'>} [opts] The configuration for the `text2vec-huggingface` vectorizer.
    * @returns {VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2vec-huggingface'>} The configuration object.
    */
   text2VecHuggingFace: <T, N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
@@ -806,6 +807,27 @@ const legacyVectors = {
       quantizer,
       vectorizerConfig: {
         name: 'text2vec-weaviate',
+        config: Object.keys(config).length === 0 ? undefined : config,
+      },
+    });
+  },
+
+  /**
+   * Create a `VectorConfigCreate` object with the vectorizer set to `'text2vec-model2vec'`.
+   *
+   * @param {ConfigureTextVectorizerOptions<T, N, I, 'text2vec-model2vec'>} [opts] The configuration for the `text2vec-model2vec` vectorizer.
+   * @returns {VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2vec-model2vec'>} The configuration object.
+   */
+  text2VecModel2Vec: <T, N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
+    opts?: ConfigureTextVectorizerOptions<T, N, I, 'text2vec-model2vec'>
+  ): VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2vec-model2vec'> => {
+    const { name, sourceProperties, quantizer, vectorIndexConfig, ...config } = opts || {};
+    return makeVectorizer(name, {
+      sourceProperties,
+      vectorIndexConfig,
+      quantizer,
+      vectorizerConfig: {
+        name: 'text2vec-model2vec',
         config: Object.keys(config).length === 0 ? undefined : config,
       },
     });

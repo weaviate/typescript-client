@@ -1567,12 +1567,49 @@ describe('Unit testing of the vectorizer factory class', () => {
       },
     });
   });
-});
 
-it('should alias "selfProvided" to "none"', () => {
-  expect(configure.vectors.selfProvided()).toEqual<VectorConfigCreate<never, undefined, 'hnsw', 'none'>>(
-    configure.vectors.none()
-  );
+  it('should alias "selfProvided" to "none"', () => {
+    expect(configure.vectors.selfProvided()).toEqual<VectorConfigCreate<never, undefined, 'hnsw', 'none'>>(
+      configure.vectors.none()
+    );
+  });
+
+  it('should create the correct Text2VecModel2VecConfig type with defaults', () => {
+    const config = configure.vectors.text2VecModel2Vec();
+    expect(config).toEqual<VectorConfigCreate<never, undefined, 'hnsw', 'text2vec-model2vec'>>({
+      name: undefined,
+      vectorIndex: {
+        name: 'hnsw',
+        config: undefined,
+      },
+      vectorizer: {
+        name: 'text2vec-model2vec',
+        config: undefined,
+      },
+    });
+  });
+
+  it('should create the correct Text2VecModel2VecConfig type with all values', () => {
+    const config = configure.vectors.text2VecModel2Vec({
+      name: 'test',
+      inferenceURL: 'url',
+      vectorizeCollectionName: true,
+    });
+    expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'text2vec-model2vec'>>({
+      name: 'test',
+      vectorIndex: {
+        name: 'hnsw',
+        config: undefined,
+      },
+      vectorizer: {
+        name: 'text2vec-model2vec',
+        config: {
+          inferenceURL: 'url',
+          vectorizeCollectionName: true,
+        },
+      },
+    });
+  });
 });
 
 describe('Unit testing of the multiVectors factory class', () => {
