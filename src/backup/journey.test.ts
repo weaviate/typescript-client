@@ -7,6 +7,7 @@ import {
 import weaviate, { WeaviateClient } from '../v2/index.js';
 import { Backend } from './index.js';
 
+import { requireAtLeast } from '../../test/version';
 const {
   createTestFoodSchemaAndData,
   cleanupTestFood,
@@ -950,55 +951,61 @@ describe('fails restoring backup with invalid compression config', () => {
   it('cleans up', () => cleanupTestFood(client));
 });
 
-// describe("get all exising backups", () => {
-//   const BACKEND: Backend = 'filesystem';
-//   const BACKUP_ID = randomBackupId()
-//   const BACKUP_ID_PIZZA = BACKUP_ID + "-pizza";
-//   const BACKUP_ID_SOUP = BACKUP_ID + "-soup";
+requireAtLeast(1, 30, 0).describe('get all exising backups', () => {
+  const BACKEND: Backend = 'filesystem';
+  const BACKUP_ID = randomBackupId();
+  const BACKUP_ID_PIZZA = BACKUP_ID + '-pizza';
+  const BACKUP_ID_SOUP = BACKUP_ID + '-soup';
 
-//   const client = weaviate.client({
-//     scheme: "http",
-//     host: "localhost:8080",
-//   });
+  const client = weaviate.client({
+    scheme: 'http',
+    host: 'localhost:8080',
+  });
 
-//   it("sets up", () => createTestFoodSchemaAndData(client));
+  it('sets up', () => createTestFoodSchemaAndData(client));
 
-//   it("creates backup pizza", () => {
-//     return client.backup.creator()
-//       .withIncludeClassNames(PIZZA_CLASS_NAME)
-//       .withBackend(BACKEND)
-//       .withBackupId(BACKUP_ID_PIZZA)
-//       .withWaitForCompletion(true)
-//       .do()
-//       .catch((err: any) => {throw new Error("should not fail on create backup: " + err)});
-//   });
+  it('creates backup pizza', () => {
+    return client.backup
+      .creator()
+      .withIncludeClassNames(PIZZA_CLASS_NAME)
+      .withBackend(BACKEND)
+      .withBackupId(BACKUP_ID_PIZZA)
+      .withWaitForCompletion(true)
+      .do()
+      .catch((err: any) => {
+        throw new Error('should not fail on create backup: ' + err);
+      });
+  });
 
-//   it("creates backup soup", () => {
-//     return client.backup.creator()
-//       .withIncludeClassNames(SOUP_CLASS_NAME)
-//       .withBackend(BACKEND)
-//       .withBackupId(BACKUP_ID_SOUP)
-//       .withWaitForCompletion(true)
-//       .do()
-//       .catch((err: any) => {throw new Error("should not fail on create backup: " + err)});
-//   });
+  it('creates backup soup', () => {
+    return client.backup
+      .creator()
+      .withIncludeClassNames(SOUP_CLASS_NAME)
+      .withBackend(BACKEND)
+      .withBackupId(BACKUP_ID_SOUP)
+      .withWaitForCompletion(true)
+      .do()
+      .catch((err: any) => {
+        throw new Error('should not fail on create backup: ' + err);
+      });
+  });
 
-//   it("get all", () => {
-//     return client.backup.getter()
-//       .withBackend(BACKEND)
-//       .do()
-//       .then(allResponse => {
-//         expect(allResponse).toHaveLength(2);
-//         expect(allResponse).toEqual(expect.arrayContaining([
-//           expect.objectContaining({id: BACKUP_ID_PIZZA}),
-//           expect.objectContaining({id: BACKUP_ID_SOUP}),
-//         ]));
-//       })
-//       .catch((err: any) => {throw new Error("should not fail on getting all: " + err)});
-//   });
+  it('get all', () => {
+    return client.backup
+      .getter()
+      .withBackend(BACKEND)
+      .do()
+      .then((allResponse) => {
+        const relevant = allResponse.filter((b) => b.id === BACKUP_ID_SOUP || b.id === BACKUP_ID_PIZZA);
+        expect(relevant).toHaveLength(2);
+      })
+      .catch((err: any) => {
+        throw new Error('should not fail on getting all: ' + err);
+      });
+  });
 
-//   it("cleans up", () => cleanupTestFood(client));
-// });
+  it('cleans up', () => cleanupTestFood(client));
+});
 
 function assertThatAllPizzasExist(client: WeaviateClient) {
   return assertThatAllFoodObjectsExist(client, 'Pizza', 4);
