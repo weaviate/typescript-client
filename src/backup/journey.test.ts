@@ -951,7 +951,7 @@ describe('fails restoring backup with invalid compression config', () => {
   it('cleans up', () => cleanupTestFood(client));
 });
 
-requireAtLeast(1, 30, 0).describe('get all exising backups', () => {
+requireAtLeast(1, 32, 0).describe('get all exising backups', () => {
   const BACKEND: Backend = 'filesystem';
   const BACKUP_ID = randomBackupId();
   const BACKUP_ID_PIZZA = BACKUP_ID + '-pizza';
