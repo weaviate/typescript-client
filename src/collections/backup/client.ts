@@ -197,9 +197,9 @@ export const backup = (connection: Connection): Backup => {
       }
       return status
         ? {
-            ...parseResponse(res),
-            ...status,
-          }
+          ...parseResponse(res),
+          ...status,
+        }
         : parseResponse(res);
     },
     list: (backend: Backend): Promise<BackupReturn[]> => {
@@ -259,9 +259,6 @@ export interface Backup {
    *
    * @param {Backend} backend Backend whence to list backups.
    * @returns {Promise<BackupReturn[]>} The response from Weaviate.
-   * @throws {WeaviateInvalidInputError} If the input is invalid.
-   * @throws {WeaviateBackupFailed} If the backup restoration fails.
-   * @throws {WeaviateBackupCanceled} If the backup restoration is canceled.
    * */
   list(backend: Backend): Promise<BackupReturn[]>;
 }
