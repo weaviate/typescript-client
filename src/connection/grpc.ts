@@ -193,7 +193,7 @@ export const grpcClient = (config: GrpcConnectionParams & { grpcMaxMessageLength
       Aggregator.use(
         client,
         collection,
-        new Metadata(bearerToken ? { ...config.headers, authorization: bearerToken } : config.headers),
+        getMetadataWithEmbeddingServiceAuth(config, bearerToken),
         config.timeout?.query || 30,
         consistencyLevel,
         tenant
