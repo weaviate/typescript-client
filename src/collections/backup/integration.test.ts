@@ -131,9 +131,7 @@ describe('Integration testing of backups', () => {
               includeCollections: ['TestListBackups'],
               waitForCompletion: true,
             })
-            .then((res) => {
-              return res.id;
-            })
+            .then((res) => res.id)
         );
       }
 
