@@ -332,6 +332,43 @@ describe('Unit testing of the MergeWithExisting class', () => {
     });
   });
 
+  it('should merge a RQ quantizer HNSW vectorIndexConfig with existing schema', () => {
+    const merged = MergeWithExisting.vectors(deepCopy(hnswVectorConfig), [
+      {
+        name: 'name',
+        vectorIndex: {
+          name: 'hnsw',
+          config: {
+            quantizer: {
+              type: 'rq',
+              rescoreLimit: 1000,
+              bits: 128,
+            },
+          },
+        },
+      },
+    ]);
+    expect(merged).toEqual({
+      name: {
+        vectorIndexConfig: {
+          ...hnswVectorConfig.name.vectorIndexConfig,
+          rq: {
+            enabled: true,
+            rescoreLimit: 1000,
+            bits: 128,
+          },
+        },
+        vectorIndexType: 'hnsw',
+        vectorizer: {
+          'text2vec-contextionary': {
+            properties: ['name'],
+            vectorizeCollectionName: false,
+          },
+        },
+      },
+    });
+  });
+
   it('should merge a BQ quantizer Flat vectorIndexConfig with existing schema', () => {
     const merged = MergeWithExisting.vectors(deepCopy(flatVectorConfig), [
       {
