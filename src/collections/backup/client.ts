@@ -197,9 +197,9 @@ export const backup = (connection: Connection): Backup => {
       }
       return status
         ? {
-          ...parseResponse(res),
-          ...status,
-        }
+            ...parseResponse(res),
+            ...status,
+          }
         : parseResponse(res);
     },
     list: (backend: Backend): Promise<BackupReturn[]> => {
