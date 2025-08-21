@@ -30,6 +30,9 @@ describe('Testing of the collection.data methods with a single target reference'
   const toBeUpdatedID = v4();
   const toBeDeletedID = v4();
   const nonExistingID = v4();
+  const deleteManyFirstID = v4();
+  const deleteManySecondID = v4();
+  const deleteManyThirdID = v4();
 
   beforeAll(async () => {
     client = await weaviate.connectToLocal();
@@ -78,9 +81,9 @@ describe('Testing of the collection.data methods with a single target reference'
           id: toBeDeletedID,
         });
         return collection.data.insertMany([
-          { properties: { testProp: 'DELETE ME' } },
-          { properties: { testProp: 'DELETE ME' } },
-          { properties: { testProp: 'DELETE ME' } },
+          { properties: { testProp: 'DELETE ME' }, id: deleteManyFirstID },
+          { properties: { testProp: 'DELETE ME' }, id: deleteManySecondID },
+          { properties: { testProp: 'DELETE ME' }, id: deleteManyThirdID },
           {
             properties: {
               testProp: 'EXISTING',
@@ -147,6 +150,22 @@ describe('Testing of the collection.data methods with a single target reference'
     expect(result).toBeTruthy();
     const obj = await collection.query.fetchObjectById(toBeDeletedID);
     expect(obj).toBeNull();
+  });
+
+  it('should be able to dryRun delete many objects with a filter', async () => {
+    const result = await collection.data.deleteMany(
+      collection.filter.byProperty('testProp').equal('DELETE ME'),
+      {
+        dryRun: true,
+        verbose: true,
+      }
+    );
+    expect(result.failed).toEqual(0);
+    expect(result.matches).toEqual(3);
+    expect(result.successful).toEqual(3);
+    expect(result.objects.map((obj) => obj.id).sort()).toEqual(
+      [deleteManyFirstID, deleteManySecondID, deleteManyThirdID].sort()
+    );
   });
 
   it('should be able to delete many objects with a filter', async () => {

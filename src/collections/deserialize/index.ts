@@ -1,3 +1,4 @@
+import { stringify } from 'uuid';
 import { WeaviateDeserializationError } from '../../errors.js';
 import { Tenant as TenantREST } from '../../openapi/types.js';
 import {
@@ -539,7 +540,7 @@ export class Deserialize {
       objects: verbose
         ? reply.objects.map((obj) => {
             return {
-              id: obj.uuid.toString(),
+              id: stringify(obj.uuid),
               successful: obj.successful,
               error: obj.error,
             };
