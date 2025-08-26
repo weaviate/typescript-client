@@ -9,7 +9,7 @@ import { WeaviateInvalidInputError, WeaviateQueryError } from '../../errors.js';
 import { Aggregator } from '../../graphql/index.js';
 import { PrimitiveKeys, toBase64FromMedia } from '../../index.js';
 import { Deserialize } from '../deserialize/index.js';
-import { Bm25QueryProperty, NearVectorInputType, TargetVector } from '../query/types.js';
+import { Bm25OperatorOptions, Bm25QueryProperty, NearVectorInputType, TargetVector } from '../query/types.js';
 import { NearVectorInputGuards } from '../query/utils.js';
 import { Serialize } from '../serialize/index.js';
 
@@ -45,6 +45,7 @@ export type AggregateHybridOptions<T, M, V> = AggregateBaseOptions<M> & {
   queryProperties?: (PrimitiveKeys<T> | Bm25QueryProperty<T>)[];
   targetVector?: TargetVector<V>;
   vector?: number[];
+  bm25Operator?: Bm25OperatorOptions;
 };
 
 export type AggregateGroupByHybridOptions<T, M, V> = AggregateHybridOptions<T, M, V> & {

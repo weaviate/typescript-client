@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
+import { requireAtLeast } from '../../../test/version.js';
 import { WeaviateQueryError, WeaviateUnsupportedFeatureError } from '../../errors.js';
-import weaviate, { AggregateText, WeaviateClient } from '../../index.js';
+import weaviate, { AggregateText, Bm25Operator, WeaviateClient } from '../../index.js';
 import { Collection } from '../collection/index.js';
 import { CrossReference } from '../references/index.js';
 import { DataObject } from '../types/index.js';
@@ -441,6 +442,16 @@ describe('Testing of collection.aggregate search methods', () => {
     }
     const result = await collection.aggregate.hybrid('test', {
       alpha: 0.5,
+      maxVectorDistance: 1,
+      queryProperties: ['text'],
+      returnMetrics: collection.metrics.aggregate('text').text(['count']),
+    });
+    expect(result.totalCount).toBeGreaterThan(0);
+  });
+
+  requireAtLeast(1, 31, 0).it('bm25 search operator with hybrid', async () => {
+    const result = await collection.aggregate.hybrid('test', {
+      bm25Operator: Bm25Operator.and(),
       maxVectorDistance: 1,
       queryProperties: ['text'],
       returnMetrics: collection.metrics.aggregate('text').text(['count']),
