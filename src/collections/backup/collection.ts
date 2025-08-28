@@ -1,6 +1,5 @@
 import { Backend } from '../../backup/index.js';
 import Connection from '../../connection/index.js';
-import { WeaviateInvalidInputError } from '../../errors.js';
 import { backup } from './client.js';
 import { BackupReturn, BackupStatusArgs, BackupStatusReturn } from './types.js';
 
