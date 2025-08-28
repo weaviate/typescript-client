@@ -68,6 +68,10 @@ export type RQConfig = {
   type: 'rq';
 };
 
+export type UncompressedConfig = {
+  type: 'none';
+}
+
 export type MultiVectorConfig = {
   aggregation: 'maxSim' | string;
   encoding?: MultiVectorEncodingConfig;
@@ -98,4 +102,4 @@ export type VectorIndexFilterStrategy = 'sweeping' | 'acorn';
 
 export type VectorIndexConfig = VectorIndexConfigHNSW | VectorIndexConfigFlat | VectorIndexConfigDynamic;
 
-export type QuantizerConfig = PQConfig | BQConfig | SQConfig | RQConfig;
+export type QuantizerConfig = PQConfig | BQConfig | SQConfig | RQConfig | UncompressedConfig;

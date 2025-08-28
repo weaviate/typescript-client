@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
+import { requireAtLeast } from '../../test/version';
 import weaviate, { WeaviateClient } from '../index';
 import {
   CollectionConfigCreate,
@@ -654,6 +655,23 @@ describe('Testing of the collections.create method', () => {
     expect(
       (response.vectorizers.default.vectorizer.config as Text2VecContextionaryConfig).vectorizeCollectionName
     ).toEqual(true);
+  });
+
+  requireAtLeast(1, 32, 0).it('should be able to create a collection with uncompressed vectors', async () => {
+    const collectionName = 'TestCollectionUncompressedVector';
+
+    await contextionary.collections.create({
+      name: collectionName,
+      vectorizers: weaviate.configure.vectors.text2VecContextionary({
+        vectorIndexConfig: weaviate.configure.vectorIndex.hnsw({
+          quantizer: weaviate.configure.vectorIndex.quantizer.none(),
+        }),
+      }),
+    });
+
+    const collection = await contextionary.collections.export(collectionName);
+
+    expect((collection.vectorizers.default.indexConfig as VectorIndexConfigHNSW).quantizer).toBeUndefined();
   });
 
   it('should be able to create a collection with an openai vectorizer with configure.vectors', async () => {

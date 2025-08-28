@@ -30,6 +30,7 @@ import {
   VectorizersConfigAdd,
   VectorizersConfigCreate,
 } from '../configure/types/index.js';
+import { Quantizer } from '../index.js';
 import {
   BQConfig,
   CollectionConfig,
@@ -179,6 +180,12 @@ export const parseVectorIndex = (module: ModuleConfig<VectorIndexType, VectorInd
     multivector,
   };
   if (quantizer === undefined) return conf;
+  if (Quantizer.isUncompressed(quantizer)) {
+    return {
+      ...conf,
+      skipDefaultQuantization: true,
+    }
+  }
   if (QuantizerGuards.isBQCreate(quantizer)) {
     const { type, ...quant } = quantizer;
     return {
@@ -239,11 +246,11 @@ export const makeVectorsConfig = (
   const vectorizersConfig = Array.isArray(configVectorizers)
     ? configVectorizers
     : [
-        {
-          ...configVectorizers,
-          name: configVectorizers.name || 'default',
-        },
-      ];
+      {
+        ...configVectorizers,
+        name: configVectorizers.name || 'default',
+      },
+    ];
   vectorizersConfig.forEach((v) => {
     if (v.vectorIndex.name === 'dynamic' && !supportsDynamicVectorIndex.supports) {
       throw new WeaviateUnsupportedFeatureError(supportsDynamicVectorIndex.message);
@@ -366,18 +373,18 @@ class ConfigMapping {
         vectorizer:
           v.vectorizer === 'none'
             ? {
-                name: 'none',
-                config: undefined,
-              }
+              name: 'none',
+              config: undefined,
+            }
             : {
-                name: v.vectorizer,
-                config: v.moduleConfig
-                  ? ({
-                      ...(v.moduleConfig[v.vectorizer] as any),
-                      vectorizeCollectionName: (v.moduleConfig[v.vectorizer] as any).vectorizeClassName,
-                    } as VectorizerConfig)
-                  : undefined,
-              },
+              name: v.vectorizer,
+              config: v.moduleConfig
+                ? ({
+                  ...(v.moduleConfig[v.vectorizer] as any),
+                  vectorizeCollectionName: (v.moduleConfig[v.vectorizer] as any).vectorizeClassName,
+                } as VectorizerConfig)
+                : undefined,
+            },
         indexConfig: ConfigMapping.vectorIndex(v.vectorIndexConfig, v.vectorIndexType),
         indexType: ConfigMapping.vectorIndexType(v.vectorIndexType),
       },
@@ -555,9 +562,9 @@ class ConfigMapping {
     ) {
       encoding = v.muvera.enabled
         ? {
-            type: 'muvera',
-            ...v.muvera,
-          }
+          type: 'muvera',
+          ...v.muvera,
+        }
         : undefined;
     }
     return {

@@ -21,6 +21,7 @@ import {
   QuantizerConfig,
   RQConfig,
   SQConfig,
+  UncompressedConfig,
   VectorIndexConfig,
   VectorIndexConfigDynamic,
   VectorIndexConfigFlat,
@@ -41,7 +42,7 @@ const config = <T>(
         .withClassName(name)
         .withProperty(resolveProperty<any>(property, []))
         .do()
-        .then(() => {}),
+        .then(() => { }),
     addReference: (
       reference: ReferenceSingleTargetConfigCreate<any> | ReferenceMultiTargetConfigCreate<any>
     ) =>
@@ -49,7 +50,7 @@ const config = <T>(
         .withClassName(name)
         .withProperty(resolveReference<any>(reference))
         .do()
-        .then(() => {}),
+        .then(() => { }),
     addVector: async (vectors: VectorizersConfigAdd<T>) => {
       const supportsDynamicVectorIndex = await dbVersionSupport.supportsDynamicVectorIndex();
       const { vectorsConfig } = makeVectorsConfig(vectors, supportsDynamicVectorIndex);
@@ -73,7 +74,7 @@ const config = <T>(
         })
       );
     },
-    updateShards: async function (status: 'READY' | 'READONLY', names?: string | string[]) {
+    updateShards: async function(status: 'READY' | 'READONLY', names?: string | string[]) {
       let shardNames: string[];
       if (names === undefined) {
         shardNames = await this.getShards().then((shards) => shards.map((s) => s.name));
@@ -98,7 +99,7 @@ const config = <T>(
           )
         )
         .then((merged) => new ClassUpdater(connection).withClass(merged).do())
-        .then(() => {});
+        .then(() => { });
     },
   };
 };
@@ -184,6 +185,9 @@ export class VectorIndex {
 }
 
 export class Quantizer {
+  static isUncompressed(config?: QuantizerConfig): config is UncompressedConfig {
+    return config?.type === 'none';
+  }
   static isPQ(config?: QuantizerConfig): config is PQConfig {
     return config?.type === 'pq';
   }

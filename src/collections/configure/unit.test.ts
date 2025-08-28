@@ -255,6 +255,21 @@ describe('Unit testing of the configure & reconfigure factory classes', () => {
     });
   });
 
+  it('should create an hnsw VectorIndexConfig type with "none" quantizer', () => {
+    const config = configure.vectorIndex.hnsw({
+      quantizer: configure.vectorIndex.quantizer.none(),
+    });
+    expect(config).toEqual<ModuleConfig<'hnsw', VectorIndexConfigHNSWCreate>>({
+      name: 'hnsw',
+      config: {
+        quantizer: {
+          type: 'none',
+        },
+        type: 'hnsw',
+      },
+    });
+  });
+
   it('should create an hnsw VectorIndexConfig type with multivector enabled', () => {
     const config = configure.vectorIndex.hnsw({
       multiVector: configure.vectorIndex.multiVector.multiVector({ aggregation: 'maxSim' }),
