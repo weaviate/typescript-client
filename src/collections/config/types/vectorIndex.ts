@@ -68,6 +68,10 @@ export type RQConfig = {
   type: 'rq';
 };
 
+export type UncompressedConfig = {
+  type: 'none';
+};
+
 export type MultiVectorConfig = {
   aggregation: 'maxSim' | string;
   encoding?: MultiVectorEncodingConfig;

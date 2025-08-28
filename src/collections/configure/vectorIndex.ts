@@ -150,6 +150,16 @@ const configure = {
    */
   quantizer: {
     /**
+     * Create an object of type `NoneConfigCreate` to be used when defining the quantizer configuration of a vector index.
+     *
+     * This is useful for disabling the default quantization present in Weaviate>=1.33.0.
+     */
+    none: () => {
+      return {
+        type: 'none',
+      };
+    },
+    /**
      * Create an object of type `BQConfigCreate` to be used when defining the quantizer configuration of a vector index.
      *
      * @param {boolean} [options.cache] Whether to cache the quantizer. Default is false.
