@@ -30,7 +30,7 @@ import {
   BackupStatusReturn,
 } from './types.js';
 
-export const backup = (connection: Connection) => {
+export const backup = (connection: Connection): Backup => {
   const parseStatus = (res: BackupCreateStatusResponse | BackupRestoreResponse): BackupStatusReturn => {
     if (res.id === undefined) {
       throw new WeaviateUnexpectedResponseError('Backup ID is undefined in response');
@@ -205,6 +205,9 @@ export const backup = (connection: Connection) => {
           }
         : parseResponse(res);
     },
+    list: (backend: Backend): Promise<BackupReturn[]> => {
+      return connection.get<BackupReturn[]>(`/backups/${backend}`);
+    },
   };
 };
 
@@ -254,4 +257,11 @@ export interface Backup {
    * @throws {WeaviateBackupCanceled} If the backup restoration is canceled.
    */
   restore(args: BackupArgs<BackupConfigRestore>): Promise<BackupReturn>;
+
+  /** List existing backups (completed and in-progress) created in a given backend.
+   *
+   * @param {Backend} backend Backend whence to list backups.
+   * @returns {Promise<BackupReturn[]>} The response from Weaviate.
+   * */
+  list(backend: Backend): Promise<BackupReturn[]>;
 }

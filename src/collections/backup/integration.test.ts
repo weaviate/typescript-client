@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
 /* eslint-disable no-await-in-loop */
-import { requireAtLeast } from '../../../test/version';
+import { requireAtLeast } from '../../../test/version.js';
 import { Backend } from '../../backup/index.js';
 import { WeaviateBackupFailed } from '../../errors.js';
 import weaviate, { Collection, WeaviateClient } from '../../index.js';
@@ -198,8 +198,36 @@ describe('Integration testing of backups', () => {
       });
     });
   });
-});
 
-function randomBackupId() {
-  return 'backup-id-' + Math.floor(Math.random() * Number.MAX_SAFE_INTEGER);
-}
+  requireAtLeast(1, 32, 0).it('get all exising backups', async () => {
+    await clientPromise.then(async (client) => {
+      await client.collections.create({ name: 'TestListBackups' }).then((col) => col.data.insert());
+
+      const wantBackups: string[] = [];
+      for (let i = 0; i < 3; i++) {
+        wantBackups.push(
+          await client.backup
+            .create({
+              backupId: randomBackupId(),
+              backend: 'filesystem',
+              includeCollections: ['TestListBackups'],
+              waitForCompletion: true,
+            })
+            .then((res) => res.id)
+        );
+      }
+
+      const gotBackups: string[] = await client.backup
+        .list('filesystem')
+        .then((res) => res.map((bu) => bu.id));
+
+      // There may be other backups created in other tests;
+      expect(gotBackups.length).toBeGreaterThanOrEqual(wantBackups.length);
+      expect(gotBackups).toEqual(expect.arrayContaining(wantBackups));
+    });
+  });
+
+  function randomBackupId() {
+    return 'backup-id-' + Math.floor(Math.random() * Number.MAX_SAFE_INTEGER);
+  }
+});
