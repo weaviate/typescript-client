@@ -200,9 +200,9 @@ export const backup = (connection: Connection) => {
       }
       return status
         ? {
-          ...parseResponse(res),
-          ...status,
-        }
+            ...parseResponse(res),
+            ...status,
+          }
         : parseResponse(res);
     },
   };

@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
 /* eslint-disable no-await-in-loop */
-import { Backend } from '../../backup/index.js';
-import weaviate, { Collection, WeaviateClient } from '../../index.js';
 import { requireAtLeast } from '../../../test/version';
+import { Backend } from '../../backup/index.js';
 import { WeaviateBackupFailed } from '../../errors.js';
+import weaviate, { Collection, WeaviateClient } from '../../index.js';
 
 // These must run sequentially because Weaviate is not capable of running multiple backups at the same time
 describe('Integration testing of backups', () => {
@@ -119,11 +119,10 @@ describe('Integration testing of backups', () => {
       .then(testCollectionNoWaitForCompletion));
 
   requireAtLeast(1, 32, 3).describe('overwrite alias', () => {
-
     test('overwriteAlias=true', async () => {
       const client = await clientPromise;
 
-      const things = await client.collections.create({ name: "ThingsTrue" });
+      const things = await client.collections.create({ name: 'ThingsTrue' });
       await client.alias.create({ collection: things.name, alias: `${things.name}Alias` });
 
       const backup = await client.backup.create({
@@ -137,9 +136,8 @@ describe('Integration testing of backups', () => {
       await client.alias.delete(`${things.name}Alias`);
 
       // Change alias to point to a different collection
-      const inventory = await client.collections.create({ name: "InventoryTrue" });
+      const inventory = await client.collections.create({ name: 'InventoryTrue' });
       await client.alias.create({ collection: inventory.name, alias: `${things.name}Alias` });
-
 
       // Restore backup with overwriteAlias=true
       await client.backup.restore({
@@ -158,7 +156,7 @@ describe('Integration testing of backups', () => {
     test('overwriteAlias=false', async () => {
       const client = await clientPromise;
 
-      const things = await client.collections.create({ name: "ThingsFalse" });
+      const things = await client.collections.create({ name: 'ThingsFalse' });
       await client.alias.create({ collection: things.name, alias: `${things.name}Alias` });
 
       const backup = await client.backup.create({
@@ -172,9 +170,8 @@ describe('Integration testing of backups', () => {
       await client.alias.delete(`${things.name}Alias`);
 
       // Change alias to point to a different collection
-      const inventory = await client.collections.create({ name: "InventoryFalse" });
+      const inventory = await client.collections.create({ name: 'InventoryFalse' });
       await client.alias.create({ collection: inventory.name, alias: `${things.name}Alias` });
-
 
       // Restore backup with overwriteAlias=true
       const restored = client.backup.restore({
@@ -190,13 +187,16 @@ describe('Integration testing of backups', () => {
     });
 
     it('cleanup', async () => {
-      await clientPromise.then(async c => {
-        await Promise.all(["ThingsTrue", "ThingsFalse", "InventoryTrue", "InventoryFalse"]
-          .map(name => c.collections.delete(name).catch(e => { })));
-        await c.alias.delete("ThingsFalseAlias").catch(e => { });
-        await c.alias.delete("ThingsTrueAlias").catch(e => { });
+      await clientPromise.then(async (c) => {
+        await Promise.all(
+          ['ThingsTrue', 'ThingsFalse', 'InventoryTrue', 'InventoryFalse'].map((name) =>
+            c.collections.delete(name).catch((e) => {})
+          )
+        );
+        await c.alias.delete('ThingsFalseAlias').catch((e) => {});
+        await c.alias.delete('ThingsTrueAlias').catch((e) => {});
       });
-    })
+    });
   });
 });
 

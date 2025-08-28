@@ -37,7 +37,7 @@ export type BackupConfigCreate = {
 export type BackupConfigRestore = {
   /** The percentage of CPU to use for the backuop restoration job. */
   cpuPercentage?: number;
-  /**Allows ovewriting the collection alias if there is a conflict. */
+  /** Allows ovewriting the collection alias if there is a conflict. */
   overwriteAlias?: boolean;
 };
 
