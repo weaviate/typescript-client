@@ -781,6 +781,8 @@ async function newClassObject(className: string, client: WeaviateClient): Promis
       vectorCacheMaxObjects: 500000,
       flatSearchCutoff: 40000,
       filterStrategy: (await isVer(client, 27, 0)) ? 'sweeping' : undefined,
+      skipDefaultQuantization: (await isVer(client, 32, 4)) ? false : undefined,
+      trackDefaultQuantization: (await isVer(client, 32, 4)) ? false : undefined,
     },
     invertedIndexConfig: {
       cleanupIntervalSeconds: 60,

@@ -835,7 +835,7 @@ describe('Testing of the collection.config namespace', () => {
     }
   );
 
-  requireAtLeast(1, 32, 4).it.only(
+  requireAtLeast(1, 32, 4).it(
     'should be able to create a collection with an uncompressed quantizer',
     async () => {
       const collectionName = 'TestCollectionConfigCreateWithUncompressedQuantizer';
