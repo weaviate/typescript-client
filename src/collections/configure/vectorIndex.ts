@@ -2,6 +2,7 @@ import {
   ModuleConfig,
   PQEncoderDistribution,
   PQEncoderType,
+  UncompressedConfig,
   VectorIndexFilterStrategy,
 } from '../config/types/index.js';
 import {
@@ -149,6 +150,16 @@ const configure = {
    * Define the quantizer configuration to use when creating a vector index.
    */
   quantizer: {
+    /**
+     * Create an object of type `UncompressedConfig` to be used when defining the quantizer configuration of a vector index.
+     *
+     * This is useful for disabling the default quantization present in Weaviate>=1.33.0.
+     *
+     * @returns {UncompressedConfig} The object of type `UncompressedConfig`.
+     */
+    none: (): UncompressedConfig => {
+      return { type: 'none' };
+    },
     /**
      * Create an object of type `BQConfigCreate` to be used when defining the quantizer configuration of a vector index.
      *

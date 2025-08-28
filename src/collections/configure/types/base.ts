@@ -2,15 +2,18 @@ import { WeaviateNestedProperty, WeaviateProperty } from '../../../openapi/types
 import {
   InvertedIndexConfig,
   MultiTenancyConfig,
+  QuantizerConfig,
   ReplicationConfig,
   ReplicationDeletionStrategy,
 } from '../../config/types/index.js';
-import { DataType } from '../../types/index.js';
+import { DataType, QuantizerRecursivePartial } from '../../types/index.js';
 import { NonRefKeys, RefKeys } from '../../types/internal.js';
 
 export type RecursivePartial<T> = T extends object
   ? {
-      [P in keyof T]?: RecursivePartial<T[P]>;
+      [P in keyof T]?: T[P] extends QuantizerConfig
+        ? QuantizerRecursivePartial<T[P]>
+        : RecursivePartial<T[P]>;
     }
   : T;
 

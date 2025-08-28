@@ -8,6 +8,7 @@ import {
   PQEncoderType,
   RQConfig,
   SQConfig,
+  UncompressedConfig,
   VectorDistance,
   VectorIndexConfigDynamic,
   VectorIndexConfigFlat,
@@ -57,11 +58,14 @@ export type SQConfigUpdate = {
   type: 'sq';
 };
 
+export type UncompressedConfigCreate = QuantizerRecursivePartial<UncompressedConfig>;
+
 export type QuantizerConfigCreate =
   | PQConfigCreate
   | BQConfigCreate
   | SQConfigCreate
   | RQConfigCreate
+  | UncompressedConfigCreate
   | Record<string, any>;
 
 export type QuantizerConfigUpdate =
@@ -80,11 +84,23 @@ export type MuveraEncodingConfigCreate = RecursivePartial<MuveraEncodingConfig>;
 
 export type MultiVectorEncodingConfigCreate = MuveraEncodingConfigCreate;
 
-export type VectorIndexConfigHNSWCreate = RecursivePartial<VectorIndexConfigHNSW>;
+export type VectorIndexConfigHNSWCreate = RecursivePartial<Omit<VectorIndexConfigHNSW, 'quantizer'>> & {
+  quantizer?: QuantizerConfigCreate;
+};
 
-export type VectorIndexConfigDynamicCreate = RecursivePartial<VectorIndexConfigDynamic>;
+export type VectorIndexConfigDynamicCreate = RecursivePartial<
+  Omit<VectorIndexConfigDynamic, 'hnsw' | 'flat'>
+> & {
+  hnsw?: VectorIndexConfigHNSWCreate;
+  flat?: VectorIndexConfigFlatCreate;
+};
 
-export type VectorIndexConfigDymamicUpdate = RecursivePartial<VectorIndexConfigDynamic>;
+export type VectorIndexConfigDymamicUpdate = RecursivePartial<
+  Omit<VectorIndexConfigDynamic, 'hnsw' | 'flat'>
+> & {
+  hnsw?: VectorIndexConfigHNSWUpdate;
+  flat?: VectorIndexConfigFlatUpdate;
+};
 
 export type VectorIndexConfigHNSWUpdate = {
   dynamicEfMin?: number;
@@ -107,7 +123,9 @@ export type VectorIndexConfigCreateType<I> = I extends 'hnsw'
   ? Record<string, any>
   : never;
 
-export type VectorIndexConfigFlatCreate = RecursivePartial<VectorIndexConfigFlat>;
+export type VectorIndexConfigFlatCreate = RecursivePartial<Omit<VectorIndexConfigFlat, 'quantizer'>> & {
+  quantizer?: QuantizerConfigCreate;
+};
 
 export type VectorIndexConfigFlatUpdate = {
   quantizer?: BQConfigUpdate;
