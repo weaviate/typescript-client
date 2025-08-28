@@ -690,7 +690,9 @@ describe('Testing of the collections.create method', () => {
 
       const collection = await contextionary.collections.export(collectionName);
 
-      expect((collection.vectorizers['custom_vec'].indexConfig as VectorIndexConfigHNSW).quantizer).toBeUndefined();
+      expect(
+        (collection.vectorizers.custom_vec.indexConfig as VectorIndexConfigHNSW).quantizer
+      ).toBeUndefined();
     });
   });
 

@@ -69,10 +69,10 @@ const configure = {
       name: 'hnsw',
       config: rest
         ? {
-          ...rest,
-          distance: distanceMetric,
-          type: 'hnsw',
-        }
+            ...rest,
+            distance: distanceMetric,
+            type: 'hnsw',
+          }
         : undefined,
     };
   },
@@ -91,12 +91,12 @@ const configure = {
       name: 'dynamic',
       config: opts
         ? {
-          distance: opts.distanceMetric,
-          threshold: opts.threshold,
-          hnsw: isModuleConfig(opts.hnsw) ? opts.hnsw.config : configure.hnsw(opts.hnsw).config,
-          flat: isModuleConfig(opts.flat) ? opts.flat.config : configure.flat(opts.flat).config,
-          type: 'dynamic',
-        }
+            distance: opts.distanceMetric,
+            threshold: opts.threshold,
+            hnsw: isModuleConfig(opts.hnsw) ? opts.hnsw.config : configure.hnsw(opts.hnsw).config,
+            flat: isModuleConfig(opts.flat) ? opts.flat.config : configure.flat(opts.flat).config,
+            type: 'dynamic',
+          }
         : undefined,
     };
   },
@@ -150,6 +150,11 @@ const configure = {
    * Define the quantizer configuration to use when creating a vector index.
    */
   quantizer: {
+    /**
+     * Create an object of type `UncomplressedConfig` to skip default vector quantization.
+     *
+     * @returns {BQConfigCreate} The object of type `BQConfigCreate`.
+     */
     none: (): UncompressedConfig => {
       return { type: 'none' };
     },
@@ -207,9 +212,9 @@ const configure = {
         centroids: options?.centroids,
         encoder: options?.encoder
           ? {
-            distribution: options.encoder.distribution,
-            type: options.encoder.type,
-          }
+              distribution: options.encoder.distribution,
+              type: options.encoder.type,
+            }
           : undefined,
         segments: options?.segments,
         trainingLimit: options?.trainingLimit,
@@ -344,9 +349,9 @@ const reconfigure = {
         encoder:
           pqEncoderDistribution || pqEncoderType
             ? {
-              distribution: pqEncoderDistribution,
-              type: pqEncoderType,
-            }
+                distribution: pqEncoderDistribution,
+                type: pqEncoderType,
+              }
             : undefined,
         type: 'pq',
       };

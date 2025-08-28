@@ -70,7 +70,7 @@ export type RQConfig = {
 
 export type UncompressedConfig = {
   type: 'none';
-}
+};
 
 export type MultiVectorConfig = {
   aggregation: 'maxSim' | string;
