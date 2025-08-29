@@ -26,6 +26,7 @@ export default class BackupRestorer extends CommandBase {
   private statusGetter: BackupRestoreStatusGetter;
   private waitForCompletion?: boolean;
   private config?: RestoreConfig;
+  private overwriteAlias?: boolean;
 
   constructor(client: Connection, statusGetter: BackupRestoreStatusGetter) {
     super(client);
@@ -65,6 +66,11 @@ export default class BackupRestorer extends CommandBase {
     return this;
   }
 
+  withOverwriteAlias(overwriteAlias: boolean) {
+    this.overwriteAlias = overwriteAlias;
+    return this;
+  }
+
   withConfig(cfg: RestoreConfig) {
     this.config = cfg;
     return this;
@@ -89,6 +95,7 @@ export default class BackupRestorer extends CommandBase {
       config: this.config,
       include: this.includeClassNames,
       exclude: this.excludeClassNames,
+      overwriteAlias: this.overwriteAlias,
     } as BackupRestoreRequest;
 
     if (this.waitForCompletion) {

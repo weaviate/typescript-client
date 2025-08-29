@@ -163,6 +163,9 @@ export const backup = (connection: Connection): Backup => {
       if (args.excludeCollections) {
         builder = builder.withExcludeClassNames(...args.excludeCollections);
       }
+      if (args.config?.overwriteAlias) {
+        builder = builder.withOverwriteAlias(args.config?.overwriteAlias);
+      }
       if (args.config) {
         builder = builder.withConfig({
           CPUPercentage: args.config.cpuPercentage,
