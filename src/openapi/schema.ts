@@ -110,6 +110,10 @@ export interface paths {
   '/authz/roles/{id}/user-assignments': {
     get: operations['getUsersForRole'];
   };
+  '/authz/roles/{id}/group-assignments': {
+    /** Retrieves a list of all groups that have been assigned a specific role, identified by its name. */
+    get: operations['getGroupsForRole'];
+  };
   '/authz/users/{id}/roles': {
     get: operations['getRolesForUserDeprecated'];
   };
@@ -127,6 +131,14 @@ export interface paths {
   };
   '/authz/groups/{id}/revoke': {
     post: operations['revokeRoleFromGroup'];
+  };
+  '/authz/groups/{id}/roles/{groupType}': {
+    /** Retrieves a list of all roles assigned to a specific group. The group must be identified by both its name (`id`) and its type (`db` or `oidc`). */
+    get: operations['getRolesForGroup'];
+  };
+  '/authz/groups/{groupType}': {
+    /** Retrieves a list of all available group names for a specified group type (`oidc` or `db`). */
+    get: operations['getGroups'];
   };
   '/objects': {
     /** Lists all Objects in reverse order of creation, owned by the user that belongs to the used token. */
@@ -304,6 +316,11 @@ export interface definitions {
    */
   UserTypeInput: 'db' | 'oidc';
   /**
+   * @description If the group contains OIDC or database users.
+   * @enum {string}
+   */
+  GroupType: 'db' | 'oidc';
+  /**
    * @description the type of user
    * @enum {string}
    */
@@ -398,6 +415,15 @@ export interface definitions {
        * @default *
        */
       users?: string;
+    };
+    /** @description Resources applicable for group actions. */
+    groups?: {
+      /**
+       * @description A string that specifies which groups this permission applies to. Can be an exact group name or a regex pattern. The default value `*` applies the permission to all groups.
+       * @default *
+       */
+      group?: string;
+      groupType?: definitions['GroupType'];
     };
     /** @description resources applicable for tenant actions */
     tenants?: {
@@ -496,7 +522,9 @@ export interface definitions {
       | 'create_aliases'
       | 'read_aliases'
       | 'update_aliases'
-      | 'delete_aliases';
+      | 'delete_aliases'
+      | 'assign_and_revoke_groups'
+      | 'read_groups';
   };
   /** @description list of roles */
   RolesListResponse: definitions['Role'][];
@@ -1171,8 +1199,6 @@ export interface definitions {
   BackupListResponse: {
     /** @description The ID of the backup. Must be URL-safe and work as a filesystem path, only lowercase, numbers, underscore, minus characters allowed. */
     id?: string;
-    /** @description destination path of backup files proper to selected backend */
-    path?: string;
     /** @description The list of classes for which the existed backup process */
     classes?: string[];
     /**
@@ -1191,6 +1217,8 @@ export interface definitions {
     exclude?: string[];
     /** @description Allows overriding the node names stored in the backup with different ones. Useful when restoring backups to a different environment. */
     node_mapping?: { [key: string]: string };
+    /** @description Allows ovewriting the collection alias if there is a conflict */
+    overwriteAlias?: boolean;
   };
   /** @description The definition of a backup restore response body */
   BackupRestoreResponse: {
@@ -1789,7 +1817,9 @@ export interface definitions {
       | 'WithinGeoRange'
       | 'IsNull'
       | 'ContainsAny'
-      | 'ContainsAll';
+      | 'ContainsAll'
+      | 'ContainsNone'
+      | 'Not';
     /**
      * @description path to the property currently being filtered
      * @example [
@@ -2827,6 +2857,42 @@ export interface operations {
       };
     };
   };
+  /** Retrieves a list of all groups that have been assigned a specific role, identified by its name. */
+  getGroupsForRole: {
+    parameters: {
+      path: {
+        /** The unique name of the role. */
+        id: string;
+      };
+    };
+    responses: {
+      /** Successfully retrieved the list of groups that have the role assigned. */
+      200: {
+        schema: ({
+          groupId?: string;
+          groupType: definitions['GroupType'];
+        } & {
+          name: unknown;
+        })[];
+      };
+      /** Bad request */
+      400: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Unauthorized or invalid credentials. */
+      401: unknown;
+      /** Forbidden */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** The specified role was not found. */
+      404: unknown;
+      /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
   getRolesForUserDeprecated: {
     parameters: {
       path: {
@@ -2985,6 +3051,7 @@ export interface operations {
         body: {
           /** @description the roles that assigned to group */
           roles?: string[];
+          groupType?: definitions['GroupType'];
         };
       };
     };
@@ -3019,6 +3086,7 @@ export interface operations {
         body: {
           /** @description the roles that revoked from group */
           roles?: string[];
+          groupType?: definitions['GroupType'];
         };
       };
     };
@@ -3037,6 +3105,80 @@ export interface operations {
       };
       /** role or group is not found. */
       404: unknown;
+      /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
+  /** Retrieves a list of all roles assigned to a specific group. The group must be identified by both its name (`id`) and its type (`db` or `oidc`). */
+  getRolesForGroup: {
+    parameters: {
+      path: {
+        /** The unique name of the group. */
+        id: string;
+        /** The type of the group. */
+        groupType: 'oidc';
+      };
+      query: {
+        /** If true, the response will include the full role definitions with all associated permissions. If false, only role names are returned. */
+        includeFullRoles?: boolean;
+      };
+    };
+    responses: {
+      /** A list of roles assigned to the specified group. */
+      200: {
+        schema: definitions['RolesListResponse'];
+      };
+      /** Bad request */
+      400: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Unauthorized or invalid credentials. */
+      401: unknown;
+      /** Forbidden */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** The specified group was not found. */
+      404: unknown;
+      /** The request syntax is correct, but the server couldn't process it due to semantic issues. */
+      422: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
+  /** Retrieves a list of all available group names for a specified group type (`oidc` or `db`). */
+  getGroups: {
+    parameters: {
+      path: {
+        /** The type of group to retrieve. */
+        groupType: 'oidc';
+      };
+    };
+    responses: {
+      /** A list of group names for the specified type. */
+      200: {
+        schema: string[];
+      };
+      /** Bad request */
+      400: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Unauthorized or invalid credentials. */
+      401: unknown;
+      /** Forbidden */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** The request syntax is correct, but the server couldn't process it due to semantic issues. */
+      422: {
+        schema: definitions['ErrorResponse'];
+      };
       /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
       500: {
         schema: definitions['ErrorResponse'];

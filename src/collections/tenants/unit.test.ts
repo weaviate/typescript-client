@@ -77,7 +77,7 @@ describe('Mock testing of tenants.get() method with a REST server', () => {
   };
 
   beforeAll(async () => {
-    servers = await makeMockServers('1.24.0', 8954, 'localhost:8955');
+    servers = await makeMockServers('1.27.0', 8954, 'localhost:8955');
   });
 
   it('should get mocked tenants', async () => {
@@ -103,7 +103,7 @@ describe('Mock testing of tenants.get() method with a gRPC server', () => {
   };
 
   beforeAll(async () => {
-    servers = await makeMockServers('1.25.0', 8956, 'localhost:8957');
+    servers = await makeMockServers('1.27.0', 8956, 'localhost:8957');
   });
 
   it('should get the mocked tenants', async () => {

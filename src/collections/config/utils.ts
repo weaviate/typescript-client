@@ -1,8 +1,4 @@
-import {
-  WeaviateDeserializationError,
-  WeaviateInvalidInputError,
-  WeaviateUnsupportedFeatureError,
-} from '../../errors.js';
+import { WeaviateDeserializationError, WeaviateInvalidInputError } from '../../errors.js';
 import {
   WeaviateBM25Config,
   WeaviateClass,
@@ -17,7 +13,6 @@ import {
   WeaviateVectorIndexConfig,
   WeaviateVectorsConfig,
 } from '../../openapi/types.js';
-import { DbVersionSupport } from '../../utils/dbVersion.js';
 import { MultiVectorEncodingGuards, QuantizerGuards, VectorIndexGuards } from '../configure/parsing.js';
 import {
   PropertyConfigCreate,
@@ -237,8 +232,7 @@ export const parseVectorizerConfig = (config?: VectorizerConfig): any => {
 };
 
 export const makeVectorsConfig = (
-  configVectorizers: VectorizersConfigCreate<any, any> | VectorizersConfigAdd<any>,
-  supportsDynamicVectorIndex: Awaited<ReturnType<DbVersionSupport['supportsDynamicVectorIndex']>>
+  configVectorizers: VectorizersConfigCreate<any, any> | VectorizersConfigAdd<any>
 ) => {
   let vectorizers: string[] = [];
   const vectorsConfig: Record<string, any> = {};
@@ -251,9 +245,6 @@ export const makeVectorsConfig = (
         },
       ];
   vectorizersConfig.forEach((v) => {
-    if (v.vectorIndex.name === 'dynamic' && !supportsDynamicVectorIndex.supports) {
-      throw new WeaviateUnsupportedFeatureError(supportsDynamicVectorIndex.message);
-    }
     const vectorConfig: any = {
       vectorIndexConfig: parseVectorIndex(v.vectorIndex),
       vectorIndexType: v.vectorIndex.name,

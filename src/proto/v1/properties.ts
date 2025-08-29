@@ -24,8 +24,7 @@ export interface Value {
   numberValue?:
     | number
     | undefined;
-  /** @deprecated */
-  stringValue?: string | undefined;
+  /** dont reuse 2, old field that has been removed; Was "string string_value = 2;" */
   boolValue?: boolean | undefined;
   objectValue?: Properties | undefined;
   listValue?: ListValue | undefined;
@@ -40,8 +39,6 @@ export interface Value {
 }
 
 export interface ListValue {
-  /** @deprecated */
-  values: Value[];
   numberValues?: NumberValues | undefined;
   boolValues?: BoolValues | undefined;
   objectValues?: ObjectValues | undefined;
@@ -257,7 +254,6 @@ export const Properties_FieldsEntry = {
 function createBaseValue(): Value {
   return {
     numberValue: undefined,
-    stringValue: undefined,
     boolValue: undefined,
     objectValue: undefined,
     listValue: undefined,
@@ -276,9 +272,6 @@ export const Value = {
   encode(message: Value, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.numberValue !== undefined) {
       writer.uint32(9).double(message.numberValue);
-    }
-    if (message.stringValue !== undefined) {
-      writer.uint32(18).string(message.stringValue);
     }
     if (message.boolValue !== undefined) {
       writer.uint32(24).bool(message.boolValue);
@@ -329,13 +322,6 @@ export const Value = {
           }
 
           message.numberValue = reader.double();
-          continue;
-        case 2:
-          if (tag !== 18) {
-            break;
-          }
-
-          message.stringValue = reader.string();
           continue;
         case 3:
           if (tag !== 24) {
@@ -426,7 +412,6 @@ export const Value = {
   fromJSON(object: any): Value {
     return {
       numberValue: isSet(object.numberValue) ? globalThis.Number(object.numberValue) : undefined,
-      stringValue: isSet(object.stringValue) ? globalThis.String(object.stringValue) : undefined,
       boolValue: isSet(object.boolValue) ? globalThis.Boolean(object.boolValue) : undefined,
       objectValue: isSet(object.objectValue) ? Properties.fromJSON(object.objectValue) : undefined,
       listValue: isSet(object.listValue) ? ListValue.fromJSON(object.listValue) : undefined,
@@ -445,9 +430,6 @@ export const Value = {
     const obj: any = {};
     if (message.numberValue !== undefined) {
       obj.numberValue = message.numberValue;
-    }
-    if (message.stringValue !== undefined) {
-      obj.stringValue = message.stringValue;
     }
     if (message.boolValue !== undefined) {
       obj.boolValue = message.boolValue;
@@ -491,7 +473,6 @@ export const Value = {
   fromPartial(object: DeepPartial<Value>): Value {
     const message = createBaseValue();
     message.numberValue = object.numberValue ?? undefined;
-    message.stringValue = object.stringValue ?? undefined;
     message.boolValue = object.boolValue ?? undefined;
     message.objectValue = (object.objectValue !== undefined && object.objectValue !== null)
       ? Properties.fromPartial(object.objectValue)
@@ -517,7 +498,6 @@ export const Value = {
 
 function createBaseListValue(): ListValue {
   return {
-    values: [],
     numberValues: undefined,
     boolValues: undefined,
     objectValues: undefined,
@@ -530,9 +510,6 @@ function createBaseListValue(): ListValue {
 
 export const ListValue = {
   encode(message: ListValue, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    for (const v of message.values) {
-      Value.encode(v!, writer.uint32(10).fork()).ldelim();
-    }
     if (message.numberValues !== undefined) {
       NumberValues.encode(message.numberValues, writer.uint32(18).fork()).ldelim();
     }
@@ -564,13 +541,6 @@ export const ListValue = {
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
-        case 1:
-          if (tag !== 10) {
-            break;
-          }
-
-          message.values.push(Value.decode(reader, reader.uint32()));
-          continue;
         case 2:
           if (tag !== 18) {
             break;
@@ -631,7 +601,6 @@ export const ListValue = {
 
   fromJSON(object: any): ListValue {
     return {
-      values: globalThis.Array.isArray(object?.values) ? object.values.map((e: any) => Value.fromJSON(e)) : [],
       numberValues: isSet(object.numberValues) ? NumberValues.fromJSON(object.numberValues) : undefined,
       boolValues: isSet(object.boolValues) ? BoolValues.fromJSON(object.boolValues) : undefined,
       objectValues: isSet(object.objectValues) ? ObjectValues.fromJSON(object.objectValues) : undefined,
@@ -644,9 +613,6 @@ export const ListValue = {
 
   toJSON(message: ListValue): unknown {
     const obj: any = {};
-    if (message.values?.length) {
-      obj.values = message.values.map((e) => Value.toJSON(e));
-    }
     if (message.numberValues !== undefined) {
       obj.numberValues = NumberValues.toJSON(message.numberValues);
     }
@@ -676,7 +642,6 @@ export const ListValue = {
   },
   fromPartial(object: DeepPartial<ListValue>): ListValue {
     const message = createBaseListValue();
-    message.values = object.values?.map((e) => Value.fromPartial(e)) || [];
     message.numberValues = (object.numberValues !== undefined && object.numberValues !== null)
       ? NumberValues.fromPartial(object.numberValues)
       : undefined;

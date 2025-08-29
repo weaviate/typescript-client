@@ -57,15 +57,8 @@ const UINT16LEN = 2;
 const UINT32LEN = 4;
 
 export class Deserialize {
-  private supports125ListValue: boolean;
-
-  private constructor(supports125ListValue: boolean) {
-    this.supports125ListValue = supports125ListValue;
-  }
-
-  public static async use(support: DbVersionSupport): Promise<Deserialize> {
-    const supports125ListValue = await support.supports125ListValue().then((res) => res.supports);
-    return new Deserialize(supports125ListValue);
+  public static use(support: DbVersionSupport): Promise<Deserialize> {
+    return Promise.resolve(new Deserialize());
   }
 
   private static aggregateBoolean(
@@ -374,13 +367,9 @@ export class Deserialize {
     if (value.boolValue !== undefined) return value.boolValue;
     if (value.dateValue !== undefined) return new Date(value.dateValue);
     if (value.intValue !== undefined) return value.intValue;
-    if (value.listValue !== undefined)
-      return this.supports125ListValue
-        ? this.parseListValue(value.listValue)
-        : value.listValue.values.map((v) => this.parsePropertyValue(v));
+    if (value.listValue !== undefined) return this.parseListValue(value.listValue);
     if (value.numberValue !== undefined) return value.numberValue;
     if (value.objectValue !== undefined) return this.objectProperties(value.objectValue);
-    if (value.stringValue !== undefined) return value.stringValue;
     if (value.textValue !== undefined) return value.textValue;
     if (value.uuidValue !== undefined) return value.uuidValue;
     if (value.blobValue !== undefined) return value.blobValue;

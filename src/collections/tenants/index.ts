@@ -1,16 +1,11 @@
 import { ConnectionGRPC } from '../../connection/index.js';
-import { WeaviateUnexpectedStatusCodeError, WeaviateUnsupportedFeatureError } from '../../errors.js';
+import { WeaviateUnexpectedStatusCodeError } from '../../errors.js';
 import { Tenant as TenantREST } from '../../openapi/types.js';
-import { TenantsCreator, TenantsDeleter, TenantsGetter, TenantsUpdater } from '../../schema/index.js';
+import { TenantsCreator, TenantsDeleter, TenantsUpdater } from '../../schema/index.js';
 import { DbVersionSupport } from '../../utils/dbVersion.js';
 import { Deserialize } from '../deserialize/index.js';
 import { Serialize } from '../serialize/index.js';
 import { Tenant, TenantBC, TenantBase, TenantCreate, TenantUpdate } from './types.js';
-
-const checkSupportForGRPCTenantsGetEndpoint = async (dbVersionSupport: DbVersionSupport) => {
-  const check = await dbVersionSupport.supportsTenantsGetGRPCMethod();
-  if (!check.supports) throw new WeaviateUnsupportedFeatureError(check.message);
-};
 
 const parseValueOrValueArray = <V>(value: V | V[]) => (Array.isArray(value) ? value : [value]);
 
@@ -27,20 +22,11 @@ const tenants = (
   collection: string,
   dbVersionSupport: DbVersionSupport
 ): Tenants => {
-  const getGRPC = (names?: string[]) =>
-    checkSupportForGRPCTenantsGetEndpoint(dbVersionSupport)
-      .then(() => connection.tenants(collection))
+  const get = (names?: string[]) =>
+    connection
+      .tenants(collection)
       .then((builder) => builder.withGet({ names }))
       .then(Deserialize.tenantsGet);
-  const getREST = () =>
-    new TenantsGetter(connection, collection).do().then((tenants) => {
-      const result: Record<string, Tenant> = {};
-      tenants.forEach((tenant) => {
-        if (!tenant.name) return;
-        result[tenant.name] = parseTenantREST(tenant);
-      });
-      return result;
-    });
   const update = async (tenants: TenantBC | TenantUpdate | (TenantBC | TenantUpdate)[]) => {
     const out: Tenant[] = [];
     for await (const res of Serialize.tenants(parseValueOrValueArray(tenants), Serialize.tenantUpdate).map(
@@ -56,15 +42,12 @@ const tenants = (
       new TenantsCreator(connection, collection, parseValueOrValueArray(tenants).map(Serialize.tenantCreate))
         .do()
         .then((res) => res.map(parseTenantREST)),
-    get: async function () {
-      const check = await dbVersionSupport.supportsTenantsGetGRPCMethod();
-      return check.supports ? getGRPC() : getREST();
-    },
-    getByNames: (tenants) => getGRPC(tenants.map(parseStringOrTenant)),
+    get: () => get(),
+    getByNames: (tenants) => get(tenants.map(parseStringOrTenant)),
     getByName: async (tenant) => {
       const tenantName = parseStringOrTenant(tenant);
       if (await dbVersionSupport.supportsTenantGetRESTMethod().then((check) => !check.supports)) {
-        return getGRPC([tenantName]).then((tenants) => tenants[tenantName] ?? null);
+        return get([tenantName]).then((tenants) => tenants[tenantName] ?? null);
       }
       return connection
         .get<TenantREST>(`/schema/${collection}/tenants/${tenantName}`)
