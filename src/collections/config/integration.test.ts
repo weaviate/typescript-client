@@ -2,6 +2,7 @@
 import { requireAtLeast } from '../../../test/version.js';
 import { WeaviateUnsupportedFeatureError } from '../../errors.js';
 import weaviate, { WeaviateClient, weaviateV2 } from '../../index.js';
+import { WeaviateClass } from '../../openapi/types.js';
 import {
   GenerativeCohereConfig,
   ModuleConfig,
@@ -833,4 +834,47 @@ describe('Testing of the collection.config namespace', () => {
       expect(indexConfig.multiVector?.encoding).toBeUndefined();
     }
   );
+
+  requireAtLeast(1, 32, 4).describe('uncompressed quantizer', () => {
+    it('should be able to create a collection with an uncompressed quantizer', async () => {
+      const collectionName = 'TestCollectionUncompressedVector';
+      const collection = await client.collections.create({
+        name: collectionName,
+        vectorizers: weaviate.configure.vectors.selfProvided({
+          quantizer: weaviate.configure.vectorIndex.quantizer.none(),
+        }),
+      });
+      await collection.config
+        .get()
+        .then((config) =>
+          expect((config.vectorizers.default.indexConfig as VectorIndexConfigHNSW).quantizer).toBeUndefined()
+        );
+      await fetch(`http://localhost:8080/v1/schema/${collectionName}`)
+        .then((res) => res.json() as WeaviateClass)
+        .then((schema) =>
+          expect(schema.vectorConfig?.default.vectorIndexConfig?.skipDefaultQuantization).toBe(true)
+        );
+    });
+
+    it('should be able to create a collection with uncompressed named vector', async () => {
+      const collectionName = 'TestCollectionUncompressedVectorNamed';
+      const collection = await client.collections.create({
+        name: collectionName,
+        vectorizers: weaviate.configure.vectors.selfProvided({
+          name: 'custom',
+          quantizer: weaviate.configure.vectorIndex.quantizer.none(),
+        }),
+      });
+      await collection.config
+        .get()
+        .then((config) =>
+          expect((config.vectorizers.custom.indexConfig as VectorIndexConfigHNSW).quantizer).toBeUndefined()
+        );
+      await fetch(`http://localhost:8080/v1/schema/${collectionName}`)
+        .then((res) => res.json() as WeaviateClass)
+        .then((schema) =>
+          expect(schema.vectorConfig?.custom.vectorIndexConfig?.skipDefaultQuantization).toBe(true)
+        );
+    });
+  });
 });

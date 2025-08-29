@@ -1,4 +1,4 @@
-import { MuveraEncodingConfigCreate } from '../index.js';
+import { MuveraEncodingConfigCreate, UncompressedConfigCreate } from '../index.js';
 import {
   BQConfigCreate,
   BQConfigUpdate,
@@ -48,6 +48,9 @@ export class QuantizerGuards {
   }
   static isRQUpdate(config?: QuantizerConfig): config is RQConfigUpdate {
     return (config as RQConfigUpdate)?.type === 'rq';
+  }
+  static isUncompressedCreate(config?: QuantizerConfig): config is UncompressedConfigCreate {
+    return (config as UncompressedConfigCreate)?.type === 'none';
   }
 }
 

@@ -219,6 +219,12 @@ export const parseVectorIndex = (module: ModuleConfig<VectorIndexType, VectorInd
       },
     };
   }
+  if (QuantizerGuards.isUncompressedCreate(quantizer)) {
+    return {
+      ...conf,
+      skipDefaultQuantization: true,
+    };
+  }
 };
 
 export const parseVectorizerConfig = (config?: VectorizerConfig): any => {
