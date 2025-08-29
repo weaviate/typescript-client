@@ -7,20 +7,7 @@
 /* eslint-disable */
 import Long from "long";
 import _m0 from "protobufjs/minimal.js";
-import { Struct } from "../google/protobuf/struct.js";
-import {
-  BooleanArrayProperties,
-  ConsistencyLevel,
-  consistencyLevelFromJSON,
-  consistencyLevelToJSON,
-  Filters,
-  IntArrayProperties,
-  NumberArrayProperties,
-  ObjectArrayProperties,
-  ObjectProperties,
-  TextArrayProperties,
-  Vectors,
-} from "./base.js";
+import { ConsistencyLevel, consistencyLevelFromJSON, consistencyLevelToJSON, Filters, Vectors } from "./base.js";
 import {
   BM25,
   Hybrid,
@@ -213,25 +200,9 @@ export interface MetadataResult {
 }
 
 export interface PropertiesResult {
-  /** @deprecated */
-  nonRefProperties: { [key: string]: any } | undefined;
   refProps: RefPropertiesResult[];
   targetCollection: string;
-  metadata:
-    | MetadataResult
-    | undefined;
-  /** @deprecated */
-  numberArrayProperties: NumberArrayProperties[];
-  /** @deprecated */
-  intArrayProperties: IntArrayProperties[];
-  /** @deprecated */
-  textArrayProperties: TextArrayProperties[];
-  /** @deprecated */
-  booleanArrayProperties: BooleanArrayProperties[];
-  /** @deprecated */
-  objectProperties: ObjectProperties[];
-  /** @deprecated */
-  objectArrayProperties: ObjectArrayProperties[];
+  metadata: MetadataResult | undefined;
   nonRefProps: Properties | undefined;
   refPropsRequested: boolean;
 }
@@ -2422,27 +2393,11 @@ export const MetadataResult = {
 };
 
 function createBasePropertiesResult(): PropertiesResult {
-  return {
-    nonRefProperties: undefined,
-    refProps: [],
-    targetCollection: "",
-    metadata: undefined,
-    numberArrayProperties: [],
-    intArrayProperties: [],
-    textArrayProperties: [],
-    booleanArrayProperties: [],
-    objectProperties: [],
-    objectArrayProperties: [],
-    nonRefProps: undefined,
-    refPropsRequested: false,
-  };
+  return { refProps: [], targetCollection: "", metadata: undefined, nonRefProps: undefined, refPropsRequested: false };
 }
 
 export const PropertiesResult = {
   encode(message: PropertiesResult, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.nonRefProperties !== undefined) {
-      Struct.encode(Struct.wrap(message.nonRefProperties), writer.uint32(10).fork()).ldelim();
-    }
     for (const v of message.refProps) {
       RefPropertiesResult.encode(v!, writer.uint32(18).fork()).ldelim();
     }
@@ -2451,24 +2406,6 @@ export const PropertiesResult = {
     }
     if (message.metadata !== undefined) {
       MetadataResult.encode(message.metadata, writer.uint32(34).fork()).ldelim();
-    }
-    for (const v of message.numberArrayProperties) {
-      NumberArrayProperties.encode(v!, writer.uint32(42).fork()).ldelim();
-    }
-    for (const v of message.intArrayProperties) {
-      IntArrayProperties.encode(v!, writer.uint32(50).fork()).ldelim();
-    }
-    for (const v of message.textArrayProperties) {
-      TextArrayProperties.encode(v!, writer.uint32(58).fork()).ldelim();
-    }
-    for (const v of message.booleanArrayProperties) {
-      BooleanArrayProperties.encode(v!, writer.uint32(66).fork()).ldelim();
-    }
-    for (const v of message.objectProperties) {
-      ObjectProperties.encode(v!, writer.uint32(74).fork()).ldelim();
-    }
-    for (const v of message.objectArrayProperties) {
-      ObjectArrayProperties.encode(v!, writer.uint32(82).fork()).ldelim();
     }
     if (message.nonRefProps !== undefined) {
       Properties.encode(message.nonRefProps, writer.uint32(90).fork()).ldelim();
@@ -2486,13 +2423,6 @@ export const PropertiesResult = {
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
-        case 1:
-          if (tag !== 10) {
-            break;
-          }
-
-          message.nonRefProperties = Struct.unwrap(Struct.decode(reader, reader.uint32()));
-          continue;
         case 2:
           if (tag !== 18) {
             break;
@@ -2513,48 +2443,6 @@ export const PropertiesResult = {
           }
 
           message.metadata = MetadataResult.decode(reader, reader.uint32());
-          continue;
-        case 5:
-          if (tag !== 42) {
-            break;
-          }
-
-          message.numberArrayProperties.push(NumberArrayProperties.decode(reader, reader.uint32()));
-          continue;
-        case 6:
-          if (tag !== 50) {
-            break;
-          }
-
-          message.intArrayProperties.push(IntArrayProperties.decode(reader, reader.uint32()));
-          continue;
-        case 7:
-          if (tag !== 58) {
-            break;
-          }
-
-          message.textArrayProperties.push(TextArrayProperties.decode(reader, reader.uint32()));
-          continue;
-        case 8:
-          if (tag !== 66) {
-            break;
-          }
-
-          message.booleanArrayProperties.push(BooleanArrayProperties.decode(reader, reader.uint32()));
-          continue;
-        case 9:
-          if (tag !== 74) {
-            break;
-          }
-
-          message.objectProperties.push(ObjectProperties.decode(reader, reader.uint32()));
-          continue;
-        case 10:
-          if (tag !== 82) {
-            break;
-          }
-
-          message.objectArrayProperties.push(ObjectArrayProperties.decode(reader, reader.uint32()));
           continue;
         case 11:
           if (tag !== 90) {
@@ -2581,30 +2469,11 @@ export const PropertiesResult = {
 
   fromJSON(object: any): PropertiesResult {
     return {
-      nonRefProperties: isObject(object.nonRefProperties) ? object.nonRefProperties : undefined,
       refProps: globalThis.Array.isArray(object?.refProps)
         ? object.refProps.map((e: any) => RefPropertiesResult.fromJSON(e))
         : [],
       targetCollection: isSet(object.targetCollection) ? globalThis.String(object.targetCollection) : "",
       metadata: isSet(object.metadata) ? MetadataResult.fromJSON(object.metadata) : undefined,
-      numberArrayProperties: globalThis.Array.isArray(object?.numberArrayProperties)
-        ? object.numberArrayProperties.map((e: any) => NumberArrayProperties.fromJSON(e))
-        : [],
-      intArrayProperties: globalThis.Array.isArray(object?.intArrayProperties)
-        ? object.intArrayProperties.map((e: any) => IntArrayProperties.fromJSON(e))
-        : [],
-      textArrayProperties: globalThis.Array.isArray(object?.textArrayProperties)
-        ? object.textArrayProperties.map((e: any) => TextArrayProperties.fromJSON(e))
-        : [],
-      booleanArrayProperties: globalThis.Array.isArray(object?.booleanArrayProperties)
-        ? object.booleanArrayProperties.map((e: any) => BooleanArrayProperties.fromJSON(e))
-        : [],
-      objectProperties: globalThis.Array.isArray(object?.objectProperties)
-        ? object.objectProperties.map((e: any) => ObjectProperties.fromJSON(e))
-        : [],
-      objectArrayProperties: globalThis.Array.isArray(object?.objectArrayProperties)
-        ? object.objectArrayProperties.map((e: any) => ObjectArrayProperties.fromJSON(e))
-        : [],
       nonRefProps: isSet(object.nonRefProps) ? Properties.fromJSON(object.nonRefProps) : undefined,
       refPropsRequested: isSet(object.refPropsRequested) ? globalThis.Boolean(object.refPropsRequested) : false,
     };
@@ -2612,9 +2481,6 @@ export const PropertiesResult = {
 
   toJSON(message: PropertiesResult): unknown {
     const obj: any = {};
-    if (message.nonRefProperties !== undefined) {
-      obj.nonRefProperties = message.nonRefProperties;
-    }
     if (message.refProps?.length) {
       obj.refProps = message.refProps.map((e) => RefPropertiesResult.toJSON(e));
     }
@@ -2623,24 +2489,6 @@ export const PropertiesResult = {
     }
     if (message.metadata !== undefined) {
       obj.metadata = MetadataResult.toJSON(message.metadata);
-    }
-    if (message.numberArrayProperties?.length) {
-      obj.numberArrayProperties = message.numberArrayProperties.map((e) => NumberArrayProperties.toJSON(e));
-    }
-    if (message.intArrayProperties?.length) {
-      obj.intArrayProperties = message.intArrayProperties.map((e) => IntArrayProperties.toJSON(e));
-    }
-    if (message.textArrayProperties?.length) {
-      obj.textArrayProperties = message.textArrayProperties.map((e) => TextArrayProperties.toJSON(e));
-    }
-    if (message.booleanArrayProperties?.length) {
-      obj.booleanArrayProperties = message.booleanArrayProperties.map((e) => BooleanArrayProperties.toJSON(e));
-    }
-    if (message.objectProperties?.length) {
-      obj.objectProperties = message.objectProperties.map((e) => ObjectProperties.toJSON(e));
-    }
-    if (message.objectArrayProperties?.length) {
-      obj.objectArrayProperties = message.objectArrayProperties.map((e) => ObjectArrayProperties.toJSON(e));
     }
     if (message.nonRefProps !== undefined) {
       obj.nonRefProps = Properties.toJSON(message.nonRefProps);
@@ -2656,21 +2504,11 @@ export const PropertiesResult = {
   },
   fromPartial(object: DeepPartial<PropertiesResult>): PropertiesResult {
     const message = createBasePropertiesResult();
-    message.nonRefProperties = object.nonRefProperties ?? undefined;
     message.refProps = object.refProps?.map((e) => RefPropertiesResult.fromPartial(e)) || [];
     message.targetCollection = object.targetCollection ?? "";
     message.metadata = (object.metadata !== undefined && object.metadata !== null)
       ? MetadataResult.fromPartial(object.metadata)
       : undefined;
-    message.numberArrayProperties = object.numberArrayProperties?.map((e) => NumberArrayProperties.fromPartial(e)) ||
-      [];
-    message.intArrayProperties = object.intArrayProperties?.map((e) => IntArrayProperties.fromPartial(e)) || [];
-    message.textArrayProperties = object.textArrayProperties?.map((e) => TextArrayProperties.fromPartial(e)) || [];
-    message.booleanArrayProperties = object.booleanArrayProperties?.map((e) => BooleanArrayProperties.fromPartial(e)) ||
-      [];
-    message.objectProperties = object.objectProperties?.map((e) => ObjectProperties.fromPartial(e)) || [];
-    message.objectArrayProperties = object.objectArrayProperties?.map((e) => ObjectArrayProperties.fromPartial(e)) ||
-      [];
     message.nonRefProps = (object.nonRefProps !== undefined && object.nonRefProps !== null)
       ? Properties.fromPartial(object.nonRefProps)
       : undefined;
@@ -2798,10 +2636,6 @@ function longToNumber(long: Long): number {
 if (_m0.util.Long !== Long) {
   _m0.util.Long = Long as any;
   _m0.configure();
-}
-
-function isObject(value: any): boolean {
-  return typeof value === "object" && value !== null;
 }
 
 function isSet(value: any): boolean {

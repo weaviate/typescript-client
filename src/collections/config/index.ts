@@ -50,9 +50,8 @@ const config = <T>(
         .withProperty(resolveReference<any>(reference))
         .do()
         .then(() => {}),
-    addVector: async (vectors: VectorizersConfigAdd<T>) => {
-      const supportsDynamicVectorIndex = await dbVersionSupport.supportsDynamicVectorIndex();
-      const { vectorsConfig } = makeVectorsConfig(vectors, supportsDynamicVectorIndex);
+    addVector: (vectors: VectorizersConfigAdd<T>) => {
+      const { vectorsConfig } = makeVectorsConfig(vectors);
       return new VectorAdder(connection).withClassName(name).withVectors(vectorsConfig).do();
     },
     get: () => getRaw().then(classToCollection<T>),
@@ -90,13 +89,7 @@ const config = <T>(
     },
     update: (config?: CollectionConfigUpdate<T>) => {
       return getRaw()
-        .then(async (current) =>
-          MergeWithExisting.schema(
-            current,
-            await dbVersionSupport.supportsNamedVectors().then((s) => s.supports),
-            config
-          )
-        )
+        .then((current) => MergeWithExisting.schema(current, config))
         .then((merged) => new ClassUpdater(connection).withClass(merged).do())
         .then(() => {});
     },

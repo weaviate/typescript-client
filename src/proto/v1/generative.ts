@@ -36,6 +36,7 @@ export interface GenerativeSearch_Grouped {
     | undefined;
   /** only allow one at the beginning, but multiple in the future */
   queries: GenerativeProvider[];
+  debug: boolean;
 }
 
 export interface GenerativeProvider {
@@ -576,7 +577,7 @@ export const GenerativeSearch_Single = {
 };
 
 function createBaseGenerativeSearch_Grouped(): GenerativeSearch_Grouped {
-  return { task: "", properties: undefined, queries: [] };
+  return { task: "", properties: undefined, queries: [], debug: false };
 }
 
 export const GenerativeSearch_Grouped = {
@@ -589,6 +590,9 @@ export const GenerativeSearch_Grouped = {
     }
     for (const v of message.queries) {
       GenerativeProvider.encode(v!, writer.uint32(26).fork()).ldelim();
+    }
+    if (message.debug !== false) {
+      writer.uint32(32).bool(message.debug);
     }
     return writer;
   },
@@ -621,6 +625,13 @@ export const GenerativeSearch_Grouped = {
 
           message.queries.push(GenerativeProvider.decode(reader, reader.uint32()));
           continue;
+        case 4:
+          if (tag !== 32) {
+            break;
+          }
+
+          message.debug = reader.bool();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -637,6 +648,7 @@ export const GenerativeSearch_Grouped = {
       queries: globalThis.Array.isArray(object?.queries)
         ? object.queries.map((e: any) => GenerativeProvider.fromJSON(e))
         : [],
+      debug: isSet(object.debug) ? globalThis.Boolean(object.debug) : false,
     };
   },
 
@@ -651,6 +663,9 @@ export const GenerativeSearch_Grouped = {
     if (message.queries?.length) {
       obj.queries = message.queries.map((e) => GenerativeProvider.toJSON(e));
     }
+    if (message.debug !== false) {
+      obj.debug = message.debug;
+    }
     return obj;
   },
 
@@ -664,6 +679,7 @@ export const GenerativeSearch_Grouped = {
       ? TextArray.fromPartial(object.properties)
       : undefined;
     message.queries = object.queries?.map((e) => GenerativeProvider.fromPartial(e)) || [];
+    message.debug = object.debug ?? false;
     return message;
   },
 };

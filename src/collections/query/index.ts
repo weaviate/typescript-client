@@ -80,7 +80,7 @@ class QueryManager<T, V> implements Query<T, V> {
     opts?: FetchObjectByIdOptions<T, I>
   ): Promise<WeaviateObject<T, RV> | null> {
     return this.check
-      .fetchObjectById(opts)
+      .fetchObjectById()
       .then(({ search }) => search.withFetch(Serialize.search.fetchObjectById({ id, ...opts })))
       .then((reply) => this.parseReply<RV>(reply))
       .then((ret) => (ret.objects.length === 1 ? ret.objects[0] : null));
@@ -90,7 +90,7 @@ class QueryManager<T, V> implements Query<T, V> {
     opts?: FetchObjectsOptions<T, I>
   ): Promise<WeaviateReturn<T, RV>> {
     return this.check
-      .fetchObjects(opts)
+      .fetchObjects()
       .then(({ search }) => search.withFetch(Serialize.search.fetchObjects(opts)))
       .then((reply) => this.parseReply(reply));
   }
@@ -108,7 +108,7 @@ class QueryManager<T, V> implements Query<T, V> {
     opts?: Bm25Options<T, I>
   ): QueryReturn<T, RV> {
     return this.check
-      .bm25(opts)
+      .bm25()
       .then(({ search }) => search.withBm25(Serialize.search.bm25(query, opts)))
       .then((reply) => this.parseGroupByReply(opts, reply));
   }
@@ -127,27 +127,16 @@ class QueryManager<T, V> implements Query<T, V> {
   ): QueryReturn<T, RV> {
     return this.check
       .hybridSearch(opts)
-      .then(
-        async ({
-          search,
-          supportsTargets,
-          supportsWeightsForTargets,
-          supportsVectorsForTargets,
-          supportsVectors,
-        }) => ({
-          search,
-          args: await Serialize.search.hybrid(
-            {
-              query,
-              supportsTargets,
-              supportsWeightsForTargets,
-              supportsVectorsForTargets,
-              supportsVectors,
-            },
-            opts
-          ),
-        })
-      )
+      .then(async ({ search, supportsVectors }) => ({
+        search,
+        args: await Serialize.search.hybrid(
+          {
+            query,
+            supportsVectors,
+          },
+          opts
+        ),
+      }))
       .then(({ search, args }) => search.withHybrid(args))
       .then((reply) => this.parseGroupByReply(opts, reply));
   }
@@ -165,15 +154,13 @@ class QueryManager<T, V> implements Query<T, V> {
     opts?: NearOptions<T, V, I>
   ): QueryReturn<T, RV> {
     return this.check
-      .nearSearch(opts)
-      .then(({ search, supportsTargets, supportsWeightsForTargets }) => {
+      .nearSearch()
+      .then(({ search }) => {
         return toBase64FromMedia(image).then((image) => ({
           search,
           args: Serialize.search.nearImage(
             {
               image,
-              supportsTargets,
-              supportsWeightsForTargets,
             },
             opts
           ),
@@ -199,35 +186,27 @@ class QueryManager<T, V> implements Query<T, V> {
     opts?: NearOptions<T, V, I>
   ): QueryReturn<T, RV> {
     return this.check
-      .nearSearch(opts)
-      .then(({ search, supportsTargets, supportsWeightsForTargets }) => {
-        const args = {
-          supportsTargets,
-          supportsWeightsForTargets,
-        };
+      .nearSearch()
+      .then(({ search }) => {
         let send: (media: string) => Promise<SearchReply>;
         switch (type) {
           case 'audio':
-            send = (media) =>
-              search.withNearAudio(Serialize.search.nearAudio({ audio: media, ...args }, opts));
+            send = (media) => search.withNearAudio(Serialize.search.nearAudio({ audio: media }, opts));
             break;
           case 'depth':
-            send = (media) =>
-              search.withNearDepth(Serialize.search.nearDepth({ depth: media, ...args }, opts));
+            send = (media) => search.withNearDepth(Serialize.search.nearDepth({ depth: media }, opts));
             break;
           case 'image':
-            send = (media) =>
-              search.withNearImage(Serialize.search.nearImage({ image: media, ...args }, opts));
+            send = (media) => search.withNearImage(Serialize.search.nearImage({ image: media }, opts));
             break;
           case 'imu':
-            send = (media) => search.withNearIMU(Serialize.search.nearIMU({ imu: media, ...args }, opts));
+            send = (media) => search.withNearIMU(Serialize.search.nearIMU({ imu: media }, opts));
             break;
           case 'thermal':
-            send = (media) =>
-              search.withNearThermal(Serialize.search.nearThermal({ thermal: media, ...args }, opts));
+            send = (media) => search.withNearThermal(Serialize.search.nearThermal({ thermal: media }, opts));
             break;
           case 'video':
-            send = (media) => search.withNearVideo(Serialize.search.nearVideo({ video: media, ...args }));
+            send = (media) => search.withNearVideo(Serialize.search.nearVideo({ video: media }));
             break;
           default:
             throw new WeaviateInvalidInputError(`Invalid media type: ${type}`);
@@ -250,14 +229,12 @@ class QueryManager<T, V> implements Query<T, V> {
     opts?: NearOptions<T, V, I>
   ): QueryReturn<T, RV> {
     return this.check
-      .nearSearch(opts)
-      .then(({ search, supportsTargets, supportsWeightsForTargets }) => ({
+      .nearSearch()
+      .then(({ search }) => ({
         search,
         args: Serialize.search.nearObject(
           {
             id,
-            supportsTargets,
-            supportsWeightsForTargets,
           },
           opts
         ),
@@ -279,14 +256,12 @@ class QueryManager<T, V> implements Query<T, V> {
     opts?: NearTextOptions<T, V, I>
   ): QueryReturn<T, RV> {
     return this.check
-      .nearSearch(opts)
-      .then(({ search, supportsTargets, supportsWeightsForTargets }) => ({
+      .nearSearch()
+      .then(({ search }) => ({
         search,
         args: Serialize.search.nearText(
           {
             query,
-            supportsTargets,
-            supportsWeightsForTargets,
           },
           opts
         ),
@@ -309,27 +284,16 @@ class QueryManager<T, V> implements Query<T, V> {
   ): QueryReturn<T, RV> {
     return this.check
       .nearVector(vector, opts)
-      .then(
-        async ({
-          search,
-          supportsTargets,
-          supportsVectorsForTargets,
-          supportsWeightsForTargets,
-          supportsVectors,
-        }) => ({
-          search,
-          args: await Serialize.search.nearVector(
-            {
-              vector,
-              supportsTargets,
-              supportsVectorsForTargets,
-              supportsWeightsForTargets,
-              supportsVectors,
-            },
-            opts
-          ),
-        })
-      )
+      .then(async ({ search, supportsVectors }) => ({
+        search,
+        args: await Serialize.search.nearVector(
+          {
+            vector,
+            supportsVectors,
+          },
+          opts
+        ),
+      }))
       .then(({ search, args }) => search.withNearVector(args))
       .then((reply) => this.parseGroupByReply(opts, reply));
   }

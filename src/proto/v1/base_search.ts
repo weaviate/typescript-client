@@ -75,18 +75,7 @@ export interface WeightsForTarget {
 export interface Targets {
   targetVectors: string[];
   combination: CombinationMethod;
-  /**
-   * deprecated in 1.26.2 - use weights_for_targets
-   *
-   * @deprecated
-   */
-  weights: { [key: string]: number };
   weightsForTargets: WeightsForTarget[];
-}
-
-export interface Targets_WeightsEntry {
-  key: string;
-  value: number;
 }
 
 export interface VectorForTarget {
@@ -469,7 +458,7 @@ export const WeightsForTarget = {
 };
 
 function createBaseTargets(): Targets {
-  return { targetVectors: [], combination: 0, weights: {}, weightsForTargets: [] };
+  return { targetVectors: [], combination: 0, weightsForTargets: [] };
 }
 
 export const Targets = {
@@ -480,9 +469,6 @@ export const Targets = {
     if (message.combination !== 0) {
       writer.uint32(16).int32(message.combination);
     }
-    Object.entries(message.weights).forEach(([key, value]) => {
-      Targets_WeightsEntry.encode({ key: key as any, value }, writer.uint32(26).fork()).ldelim();
-    });
     for (const v of message.weightsForTargets) {
       WeightsForTarget.encode(v!, writer.uint32(34).fork()).ldelim();
     }
@@ -510,16 +496,6 @@ export const Targets = {
 
           message.combination = reader.int32() as any;
           continue;
-        case 3:
-          if (tag !== 26) {
-            break;
-          }
-
-          const entry3 = Targets_WeightsEntry.decode(reader, reader.uint32());
-          if (entry3.value !== undefined) {
-            message.weights[entry3.key] = entry3.value;
-          }
-          continue;
         case 4:
           if (tag !== 34) {
             break;
@@ -542,12 +518,6 @@ export const Targets = {
         ? object.targetVectors.map((e: any) => globalThis.String(e))
         : [],
       combination: isSet(object.combination) ? combinationMethodFromJSON(object.combination) : 0,
-      weights: isObject(object.weights)
-        ? Object.entries(object.weights).reduce<{ [key: string]: number }>((acc, [key, value]) => {
-          acc[key] = Number(value);
-          return acc;
-        }, {})
-        : {},
       weightsForTargets: globalThis.Array.isArray(object?.weightsForTargets)
         ? object.weightsForTargets.map((e: any) => WeightsForTarget.fromJSON(e))
         : [],
@@ -562,15 +532,6 @@ export const Targets = {
     if (message.combination !== 0) {
       obj.combination = combinationMethodToJSON(message.combination);
     }
-    if (message.weights) {
-      const entries = Object.entries(message.weights);
-      if (entries.length > 0) {
-        obj.weights = {};
-        entries.forEach(([k, v]) => {
-          obj.weights[k] = v;
-        });
-      }
-    }
     if (message.weightsForTargets?.length) {
       obj.weightsForTargets = message.weightsForTargets.map((e) => WeightsForTarget.toJSON(e));
     }
@@ -584,87 +545,7 @@ export const Targets = {
     const message = createBaseTargets();
     message.targetVectors = object.targetVectors?.map((e) => e) || [];
     message.combination = object.combination ?? 0;
-    message.weights = Object.entries(object.weights ?? {}).reduce<{ [key: string]: number }>((acc, [key, value]) => {
-      if (value !== undefined) {
-        acc[key] = globalThis.Number(value);
-      }
-      return acc;
-    }, {});
     message.weightsForTargets = object.weightsForTargets?.map((e) => WeightsForTarget.fromPartial(e)) || [];
-    return message;
-  },
-};
-
-function createBaseTargets_WeightsEntry(): Targets_WeightsEntry {
-  return { key: "", value: 0 };
-}
-
-export const Targets_WeightsEntry = {
-  encode(message: Targets_WeightsEntry, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.key !== "") {
-      writer.uint32(10).string(message.key);
-    }
-    if (message.value !== 0) {
-      writer.uint32(21).float(message.value);
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): Targets_WeightsEntry {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseTargets_WeightsEntry();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          if (tag !== 10) {
-            break;
-          }
-
-          message.key = reader.string();
-          continue;
-        case 2:
-          if (tag !== 21) {
-            break;
-          }
-
-          message.value = reader.float();
-          continue;
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): Targets_WeightsEntry {
-    return {
-      key: isSet(object.key) ? globalThis.String(object.key) : "",
-      value: isSet(object.value) ? globalThis.Number(object.value) : 0,
-    };
-  },
-
-  toJSON(message: Targets_WeightsEntry): unknown {
-    const obj: any = {};
-    if (message.key !== "") {
-      obj.key = message.key;
-    }
-    if (message.value !== 0) {
-      obj.value = message.value;
-    }
-    return obj;
-  },
-
-  create(base?: DeepPartial<Targets_WeightsEntry>): Targets_WeightsEntry {
-    return Targets_WeightsEntry.fromPartial(base ?? {});
-  },
-  fromPartial(object: DeepPartial<Targets_WeightsEntry>): Targets_WeightsEntry {
-    const message = createBaseTargets_WeightsEntry();
-    message.key = object.key ?? "";
-    message.value = object.value ?? 0;
     return message;
   },
 };
