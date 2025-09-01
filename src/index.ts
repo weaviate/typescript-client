@@ -41,6 +41,7 @@ import weaviateV2 from './v2/index.js';
 import alias, { Aliases } from './alias/index.js';
 import filter from './collections/filters/index.js';
 import { ConsistencyLevel } from './data/replication.js';
+import groups, { Groups } from './groups/index.js';
 import users, { Users } from './users/index.js';
 
 export type ProtocolParams = {
@@ -108,6 +109,7 @@ export interface WeaviateClient {
   cluster: Cluster;
   collections: Collections;
   oidcAuth?: OidcAuthenticator;
+  groups: Groups;
   roles: Roles;
   users: Users;
 
@@ -230,6 +232,7 @@ async function client(params: ClientParams): Promise<WeaviateClient> {
     backup: backup(connection),
     cluster: cluster(connection),
     collections: collections(connection, dbVersionSupport),
+    groups: groups(connection),
     roles: roles(connection),
     users: users(connection),
     close: () => Promise.resolve(connection.close()), // hedge against future changes to add I/O to .close()

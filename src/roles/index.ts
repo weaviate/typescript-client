@@ -1,6 +1,7 @@
 import { ConnectionREST } from '../index.js';
 import {
   WeaviateAssignedUser,
+  WeaviateGroupAssignment,
   Permission as WeaviatePermission,
   Role as WeaviateRole,
 } from '../openapi/types.js';
@@ -10,6 +11,7 @@ import {
   ClusterPermission,
   CollectionsPermission,
   DataPermission,
+  GroupAssignment,
   NodesPermission,
   Permission,
   PermissionsInput,
@@ -102,6 +104,14 @@ export interface Roles {
    * @returns {Promise<boolean>} A promise that resolves to true if the role has the permissions, or false if it does not.
    */
   hasPermissions: (roleName: string, permission: Permission | Permission[]) => Promise<boolean>;
+
+  /**
+   * Get the IDs and group type of groups that assigned this role.
+   *
+   * @param {string} roleName The name of the role to check.
+   * @return {Promise<GroupAssignment[]>} A promise that resolves to an array of group names assigned to this role.
+   */
+  getGroupAssignments: (roleName: string) => Promise<GroupAssignment[]>;
 }
 
 const roles = (connection: ConnectionREST): Roles => {
@@ -147,6 +157,10 @@ const roles = (connection: ConnectionREST): Roles => {
             connection.postReturn<WeaviatePermission, boolean>(`/authz/roles/${roleName}/has-permission`, p)
           )
       ).then((r) => r.every((b) => b)),
+    getGroupAssignments: (roleName: string) =>
+      connection
+        .get<WeaviateGroupAssignment[]>(`/authz/roles/${roleName}/group-assignments`)
+        .then(Map.groupsAssignments),
   };
 };
 

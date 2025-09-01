@@ -1,6 +1,7 @@
 import {
   WeaviateAssignedUser,
   WeaviateDBUser,
+  WeaviateGroupAssignment,
   Permission as WeaviatePermission,
   Role as WeaviateRole,
   WeaviateUser,
@@ -17,6 +18,7 @@ import {
   CollectionsPermission,
   DataAction,
   DataPermission,
+  GroupAssignment,
   NodesAction,
   NodesPermission,
   Permission,
@@ -156,6 +158,12 @@ export class Map {
       }),
       {} as Record<string, Role>
     );
+
+  static groupsAssignments = (groups: WeaviateGroupAssignment[]): GroupAssignment[] =>
+    groups.map((g) => ({
+      groupID: g.groupId || '',
+      groupType: g.groupType,
+    }));
 
   static users = (users: string[]): Record<string, User> =>
     users.reduce(

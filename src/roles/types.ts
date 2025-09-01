@@ -1,4 +1,4 @@
-import { Action, WeaviateUserType } from '../openapi/types.js';
+import { Action, WeaviateGroupType, WeaviateUserType } from '../openapi/types.js';
 
 export type AliasAction = Extract<
   Action,
@@ -29,6 +29,11 @@ export type UsersAction = Extract<Action, 'read_users' | 'assign_and_revoke_user
 export type UserAssignment = {
   id: string;
   userType: WeaviateUserType;
+};
+
+export type GroupAssignment = {
+  groupID: string;
+  groupType: WeaviateGroupType;
 };
 
 export type AliasPermission = {
