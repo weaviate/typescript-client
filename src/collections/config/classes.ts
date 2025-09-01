@@ -30,11 +30,7 @@ import {
 } from './types/index.js';
 
 export class MergeWithExisting {
-  static schema(
-    current: WeaviateClass,
-    supportsNamedVectors: boolean,
-    update?: CollectionConfigUpdate<any>
-  ): WeaviateClass {
+  static schema(current: WeaviateClass, update?: CollectionConfigUpdate<any>): WeaviateClass {
     if (update === undefined) return current;
     if (update.description !== undefined) current.description = update.description;
     if (update.propertyDescriptions !== undefined)
@@ -61,7 +57,7 @@ export class MergeWithExisting {
     if (update.vectorizers !== undefined) {
       if (Array.isArray(update.vectorizers)) {
         current.vectorConfig = MergeWithExisting.vectors(current.vectorConfig, update.vectorizers);
-      } else if (supportsNamedVectors && current.vectorConfig !== undefined) {
+      } else if (current.vectorConfig !== undefined) {
         const updateVectorizers = {
           ...update.vectorizers,
           name: 'default',

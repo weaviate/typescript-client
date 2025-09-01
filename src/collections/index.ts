@@ -1,19 +1,10 @@
 import Connection from '../connection/grpc.js';
-import { WeaviateUnsupportedFeatureError } from '../errors.js';
 import { WeaviateClass } from '../openapi/types.js';
 import ClassExists from '../schema/classExists.js';
 import { ClassCreator, ClassDeleter, ClassGetter, SchemaGetter } from '../schema/index.js';
 import { DbVersionSupport } from '../utils/dbVersion.js';
 import collection, { Collection } from './collection/index.js';
-import {
-  classToCollection,
-  makeVectorsConfig,
-  parseVectorIndex,
-  parseVectorizerConfig,
-  resolveProperty,
-  resolveReference,
-} from './config/utils.js';
-import { configGuards } from './index.js';
+import { classToCollection, makeVectorsConfig, resolveProperty, resolveReference } from './config/utils.js';
 import {
   CollectionConfig,
   GenerativeConfig,
@@ -28,12 +19,9 @@ import {
   Reranker,
   RerankerConfig,
   ShardingConfigCreate,
-  VectorConfigCreate,
-  Vectorizer,
   VectorizersConfigCreate,
   Vectors,
 } from './types/index.js';
-import { PrimitiveKeys } from './types/internal.js';
 
 /**
  * All the options available when creating a new collection.
@@ -80,10 +68,6 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
     >(config: CollectionConfigCreate<TProperties, TName, TVectors>) {
       const { name, invertedIndex, multiTenancy, replication, sharding, ...rest } = config;
 
-      const supportsDynamicVectorIndex = await dbVersionSupport.supportsDynamicVectorIndex();
-      const supportsNamedVectors = await dbVersionSupport.supportsNamedVectors();
-      const supportsHNSWAndBQ = await dbVersionSupport.supportsHNSWAndBQ();
-
       const moduleConfig: any = {};
       if (config.generative) {
         const generative =
@@ -94,42 +78,7 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
         moduleConfig[config.reranker.name] = config.reranker.config ? config.reranker.config : {};
       }
 
-      const makeLegacyVectorizer = (
-        configVectorizers: VectorConfigCreate<PrimitiveKeys<TProperties>, undefined, string, Vectorizer>
-      ) => {
-        const vectorizer =
-          configVectorizers.vectorizer.name === 'text2vec-azure-openai'
-            ? 'text2vec-openai'
-            : configVectorizers.vectorizer.name;
-        const moduleConfig: any = {};
-        moduleConfig[vectorizer] = parseVectorizerConfig(configVectorizers.vectorizer.config);
-
-        const vectorIndexConfig = parseVectorIndex(configVectorizers.vectorIndex);
-        const vectorIndexType = configVectorizers.vectorIndex.name;
-
-        if (
-          vectorIndexType === 'hnsw' &&
-          configVectorizers.vectorIndex.config !== undefined &&
-          configGuards.quantizer.isBQ(configVectorizers.vectorIndex.config.quantizer as any)
-        ) {
-          if (!supportsHNSWAndBQ.supports) {
-            throw new WeaviateUnsupportedFeatureError(supportsHNSWAndBQ.message);
-          }
-        }
-
-        if (vectorIndexType === 'dynamic' && !supportsDynamicVectorIndex.supports) {
-          throw new WeaviateUnsupportedFeatureError(supportsDynamicVectorIndex.message);
-        }
-
-        return {
-          vectorizer,
-          moduleConfig,
-          vectorIndexConfig,
-          vectorIndexType,
-        };
-      };
-
-      let schema: any = {
+      const schema: any = {
         ...rest,
         class: name,
         invertedIndexConfig: invertedIndex,
@@ -138,39 +87,12 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
         replicationConfig: replication,
         shardingConfig: sharding,
       };
-      let vectorizers: string[] = [];
-      if (supportsNamedVectors.supports) {
-        const { vectorsConfig, vectorizers: vecs } = config.vectorizers
-          ? makeVectorsConfig(config.vectorizers, supportsDynamicVectorIndex)
-          : { vectorsConfig: undefined, vectorizers: [] };
-        schema.vectorConfig = vectorsConfig;
-        vectorizers = [...vecs];
-      } else {
-        if (config.vectorizers !== undefined && Array.isArray(config.vectorizers)) {
-          throw new WeaviateUnsupportedFeatureError(supportsNamedVectors.message);
-        }
-        const configs = config.vectorizers
-          ? makeLegacyVectorizer({ ...config.vectorizers, name: undefined })
-          : {
-              vectorizer: undefined,
-              moduleConfig: undefined,
-              vectorIndexConfig: undefined,
-              vectorIndexType: undefined,
-            };
-        schema = {
-          ...schema,
-          moduleConfig: {
-            ...schema.moduleConfig,
-            ...configs.moduleConfig,
-          },
-          vectorizer: configs.vectorizer,
-          vectorIndexConfig: configs.vectorIndexConfig,
-          vectorIndexType: configs.vectorIndexType,
-        };
-        if (configs.vectorizer !== undefined) {
-          vectorizers = [configs.vectorizer];
-        }
-      }
+
+      const { vectorsConfig, vectorizers } = config.vectorizers
+        ? makeVectorsConfig(config.vectorizers)
+        : { vectorsConfig: undefined, vectorizers: [] };
+      schema.vectorConfig = vectorsConfig;
+
       const properties = config.properties
         ? config.properties.map((prop) => resolveProperty<TProperties>(prop as any, vectorizers))
         : [];

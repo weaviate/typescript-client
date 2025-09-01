@@ -426,9 +426,6 @@ class Aggregate {
       objectLimit: opts?.objectLimit,
       hybrid: await Serialize.hybridSearch({
         query: query,
-        supportsTargets: true,
-        supportsVectorsForTargets: true,
-        supportsWeightsForTargets: true,
         supportsVectors: true,
         ...opts,
       }),
@@ -444,8 +441,6 @@ class Aggregate {
       objectLimit: opts?.objectLimit,
       nearImage: Serialize.nearImageSearch({
         image,
-        supportsTargets: true,
-        supportsWeightsForTargets: true,
         ...opts,
       }),
     };
@@ -460,8 +455,6 @@ class Aggregate {
       objectLimit: opts?.objectLimit,
       nearObject: Serialize.nearObjectSearch({
         id,
-        supportsTargets: true,
-        supportsWeightsForTargets: true,
         ...opts,
       }),
     };
@@ -476,8 +469,6 @@ class Aggregate {
       objectLimit: opts?.objectLimit,
       nearText: Serialize.nearTextSearch({
         query,
-        supportsTargets: true,
-        supportsWeightsForTargets: true,
         ...opts,
       }),
     };
@@ -492,9 +483,6 @@ class Aggregate {
       objectLimit: opts?.objectLimit,
       nearVector: await Serialize.nearVectorSearch({
         vector,
-        supportsTargets: true,
-        supportsVectorsForTargets: true,
-        supportsWeightsForTargets: true,
         supportsVectors: true,
         ...opts,
       }),
@@ -669,9 +657,6 @@ class Search {
   public static hybrid = async <T, V, I>(
     args: {
       query: string;
-      supportsTargets: boolean;
-      supportsVectorsForTargets: boolean;
-      supportsWeightsForTargets: boolean;
       supportsVectors: boolean;
     },
     opts?: HybridOptions<T, V, I>
@@ -688,8 +673,6 @@ class Search {
   public static nearAudio = <T, V, I>(
     args: {
       audio: string;
-      supportsTargets: boolean;
-      supportsWeightsForTargets: boolean;
     },
     opts?: NearOptions<T, V, I>
   ): SearchNearAudioArgs => {
@@ -703,8 +686,6 @@ class Search {
   public static nearDepth = <T, V, I>(
     args: {
       depth: string;
-      supportsTargets: boolean;
-      supportsWeightsForTargets: boolean;
     },
     opts?: NearOptions<T, V, I>
   ): SearchNearDepthArgs => {
@@ -718,8 +699,6 @@ class Search {
   public static nearImage = <T, V, I>(
     args: {
       image: string;
-      supportsTargets: boolean;
-      supportsWeightsForTargets: boolean;
     },
     opts?: NearOptions<T, V, I>
   ): SearchNearImageArgs => {
@@ -733,8 +712,6 @@ class Search {
   public static nearIMU = <T, V, I>(
     args: {
       imu: string;
-      supportsTargets: boolean;
-      supportsWeightsForTargets: boolean;
     },
     opts?: NearOptions<T, V, I>
   ): SearchNearIMUArgs => {
@@ -746,7 +723,7 @@ class Search {
   };
 
   public static nearObject = <T, V, I>(
-    args: { id: string; supportsTargets: boolean; supportsWeightsForTargets: boolean },
+    args: { id: string },
     opts?: NearOptions<T, V, I>
   ): SearchNearObjectArgs => {
     return {
@@ -759,8 +736,6 @@ class Search {
   public static nearText = <T, V, I>(
     args: {
       query: string | string[];
-      supportsTargets: boolean;
-      supportsWeightsForTargets: boolean;
     },
     opts?: NearTextOptions<T, V, I>
   ): SearchNearTextArgs => {
@@ -772,7 +747,7 @@ class Search {
   };
 
   public static nearThermal = <T, V, I>(
-    args: { thermal: string; supportsTargets: boolean; supportsWeightsForTargets: boolean },
+    args: { thermal: string },
     opts?: NearOptions<T, V, I>
   ): SearchNearThermalArgs => {
     return {
@@ -785,9 +760,6 @@ class Search {
   public static nearVector = async <T, V, I>(
     args: {
       vector: NearVectorInputType;
-      supportsTargets: boolean;
-      supportsVectorsForTargets: boolean;
-      supportsWeightsForTargets: boolean;
       supportsVectors: boolean;
     },
     opts?: NearOptions<T, V, I>
@@ -799,7 +771,7 @@ class Search {
     };
   };
   public static nearVideo = <T, V, I>(
-    args: { video: string; supportsTargets: boolean; supportsWeightsForTargets: boolean },
+    args: { video: string },
     opts?: NearOptions<T, V, I>
   ): SearchNearVideoArgs => {
     return {
@@ -1026,11 +998,9 @@ export class Serialize {
   };
 
   private static hybridVector = async <T, V, I>(args: {
-    supportsTargets: boolean;
-    supportsVectorsForTargets: boolean;
-    supportsWeightsForTargets: boolean;
     supportsVectors: boolean;
     vector?: BaseHybridOptions<T, V, I>['vector'];
+    targetVector?: BaseHybridOptions<T, V, I>['targetVector'];
   }) => {
     const vector = args.vector;
     if (Serialize.isHybridVectorSearch(vector)) {
@@ -1095,9 +1065,6 @@ export class Serialize {
   public static hybridSearch = async <T, V>(
     args: {
       query: string;
-      supportsTargets: boolean;
-      supportsVectorsForTargets: boolean;
-      supportsWeightsForTargets: boolean;
       supportsVectors: boolean;
     } & HybridSearchOptions<T, V>
   ): Promise<Hybrid> => {
@@ -1130,11 +1097,7 @@ export class Serialize {
   };
 
   public static nearAudioSearch = <T, V, I>(
-    args: { audio: string; supportsTargets: boolean; supportsWeightsForTargets: boolean } & NearOptions<
-      T,
-      V,
-      I
-    >
+    args: { audio: string } & NearOptions<T, V, I>
   ): NearAudioSearch => {
     const { targets, targetVectors } = Serialize.targetVector(args);
     return NearAudioSearch.fromPartial({
@@ -1147,11 +1110,7 @@ export class Serialize {
   };
 
   public static nearDepthSearch = <T, V, I>(
-    args: { depth: string; supportsTargets: boolean; supportsWeightsForTargets: boolean } & NearOptions<
-      T,
-      V,
-      I
-    >
+    args: { depth: string } & NearOptions<T, V, I>
   ): NearDepthSearch => {
     const { targets, targetVectors } = Serialize.targetVector(args);
     return NearDepthSearch.fromPartial({
@@ -1164,11 +1123,7 @@ export class Serialize {
   };
 
   public static nearImageSearch = <T, V, I>(
-    args: { image: string; supportsTargets: boolean; supportsWeightsForTargets: boolean } & NearOptions<
-      T,
-      V,
-      I
-    >
+    args: { image: string } & NearOptions<T, V, I>
   ): NearImageSearch => {
     const { targets, targetVectors } = Serialize.targetVector(args);
     return NearImageSearch.fromPartial({
@@ -1180,9 +1135,7 @@ export class Serialize {
     });
   };
 
-  public static nearIMUSearch = <T, V, I>(
-    args: { imu: string; supportsTargets: boolean; supportsWeightsForTargets: boolean } & NearOptions<T, V, I>
-  ): NearIMUSearch => {
+  public static nearIMUSearch = <T, V, I>(args: { imu: string } & NearOptions<T, V, I>): NearIMUSearch => {
     const { targets, targetVectors } = Serialize.targetVector(args);
     return NearIMUSearch.fromPartial({
       imu: args.imu,
@@ -1193,9 +1146,7 @@ export class Serialize {
     });
   };
 
-  public static nearObjectSearch = <T, V, I>(
-    args: { id: string; supportsTargets: boolean; supportsWeightsForTargets: boolean } & NearOptions<T, V, I>
-  ): NearObject => {
+  public static nearObjectSearch = <T, V, I>(args: { id: string } & NearOptions<T, V, I>): NearObject => {
     const { targets, targetVectors } = Serialize.targetVector(args);
     return NearObject.fromPartial({
       id: args.id,
@@ -1208,8 +1159,6 @@ export class Serialize {
 
   public static nearTextSearch = <V>(args: {
     query: string | string[];
-    supportsTargets: boolean;
-    supportsWeightsForTargets: boolean;
     targetVector?: TargetVectorInputType<V>;
     certainty?: number;
     distance?: number;
@@ -1241,11 +1190,7 @@ export class Serialize {
   };
 
   public static nearThermalSearch = <T, V, I>(
-    args: { thermal: string; supportsTargets: boolean; supportsWeightsForTargets: boolean } & NearOptions<
-      T,
-      V,
-      I
-    >
+    args: { thermal: string } & NearOptions<T, V, I>
   ): NearThermalSearch => {
     const { targets, targetVectors } = Serialize.targetVector(args);
     return NearThermalSearch.fromPartial({
@@ -1301,9 +1246,6 @@ export class Serialize {
 
   public static nearVectorSearch = async <V>(args: {
     vector: NearVectorInputType;
-    supportsTargets: boolean;
-    supportsVectorsForTargets: boolean;
-    supportsWeightsForTargets: boolean;
     supportsVectors: boolean;
     certainty?: number;
     distance?: number;
@@ -1318,38 +1260,29 @@ export class Serialize {
       })),
     });
 
-  public static targetVector = <V>(args: {
-    supportsTargets: boolean;
-    supportsWeightsForTargets: boolean;
+  public static targetVector = <V>(args?: {
     targetVector?: TargetVectorInputType<V>;
   }): { targets?: Targets; targetVectors?: string[] } => {
-    if (args.targetVector === undefined) {
+    if (args?.targetVector === undefined) {
       return {};
     } else if (TargetVectorInputGuards.isSingle(args.targetVector)) {
-      return args.supportsTargets
-        ? {
-            targets: Targets.fromPartial({
-              targetVectors: [args.targetVector],
-            }),
-          }
-        : { targetVectors: [args.targetVector] };
+      return {
+        targets: Targets.fromPartial({
+          targetVectors: [args.targetVector],
+        }),
+      };
     } else if (TargetVectorInputGuards.isMulti(args.targetVector)) {
-      return args.supportsTargets
-        ? {
-            targets: Targets.fromPartial({
-              targetVectors: args.targetVector,
-            }),
-          }
-        : { targetVectors: args.targetVector };
+      return {
+        targets: Targets.fromPartial({
+          targetVectors: args.targetVector,
+        }),
+      };
     } else {
-      return { targets: Serialize.targets(args.targetVector, args.supportsWeightsForTargets) };
+      return { targets: Serialize.targets(args.targetVector) };
     }
   };
 
   static vectors = async <V>(args: {
-    supportsTargets: boolean;
-    supportsVectorsForTargets: boolean;
-    supportsWeightsForTargets: boolean;
     supportsVectors: boolean;
     argumentName: 'nearVector' | 'vector';
     targetVector?: TargetVectorInputType<V>;
@@ -1374,40 +1307,6 @@ export class Serialize {
     if (NearVectorInputGuards.isObject(args.vector)) {
       if (Object.keys(args.vector).length === 0) {
         throw invalidVectorError;
-      }
-      if (!args.supportsVectorsForTargets) {
-        const vectorPerTarget: Record<string, Uint8Array> = {};
-        Object.entries(args.vector).forEach(([k, v]) => {
-          if (ArrayInputGuards.is2DArray(v)) {
-            throw new WeaviateUnsupportedFeatureError('Multi-vectors are not supported in Weaviate <1.29.0');
-          }
-          if (NearVectorInputGuards.isListOf1D(v) || NearVectorInputGuards.isListOf2D(v)) {
-            throw new WeaviateUnsupportedFeatureError(
-              'Lists of vectors are not supported in Weaviate <1.29.0'
-            );
-          }
-          vectorPerTarget[k] = Serialize.vectorToBytes(v);
-        });
-        if (args.targetVector !== undefined) {
-          const { targets, targetVectors } = Serialize.targetVector(args);
-          return {
-            targetVectors,
-            targets,
-            vectorPerTarget,
-          };
-        } else {
-          return args.supportsTargets
-            ? {
-                targets: Targets.fromPartial({
-                  targetVectors: Object.keys(vectorPerTarget),
-                }),
-                vectorPerTarget,
-              }
-            : {
-                targetVectors: Object.keys(vectorPerTarget),
-                vectorPerTarget,
-              };
-        }
       }
       const vectorForTargets: VectorForTarget[] = [];
       for (const [target, vector] of Object.entries(args.vector)) {
@@ -1521,12 +1420,10 @@ export class Serialize {
   };
 
   private static targets = <V>(
-    targets: MultiTargetVectorJoin<V>,
-    supportsWeightsForTargets: boolean
+    targets: MultiTargetVectorJoin<V>
   ): {
     combination: CombinationMethod;
     targetVectors: string[];
-    weights: Record<string, number>;
     weightsForTargets: WeightsForTarget[];
   } => {
     let combination: CombinationMethod;
@@ -1549,7 +1446,7 @@ export class Serialize {
       default:
         throw new Error('Invalid combination method');
     }
-    if (targets.weights !== undefined && supportsWeightsForTargets) {
+    if (targets.weights !== undefined) {
       const weightsForTargets: WeightsForTarget[] = Object.entries(targets.weights)
         .map(([target, weight]) => {
           return {
@@ -1565,37 +1462,19 @@ export class Serialize {
       return {
         combination,
         targetVectors: weightsForTargets.map((w) => w.target),
-        weights: {},
         weightsForTargets,
-      };
-    } else if (targets.weights !== undefined && !supportsWeightsForTargets) {
-      if (Object.values(targets.weights).some((v) => Array.isArray(v))) {
-        throw new WeaviateUnsupportedFeatureError(
-          'Multiple weights per target are not supported in this Weaviate version. Please upgrade to at least Weaviate 1.27.0.'
-        );
-      }
-      return {
-        combination,
-        targetVectors: targets.targetVectors,
-        weights: targets.weights as Record<string, number>, // TS can't type narrow the complicated .some predicate above
-        weightsForTargets: [],
       };
     } else {
       return {
         combination,
         targetVectors: targets.targetVectors,
-        weights: {},
         weightsForTargets: [],
       };
     }
   };
 
   public static nearVideoSearch = <T, V, I>(
-    args: { video: string; supportsTargets: boolean; supportsWeightsForTargets: boolean } & NearOptions<
-      T,
-      V,
-      I
-    >
+    args: { video: string } & NearOptions<T, V, I>
   ): NearVideoSearch => {
     const { targets, targetVectors } = Serialize.targetVector(args);
     return NearVideoSearch.fromPartial({

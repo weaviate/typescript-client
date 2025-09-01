@@ -7,8 +7,6 @@ on:
   pull_request:
 
 env:
-  WEAVIATE_125: 1.25.34
-  WEAVIATE_126: 1.26.17
   WEAVIATE_127: 1.27.27
   WEAVIATE_128: 1.28.16
   WEAVIATE_129: 1.29.9
@@ -42,8 +40,6 @@ jobs:
       fail-fast: false
       matrix:
         versions: [
-          { node: "22.x", weaviate: $WEAVIATE_125},
-          { node: "22.x", weaviate: $WEAVIATE_126},
           { node: "22.x", weaviate: $WEAVIATE_127},
           { node: "22.x", weaviate: $WEAVIATE_128},
           { node: "22.x", weaviate: $WEAVIATE_129},

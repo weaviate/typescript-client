@@ -59,6 +59,7 @@ export function consistencyLevelToJSON(object: ConsistencyLevel): string {
 export interface NumberArrayProperties {
   /**
    * will be removed in the future, use vector_bytes
+   * go client 5.4.1 depends on this field. Only remove after go client is deprecated
    *
    * @deprecated
    */
@@ -158,6 +159,8 @@ export enum Filters_Operator {
   OPERATOR_IS_NULL = 11,
   OPERATOR_CONTAINS_ANY = 12,
   OPERATOR_CONTAINS_ALL = 13,
+  OPERATOR_CONTAINS_NONE = 14,
+  OPERATOR_NOT = 15,
   UNRECOGNIZED = -1,
 }
 
@@ -205,6 +208,12 @@ export function filters_OperatorFromJSON(object: any): Filters_Operator {
     case 13:
     case "OPERATOR_CONTAINS_ALL":
       return Filters_Operator.OPERATOR_CONTAINS_ALL;
+    case 14:
+    case "OPERATOR_CONTAINS_NONE":
+      return Filters_Operator.OPERATOR_CONTAINS_NONE;
+    case 15:
+    case "OPERATOR_NOT":
+      return Filters_Operator.OPERATOR_NOT;
     case -1:
     case "UNRECOGNIZED":
     default:
@@ -242,6 +251,10 @@ export function filters_OperatorToJSON(object: Filters_Operator): string {
       return "OPERATOR_CONTAINS_ANY";
     case Filters_Operator.OPERATOR_CONTAINS_ALL:
       return "OPERATOR_CONTAINS_ALL";
+    case Filters_Operator.OPERATOR_CONTAINS_NONE:
+      return "OPERATOR_CONTAINS_NONE";
+    case Filters_Operator.OPERATOR_NOT:
+      return "OPERATOR_NOT";
     case Filters_Operator.UNRECOGNIZED:
     default:
       return "UNRECOGNIZED";
