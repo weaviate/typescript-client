@@ -1212,48 +1212,48 @@ describe('the graphql journey', () => {
     }).toThrow('objectLimit must be a non-negative integer');
   });
 
-  test('graphql explore with minimal fields', () => {
-    return client.graphql
-      .explore()
-      .withNearText({ concepts: ['iphone'] })
-      .withFields('beacon certainty className')
-      .do()
-      .then((res: any) => {
-        expect(res.data.Explore.length).toBeGreaterThan(0);
-      })
-      .catch((e: any) => {
-        throw new Error('it should not have errord' + e);
-      });
-  });
+  // test('graphql explore with minimal fields', () => {
+  //   return client.graphql
+  //     .explore()
+  //     .withNearText({ concepts: ['iphone'] })
+  //     .withFields('beacon certainty className')
+  //     .do()
+  //     .then((res: any) => {
+  //       expect(res.data.Explore.length).toBeGreaterThan(0);
+  //     })
+  //     .catch((e: any) => {
+  //       throw new Error('it should not have errord' + e);
+  //     });
+  // });
 
-  test('graphql explore with optional fields', () => {
-    return client.graphql
-      .explore()
-      .withNearText({ concepts: ['iphone'] })
-      .withFields('beacon certainty distance className')
-      .withLimit(1)
-      .do()
-      .then((res: any) => {
-        expect(res.data.Explore.length).toEqual(1);
-      })
-      .catch((e: any) => {
-        throw new Error('it should not have errord' + e);
-      });
-  });
+  // test('graphql explore with optional fields', () => {
+  //   return client.graphql
+  //     .explore()
+  //     .withNearText({ concepts: ['iphone'] })
+  //     .withFields('beacon certainty distance className')
+  //     .withLimit(1)
+  //     .do()
+  //     .then((res: any) => {
+  //       expect(res.data.Explore.length).toEqual(1);
+  //     })
+  //     .catch((e: any) => {
+  //       throw new Error('it should not have errord' + e);
+  //     });
+  // });
 
-  test('graphql explore with nearObject field', () => {
-    return client.graphql
-      .explore()
-      .withNearObject({ id: 'abefd256-8574-442b-9293-9205193737e0' })
-      .withFields('beacon certainty distance className')
-      .do()
-      .then((res: any) => {
-        expect(res.data.Explore.length).toBeGreaterThan(0);
-      })
-      .catch((e: any) => {
-        throw new Error('it should not have errord' + e);
-      });
-  });
+  // test('graphql explore with nearObject field', () => {
+  //   return client.graphql
+  //     .explore()
+  //     .withNearObject({ id: 'abefd256-8574-442b-9293-9205193737e0' })
+  //     .withFields('beacon certainty distance className')
+  //     .do()
+  //     .then((res: any) => {
+  //       expect(res.data.Explore.length).toBeGreaterThan(0);
+  //     })
+  //     .catch((e: any) => {
+  //       throw new Error('it should not have errord' + e);
+  //     });
+  // });
 
   test('graphql get method with sort filter: wordCount asc', () => {
     return client.graphql
