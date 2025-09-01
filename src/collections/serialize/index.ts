@@ -1504,6 +1504,11 @@ export class Serialize {
           operator: Filters_Operator.OPERATOR_OR,
           filters: resolveFilters(filters),
         });
+      case 'Not':
+        return FiltersGRPC.fromPartial({
+          operator: Filters_Operator.OPERATOR_NOT,
+          filters: resolveFilters(filters),
+        });
       default:
         return FiltersGRPC.fromPartial({
           operator: Serialize.operator(filters.operator),
@@ -1568,7 +1573,7 @@ export class Serialize {
 
   public static filtersREST = (filters: FilterValue): WhereFilter => {
     const { value } = filters;
-    if (filters.operator === 'And' || filters.operator === 'Or') {
+    if (filters.operator === 'And' || filters.operator === 'Or' || filters.operator === 'Not') {
       return {
         operator: filters.operator,
         operands: filters.filters?.map(Serialize.filtersREST),
@@ -1660,6 +1665,8 @@ export class Serialize {
         return Filters_Operator.OPERATOR_CONTAINS_ANY;
       case 'ContainsAll':
         return Filters_Operator.OPERATOR_CONTAINS_ALL;
+      case 'ContainsNone':
+        return Filters_Operator.OPERATOR_CONTAINS_NONE;
       case 'GreaterThan':
         return Filters_Operator.OPERATOR_GREATER_THAN;
       case 'GreaterThanEqual':
