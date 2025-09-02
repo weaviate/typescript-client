@@ -14,6 +14,7 @@ export interface GroupsOIDC {
    * Get the roles assigned to a group specific to the configured OIDC's dynamic auth functionality.
    *
    * @param {string} groupID The group ID to get the roles for.
+   * @param {boolean} [includePermissions] Whether to include all associated permissions in the response.
    * @returns {Promise<Record<string, Role>>} A map of roles assigned to the group.
    */
   getAssignedRoles(groupID: string, includePermissions?: boolean): Promise<Record<string, Role>>;
