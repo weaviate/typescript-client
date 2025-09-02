@@ -1,4 +1,4 @@
-import { Action, WeaviateUserType } from '../openapi/types.js';
+import { Action, WeaviateGroupType, WeaviateUserType } from '../openapi/types.js';
 
 export type AliasAction = Extract<
   Action,
@@ -18,6 +18,7 @@ export type DataAction = Extract<
   Action,
   'create_data' | 'delete_data' | 'read_data' | 'update_data' | 'manage_data'
 >;
+export type GroupsAction = Extract<Action, 'read_groups' | 'assign_and_revoke_groups'>;
 export type NodesAction = Extract<Action, 'read_nodes'>;
 export type RolesAction = Extract<Action, 'create_roles' | 'read_roles' | 'update_roles' | 'delete_roles'>;
 export type TenantsAction = Extract<
@@ -29,6 +30,11 @@ export type UsersAction = Extract<Action, 'read_users' | 'assign_and_revoke_user
 export type UserAssignment = {
   id: string;
   userType: WeaviateUserType;
+};
+
+export type GroupAssignment = {
+  groupID: string;
+  groupType: WeaviateGroupType;
 };
 
 export type AliasPermission = {
@@ -55,6 +61,12 @@ export type DataPermission = {
   collection: string;
   tenant: string;
   actions: DataAction[];
+};
+
+export type GroupsPermission = {
+  groupID: string;
+  groupType: WeaviateGroupType;
+  actions: GroupsAction[];
 };
 
 export type NodesPermission = {
@@ -86,6 +98,7 @@ export type Role = {
   clusterPermissions: ClusterPermission[];
   collectionsPermissions: CollectionsPermission[];
   dataPermissions: DataPermission[];
+  groupsPermissions: GroupsPermission[];
   nodesPermissions: NodesPermission[];
   rolesPermissions: RolesPermission[];
   tenantsPermissions: TenantsPermission[];
@@ -98,6 +111,7 @@ export type Permission =
   | ClusterPermission
   | CollectionsPermission
   | DataPermission
+  | GroupsPermission
   | NodesPermission
   | RolesPermission
   | TenantsPermission

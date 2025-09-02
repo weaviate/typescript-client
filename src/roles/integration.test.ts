@@ -25,6 +25,7 @@ const emptyPermissions = {
   clusterPermissions: [],
   collectionsPermissions: [],
   dataPermissions: [],
+  groupsPermissions: [],
   nodesPermissions: [],
   rolesPermissions: [],
   tenantsPermissions: [],
@@ -157,6 +158,23 @@ const testCases: TestCase[] = [
           tenant: 'another-tenant',
           actions: dataActions,
         },
+      ],
+    },
+  },
+  {
+    roleName: 'groups-oidc',
+    requireVersion: [1, 33, 0],
+    permissions: weaviate.permissions.groups.oidc({
+      groupID: ['G1', 'G2'],
+      read: true,
+      assignAndRevoke: true,
+    }),
+    expected: {
+      name: 'groups-oidc',
+      ...emptyPermissions,
+      groupsPermissions: [
+        { groupID: 'G1', groupType: 'oidc', actions: ['read_groups', 'assign_and_revoke_groups'] },
+        { groupID: 'G2', groupType: 'oidc', actions: ['read_groups', 'assign_and_revoke_groups'] },
       ],
     },
   },
