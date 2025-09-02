@@ -25,7 +25,7 @@ describe('Unit testing of filters', () => {
       });
     });
 
-    it('should create a contains all filter with a primitive type', () => {
+    it('should create a contains all filter with an array type', () => {
       const f = filter.byProperty('name').containsAll(['John', 'Doe']);
       expect(f).toEqual<FilterValue<string[]>>({
         operator: 'ContainsAll',
@@ -47,7 +47,7 @@ describe('Unit testing of filters', () => {
       });
     });
 
-    it('should create a contains any filter with a primitive type', () => {
+    it('should create a contains any filter with an array type', () => {
       const f = filter.byProperty('name').containsAny(['John', 'Doe']);
       expect(f).toEqual<FilterValue<string[]>>({
         operator: 'ContainsAny',
@@ -62,6 +62,17 @@ describe('Unit testing of filters', () => {
       const f = filter.byProperty('friends').containsAny(['John', 'Doe']);
       expect(f).toEqual<FilterValue<string[]>>({
         operator: 'ContainsAny',
+        target: {
+          property: 'friends',
+        },
+        value: ['John', 'Doe'],
+      });
+    });
+
+    it('should create a contains none filter with an array type', () => {
+      const f = filter.byProperty('friends').containsNone(['John', 'Doe']);
+      expect(f).toEqual<FilterValue<string[]>>({
+        operator: 'ContainsNone',
         target: {
           property: 'friends',
         },
@@ -919,6 +930,21 @@ describe('Unit testing of filters', () => {
             operator: 'Equal',
             path: ['age'],
             valueInt: 18,
+          },
+        ],
+      });
+    });
+
+    it('should map a NOT filter', () => {
+      const f = Filters.not(filter.byProperty('name').equal('John'));
+      const s = Serialize.filtersREST(f);
+      expect(s).toEqual<WhereFilter>({
+        operator: 'Not',
+        operands: [
+          {
+            operator: 'Equal',
+            path: ['name'],
+            valueText: 'John',
           },
         ],
       });

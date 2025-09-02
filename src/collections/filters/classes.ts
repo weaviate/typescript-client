@@ -43,7 +43,7 @@ export class Filters {
   static and(...filters: FilterValue[]): FilterValue<null> {
     return {
       operator: 'And',
-      filters: filters,
+      filters,
       value: null,
     };
   }
@@ -55,7 +55,19 @@ export class Filters {
   static or(...filters: FilterValue[]): FilterValue<null> {
     return {
       operator: 'Or',
-      filters: filters,
+      filters,
+      value: null,
+    };
+  }
+  /**
+   * Negate a filter using the logical NOT operator.
+   *
+   * @param {FilterValue} filter The filter to negate.
+   */
+  static not(filter: FilterValue): FilterValue<null> {
+    return {
+      operator: 'Not',
+      filters: [filter],
       value: null,
     };
   }
@@ -134,6 +146,14 @@ export class FilterProperty<V> extends FilterBase implements FilterByProperty<V>
   public containsAny<U extends ContainsValue<V>>(value: U[]): FilterValue<U[]> {
     return {
       operator: 'ContainsAny',
+      target: this.targetPath(),
+      value: value,
+    };
+  }
+
+  public containsNone<U extends ContainsValue<V>>(value: U[]): FilterValue<U[]> {
+    return {
+      operator: 'ContainsNone',
       target: this.targetPath(),
       value: value,
     };

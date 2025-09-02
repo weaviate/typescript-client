@@ -281,6 +281,9 @@ const makeGrpcApp = () => {
           errors: [],
         };
       }),
+    batchReferences: jest.fn(),
+    batchSend: jest.fn(),
+    batchStream: jest.fn(),
   };
   const healthMockImpl: HealthServiceImplementation = {
     check: (request: HealthCheckRequest): Promise<HealthCheckResponse> =>

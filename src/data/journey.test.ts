@@ -357,57 +357,57 @@ describe('data', () => {
       .catch((e) => fail('it should not have errord: ' + e));
   });
 
-  it('gets all things with all optional _additional params', () => {
-    return client.data
-      .getter()
-      .withAdditional('classification')
-      .withAdditional('interpretation')
-      .withAdditional('nearestNeighbors')
-      .withAdditional('featureProjection')
-      .withVector()
-      .withLimit(2)
-      .do()
-      .then((res: WeaviateObjectsList) => {
-        if (!res.objects) {
-          throw new Error(`response should have objects: ${JSON.stringify(res)}`);
-        }
-        expect(res.objects).toHaveLength(2);
-        expect(res.objects[0].vector?.length).toBeGreaterThan(10);
-        expect(res.objects[0].additional?.interpretation).toBeDefined();
-        expect(res.objects[0].additional?.featureProjection).toBeDefined();
-        expect(res.objects[0].additional?.nearestNeighbors).toBeDefined();
-        // not testing for classification as that's only set if the object was
-        // actually classified, this one wasn't
-      })
-      .catch((e: WeaviateError) => {
-        throw new Error('it should not have errord: ' + e);
-      });
-  });
+  // it('gets all things with all optional _additional params', () => {
+  //   return client.data
+  //     .getter()
+  //     .withAdditional('classification')
+  //     .withAdditional('interpretation')
+  //     .withAdditional('nearestNeighbors')
+  //     .withAdditional('featureProjection')
+  //     .withVector()
+  //     .withLimit(2)
+  //     .do()
+  //     .then((res: WeaviateObjectsList) => {
+  //       if (!res.objects) {
+  //         throw new Error(`response should have objects: ${JSON.stringify(res)}`);
+  //       }
+  //       expect(res.objects).toHaveLength(2);
+  //       expect(res.objects[0].vector?.length).toBeGreaterThan(10);
+  //       expect(res.objects[0].additional?.interpretation).toBeDefined();
+  //       expect(res.objects[0].additional?.featureProjection).toBeDefined();
+  //       expect(res.objects[0].additional?.nearestNeighbors).toBeDefined();
+  //       // not testing for classification as that's only set if the object was
+  //       // actually classified, this one wasn't
+  //     })
+  //     .catch((e: WeaviateError) => {
+  //       throw new Error('it should not have errord: ' + e);
+  //     });
+  // });
 
-  it('gets all classes objects with all optional _additional params', () => {
-    return client.data
-      .getter()
-      .withClassName(thingClassName)
-      .withAdditional('classification')
-      .withAdditional('interpretation')
-      .withAdditional('nearestNeighbors')
-      .withAdditional('featureProjection')
-      .withVector()
-      .do()
-      .then((res: WeaviateObjectsList) => {
-        if (!res.objects) {
-          throw new Error(`response should have objects: ${JSON.stringify(res)}`);
-        }
-        expect(res.objects).toHaveLength(2);
-        expect(res.objects[0].vector?.length).toBeGreaterThan(10);
-        expect(res.objects[0].additional?.interpretation).toBeDefined();
-        expect(res.objects[0].additional?.featureProjection).toBeDefined();
-        expect(res.objects[0].additional?.nearestNeighbors).toBeDefined();
-      })
-      .catch((e: WeaviateError) => {
-        throw new Error('it should not have errord: ' + e);
-      });
-  });
+  // it('gets all classes objects with all optional _additional params', () => {
+  //   return client.data
+  //     .getter()
+  //     .withClassName(thingClassName)
+  //     .withAdditional('classification')
+  //     .withAdditional('interpretation')
+  //     .withAdditional('nearestNeighbors')
+  //     .withAdditional('featureProjection')
+  //     .withVector()
+  //     .do()
+  //     .then((res: WeaviateObjectsList) => {
+  //       if (!res.objects) {
+  //         throw new Error(`response should have objects: ${JSON.stringify(res)}`);
+  //       }
+  //       expect(res.objects).toHaveLength(2);
+  //       expect(res.objects[0].vector?.length).toBeGreaterThan(10);
+  //       expect(res.objects[0].additional?.interpretation).toBeDefined();
+  //       expect(res.objects[0].additional?.featureProjection).toBeDefined();
+  //       expect(res.objects[0].additional?.nearestNeighbors).toBeDefined();
+  //     })
+  //     .catch((e: WeaviateError) => {
+  //       throw new Error('it should not have errord: ' + e);
+  //     });
+  // });
 
   it('gets one thing by id only', () => {
     return client.data

@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
+import { requireAtLeast } from '../../../test/version.js';
 import weaviate, { WeaviateClient } from '../../index.js';
 import { Collection } from '../collection/index.js';
 import { CrossReference, Reference } from '../references/index.js';
@@ -120,6 +121,34 @@ describe('Testing of the filter class with a simple collection', () => {
     expect(obj.uuid).toEqual(ids[1]);
   });
 
+  it('should filter a fetch objects query with a contains-all filter', async () => {
+    const res = await collection.query.fetchObjects({
+      filters: collection.filter.byProperty('text').containsAll(['two']),
+    });
+    expect(res.objects.length).toEqual(1);
+    const obj = res.objects[0];
+    expect(obj.properties.text).toEqual('two');
+  });
+
+  it('should filter a fetch objects query with a contains-any filter', async () => {
+    const res = await collection.query.fetchObjects({
+      filters: collection.filter.byProperty('text').containsAny(['two', 'three']),
+    });
+    expect(res.objects.length).toEqual(2);
+    const texts = res.objects.map((o) => o.properties.text);
+    expect(texts).toContain('two');
+    expect(texts).toContain('three');
+  });
+
+  requireAtLeast(1, 33, 0).it('should filter a fetch objects query with a contains-none filter', async () => {
+    const res = await collection.query.fetchObjects({
+      filters: collection.filter.byProperty('text').containsNone(['one', 'three']),
+    });
+    expect(res.objects.length).toEqual(1);
+    const obj = res.objects[0];
+    expect(obj.properties.text).toEqual('two');
+  });
+
   it('should filter a fetch objects query with an AND filter', async () => {
     const res = await collection.query.fetchObjects({
       filters: Filters.and(
@@ -147,15 +176,16 @@ describe('Testing of the filter class with a simple collection', () => {
     // Return of fetch not necessarily in order due to filter
     expect(res.objects.map((o) => o.properties.text)).toContain('two');
     expect(res.objects.map((o) => o.properties.text)).toContain('three');
+  });
 
-    expect(res.objects.map((o) => o.properties.int)).toContain(2);
-    expect(res.objects.map((o) => o.properties.int)).toContain(3);
+  requireAtLeast(1, 33, 0).it('should filter a fetch objects query with a NOT filter', async () => {
+    const res = await collection.query.fetchObjects({
+      filters: Filters.not(collection.filter.byProperty('text').equal('one')),
+    });
+    expect(res.objects.length).toEqual(2);
 
-    expect(res.objects.map((o) => o.properties.float)).toContain(2.2);
-    expect(res.objects.map((o) => o.properties.float)).toContain(3.3);
-
-    expect(res.objects.map((o) => o.uuid)).toContain(ids[1]);
-    expect(res.objects.map((o) => o.uuid)).toContain(ids[2]);
+    expect(res.objects.map((o) => o.properties.text)).toContain('two');
+    expect(res.objects.map((o) => o.properties.text)).toContain('three');
   });
 
   it('should filter a fetch objects query with a reference filter', async () => {

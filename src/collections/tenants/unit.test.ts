@@ -48,6 +48,9 @@ const makeGrpcApp = () => {
     search: jest.fn(),
     batchDelete: jest.fn(),
     batchObjects: jest.fn(),
+    batchReferences: jest.fn(),
+    batchSend: jest.fn(),
+    batchStream: jest.fn(),
   };
   const healthMockImpl: HealthServiceImplementation = {
     check: (request: HealthCheckRequest): Promise<HealthCheckResponse> =>

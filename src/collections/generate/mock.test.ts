@@ -79,6 +79,9 @@ class GenerateMock {
       },
       batchDelete: jest.fn(),
       batchObjects: jest.fn(),
+      batchReferences: jest.fn(),
+      batchSend: jest.fn(),
+      batchStream: jest.fn(),
     };
     grpc.add(WeaviateDefinition, weaviateMockImpl);
 
