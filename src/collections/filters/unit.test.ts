@@ -313,6 +313,36 @@ describe('Unit testing of filters', () => {
       });
     });
 
+    it('should create two filters through a single ref used multiple times', () => {
+      const f = filter.byRef('self');
+      const f1 = f.byProperty('name').equal('Jim');
+      const f2 = f.byProperty('name').equal('Bob');
+      expect(f1).toEqual<FilterValue<string>>({
+        operator: 'Equal',
+        target: {
+          singleTarget: {
+            on: 'self',
+            target: {
+              property: 'name',
+            },
+          },
+        },
+        value: 'Jim',
+      });
+      expect(f2).toEqual<FilterValue<string>>({
+        operator: 'Equal',
+        target: {
+          singleTarget: {
+            on: 'self',
+            target: {
+              property: 'name',
+            },
+          },
+        },
+        value: 'Bob',
+      });
+    });
+
     it('should create a nested reference filter', () => {
       const f = filter.byRef('self').byRef('self').byProperty('name').isNull(true);
       expect(f).toEqual<FilterValue<boolean>>({
