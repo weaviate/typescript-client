@@ -66,7 +66,7 @@ requireAtLeast(1, 32, 5).describe('Integration testing of the OIDC groups', () =
   });
 
   it('cleanup', async () => {
-    makeClient().then((c) => {
+    await makeClient().then((c) => {
       c.groups.oidc.revokeRoles('./assign-group', ['viewer', 'admin']).catch((e) => {});
       c.groups.oidc.revokeRoles('./group-1', 'viewer').catch((e) => {});
       c.groups.oidc.revokeRoles('./group-2', 'viewer').catch((e) => {});
