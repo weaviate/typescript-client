@@ -19,6 +19,8 @@ import {
   DataAction,
   DataPermission,
   GroupAssignment,
+  GroupsAction,
+  GroupsPermission,
   NodesAction,
   NodesPermission,
   Permission,
@@ -67,6 +69,8 @@ export class PermissionGuards {
       'read_data',
       'update_data'
     );
+  static isGroups = (permission: Permission): permission is GroupsPermission =>
+    PermissionGuards.includes<GroupsAction>(permission, 'read_groups', 'assign_and_revoke_groups');
   static isNodes = (permission: Permission): permission is NodesPermission =>
     PermissionGuards.includes<NodesAction>(permission, 'read_nodes');
   static isRoles = (permission: Permission): permission is RolesPermission =>
@@ -127,6 +131,11 @@ export class Map {
     } else if (PermissionGuards.isData(permission)) {
       return Array.from(permission.actions).map((action) => ({
         data: permission,
+        action,
+      }));
+    } else if (PermissionGuards.isGroups(permission)) {
+      return Array.from(permission.actions).map((action) => ({
+        groups: { group: permission.groupID, groupType: permission.groupType },
         action,
       }));
     } else if (PermissionGuards.isNodes(permission)) {
@@ -207,6 +216,7 @@ class PermissionsMapping {
       cluster: {},
       collections: {},
       data: {},
+      groups: {},
       nodes: {},
       roles: {},
       tenants: {},
@@ -230,6 +240,7 @@ class PermissionsMapping {
       clusterPermissions: Object.values(this.mappings.cluster),
       collectionsPermissions: Object.values(this.mappings.collections),
       dataPermissions: Object.values(this.mappings.data),
+      groupsPermissions: Object.values(this.mappings.groups),
       nodesPermissions: Object.values(this.mappings.nodes),
       rolesPermissions: Object.values(this.mappings.roles),
       tenantsPermissions: Object.values(this.mappings.tenants),
@@ -286,6 +297,18 @@ class PermissionsMapping {
     }
   };
 
+  private groups = (permission: WeaviatePermission) => {
+    if (permission.groups !== undefined) {
+      const { group, groupType } = permission.groups;
+      if (group === undefined) throw new Error('Group permission missing groupID');
+      if (groupType === undefined) throw new Error('Group permission missing groupType');
+      const key = `${groupType}#${group}`;
+      if (this.mappings.groups[key] === undefined)
+        this.mappings.groups[key] = { groupType, groupID: group, actions: [] };
+      this.mappings.groups[key].actions.push(permission.action as GroupsAction);
+    }
+  };
+
   private nodes = (permission: WeaviatePermission) => {
     if (permission.nodes !== undefined) {
       let { collection } = permission.nodes;
@@ -337,6 +360,7 @@ class PermissionsMapping {
     this.cluster(permission);
     this.collections(permission);
     this.data(permission);
+    this.groups(permission);
     this.nodes(permission);
     this.roles(permission);
     this.tenants(permission);
@@ -350,6 +374,7 @@ type PermissionMappings = {
   cluster: Record<string, ClusterPermission>;
   collections: Record<string, CollectionsPermission>;
   data: Record<string, DataPermission>;
+  groups: Record<string, GroupsPermission>;
   nodes: Record<string, NodesPermission>;
   roles: Record<string, RolesPermission>;
   tenants: Record<string, TenantsPermission>;

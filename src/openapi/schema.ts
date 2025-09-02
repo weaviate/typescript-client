@@ -319,7 +319,7 @@ export interface definitions {
    * @description If the group contains OIDC or database users.
    * @enum {string}
    */
-  GroupType: 'db' | 'oidc';
+  GroupType: 'oidc';
   /**
    * @description the type of user
    * @enum {string}

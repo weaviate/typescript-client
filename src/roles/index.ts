@@ -12,6 +12,8 @@ import {
   CollectionsPermission,
   DataPermission,
   GroupAssignment,
+  GroupsAction,
+  GroupsPermission,
   NodesPermission,
   Permission,
   PermissionsInput,
@@ -109,7 +111,7 @@ export interface Roles {
    * Get the IDs and group type of groups that assigned this role.
    *
    * @param {string} roleName The name of the role to check.
-   * @return {Promise<GroupAssignment[]>} A promise that resolves to an array of group names assigned to this role.
+   * @returns {Promise<GroupAssignment[]>} A promise that resolves to an array of group names assigned to this role.
    */
   getGroupAssignments: (roleName: string) => Promise<GroupAssignment[]>;
 }
@@ -284,6 +286,49 @@ export const permissions = {
       if (args.delete) out.actions.push('delete_data');
       return out;
     });
+  },
+  /**
+   * This namespace contains methods to create permissions specific to RBAC groups.
+   */
+  groups: {
+    /**
+     * Create a set of permissions for 'oidc' groups.
+     *
+     * @param {string | string[]} args.groupID IDs of the groups with permissions.
+     * @param {boolean} [args.read] Whether to allow reading groups. Defaults to `false`.
+     * @param {boolean} [args.assignAndRevoke] Whether to allow changing group assignements. Defaults to `false`.
+     * @returns {GroupsPermission[]} The permissions for managing groups.
+     */
+    oidc: (args: {
+      groupID: string | string[];
+      read?: boolean;
+      assignAndRevoke?: boolean;
+    }): GroupsPermission[] => {
+      const groups = Array.isArray(args.groupID) ? args.groupID : [args.groupID];
+      const actions: GroupsAction[] = [];
+      if (args.read) actions.push('read_groups');
+      if (args.assignAndRevoke) actions.push('assign_and_revoke_groups');
+      return groups.map((gid) => ({ groupID: gid, groupType: 'oidc', actions }));
+    },
+    /**
+     * Create a set of permissions for 'db' groups.
+     *
+     * @param {string | string[]} args.groupID IDs of the groups with permissions.
+     * @param {boolean} [args.read] Whether to allow reading groups. Defaults to `false`.
+     * @param {boolean} [args.assignAndRevoke] Whether to allow changing group assignements. Defaults to `false`.
+     * @returns {GroupsPermission[]} The permissions for managing groups.
+     */
+    // db: (args: {
+    //   groupID: string | string[];
+    //   read?: boolean;
+    //   assignAndRevoke?: boolean;
+    // }): GroupsPermission[] => {
+    //   const groups = Array.isArray(args.groupID) ? args.groupID : [args.groupID];
+    //   const actions: GroupsAction[] = [];
+    //   if (args.read) actions.push('read_groups');
+    //   if (args.assignAndRevoke) actions.push('assign_and_revoke_groups');
+    //   return groups.map((gid) => ({ groupID: gid, groupType: 'db', actions }));
+    // },
   },
   /**
    * This namespace contains methods to create permissions specific to nodes.

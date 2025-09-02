@@ -18,6 +18,7 @@ export type DataAction = Extract<
   Action,
   'create_data' | 'delete_data' | 'read_data' | 'update_data' | 'manage_data'
 >;
+export type GroupsAction = Extract<Action, 'read_groups' | 'assign_and_revoke_groups'>;
 export type NodesAction = Extract<Action, 'read_nodes'>;
 export type RolesAction = Extract<Action, 'create_roles' | 'read_roles' | 'update_roles' | 'delete_roles'>;
 export type TenantsAction = Extract<
@@ -62,6 +63,12 @@ export type DataPermission = {
   actions: DataAction[];
 };
 
+export type GroupsPermission = {
+  groupID: string;
+  groupType: WeaviateGroupType;
+  actions: GroupsAction[];
+};
+
 export type NodesPermission = {
   collection: string;
   verbosity: 'verbose' | 'minimal';
@@ -91,6 +98,7 @@ export type Role = {
   clusterPermissions: ClusterPermission[];
   collectionsPermissions: CollectionsPermission[];
   dataPermissions: DataPermission[];
+  groupsPermissions: GroupsPermission[];
   nodesPermissions: NodesPermission[];
   rolesPermissions: RolesPermission[];
   tenantsPermissions: TenantsPermission[];
@@ -103,6 +111,7 @@ export type Permission =
   | ClusterPermission
   | CollectionsPermission
   | DataPermission
+  | GroupsPermission
   | NodesPermission
   | RolesPermission
   | TenantsPermission

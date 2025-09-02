@@ -13,29 +13,29 @@ export interface GroupsOIDC {
   /**
    * Get the roles assigned to a group specific to the configured OIDC's dynamic auth functionality.
    *
-   * @param groupID [string]  The group ID to get the roles for.
-   * @return A list of roles assigned tot he group.
+   * @param {string} groupID The group ID to get the roles for.
+   * @returns {Promise<Record<string, Role>>} A map of roles assigned to the group.
    */
   getAssignedRoles(groupID: string, includePermissions?: boolean): Promise<Record<string, Role>>;
 
   /**
    * Assign roles to a group specific to the configured OIDC's dynamic auth functionality.
    *
-   * @param group_id [string] The group to assign the roles to.
-   * @param role_names [string[]] The names of the roles to assign to the group.
+   * @param {string} groupID The group ID to get the roles for.
+   * @param {string | string[]} roles  The names of the roles to assign to the group.
    */
   assignRoles(groupID: string, roles: string | string[]): Promise<void>;
   /**
    * Revoke roles from a group specific to the configured OIDC's dynamic auth functionality.
    *
-   * @param group_id [string] The group to assign the roles to.
-   * @param role_names [string[]] The names of the roles to assign to the group.
+   * @param {string} groupID The group ID to get the roles for.
+   * @param {string | string[]} roles  The names of the roles to revoke from the group.
    */
   revokeRoles(groupID: string, roles: string | string[]): Promise<void>;
   /**
    * Get the known group names specific to the configured OIDC's dynamic auth functionality.
    *
-   * @return A list of known group names.
+   * @returns {Promise<string[]>} A list of known group names.
    */
   getKnownGroupNames(): Promise<string[]>;
 }
