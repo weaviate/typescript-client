@@ -150,7 +150,7 @@ const users = (connection: ConnectionREST): Users => {
   return {
     getMyUser: () => connection.get<WeaviateUser>('/users/own-info').then(Map.user),
     getAssignedRoles: (userId: string) =>
-      connection.get<WeaviateRole[]>(`/authz/users/${userId}/roles`).then(Map.roles),
+      connection.get<WeaviateRole[]>(`/authz/users/${encodeURIComponent(userId)}/roles`).then(Map.roles),
     assignRoles: (roleNames: string | string[], userId: string) => base.assignRoles(roleNames, userId),
     revokeRoles: (roleNames: string | string[], userId: string) => base.revokeRoles(roleNames, userId),
     db: db(connection),
@@ -182,30 +182,35 @@ const db = (connection: ConnectionREST): DBUsers => {
       ns.revokeRoles(roleNames, userId, { userType: 'db' }),
 
     create: (userId: string) =>
-      connection.postReturn<null, APIKeyResponse>(`/users/db/${userId}`, null).then((resp) => resp.apikey),
+      connection
+        .postReturn<null, APIKeyResponse>(`/users/db/${encodeURIComponent(userId)}`, null)
+        .then((resp) => resp.apikey),
     delete: (userId: string) =>
       connection
-        .delete(`/users/db/${userId}`, null)
+        .delete(`/users/db/${encodeURIComponent(userId)}`, null)
         .then(() => true)
         .catch(() => false),
     rotateKey: (userId: string) =>
       connection
-        .postReturn<null, APIKeyResponse>(`/users/db/${userId}/rotate-key`, null)
+        .postReturn<null, APIKeyResponse>(`/users/db/${encodeURIComponent(userId)}/rotate-key`, null)
         .then((resp) => resp.apikey),
     activate: (userId: string) =>
       connection
-        .postEmpty<null>(`/users/db/${userId}/activate`, null)
+        .postEmpty<null>(`/users/db/${encodeURIComponent(userId)}/activate`, null)
         .then(() => true)
         .catch(expectCode(409)),
     deactivate: (userId: string, opts?: DeactivateOptions) =>
       connection
-        .postEmpty<DeactivateOptions | null>(`/users/db/${userId}/deactivate`, opts || null)
+        .postEmpty<DeactivateOptions | null>(
+          `/users/db/${encodeURIComponent(userId)}/deactivate`,
+          opts || null
+        )
         .then(() => true)
         .catch(expectCode(409)),
     byName: (userId: string, opts?: GetUserOptions) =>
       connection
         .get<WeaviateDBUser>(
-          `/users/db/${userId}?includeLastUsedTime=${opts?.includeLastUsedTime || false}`,
+          `/users/db/${encodeURIComponent(userId)}?includeLastUsedTime=${opts?.includeLastUsedTime || false}`,
           true
         )
         .then(Map.dbUser),
@@ -254,16 +259,18 @@ const namespacedUsers = (connection: ConnectionREST): NamespacedUsers => {
     getAssignedRoles: (userType: UserTypeInternal, userId: string, opts?: GetAssignedRolesOptions) =>
       connection
         .get<WeaviateRole[]>(
-          `/authz/users/${userId}/roles/${userType}?includeFullRoles=${opts?.includePermissions || false}`
+          `/authz/users/${encodeURIComponent(userId)}/roles/${userType}?includeFullRoles=${
+            opts?.includePermissions || false
+          }`
         )
         .then(Map.roles),
     assignRoles: (roleNames: string | string[], userId: string, opts?: AssignRevokeOptions) =>
-      connection.postEmpty(`/authz/users/${userId}/assign`, {
+      connection.postEmpty(`/authz/users/${encodeURIComponent(userId)}/assign`, {
         ...opts,
         roles: Array.isArray(roleNames) ? roleNames : [roleNames],
       }),
     revokeRoles: (roleNames: string | string[], userId: string, opts?: AssignRevokeOptions) =>
-      connection.postEmpty(`/authz/users/${userId}/revoke`, {
+      connection.postEmpty(`/authz/users/${encodeURIComponent(userId)}/revoke`, {
         ...opts,
         roles: Array.isArray(roleNames) ? roleNames : [roleNames],
       }),
