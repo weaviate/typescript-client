@@ -1082,7 +1082,7 @@ export class Serialize {
       await Serialize.hybridVector(args);
     return Hybrid.fromPartial({
       query: args.query,
-      alpha: args.alpha ? args.alpha : 0.5,
+      alpha: args.alpha !== undefined ? args.alpha : 0.5,
       properties: this.bm25QueryProperties(args.queryProperties),
       vectorBytes: vectorBytes,
       vectorDistance: args.maxVectorDistance,
