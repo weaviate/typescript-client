@@ -38,7 +38,7 @@ export interface Aliases {
    * delete the alias and create a new one.
    *
    * @param {string} args.alias Alias to update.
-   * @param {string} args.collection New collection the alias should point to.
+   * @param {string} args.newTargetCollection New collection the alias should point to.
    * @return {Promise<void>} Awaitable promise.
    */
   update: (args: UpdateAliasArgs) => Promise<void>;
