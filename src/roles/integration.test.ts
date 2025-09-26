@@ -27,6 +27,7 @@ const emptyPermissions = {
   dataPermissions: [],
   groupsPermissions: [],
   nodesPermissions: [],
+  replicatePermissions: [],
   rolesPermissions: [],
   tenantsPermissions: [],
   usersPermissions: [],
@@ -311,6 +312,29 @@ const testCases: TestCase[] = [
       ...emptyPermissions,
       aliasPermissions: [
         { alias: 'SomeAlias', collection: 'SomeCollection', actions: ['create_aliases', 'delete_aliases'] },
+      ],
+    },
+  },
+  {
+    roleName: 'replicate',
+    requireVersion: [1, 32, 0],
+    permissions: weaviate.permissions.replicate({
+      collection: 'SomeCollection',
+      shard: 'shard1',
+      create: true,
+      read: true,
+      update: true,
+      delete: true,
+    }),
+    expected: {
+      name: 'replicate',
+      ...emptyPermissions,
+      replicatePermissions: [
+        {
+          collection: 'SomeCollection',
+          shard: 'shard1',
+          actions: ['create_replicate', 'read_replicate', 'update_replicate', 'delete_replicate'],
+        },
       ],
     },
   },

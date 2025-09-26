@@ -17,6 +17,7 @@ import {
   NodesPermission,
   Permission,
   PermissionsInput,
+  ReplicatePermission,
   Role,
   RolesPermission,
   TenantsPermission,
@@ -71,10 +72,10 @@ export interface Roles {
    * Create a new role.
    *
    * @param {string} roleName The name of the new role.
-   * @param {PermissionsInput} permissions The permissions to assign to the new role.
+   * @param {PermissionsInput} [permissions] The permissions to assign to the new role.
    * @returns {Promise<Role>} The newly created role.
    */
-  create: (roleName: string, permissions: PermissionsInput) => Promise<Role>;
+  create: (roleName: string, permissions?: PermissionsInput) => Promise<Role>;
   /**
    * Check if a role exists.
    *
@@ -368,6 +369,43 @@ export const permissions = {
         return out;
       });
     },
+  },
+  /**
+   * Create a set of permissions specific to shard replica movement operations.
+   *
+   * For all collections, provide the `collection` argument as `'*'`.
+   * For all shards, provide the `shard` argument as `'*'`.
+   *
+   * Providing arrays of collections and shards will create permissions for each combination of collection and shard.
+   * E.g., `replicate({ collection: ['A', 'B'], shard: ['X', 'Y'] })` will create permissions for shards `X` and `Y` in both collections `A` and `B`.
+   *
+   * @param {string | string[]} args.collection The collection or collections to create permissions for.
+   * @param {string | string[]} args.shard The shard or shards to create permissions for.
+   * @param {boolean} [args.create] Whether to allow creating replicas. Defaults to `false`.
+   * @param {boolean} [args.read] Whether to allow reading replicas. Defaults to `false`.
+   * @param {boolean} [args.update] Whether to allow updating replicas. Defaults to `false`.
+   * @param {boolean} [args.delete] Whether to allow deleting replicas. Defaults to `false`.
+   * @returns {ReplicatePermission[]} The permissions for the specified collections and shards.
+   */
+  replicate: (args: {
+    collection: string | string[];
+    shard: string | string[];
+    create?: boolean;
+    read?: boolean;
+    update?: boolean;
+    delete?: boolean;
+  }): ReplicatePermission[] => {
+    const collections = Array.isArray(args.collection) ? args.collection : [args.collection];
+    const shards = Array.isArray(args.shard) ? args.shard : [args.shard];
+    const combinations = collections.flatMap((collection) => shards.map((shard) => ({ collection, shard })));
+    return combinations.map(({ collection, shard }) => {
+      const out: ReplicatePermission = { collection, shard, actions: [] };
+      if (args.create) out.actions.push('create_replicate');
+      if (args.read) out.actions.push('read_replicate');
+      if (args.update) out.actions.push('update_replicate');
+      if (args.delete) out.actions.push('delete_replicate');
+      return out;
+    });
   },
   /**
    * Create a set of permissions specific to any operations involving roles.

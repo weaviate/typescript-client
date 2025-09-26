@@ -25,6 +25,8 @@ import {
   NodesPermission,
   Permission,
   PermissionsInput,
+  ReplicateAction,
+  ReplicatePermission,
   Role,
   RolesAction,
   RolesPermission,
@@ -73,6 +75,14 @@ export class PermissionGuards {
     PermissionGuards.includes<GroupsAction>(permission, 'read_groups', 'assign_and_revoke_groups');
   static isNodes = (permission: Permission): permission is NodesPermission =>
     PermissionGuards.includes<NodesAction>(permission, 'read_nodes');
+  static isReplicate = (permission: Permission): permission is ReplicatePermission =>
+    PermissionGuards.includes<ReplicateAction>(
+      permission,
+      'create_replicate',
+      'read_replicate',
+      'update_replicate',
+      'delete_replicate'
+    );
   static isRoles = (permission: Permission): permission is RolesPermission =>
     PermissionGuards.includes<RolesAction>(
       permission,
@@ -141,6 +151,11 @@ export class Map {
     } else if (PermissionGuards.isNodes(permission)) {
       return Array.from(permission.actions).map((action) => ({
         nodes: permission,
+        action,
+      }));
+    } else if (PermissionGuards.isReplicate(permission)) {
+      return Array.from(permission.actions).map((action) => ({
+        replicate: permission,
         action,
       }));
     } else if (PermissionGuards.isRoles(permission)) {
@@ -218,6 +233,7 @@ class PermissionsMapping {
       data: {},
       groups: {},
       nodes: {},
+      replicate: {},
       roles: {},
       tenants: {},
       users: {},
@@ -242,6 +258,7 @@ class PermissionsMapping {
       dataPermissions: Object.values(this.mappings.data),
       groupsPermissions: Object.values(this.mappings.groups),
       nodesPermissions: Object.values(this.mappings.nodes),
+      replicatePermissions: Object.values(this.mappings.replicate),
       rolesPermissions: Object.values(this.mappings.roles),
       tenantsPermissions: Object.values(this.mappings.tenants),
       usersPermissions: Object.values(this.mappings.users),
@@ -325,6 +342,18 @@ class PermissionsMapping {
     }
   };
 
+  private replicate = (permission: WeaviatePermission) => {
+    if (permission.replicate !== undefined) {
+      const { collection, shard } = permission.replicate;
+      if (collection === undefined) throw new Error('Replicate permission missing collection');
+      if (shard === undefined) throw new Error('Replicate permission missing shard');
+      const key = `${collection}#${shard}`;
+      if (this.mappings.replicate[key] === undefined)
+        this.mappings.replicate[key] = { collection, shard, actions: [] };
+      this.mappings.replicate[key].actions.push(permission.action as ReplicateAction);
+    }
+  };
+
   private roles = (permission: WeaviatePermission) => {
     if (permission.roles !== undefined) {
       const key = permission.roles.role;
@@ -362,6 +391,7 @@ class PermissionsMapping {
     this.data(permission);
     this.groups(permission);
     this.nodes(permission);
+    this.replicate(permission);
     this.roles(permission);
     this.tenants(permission);
     this.users(permission);
@@ -376,6 +406,7 @@ type PermissionMappings = {
   data: Record<string, DataPermission>;
   groups: Record<string, GroupsPermission>;
   nodes: Record<string, NodesPermission>;
+  replicate: Record<string, ReplicatePermission>;
   roles: Record<string, RolesPermission>;
   tenants: Record<string, TenantsPermission>;
   users: Record<string, UsersPermission>;

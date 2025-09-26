@@ -1405,6 +1405,46 @@ describe('Unit testing of the vectorizer factory class', () => {
     });
   });
 
+  it('should create the correct Text2VecGoogleAiStudioConfig type with defaults', () => {
+    const config = configure.vectors.text2VecGoogleAiStudio();
+    expect(config).toEqual<VectorConfigCreate<never, undefined, 'hnsw', 'text2vec-google'>>({
+      name: undefined,
+      vectorIndex: {
+        name: 'hnsw',
+        config: undefined,
+      },
+      vectorizer: {
+        name: 'text2vec-google',
+        config: {
+          apiEndpoint: 'generativelanguage.googleapis.com',
+        },
+      },
+    });
+  });
+
+  it('should create the correct Text2VecGoogleAiStudioConfig type with all values', () => {
+    const config = configure.vectors.text2VecGoogleAiStudio({
+      name: 'test',
+      model: 'model-id',
+      titleProperty: 'title',
+    });
+    expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'text2vec-google'>>({
+      name: 'test',
+      vectorIndex: {
+        name: 'hnsw',
+        config: undefined,
+      },
+      vectorizer: {
+        name: 'text2vec-google',
+        config: {
+          apiEndpoint: 'generativelanguage.googleapis.com',
+          model: 'model-id',
+          titleProperty: 'title',
+        },
+      },
+    });
+  });
+
   it('should create the correct Text2VecPalmConfig type using deprecated method with defaults', () => {
     const config = configure.vectorizer.text2VecPalm();
     expect(config).toEqual<VectorConfigCreate<never, undefined, 'hnsw', 'text2vec-palm'>>({
@@ -1612,6 +1652,43 @@ describe('Unit testing of the vectorizer factory class', () => {
       },
     });
   });
+
+  it('should create the correct Text2VecMorphConfig type with defaults', () => {
+    const config = configure.vectors.text2VecMorph();
+    expect(config).toEqual<VectorConfigCreate<never, undefined, 'hnsw', 'text2vec-morph'>>({
+      name: undefined,
+      vectorIndex: {
+        name: 'hnsw',
+        config: undefined,
+      },
+      vectorizer: {
+        name: 'text2vec-morph',
+        config: undefined,
+      },
+    });
+  });
+
+  it('should create the correct Text2VecMorphConfig type with all values', () => {
+    const config = configure.vectors.text2VecMorph({
+      name: 'test',
+      baseURL: 'base-url',
+      model: 'model',
+    });
+    expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'text2vec-morph'>>({
+      name: 'test',
+      vectorIndex: {
+        name: 'hnsw',
+        config: undefined,
+      },
+      vectorizer: {
+        name: 'text2vec-morph',
+        config: {
+          baseURL: 'base-url',
+          model: 'model',
+        },
+      },
+    });
+  });
 });
 
 describe('Unit testing of the multiVectors factory class', () => {
@@ -1792,6 +1869,7 @@ describe('Unit testing of the generative factory class', () => {
       model: 'model',
       region: 'region',
       service: 'service',
+      maxTokens: 100,
     });
     expect(config).toEqual<ModuleConfig<'generative-aws', GenerativeAWSConfig>>({
       name: 'generative-aws',
@@ -1800,6 +1878,7 @@ describe('Unit testing of the generative factory class', () => {
         model: 'model',
         region: 'region',
         service: 'service',
+        maxTokens: 100,
       },
     });
   });

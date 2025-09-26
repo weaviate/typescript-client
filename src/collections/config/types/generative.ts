@@ -12,6 +12,7 @@ export type GenerativeAWSConfig = {
   service: string;
   model?: string;
   endpoint?: string;
+  maxTokens?: number;
 };
 
 export type GenerativeAnthropicConfig = {
