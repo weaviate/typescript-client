@@ -1,12 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
 import { requireAtLeast } from '../../../test/version.js';
-import weaviate, {
-  VectorIndexConfigHNSW,
-  WeaviateClient,
-  WeaviateField,
-  WeaviateGenericObject,
-} from '../../index.js';
+import weaviate, { VectorIndexConfigHNSW, WeaviateClient } from '../../index.js';
 import { Collection } from '../collection/index.js';
 import { MultiVectorType, SingleVectorType } from '../query/types.js';
 
@@ -78,40 +73,30 @@ requireAtLeast(1, 29, 0).describe(
 
     it('should be able to get the inserted object with its vectors stated implicitly', async () => {
       const obj = await collection.query.fetchObjectById(id1, { includeVector: true });
-      const assert = (obj: any): obj is WeaviateGenericObject<Record<string, WeaviateField>, MyVectors> => {
-        expect(obj).not.toBeNull();
-        return true;
-      };
-      if (assert(obj)) {
-        singleVector = obj.vectors.regular;
-        multiVector = obj.vectors.colbert;
-        expect(obj.uuid).toBe(id1);
-        expect(obj.vectors).toBeDefined();
-        expect(obj.vectors.regular).toEqual([1, 2, 3, 4]);
-        expect(obj.vectors.colbert).toEqual([
-          [1, 2],
-          [3, 4],
-        ]);
-      }
+      expect(obj).not.toBeNull();
+      singleVector = obj!.vectors.regular;
+      multiVector = obj!.vectors.colbert;
+      expect(obj!.uuid).toBe(id1);
+      expect(obj!.vectors).toBeDefined();
+      expect(obj!.vectors.regular).toEqual([1, 2, 3, 4]);
+      expect(obj!.vectors.colbert).toEqual([
+        [1, 2],
+        [3, 4],
+      ]);
     });
 
     it('should be able to get the inserted object with its vectors stated explicitly', async () => {
       const obj = await collection.query.fetchObjectById(id1, { includeVector: ['regular', 'colbert'] });
-      const assert = (obj: any): obj is WeaviateGenericObject<Record<string, WeaviateField>, MyVectors> => {
-        expect(obj).not.toBeNull();
-        return true;
-      };
-      if (assert(obj)) {
-        singleVector = obj.vectors.regular;
-        multiVector = obj.vectors.colbert;
-        expect(obj.uuid).toBe(id1);
-        expect(obj.vectors).toBeDefined();
-        expect(obj.vectors.regular).toEqual([1, 2, 3, 4]);
-        expect(obj.vectors.colbert).toEqual([
-          [1, 2],
-          [3, 4],
-        ]);
-      }
+      expect(obj).not.toBeNull();
+      singleVector = obj!.vectors.regular;
+      multiVector = obj!.vectors.colbert;
+      expect(obj!.uuid).toBe(id1);
+      expect(obj!.vectors).toBeDefined();
+      expect(obj!.vectors.regular).toEqual([1, 2, 3, 4]);
+      expect(obj!.vectors.colbert).toEqual([
+        [1, 2],
+        [3, 4],
+      ]);
     });
 
     it('should be able to get the inserted object with one of its vectors', async () => {
