@@ -20,6 +20,10 @@ export type DataAction = Extract<
 >;
 export type GroupsAction = Extract<Action, 'read_groups' | 'assign_and_revoke_groups'>;
 export type NodesAction = Extract<Action, 'read_nodes'>;
+export type ReplicateAction = Extract<
+  Action,
+  'create_replicate' | 'read_replicate' | 'update_replicate' | 'delete_replicate'
+>;
 export type RolesAction = Extract<Action, 'create_roles' | 'read_roles' | 'update_roles' | 'delete_roles'>;
 export type TenantsAction = Extract<
   Action,
@@ -75,6 +79,12 @@ export type NodesPermission = {
   actions: NodesAction[];
 };
 
+export type ReplicatePermission = {
+  collection: string;
+  shard: string;
+  actions: ReplicateAction[];
+};
+
 export type RolesPermission = {
   role: string;
   actions: RolesAction[];
@@ -100,6 +110,7 @@ export type Role = {
   dataPermissions: DataPermission[];
   groupsPermissions: GroupsPermission[];
   nodesPermissions: NodesPermission[];
+  replicatePermissions: ReplicatePermission[];
   rolesPermissions: RolesPermission[];
   tenantsPermissions: TenantsPermission[];
   usersPermissions: UsersPermission[];
@@ -113,6 +124,7 @@ export type Permission =
   | DataPermission
   | GroupsPermission
   | NodesPermission
+  | ReplicatePermission
   | RolesPermission
   | TenantsPermission
   | UsersPermission;

@@ -844,6 +844,7 @@ const __vectors_shaded = {
   text2VecWeaviate: <T, N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
     opts?: Omit<ConfigureTextVectorizerOptions<T, N, I, 'text2vec-weaviate'>, 'vectorizeCollectionName'>
   ) => legacyVectors.text2VecWeaviate(opts),
+  /** @deprecated The contextionary model is old and not recommended for use. If you are looking for a local, lightweight model try the new text2vec-model2vec module instead. */
   text2VecContextionary: <T, N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
     opts?: Omit<ConfigureTextVectorizerOptions<T, N, I, 'text2vec-contextionary'>, 'vectorizeCollectionName'>
   ) => legacyVectors.text2VecContextionary(opts),
@@ -885,6 +886,7 @@ const __vectors_shaded = {
   text2VecHuggingFace: <T, N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
     opts?: Omit<ConfigureTextVectorizerOptions<T, N, I, 'text2vec-huggingface'>, 'vectorizeCollectionName'>
   ) => legacyVectors.text2VecHuggingFace(opts),
+  /** @deprecated The `text2vec-gpt4all` vectorizer is deprecated and will be removed in a future release. See the docs (https://docs.weaviate.io/weaviate/model-providers) for alternatives. */
   text2VecGPT4All: <T, N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
     opts?: Omit<ConfigureTextVectorizerOptions<T, N, I, 'text2vec-gpt4all'>, 'vectorizeCollectionName'>
   ) => legacyVectors.text2VecGPT4All(opts),
@@ -964,6 +966,45 @@ export const vectors = (({ text2VecPalm, multi2VecPalm, ...rest }) => ({
           textFields: textFields?.map((f) => f.name),
           weights: Object.keys(weights).length === 0 ? undefined : weights,
         },
+      },
+    });
+  },
+  /**
+   * Create a `VectorConfigCreate` object with the vectorizer set to `'text2vec-google'` with specific options for AI studio deployments.
+   *
+   * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/google/embeddings) for detailed usage.
+   *
+   * @param {ConfigureTextVectorizerOptions<T, N, I, 'text2vec-google-ai-studio'>} [opts] The configuration for the `text2vec-google` vectorizer.
+   * @returns {VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2vec-google'>} The configuration object.
+   */
+  text2VecGoogleAiStudio: <T, N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
+    opts?: ConfigureTextVectorizerOptions<T, N, I, 'text2vec-google-ai-studio'>
+  ): VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2vec-google'> => {
+    const { name, sourceProperties, quantizer, vectorIndexConfig, ...config } = opts || {};
+    return makeVectorizer(name, {
+      quantizer,
+      sourceProperties,
+      vectorIndexConfig,
+      vectorizerConfig: {
+        name: 'text2vec-google',
+        config: {
+          apiEndpoint: 'generativelanguage.googleapis.com',
+          ...config,
+        },
+      },
+    });
+  },
+  text2VecMorph: <T, N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
+    opts?: ConfigureTextVectorizerOptions<T, N, I, 'text2vec-morph'>
+  ): VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2vec-morph'> => {
+    const { name, quantizer, sourceProperties, vectorIndexConfig, ...config } = opts || {};
+    return makeVectorizer(name, {
+      quantizer,
+      sourceProperties,
+      vectorIndexConfig,
+      vectorizerConfig: {
+        name: 'text2vec-morph',
+        config: Object.keys(config).length === 0 ? undefined : config,
       },
     });
   },

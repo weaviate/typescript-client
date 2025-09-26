@@ -267,7 +267,7 @@ export interface paths {
     delete: operations['aliases.delete'];
   };
   '/backups/{backend}': {
-    /** [Coming soon] List all backups in progress not implemented yet. */
+    /** List all created backups IDs, Status */
     get: operations['backups.list'];
     /** Start creating a backup for a set of collections. <br/><br/>Notes: <br/>- Weaviate uses gzip compression by default. <br/>- Weaviate stays usable while a backup process is ongoing. */
     post: operations['backups.create'];
@@ -1094,6 +1094,16 @@ export interface definitions {
      * @enum {string}
      */
     status?: 'STARTED' | 'TRANSFERRING' | 'TRANSFERRED' | 'SUCCESS' | 'FAILED' | 'CANCELED';
+    /**
+     * Format: date-time
+     * @description Timestamp when the backup process started
+     */
+    startedAt?: string;
+    /**
+     * Format: date-time
+     * @description Timestamp when the backup process completed (successfully or with failure)
+     */
+    completedAt?: string;
   };
   /** @description The definition of a backup restore metadata */
   BackupRestoreStatusResponse: {
@@ -1206,6 +1216,16 @@ export interface definitions {
      * @enum {string}
      */
     status?: 'STARTED' | 'TRANSFERRING' | 'TRANSFERRED' | 'SUCCESS' | 'FAILED' | 'CANCELED';
+    /**
+     * Format: date-time
+     * @description Timestamp when the backup process started
+     */
+    startedAt?: string;
+    /**
+     * Format: date-time
+     * @description Timestamp when the backup process completed (successfully or with failure)
+     */
+    completedAt?: string;
   }[];
   /** @description Request body for restoring a backup for a set of classes */
   BackupRestoreRequest: {
@@ -4697,7 +4717,7 @@ export interface operations {
       };
     };
   };
-  /** [Coming soon] List all backups in progress not implemented yet. */
+  /** List all created backups IDs, Status */
   'backups.list': {
     parameters: {
       path: {

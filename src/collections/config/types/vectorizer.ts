@@ -40,10 +40,12 @@ export type Vectorizer =
   | 'text2vec-nvidia'
   | 'text2vec-mistral'
   | 'text2vec-model2vec'
+  | 'text2vec-morph'
   | 'text2vec-ollama'
   | 'text2vec-openai'
   | Text2VecPalmVectorizer
   | 'text2vec-google'
+  | 'text2vec-google-ai-studio'
   | 'text2vec-transformers'
   | 'text2vec-voyageai'
   | 'text2vec-weaviate'
@@ -80,6 +82,30 @@ export type Multi2VecNvidiaConfig = {
   truncation?: boolean;
   /** Format in which the embeddings are encoded. Defaults to `None`, so the embeddings are represented as a list of floating-point numbers. */
   output_encoding?: string;
+  /** The image fields used when vectorizing. */
+  imageFields?: string[];
+  /** The text fields used when vectorizing. */
+  textFields?: string[];
+  /** The weights of the fields used for vectorization. */
+  weights?: {
+    /** The weights of the image fields. */
+    imageFields?: number[];
+    /** The weights of the text fields. */
+    textFields?: number[];
+  };
+};
+
+/** The configuration for multi-media vectorization using the AWS module.
+ *
+ * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/aws/embeddings-multimodal) for detailed usage.
+ */
+export type Multi2VecAWSConfig = {
+  /** The dimensionality of the vector once embedded. */
+  dimensions?: number;
+  /** The model to use. */
+  model?: string;
+  /** The AWS region where the model runs. */
+  region?: string;
   /** The image fields used when vectorizing. */
   imageFields?: string[];
   /** The text fields used when vectorizing. */
@@ -504,6 +530,8 @@ export type Text2VecPalmConfig = Text2VecGoogleConfig;
 export type Text2VecGoogleConfig = {
   /** The API endpoint to use without a leading scheme such as `http://`. */
   apiEndpoint?: string;
+  /** The dimensionality of the vector once embedded. */
+  dimensions?: number;
   /** The model ID to use. */
   model?: string;
   /** The model ID to use.
@@ -515,6 +543,13 @@ export type Text2VecGoogleConfig = {
   titleProperty?: string;
   /** Whether to vectorize the collection name. */
   vectorizeCollectionName?: boolean;
+};
+
+export type Text2VecGoogleAiStudioConfig = {
+  /** The model ID to use. */
+  model?: string;
+  /** The Weaviate property name for the `gecko-002` or `gecko-003` model to use as the title. */
+  titleProperty?: string;
 };
 
 /**
@@ -579,10 +614,18 @@ export type Text2VecModel2Vec = {
   vectorizeCollectionName?: boolean;
 };
 
+export type Text2VecMorphConfig = {
+  /** The base URL to use where API requests should go. */
+  baseURL?: string;
+  /** The model to use. */
+  model?: string;
+};
+
 export type NoVectorizerConfig = {};
 
 export type VectorizerConfig =
   | Img2VecNeuralConfig
+  | Multi2VecAWSConfig
   | Multi2VecClipConfig
   | Multi2VecBindConfig
   | Multi2VecGoogleConfig
@@ -652,6 +695,8 @@ export type VectorizerConfigType<V> = V extends 'img2vec-neural'
   ? Text2VecMistralConfig | undefined
   : V extends 'text2vec-model2vec'
   ? Text2VecModel2Vec | undefined
+  : V extends 'text2vec-morph'
+  ? Text2VecMorphConfig | undefined
   : V extends 'text2vec-ollama'
   ? Text2VecOllamaConfig | undefined
   : V extends 'text2vec-openai'
