@@ -84,6 +84,7 @@ export interface GenerativeAWS {
   targetVariant?: string | undefined;
   images?: TextArray | undefined;
   imageProperties?: TextArray | undefined;
+  maxTokens?: number | undefined;
 }
 
 export interface GenerativeCohere {
@@ -96,6 +97,8 @@ export interface GenerativeCohere {
   presencePenalty?: number | undefined;
   stopSequences?: TextArray | undefined;
   temperature?: number | undefined;
+  images?: TextArray | undefined;
+  imageProperties?: TextArray | undefined;
 }
 
 export interface GenerativeDummy {
@@ -133,6 +136,104 @@ export interface GenerativeOpenAI {
   isAzure?: boolean | undefined;
   images?: TextArray | undefined;
   imageProperties?: TextArray | undefined;
+  reasoningEffort?: GenerativeOpenAI_ReasoningEffort | undefined;
+  verbosity?: GenerativeOpenAI_Verbosity | undefined;
+}
+
+export enum GenerativeOpenAI_ReasoningEffort {
+  REASONING_EFFORT_UNSPECIFIED = 0,
+  REASONING_EFFORT_MINIMAL = 1,
+  REASONING_EFFORT_LOW = 2,
+  REASONING_EFFORT_MEDIUM = 3,
+  REASONING_EFFORT_HIGH = 4,
+  UNRECOGNIZED = -1,
+}
+
+export function generativeOpenAI_ReasoningEffortFromJSON(object: any): GenerativeOpenAI_ReasoningEffort {
+  switch (object) {
+    case 0:
+    case "REASONING_EFFORT_UNSPECIFIED":
+      return GenerativeOpenAI_ReasoningEffort.REASONING_EFFORT_UNSPECIFIED;
+    case 1:
+    case "REASONING_EFFORT_MINIMAL":
+      return GenerativeOpenAI_ReasoningEffort.REASONING_EFFORT_MINIMAL;
+    case 2:
+    case "REASONING_EFFORT_LOW":
+      return GenerativeOpenAI_ReasoningEffort.REASONING_EFFORT_LOW;
+    case 3:
+    case "REASONING_EFFORT_MEDIUM":
+      return GenerativeOpenAI_ReasoningEffort.REASONING_EFFORT_MEDIUM;
+    case 4:
+    case "REASONING_EFFORT_HIGH":
+      return GenerativeOpenAI_ReasoningEffort.REASONING_EFFORT_HIGH;
+    case -1:
+    case "UNRECOGNIZED":
+    default:
+      return GenerativeOpenAI_ReasoningEffort.UNRECOGNIZED;
+  }
+}
+
+export function generativeOpenAI_ReasoningEffortToJSON(object: GenerativeOpenAI_ReasoningEffort): string {
+  switch (object) {
+    case GenerativeOpenAI_ReasoningEffort.REASONING_EFFORT_UNSPECIFIED:
+      return "REASONING_EFFORT_UNSPECIFIED";
+    case GenerativeOpenAI_ReasoningEffort.REASONING_EFFORT_MINIMAL:
+      return "REASONING_EFFORT_MINIMAL";
+    case GenerativeOpenAI_ReasoningEffort.REASONING_EFFORT_LOW:
+      return "REASONING_EFFORT_LOW";
+    case GenerativeOpenAI_ReasoningEffort.REASONING_EFFORT_MEDIUM:
+      return "REASONING_EFFORT_MEDIUM";
+    case GenerativeOpenAI_ReasoningEffort.REASONING_EFFORT_HIGH:
+      return "REASONING_EFFORT_HIGH";
+    case GenerativeOpenAI_ReasoningEffort.UNRECOGNIZED:
+    default:
+      return "UNRECOGNIZED";
+  }
+}
+
+export enum GenerativeOpenAI_Verbosity {
+  VERBOSITY_UNSPECIFIED = 0,
+  VERBOSITY_LOW = 1,
+  VERBOSITY_MEDIUM = 2,
+  VERBOSITY_HIGH = 3,
+  UNRECOGNIZED = -1,
+}
+
+export function generativeOpenAI_VerbosityFromJSON(object: any): GenerativeOpenAI_Verbosity {
+  switch (object) {
+    case 0:
+    case "VERBOSITY_UNSPECIFIED":
+      return GenerativeOpenAI_Verbosity.VERBOSITY_UNSPECIFIED;
+    case 1:
+    case "VERBOSITY_LOW":
+      return GenerativeOpenAI_Verbosity.VERBOSITY_LOW;
+    case 2:
+    case "VERBOSITY_MEDIUM":
+      return GenerativeOpenAI_Verbosity.VERBOSITY_MEDIUM;
+    case 3:
+    case "VERBOSITY_HIGH":
+      return GenerativeOpenAI_Verbosity.VERBOSITY_HIGH;
+    case -1:
+    case "UNRECOGNIZED":
+    default:
+      return GenerativeOpenAI_Verbosity.UNRECOGNIZED;
+  }
+}
+
+export function generativeOpenAI_VerbosityToJSON(object: GenerativeOpenAI_Verbosity): string {
+  switch (object) {
+    case GenerativeOpenAI_Verbosity.VERBOSITY_UNSPECIFIED:
+      return "VERBOSITY_UNSPECIFIED";
+    case GenerativeOpenAI_Verbosity.VERBOSITY_LOW:
+      return "VERBOSITY_LOW";
+    case GenerativeOpenAI_Verbosity.VERBOSITY_MEDIUM:
+      return "VERBOSITY_MEDIUM";
+    case GenerativeOpenAI_Verbosity.VERBOSITY_HIGH:
+      return "VERBOSITY_HIGH";
+    case GenerativeOpenAI_Verbosity.UNRECOGNIZED:
+    default:
+      return "UNRECOGNIZED";
+  }
 }
 
 export interface GenerativeGoogle {
@@ -1270,6 +1371,7 @@ function createBaseGenerativeAWS(): GenerativeAWS {
     targetVariant: undefined,
     images: undefined,
     imageProperties: undefined,
+    maxTokens: undefined,
   };
 }
 
@@ -1301,6 +1403,9 @@ export const GenerativeAWS = {
     }
     if (message.imageProperties !== undefined) {
       TextArray.encode(message.imageProperties, writer.uint32(122).fork()).ldelim();
+    }
+    if (message.maxTokens !== undefined) {
+      writer.uint32(128).int64(message.maxTokens);
     }
     return writer;
   },
@@ -1375,6 +1480,13 @@ export const GenerativeAWS = {
 
           message.imageProperties = TextArray.decode(reader, reader.uint32());
           continue;
+        case 16:
+          if (tag !== 128) {
+            break;
+          }
+
+          message.maxTokens = longToNumber(reader.int64() as Long);
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1395,6 +1507,7 @@ export const GenerativeAWS = {
       targetVariant: isSet(object.targetVariant) ? globalThis.String(object.targetVariant) : undefined,
       images: isSet(object.images) ? TextArray.fromJSON(object.images) : undefined,
       imageProperties: isSet(object.imageProperties) ? TextArray.fromJSON(object.imageProperties) : undefined,
+      maxTokens: isSet(object.maxTokens) ? globalThis.Number(object.maxTokens) : undefined,
     };
   },
 
@@ -1427,6 +1540,9 @@ export const GenerativeAWS = {
     if (message.imageProperties !== undefined) {
       obj.imageProperties = TextArray.toJSON(message.imageProperties);
     }
+    if (message.maxTokens !== undefined) {
+      obj.maxTokens = Math.round(message.maxTokens);
+    }
     return obj;
   },
 
@@ -1448,6 +1564,7 @@ export const GenerativeAWS = {
     message.imageProperties = (object.imageProperties !== undefined && object.imageProperties !== null)
       ? TextArray.fromPartial(object.imageProperties)
       : undefined;
+    message.maxTokens = object.maxTokens ?? undefined;
     return message;
   },
 };
@@ -1463,6 +1580,8 @@ function createBaseGenerativeCohere(): GenerativeCohere {
     presencePenalty: undefined,
     stopSequences: undefined,
     temperature: undefined,
+    images: undefined,
+    imageProperties: undefined,
   };
 }
 
@@ -1494,6 +1613,12 @@ export const GenerativeCohere = {
     }
     if (message.temperature !== undefined) {
       writer.uint32(73).double(message.temperature);
+    }
+    if (message.images !== undefined) {
+      TextArray.encode(message.images, writer.uint32(82).fork()).ldelim();
+    }
+    if (message.imageProperties !== undefined) {
+      TextArray.encode(message.imageProperties, writer.uint32(90).fork()).ldelim();
     }
     return writer;
   },
@@ -1568,6 +1693,20 @@ export const GenerativeCohere = {
 
           message.temperature = reader.double();
           continue;
+        case 10:
+          if (tag !== 82) {
+            break;
+          }
+
+          message.images = TextArray.decode(reader, reader.uint32());
+          continue;
+        case 11:
+          if (tag !== 90) {
+            break;
+          }
+
+          message.imageProperties = TextArray.decode(reader, reader.uint32());
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1588,6 +1727,8 @@ export const GenerativeCohere = {
       presencePenalty: isSet(object.presencePenalty) ? globalThis.Number(object.presencePenalty) : undefined,
       stopSequences: isSet(object.stopSequences) ? TextArray.fromJSON(object.stopSequences) : undefined,
       temperature: isSet(object.temperature) ? globalThis.Number(object.temperature) : undefined,
+      images: isSet(object.images) ? TextArray.fromJSON(object.images) : undefined,
+      imageProperties: isSet(object.imageProperties) ? TextArray.fromJSON(object.imageProperties) : undefined,
     };
   },
 
@@ -1620,6 +1761,12 @@ export const GenerativeCohere = {
     if (message.temperature !== undefined) {
       obj.temperature = message.temperature;
     }
+    if (message.images !== undefined) {
+      obj.images = TextArray.toJSON(message.images);
+    }
+    if (message.imageProperties !== undefined) {
+      obj.imageProperties = TextArray.toJSON(message.imageProperties);
+    }
     return obj;
   },
 
@@ -1639,6 +1786,12 @@ export const GenerativeCohere = {
       ? TextArray.fromPartial(object.stopSequences)
       : undefined;
     message.temperature = object.temperature ?? undefined;
+    message.images = (object.images !== undefined && object.images !== null)
+      ? TextArray.fromPartial(object.images)
+      : undefined;
+    message.imageProperties = (object.imageProperties !== undefined && object.imageProperties !== null)
+      ? TextArray.fromPartial(object.imageProperties)
+      : undefined;
     return message;
   },
 };
@@ -1951,6 +2104,8 @@ function createBaseGenerativeOpenAI(): GenerativeOpenAI {
     isAzure: undefined,
     images: undefined,
     imageProperties: undefined,
+    reasoningEffort: undefined,
+    verbosity: undefined,
   };
 }
 
@@ -2000,6 +2155,12 @@ export const GenerativeOpenAI = {
     }
     if (message.imageProperties !== undefined) {
       TextArray.encode(message.imageProperties, writer.uint32(122).fork()).ldelim();
+    }
+    if (message.reasoningEffort !== undefined) {
+      writer.uint32(128).int32(message.reasoningEffort);
+    }
+    if (message.verbosity !== undefined) {
+      writer.uint32(136).int32(message.verbosity);
     }
     return writer;
   },
@@ -2116,6 +2277,20 @@ export const GenerativeOpenAI = {
 
           message.imageProperties = TextArray.decode(reader, reader.uint32());
           continue;
+        case 16:
+          if (tag !== 128) {
+            break;
+          }
+
+          message.reasoningEffort = reader.int32() as any;
+          continue;
+        case 17:
+          if (tag !== 136) {
+            break;
+          }
+
+          message.verbosity = reader.int32() as any;
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -2142,6 +2317,10 @@ export const GenerativeOpenAI = {
       isAzure: isSet(object.isAzure) ? globalThis.Boolean(object.isAzure) : undefined,
       images: isSet(object.images) ? TextArray.fromJSON(object.images) : undefined,
       imageProperties: isSet(object.imageProperties) ? TextArray.fromJSON(object.imageProperties) : undefined,
+      reasoningEffort: isSet(object.reasoningEffort)
+        ? generativeOpenAI_ReasoningEffortFromJSON(object.reasoningEffort)
+        : undefined,
+      verbosity: isSet(object.verbosity) ? generativeOpenAI_VerbosityFromJSON(object.verbosity) : undefined,
     };
   },
 
@@ -2192,6 +2371,12 @@ export const GenerativeOpenAI = {
     if (message.imageProperties !== undefined) {
       obj.imageProperties = TextArray.toJSON(message.imageProperties);
     }
+    if (message.reasoningEffort !== undefined) {
+      obj.reasoningEffort = generativeOpenAI_ReasoningEffortToJSON(message.reasoningEffort);
+    }
+    if (message.verbosity !== undefined) {
+      obj.verbosity = generativeOpenAI_VerbosityToJSON(message.verbosity);
+    }
     return obj;
   },
 
@@ -2219,6 +2404,8 @@ export const GenerativeOpenAI = {
     message.imageProperties = (object.imageProperties !== undefined && object.imageProperties !== null)
       ? TextArray.fromPartial(object.imageProperties)
       : undefined;
+    message.reasoningEffort = object.reasoningEffort ?? undefined;
+    message.verbosity = object.verbosity ?? undefined;
     return message;
   },
 };

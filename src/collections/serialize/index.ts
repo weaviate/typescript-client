@@ -815,40 +815,51 @@ export class Serialize {
     return vec !== undefined && !Array.isArray(vec) && Object.values(vec).some(ArrayInputGuards.is2DArray);
   };
 
+  private static withImages = async <T extends Record<string, any>>(
+    config: T,
+    imgs?: (string | Buffer)[],
+    imgProps?: string[]
+  ): Promise<T> => {
+    if (imgs == undefined && imgProps == undefined) {
+      return config;
+    }
+    return {
+      ...config,
+      images: TextArray.fromPartial({
+        values: imgs ? await Promise.all(imgs.map(toBase64FromMedia)) : undefined,
+      }),
+      imageProperties: TextArray.fromPartial({ values: imgProps }),
+    };
+  };
   private static generativeQuery = async (
     generative: GenerativeConfigRuntime,
     opts?: { metadata?: boolean; images?: (string | Buffer)[]; imageProperties?: string[] }
   ): Promise<GenerativeProvider> => {
-    const withImages = async <T extends Record<string, any>>(
-      config: T,
-      imgs?: (string | Buffer)[],
-      imgProps?: string[]
-    ): Promise<T> => {
-      if (imgs == undefined && imgProps == undefined) {
-        return config;
-      }
-      return {
-        ...config,
-        images: TextArray.fromPartial({
-          values: imgs ? await Promise.all(imgs.map(toBase64FromMedia)) : undefined,
-        }),
-        imageProperties: TextArray.fromPartial({ values: imgProps }),
-      };
-    };
-
     const provider = GenerativeProvider.fromPartial({ returnMetadata: opts?.metadata });
     switch (generative.name) {
       case 'generative-anthropic':
-        provider.anthropic = await withImages(generative.config || {}, opts?.images, opts?.imageProperties);
+        provider.anthropic = await Serialize.withImages(
+          generative.config || {},
+          opts?.images,
+          opts?.imageProperties
+        );
         break;
       case 'generative-anyscale':
         provider.anyscale = generative.config || {};
         break;
       case 'generative-aws':
-        provider.aws = await withImages(generative.config || {}, opts?.images, opts?.imageProperties);
+        provider.aws = await Serialize.withImages(
+          generative.config || {},
+          opts?.images,
+          opts?.imageProperties
+        );
         break;
       case 'generative-cohere':
-        provider.cohere = generative.config || {};
+        provider.cohere = await Serialize.withImages(
+          generative.config || {},
+          opts?.images,
+          opts?.imageProperties
+        );
         break;
       case 'generative-databricks':
         provider.databricks = generative.config || {};
@@ -860,7 +871,11 @@ export class Serialize {
         provider.friendliai = generative.config || {};
         break;
       case 'generative-google':
-        provider.google = await withImages(generative.config || {}, opts?.images, opts?.imageProperties);
+        provider.google = await Serialize.withImages(
+          generative.config || {},
+          opts?.images,
+          opts?.imageProperties
+        );
         break;
       case 'generative-mistral':
         provider.mistral = generative.config || {};
@@ -869,10 +884,18 @@ export class Serialize {
         provider.nvidia = generative.config || {};
         break;
       case 'generative-ollama':
-        provider.ollama = await withImages(generative.config || {}, opts?.images, opts?.imageProperties);
+        provider.ollama = await Serialize.withImages(
+          generative.config || {},
+          opts?.images,
+          opts?.imageProperties
+        );
         break;
       case 'generative-openai':
-        provider.openai = await withImages(generative.config || {}, opts?.images, opts?.imageProperties);
+        provider.openai = await Serialize.withImages(
+          generative.config || {},
+          opts?.images,
+          opts?.imageProperties
+        );
         break;
     }
     return provider;
