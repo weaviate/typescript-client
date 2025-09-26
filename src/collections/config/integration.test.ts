@@ -882,7 +882,7 @@ describe('Testing of the collection.config namespace', () => {
   requireAtLeast(1, 32, 0).it(
     'should be able to create a collection with RQ quantizer bits=8 option',
     async () => {
-      const collectionName = 'TestCollectionRQQuantizerBits';
+      const collectionName = 'TestCollectionRQQuantizer8Bits';
       const collection = await client.collections.create({
         name: collectionName,
         vectorizers: weaviate.configure.vectors.selfProvided({
@@ -903,7 +903,7 @@ describe('Testing of the collection.config namespace', () => {
   requireAtLeast(1, 33, 0).it(
     'should be able to create a collection with RQ quantizer bits=1 option',
     async () => {
-      const collectionName = 'TestCollectionRQQuantizerBits';
+      const collectionName = 'TestCollectionRQQuantizer1Bits';
       const collection = await client.collections.create({
         name: collectionName,
         vectorizers: weaviate.configure.vectors.selfProvided({
