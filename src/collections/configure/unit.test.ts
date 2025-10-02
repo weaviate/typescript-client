@@ -5,6 +5,7 @@ import {
   GenerativeAnyscaleConfig,
   GenerativeAzureOpenAIConfig,
   GenerativeCohereConfig,
+  GenerativeContextualAIConfig,
   GenerativeDatabricksConfig,
   GenerativeFriendliAIConfig,
   GenerativeGoogleConfig,
@@ -14,6 +15,7 @@ import {
   GenerativeXAIConfig,
   ModuleConfig,
   RerankerCohereConfig,
+  RerankerContextualAIConfig,
   RerankerJinaAIConfig,
   RerankerNvidiaConfig,
   RerankerTransformersConfig,
@@ -1931,6 +1933,38 @@ describe('Unit testing of the generative factory class', () => {
     });
   });
 
+  it('should create the correct GenerativeContextualAIConfig type with required & default values', () => {
+    const config = configure.generative.contextualai();
+    expect(config).toEqual<ModuleConfig<'generative-contextualai', GenerativeContextualAIConfig | undefined>>(
+      {
+        name: 'generative-contextualai',
+        config: undefined,
+      }
+    );
+  });
+
+  it('should create the correct GenerativeContextualAIConfig type with all values', () => {
+    const config = configure.generative.contextualai({
+      model: 'v2',
+      maxTokens: 100,
+      temperature: 0.7,
+      topP: 0.9,
+      systemPrompt: 'system',
+      avoidCommentary: false,
+    });
+    expect(config).toEqual<ModuleConfig<'generative-contextualai', GenerativeContextualAIConfig>>({
+      name: 'generative-contextualai',
+      config: {
+        model: 'v2',
+        maxTokensProperty: 100,
+        temperatureProperty: 0.7,
+        topPProperty: 0.9,
+        systemPromptProperty: 'system',
+        avoidCommentaryProperty: false,
+      },
+    });
+  });
+
   it('should create the correct GenerativeCohereConfig type with all values', () => {
     const config = configure.generative.cohere({
       k: 5,
@@ -2262,6 +2296,32 @@ describe('Unit testing of the reranker factory class', () => {
     expect(config).toEqual<ModuleConfig<'reranker-voyageai', RerankerVoyageAIConfig | undefined>>({
       name: 'reranker-voyageai',
       config: undefined,
+    });
+  });
+
+  it('should create the correct RerankerContextualAIConfig type using required & default values', () => {
+    const config = configure.reranker.contextualai();
+    expect(config).toEqual<ModuleConfig<'reranker-contextualai', RerankerContextualAIConfig | undefined>>({
+      name: 'reranker-contextualai',
+      config: undefined,
+    });
+  });
+
+  it('should create the correct RerankerContextualAIConfig type with all values', () => {
+    const config = configure.reranker.contextualai({
+      baseURL: 'https://api.contextual.ai',
+      model: 'ctxl-rerank-v2-instruct-multilingual',
+      instruction: 'Custom reranking instruction',
+      topN: 10,
+    });
+    expect(config).toEqual<ModuleConfig<'reranker-contextualai', RerankerContextualAIConfig | undefined>>({
+      name: 'reranker-contextualai',
+      config: {
+        baseURL: 'https://api.contextual.ai',
+        model: 'ctxl-rerank-v2-instruct-multilingual',
+        instruction: 'Custom reranking instruction',
+        topN: 10,
+      },
     });
   });
 

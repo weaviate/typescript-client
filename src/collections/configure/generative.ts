@@ -4,6 +4,7 @@ import {
   GenerativeAnyscaleConfig,
   GenerativeAzureOpenAIConfig,
   GenerativeCohereConfig,
+  GenerativeContextualAIConfig,
   GenerativeDatabricksConfig,
   GenerativeFriendliAIConfig,
   GenerativeGoogleConfig,
@@ -21,6 +22,7 @@ import {
   GenerativeAnyscaleConfigCreate,
   GenerativeAzureOpenAIConfigCreate,
   GenerativeCohereConfigCreate,
+  GenerativeContextualAIConfigCreate,
   GenerativeDatabricksConfigCreate,
   GenerativeFriendliAIConfigCreate,
   GenerativeMistralConfigCreate,
@@ -46,6 +48,31 @@ export default {
     return {
       name: 'generative-anthropic',
       config,
+    };
+  },
+  /**
+   * Create a `ModuleConfig<'generative-contextualai', GenerativeContextualAIConfig | undefined>` object for use when performing AI generation using the `generative-contextualai` module.
+   *
+   * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/contextualai/generative) for detailed usage.
+   *
+   * @param {GenerativeContextualAIConfigCreate} [config] The configuration for the `generative-contextualai` module.
+   * @returns {ModuleConfig<'generative-contextualai', GenerativeContextualAIConfig | undefined>} The configuration object.
+   */
+  contextualai: (
+    config?: GenerativeContextualAIConfigCreate
+  ): ModuleConfig<'generative-contextualai', GenerativeContextualAIConfig | undefined> => {
+    return {
+      name: 'generative-contextualai',
+      config: config
+        ? {
+            model: config.model,
+            maxTokensProperty: config.maxTokens,
+            temperatureProperty: config.temperature,
+            topPProperty: config.topP,
+            systemPromptProperty: config.systemPrompt,
+            avoidCommentaryProperty: config.avoidCommentary,
+          }
+        : undefined,
     };
   },
   /**

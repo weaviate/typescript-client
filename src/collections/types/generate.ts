@@ -145,7 +145,8 @@ export type GenerativeConfigRuntime =
   | ModuleConfig<'generative-nvidia', GenerativeConfigRuntimeType<'generative-nvidia'> | undefined>
   | ModuleConfig<'generative-ollama', GenerativeConfigRuntimeType<'generative-ollama'> | undefined>
   | ModuleConfig<'generative-openai', GenerativeConfigRuntimeType<'generative-openai'>>
-  | ModuleConfig<'generative-xai', GenerativeConfigRuntimeType<'generative-xai'> | undefined>;
+  | ModuleConfig<'generative-xai', GenerativeConfigRuntimeType<'generative-xai'> | undefined>
+  | ModuleConfig<'generative-contextualai', GenerativeConfigRuntimeType<'generative-contextualai'> | undefined>;
 
 export type GenerativeConfigRuntimeType<G> = G extends 'generative-anthropic'
   ? Omit<GenerativeAnthropicGRPC, omitFields>
@@ -173,6 +174,15 @@ export type GenerativeConfigRuntimeType<G> = G extends 'generative-anthropic'
   ? Omit<GenerativeOpenAIGRPC, omitFields> & { isAzure?: false }
   : G extends 'generative-xai'
   ? Omit<GenerativeXAIGRPC, omitFields>
+  : G extends 'generative-contextualai'
+  ? {
+      model?: string;
+      maxTokens?: number;
+      temperature?: number;
+      topP?: number;
+      systemPrompt?: string;
+      avoidCommentary?: boolean;
+    }
   : G extends 'none'
   ? undefined
   : Record<string, any> | undefined;
@@ -329,3 +339,12 @@ export type GenerativeOpenAIConfigRuntime = {
 };
 
 export type GenerativeXAIConfigRuntime = GenerativeXAIConfig;
+
+export type GenerativeContextualAIConfigRuntime = {
+  model?: string | undefined;
+  maxTokens?: number | undefined;
+  temperature?: number | undefined;
+  topP?: number | undefined;
+  systemPrompt?: string | undefined;
+  avoidCommentary?: boolean | undefined;
+};

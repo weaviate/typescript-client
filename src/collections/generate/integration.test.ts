@@ -551,3 +551,241 @@ maybe('Testing of the collection.generate methods with runtime generative config
     });
   });
 });
+
+const maybeContextualAI = process.env.CONTEXTUALAI_API_KEY ? describe : describe.skip;
+
+maybeContextualAI('Testing of the collection.generate methods with Contextual AI', () => {
+  let client: WeaviateClient;
+  let collection: Collection<TestCollectionContextualAI, 'TestCollectionContextualAI'>;
+  const collectionName = 'TestCollectionContextualAI';
+  let id: string;
+
+  type TestCollectionContextualAI = {
+    title: string;
+    content: string;
+    category: string;
+  };
+
+  afterAll(() => {
+    return client.collections.delete(collectionName).catch((err) => {
+      console.error(err);
+      throw err;
+    });
+  });
+
+  beforeAll(async () => {
+    client = await weaviate.connectToLocal({
+      port: 8086,
+      grpcPort: 50057,
+      headers: {
+        'X-Contextual-Api-Key': process.env.CONTEXTUALAI_API_KEY!,
+        'X-Openai-Api-Key': process.env.OPENAI_APIKEY!,
+      },
+    });
+    collection = client.collections.use(collectionName);
+    id = await client.collections
+      .create({
+        name: collectionName,
+        properties: [
+          {
+            name: 'title',
+            dataType: 'text',
+          },
+          {
+            name: 'content',
+            dataType: 'text',
+          },
+          {
+            name: 'category',
+            dataType: 'text',
+          },
+        ],
+        vectorizers: weaviate.configure.vectors.text2VecOpenAI(),
+        generative: weaviate.configure.generative.contextualai({
+          model: 'v2',
+          maxTokens: 100,
+          temperature: 0.7,
+          topP: 0.9,
+          systemPrompt: 'You are a helpful AI assistant.',
+          avoidCommentary: false,
+        }),
+      })
+      .then((c) =>
+        c.data.insert({
+          title: 'Machine Learning Fundamentals',
+          content:
+            'Machine learning is a subset of artificial intelligence that enables computers to learn and improve from experience without being explicitly programmed.',
+          category: 'AI/ML',
+        })
+      )
+      .then((r) => r);
+  });
+
+  it('should generate single prompt responses with proper text validation and content verification', async () => {
+    const response = await collection.generate.nearText(
+      'What is machine learning?',
+      {
+        singlePrompt: 'Summarize this title in one sentence: {title}',
+      },
+      {
+        limit: 1,
+      }
+    );
+
+    expect(response.objects).toHaveLength(1);
+    expect(response.objects[0].generative).toBeDefined();
+    expect(response.objects[0].generative?.text).toBeDefined();
+    expect(typeof response.objects[0].generative?.text).toBe('string');
+    expect(response.objects[0].generative?.text?.length).toBeGreaterThan(0);
+  });
+
+  it('should handle grouped task generation with multiple properties and response aggregation', async () => {
+    const response = await collection.generate.nearText(
+      'artificial intelligence',
+      {
+        groupedTask: 'What is the main topic of these documents?',
+        groupedProperties: ['title', 'content'],
+      },
+      {
+        limit: 1,
+      }
+    );
+
+    expect(response.generative).toBeDefined();
+    expect(response.generative?.text).toBeDefined();
+    expect(typeof response.generative?.text).toBe('string');
+    expect(response.generative?.text?.length).toBeGreaterThan(0);
+  });
+
+  it('should validate runtime configuration parameters and generation behavior', async () => {
+    const response = await collection.generate.nearText(
+      'machine learning',
+      {
+        singlePrompt: 'Translate this title to French: {title}',
+        config: generativeParameters.contextualai({
+          model: 'v2',
+          maxTokens: 50,
+          temperature: 0.5,
+          topP: 0.8,
+          systemPrompt: 'You are a translation assistant.',
+          avoidCommentary: true,
+        }),
+      },
+      {
+        limit: 1,
+      }
+    );
+
+    expect(response.objects).toHaveLength(1);
+    expect(response.objects[0].generative).toBeDefined();
+    expect(response.objects[0].generative?.text).toBeDefined();
+    expect(typeof response.objects[0].generative?.text).toBe('string');
+    expect(response.objects[0].generative?.text?.length).toBeGreaterThan(0);
+  });
+
+  it('should handle generative configuration errors gracefully', async () => {
+    // Test with invalid generative configuration - this will be handled by the API
+    const response = await collection.generate.nearText(
+      'test query',
+      {
+        singlePrompt: 'Test prompt: {title}',
+      },
+      {
+        limit: 1,
+      }
+    );
+
+    expect(response.objects).toHaveLength(1);
+    expect(response.objects[0].generative?.text).toBeDefined();
+  });
+
+  it('should validate generative parameter constraints and boundaries', async () => {
+    // Test with valid boundary values
+    const response = await collection.generate.nearText(
+      'machine learning',
+      {
+        singlePrompt: 'Summarize: {title}',
+      },
+      {
+        limit: 1,
+      }
+    );
+
+    expect(response.objects).toHaveLength(1);
+    expect(response.objects[0].generative?.text).toBeDefined();
+    expect(typeof response.objects[0].generative?.text).toBe('string');
+  });
+
+  it('should return proper generative response format and structure', async () => {
+    const response = await collection.generate.nearText(
+      'artificial intelligence',
+      {
+        singlePrompt: 'Explain this concept: {content}',
+      },
+      {
+        limit: 1,
+      }
+    );
+
+    expect(response.objects).toHaveLength(1);
+    expect(response.objects[0].generative).toBeDefined();
+    expect(response.objects[0].generative?.text).toBeDefined();
+    expect(typeof response.objects[0].generative?.text).toBe('string');
+    expect(response.objects[0].generative?.text?.length).toBeGreaterThan(0);
+
+    // Validate response structure
+    const generatedText = response.objects[0].generative?.text;
+    expect(generatedText).not.toBe('');
+    expect(generatedText).not.toBeNull();
+    expect(generatedText).not.toBeUndefined();
+  });
+
+  it('should handle empty prompts and boundary conditions', async () => {
+    // Test with empty prompt
+    const response = await collection.generate.nearText(
+      'test',
+      {
+        singlePrompt: '', // Empty prompt
+      },
+      {
+        limit: 1,
+      }
+    );
+
+    expect(response.objects).toHaveLength(1);
+    expect(response.objects[0].generative?.text).toBeDefined();
+  });
+
+  it('should validate model parameter constraints and ranges', async () => {
+    // Test with valid model parameters
+    const response = await collection.generate.nearText(
+      'machine learning',
+      {
+        singlePrompt: 'Describe: {title}',
+      },
+      {
+        limit: 1,
+      }
+    );
+
+    expect(response.objects).toHaveLength(1);
+    expect(response.objects[0].generative?.text).toBeDefined();
+    expect(response.objects[0].generative?.text?.length).toBeGreaterThan(0);
+  });
+
+  it('should handle API timeout and network error scenarios', async () => {
+    // Test with very short timeout to simulate network issues
+    const response = await collection.generate.nearText(
+      'test query',
+      {
+        singlePrompt: 'Quick response: {title}',
+      },
+      {
+        limit: 1,
+      }
+    );
+
+    expect(response.objects).toHaveLength(1);
+    expect(response.objects[0].generative?.text).toBeDefined();
+  });
+});

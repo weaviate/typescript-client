@@ -2,6 +2,7 @@ import {
   GenerativeAWSConfig,
   GenerativeAnthropicConfig,
   GenerativeAnyscaleConfig,
+  GenerativeContextualAIConfig,
   GenerativeDatabricksConfig,
   GenerativeFriendliAIConfig,
   GenerativeMistralConfig,
@@ -58,12 +59,22 @@ export type GenerativePaLMConfigCreate = GenerativePaLMConfig;
 
 export type GenerativeXAIConfigCreate = GenerativeXAIConfig;
 
+export type GenerativeContextualAIConfigCreate = {
+  model?: string;
+  maxTokens?: number;
+  temperature?: number;
+  topP?: number;
+  systemPrompt?: string;
+  avoidCommentary?: boolean;
+};
+
 export type GenerativeConfigCreate =
   | GenerativeAnthropicConfigCreate
   | GenerativeAnyscaleConfigCreate
   | GenerativeAWSConfigCreate
   | GenerativeAzureOpenAIConfigCreate
   | GenerativeCohereConfigCreate
+  | GenerativeContextualAIConfigCreate
   | GenerativeDatabricksConfigCreate
   | GenerativeFriendliAIConfigCreate
   | GenerativeMistralConfigCreate
@@ -83,6 +94,8 @@ export type GenerativeConfigCreateType<G> = G extends 'generative-anthropic'
   ? GenerativeAzureOpenAIConfigCreate
   : G extends 'generative-cohere'
   ? GenerativeCohereConfigCreate
+  : G extends 'generative-contextualai'
+  ? GenerativeContextualAIConfigCreate
   : G extends 'generative-databricks'
   ? GenerativeDatabricksConfigCreate
   : G extends 'generative-friendliai'

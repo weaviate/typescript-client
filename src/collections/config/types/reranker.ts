@@ -24,8 +24,20 @@ export type RerankerNvidiaConfig = {
   model?: 'nvidia/rerank-qa-mistral-4b' | string;
 };
 
+export type RerankerContextualAIConfig = {
+  baseURL?: string;
+  model?:
+    | 'ctxl-rerank-v2-instruct-multilingual'
+    | 'ctxl-rerank-v2-instruct-multilingual-mini'
+    | 'ctxl-rerank-v1-instruct'
+    | string;
+  instruction?: string;
+  topN?: number;
+};
+
 export type RerankerConfig =
   | RerankerCohereConfig
+  | RerankerContextualAIConfig
   | RerankerJinaAIConfig
   | RerankerNvidiaConfig
   | RerankerTransformersConfig
@@ -35,6 +47,7 @@ export type RerankerConfig =
 
 export type Reranker =
   | 'reranker-cohere'
+  | 'reranker-contextualai'
   | 'reranker-jinaai'
   | 'reranker-nvidia'
   | 'reranker-transformers'
@@ -48,6 +61,8 @@ export type RerankerConfigType<R> = R extends 'reranker-cohere'
   ? RerankerJinaAIConfig
   : R extends 'reranker-nvidia'
   ? RerankerNvidiaConfig
+  : R extends 'reranker-contextualai'
+  ? RerankerContextualAIConfig
   : R extends 'reranker-transformers'
   ? RerankerTransformersConfig
   : R extends 'reranker-voyageai'

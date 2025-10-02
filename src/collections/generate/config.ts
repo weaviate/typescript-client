@@ -6,6 +6,7 @@ import {
   GenerativeAnyscaleConfigRuntime,
   GenerativeCohereConfigRuntime,
   GenerativeConfigRuntimeType,
+  GenerativeContextualAIConfigRuntime,
   GenerativeDatabricksConfigRuntime,
   GenerativeFriendliAIConfigRuntime,
   GenerativeGoogleConfigRuntime,
@@ -293,6 +294,31 @@ export const generativeParameters = {
         ? {
             ...rest,
             baseUrl: baseURL,
+          }
+        : undefined,
+    };
+  },
+  /**
+   * Create a `ModuleConfig<'generative-contextualai', GenerativeConfigRuntimeType<'generative-contextualai'> | undefined>`
+   * object for use when performing runtime-specific AI generation using the `generative-contextualai` module.
+   */
+  contextualai(
+    config?: GenerativeContextualAIConfigRuntime
+  ): ModuleConfig<
+    'generative-contextualai',
+    GenerativeConfigRuntimeType<'generative-contextualai'> | undefined
+  > {
+    // Contextual AI does not require special GRPC wrappers; pass primitives directly
+    return {
+      name: 'generative-contextualai',
+      config: config
+        ? {
+            model: config.model,
+            maxTokens: config.maxTokens,
+            temperature: config.temperature,
+            topP: config.topP,
+            systemPrompt: config.systemPrompt,
+            avoidCommentary: config.avoidCommentary,
           }
         : undefined,
     };
