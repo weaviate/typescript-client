@@ -1949,7 +1949,8 @@ describe('Unit testing of the generative factory class', () => {
       maxTokens: 100,
       temperature: 0.7,
       topP: 0.9,
-      systemPrompt: 'system',
+      systemPrompt:
+        'You are a helpful assistant that provides accurate and informative responses based on the given context.',
       avoidCommentary: false,
     });
     expect(config).toEqual<ModuleConfig<'generative-contextualai', GenerativeContextualAIConfig>>({
@@ -1959,7 +1960,8 @@ describe('Unit testing of the generative factory class', () => {
         maxTokensProperty: 100,
         temperatureProperty: 0.7,
         topPProperty: 0.9,
-        systemPromptProperty: 'system',
+        systemPromptProperty:
+          'You are a helpful assistant that provides accurate and informative responses based on the given context.',
         avoidCommentaryProperty: false,
       },
     });
@@ -2309,7 +2311,6 @@ describe('Unit testing of the reranker factory class', () => {
 
   it('should create the correct RerankerContextualAIConfig type with all values', () => {
     const config = configure.reranker.contextualai({
-      baseURL: 'https://api.contextual.ai',
       model: 'ctxl-rerank-v2-instruct-multilingual',
       instruction: 'Custom reranking instruction',
       topN: 10,
@@ -2317,7 +2318,6 @@ describe('Unit testing of the reranker factory class', () => {
     expect(config).toEqual<ModuleConfig<'reranker-contextualai', RerankerContextualAIConfig | undefined>>({
       name: 'reranker-contextualai',
       config: {
-        baseURL: 'https://api.contextual.ai',
         model: 'ctxl-rerank-v2-instruct-multilingual',
         instruction: 'Custom reranking instruction',
         topN: 10,

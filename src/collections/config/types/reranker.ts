@@ -25,7 +25,6 @@ export type RerankerNvidiaConfig = {
 };
 
 export type RerankerContextualAIConfig = {
-  baseURL?: string;
   model?:
     | 'ctxl-rerank-v2-instruct-multilingual'
     | 'ctxl-rerank-v2-instruct-multilingual-mini'

@@ -315,7 +315,10 @@ describe('Unit testing of the generativeParameters factory methods', () => {
     it('with defaults', () => {
       const config = generativeParameters.contextualai();
       expect(config).toEqual<
-        ModuleConfig<'generative-contextualai', GenerativeConfigRuntimeType<'generative-contextualai'> | undefined>
+        ModuleConfig<
+          'generative-contextualai',
+          GenerativeConfigRuntimeType<'generative-contextualai'> | undefined
+        >
       >({
         name: 'generative-contextualai',
         config: undefined,
@@ -331,7 +334,10 @@ describe('Unit testing of the generativeParameters factory methods', () => {
         avoidCommentary: false,
       });
       expect(config).toEqual<
-        ModuleConfig<'generative-contextualai', GenerativeConfigRuntimeType<'generative-contextualai'> | undefined>
+        ModuleConfig<
+          'generative-contextualai',
+          GenerativeConfigRuntimeType<'generative-contextualai'> | undefined
+        >
       >({
         name: 'generative-contextualai',
         config: {
