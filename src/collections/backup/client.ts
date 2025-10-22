@@ -2,6 +2,7 @@ import {
   Backend,
   BackupCreateStatusGetter,
   BackupCreator,
+  BackupListOrder,
   BackupRestoreStatusGetter,
   BackupRestorer,
 } from '../../backup/index.js';
@@ -205,8 +206,12 @@ export const backup = (connection: Connection): Backup => {
           }
         : parseResponse(res);
     },
-    list: (backend: Backend): Promise<BackupReturn[]> => {
-      return connection.get<BackupReturn[]>(`/backups/${backend}`);
+    list: (backend: Backend, order?: BackupListOrder): Promise<BackupReturn[]> => {
+      let url = `/backups/${backend}`;
+      if (order) {
+        url += `?order=${order}`;
+      }
+      return connection.get<BackupReturn[]>(url);
     },
   };
 };
@@ -261,7 +266,8 @@ export interface Backup {
   /** List existing backups (completed and in-progress) created in a given backend.
    *
    * @param {Backend} backend Backend whence to list backups.
+   * @param {BackupListOrder} [order] Order in which to list backups.
    * @returns {Promise<BackupReturn[]>} The response from Weaviate.
    * */
-  list(backend: Backend): Promise<BackupReturn[]>;
+  list(backend: Backend, order?: BackupListOrder): Promise<BackupReturn[]>;
 }
