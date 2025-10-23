@@ -228,6 +228,36 @@ describe('Integration testing of backups', () => {
     });
   });
 
+  requireAtLeast(1, 33, 2).it('get all backups in ascending order', async () => {
+    await clientPromise.then(async (client) => {
+      await client.collections.create({ name: 'TestListBackupsAsc' }).then((col) => col.data.insert());
+
+      const wantBackups: string[] = [];
+      for (let i = 0; i < 3; i++) {
+        wantBackups.push(
+          await client.backup
+            .create({
+              backupId: randomBackupId(),
+              backend: 'filesystem',
+              includeCollections: ['TestListBackupsAsc'],
+              waitForCompletion: true,
+            })
+            .then((res) => res.id)
+        );
+      }
+
+      const sortAscending = true;
+      const gotBackups = await client.backup.list('filesystem', sortAscending);
+
+      // There may be other backups created in other tests;
+      expect(gotBackups.length).toBeGreaterThanOrEqual(wantBackups.length);
+      // Expect the backups to be sorted in ascending order
+      expect(
+        gotBackups.every((value, idx, a) => idx === 0 || a[idx - 1].startedAt! <= value.startedAt!)
+      ).toBe(sortAscending);
+    });
+  });
+
   function randomBackupId() {
     return 'backup-id-' + Math.floor(Math.random() * Number.MAX_SAFE_INTEGER);
   }

@@ -2,7 +2,6 @@ import {
   Backend,
   BackupCreateStatusGetter,
   BackupCreator,
-  BackupListOrder,
   BackupRestoreStatusGetter,
   BackupRestorer,
 } from '../../backup/index.js';
@@ -206,10 +205,10 @@ export const backup = (connection: Connection): Backup => {
           }
         : parseResponse(res);
     },
-    list: (backend: Backend, order?: BackupListOrder): Promise<BackupReturn[]> => {
+    list: (backend: Backend, sortAscending?: boolean): Promise<BackupReturn[]> => {
       let url = `/backups/${backend}`;
-      if (order) {
-        url += `?order=${order}`;
+      if (sortAscending) {
+        url += '?order=asc';
       }
       return connection.get<BackupReturn[]>(url);
     },
@@ -266,8 +265,8 @@ export interface Backup {
   /** List existing backups (completed and in-progress) created in a given backend.
    *
    * @param {Backend} backend Backend whence to list backups.
-   * @param {BackupListOrder} [order] Order in which to list backups.
+   * @param {sortAscending} [boolean] Sort list of backups in ascending order based on creation time. Default is descending order.
    * @returns {Promise<BackupReturn[]>} The response from Weaviate.
    * */
-  list(backend: Backend, order?: BackupListOrder): Promise<BackupReturn[]>;
+  list(backend: Backend, sortAscending?: boolean): Promise<BackupReturn[]>;
 }
