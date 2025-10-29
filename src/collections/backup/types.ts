@@ -78,3 +78,8 @@ export type BackupCancelArgs = {
   /** The backend to use for the backup. */
   backend: Backend;
 };
+
+/** The options available when listing backups. */
+export type ListBackupOptions = {
+  startedAtAsc?: boolean;
+};

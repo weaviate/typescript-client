@@ -247,7 +247,7 @@ describe('Integration testing of backups', () => {
       }
 
       const sortAscending = true;
-      const gotBackups = await client.backup.list('filesystem', sortAscending);
+      const gotBackups = await client.backup.list('filesystem', { startedAtAsc: sortAscending });
 
       // There may be other backups created in other tests;
       expect(gotBackups.length).toBeGreaterThanOrEqual(wantBackups.length);
