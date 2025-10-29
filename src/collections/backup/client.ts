@@ -28,6 +28,7 @@ import {
   BackupReturn,
   BackupStatusArgs,
   BackupStatusReturn,
+  ListBackupOptions,
 } from './types.js';
 
 export const backup = (connection: Connection): Backup => {
@@ -205,8 +206,12 @@ export const backup = (connection: Connection): Backup => {
           }
         : parseResponse(res);
     },
-    list: (backend: Backend): Promise<BackupReturn[]> => {
-      return connection.get<BackupReturn[]>(`/backups/${backend}`);
+    list: (backend: Backend, opts?: ListBackupOptions): Promise<BackupReturn[]> => {
+      let url = `/backups/${backend}`;
+      if (opts?.startedAtAsc) {
+        url += '?order=asc';
+      }
+      return connection.get<BackupReturn[]>(url);
     },
   };
 };
@@ -261,7 +266,8 @@ export interface Backup {
   /** List existing backups (completed and in-progress) created in a given backend.
    *
    * @param {Backend} backend Backend whence to list backups.
+   * @param {ListBackupOptions} [opts] The options available when listing backups.
    * @returns {Promise<BackupReturn[]>} The response from Weaviate.
-   * */
-  list(backend: Backend): Promise<BackupReturn[]>;
+   */
+  list(backend: Backend, opts?: ListBackupOptions): Promise<BackupReturn[]>;
 }
