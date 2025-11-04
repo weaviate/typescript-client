@@ -680,6 +680,29 @@ maybeContextualAI('Testing of the collection.generate methods with Contextual AI
     expect(response.objects[0].generative).toBeDefined();
     expect(response.objects[0].generative?.text).toBeDefined();
     expect(typeof response.objects[0].generative?.text).toBe('string');
+  });
+
+  it('should handle knowledge parameter override in runtime configuration', async () => {
+    const response = await collection.generate.nearText(
+      'machine learning',
+      {
+        singlePrompt: 'What is the custom knowledge?',
+        config: generativeParameters.contextualai({
+          model: 'v2',
+          maxTokens: 100,
+          temperature: 0.7,
+          knowledge: ['Custom knowledge override', 'Additional context for testing'],
+        }),
+      },
+      {
+        limit: 1,
+      }
+    );
+
+    expect(response.objects).toHaveLength(1);
+    expect(response.objects[0].generative).toBeDefined();
+    expect(response.objects[0].generative?.text).toBeDefined();
+    expect(typeof response.objects[0].generative?.text).toBe('string');
     expect(response.objects[0].generative?.text?.length).toBeGreaterThan(0);
   });
 

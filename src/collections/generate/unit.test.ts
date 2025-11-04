@@ -332,6 +332,7 @@ describe('Unit testing of the generativeParameters factory methods', () => {
         topP: 0.9,
         systemPrompt: 'sys',
         avoidCommentary: false,
+        knowledge: ['knowledge1', 'knowledge2'],
       });
       expect(config).toEqual<
         ModuleConfig<
@@ -347,6 +348,7 @@ describe('Unit testing of the generativeParameters factory methods', () => {
           topP: 0.9,
           systemPrompt: 'sys',
           avoidCommentary: false,
+          knowledge: ['knowledge1', 'knowledge2'],
         },
       });
     });

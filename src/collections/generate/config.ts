@@ -319,6 +319,7 @@ export const generativeParameters = {
             topP: config.topP,
             systemPrompt: config.systemPrompt,
             avoidCommentary: config.avoidCommentary,
+            knowledge: config.knowledge,
           }
         : undefined,
     };

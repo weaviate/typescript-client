@@ -182,6 +182,7 @@ export type GenerativeConfigRuntimeType<G> = G extends 'generative-anthropic'
       topP?: number;
       systemPrompt?: string;
       avoidCommentary?: boolean;
+      knowledge?: string[];
     }
   : G extends 'none'
   ? undefined
@@ -347,4 +348,5 @@ export type GenerativeContextualAIConfigRuntime = {
   topP?: number | undefined;
   systemPrompt?: string | undefined;
   avoidCommentary?: boolean | undefined;
+  knowledge?: string[] | undefined;
 };
