@@ -108,7 +108,7 @@ export type GenerativeXAIConfig = {
 
 export type GenerativeContextualAIConfig = {
   model?: string;
-  maxTokensProperty?: number;
+  maxNewTokensProperty?: number;
   temperatureProperty?: number;
   topPProperty?: number;
   systemPromptProperty?: string;

@@ -806,7 +806,7 @@ describe('Testing of the collection.config namespace', () => {
     await collection.config.update({
       generative: weaviate.reconfigure.generative.contextualai({
         model: 'v2',
-        maxTokens: 100,
+        maxNewTokens: 100,
         temperature: 0.7,
         topP: 0.9,
         systemPrompt: 'sys',
@@ -819,7 +819,7 @@ describe('Testing of the collection.config namespace', () => {
       name: 'generative-contextualai',
       config: {
         model: 'v2',
-        maxTokensProperty: 100,
+        maxNewTokensProperty: 100,
         temperatureProperty: 0.7,
         topPProperty: 0.9,
         systemPromptProperty: 'sys',

@@ -327,7 +327,7 @@ describe('Unit testing of the generativeParameters factory methods', () => {
     it('with values', () => {
       const config = generativeParameters.contextualai({
         model: 'v2',
-        maxTokens: 512,
+        maxNewTokens: 512,
         temperature: 0.7,
         topP: 0.9,
         systemPrompt: 'sys',
@@ -343,7 +343,7 @@ describe('Unit testing of the generativeParameters factory methods', () => {
         name: 'generative-contextualai',
         config: {
           model: 'v2',
-          maxTokens: 512,
+          maxNewTokens: 512,
           temperature: 0.7,
           topP: 0.9,
           systemPrompt: 'sys',

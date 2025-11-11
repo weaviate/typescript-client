@@ -314,7 +314,7 @@ export const generativeParameters = {
       config: config
         ? {
             model: config.model,
-            maxTokens: config.maxTokens,
+            maxNewTokens: config.maxNewTokens,
             temperature: config.temperature,
             topP: config.topP,
             systemPrompt: config.systemPrompt,

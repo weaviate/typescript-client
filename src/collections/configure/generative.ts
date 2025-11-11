@@ -66,7 +66,7 @@ export default {
       config: config
         ? {
             model: config.model,
-            maxTokensProperty: config.maxTokens,
+            maxNewTokensProperty: config.maxNewTokens,
             temperatureProperty: config.temperature,
             topPProperty: config.topP,
             systemPromptProperty: config.systemPrompt,

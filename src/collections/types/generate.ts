@@ -177,7 +177,7 @@ export type GenerativeConfigRuntimeType<G> = G extends 'generative-anthropic'
   : G extends 'generative-contextualai'
   ? {
       model?: string;
-      maxTokens?: number;
+      maxNewTokens?: number;
       temperature?: number;
       topP?: number;
       systemPrompt?: string;
@@ -343,7 +343,7 @@ export type GenerativeXAIConfigRuntime = GenerativeXAIConfig;
 
 export type GenerativeContextualAIConfigRuntime = {
   model?: string | undefined;
-  maxTokens?: number | undefined;
+  maxNewTokens?: number | undefined;
   temperature?: number | undefined;
   topP?: number | undefined;
   systemPrompt?: string | undefined;

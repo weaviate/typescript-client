@@ -603,7 +603,7 @@ maybeContextualAI('Testing of the collection.generate methods with Contextual AI
         vectorizers: weaviate.configure.vectors.text2VecOpenAI(),
         generative: weaviate.configure.generative.contextualai({
           model: 'v2',
-          maxTokens: 100,
+          maxNewTokens: 100,
           temperature: 0.7,
           topP: 0.9,
           systemPrompt: 'You are a helpful AI assistant.',
@@ -664,7 +664,7 @@ maybeContextualAI('Testing of the collection.generate methods with Contextual AI
         singlePrompt: 'Translate this title to French: {title}',
         config: generativeParameters.contextualai({
           model: 'v2',
-          maxTokens: 50,
+          maxNewTokens: 50,
           temperature: 0.5,
           topP: 0.8,
           systemPrompt: 'You are a translation assistant.',
@@ -689,7 +689,7 @@ maybeContextualAI('Testing of the collection.generate methods with Contextual AI
         singlePrompt: 'What is the custom knowledge?',
         config: generativeParameters.contextualai({
           model: 'v2',
-          maxTokens: 100,
+          maxNewTokens: 100,
           temperature: 0.7,
           knowledge: ['Custom knowledge override', 'Additional context for testing'],
         }),
