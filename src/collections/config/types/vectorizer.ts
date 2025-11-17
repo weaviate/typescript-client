@@ -586,6 +586,8 @@ export type Text2VecVoyageAIConfig = {
   truncate?: boolean;
   /** Whether to vectorize the collection name. */
   vectorizeCollectionName?: boolean;
+  /** The number of dimensions for the generated embeddings. */
+  dimensions?: number;
 };
 
 /**

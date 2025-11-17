@@ -1542,6 +1542,7 @@ describe('Unit testing of the vectorizer factory class', () => {
       baseURL: 'base-url',
       model: 'model',
       truncate: true,
+      dimensions: 256,
     });
     expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'text2vec-voyageai'>>({
       name: 'test',
@@ -1555,6 +1556,7 @@ describe('Unit testing of the vectorizer factory class', () => {
           baseURL: 'base-url',
           model: 'model',
           truncate: true,
+          dimensions: 256,
         },
       },
     });
