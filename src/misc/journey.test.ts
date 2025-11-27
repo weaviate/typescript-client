@@ -92,7 +92,7 @@ describe('misc endpoints', () => {
       .openidConfigurationGetter()
       .do()
       .then((res: any) => {
-        expect(res.clientId).toEqual('wcs');
+        expect(res.clientId).toEqual('Peuc12y02UA0eAED1dqSjE5HtGUrpBsx');
         expect(res.href).toContain('.well-known/openid-configuration');
         expect(res.scopes).toEqual(['openid', 'email']);
       });
