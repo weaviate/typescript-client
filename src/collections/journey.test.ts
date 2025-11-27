@@ -178,7 +178,7 @@ describe('Journey testing of the client using a WCD cluster', () => {
               vectorizer: {
                 name: 'text2vec-cohere',
                 config: {
-                  baseURL: 'https://api.cohere.ai',
+                  baseUrl: 'https://api.cohere.ai',
                   model: 'embed-multilingual-v3.0',
                   truncate: 'END',
                   vectorizeCollectionName: true,
