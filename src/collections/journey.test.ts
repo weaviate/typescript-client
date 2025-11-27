@@ -57,6 +57,7 @@ describe('Journey testing of the client using a WCD cluster', () => {
       .then(async (config) => {
         expect(config).toEqual<CollectionConfig>({
           name: collectionName,
+          description: undefined,
           generative: {
             name: 'generative-cohere',
             config: {},
@@ -85,6 +86,8 @@ describe('Journey testing of the client using a WCD cluster', () => {
             {
               name: 'name',
               dataType: 'text',
+              description: undefined,
+              nestedProperties: undefined,
               indexFilterable: true,
               indexInverted: false,
               indexRangeFilters: false,
@@ -100,6 +103,8 @@ describe('Journey testing of the client using a WCD cluster', () => {
             {
               name: 'age',
               dataType: 'int',
+              description: undefined,
+              nestedProperties: undefined,
               indexFilterable: true,
               indexInverted: false,
               indexRangeFilters: false,
@@ -115,6 +120,8 @@ describe('Journey testing of the client using a WCD cluster', () => {
             {
               name: 'location',
               dataType: 'geoCoordinates',
+              description: undefined,
+              nestedProperties: undefined,
               indexFilterable: true,
               indexInverted: false,
               indexRangeFilters: false,
@@ -130,6 +137,8 @@ describe('Journey testing of the client using a WCD cluster', () => {
             {
               name: 'dateOfBirth',
               dataType: 'date',
+              description: undefined,
+              nestedProperties: undefined,
               indexFilterable: true,
               indexInverted: false,
               indexRangeFilters: false,
@@ -165,6 +174,7 @@ describe('Journey testing of the client using a WCD cluster', () => {
           },
           vectorizers: {
             default: {
+              properties: undefined,
               vectorizer: {
                 name: 'text2vec-cohere',
                 config: {
@@ -182,7 +192,7 @@ describe('Journey testing of the client using a WCD cluster', () => {
                 dynamicEfFactor: 8,
                 ef: -1,
                 efConstruction: 128,
-                filterStrategy: 'sweeping',
+                filterStrategy: 'acorn',
                 flatSearchCutoff: 40000,
                 maxConnections: (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 26, 0)))
                   ? 64
