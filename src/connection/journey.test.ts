@@ -137,6 +137,7 @@ describe('connection', () => {
   it('makes a logged-in request with API key', async () => {
     const client = await weaviate.connectToLocal({
       port: 8085,
+      grpcPort: 50056,
       authCredentials: new ApiKey('my-secret-key'),
     });
 
@@ -153,6 +154,7 @@ describe('connection', () => {
   it('makes a logged-in request with API key as string', async () => {
     const client = await weaviate.connectToLocal({
       port: 8085,
+      grpcPort: 50056,
       authCredentials: 'my-secret-key',
     });
 
@@ -188,6 +190,7 @@ describe('connection', () => {
     const accessToken = (dummy as any).oidcAuth?.accessToken || '';
     const client = await weaviate.connectToLocal({
       port: 8085,
+      grpcPort: 50056,
       authCredentials: new AuthAccessTokenCredentials({
         accessToken: accessToken,
         expiresIn: 900,
@@ -254,6 +257,7 @@ describe('connection', () => {
     try {
       await weaviate.connectToLocal({
         port: 8085,
+        grpcPort: 50056,
       });
       throw new Error('Promise should have been rejected');
     } catch (error: any) {

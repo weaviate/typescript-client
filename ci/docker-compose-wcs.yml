@@ -13,8 +13,10 @@ services:
     image: semitechnologies/weaviate:${WEAVIATE_VERSION}
     ports:
       - 8085:8085
+      - 50056:50056
     restart: on-failure:0
     environment:
+      GRPC_PORT: 50056
       PERSISTENCE_DATA_PATH: '/var/lib/weaviate'
       AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: 'false'
       AUTHENTICATION_OIDC_ENABLED: 'true'
