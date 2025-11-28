@@ -147,6 +147,8 @@ describe('Mock testing of generate with runtime config', () => {
     generativeParameters.azureOpenAI(model),
     generativeParameters.cohere(),
     generativeParameters.cohere(model),
+    generativeParameters.contextualai(),
+    generativeParameters.contextualai(model),
     generativeParameters.databricks(),
     generativeParameters.databricks(model),
     generativeParameters.friendliai(),
