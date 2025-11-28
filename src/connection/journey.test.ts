@@ -9,31 +9,38 @@ import Connection from './index.js';
 import { WeaviateStartUpError } from '../errors.js';
 import weaviate from '../index.js';
 
+const check = (cred?: string) => {
+  if (cred == undefined || cred == '') {
+    console.warn('Skipping because `WCS_DUMMY_CI_PW` is not set');
+    return it.skip;
+  } else {
+    return it;
+  }
+};
+
 describe('connection', () => {
-  it('makes a logged-in request when client host param has trailing slashes', async () => {
-    if (process.env.WCS_DUMMY_CI_PW == undefined || process.env.WCS_DUMMY_CI_PW == '') {
-      console.warn('Skipping because `WCS_DUMMY_CI_PW` is not set');
-      return Promise.resolve();
-    }
-
-    const client = await weaviate.connectToLocal({
-      port: 8085,
-      authCredentials: new AuthUserPasswordCredentials({
-        username: 'oidc-test-user@weaviate.io',
-        password: process.env.WCS_DUMMY_CI_PW,
-        silentRefresh: false,
-      }),
-    });
-
-    return client
-      .getMeta()
-      .then((res) => {
-        expect(res.version).toBeDefined();
-      })
-      .catch((e) => {
-        throw new Error('it should not have errord: ' + e);
+  check(process.env.WCS_DUMMY_CI_PW)(
+    'makes a logged-in request when client host param has trailing slashes',
+    async () => {
+      const client = await weaviate.connectToLocal({
+        port: 8085,
+        authCredentials: new AuthUserPasswordCredentials({
+          username: 'oidc-test-user@weaviate.io',
+          password: process.env.WCS_DUMMY_CI_PW,
+          silentRefresh: false,
+        }),
       });
-  });
+
+      return client
+        .getMeta()
+        .then((res) => {
+          expect(res.version).toBeDefined();
+        })
+        .catch((e) => {
+          throw new Error('it should not have errord: ' + e);
+        });
+    }
+  );
 
   // it('makes an Azure logged-in request with client credentials', async () => {
   //   if (process.env.AZURE_CLIENT_SECRET == undefined || process.env.AZURE_CLIENT_SECRET == '') {
@@ -59,37 +66,30 @@ describe('connection', () => {
   //     });
   // });
 
-  it('makes an Okta logged-in request with client credentials', async () => {
-    if (process.env.OKTA_CLIENT_SECRET == undefined || process.env.OKTA_CLIENT_SECRET == '') {
-      console.warn('Skipping because `OKTA_CLIENT_SECRET` is not set');
-      return Promise.resolve();
-    }
-
-    const client = await weaviate.connectToLocal({
-      port: 8082,
-      authCredentials: new AuthClientCredentials({
-        clientSecret: process.env.OKTA_CLIENT_SECRET,
-        scopes: ['some_scope'],
-        silentRefresh: false,
-      }),
-    });
-
-    return client
-      .getMeta()
-      .then((res) => {
-        expect(res.version).toBeDefined();
-      })
-      .catch((e) => {
-        throw new Error('it should not have errord: ' + e);
+  check(process.env.OKTA_CLIENT_SECRET)(
+    'makes an Okta logged-in request with client credentials',
+    async () => {
+      const client = await weaviate.connectToLocal({
+        port: 8082,
+        authCredentials: new AuthClientCredentials({
+          clientSecret: process.env.OKTA_CLIENT_SECRET!,
+          scopes: ['some_scope'],
+          silentRefresh: false,
+        }),
       });
-  });
 
-  it('makes an Okta logged-in request with username/password', async () => {
-    if (process.env.OKTA_DUMMY_CI_PW == undefined || process.env.OKTA_DUMMY_CI_PW == '') {
-      console.warn('Skipping because `OKTA_DUMMY_CI_PW` is not set');
-      return Promise.resolve();
+      return client
+        .getMeta()
+        .then((res) => {
+          expect(res.version).toBeDefined();
+        })
+        .catch((e) => {
+          throw new Error('it should not have errord: ' + e);
+        });
     }
+  );
 
+  check(process.env.OKTA_DUMMY_CI_PW)('makes an Okta logged-in request with username/password', async () => {
     const client = await weaviate.connectToLocal({
       port: 8083,
       authCredentials: new AuthUserPasswordCredentials({
@@ -109,12 +109,7 @@ describe('connection', () => {
       });
   });
 
-  it('makes a WCS logged-in request with username/password', async () => {
-    if (process.env.WCS_DUMMY_CI_PW == undefined || process.env.WCS_DUMMY_CI_PW == '') {
-      console.warn('Skipping because `WCS_DUMMY_CI_PW` is not set');
-      return Promise.resolve();
-    }
-
+  check(process.env.WCS_DUMMY_CI_PW)('makes a WCS logged-in request with username/password', async () => {
     const client = await weaviate.connectToLocal({
       port: 8085,
       authCredentials: new AuthUserPasswordCredentials({
@@ -137,6 +132,7 @@ describe('connection', () => {
   it('makes a logged-in request with API key', async () => {
     const client = await weaviate.connectToLocal({
       port: 8085,
+      grpcPort: 50056,
       authCredentials: new ApiKey('my-secret-key'),
     });
 
@@ -153,6 +149,7 @@ describe('connection', () => {
   it('makes a logged-in request with API key as string', async () => {
     const client = await weaviate.connectToLocal({
       port: 8085,
+      grpcPort: 50056,
       authCredentials: 'my-secret-key',
     });
 
@@ -166,12 +163,7 @@ describe('connection', () => {
       });
   });
 
-  it('makes a logged-in request with access token', async () => {
-    if (process.env.WCS_DUMMY_CI_PW == undefined || process.env.WCS_DUMMY_CI_PW == '') {
-      console.warn('Skipping because `WCS_DUMMY_CI_PW` is not set');
-      return;
-    }
-
+  check(process.env.WCS_DUMMY_CI_PW)('makes a logged-in request with access token', async () => {
     const dummy = new Connection({
       scheme: 'http',
       host: 'localhost:8085',
@@ -188,6 +180,7 @@ describe('connection', () => {
     const accessToken = (dummy as any).oidcAuth?.accessToken || '';
     const client = await weaviate.connectToLocal({
       port: 8085,
+      grpcPort: 50056,
       authCredentials: new AuthAccessTokenCredentials({
         accessToken: accessToken,
         expiresIn: 900,
@@ -205,12 +198,7 @@ describe('connection', () => {
       });
   });
 
-  it('uses refresh token to fetch new access token', async () => {
-    if (process.env.WCS_DUMMY_CI_PW == undefined || process.env.WCS_DUMMY_CI_PW == '') {
-      console.warn('Skipping because `WCS_DUMMY_CI_PW` is not set');
-      return;
-    }
-
+  check(process.env.WCS_DUMMY_CI_PW)('uses refresh token to fetch new access token', async () => {
     const dummy = new Connection({
       scheme: 'http',
       host: 'localhost:8085',
@@ -237,16 +225,14 @@ describe('connection', () => {
     // force the use of refreshToken
     (conn as any).oidcAuth?.resetExpiresAt();
 
-    return conn
-      .login()
-      .then((resp) => {
-        expect(resp).toBeDefined();
-        expect(resp != '').toBeTruthy();
-        conn.oidcAuth?.stopTokenRefresh();
-      })
-      .catch((e: any) => {
-        throw new Error('it should not have errord: ' + e);
-      });
+    return conn.login().then((resp) => {
+      expect(resp).toBeDefined();
+      expect(resp != '').toBeTruthy();
+      conn.oidcAuth?.stopTokenRefresh();
+    });
+    // .catch((e: any) => {
+    //   throw new Error('it should not have errord: ' + e);
+    // });
   });
 
   it('fails to access auth-enabled server without client auth', async () => {
@@ -254,6 +240,7 @@ describe('connection', () => {
     try {
       await weaviate.connectToLocal({
         port: 8085,
+        grpcPort: 50056,
       });
       throw new Error('Promise should have been rejected');
     } catch (error: any) {
