@@ -80,8 +80,6 @@ jobs:
       fail-fast: false
       matrix:
         versions: [
-          { node: "22.x", weaviate: $WEAVIATE_131},
-          { node: "22.x", weaviate: $WEAVIATE_132},
           { node: "22.x", weaviate: $WEAVIATE_133},
         ]
     steps:
