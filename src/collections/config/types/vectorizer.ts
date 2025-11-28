@@ -153,6 +153,8 @@ export type Multi2VecCohereConfig = {
   imageFields?: string[];
   /** The specific model to use. */
   model?: string;
+  /** The number of dimensions for the generated embeddings. */
+  dimensions?: number;
   /** The text fields used when vectorizing. */
   textFields?: string[];
   /** The truncation strategy to use. */
@@ -371,6 +373,8 @@ export type Text2VecCohereConfig = {
   baseURL?: string;
   /** The model to use. */
   model?: string;
+  /** The number of dimensions for the generated embeddings. */
+  dimensions?: number;
   /** Whether to truncate the input texts to fit within the context length. */
   truncate?: boolean;
   /** Whether to vectorize the collection name. */
@@ -586,6 +590,8 @@ export type Text2VecVoyageAIConfig = {
   truncate?: boolean;
   /** Whether to vectorize the collection name. */
   vectorizeCollectionName?: boolean;
+  /** The number of dimensions for the generated embeddings. */
+  dimensions?: number;
 };
 
 /**

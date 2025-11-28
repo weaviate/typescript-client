@@ -21,11 +21,17 @@ export type BackupReturn = BackupStatusReturn & {
   backend: Backend;
   /** The collections that were included in the backup */
   collections: string[];
+  /** Timestamp when the backup process started  */
+  startedAt?: Date;
+  /** Timestamp when the backup process completed (successfully or with failure) */
+  completedAt?: Date;
+  /** Size of the backup in Gibs */
+  size?: number;
 };
 
 /** Configuration options available when creating a backup */
 export type BackupConfigCreate = {
-  /** The size of the chunks to use for the backup. */
+  /** Deprecated: This parameter no longer has any effect. (The size of the chunks to use for the backup.) */
   chunkSize?: number;
   /** The standard of compression to use for the backup. */
   compressionLevel?: BackupCompressionLevel;
@@ -71,4 +77,9 @@ export type BackupCancelArgs = {
   backupId: string;
   /** The backend to use for the backup. */
   backend: Backend;
+};
+
+/** The options available when listing backups. */
+export type ListBackupOptions = {
+  startedAtAsc?: boolean;
 };
