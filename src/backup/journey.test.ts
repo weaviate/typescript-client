@@ -693,7 +693,6 @@ describe('creates backup with valid compression config values', () => {
       .withWaitForCompletion(true)
       .withConfig({
         CPUPercentage: 80,
-        ChunkSize: 512,
         CompressionLevel: 'BestSpeed',
       })
       .do()
@@ -751,44 +750,6 @@ describe('fails creating backup with invalid compression config', () => {
       .catch((err: Error) => {
         expect(err.message).toContain('422');
         expect(err.message).toContain('CPUPercentage');
-      });
-  });
-
-  it('fails creating backup with ChunkSize too high', () => {
-    return client.backup
-      .creator()
-      .withIncludeClassNames(PIZZA_CLASS_NAME)
-      .withBackend(BACKEND)
-      .withBackupId(BACKUP_ID)
-      .withConfig({
-        ChunkSize: 513, // Max is 512
-      })
-      .do()
-      .then(() => {
-        throw new Error('should fail on create backup');
-      })
-      .catch((err: Error) => {
-        expect(err.message).toContain('422');
-        expect(err.message).toContain('ChunkSize');
-      });
-  });
-
-  it('fails creating backup with ChunkSize too low', () => {
-    return client.backup
-      .creator()
-      .withIncludeClassNames(PIZZA_CLASS_NAME)
-      .withBackend(BACKEND)
-      .withBackupId(BACKUP_ID)
-      .withConfig({
-        ChunkSize: 1, // Min is 2
-      })
-      .do()
-      .then(() => {
-        throw new Error('should fail on create backup');
-      })
-      .catch((err: Error) => {
-        expect(err.message).toContain('422');
-        expect(err.message).toContain('ChunkSize');
       });
   });
 
