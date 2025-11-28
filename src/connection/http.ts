@@ -435,7 +435,5 @@ const getAuthHeaders = (config: InternalConnectionParams, bearerToken: string) =
     ? {
         Authorization: `Bearer ${bearerToken}`,
         'X-Weaviate-Cluster-Url': config.host,
-        //  keeping for backwards compatibility for older clusters for now. On newer clusters, Embedding Service reuses Authorization header.
-        'X-Weaviate-Api-Key': bearerToken,
       }
     : undefined;

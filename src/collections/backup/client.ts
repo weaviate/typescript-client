@@ -118,7 +118,6 @@ export const backup = (connection: Connection): Backup => {
       }
       if (args.config) {
         builder = builder.withConfig({
-          ChunkSize: args.config.chunkSize,
           CompressionLevel: args.config.compressionLevel,
           CPUPercentage: args.config.cpuPercentage,
         });
