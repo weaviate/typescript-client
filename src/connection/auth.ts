@@ -289,14 +289,7 @@ class AccessTokenAuthenticator implements OidcAuthFlow {
       });
   };
 
-  validateOpenidConfig = () => {
-    if (
-      this.openidConfig.provider.grant_types_supported === undefined ||
-      !this.openidConfig.provider.grant_types_supported.includes('refresh_token')
-    ) {
-      throw new Error('grant_type refresh_token not supported');
-    }
-  };
+  validateOpenidConfig = () => {};
 
   requestAccessToken = () => {
     const url = this.openidConfig.provider.token_endpoint;

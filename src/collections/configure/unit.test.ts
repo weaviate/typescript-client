@@ -333,6 +333,7 @@ describe('Unit testing of the vectorizer factory class', () => {
     const config = configure.vectors.multi2VecCohere({
       name: 'test',
       model: 'model',
+      dimensions: 512,
       imageFields: [
         { name: 'field1', weight: 0.1 },
         { name: 'field2', weight: 0.2 },
@@ -352,6 +353,7 @@ describe('Unit testing of the vectorizer factory class', () => {
         name: 'multi2vec-cohere',
         config: {
           model: 'model',
+          dimensions: 512,
           imageFields: ['field1', 'field2'],
           textFields: ['field3', 'field4'],
           weights: {
@@ -1004,6 +1006,7 @@ describe('Unit testing of the vectorizer factory class', () => {
       name: 'test',
       baseURL: 'base-url',
       model: 'model',
+      dimensions: 512,
       truncate: true,
     });
     expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'text2vec-cohere'>>({
@@ -1017,6 +1020,7 @@ describe('Unit testing of the vectorizer factory class', () => {
         config: {
           baseURL: 'base-url',
           model: 'model',
+          dimensions: 512,
           truncate: true,
         },
       },
@@ -1544,6 +1548,7 @@ describe('Unit testing of the vectorizer factory class', () => {
       baseURL: 'base-url',
       model: 'model',
       truncate: true,
+      dimensions: 256,
     });
     expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'text2vec-voyageai'>>({
       name: 'test',
@@ -1557,6 +1562,7 @@ describe('Unit testing of the vectorizer factory class', () => {
           baseURL: 'base-url',
           model: 'model',
           truncate: true,
+          dimensions: 256,
         },
       },
     });

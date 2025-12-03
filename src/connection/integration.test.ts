@@ -1,4 +1,5 @@
 import { StartedWeaviateContainer, WeaviateContainer } from '@testcontainers/weaviate';
+import { Wait } from 'testcontainers';
 import weaviate from '..';
 import { WeaviateStartUpError } from '../errors';
 import { Meta } from '../openapi/types';
@@ -14,6 +15,7 @@ describe('Integration testing of the ConnectionGRPC class', () => {
 
   beforeAll(async () => {
     container = await new WeaviateContainer(`semitechnologies/weaviate:${process.env.WEAVIATE_VERSION}`)
+      .withWaitStrategy(Wait.forHttp('/v1/.well-known/ready', 8080).withStartupTimeout(10 * 1000))
       .withExposedPorts(8080, 50051)
       .withEnvironment({
         GRPC_MAX_MESSAGE_SIZE: '1',

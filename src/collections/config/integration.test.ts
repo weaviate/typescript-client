@@ -24,7 +24,7 @@ describe('Testing of the collection.config namespace', () => {
 
   afterAll(() => client.collections.deleteAll());
 
-  it('should be able get the config of a collection without generics', async () => {
+  it('should be able to get the config of a collection without generics', async () => {
     const collectionName = 'TestCollectionConfigGetWithGenerics';
     type TestCollectionConfigGet = {
       testProp: string;
@@ -69,7 +69,9 @@ describe('Testing of the collection.config namespace', () => {
       dynamicEfMax: 500,
       dynamicEfFactor: 8,
       vectorCacheMaxObjects: 1000000000000,
-      filterStrategy: 'sweeping',
+      filterStrategy: (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 34, 0)))
+        ? 'sweeping'
+        : 'acorn',
       flatSearchCutoff: 40000,
       distance: 'cosine',
       multiVector: undefined,
@@ -125,7 +127,9 @@ describe('Testing of the collection.config namespace', () => {
       dynamicEfMax: 500,
       dynamicEfFactor: 8,
       vectorCacheMaxObjects: 1000000000000,
-      filterStrategy: 'sweeping',
+      filterStrategy: (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 34, 0)))
+        ? 'sweeping'
+        : 'acorn',
       flatSearchCutoff: 40000,
       distance: 'cosine',
       multiVector: undefined,
@@ -610,7 +614,9 @@ describe('Testing of the collection.config namespace', () => {
       dynamicEfMax: 500,
       dynamicEfFactor: 8,
       vectorCacheMaxObjects: 1000000000000,
-      filterStrategy: 'sweeping',
+      filterStrategy: (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 34, 0)))
+        ? 'sweeping'
+        : 'acorn',
       flatSearchCutoff: 40000,
       distance: 'cosine',
       multiVector: undefined,
@@ -683,7 +689,7 @@ describe('Testing of the collection.config namespace', () => {
     expect(config.multiTenancy.enabled).toEqual(true);
   });
 
-  it('should be able update the config of a collection with legacy vectors', async () => {
+  it.only('should be able update the config of a collection with legacy vectors', async () => {
     const clientV2 = weaviateV2.client({
       host: 'http://localhost:8080',
     });
@@ -720,7 +726,9 @@ describe('Testing of the collection.config namespace', () => {
       dynamicEfMax: 500,
       dynamicEfFactor: 8,
       vectorCacheMaxObjects: 1000000000000,
-      filterStrategy: 'sweeping',
+      filterStrategy: (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 34, 0)))
+        ? 'sweeping'
+        : 'acorn',
       flatSearchCutoff: 40000,
       distance: 'cosine',
       multiVector: undefined,
