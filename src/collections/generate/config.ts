@@ -308,18 +308,13 @@ export const generativeParameters = {
     'generative-contextualai',
     GenerativeConfigRuntimeType<'generative-contextualai'> | undefined
   > {
-    // Contextual AI does not require special GRPC wrappers; pass primitives directly
+    const { knowledge, ...rest } = config || {};
     return {
       name: 'generative-contextualai',
       config: config
         ? {
-            model: config.model,
-            maxNewTokens: config.maxNewTokens,
-            temperature: config.temperature,
-            topP: config.topP,
-            systemPrompt: config.systemPrompt,
-            avoidCommentary: config.avoidCommentary,
-            knowledge: config.knowledge,
+            ...rest,
+            knowledge: knowledge ? TextArray.fromPartial({ values: knowledge }) : undefined,
           }
         : undefined,
     };

@@ -1952,9 +1952,9 @@ describe('Unit testing of the generative factory class', () => {
   it('should create the correct GenerativeContextualAIConfig type with all values', () => {
     const config = configure.generative.contextualai({
       model: 'v2',
-      maxNewTokens: 100,
       temperature: 0.7,
       topP: 0.9,
+      maxNewTokens: 100,
       systemPrompt:
         'You are a helpful assistant that provides accurate and informative responses based on the given context.',
       avoidCommentary: false,
@@ -1963,12 +1963,12 @@ describe('Unit testing of the generative factory class', () => {
       name: 'generative-contextualai',
       config: {
         model: 'v2',
-        maxNewTokensProperty: 100,
-        temperatureProperty: 0.7,
-        topPProperty: 0.9,
-        systemPromptProperty:
+        temperature: 0.7,
+        topP: 0.9,
+        maxNewTokens: 100,
+        systemPrompt:
           'You are a helpful assistant that provides accurate and informative responses based on the given context.',
-        avoidCommentaryProperty: false,
+        avoidCommentary: false,
       },
     });
   });

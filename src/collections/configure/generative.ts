@@ -66,11 +66,11 @@ export default {
       config: config
         ? {
             model: config.model,
-            maxNewTokensProperty: config.maxNewTokens,
-            temperatureProperty: config.temperature,
-            topPProperty: config.topP,
-            systemPromptProperty: config.systemPrompt,
-            avoidCommentaryProperty: config.avoidCommentary,
+            temperature: config.temperature,
+            topP: config.topP,
+            maxNewTokens: config.maxNewTokens,
+            systemPrompt: config.systemPrompt,
+            avoidCommentary: config.avoidCommentary,
           }
         : undefined,
     };

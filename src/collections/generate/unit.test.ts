@@ -343,12 +343,12 @@ describe('Unit testing of the generativeParameters factory methods', () => {
         name: 'generative-contextualai',
         config: {
           model: 'v2',
-          maxNewTokens: 512,
           temperature: 0.7,
           topP: 0.9,
+          maxNewTokens: 512,
           systemPrompt: 'sys',
           avoidCommentary: false,
-          knowledge: ['knowledge1', 'knowledge2'],
+          knowledge: { values: ['knowledge1', 'knowledge2'] },
         },
       });
     });
