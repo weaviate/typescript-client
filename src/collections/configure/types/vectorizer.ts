@@ -227,6 +227,8 @@ export type Multi2VecVoyageAIConfigCreate = Omit<Multi2VecVoyageAIConfig, Multi2
   imageFields?: string[] | Multi2VecField[];
   /** The text fields to use in vectorization. Can be string of `Multi2VecField` type. If string, weight 0 will be assumed. */
   textFields?: string[] | Multi2VecField[];
+  /** The video fields to use in vectorization. Can be string of `Multi2VecField` type. If string, weight 0 will be assumed. */
+  videoFields?: string[] | Multi2VecField[];
 };
 
 export type Ref2VecCentroidConfigCreate = Ref2VecCentroidConfig;
