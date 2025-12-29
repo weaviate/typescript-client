@@ -81,7 +81,7 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
         moduleConfig[config.reranker.name] = config.reranker.config ? config.reranker.config : {};
       }
 
-      let objectTtlConfig: WeaviateObjectTTLConfig | undefined = undefined;
+      let objectTtlConfig: WeaviateObjectTTLConfig | undefined;
       if (objectTTL) {
         objectTtlConfig = {
           enabled: objectTTL.enabled,
