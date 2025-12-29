@@ -774,6 +774,17 @@ export interface definitions {
     /** @description Existing tenants should (not) be turned HOT implicitly when they are accessed and in another activity status (default: `false`). */
     autoTenantActivation?: boolean;
   };
+  /** @description Configuration of objects' time-to-live */
+  ObjectTtlConfig: {
+    /** @description Whether or not object ttl is enabled for this collection (default: `false`). */
+    enabled?: boolean;
+    /** @description Interval (in seconds) to be added to `deleteOn` value, denoting object's expiration time. Has to be positive for `deleteOn` set to `_creationTimeUnix` or `_lastUpdateTimeUnix`, any for custom property (default: `0`). */
+    defaultTtl?: number;
+    /** @description Name of the property holding base time to compute object's expiration time (ttl = value of deleteOn property + defaultTtl). Can be set to `_creationTimeUnix`, `_lastUpdateTimeUnix` or custom property of `date` datatype. */
+    deleteOn?: string;
+    /** @description Whether remove from resultset expired, but not yet deleted by background process objects (default: `false`). */
+    filterExpiredObjects?: boolean;
+  };
   /** @description JSON object value. */
   JsonObject: { [key: string]: unknown };
   /** @description Contains meta information of the current Weaviate instance. */
@@ -1066,6 +1077,7 @@ export interface definitions {
     replicationConfig?: definitions['ReplicationConfig'];
     invertedIndexConfig?: definitions['InvertedIndexConfig'];
     multiTenancyConfig?: definitions['MultiTenancyConfig'];
+    objectTtlConfig?: definitions['ObjectTtlConfig'];
     /** @description Specify how the vectors for this collection should be determined. The options are either `none` - this means you have to import a vector with each object yourself - or the name of a module that provides vectorization capabilities, such as `text2vec-weaviate`. If left empty, it will use the globally configured default ([`DEFAULT_VECTORIZER_MODULE`](https://docs.weaviate.io/deploy/configuration/env-vars)) which can itself either be `none` or a specific module. */
     vectorizer?: string;
     /** @description Configuration specific to modules in a collection context. */
@@ -1440,6 +1452,11 @@ export interface definitions {
     batchStats?: definitions['BatchStats'];
     /** @description The list of the shards with it's statistics. */
     shards?: definitions['NodeShardStatus'][];
+    /**
+     * @description Which mode of operation the node is running in.
+     * @enum {string}
+     */
+    operationalMode?: 'ReadWrite' | 'WriteOnly' | 'ReadOnly' | 'ScaleOut';
   };
   /** @description The status of all of the Weaviate nodes */
   NodesStatusResponse: {
