@@ -1524,3 +1524,172 @@ describe('Testing of the collection.query methods with a multi-tenancy collectio
 //     expect(objects[1].properties.text).toEqual('This is a test');
 //   });
 // });
+
+const maybeContextualAIReranker = process.env.CONTEXTUALAI_API_KEY ? describe : describe.skip;
+
+maybeContextualAIReranker('Testing of the collection.query methods with Contextual AI reranker', () => {
+  let client: WeaviateClient;
+  let collection: Collection<TestCollectionContextualAIReranker, 'TestCollectionContextualAIReranker'>;
+  const collectionName = 'TestCollectionContextualAIReranker';
+  let id1: string;
+  let id2: string;
+
+  type TestCollectionContextualAIReranker = {
+    title: string;
+    content: string;
+    category: string;
+  };
+
+  afterAll(() => {
+    return client.collections.delete(collectionName).catch((err) => {
+      console.error(err);
+      throw err;
+    });
+  });
+
+  beforeAll(async () => {
+    client = await weaviate.connectToLocal({
+      port: 8086,
+      grpcPort: 50057,
+      headers: {
+        'X-Contextual-Api-Key': process.env.CONTEXTUALAI_API_KEY!,
+        'X-Openai-Api-Key': process.env.OPENAI_APIKEY!,
+      },
+    });
+    collection = client.collections.use(collectionName);
+
+    const result = await client.collections.create({
+      name: collectionName,
+      properties: [
+        {
+          name: 'title',
+          dataType: 'text',
+        },
+        {
+          name: 'content',
+          dataType: 'text',
+        },
+        {
+          name: 'category',
+          dataType: 'text',
+        },
+      ],
+      vectorizers: weaviate.configure.vectors.text2VecOpenAI(),
+      reranker: weaviate.configure.reranker.contextualai({
+        model: 'ctxl-rerank-v2-instruct-multilingual',
+        instruction: 'Rank documents by relevance to the query',
+        topN: 10,
+      }),
+    });
+
+    const doc1 = await result.data.insert({
+      title: 'Machine Learning Fundamentals',
+      content:
+        'Machine learning is a subset of artificial intelligence that enables computers to learn and improve from experience without being explicitly programmed.',
+      category: 'AI/ML',
+    });
+    id1 = doc1;
+
+    const doc2 = await result.data.insert({
+      title: 'Natural Language Processing',
+      content:
+        'Natural Language Processing (NLP) is a branch of artificial intelligence that helps computers understand, interpret and manipulate human language.',
+      category: 'NLP',
+    });
+    id2 = doc2;
+  });
+
+  it('should rerank documents successfully and return relevance scores', async () => {
+    const response = await collection.query.nearText('What is machine learning and AI?', {
+      limit: 2,
+      rerank: {
+        property: 'content',
+        query: 'What is machine learning and AI?',
+      },
+    });
+
+    expect(response.objects).toHaveLength(2);
+    expect(response.objects[0].metadata?.rerankScore).toBeDefined();
+    expect(response.objects[1].metadata?.rerankScore).toBeDefined();
+    expect(response.objects[0].metadata?.rerankScore).toBeGreaterThan(0);
+    expect(response.objects[1].metadata?.rerankScore).toBeGreaterThan(0);
+  });
+
+  it('should handle reranking with custom instruction parameter', async () => {
+    const response = await collection.query.nearText('artificial intelligence', {
+      limit: 2,
+      rerank: {
+        property: 'title',
+        query: 'artificial intelligence',
+      },
+    });
+
+    expect(response.objects).toHaveLength(2);
+    expect(response.objects[0].metadata?.rerankScore).toBeDefined();
+    expect(response.objects[0].metadata?.rerankScore).toBeGreaterThan(0);
+  });
+
+  it('should validate reranking with different content properties and score ranges', async () => {
+    const response = await collection.query.nearText('computer science topics', {
+      limit: 2,
+      rerank: {
+        property: 'category',
+        query: 'computer science topics',
+      },
+    });
+
+    expect(response.objects).toHaveLength(2);
+    expect(response.objects[0].metadata?.rerankScore).toBeDefined();
+    expect(response.objects[1].metadata?.rerankScore).toBeDefined();
+
+    // Validate score ranges are within expected bounds
+    expect(response.objects[0].metadata?.rerankScore).toBeGreaterThanOrEqual(0);
+    expect(response.objects[0].metadata?.rerankScore).toBeLessThanOrEqual(1);
+    expect(response.objects[1].metadata?.rerankScore).toBeGreaterThanOrEqual(0);
+    expect(response.objects[1].metadata?.rerankScore).toBeLessThanOrEqual(1);
+  });
+
+  it('should handle reranker configuration errors gracefully', async () => {
+    // Test with invalid reranker configuration - using valid property but invalid query
+    await expect(
+      collection.query.nearText('test query', {
+        limit: 1,
+        rerank: {
+          property: 'content',
+          query: null as any, // Invalid query to trigger error
+        },
+      })
+    ).rejects.toThrow();
+  });
+
+  it('should validate reranker parameter constraints', async () => {
+    // Test with empty query
+    const response = await collection.query.nearText('', {
+      limit: 2,
+      rerank: {
+        property: 'content',
+        query: '',
+      },
+    });
+
+    expect(response.objects).toHaveLength(2);
+    expect(response.objects[0].metadata?.rerankScore).toBeDefined();
+  });
+
+  it('should return proper rerank score format and structure', async () => {
+    const response = await collection.query.nearText('machine learning', {
+      limit: 1,
+      rerank: {
+        property: 'title',
+        query: 'machine learning',
+      },
+    });
+
+    expect(response.objects).toHaveLength(1);
+    expect(response.objects[0].metadata).toBeDefined();
+    expect(response.objects[0].metadata?.rerankScore).toBeDefined();
+    expect(typeof response.objects[0].metadata?.rerankScore).toBe('number');
+    expect(response.objects[0].metadata?.rerankScore).toBeGreaterThan(0);
+    expect(response.objects[0].metadata?.rerankScore).toBeLessThanOrEqual(1);
+  });
+});

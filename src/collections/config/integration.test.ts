@@ -10,6 +10,7 @@ import {
   PropertyConfig,
   RQConfig,
   RerankerCohereConfig,
+  RerankerContextualAIConfig,
   VectorIndexConfigDynamic,
   VectorIndexConfigHNSW,
 } from './types/index.js';
@@ -793,6 +794,44 @@ describe('Testing of the collection.config namespace', () => {
       name: 'reranker-cohere',
       config: {
         model: 'model',
+      },
+    });
+
+    await collection.config.update({
+      reranker: weaviate.reconfigure.reranker.contextualai({
+        model: 'ctxl-rerank-v2-instruct-multilingual',
+      }),
+    });
+
+    config = await collection.config.get();
+    expect(config.reranker).toEqual<ModuleConfig<'reranker-contextualai', RerankerContextualAIConfig>>({
+      name: 'reranker-contextualai',
+      config: {
+        model: 'ctxl-rerank-v2-instruct-multilingual',
+      },
+    });
+
+    await collection.config.update({
+      generative: weaviate.reconfigure.generative.contextualai({
+        model: 'v2',
+        temperature: 0.7,
+        topP: 0.9,
+        maxNewTokens: 100,
+        systemPrompt: 'sys',
+        avoidCommentary: false,
+      }),
+    });
+
+    config = await collection.config.get();
+    expect(config.generative).toEqual<ModuleConfig<'generative-contextualai', any>>({
+      name: 'generative-contextualai',
+      config: {
+        model: 'v2',
+        temperature: 0.7,
+        topP: 0.9,
+        maxNewTokens: 100,
+        systemPrompt: 'sys',
+        avoidCommentary: false,
       },
     });
   });
