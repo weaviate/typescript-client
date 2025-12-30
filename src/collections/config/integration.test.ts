@@ -931,7 +931,7 @@ describe('Testing of the collection.config namespace', () => {
     const collectionName = 'TestObjectTTL';
     const collection = await client.collections.create({
       name: collectionName,
-      objectTTL: weaviate.configure.objectTTL({ deleteOnCreatedTime: true, defaultTTLSeconds: 120 }),
+      objectTTL: weaviate.configure.objectTTL.deleteByCreationTime({ defaultTTLSeconds: 120 }),
     });
 
     const created = await collection.config.get();
@@ -941,7 +941,7 @@ describe('Testing of the collection.config namespace', () => {
     expect(created.objectTTL.defaultTTLSeconds).toEqual(120);
 
     await collection.config.update({
-      objectTTL: weaviate.reconfigure.objectTTL({ deleteOnUpdateTime: true, defaultTTLSeconds: 400 }),
+      objectTTL: weaviate.reconfigure.objectTTL.deleteByUpdateTime({ defaultTTLSeconds: 400 }),
     });
 
     const updated = await collection.config.get();
@@ -951,7 +951,7 @@ describe('Testing of the collection.config namespace', () => {
     expect(updated.objectTTL.defaultTTLSeconds).toEqual(400);
 
     await collection.config.update({
-      objectTTL: weaviate.reconfigure.objectTTL({ enabled: false }),
+      objectTTL: weaviate.reconfigure.objectTTL.disable(),
     });
 
     const disabled = await collection.config.get();

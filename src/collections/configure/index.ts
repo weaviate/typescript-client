@@ -119,25 +119,38 @@ const configure = {
           : undefined,
     };
   },
-  objectTTL: (options?: {
-    enabled?: boolean;
-    deleteOn?: string;
-    deleteOnCreatedTime?: boolean;
-    deleteOnUpdateTime?: boolean;
-    defaultTTLSeconds?: number;
-    filterExpiredObjects?: boolean;
-  }): ObjectTTLConfigCreate => {
-    return options
-      ? {
-          ...options,
-          enabled: parseWithDefault(options.enabled, true),
-          deleteOn: options.deleteOnCreatedTime
-            ? '_creationTimeUnix'
-            : options.deleteOnUpdateTime
-            ? '_lastUpdateTimeUnix'
-            : options.deleteOn,
-        }
-      : { enabled: true };
+  objectTTL: {
+    deleteByCreationTime: (options: {
+      defaultTTLSeconds: number;
+      filterExpiredObjects?: boolean;
+    }): ObjectTTLConfigCreate => {
+      return {
+        enabled: true,
+        deleteOn: '_creationTimeUnix',
+        ...options,
+      };
+    },
+    deleteByUpdateTime: (options: {
+      defaultTTLSeconds: number;
+      filterExpiredObjects?: boolean;
+    }): ObjectTTLConfigCreate => {
+      return {
+        enabled: true,
+        deleteOn: '_lastUpdateTimeUnix',
+        ...options,
+      };
+    },
+    deleteByDateProperty: (options: {
+      property: string;
+      defaultTTLSeconds?: number;
+      filterExpiredObjects?: boolean;
+    }): ObjectTTLConfigCreate => {
+      return {
+        enabled: true,
+        deleteOn: options.property,
+        ...options,
+      };
+    },
   },
   /**
    * Create a `MultiTenancyConfigCreate` object to be used when defining the multi-tenancy configuration of your collection.
@@ -319,25 +332,38 @@ const reconfigure = {
       autoTenantCreation: options.autoTenantCreation,
     };
   },
-  objectTTL: (options?: {
-    enabled?: boolean;
-    deleteOn?: string;
-    deleteOnCreatedTime?: boolean;
-    deleteOnUpdateTime?: boolean;
-    defaultTTLSeconds?: number;
-    filterExpiredObjects?: boolean;
-  }): ObjectTTLConfigUpdate => {
-    return options
-      ? {
-          ...options,
-          enabled: options.enabled ?? true, // default to true if enabled: undefined
-          deleteOn: options.deleteOnCreatedTime
-            ? '_creationTimeUnix'
-            : options.deleteOnUpdateTime
-            ? '_lastUpdateTimeUnix'
-            : options.deleteOn,
-        }
-      : {};
+  objectTTL: {
+    disable: (): ObjectTTLConfigUpdate => {
+      return { enabled: false };
+    },
+    deleteByCreationTime: (options: {
+      defaultTTLSeconds: number;
+      filterExpiredObjects?: boolean;
+    }): ObjectTTLConfigUpdate => {
+      return {
+        deleteOn: '_creationTimeUnix',
+        ...options,
+      };
+    },
+    deleteByUpdateTime: (options: {
+      defaultTTLSeconds: number;
+      filterExpiredObjects?: boolean;
+    }): ObjectTTLConfigUpdate => {
+      return {
+        deleteOn: '_lastUpdateTimeUnix',
+        ...options,
+      };
+    },
+    deleteByDateProperty: (options: {
+      propertyName: string;
+      defaultTTLSeconds?: number;
+      filterExpiredObjects?: boolean;
+    }): ObjectTTLConfigUpdate => {
+      return {
+        deleteOn: options.propertyName,
+        ...options,
+      };
+    },
   },
   generative: configure.generative,
   reranker: configure.reranker,
