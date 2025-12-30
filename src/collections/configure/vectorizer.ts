@@ -400,9 +400,11 @@ const legacyVectors = {
     const { name, quantizer, vectorIndexConfig, ...config } = opts || {};
     const imageFields = config.imageFields?.map(mapMulti2VecField);
     const textFields = config.textFields?.map(mapMulti2VecField);
+    const videoFields = config.videoFields?.map(mapMulti2VecField);
     let weights: Multi2VecVoyageAIConfig['weights'] = {};
     weights = formatMulti2VecFields(weights, 'imageFields', imageFields);
     weights = formatMulti2VecFields(weights, 'textFields', textFields);
+    weights = formatMulti2VecFields(weights, 'videoFields', videoFields);
     return makeVectorizer(name, {
       quantizer,
       vectorIndexConfig,
@@ -415,6 +417,7 @@ const legacyVectors = {
                 ...config,
                 imageFields: imageFields?.map((f) => f.name),
                 textFields: textFields?.map((f) => f.name),
+                videoFields: videoFields?.map((f) => f.name),
                 weights: Object.keys(weights).length === 0 ? undefined : weights,
               },
       },

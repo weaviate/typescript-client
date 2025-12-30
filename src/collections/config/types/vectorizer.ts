@@ -295,15 +295,17 @@ export type Multi2VecJinaAIConfig = {
 
 /** The configuration for multi-media vectorization using the VoyageAI module.
  *
- * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/transformers/embeddings-multimodal) for detailed usage.
+ * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/voyageai/embeddings-multimodal) for detailed usage.
  */
 export type Multi2VecVoyageAIConfig = {
   /** The base URL to use where API requests should go. */
   baseURL?: string;
+  /** The dimensionality of the vector once embedded. Supported values: 256, 512, 1024 (default), 2048. */
+  dimensions?: number;
   /** The image fields used when vectorizing. */
   imageFields?: string[];
   /** The model to use. */
-  model?: string;
+  model?: 'voyage-multimodal-3' | 'voyage-multimodal-3.5' | string;
   /** How the output from the model should be encoded on return. */
   outputEncoding?: string;
   /** The text fields used when vectorizing. */
@@ -312,12 +314,16 @@ export type Multi2VecVoyageAIConfig = {
   truncate?: boolean;
   /** Whether the collection name is vectorized. */
   vectorizeCollectionName?: boolean;
+  /** The video fields used when vectorizing. */
+  videoFields?: string[];
   /** The weights of the fields used for vectorization. */
   weights?: {
     /** The weights of the image fields. */
     imageFields?: number[];
     /** The weights of the text fields. */
     textFields?: number[];
+    /** The weights of the video fields. */
+    videoFields?: number[];
   };
 };
 
