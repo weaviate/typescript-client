@@ -688,7 +688,7 @@ describe('Testing of the collection.config namespace', () => {
     expect(config.multiTenancy.enabled).toEqual(true);
   });
 
-  it.only('should be able update the config of a collection with legacy vectors', async () => {
+  it('should be able update the config of a collection with legacy vectors', async () => {
     const clientV2 = weaviateV2.client({
       host: 'http://localhost:8080',
     });
@@ -898,7 +898,6 @@ describe('Testing of the collection.config namespace', () => {
         }),
       });
       await collection.config.get().then((config) => {
-        console.log(JSON.stringify(config, null, 2));
         const indexConfig = config.vectorizers.default.indexConfig as VectorIndexConfigHNSW;
         expect(indexConfig.quantizer).toBeDefined();
         expect(indexConfig.quantizer?.type).toEqual('rq');
@@ -919,7 +918,6 @@ describe('Testing of the collection.config namespace', () => {
         }),
       });
       await collection.config.get().then((config) => {
-        console.log(JSON.stringify(config, null, 2));
         const indexConfig = config.vectorizers.default.indexConfig as VectorIndexConfigHNSW;
         expect(indexConfig.quantizer).toBeDefined();
         expect(indexConfig.quantizer?.type).toEqual('rq');
@@ -928,4 +926,36 @@ describe('Testing of the collection.config namespace', () => {
       });
     }
   );
+
+  requireAtLeast(1, 35, 0).it('should create and update Object TTL configuration', async () => {
+    const collectionName = 'TestObjectTTL';
+    const collection = await client.collections.create({
+      name: collectionName,
+      objectTTL: weaviate.configure.objectTTL.deleteByCreationTime({ defaultTTLSeconds: 120 }),
+    });
+
+    const created = await collection.config.get();
+    expect(created.objectTTL).toBeDefined();
+    expect(created.objectTTL.enabled).toEqual(true);
+    expect(created.objectTTL.deleteOn).toEqual('_creationTimeUnix');
+    expect(created.objectTTL.defaultTTLSeconds).toEqual(120);
+
+    await collection.config.update({
+      objectTTL: weaviate.reconfigure.objectTTL.deleteByUpdateTime({ defaultTTLSeconds: 400 }),
+    });
+
+    const updated = await collection.config.get();
+    expect(updated.objectTTL).toBeDefined();
+    expect(updated.objectTTL.enabled).toEqual(true);
+    expect(updated.objectTTL.deleteOn).toEqual('_lastUpdateTimeUnix');
+    expect(updated.objectTTL.defaultTTLSeconds).toEqual(400);
+
+    await collection.config.update({
+      objectTTL: weaviate.reconfigure.objectTTL.disable(),
+    });
+
+    const disabled = await collection.config.get();
+    expect(disabled.objectTTL).toBeDefined();
+    expect(disabled.objectTTL.enabled).toEqual(false);
+  });
 });

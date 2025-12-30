@@ -2,6 +2,7 @@ import { WeaviateNestedProperty, WeaviateProperty } from '../../../openapi/types
 import {
   InvertedIndexConfig,
   MultiTenancyConfig,
+  ObjectTTLConfig,
   QuantizerConfig,
   ReplicationConfig,
   ReplicationDeletionStrategy,
@@ -31,6 +32,10 @@ export type InvertedIndexConfigUpdate = {
     removals?: string[];
   };
 };
+
+export type ObjectTTLConfigCreate = RecursivePartial<ObjectTTLConfig>;
+
+export type ObjectTTLConfigUpdate = ObjectTTLConfigCreate;
 
 export type MultiTenancyConfigCreate = RecursivePartial<MultiTenancyConfig>;
 

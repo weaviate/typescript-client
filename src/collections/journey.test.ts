@@ -82,6 +82,7 @@ describe('Journey testing of the client using a WCD cluster', () => {
             autoTenantCreation: false,
             enabled: false,
           },
+          objectTTL: { enabled: false },
           properties: [
             {
               name: 'name',

@@ -3,6 +3,8 @@ import {
   InvertedIndexConfigUpdate,
   MultiTenancyConfigCreate,
   MultiTenancyConfigUpdate,
+  ObjectTTLConfigCreate,
+  ObjectTTLConfigUpdate,
   ReplicationConfigCreate,
   ReplicationConfigUpdate,
   ReplicationDeletionStrategy,
@@ -116,6 +118,39 @@ const configure = {
             }
           : undefined,
     };
+  },
+  objectTTL: {
+    deleteByCreationTime: (options: {
+      defaultTTLSeconds: number;
+      filterExpiredObjects?: boolean;
+    }): ObjectTTLConfigCreate => {
+      return {
+        enabled: true,
+        deleteOn: '_creationTimeUnix',
+        ...options,
+      };
+    },
+    deleteByUpdateTime: (options: {
+      defaultTTLSeconds: number;
+      filterExpiredObjects?: boolean;
+    }): ObjectTTLConfigCreate => {
+      return {
+        enabled: true,
+        deleteOn: '_lastUpdateTimeUnix',
+        ...options,
+      };
+    },
+    deleteByDateProperty: (options: {
+      property: string;
+      defaultTTLSeconds?: number;
+      filterExpiredObjects?: boolean;
+    }): ObjectTTLConfigCreate => {
+      return {
+        enabled: true,
+        deleteOn: options.property,
+        ...options,
+      };
+    },
   },
   /**
    * Create a `MultiTenancyConfigCreate` object to be used when defining the multi-tenancy configuration of your collection.
@@ -296,6 +331,39 @@ const reconfigure = {
       autoTenantActivation: options.autoTenantActivation,
       autoTenantCreation: options.autoTenantCreation,
     };
+  },
+  objectTTL: {
+    disable: (): ObjectTTLConfigUpdate => {
+      return { enabled: false };
+    },
+    deleteByCreationTime: (options: {
+      defaultTTLSeconds: number;
+      filterExpiredObjects?: boolean;
+    }): ObjectTTLConfigUpdate => {
+      return {
+        deleteOn: '_creationTimeUnix',
+        ...options,
+      };
+    },
+    deleteByUpdateTime: (options: {
+      defaultTTLSeconds: number;
+      filterExpiredObjects?: boolean;
+    }): ObjectTTLConfigUpdate => {
+      return {
+        deleteOn: '_lastUpdateTimeUnix',
+        ...options,
+      };
+    },
+    deleteByDateProperty: (options: {
+      propertyName: string;
+      defaultTTLSeconds?: number;
+      filterExpiredObjects?: boolean;
+    }): ObjectTTLConfigUpdate => {
+      return {
+        deleteOn: options.propertyName,
+        ...options,
+      };
+    },
   },
   generative: configure.generative,
   reranker: configure.reranker,
