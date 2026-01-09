@@ -6,6 +6,7 @@ import {
   GenerativeAnyscaleConfigRuntime,
   GenerativeCohereConfigRuntime,
   GenerativeConfigRuntimeType,
+  GenerativeContextualAIConfigRuntime,
   GenerativeDatabricksConfigRuntime,
   GenerativeFriendliAIConfigRuntime,
   GenerativeGoogleConfigRuntime,
@@ -293,6 +294,27 @@ export const generativeParameters = {
         ? {
             ...rest,
             baseUrl: baseURL,
+          }
+        : undefined,
+    };
+  },
+  /**
+   * Create a `ModuleConfig<'generative-contextualai', GenerativeConfigRuntimeType<'generative-contextualai'> | undefined>`
+   * object for use when performing runtime-specific AI generation using the `generative-contextualai` module.
+   */
+  contextualai(
+    config?: GenerativeContextualAIConfigRuntime
+  ): ModuleConfig<
+    'generative-contextualai',
+    GenerativeConfigRuntimeType<'generative-contextualai'> | undefined
+  > {
+    const { knowledge, ...rest } = config || {};
+    return {
+      name: 'generative-contextualai',
+      config: config
+        ? {
+            ...rest,
+            knowledge: knowledge ? TextArray.fromPartial({ values: knowledge }) : undefined,
           }
         : undefined,
     };
