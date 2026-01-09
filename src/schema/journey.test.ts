@@ -795,6 +795,7 @@ async function newClassObject(className: string, client: WeaviateClient): Promis
         additions: null as unknown as undefined, // hack to deal with weird typing
         removals: null as unknown as undefined, // hack to deal with weird typing
       },
+      usingBlockMaxWAND: (await isVer(client, 30, 23)) ? true : undefined,
     },
     moduleConfig: {
       'text2vec-contextionary': {
