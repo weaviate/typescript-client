@@ -12,9 +12,7 @@ import {
   BatchObjectsRequest,
   BatchReferencesReply,
   BatchReferencesRequest,
-  BatchSendReply,
-  BatchSendRequest,
-  BatchStreamMessage,
+  BatchStreamReply,
   BatchStreamRequest,
 } from "./batch.js";
 import { BatchDeleteReply, BatchDeleteRequest } from "./batch_delete.js";
@@ -76,19 +74,11 @@ export const WeaviateDefinition = {
       responseStream: false,
       options: {},
     },
-    batchSend: {
-      name: "BatchSend",
-      requestType: BatchSendRequest,
-      requestStream: false,
-      responseType: BatchSendReply,
-      responseStream: false,
-      options: {},
-    },
     batchStream: {
       name: "BatchStream",
       requestType: BatchStreamRequest,
-      requestStream: false,
-      responseType: BatchStreamMessage,
+      requestStream: true,
+      responseType: BatchStreamReply,
       responseStream: true,
       options: {},
     },
@@ -111,11 +101,10 @@ export interface WeaviateServiceImplementation<CallContextExt = {}> {
   ): Promise<DeepPartial<BatchDeleteReply>>;
   tenantsGet(request: TenantsGetRequest, context: CallContext & CallContextExt): Promise<DeepPartial<TenantsGetReply>>;
   aggregate(request: AggregateRequest, context: CallContext & CallContextExt): Promise<DeepPartial<AggregateReply>>;
-  batchSend(request: BatchSendRequest, context: CallContext & CallContextExt): Promise<DeepPartial<BatchSendReply>>;
   batchStream(
-    request: BatchStreamRequest,
+    request: AsyncIterable<BatchStreamRequest>,
     context: CallContext & CallContextExt,
-  ): ServerStreamingMethodResult<DeepPartial<BatchStreamMessage>>;
+  ): ServerStreamingMethodResult<DeepPartial<BatchStreamReply>>;
 }
 
 export interface WeaviateClient<CallOptionsExt = {}> {
@@ -134,11 +123,10 @@ export interface WeaviateClient<CallOptionsExt = {}> {
   ): Promise<BatchDeleteReply>;
   tenantsGet(request: DeepPartial<TenantsGetRequest>, options?: CallOptions & CallOptionsExt): Promise<TenantsGetReply>;
   aggregate(request: DeepPartial<AggregateRequest>, options?: CallOptions & CallOptionsExt): Promise<AggregateReply>;
-  batchSend(request: DeepPartial<BatchSendRequest>, options?: CallOptions & CallOptionsExt): Promise<BatchSendReply>;
   batchStream(
-    request: DeepPartial<BatchStreamRequest>,
+    request: AsyncIterable<DeepPartial<BatchStreamRequest>>,
     options?: CallOptions & CallOptionsExt,
-  ): AsyncIterable<BatchStreamMessage>;
+  ): AsyncIterable<BatchStreamReply>;
 }
 
 type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;

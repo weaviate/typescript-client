@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+
 import { v4 } from 'uuid';
 import { WeaviateUnsupportedFeatureError } from '../../errors.js';
 import weaviate, { WeaviateClient, weaviateV2 } from '../../index.js';
@@ -1080,5 +1082,45 @@ describe('Testing of BYOV insertion with legacy vectorizer', () => {
     const id = await collection.data.insert({ vectors: [7, 8, 9] });
     const object = await collection.query.fetchObjectById(id, { includeVector: true });
     expect(object?.vectors.default).toEqual([7, 8, 9]);
+  });
+});
+
+describe('Testing of the collection.data.ingest method', () => {
+  let client: WeaviateClient;
+  let collection: Collection;
+
+  beforeAll(async () => {
+    client = await weaviate.connectToLocal();
+    collection = client.collections.use('TestCollectionDataIngest');
+    collection = await client.collections.create({
+      name: 'TestCollectionDataIngest',
+      properties: [
+        {
+          name: 'text',
+          dataType: 'text',
+        },
+      ],
+      vectorizers: weaviate.configure.vectors.selfProvided(),
+    });
+  });
+
+  afterAll(() => client.collections.delete('TestCollectionDataIngest'));
+
+  it('should be able to ingest 2000 objects with vectors', async () => {
+    const objects: DataObject<any>[] = [];
+    for (let i = 0; i < 2000; i++) {
+      objects.push({
+        properties: {
+          text: `object ${i}`,
+        },
+        vectors: Array.from({ length: 128 }, () => Math.random()),
+      });
+    }
+    const insert = await collection.data.ingest(objects);
+    expect(insert.hasErrors).toBeFalsy();
+    expect(insert.allResponses.length).toEqual(2000);
+    expect(Object.values(insert.errors).length).toEqual(0);
+    expect(Object.values(insert.uuids).length).toEqual(2000);
+    expect(await collection.length()).toEqual(2000);
   });
 });

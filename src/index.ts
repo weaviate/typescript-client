@@ -25,7 +25,7 @@ import {
   ConnectToWCSOptions,
   ConnectToWeaviateCloudOptions,
 } from './connection/helpers.js';
-import { ConnectionDetails, ProxiesParams, TimeoutParams } from './connection/http.js';
+import { ConnectionDetails, Headers, ProxiesParams, TimeoutParams } from './connection/http.js';
 import { ConnectionGRPC } from './connection/index.js';
 import MetaGetter from './misc/metaGetter.js';
 import { Meta } from './openapi/types.js';
@@ -90,7 +90,7 @@ export type ClientParams = {
   /**
    * Additional headers that should be passed to Weaviate in the underlying requests. E.g., X-OpenAI-Api-Key
    */
-  headers?: HeadersInit;
+  headers?: Headers;
   /**
    * The connection parameters for any tunnelling proxies that should be used.
    *

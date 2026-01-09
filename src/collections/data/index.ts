@@ -14,6 +14,7 @@ import {
   BatchReferencesReturn,
   DataObject,
   DeleteManyReturn,
+  ErrorObject,
   ErrorReference,
   NonReferenceInputs,
   Properties,
@@ -21,6 +22,7 @@ import {
   ReferenceInputs,
   Vectors,
 } from '../types/index.js';
+import { Batch, isInternalError } from './batch.js';
 
 /** The available options to the `data.deleteMany` method.  */
 export type DeleteManyOptions<V> = {
@@ -83,6 +85,7 @@ export interface Data<T> {
     opts?: DeleteManyOptions<V>
   ) => Promise<DeleteManyReturn<V>>;
   exists: (id: string) => Promise<boolean>;
+  ingest: (objs: Iterable<DataObject<T> | NonReferenceInputs<T>>) => Promise<BatchObjectsReturn<T>>;
   /**
    * Insert a single object into the collection.
    *
@@ -239,6 +242,42 @@ const data = <T>(
         consistencyLevel,
         tenant
       ).do(),
+    ingest: async (objs: Iterable<DataObject<T> | NonReferenceInputs<T>>) => {
+      const allResponses: (string | ErrorObject<T>)[] = [];
+      const errors: Record<number, ErrorObject<T>> = {};
+      const uuids: Record<number, string> = {};
+
+      const batch = new Batch<T>(name, consistencyLevel, tenant).withIterable(objs);
+      const start = Date.now();
+
+      for await (const result of batch.do(connection)) {
+        if (isInternalError<T>(result)) {
+          const { index, ...error } = result;
+          errors[index] = error;
+        } else if (result.type === 'success') {
+          uuids[result.index] = result.uuid;
+        }
+      }
+
+      for (let i = 0; i < Object.keys(uuids).length + Object.keys(errors).length; i++) {
+        if (uuids[i]) {
+          allResponses.push(uuids[i]);
+        } else if (errors[i]) {
+          allResponses.push(errors[i]);
+        }
+      }
+
+      const end = Date.now();
+      const elapsedSeconds = (end - start) / 1000;
+
+      return {
+        allResponses,
+        elapsedSeconds,
+        errors,
+        uuids,
+        hasErrors: Object.keys(errors).length > 0,
+      };
+    },
     insert: (obj?: InsertObject<T> | NonReferenceInputs<T>): Promise<string> =>
       Promise.all([
         objectsPath.buildCreate(consistencyLevel),

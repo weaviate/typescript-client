@@ -41,10 +41,12 @@ const MAX_GRPC_MESSAGE_LENGTH = 104858000; // 10mb, needs to be synchronized wit
 // which are tightly coupled to ConnectionGQL
 export default class ConnectionGRPC extends ConnectionGQL {
   private grpc: GrpcClient;
+  public grpcMaxMessageLength: number;
 
   private constructor(params: GrpcConnectionParams & { grpcMaxMessageLength: number }) {
     super(params);
     this.grpc = grpcClient(params);
+    this.grpcMaxMessageLength = params.grpcMaxMessageLength;
   }
 
   static use = (params: GrpcConnectionParams) => {
