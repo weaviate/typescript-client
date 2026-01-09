@@ -6,6 +6,7 @@ export * from './vectorizer.js';
 import {
   InvertedIndexConfigUpdate,
   MultiTenancyConfigUpdate,
+  ObjectTTLConfigUpdate,
   ReplicationConfigUpdate,
   VectorConfigUpdate,
 } from '../../configure/types/index.js';
@@ -33,6 +34,13 @@ export type InvertedIndexConfig = {
     additions: string[];
     removals: string[];
   };
+};
+
+export type ObjectTTLConfig = {
+  enabled?: boolean;
+  defaultTTLSeconds?: number;
+  deleteOn?: string;
+  filterExpiredObjects?: boolean;
 };
 
 export type MultiTenancyConfig = {
@@ -96,6 +104,7 @@ export type CollectionConfig = {
   generative?: ModuleConfig<GenerativeSearch, GenerativeConfig>;
   invertedIndex: InvertedIndexConfig;
   multiTenancy: MultiTenancyConfig;
+  objectTTL: ObjectTTLConfig;
   properties: PropertyConfig[];
   references: ReferenceConfig[];
   replication: ReplicationConfig;
@@ -116,6 +125,7 @@ export type CollectionConfigUpdate<T> = {
   generative?: ModuleConfig<GenerativeSearch, GenerativeConfig>;
   invertedIndex?: InvertedIndexConfigUpdate;
   multiTenancy?: MultiTenancyConfigUpdate;
+  objectTTL?: ObjectTTLConfigUpdate;
   replication?: ReplicationConfigUpdate;
   reranker?: ModuleConfig<Reranker, RerankerConfig>;
   vectorizers?:

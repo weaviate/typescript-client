@@ -6,6 +6,7 @@ import {
   WeaviateModuleConfig,
   WeaviateMultiTenancyConfig,
   WeaviateNestedProperty,
+  WeaviateObjectTTLConfig,
   WeaviateProperty,
   WeaviateReplicationConfig,
   WeaviateShardingConfig,
@@ -35,6 +36,7 @@ import {
   MultiTenancyConfig,
   MultiVectorConfig,
   MultiVectorEncodingConfig,
+  ObjectTTLConfig,
   PQConfig,
   PQEncoderConfig,
   PQEncoderDistribution,
@@ -125,6 +127,7 @@ export const classToCollection = <T>(cls: WeaviateClass): CollectionConfig => {
     generative: ConfigMapping.generative(cls.moduleConfig),
     invertedIndex: ConfigMapping.invertedIndex(cls.invertedIndexConfig),
     multiTenancy: ConfigMapping.multiTenancy(cls.multiTenancyConfig),
+    objectTTL: ConfigMapping.objectTTL(cls.objectTtlConfig),
     properties: ConfigMapping.properties(cls.properties),
     references: ConfigMapping.references(cls.properties),
     replication: ConfigMapping.replication(cls.replicationConfig),
@@ -392,6 +395,18 @@ class ConfigMapping {
       indexNullState: v.indexNullState ? v.indexNullState : false,
       indexPropertyLength: v.indexPropertyLength ? v.indexPropertyLength : false,
       indexTimestamps: v.indexTimestamps ? v.indexTimestamps : false,
+    };
+  }
+  static objectTTL(v?: WeaviateObjectTTLConfig): ObjectTTLConfig {
+    if (v === undefined) {
+      return { enabled: false };
+    }
+    return {
+      enabled: v.enabled ?? false,
+      deleteOn: v.deleteOn,
+      defaultTTLSeconds: v.defaultTtl,
+      filterExpiredObjects: v.filterExpiredObjects,
+      ...v,
     };
   }
   static multiTenancy(v?: WeaviateMultiTenancyConfig): MultiTenancyConfig {

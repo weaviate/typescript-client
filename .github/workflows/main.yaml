@@ -10,11 +10,12 @@ env:
   WEAVIATE_127: 1.27.27
   WEAVIATE_128: 1.28.16
   WEAVIATE_129: 1.29.11
-  WEAVIATE_130: 1.30.22
-  WEAVIATE_131: 1.31.20
-  WEAVIATE_132: 1.32.18
-  WEAVIATE_133: 1.33.6
-  WEAVIATE_134: 1.34.1
+  WEAVIATE_130: 1.30.23
+  WEAVIATE_131: 1.31.21
+  WEAVIATE_132: 1.32.26
+  WEAVIATE_133: 1.33.11
+  WEAVIATE_134: 1.34.7
+  WEAVIATE_135: 1.35.2
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -49,9 +50,10 @@ jobs:
           { node: "24.x", weaviate: $WEAVIATE_131},
           { node: "24.x", weaviate: $WEAVIATE_132},
           { node: "24.x", weaviate: $WEAVIATE_133},
-          { node: "20.x", weaviate: $WEAVIATE_134},
-          { node: "22.x", weaviate: $WEAVIATE_134},
           { node: "24.x", weaviate: $WEAVIATE_134},
+          { node: "20.x", weaviate: $WEAVIATE_135},
+          { node: "22.x", weaviate: $WEAVIATE_135},
+          { node: "24.x", weaviate: $WEAVIATE_135},
         ]
     steps:
     - uses: actions/checkout@v3

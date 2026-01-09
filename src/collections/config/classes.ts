@@ -5,6 +5,7 @@ import {
   WeaviateInvertedIndexConfig,
   WeaviateModuleConfig,
   WeaviateMultiTenancyConfig,
+  WeaviateObjectTTLConfig,
   WeaviateReplicationConfig,
   WeaviateVectorIndexConfig,
   WeaviateVectorsConfig,
@@ -13,6 +14,7 @@ import { QuantizerGuards } from '../configure/parsing.js';
 import {
   InvertedIndexConfigUpdate,
   MultiTenancyConfigUpdate,
+  ObjectTTLConfigUpdate,
   ReplicationConfigUpdate,
   VectorConfigUpdate,
   VectorIndexConfigFlatUpdate,
@@ -47,6 +49,9 @@ export class MergeWithExisting {
         current.multiTenancyConfig,
         update.multiTenancy
       );
+    if (update.objectTTL !== undefined) {
+      current.objectTtlConfig = MergeWithExisting.objectTTL(current.objectTtlConfig, update.objectTTL);
+    }
     if (update.replication !== undefined)
       current.replicationConfig = MergeWithExisting.replication(
         current.replicationConfig!,
@@ -127,6 +132,15 @@ export class MergeWithExisting {
     return merged;
   }
 
+  static objectTTL(current: WeaviateObjectTTLConfig, update: ObjectTTLConfigUpdate): WeaviateObjectTTLConfig {
+    if (current === undefined) throw Error('Object TTL config is missing from the class schema.');
+    return {
+      enabled: update.enabled ?? current.enabled,
+      deleteOn: update.deleteOn ?? current.deleteOn,
+      defaultTtl: update.defaultTTLSeconds ?? current.defaultTtl,
+      filterExpiredObjects: update.filterExpiredObjects ?? current.filterExpiredObjects,
+    };
+  }
   static multiTenancy(
     current: WeaviateMultiTenancyConfig,
     update: MultiTenancyConfigUpdate

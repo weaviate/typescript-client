@@ -1,5 +1,5 @@
 import Connection from '../connection/grpc.js';
-import { WeaviateClass } from '../openapi/types.js';
+import { WeaviateClass, WeaviateObjectTTLConfig } from '../openapi/types.js';
 import ClassExists from '../schema/classExists.js';
 import { ClassCreator, ClassDeleter, ClassGetter, SchemaGetter } from '../schema/index.js';
 import { DbVersionSupport } from '../utils/dbVersion.js';
@@ -12,6 +12,7 @@ import {
   InvertedIndexConfigCreate,
   ModuleConfig,
   MultiTenancyConfigCreate,
+  ObjectTTLConfigCreate,
   Properties,
   PropertyConfigCreate,
   ReferenceConfigCreate,
@@ -38,6 +39,8 @@ export type CollectionConfigCreate<TProperties = undefined, N = string, TVectors
   generative?: ModuleConfig<GenerativeSearch, GenerativeConfig>;
   /** The configuration for Weaviate's inverted index. */
   invertedIndex?: InvertedIndexConfigCreate;
+  /** The configuration for object TTL. */
+  objectTTL?: ObjectTTLConfigCreate;
   /** The configuration for Weaviate's multi-tenancy capabilities. */
   multiTenancy?: MultiTenancyConfigCreate;
   /** The properties of the objects in the collection. */
@@ -66,7 +69,7 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
       TName = string,
       TVectors extends Vectors | undefined = undefined
     >(config: CollectionConfigCreate<TProperties, TName, TVectors>) {
-      const { name, invertedIndex, multiTenancy, replication, sharding, ...rest } = config;
+      const { name, invertedIndex, multiTenancy, objectTTL, replication, sharding, ...rest } = config;
 
       const moduleConfig: any = {};
       if (config.generative) {
@@ -78,12 +81,23 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
         moduleConfig[config.reranker.name] = config.reranker.config ? config.reranker.config : {};
       }
 
+      let objectTtlConfig: WeaviateObjectTTLConfig | undefined;
+      if (objectTTL) {
+        objectTtlConfig = {
+          enabled: objectTTL.enabled,
+          deleteOn: objectTTL.deleteOn,
+          defaultTtl: objectTTL.defaultTTLSeconds,
+          filterExpiredObjects: objectTTL.filterExpiredObjects,
+        };
+      }
+
       const schema: any = {
         ...rest,
         class: name,
         invertedIndexConfig: invertedIndex,
         moduleConfig: moduleConfig,
         multiTenancyConfig: multiTenancy,
+        objectTtlConfig: objectTtlConfig,
         replicationConfig: replication,
         shardingConfig: sharding,
       };

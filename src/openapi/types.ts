@@ -51,6 +51,7 @@ export type WeaviateInvertedIndexConfig = WeaviateClass['invertedIndexConfig'];
 export type WeaviateBM25Config = definitions['BM25Config'];
 export type WeaviateStopwordConfig = definitions['StopwordConfig'];
 export type WeaviateMultiTenancyConfig = WeaviateClass['multiTenancyConfig'];
+export type WeaviateObjectTTLConfig = WeaviateClass['objectTtlConfig'];
 export type WeaviateReplicationConfig = WeaviateClass['replicationConfig'];
 export type WeaviateShardingConfig = WeaviateClass['shardingConfig'];
 export type WeaviateShardStatus = definitions['ShardStatusGetResponse'];
