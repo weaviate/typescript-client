@@ -892,6 +892,34 @@ describe('Unit testing of the vectorizer factory class', () => {
     });
   });
 
+  it('should create the correct Multi2VecVoyageAIConfig type with voyage-multimodal-3.5 model', () => {
+    const config = configure.vectors.multi2VecVoyageAI({
+      name: 'test',
+      model: 'voyage-multimodal-3.5',
+      dimensions: 1024,
+      imageFields: ['image'],
+      textFields: ['text'],
+      videoFields: ['video'],
+    });
+    expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'multi2vec-voyageai'>>({
+      name: 'test',
+      vectorIndex: {
+        name: 'hnsw',
+        config: undefined,
+      },
+      vectorizer: {
+        name: 'multi2vec-voyageai',
+        config: {
+          model: 'voyage-multimodal-3.5',
+          dimensions: 1024,
+          imageFields: ['image'],
+          textFields: ['text'],
+          videoFields: ['video'],
+        },
+      },
+    });
+  });
+
   it('should create the correct Text2VecAWSConfig type with defaults', () => {
     const config = configure.vectors.text2VecAWS({
       region: 'region',
