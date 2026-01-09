@@ -13,6 +13,8 @@ export type BackupStatusReturn = {
   path: string;
   /** The status of the backup */
   status: BackupStatus;
+  /** Size of the backup in Gibs */
+  size?: number;
 };
 
 /** The return type of a backup creation or restoration operation */
@@ -25,8 +27,6 @@ export type BackupReturn = BackupStatusReturn & {
   startedAt?: Date;
   /** Timestamp when the backup process completed (successfully or with failure) */
   completedAt?: Date;
-  /** Size of the backup in Gibs */
-  size?: number;
 };
 
 /** Configuration options available when creating a backup */
@@ -43,7 +43,7 @@ export type BackupConfigCreate = {
 export type BackupConfigRestore = {
   /** The percentage of CPU to use for the backuop restoration job. */
   cpuPercentage?: number;
-  /** Allows ovewriting the collection alias if there is a conflict. */
+  /** Allows overwriting the collection alias if there is a conflict. */
   overwriteAlias?: boolean;
 };
 
