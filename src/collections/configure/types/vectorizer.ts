@@ -2,6 +2,7 @@ import {
   Img2VecNeuralConfig,
   ModuleConfig,
   Multi2MultivecJinaAIConfig,
+  Multi2MultivecWeaviateConfig,
   Multi2VecAWSConfig,
   Multi2VecBindConfig,
   Multi2VecClipConfig,
@@ -202,6 +203,11 @@ export type Multi2VecCohereConfigCreate = Omit<Multi2VecCohereConfig, Multi2VecO
 
 export type Multi2MultivecJinaAIConfigCreate = Multi2MultivecJinaAIConfig;
 
+export type Multi2MultivecWeaviateConfigCreate = Omit<Multi2MultivecWeaviateConfig, Multi2VecOmissions> & {
+  /** The image field to use in vectorization. */
+  imageField: string;
+};
+
 export type Multi2VecJinaAIConfigCreate = Omit<Multi2VecJinaAIConfig, Multi2VecOmissions> & {
   /** The image fields to use in vectorization. Can be string of `Multi2VecField` type. If string, weight 0 will be assumed. */
   imageFields?: string[] | Multi2VecField[];
@@ -290,6 +296,8 @@ export type VectorizerConfigCreateType<V> = V extends 'img2vec-neural'
   ? Multi2VecJinaAIConfigCreate | undefined
   : V extends 'multi2multivec-jinaai'
   ? Multi2MultivecJinaAIConfigCreate | undefined
+  : V extends 'multi2multivec-weaviate'
+  ? Multi2MultivecWeaviateConfigCreate | undefined
   : V extends 'multi2vec-palm'
   ? Multi2VecPalmConfigCreate
   : V extends 'multi2vec-google'

@@ -1087,4 +1087,26 @@ export const multiVectors = {
       },
     });
   },
+
+  /**
+   * Create a `VectorConfigCreate` object with the vectorizer set to `'multi2multivec-weaviate'`.
+   *
+   * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/weaviate/embeddings-multimodal) for detailed usage.
+   *
+   * @param {ConfigureNonTextVectorizerOptions<N, I, 'multi2multivec-weaviate'>} [opts] The configuration options for the `multi2multivec-weaviate` vectorizer.
+   * @returns {VectorConfigCreate<PrimitiveKeys<T>[], N, I, 'multi2multivec-weaviate'>} The configuration object.
+   */
+  multi2VecWeaviate: <N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
+    opts: ConfigureNonTextVectorizerOptions<N, I, 'multi2multivec-weaviate'>
+  ): VectorConfigCreate<never, N, I, 'multi2multivec-weaviate'> => {
+    const { name, vectorIndexConfig, imageField, ...config } = opts;
+    if (!imageField) throw new WeaviateInvalidInputError('imageField is required for multi2VecWeaviate');
+    return makeVectorizer(name, {
+      vectorIndexConfig,
+      vectorizerConfig: {
+        name: 'multi2multivec-weaviate',
+        config: { ...config, imageFields: [imageField] },
+      },
+    });
+  },
 };
