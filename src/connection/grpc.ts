@@ -33,6 +33,10 @@ export interface GrpcConnectionParams extends InternalConnectionParams {
   grpcSecure: boolean;
 }
 
+// WEAVIATE_CLIENT_VERSION is injected at build time by tsup's define option
+// In test environment, it's set via global scope
+declare const WEAVIATE_CLIENT_VERSION: string;
+
 const clientFactory = createClientFactory().use(retryMiddleware);
 
 const MAX_GRPC_MESSAGE_LENGTH = 104858000; // 10mb, needs to be synchronized with GRPC server
@@ -258,12 +262,13 @@ export const grpcClient = (config: GrpcConnectionParams & { grpcMaxMessageLength
 };
 
 const getMetadataWithEmbeddingServiceAuth = (config: GrpcConnectionParams, bearerToken?: string) =>
-  new Metadata(
-    bearerToken
+  new Metadata({
+    ...(bearerToken
       ? {
           ...config.headers,
           authorization: bearerToken,
           'X-Weaviate-Cluster-Url': config.host,
         }
-      : config.headers
-  );
+      : config.headers),
+    'X-Weaviate-Client': `weaviate-client-typescript/${WEAVIATE_CLIENT_VERSION}`,
+  });

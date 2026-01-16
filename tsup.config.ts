@@ -1,4 +1,5 @@
 import { defineConfig } from 'tsup';
+import pkg from './package.json' assert { type: 'json' };
 
 export default defineConfig([
   {
@@ -20,6 +21,9 @@ export default defineConfig([
     dts: true,
     splitting: true,
     treeshake: true,
+    define: {
+      WEAVIATE_CLIENT_VERSION: JSON.stringify(pkg.version),
+    },
   },
   // {
   //   entry: {

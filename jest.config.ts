@@ -20,6 +20,9 @@ const config: JestConfigWithTsJest = {
       },
     ],
   },
+  globals: {
+    WEAVIATE_CLIENT_VERSION: 'test-version',
+  },
   testEnvironment: 'node',
   testMatch: ['**/*.test.ts'],
   testTimeout: 100000,

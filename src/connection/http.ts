@@ -18,6 +18,10 @@ import {
   OidcAuthenticator,
 } from './auth.js';
 
+// WEAVIATE_CLIENT_VERSION is injected at build time by tsup's define option
+// In test environment, it's set via global scope
+declare const WEAVIATE_CLIENT_VERSION: string | undefined;
+
 /**
  * You can only specify the gRPC proxy URL at this point in time. This is because ProxiesParams should be used to define tunnelling proxies
  * and Weaviate does not support tunnelling proxies over HTTP/1.1 at this time.
@@ -268,6 +272,7 @@ export const httpClient = (config: InternalConnectionParams): HttpClient => {
           ...config.headers,
           'content-type': 'application/json',
           ...getAuthHeaders(config, bearerToken),
+          ...getClientVersionHeader(),
         },
         body: JSON.stringify(payload),
         agent: config.agent,
@@ -288,6 +293,7 @@ export const httpClient = (config: InternalConnectionParams): HttpClient => {
           ...config.headers,
           'content-type': 'application/json',
           ...getAuthHeaders(config, bearerToken),
+          ...getClientVersionHeader(),
         },
         body: JSON.stringify(payload),
         agent: config.agent,
@@ -303,6 +309,7 @@ export const httpClient = (config: InternalConnectionParams): HttpClient => {
           ...config.headers,
           'content-type': 'application/json',
           ...getAuthHeaders(config, bearerToken),
+          ...getClientVersionHeader(),
         },
         body: JSON.stringify(payload),
         agent: config.agent,
@@ -316,6 +323,7 @@ export const httpClient = (config: InternalConnectionParams): HttpClient => {
           ...config.headers,
           'content-type': 'application/json',
           ...getAuthHeaders(config, bearerToken),
+          ...getClientVersionHeader(),
         },
         body: payload ? JSON.stringify(payload) : undefined,
         agent: config.agent,
@@ -331,6 +339,7 @@ export const httpClient = (config: InternalConnectionParams): HttpClient => {
           ...config.headers,
           'content-type': 'application/json',
           ...getAuthHeaders(config, bearerToken),
+          ...getClientVersionHeader(),
         },
         body: payload ? JSON.stringify(payload) : undefined,
         agent: config.agent,
@@ -345,6 +354,7 @@ export const httpClient = (config: InternalConnectionParams): HttpClient => {
         headers: {
           ...config.headers,
           ...getAuthHeaders(config, bearerToken),
+          ...getClientVersionHeader(),
         },
         agent: config.agent,
       };
@@ -359,6 +369,7 @@ export const httpClient = (config: InternalConnectionParams): HttpClient => {
         headers: {
           ...config.headers,
           ...getAuthHeaders(config, bearerToken),
+          ...getClientVersionHeader(),
         },
         agent: config.agent,
       };
@@ -437,3 +448,15 @@ const getAuthHeaders = (config: InternalConnectionParams, bearerToken: string) =
         'X-Weaviate-Cluster-Url': config.host,
       }
     : undefined;
+
+const getClientVersionHeader = () => {
+  // WEAVIATE_CLIENT_VERSION is replaced at build time by tsup
+  // In test environment, fallback to the global scope
+  const version =
+    typeof WEAVIATE_CLIENT_VERSION !== 'undefined'
+      ? WEAVIATE_CLIENT_VERSION
+      : (globalThis as any).WEAVIATE_CLIENT_VERSION || 'unknown';
+  return {
+    'X-Weaviate-Client': `weaviate-client-typescript/${version}`,
+  };
+};
