@@ -91,7 +91,7 @@
     "protobufjs": "^7.2.6",
     "ts-jest": "^29.0.5",
     "ts-node": "^10.9.2",
-    "ts-proto": "^1.163.0",
+    "ts-proto": "^1.176.0",
     "tsup": "^8.0.2",
     "typedoc": "^0.25.12",
     "typedoc-plugin-extras": "^3.0.0",
