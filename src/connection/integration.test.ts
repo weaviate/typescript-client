@@ -1,5 +1,6 @@
 import { StartedWeaviateContainer, WeaviateContainer } from '@testcontainers/weaviate';
 import { Wait } from 'testcontainers';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import weaviate from '..';
 import { WeaviateStartUpError } from '../errors';
 import { Meta } from '../openapi/types';

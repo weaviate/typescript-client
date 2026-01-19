@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { IConnection } from '../../connection';
 import cluster from './index.js';
 

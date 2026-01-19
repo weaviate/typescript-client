@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import weaviate from '../index.js';
 
 describe('Testing of the client connecting to a proxied Weaviate instance', () => {

@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
+import { describe, expect, it } from 'vitest';
 import { C11yExtension, C11yWordsResponse } from '../openapi/types.js';
 import weaviate from '../v2/index.js';
 

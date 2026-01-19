@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { GenerativeConfigRuntimeType, ModuleConfig } from '../types';
 import { generativeParameters } from './config';
 

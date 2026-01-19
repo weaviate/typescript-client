@@ -1,5 +1,6 @@
 import express from 'express';
 import { Server as HttpServer } from 'http';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import { testServer } from '../../test/server.js';
 import {
@@ -281,14 +282,14 @@ const makeGrpcApp = () => {
           errors: [],
         };
       }),
-    batchReferences: jest.fn(),
-    batchSend: jest.fn(),
-    batchStream: jest.fn(),
+    batchReferences: vi.fn(),
+    batchSend: vi.fn(),
+    batchStream: vi.fn(),
   };
   const healthMockImpl: HealthServiceImplementation = {
     check: (request: HealthCheckRequest): Promise<HealthCheckResponse> =>
       Promise.resolve(HealthCheckResponse.create({ status: HealthCheckResponse_ServingStatus.SERVING })),
-    watch: jest.fn(),
+    watch: vi.fn(),
   };
 
   const grpcApp = createServer();

@@ -1,3 +1,4 @@
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import weaviate, { CollectionConfig, WeaviateClient } from '../index.js';
 import { GeoCoordinate } from '../proto/v1/properties.js';
 

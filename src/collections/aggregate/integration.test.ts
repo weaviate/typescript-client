@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { requireAtLeast } from '../../../test/version.js';
 import { WeaviateQueryError, WeaviateUnsupportedFeatureError } from '../../errors.js';
 import weaviate, { AggregateText, Bm25Operator, WeaviateClient } from '../../index.js';

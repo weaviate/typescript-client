@@ -1,6 +1,7 @@
 import express, { Response } from 'express';
 import { Server as HttpServer } from 'http';
 import { Server as GrpcServer, createServer } from 'nice-grpc';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { WeaviateBackupCanceled } from '../../errors';
 import weaviate, { WeaviateClient } from '../../index.js';
 import {
@@ -88,7 +89,7 @@ class CancelMock {
     const healthMockImpl: HealthServiceImplementation = {
       check: (request: HealthCheckRequest): Promise<HealthCheckResponse> =>
         Promise.resolve(HealthCheckResponse.create({ status: HealthCheckResponse_ServingStatus.SERVING })),
-      watch: jest.fn(),
+      watch: vi.fn(),
     };
 
     const grpc = createServer();

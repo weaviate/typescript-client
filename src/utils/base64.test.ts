@@ -1,16 +1,17 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { httpClient } from '../connection/http.js';
 import { downloadImageFromURLAsBase64 } from './base64.js';
 
-jest.mock('../connection/http.js');
+vi.mock('../connection/http.js');
 
 describe('downloadImageFromURLAsBase64()', () => {
   const mockHttpClient = {
-    externalGet: jest.fn(),
+    externalGet: vi.fn(),
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    (httpClient as jest.Mock).mockReturnValue(mockHttpClient);
+    vi.clearAllMocks();
+    (httpClient as any).mockReturnValue(mockHttpClient);
   });
 
   it('should convert a downloaded image to base64', async () => {

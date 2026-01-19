@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { WeaviateUnsupportedFeatureError } from '../../errors.js';
 import weaviate, { WeaviateClient } from '../../index.js';
 import { Collection } from '../collection/index.js';

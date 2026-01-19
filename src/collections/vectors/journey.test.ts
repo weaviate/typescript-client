@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
+import { afterAll, beforeAll, expect, it } from 'vitest';
 import { requireAtLeast } from '../../../test/version.js';
 import weaviate, { VectorIndexConfigHNSW, WeaviateClient } from '../../index.js';
 import { Collection } from '../collection/index.js';

@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
+import { beforeEach, describe, expect, it, test } from 'vitest';
 import weaviate, {
   Meta,
   Reference,
@@ -1469,8 +1470,6 @@ describe('the graphql journey', () => {
 });
 
 describe('query with generative search', () => {
-  jest.setTimeout(30000);
-
   if (process.env.OPENAI_APIKEY == undefined || process.env.OPENAI_APIKEY == '') {
     console.warn('Skipping because `WCS_DUMMY_CI_PW` is not set');
     return;
@@ -1587,7 +1586,7 @@ Tastes like a fresh ocean breeze: {review}`,
   it('tears down schema', () => {
     return Promise.all([client.schema.classDeleter().withClassName('Wine').do()]);
   });
-});
+}, 30000);
 
 describe('query cluster with consistency level', () => {
   const client = weaviate.client({

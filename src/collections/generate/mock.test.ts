@@ -1,6 +1,7 @@
 import express from 'express';
 import { Server as HttpServer } from 'http';
 import { Server as GrpcServer, createServer } from 'nice-grpc';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import weaviate, { Collection, GenerativeConfigRuntime, WeaviateClient } from '../..';
 import {
   HealthCheckRequest,
@@ -35,7 +36,7 @@ class GenerateMock {
     const healthMockImpl: HealthServiceImplementation = {
       check: (request: HealthCheckRequest): Promise<HealthCheckResponse> =>
         Promise.resolve(HealthCheckResponse.create({ status: HealthCheckResponse_ServingStatus.SERVING })),
-      watch: jest.fn(),
+      watch: vi.fn(),
     };
 
     const grpc = createServer();
@@ -43,8 +44,8 @@ class GenerateMock {
 
     // Search endpoint returning generative mock data
     const weaviateMockImpl: WeaviateServiceImplementation = {
-      aggregate: jest.fn(),
-      tenantsGet: jest.fn(),
+      aggregate: vi.fn(),
+      tenantsGet: vi.fn(),
       search: (req: SearchRequest): Promise<SearchReply> => {
         expect(req.generative?.grouped?.queries.length).toBeGreaterThan(0);
         expect(req.generative?.single?.queries.length).toBeGreaterThan(0);
@@ -77,11 +78,11 @@ class GenerateMock {
           })
         );
       },
-      batchDelete: jest.fn(),
-      batchObjects: jest.fn(),
-      batchReferences: jest.fn(),
-      batchSend: jest.fn(),
-      batchStream: jest.fn(),
+      batchDelete: vi.fn(),
+      batchObjects: vi.fn(),
+      batchReferences: vi.fn(),
+      batchSend: vi.fn(),
+      batchStream: vi.fn(),
     };
     grpc.add(WeaviateDefinition, weaviateMockImpl);
 

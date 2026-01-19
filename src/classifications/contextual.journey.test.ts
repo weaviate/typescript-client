@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { Classification } from '../openapi/types.js';
 import weaviate from '../v2/index.js';
 

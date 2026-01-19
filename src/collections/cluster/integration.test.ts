@@ -1,3 +1,4 @@
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import weaviate, { WeaviateClient } from '../../index.js';
 
 describe('Integration testing of the client.cluster methods', () => {

@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
+import { describe, expect, it, test } from 'vitest';
 import { Meta, Property, ShardStatus, ShardStatusList, Tenant, WeaviateClass } from '../openapi/types.js';
 import weaviate, { WeaviateClient } from '../v2/index.js';
 

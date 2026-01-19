@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { DbVersionProvider, DbVersionSupport } from './dbVersion.js';
 
 const EMPTY_VERSION = '';
@@ -29,7 +30,7 @@ describe('db version provider', () => {
         case 2:
           return Promise.resolve(VERSION_2);
         default:
-          fail('should not be called more then 2 times');
+          expect.unreachable('should not be called more then 2 times');
       }
     };
     const dbVersionProvider = new DbVersionProvider(versionGetter);
@@ -47,7 +48,7 @@ describe('db version provider', () => {
         case 1:
           return Promise.resolve(VERSION_1);
         default:
-          fail('should not be called more then 1 time');
+          expect.unreachable('should not be called more then 1 time');
       }
     };
     const dbVersionProvider = new DbVersionProvider(versionGetter);
@@ -70,7 +71,7 @@ describe('db version provider', () => {
         case 3:
           return Promise.resolve(VERSION_1);
         default:
-          fail('should not be called more then 3 times');
+          expect.unreachable('should not be called more then 3 times');
       }
     };
     const dbVersionProvider = new DbVersionProvider(versionGetter);

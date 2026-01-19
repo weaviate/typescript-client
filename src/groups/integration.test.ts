@@ -1,3 +1,4 @@
+import { expect, it } from 'vitest';
 import weaviate, { ApiKey, GroupAssignment } from '..';
 import { requireAtLeast } from '../../test/version.js';
 

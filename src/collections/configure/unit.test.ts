@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { requireAtLeast } from '../../../test/version.js';
 import {
   GenerativeAWSConfig,

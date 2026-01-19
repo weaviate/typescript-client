@@ -2,7 +2,6 @@ import {
   GenerativeAWSConfig,
   GenerativeAnthropicConfig,
   GenerativeAnyscaleConfig,
-  GenerativeContextualAIConfig,
   GenerativeDatabricksConfig,
   GenerativeFriendliAIConfig,
   GenerativeMistralConfig,

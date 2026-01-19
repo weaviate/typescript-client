@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import weaviate from '../index.js';
 
 const WCD_URL = 'https://piblpmmdsiknacjnm1ltla.c1.europe-west3.gcp.weaviate.cloud';

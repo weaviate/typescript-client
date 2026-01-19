@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
 /* eslint-disable no-await-in-loop */
+import { afterAll, beforeAll, describe, expect, it, test } from 'vitest';
 import { requireAtLeast } from '../../../test/version.js';
 import { Backend } from '../../backup/index.js';
 import { WeaviateBackupFailed } from '../../errors.js';

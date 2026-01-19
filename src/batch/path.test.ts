@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { buildObjectsPath, buildRefsPath } from './path.js';
 
 describe('paths', () => {

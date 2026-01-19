@@ -1,5 +1,6 @@
 import express from 'express';
 import { Server as HttpServer } from 'http';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import { createServer, Server as GrpcServer } from 'nice-grpc';
 import {
@@ -33,7 +34,7 @@ const makeRestApp = (version: string) => {
 
 const makeGrpcApp = () => {
   const weaviateMockImpl: WeaviateServiceImplementation = {
-    aggregate: jest.fn(),
+    aggregate: vi.fn(),
     tenantsGet: (request: TenantsGetRequest): Promise<TenantsGetReply> =>
       Promise.resolve({
         took: 0.1,
@@ -45,17 +46,17 @@ const makeGrpcApp = () => {
           { name: 'unfreezing', activityStatus: TenantActivityStatus.TENANT_ACTIVITY_STATUS_UNFREEZING },
         ],
       }),
-    search: jest.fn(),
-    batchDelete: jest.fn(),
-    batchObjects: jest.fn(),
-    batchReferences: jest.fn(),
-    batchSend: jest.fn(),
-    batchStream: jest.fn(),
+    search: vi.fn(),
+    batchDelete: vi.fn(),
+    batchObjects: vi.fn(),
+    batchReferences: vi.fn(),
+    batchSend: vi.fn(),
+    batchStream: vi.fn(),
   };
   const healthMockImpl: HealthServiceImplementation = {
     check: (request: HealthCheckRequest): Promise<HealthCheckResponse> =>
       Promise.resolve(HealthCheckResponse.create({ status: HealthCheckResponse_ServingStatus.SERVING })),
-    watch: jest.fn(),
+    watch: vi.fn(),
   };
 
   const grpcApp = createServer();

@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import weaviate from '../v2/index.js';
 
 describe('misc endpoints', () => {

@@ -1,3 +1,4 @@
+import { afterAll, beforeAll, expect, it } from 'vitest';
 import weaviate, { ApiKey, WeaviateClient } from '..';
 import { requireAtLeast } from '../../test/version.js';
 import { WeaviateUserTypeDB } from '../openapi/types.js';

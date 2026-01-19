@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import weaviate from './index.js';
 
 describe('Integration testing of the client methods', () => {
@@ -6,7 +7,7 @@ describe('Integration testing of the client methods', () => {
   });
 
   it('should connect using connectToLocal with schema-ed host', () => {
-    const logSpy = jest.spyOn(console, 'warn');
+    const logSpy = vi.spyOn(console, 'warn');
     return weaviate
       .connectToLocal({
         host: 'http://localhost',

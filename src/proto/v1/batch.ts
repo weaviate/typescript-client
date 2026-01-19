@@ -32,62 +32,79 @@ export interface BatchReferencesRequest {
   consistencyLevel?: ConsistencyLevel | undefined;
 }
 
-export interface BatchSendRequest {
-  streamId: string;
-  objects?: BatchSendRequest_Objects | undefined;
-  references?: BatchSendRequest_References | undefined;
-  stop?: BatchSendRequest_Stop | undefined;
+export interface BatchStreamRequest {
+  start?: BatchStreamRequest_Start | undefined;
+  data?: BatchStreamRequest_Data | undefined;
+  stop?: BatchStreamRequest_Stop | undefined;
 }
 
-export interface BatchSendRequest_Stop {
+export interface BatchStreamRequest_Start {
+  consistencyLevel?: ConsistencyLevel | undefined;
 }
 
-export interface BatchSendRequest_Objects {
+export interface BatchStreamRequest_Stop {
+}
+
+export interface BatchStreamRequest_Data {
+  objects: BatchStreamRequest_Data_Objects | undefined;
+  references: BatchStreamRequest_Data_References | undefined;
+}
+
+export interface BatchStreamRequest_Data_Objects {
   values: BatchObject[];
 }
 
-export interface BatchSendRequest_References {
+export interface BatchStreamRequest_Data_References {
   values: BatchReference[];
 }
 
-export interface BatchSendReply {
-  nextBatchSize: number;
-  backoffSeconds: number;
+export interface BatchStreamReply {
+  results?: BatchStreamReply_Results | undefined;
+  shuttingDown?: BatchStreamReply_ShuttingDown | undefined;
+  shutdown?: BatchStreamReply_Shutdown | undefined;
+  started?: BatchStreamReply_Started | undefined;
+  backoff?: BatchStreamReply_Backoff | undefined;
+  acks?: BatchStreamReply_Acks | undefined;
+  outOfMemory?: BatchStreamReply_OutOfMemory | undefined;
 }
 
-export interface BatchStreamRequest {
-  consistencyLevel?: ConsistencyLevel | undefined;
-  objectIndex?: number | undefined;
-  referenceIndex?: number | undefined;
+export interface BatchStreamReply_Started {
 }
 
-export interface BatchStreamMessage {
-  streamId: string;
-  error?: BatchStreamMessage_Error | undefined;
-  start?: BatchStreamMessage_Start | undefined;
-  stop?: BatchStreamMessage_Stop | undefined;
-  shutdown?: BatchStreamMessage_Shutdown | undefined;
-  shuttingDown?: BatchStreamMessage_ShuttingDown | undefined;
+export interface BatchStreamReply_ShuttingDown {
 }
 
-export interface BatchStreamMessage_Start {
+export interface BatchStreamReply_Shutdown {
 }
 
-export interface BatchStreamMessage_Stop {
+export interface BatchStreamReply_OutOfMemory {
+  uuids: string[];
+  beacons: string[];
 }
 
-export interface BatchStreamMessage_Shutdown {
+export interface BatchStreamReply_Backoff {
+  batchSize: number;
 }
 
-export interface BatchStreamMessage_ShuttingDown {
+export interface BatchStreamReply_Acks {
+  uuids: string[];
+  beacons: string[];
 }
 
-export interface BatchStreamMessage_Error {
+export interface BatchStreamReply_Results {
+  errors: BatchStreamReply_Results_Error[];
+  successes: BatchStreamReply_Results_Success[];
+}
+
+export interface BatchStreamReply_Results_Error {
   error: string;
-  index: number;
-  isRetriable: boolean;
-  isObject: boolean;
-  isReference: boolean;
+  uuid?: string | undefined;
+  beacon?: string | undefined;
+}
+
+export interface BatchStreamReply_Results_Success {
+  uuid?: string | undefined;
+  beacon?: string | undefined;
 }
 
 export interface BatchObject {
@@ -313,31 +330,28 @@ export const BatchReferencesRequest = {
   },
 };
 
-function createBaseBatchSendRequest(): BatchSendRequest {
-  return { streamId: "", objects: undefined, references: undefined, stop: undefined };
+function createBaseBatchStreamRequest(): BatchStreamRequest {
+  return { start: undefined, data: undefined, stop: undefined };
 }
 
-export const BatchSendRequest = {
-  encode(message: BatchSendRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.streamId !== "") {
-      writer.uint32(10).string(message.streamId);
+export const BatchStreamRequest = {
+  encode(message: BatchStreamRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.start !== undefined) {
+      BatchStreamRequest_Start.encode(message.start, writer.uint32(10).fork()).ldelim();
     }
-    if (message.objects !== undefined) {
-      BatchSendRequest_Objects.encode(message.objects, writer.uint32(18).fork()).ldelim();
-    }
-    if (message.references !== undefined) {
-      BatchSendRequest_References.encode(message.references, writer.uint32(26).fork()).ldelim();
+    if (message.data !== undefined) {
+      BatchStreamRequest_Data.encode(message.data, writer.uint32(18).fork()).ldelim();
     }
     if (message.stop !== undefined) {
-      BatchSendRequest_Stop.encode(message.stop, writer.uint32(34).fork()).ldelim();
+      BatchStreamRequest_Stop.encode(message.stop, writer.uint32(26).fork()).ldelim();
     }
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): BatchSendRequest {
+  decode(input: _m0.Reader | Uint8Array, length?: number): BatchStreamRequest {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseBatchSendRequest();
+    const message = createBaseBatchStreamRequest();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -346,28 +360,21 @@ export const BatchSendRequest = {
             break;
           }
 
-          message.streamId = reader.string();
+          message.start = BatchStreamRequest_Start.decode(reader, reader.uint32());
           continue;
         case 2:
           if (tag !== 18) {
             break;
           }
 
-          message.objects = BatchSendRequest_Objects.decode(reader, reader.uint32());
+          message.data = BatchStreamRequest_Data.decode(reader, reader.uint32());
           continue;
         case 3:
           if (tag !== 26) {
             break;
           }
 
-          message.references = BatchSendRequest_References.decode(reader, reader.uint32());
-          continue;
-        case 4:
-          if (tag !== 34) {
-            break;
-          }
-
-          message.stop = BatchSendRequest_Stop.decode(reader, reader.uint32());
+          message.stop = BatchStreamRequest_Stop.decode(reader, reader.uint32());
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -378,64 +385,118 @@ export const BatchSendRequest = {
     return message;
   },
 
-  fromJSON(object: any): BatchSendRequest {
+  fromJSON(object: any): BatchStreamRequest {
     return {
-      streamId: isSet(object.streamId) ? globalThis.String(object.streamId) : "",
-      objects: isSet(object.objects) ? BatchSendRequest_Objects.fromJSON(object.objects) : undefined,
-      references: isSet(object.references) ? BatchSendRequest_References.fromJSON(object.references) : undefined,
-      stop: isSet(object.stop) ? BatchSendRequest_Stop.fromJSON(object.stop) : undefined,
+      start: isSet(object.start) ? BatchStreamRequest_Start.fromJSON(object.start) : undefined,
+      data: isSet(object.data) ? BatchStreamRequest_Data.fromJSON(object.data) : undefined,
+      stop: isSet(object.stop) ? BatchStreamRequest_Stop.fromJSON(object.stop) : undefined,
     };
   },
 
-  toJSON(message: BatchSendRequest): unknown {
+  toJSON(message: BatchStreamRequest): unknown {
     const obj: any = {};
-    if (message.streamId !== "") {
-      obj.streamId = message.streamId;
+    if (message.start !== undefined) {
+      obj.start = BatchStreamRequest_Start.toJSON(message.start);
     }
-    if (message.objects !== undefined) {
-      obj.objects = BatchSendRequest_Objects.toJSON(message.objects);
-    }
-    if (message.references !== undefined) {
-      obj.references = BatchSendRequest_References.toJSON(message.references);
+    if (message.data !== undefined) {
+      obj.data = BatchStreamRequest_Data.toJSON(message.data);
     }
     if (message.stop !== undefined) {
-      obj.stop = BatchSendRequest_Stop.toJSON(message.stop);
+      obj.stop = BatchStreamRequest_Stop.toJSON(message.stop);
     }
     return obj;
   },
 
-  create(base?: DeepPartial<BatchSendRequest>): BatchSendRequest {
-    return BatchSendRequest.fromPartial(base ?? {});
+  create(base?: DeepPartial<BatchStreamRequest>): BatchStreamRequest {
+    return BatchStreamRequest.fromPartial(base ?? {});
   },
-  fromPartial(object: DeepPartial<BatchSendRequest>): BatchSendRequest {
-    const message = createBaseBatchSendRequest();
-    message.streamId = object.streamId ?? "";
-    message.objects = (object.objects !== undefined && object.objects !== null)
-      ? BatchSendRequest_Objects.fromPartial(object.objects)
+  fromPartial(object: DeepPartial<BatchStreamRequest>): BatchStreamRequest {
+    const message = createBaseBatchStreamRequest();
+    message.start = (object.start !== undefined && object.start !== null)
+      ? BatchStreamRequest_Start.fromPartial(object.start)
       : undefined;
-    message.references = (object.references !== undefined && object.references !== null)
-      ? BatchSendRequest_References.fromPartial(object.references)
+    message.data = (object.data !== undefined && object.data !== null)
+      ? BatchStreamRequest_Data.fromPartial(object.data)
       : undefined;
     message.stop = (object.stop !== undefined && object.stop !== null)
-      ? BatchSendRequest_Stop.fromPartial(object.stop)
+      ? BatchStreamRequest_Stop.fromPartial(object.stop)
       : undefined;
     return message;
   },
 };
 
-function createBaseBatchSendRequest_Stop(): BatchSendRequest_Stop {
-  return {};
+function createBaseBatchStreamRequest_Start(): BatchStreamRequest_Start {
+  return { consistencyLevel: undefined };
 }
 
-export const BatchSendRequest_Stop = {
-  encode(_: BatchSendRequest_Stop, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+export const BatchStreamRequest_Start = {
+  encode(message: BatchStreamRequest_Start, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.consistencyLevel !== undefined) {
+      writer.uint32(8).int32(message.consistencyLevel);
+    }
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): BatchSendRequest_Stop {
+  decode(input: _m0.Reader | Uint8Array, length?: number): BatchStreamRequest_Start {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseBatchSendRequest_Stop();
+    const message = createBaseBatchStreamRequest_Start();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 8) {
+            break;
+          }
+
+          message.consistencyLevel = reader.int32() as any;
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): BatchStreamRequest_Start {
+    return {
+      consistencyLevel: isSet(object.consistencyLevel) ? consistencyLevelFromJSON(object.consistencyLevel) : undefined,
+    };
+  },
+
+  toJSON(message: BatchStreamRequest_Start): unknown {
+    const obj: any = {};
+    if (message.consistencyLevel !== undefined) {
+      obj.consistencyLevel = consistencyLevelToJSON(message.consistencyLevel);
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<BatchStreamRequest_Start>): BatchStreamRequest_Start {
+    return BatchStreamRequest_Start.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<BatchStreamRequest_Start>): BatchStreamRequest_Start {
+    const message = createBaseBatchStreamRequest_Start();
+    message.consistencyLevel = object.consistencyLevel ?? undefined;
+    return message;
+  },
+};
+
+function createBaseBatchStreamRequest_Stop(): BatchStreamRequest_Stop {
+  return {};
+}
+
+export const BatchStreamRequest_Stop = {
+  encode(_: BatchStreamRequest_Stop, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): BatchStreamRequest_Stop {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseBatchStreamRequest_Stop();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -448,40 +509,118 @@ export const BatchSendRequest_Stop = {
     return message;
   },
 
-  fromJSON(_: any): BatchSendRequest_Stop {
+  fromJSON(_: any): BatchStreamRequest_Stop {
     return {};
   },
 
-  toJSON(_: BatchSendRequest_Stop): unknown {
+  toJSON(_: BatchStreamRequest_Stop): unknown {
     const obj: any = {};
     return obj;
   },
 
-  create(base?: DeepPartial<BatchSendRequest_Stop>): BatchSendRequest_Stop {
-    return BatchSendRequest_Stop.fromPartial(base ?? {});
+  create(base?: DeepPartial<BatchStreamRequest_Stop>): BatchStreamRequest_Stop {
+    return BatchStreamRequest_Stop.fromPartial(base ?? {});
   },
-  fromPartial(_: DeepPartial<BatchSendRequest_Stop>): BatchSendRequest_Stop {
-    const message = createBaseBatchSendRequest_Stop();
+  fromPartial(_: DeepPartial<BatchStreamRequest_Stop>): BatchStreamRequest_Stop {
+    const message = createBaseBatchStreamRequest_Stop();
     return message;
   },
 };
 
-function createBaseBatchSendRequest_Objects(): BatchSendRequest_Objects {
+function createBaseBatchStreamRequest_Data(): BatchStreamRequest_Data {
+  return { objects: undefined, references: undefined };
+}
+
+export const BatchStreamRequest_Data = {
+  encode(message: BatchStreamRequest_Data, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.objects !== undefined) {
+      BatchStreamRequest_Data_Objects.encode(message.objects, writer.uint32(10).fork()).ldelim();
+    }
+    if (message.references !== undefined) {
+      BatchStreamRequest_Data_References.encode(message.references, writer.uint32(18).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): BatchStreamRequest_Data {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseBatchStreamRequest_Data();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.objects = BatchStreamRequest_Data_Objects.decode(reader, reader.uint32());
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.references = BatchStreamRequest_Data_References.decode(reader, reader.uint32());
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): BatchStreamRequest_Data {
+    return {
+      objects: isSet(object.objects) ? BatchStreamRequest_Data_Objects.fromJSON(object.objects) : undefined,
+      references: isSet(object.references) ? BatchStreamRequest_Data_References.fromJSON(object.references) : undefined,
+    };
+  },
+
+  toJSON(message: BatchStreamRequest_Data): unknown {
+    const obj: any = {};
+    if (message.objects !== undefined) {
+      obj.objects = BatchStreamRequest_Data_Objects.toJSON(message.objects);
+    }
+    if (message.references !== undefined) {
+      obj.references = BatchStreamRequest_Data_References.toJSON(message.references);
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<BatchStreamRequest_Data>): BatchStreamRequest_Data {
+    return BatchStreamRequest_Data.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<BatchStreamRequest_Data>): BatchStreamRequest_Data {
+    const message = createBaseBatchStreamRequest_Data();
+    message.objects = (object.objects !== undefined && object.objects !== null)
+      ? BatchStreamRequest_Data_Objects.fromPartial(object.objects)
+      : undefined;
+    message.references = (object.references !== undefined && object.references !== null)
+      ? BatchStreamRequest_Data_References.fromPartial(object.references)
+      : undefined;
+    return message;
+  },
+};
+
+function createBaseBatchStreamRequest_Data_Objects(): BatchStreamRequest_Data_Objects {
   return { values: [] };
 }
 
-export const BatchSendRequest_Objects = {
-  encode(message: BatchSendRequest_Objects, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+export const BatchStreamRequest_Data_Objects = {
+  encode(message: BatchStreamRequest_Data_Objects, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     for (const v of message.values) {
       BatchObject.encode(v!, writer.uint32(10).fork()).ldelim();
     }
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): BatchSendRequest_Objects {
+  decode(input: _m0.Reader | Uint8Array, length?: number): BatchStreamRequest_Data_Objects {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseBatchSendRequest_Objects();
+    const message = createBaseBatchStreamRequest_Data_Objects();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -501,13 +640,13 @@ export const BatchSendRequest_Objects = {
     return message;
   },
 
-  fromJSON(object: any): BatchSendRequest_Objects {
+  fromJSON(object: any): BatchStreamRequest_Data_Objects {
     return {
       values: globalThis.Array.isArray(object?.values) ? object.values.map((e: any) => BatchObject.fromJSON(e)) : [],
     };
   },
 
-  toJSON(message: BatchSendRequest_Objects): unknown {
+  toJSON(message: BatchStreamRequest_Data_Objects): unknown {
     const obj: any = {};
     if (message.values?.length) {
       obj.values = message.values.map((e) => BatchObject.toJSON(e));
@@ -515,32 +654,32 @@ export const BatchSendRequest_Objects = {
     return obj;
   },
 
-  create(base?: DeepPartial<BatchSendRequest_Objects>): BatchSendRequest_Objects {
-    return BatchSendRequest_Objects.fromPartial(base ?? {});
+  create(base?: DeepPartial<BatchStreamRequest_Data_Objects>): BatchStreamRequest_Data_Objects {
+    return BatchStreamRequest_Data_Objects.fromPartial(base ?? {});
   },
-  fromPartial(object: DeepPartial<BatchSendRequest_Objects>): BatchSendRequest_Objects {
-    const message = createBaseBatchSendRequest_Objects();
+  fromPartial(object: DeepPartial<BatchStreamRequest_Data_Objects>): BatchStreamRequest_Data_Objects {
+    const message = createBaseBatchStreamRequest_Data_Objects();
     message.values = object.values?.map((e) => BatchObject.fromPartial(e)) || [];
     return message;
   },
 };
 
-function createBaseBatchSendRequest_References(): BatchSendRequest_References {
+function createBaseBatchStreamRequest_Data_References(): BatchStreamRequest_Data_References {
   return { values: [] };
 }
 
-export const BatchSendRequest_References = {
-  encode(message: BatchSendRequest_References, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+export const BatchStreamRequest_Data_References = {
+  encode(message: BatchStreamRequest_Data_References, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     for (const v of message.values) {
       BatchReference.encode(v!, writer.uint32(10).fork()).ldelim();
     }
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): BatchSendRequest_References {
+  decode(input: _m0.Reader | Uint8Array, length?: number): BatchStreamRequest_Data_References {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseBatchSendRequest_References();
+    const message = createBaseBatchStreamRequest_Data_References();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -560,13 +699,13 @@ export const BatchSendRequest_References = {
     return message;
   },
 
-  fromJSON(object: any): BatchSendRequest_References {
+  fromJSON(object: any): BatchStreamRequest_Data_References {
     return {
       values: globalThis.Array.isArray(object?.values) ? object.values.map((e: any) => BatchReference.fromJSON(e)) : [],
     };
   },
 
-  toJSON(message: BatchSendRequest_References): unknown {
+  toJSON(message: BatchStreamRequest_Data_References): unknown {
     const obj: any = {};
     if (message.values?.length) {
       obj.values = message.values.map((e) => BatchReference.toJSON(e));
@@ -574,217 +713,58 @@ export const BatchSendRequest_References = {
     return obj;
   },
 
-  create(base?: DeepPartial<BatchSendRequest_References>): BatchSendRequest_References {
-    return BatchSendRequest_References.fromPartial(base ?? {});
+  create(base?: DeepPartial<BatchStreamRequest_Data_References>): BatchStreamRequest_Data_References {
+    return BatchStreamRequest_Data_References.fromPartial(base ?? {});
   },
-  fromPartial(object: DeepPartial<BatchSendRequest_References>): BatchSendRequest_References {
-    const message = createBaseBatchSendRequest_References();
+  fromPartial(object: DeepPartial<BatchStreamRequest_Data_References>): BatchStreamRequest_Data_References {
+    const message = createBaseBatchStreamRequest_Data_References();
     message.values = object.values?.map((e) => BatchReference.fromPartial(e)) || [];
     return message;
   },
 };
 
-function createBaseBatchSendReply(): BatchSendReply {
-  return { nextBatchSize: 0, backoffSeconds: 0 };
-}
-
-export const BatchSendReply = {
-  encode(message: BatchSendReply, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.nextBatchSize !== 0) {
-      writer.uint32(8).int32(message.nextBatchSize);
-    }
-    if (message.backoffSeconds !== 0) {
-      writer.uint32(21).float(message.backoffSeconds);
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): BatchSendReply {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseBatchSendReply();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          if (tag !== 8) {
-            break;
-          }
-
-          message.nextBatchSize = reader.int32();
-          continue;
-        case 2:
-          if (tag !== 21) {
-            break;
-          }
-
-          message.backoffSeconds = reader.float();
-          continue;
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): BatchSendReply {
-    return {
-      nextBatchSize: isSet(object.nextBatchSize) ? globalThis.Number(object.nextBatchSize) : 0,
-      backoffSeconds: isSet(object.backoffSeconds) ? globalThis.Number(object.backoffSeconds) : 0,
-    };
-  },
-
-  toJSON(message: BatchSendReply): unknown {
-    const obj: any = {};
-    if (message.nextBatchSize !== 0) {
-      obj.nextBatchSize = Math.round(message.nextBatchSize);
-    }
-    if (message.backoffSeconds !== 0) {
-      obj.backoffSeconds = message.backoffSeconds;
-    }
-    return obj;
-  },
-
-  create(base?: DeepPartial<BatchSendReply>): BatchSendReply {
-    return BatchSendReply.fromPartial(base ?? {});
-  },
-  fromPartial(object: DeepPartial<BatchSendReply>): BatchSendReply {
-    const message = createBaseBatchSendReply();
-    message.nextBatchSize = object.nextBatchSize ?? 0;
-    message.backoffSeconds = object.backoffSeconds ?? 0;
-    return message;
-  },
-};
-
-function createBaseBatchStreamRequest(): BatchStreamRequest {
-  return { consistencyLevel: undefined, objectIndex: undefined, referenceIndex: undefined };
-}
-
-export const BatchStreamRequest = {
-  encode(message: BatchStreamRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.consistencyLevel !== undefined) {
-      writer.uint32(8).int32(message.consistencyLevel);
-    }
-    if (message.objectIndex !== undefined) {
-      writer.uint32(16).int32(message.objectIndex);
-    }
-    if (message.referenceIndex !== undefined) {
-      writer.uint32(24).int32(message.referenceIndex);
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): BatchStreamRequest {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseBatchStreamRequest();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          if (tag !== 8) {
-            break;
-          }
-
-          message.consistencyLevel = reader.int32() as any;
-          continue;
-        case 2:
-          if (tag !== 16) {
-            break;
-          }
-
-          message.objectIndex = reader.int32();
-          continue;
-        case 3:
-          if (tag !== 24) {
-            break;
-          }
-
-          message.referenceIndex = reader.int32();
-          continue;
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): BatchStreamRequest {
-    return {
-      consistencyLevel: isSet(object.consistencyLevel) ? consistencyLevelFromJSON(object.consistencyLevel) : undefined,
-      objectIndex: isSet(object.objectIndex) ? globalThis.Number(object.objectIndex) : undefined,
-      referenceIndex: isSet(object.referenceIndex) ? globalThis.Number(object.referenceIndex) : undefined,
-    };
-  },
-
-  toJSON(message: BatchStreamRequest): unknown {
-    const obj: any = {};
-    if (message.consistencyLevel !== undefined) {
-      obj.consistencyLevel = consistencyLevelToJSON(message.consistencyLevel);
-    }
-    if (message.objectIndex !== undefined) {
-      obj.objectIndex = Math.round(message.objectIndex);
-    }
-    if (message.referenceIndex !== undefined) {
-      obj.referenceIndex = Math.round(message.referenceIndex);
-    }
-    return obj;
-  },
-
-  create(base?: DeepPartial<BatchStreamRequest>): BatchStreamRequest {
-    return BatchStreamRequest.fromPartial(base ?? {});
-  },
-  fromPartial(object: DeepPartial<BatchStreamRequest>): BatchStreamRequest {
-    const message = createBaseBatchStreamRequest();
-    message.consistencyLevel = object.consistencyLevel ?? undefined;
-    message.objectIndex = object.objectIndex ?? undefined;
-    message.referenceIndex = object.referenceIndex ?? undefined;
-    return message;
-  },
-};
-
-function createBaseBatchStreamMessage(): BatchStreamMessage {
+function createBaseBatchStreamReply(): BatchStreamReply {
   return {
-    streamId: "",
-    error: undefined,
-    start: undefined,
-    stop: undefined,
-    shutdown: undefined,
+    results: undefined,
     shuttingDown: undefined,
+    shutdown: undefined,
+    started: undefined,
+    backoff: undefined,
+    acks: undefined,
+    outOfMemory: undefined,
   };
 }
 
-export const BatchStreamMessage = {
-  encode(message: BatchStreamMessage, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.streamId !== "") {
-      writer.uint32(10).string(message.streamId);
-    }
-    if (message.error !== undefined) {
-      BatchStreamMessage_Error.encode(message.error, writer.uint32(18).fork()).ldelim();
-    }
-    if (message.start !== undefined) {
-      BatchStreamMessage_Start.encode(message.start, writer.uint32(26).fork()).ldelim();
-    }
-    if (message.stop !== undefined) {
-      BatchStreamMessage_Stop.encode(message.stop, writer.uint32(34).fork()).ldelim();
-    }
-    if (message.shutdown !== undefined) {
-      BatchStreamMessage_Shutdown.encode(message.shutdown, writer.uint32(42).fork()).ldelim();
+export const BatchStreamReply = {
+  encode(message: BatchStreamReply, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.results !== undefined) {
+      BatchStreamReply_Results.encode(message.results, writer.uint32(10).fork()).ldelim();
     }
     if (message.shuttingDown !== undefined) {
-      BatchStreamMessage_ShuttingDown.encode(message.shuttingDown, writer.uint32(50).fork()).ldelim();
+      BatchStreamReply_ShuttingDown.encode(message.shuttingDown, writer.uint32(18).fork()).ldelim();
+    }
+    if (message.shutdown !== undefined) {
+      BatchStreamReply_Shutdown.encode(message.shutdown, writer.uint32(26).fork()).ldelim();
+    }
+    if (message.started !== undefined) {
+      BatchStreamReply_Started.encode(message.started, writer.uint32(34).fork()).ldelim();
+    }
+    if (message.backoff !== undefined) {
+      BatchStreamReply_Backoff.encode(message.backoff, writer.uint32(42).fork()).ldelim();
+    }
+    if (message.acks !== undefined) {
+      BatchStreamReply_Acks.encode(message.acks, writer.uint32(50).fork()).ldelim();
+    }
+    if (message.outOfMemory !== undefined) {
+      BatchStreamReply_OutOfMemory.encode(message.outOfMemory, writer.uint32(58).fork()).ldelim();
     }
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): BatchStreamMessage {
+  decode(input: _m0.Reader | Uint8Array, length?: number): BatchStreamReply {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseBatchStreamMessage();
+    const message = createBaseBatchStreamReply();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -793,42 +773,49 @@ export const BatchStreamMessage = {
             break;
           }
 
-          message.streamId = reader.string();
+          message.results = BatchStreamReply_Results.decode(reader, reader.uint32());
           continue;
         case 2:
           if (tag !== 18) {
             break;
           }
 
-          message.error = BatchStreamMessage_Error.decode(reader, reader.uint32());
+          message.shuttingDown = BatchStreamReply_ShuttingDown.decode(reader, reader.uint32());
           continue;
         case 3:
           if (tag !== 26) {
             break;
           }
 
-          message.start = BatchStreamMessage_Start.decode(reader, reader.uint32());
+          message.shutdown = BatchStreamReply_Shutdown.decode(reader, reader.uint32());
           continue;
         case 4:
           if (tag !== 34) {
             break;
           }
 
-          message.stop = BatchStreamMessage_Stop.decode(reader, reader.uint32());
+          message.started = BatchStreamReply_Started.decode(reader, reader.uint32());
           continue;
         case 5:
           if (tag !== 42) {
             break;
           }
 
-          message.shutdown = BatchStreamMessage_Shutdown.decode(reader, reader.uint32());
+          message.backoff = BatchStreamReply_Backoff.decode(reader, reader.uint32());
           continue;
         case 6:
           if (tag !== 50) {
             break;
           }
 
-          message.shuttingDown = BatchStreamMessage_ShuttingDown.decode(reader, reader.uint32());
+          message.acks = BatchStreamReply_Acks.decode(reader, reader.uint32());
+          continue;
+        case 7:
+          if (tag !== 58) {
+            break;
+          }
+
+          message.outOfMemory = BatchStreamReply_OutOfMemory.decode(reader, reader.uint32());
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -839,80 +826,89 @@ export const BatchStreamMessage = {
     return message;
   },
 
-  fromJSON(object: any): BatchStreamMessage {
+  fromJSON(object: any): BatchStreamReply {
     return {
-      streamId: isSet(object.streamId) ? globalThis.String(object.streamId) : "",
-      error: isSet(object.error) ? BatchStreamMessage_Error.fromJSON(object.error) : undefined,
-      start: isSet(object.start) ? BatchStreamMessage_Start.fromJSON(object.start) : undefined,
-      stop: isSet(object.stop) ? BatchStreamMessage_Stop.fromJSON(object.stop) : undefined,
-      shutdown: isSet(object.shutdown) ? BatchStreamMessage_Shutdown.fromJSON(object.shutdown) : undefined,
+      results: isSet(object.results) ? BatchStreamReply_Results.fromJSON(object.results) : undefined,
       shuttingDown: isSet(object.shuttingDown)
-        ? BatchStreamMessage_ShuttingDown.fromJSON(object.shuttingDown)
+        ? BatchStreamReply_ShuttingDown.fromJSON(object.shuttingDown)
         : undefined,
+      shutdown: isSet(object.shutdown) ? BatchStreamReply_Shutdown.fromJSON(object.shutdown) : undefined,
+      started: isSet(object.started) ? BatchStreamReply_Started.fromJSON(object.started) : undefined,
+      backoff: isSet(object.backoff) ? BatchStreamReply_Backoff.fromJSON(object.backoff) : undefined,
+      acks: isSet(object.acks) ? BatchStreamReply_Acks.fromJSON(object.acks) : undefined,
+      outOfMemory: isSet(object.outOfMemory) ? BatchStreamReply_OutOfMemory.fromJSON(object.outOfMemory) : undefined,
     };
   },
 
-  toJSON(message: BatchStreamMessage): unknown {
+  toJSON(message: BatchStreamReply): unknown {
     const obj: any = {};
-    if (message.streamId !== "") {
-      obj.streamId = message.streamId;
-    }
-    if (message.error !== undefined) {
-      obj.error = BatchStreamMessage_Error.toJSON(message.error);
-    }
-    if (message.start !== undefined) {
-      obj.start = BatchStreamMessage_Start.toJSON(message.start);
-    }
-    if (message.stop !== undefined) {
-      obj.stop = BatchStreamMessage_Stop.toJSON(message.stop);
-    }
-    if (message.shutdown !== undefined) {
-      obj.shutdown = BatchStreamMessage_Shutdown.toJSON(message.shutdown);
+    if (message.results !== undefined) {
+      obj.results = BatchStreamReply_Results.toJSON(message.results);
     }
     if (message.shuttingDown !== undefined) {
-      obj.shuttingDown = BatchStreamMessage_ShuttingDown.toJSON(message.shuttingDown);
+      obj.shuttingDown = BatchStreamReply_ShuttingDown.toJSON(message.shuttingDown);
+    }
+    if (message.shutdown !== undefined) {
+      obj.shutdown = BatchStreamReply_Shutdown.toJSON(message.shutdown);
+    }
+    if (message.started !== undefined) {
+      obj.started = BatchStreamReply_Started.toJSON(message.started);
+    }
+    if (message.backoff !== undefined) {
+      obj.backoff = BatchStreamReply_Backoff.toJSON(message.backoff);
+    }
+    if (message.acks !== undefined) {
+      obj.acks = BatchStreamReply_Acks.toJSON(message.acks);
+    }
+    if (message.outOfMemory !== undefined) {
+      obj.outOfMemory = BatchStreamReply_OutOfMemory.toJSON(message.outOfMemory);
     }
     return obj;
   },
 
-  create(base?: DeepPartial<BatchStreamMessage>): BatchStreamMessage {
-    return BatchStreamMessage.fromPartial(base ?? {});
+  create(base?: DeepPartial<BatchStreamReply>): BatchStreamReply {
+    return BatchStreamReply.fromPartial(base ?? {});
   },
-  fromPartial(object: DeepPartial<BatchStreamMessage>): BatchStreamMessage {
-    const message = createBaseBatchStreamMessage();
-    message.streamId = object.streamId ?? "";
-    message.error = (object.error !== undefined && object.error !== null)
-      ? BatchStreamMessage_Error.fromPartial(object.error)
-      : undefined;
-    message.start = (object.start !== undefined && object.start !== null)
-      ? BatchStreamMessage_Start.fromPartial(object.start)
-      : undefined;
-    message.stop = (object.stop !== undefined && object.stop !== null)
-      ? BatchStreamMessage_Stop.fromPartial(object.stop)
-      : undefined;
-    message.shutdown = (object.shutdown !== undefined && object.shutdown !== null)
-      ? BatchStreamMessage_Shutdown.fromPartial(object.shutdown)
+  fromPartial(object: DeepPartial<BatchStreamReply>): BatchStreamReply {
+    const message = createBaseBatchStreamReply();
+    message.results = (object.results !== undefined && object.results !== null)
+      ? BatchStreamReply_Results.fromPartial(object.results)
       : undefined;
     message.shuttingDown = (object.shuttingDown !== undefined && object.shuttingDown !== null)
-      ? BatchStreamMessage_ShuttingDown.fromPartial(object.shuttingDown)
+      ? BatchStreamReply_ShuttingDown.fromPartial(object.shuttingDown)
+      : undefined;
+    message.shutdown = (object.shutdown !== undefined && object.shutdown !== null)
+      ? BatchStreamReply_Shutdown.fromPartial(object.shutdown)
+      : undefined;
+    message.started = (object.started !== undefined && object.started !== null)
+      ? BatchStreamReply_Started.fromPartial(object.started)
+      : undefined;
+    message.backoff = (object.backoff !== undefined && object.backoff !== null)
+      ? BatchStreamReply_Backoff.fromPartial(object.backoff)
+      : undefined;
+    message.acks = (object.acks !== undefined && object.acks !== null)
+      ? BatchStreamReply_Acks.fromPartial(object.acks)
+      : undefined;
+    message.outOfMemory = (object.outOfMemory !== undefined && object.outOfMemory !== null)
+      ? BatchStreamReply_OutOfMemory.fromPartial(object.outOfMemory)
       : undefined;
     return message;
   },
 };
 
-function createBaseBatchStreamMessage_Start(): BatchStreamMessage_Start {
+function createBaseBatchStreamReply_Started(): BatchStreamReply_Started {
   return {};
 }
 
-export const BatchStreamMessage_Start = {
-  encode(_: BatchStreamMessage_Start, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+export const BatchStreamReply_Started = {
+  encode(_: BatchStreamReply_Started, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): BatchStreamMessage_Start {
+  decode(input: _m0.Reader | Uint8Array, length?: number): BatchStreamReply_Started {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseBatchStreamMessage_Start();
+    const message = createBaseBatchStreamReply_Started();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -925,37 +921,37 @@ export const BatchStreamMessage_Start = {
     return message;
   },
 
-  fromJSON(_: any): BatchStreamMessage_Start {
+  fromJSON(_: any): BatchStreamReply_Started {
     return {};
   },
 
-  toJSON(_: BatchStreamMessage_Start): unknown {
+  toJSON(_: BatchStreamReply_Started): unknown {
     const obj: any = {};
     return obj;
   },
 
-  create(base?: DeepPartial<BatchStreamMessage_Start>): BatchStreamMessage_Start {
-    return BatchStreamMessage_Start.fromPartial(base ?? {});
+  create(base?: DeepPartial<BatchStreamReply_Started>): BatchStreamReply_Started {
+    return BatchStreamReply_Started.fromPartial(base ?? {});
   },
-  fromPartial(_: DeepPartial<BatchStreamMessage_Start>): BatchStreamMessage_Start {
-    const message = createBaseBatchStreamMessage_Start();
+  fromPartial(_: DeepPartial<BatchStreamReply_Started>): BatchStreamReply_Started {
+    const message = createBaseBatchStreamReply_Started();
     return message;
   },
 };
 
-function createBaseBatchStreamMessage_Stop(): BatchStreamMessage_Stop {
+function createBaseBatchStreamReply_ShuttingDown(): BatchStreamReply_ShuttingDown {
   return {};
 }
 
-export const BatchStreamMessage_Stop = {
-  encode(_: BatchStreamMessage_Stop, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+export const BatchStreamReply_ShuttingDown = {
+  encode(_: BatchStreamReply_ShuttingDown, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): BatchStreamMessage_Stop {
+  decode(input: _m0.Reader | Uint8Array, length?: number): BatchStreamReply_ShuttingDown {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseBatchStreamMessage_Stop();
+    const message = createBaseBatchStreamReply_ShuttingDown();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -968,37 +964,37 @@ export const BatchStreamMessage_Stop = {
     return message;
   },
 
-  fromJSON(_: any): BatchStreamMessage_Stop {
+  fromJSON(_: any): BatchStreamReply_ShuttingDown {
     return {};
   },
 
-  toJSON(_: BatchStreamMessage_Stop): unknown {
+  toJSON(_: BatchStreamReply_ShuttingDown): unknown {
     const obj: any = {};
     return obj;
   },
 
-  create(base?: DeepPartial<BatchStreamMessage_Stop>): BatchStreamMessage_Stop {
-    return BatchStreamMessage_Stop.fromPartial(base ?? {});
+  create(base?: DeepPartial<BatchStreamReply_ShuttingDown>): BatchStreamReply_ShuttingDown {
+    return BatchStreamReply_ShuttingDown.fromPartial(base ?? {});
   },
-  fromPartial(_: DeepPartial<BatchStreamMessage_Stop>): BatchStreamMessage_Stop {
-    const message = createBaseBatchStreamMessage_Stop();
+  fromPartial(_: DeepPartial<BatchStreamReply_ShuttingDown>): BatchStreamReply_ShuttingDown {
+    const message = createBaseBatchStreamReply_ShuttingDown();
     return message;
   },
 };
 
-function createBaseBatchStreamMessage_Shutdown(): BatchStreamMessage_Shutdown {
+function createBaseBatchStreamReply_Shutdown(): BatchStreamReply_Shutdown {
   return {};
 }
 
-export const BatchStreamMessage_Shutdown = {
-  encode(_: BatchStreamMessage_Shutdown, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+export const BatchStreamReply_Shutdown = {
+  encode(_: BatchStreamReply_Shutdown, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): BatchStreamMessage_Shutdown {
+  decode(input: _m0.Reader | Uint8Array, length?: number): BatchStreamReply_Shutdown {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseBatchStreamMessage_Shutdown();
+    const message = createBaseBatchStreamReply_Shutdown();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -1011,40 +1007,60 @@ export const BatchStreamMessage_Shutdown = {
     return message;
   },
 
-  fromJSON(_: any): BatchStreamMessage_Shutdown {
+  fromJSON(_: any): BatchStreamReply_Shutdown {
     return {};
   },
 
-  toJSON(_: BatchStreamMessage_Shutdown): unknown {
+  toJSON(_: BatchStreamReply_Shutdown): unknown {
     const obj: any = {};
     return obj;
   },
 
-  create(base?: DeepPartial<BatchStreamMessage_Shutdown>): BatchStreamMessage_Shutdown {
-    return BatchStreamMessage_Shutdown.fromPartial(base ?? {});
+  create(base?: DeepPartial<BatchStreamReply_Shutdown>): BatchStreamReply_Shutdown {
+    return BatchStreamReply_Shutdown.fromPartial(base ?? {});
   },
-  fromPartial(_: DeepPartial<BatchStreamMessage_Shutdown>): BatchStreamMessage_Shutdown {
-    const message = createBaseBatchStreamMessage_Shutdown();
+  fromPartial(_: DeepPartial<BatchStreamReply_Shutdown>): BatchStreamReply_Shutdown {
+    const message = createBaseBatchStreamReply_Shutdown();
     return message;
   },
 };
 
-function createBaseBatchStreamMessage_ShuttingDown(): BatchStreamMessage_ShuttingDown {
-  return {};
+function createBaseBatchStreamReply_OutOfMemory(): BatchStreamReply_OutOfMemory {
+  return { uuids: [], beacons: [] };
 }
 
-export const BatchStreamMessage_ShuttingDown = {
-  encode(_: BatchStreamMessage_ShuttingDown, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+export const BatchStreamReply_OutOfMemory = {
+  encode(message: BatchStreamReply_OutOfMemory, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    for (const v of message.uuids) {
+      writer.uint32(10).string(v!);
+    }
+    for (const v of message.beacons) {
+      writer.uint32(18).string(v!);
+    }
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): BatchStreamMessage_ShuttingDown {
+  decode(input: _m0.Reader | Uint8Array, length?: number): BatchStreamReply_OutOfMemory {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseBatchStreamMessage_ShuttingDown();
+    const message = createBaseBatchStreamReply_OutOfMemory();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.uuids.push(reader.string());
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.beacons.push(reader.string());
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1054,52 +1070,266 @@ export const BatchStreamMessage_ShuttingDown = {
     return message;
   },
 
-  fromJSON(_: any): BatchStreamMessage_ShuttingDown {
-    return {};
+  fromJSON(object: any): BatchStreamReply_OutOfMemory {
+    return {
+      uuids: globalThis.Array.isArray(object?.uuids) ? object.uuids.map((e: any) => globalThis.String(e)) : [],
+      beacons: globalThis.Array.isArray(object?.beacons) ? object.beacons.map((e: any) => globalThis.String(e)) : [],
+    };
   },
 
-  toJSON(_: BatchStreamMessage_ShuttingDown): unknown {
+  toJSON(message: BatchStreamReply_OutOfMemory): unknown {
     const obj: any = {};
+    if (message.uuids?.length) {
+      obj.uuids = message.uuids;
+    }
+    if (message.beacons?.length) {
+      obj.beacons = message.beacons;
+    }
     return obj;
   },
 
-  create(base?: DeepPartial<BatchStreamMessage_ShuttingDown>): BatchStreamMessage_ShuttingDown {
-    return BatchStreamMessage_ShuttingDown.fromPartial(base ?? {});
+  create(base?: DeepPartial<BatchStreamReply_OutOfMemory>): BatchStreamReply_OutOfMemory {
+    return BatchStreamReply_OutOfMemory.fromPartial(base ?? {});
   },
-  fromPartial(_: DeepPartial<BatchStreamMessage_ShuttingDown>): BatchStreamMessage_ShuttingDown {
-    const message = createBaseBatchStreamMessage_ShuttingDown();
+  fromPartial(object: DeepPartial<BatchStreamReply_OutOfMemory>): BatchStreamReply_OutOfMemory {
+    const message = createBaseBatchStreamReply_OutOfMemory();
+    message.uuids = object.uuids?.map((e) => e) || [];
+    message.beacons = object.beacons?.map((e) => e) || [];
     return message;
   },
 };
 
-function createBaseBatchStreamMessage_Error(): BatchStreamMessage_Error {
-  return { error: "", index: 0, isRetriable: false, isObject: false, isReference: false };
+function createBaseBatchStreamReply_Backoff(): BatchStreamReply_Backoff {
+  return { batchSize: 0 };
 }
 
-export const BatchStreamMessage_Error = {
-  encode(message: BatchStreamMessage_Error, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+export const BatchStreamReply_Backoff = {
+  encode(message: BatchStreamReply_Backoff, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.batchSize !== 0) {
+      writer.uint32(8).int32(message.batchSize);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): BatchStreamReply_Backoff {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseBatchStreamReply_Backoff();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 8) {
+            break;
+          }
+
+          message.batchSize = reader.int32();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): BatchStreamReply_Backoff {
+    return { batchSize: isSet(object.batchSize) ? globalThis.Number(object.batchSize) : 0 };
+  },
+
+  toJSON(message: BatchStreamReply_Backoff): unknown {
+    const obj: any = {};
+    if (message.batchSize !== 0) {
+      obj.batchSize = Math.round(message.batchSize);
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<BatchStreamReply_Backoff>): BatchStreamReply_Backoff {
+    return BatchStreamReply_Backoff.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<BatchStreamReply_Backoff>): BatchStreamReply_Backoff {
+    const message = createBaseBatchStreamReply_Backoff();
+    message.batchSize = object.batchSize ?? 0;
+    return message;
+  },
+};
+
+function createBaseBatchStreamReply_Acks(): BatchStreamReply_Acks {
+  return { uuids: [], beacons: [] };
+}
+
+export const BatchStreamReply_Acks = {
+  encode(message: BatchStreamReply_Acks, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    for (const v of message.uuids) {
+      writer.uint32(10).string(v!);
+    }
+    for (const v of message.beacons) {
+      writer.uint32(18).string(v!);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): BatchStreamReply_Acks {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseBatchStreamReply_Acks();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.uuids.push(reader.string());
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.beacons.push(reader.string());
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): BatchStreamReply_Acks {
+    return {
+      uuids: globalThis.Array.isArray(object?.uuids) ? object.uuids.map((e: any) => globalThis.String(e)) : [],
+      beacons: globalThis.Array.isArray(object?.beacons) ? object.beacons.map((e: any) => globalThis.String(e)) : [],
+    };
+  },
+
+  toJSON(message: BatchStreamReply_Acks): unknown {
+    const obj: any = {};
+    if (message.uuids?.length) {
+      obj.uuids = message.uuids;
+    }
+    if (message.beacons?.length) {
+      obj.beacons = message.beacons;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<BatchStreamReply_Acks>): BatchStreamReply_Acks {
+    return BatchStreamReply_Acks.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<BatchStreamReply_Acks>): BatchStreamReply_Acks {
+    const message = createBaseBatchStreamReply_Acks();
+    message.uuids = object.uuids?.map((e) => e) || [];
+    message.beacons = object.beacons?.map((e) => e) || [];
+    return message;
+  },
+};
+
+function createBaseBatchStreamReply_Results(): BatchStreamReply_Results {
+  return { errors: [], successes: [] };
+}
+
+export const BatchStreamReply_Results = {
+  encode(message: BatchStreamReply_Results, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    for (const v of message.errors) {
+      BatchStreamReply_Results_Error.encode(v!, writer.uint32(10).fork()).ldelim();
+    }
+    for (const v of message.successes) {
+      BatchStreamReply_Results_Success.encode(v!, writer.uint32(18).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): BatchStreamReply_Results {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseBatchStreamReply_Results();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.errors.push(BatchStreamReply_Results_Error.decode(reader, reader.uint32()));
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.successes.push(BatchStreamReply_Results_Success.decode(reader, reader.uint32()));
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): BatchStreamReply_Results {
+    return {
+      errors: globalThis.Array.isArray(object?.errors)
+        ? object.errors.map((e: any) => BatchStreamReply_Results_Error.fromJSON(e))
+        : [],
+      successes: globalThis.Array.isArray(object?.successes)
+        ? object.successes.map((e: any) => BatchStreamReply_Results_Success.fromJSON(e))
+        : [],
+    };
+  },
+
+  toJSON(message: BatchStreamReply_Results): unknown {
+    const obj: any = {};
+    if (message.errors?.length) {
+      obj.errors = message.errors.map((e) => BatchStreamReply_Results_Error.toJSON(e));
+    }
+    if (message.successes?.length) {
+      obj.successes = message.successes.map((e) => BatchStreamReply_Results_Success.toJSON(e));
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<BatchStreamReply_Results>): BatchStreamReply_Results {
+    return BatchStreamReply_Results.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<BatchStreamReply_Results>): BatchStreamReply_Results {
+    const message = createBaseBatchStreamReply_Results();
+    message.errors = object.errors?.map((e) => BatchStreamReply_Results_Error.fromPartial(e)) || [];
+    message.successes = object.successes?.map((e) => BatchStreamReply_Results_Success.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseBatchStreamReply_Results_Error(): BatchStreamReply_Results_Error {
+  return { error: "", uuid: undefined, beacon: undefined };
+}
+
+export const BatchStreamReply_Results_Error = {
+  encode(message: BatchStreamReply_Results_Error, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.error !== "") {
       writer.uint32(10).string(message.error);
     }
-    if (message.index !== 0) {
-      writer.uint32(16).int32(message.index);
+    if (message.uuid !== undefined) {
+      writer.uint32(18).string(message.uuid);
     }
-    if (message.isRetriable !== false) {
-      writer.uint32(24).bool(message.isRetriable);
-    }
-    if (message.isObject !== false) {
-      writer.uint32(32).bool(message.isObject);
-    }
-    if (message.isReference !== false) {
-      writer.uint32(40).bool(message.isReference);
+    if (message.beacon !== undefined) {
+      writer.uint32(26).string(message.beacon);
     }
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): BatchStreamMessage_Error {
+  decode(input: _m0.Reader | Uint8Array, length?: number): BatchStreamReply_Results_Error {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseBatchStreamMessage_Error();
+    const message = createBaseBatchStreamReply_Results_Error();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -1111,32 +1341,18 @@ export const BatchStreamMessage_Error = {
           message.error = reader.string();
           continue;
         case 2:
-          if (tag !== 16) {
+          if (tag !== 18) {
             break;
           }
 
-          message.index = reader.int32();
+          message.uuid = reader.string();
           continue;
         case 3:
-          if (tag !== 24) {
+          if (tag !== 26) {
             break;
           }
 
-          message.isRetriable = reader.bool();
-          continue;
-        case 4:
-          if (tag !== 32) {
-            break;
-          }
-
-          message.isObject = reader.bool();
-          continue;
-        case 5:
-          if (tag !== 40) {
-            break;
-          }
-
-          message.isReference = reader.bool();
+          message.beacon = reader.string();
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -1147,46 +1363,110 @@ export const BatchStreamMessage_Error = {
     return message;
   },
 
-  fromJSON(object: any): BatchStreamMessage_Error {
+  fromJSON(object: any): BatchStreamReply_Results_Error {
     return {
       error: isSet(object.error) ? globalThis.String(object.error) : "",
-      index: isSet(object.index) ? globalThis.Number(object.index) : 0,
-      isRetriable: isSet(object.isRetriable) ? globalThis.Boolean(object.isRetriable) : false,
-      isObject: isSet(object.isObject) ? globalThis.Boolean(object.isObject) : false,
-      isReference: isSet(object.isReference) ? globalThis.Boolean(object.isReference) : false,
+      uuid: isSet(object.uuid) ? globalThis.String(object.uuid) : undefined,
+      beacon: isSet(object.beacon) ? globalThis.String(object.beacon) : undefined,
     };
   },
 
-  toJSON(message: BatchStreamMessage_Error): unknown {
+  toJSON(message: BatchStreamReply_Results_Error): unknown {
     const obj: any = {};
     if (message.error !== "") {
       obj.error = message.error;
     }
-    if (message.index !== 0) {
-      obj.index = Math.round(message.index);
+    if (message.uuid !== undefined) {
+      obj.uuid = message.uuid;
     }
-    if (message.isRetriable !== false) {
-      obj.isRetriable = message.isRetriable;
-    }
-    if (message.isObject !== false) {
-      obj.isObject = message.isObject;
-    }
-    if (message.isReference !== false) {
-      obj.isReference = message.isReference;
+    if (message.beacon !== undefined) {
+      obj.beacon = message.beacon;
     }
     return obj;
   },
 
-  create(base?: DeepPartial<BatchStreamMessage_Error>): BatchStreamMessage_Error {
-    return BatchStreamMessage_Error.fromPartial(base ?? {});
+  create(base?: DeepPartial<BatchStreamReply_Results_Error>): BatchStreamReply_Results_Error {
+    return BatchStreamReply_Results_Error.fromPartial(base ?? {});
   },
-  fromPartial(object: DeepPartial<BatchStreamMessage_Error>): BatchStreamMessage_Error {
-    const message = createBaseBatchStreamMessage_Error();
+  fromPartial(object: DeepPartial<BatchStreamReply_Results_Error>): BatchStreamReply_Results_Error {
+    const message = createBaseBatchStreamReply_Results_Error();
     message.error = object.error ?? "";
-    message.index = object.index ?? 0;
-    message.isRetriable = object.isRetriable ?? false;
-    message.isObject = object.isObject ?? false;
-    message.isReference = object.isReference ?? false;
+    message.uuid = object.uuid ?? undefined;
+    message.beacon = object.beacon ?? undefined;
+    return message;
+  },
+};
+
+function createBaseBatchStreamReply_Results_Success(): BatchStreamReply_Results_Success {
+  return { uuid: undefined, beacon: undefined };
+}
+
+export const BatchStreamReply_Results_Success = {
+  encode(message: BatchStreamReply_Results_Success, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.uuid !== undefined) {
+      writer.uint32(18).string(message.uuid);
+    }
+    if (message.beacon !== undefined) {
+      writer.uint32(26).string(message.beacon);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): BatchStreamReply_Results_Success {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseBatchStreamReply_Results_Success();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.uuid = reader.string();
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.beacon = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): BatchStreamReply_Results_Success {
+    return {
+      uuid: isSet(object.uuid) ? globalThis.String(object.uuid) : undefined,
+      beacon: isSet(object.beacon) ? globalThis.String(object.beacon) : undefined,
+    };
+  },
+
+  toJSON(message: BatchStreamReply_Results_Success): unknown {
+    const obj: any = {};
+    if (message.uuid !== undefined) {
+      obj.uuid = message.uuid;
+    }
+    if (message.beacon !== undefined) {
+      obj.beacon = message.beacon;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<BatchStreamReply_Results_Success>): BatchStreamReply_Results_Success {
+    return BatchStreamReply_Results_Success.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<BatchStreamReply_Results_Success>): BatchStreamReply_Results_Success {
+    const message = createBaseBatchStreamReply_Results_Success();
+    message.uuid = object.uuid ?? undefined;
+    message.beacon = object.beacon ?? undefined;
     return message;
   },
 };

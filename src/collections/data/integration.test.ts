@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
 import { v4 } from 'uuid';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { WeaviateUnsupportedFeatureError } from '../../errors.js';
 import weaviate, { WeaviateClient, weaviateV2 } from '../../index.js';
 import { GeoCoordinate, PhoneNumber } from '../../proto/v1/properties.js';

@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { TestDbVersionProvider } from '../../test/dbVersionProvider.js';
 import { DbVersionSupport } from '../utils/dbVersion.js';
 import { ObjectsPath, ReferencesPath } from './path.js';
@@ -15,28 +16,28 @@ describe('paths', () => {
     return objectsPathBuilder
       .buildCreate('ONE')
       .then((path) => expect(path).toEqual('/objects?consistency_level=ONE'))
-      .catch((e) => fail(`unexpected error: ${e}`));
+      .catch((e) => expect.unreachable(`unexpected error: ${e}`));
   });
 
   it('builds object delete', () => {
     return objectsPathBuilder
       .buildDelete('123456', 'SomeClass', 'ALL')
       .then((path) => expect(path).toEqual('/objects/SomeClass/123456?consistency_level=ALL'))
-      .catch((e) => fail(`unexpected error: ${e}`));
+      .catch((e) => expect.unreachable(`unexpected error: ${e}`));
   });
 
   it('builds object merge', () => {
     return objectsPathBuilder
       .buildMerge('123456', 'SomeClass', 'QUORUM')
       .then((path) => expect(path).toEqual('/objects/SomeClass/123456?consistency_level=QUORUM'))
-      .catch((e) => fail(`unexpected error: ${e}`));
+      .catch((e) => expect.unreachable(`unexpected error: ${e}`));
   });
 
   it('builds object update', () => {
     return objectsPathBuilder
       .buildUpdate('123456', 'SomeClass', 'ONE')
       .then((path) => expect(path).toEqual('/objects/SomeClass/123456?consistency_level=ONE'))
-      .catch((e) => fail(`unexpected error: ${e}`));
+      .catch((e) => expect.unreachable(`unexpected error: ${e}`));
   });
 
   it('builds references', () => {
@@ -45,7 +46,7 @@ describe('paths', () => {
       .then((path) =>
         expect(path).toEqual('/objects/SomeClass/123456/references/SomeProp?consistency_level=ALL')
       )
-      .catch((e) => fail(`unexpected error: ${e}`));
+      .catch((e) => expect.unreachable(`unexpected error: ${e}`));
   });
 });
 
@@ -54,7 +55,7 @@ describe('paths with tenantKey', () => {
     return objectsPathBuilder
       .buildDelete('123456', 'SomeClass', 'ALL', 'tenantA')
       .then((path) => expect(path).toEqual('/objects/SomeClass/123456?consistency_level=ALL&tenant=tenantA'))
-      .catch((e) => fail(`unexpected error: ${e}`));
+      .catch((e) => expect.unreachable(`unexpected error: ${e}`));
   });
 
   it('builds references', () => {
@@ -65,6 +66,6 @@ describe('paths with tenantKey', () => {
           '/objects/SomeClass/123456/references/SomeProp?consistency_level=ALL&tenant=tenantA'
         )
       )
-      .catch((e) => fail(`unexpected error: ${e}`));
+      .catch((e) => expect.unreachable(`unexpected error: ${e}`));
   });
 });

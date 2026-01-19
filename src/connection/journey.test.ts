@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import {
   ApiKey,
   AuthAccessTokenCredentials,
@@ -251,7 +252,7 @@ describe('connection', () => {
   });
 
   it('warns when client auth is configured, but server auth is not', async () => {
-    const logSpy = jest.spyOn(console, 'warn');
+    const logSpy = vi.spyOn(console, 'warn');
 
     const client = await weaviate.connectToLocal({
       authCredentials: new AuthUserPasswordCredentials({
@@ -273,7 +274,7 @@ describe('connection', () => {
   });
 
   it('warns when client access token expires, no refresh token provided', async () => {
-    const logSpy = jest.spyOn(console, 'warn');
+    const logSpy = vi.spyOn(console, 'warn');
 
     const conn = new Connection({
       scheme: 'http',

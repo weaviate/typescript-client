@@ -147,7 +147,10 @@ export type GenerativeConfigRuntime =
   | ModuleConfig<'generative-ollama', GenerativeConfigRuntimeType<'generative-ollama'> | undefined>
   | ModuleConfig<'generative-openai', GenerativeConfigRuntimeType<'generative-openai'>>
   | ModuleConfig<'generative-xai', GenerativeConfigRuntimeType<'generative-xai'> | undefined>
-  | ModuleConfig<'generative-contextualai', GenerativeConfigRuntimeType<'generative-contextualai'> | undefined>;
+  | ModuleConfig<
+      'generative-contextualai',
+      GenerativeConfigRuntimeType<'generative-contextualai'> | undefined
+    >;
 
 export type GenerativeConfigRuntimeType<G> = G extends 'generative-anthropic'
   ? Omit<GenerativeAnthropicGRPC, omitFields>

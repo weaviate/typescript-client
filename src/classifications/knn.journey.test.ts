@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { Classification } from '../openapi/types.js';
 import weaviate, { WeaviateClient } from '../v2/index.js';
 
@@ -185,7 +186,7 @@ describe('a classification journey', () => {
         .withWaitTimeout(1) // that's going to be difficult ;-)
         .do()
         .then((res: Classification) => {
-          fail('it should have errord');
+          expect.unreachable('it should have errord');
         })
         .catch((e: Error) => {
           expect(e).toEqual(

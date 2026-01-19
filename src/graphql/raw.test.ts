@@ -1,8 +1,9 @@
+import { expect, test, vi } from 'vitest';
 import Raw from './raw.js';
 
 test('a simple raw query', () => {
   const mockClient: any = {
-    query: jest.fn(),
+    query: vi.fn(),
   };
 
   const expectedQuery = `{Get{Person{name}}}`;
@@ -14,7 +15,7 @@ test('a simple raw query', () => {
 
 test('reject empty raw query', () => {
   const mockClient: any = {
-    query: jest.fn(),
+    query: vi.fn(),
   };
 
   new Raw(mockClient).do().catch((err: Error) => {

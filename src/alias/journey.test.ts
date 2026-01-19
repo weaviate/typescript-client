@@ -1,3 +1,4 @@
+import { beforeAll, expect, it } from 'vitest';
 import weaviate, { WeaviateClient } from '..';
 import { requireAtLeast } from '../../test/version';
 import { Alias } from './types';

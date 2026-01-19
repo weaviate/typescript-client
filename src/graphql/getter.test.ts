@@ -1,3 +1,4 @@
+import { describe, expect, test, vi } from 'vitest';
 import { WhereFilter } from '../openapi/types.js';
 import { AskArgs } from './ask.js';
 import Getter, { FusionType } from './getter.js';
@@ -8,7 +9,7 @@ import { SortArgs } from './sort.js';
 
 test('a simple query without params', () => {
   const mockClient: any = {
-    query: jest.fn(),
+    query: vi.fn(),
   };
 
   const expectedQuery = `{Get{Person{name}}}`;
@@ -20,7 +21,7 @@ test('a simple query without params', () => {
 
 test('a simple query with a limit', () => {
   const mockClient: any = {
-    query: jest.fn(),
+    query: vi.fn(),
   };
 
   const expectedQuery = `{Get{Person(limit:7){name}}}`;
@@ -32,7 +33,7 @@ test('a simple query with a limit', () => {
 
 test('a simple query with a limit and offset', () => {
   const mockClient: any = {
-    query: jest.fn(),
+    query: vi.fn(),
   };
 
   const expectedQuery = `{Get{Person(limit:7,offset:2){name}}}`;
@@ -44,7 +45,7 @@ test('a simple query with a limit and offset', () => {
 
 test('a simple query with a limit and after', () => {
   const mockClient: any = {
-    query: jest.fn(),
+    query: vi.fn(),
   };
 
   const expectedQuery = `{Get{Person(limit:7,after:"c6f379dd-94b7-4017-acd3-df769a320c92"){name}}}`;
@@ -61,7 +62,7 @@ test('a simple query with a limit and after', () => {
 
 test('a simple query with a group', () => {
   const mockClient: any = {
-    query: jest.fn(),
+    query: vi.fn(),
   };
 
   const expectedQuery = `{Get{Person(group:{type:merge,force:0.7}){name}}}`;
@@ -77,7 +78,7 @@ test('a simple query with a group', () => {
 
 test('a simple query with autocut', () => {
   const mockClient: any = {
-    query: jest.fn(),
+    query: vi.fn(),
   };
 
   const expectedQuery = `{Get{Person(where:{operator:Equal,valueText:"hawaii",path:["name"]},autocut:10){name}}}`;
@@ -99,7 +100,7 @@ test('a simple query with autocut', () => {
 describe('query with consistency level', () => {
   test('One', () => {
     const mockClient: any = {
-      query: jest.fn(),
+      query: vi.fn(),
     };
 
     const expectedQuery = `{Get{Person(consistencyLevel:ONE){name}}}`;
@@ -111,7 +112,7 @@ describe('query with consistency level', () => {
 
   test('Quorum', () => {
     const mockClient: any = {
-      query: jest.fn(),
+      query: vi.fn(),
     };
 
     const expectedQuery = `{Get{Person(consistencyLevel:QUORUM){name}}}`;
@@ -123,7 +124,7 @@ describe('query with consistency level', () => {
 
   test('All', () => {
     const mockClient: any = {
-      query: jest.fn(),
+      query: vi.fn(),
     };
 
     const expectedQuery = `{Get{Person(consistencyLevel:ALL){name}}}`;
@@ -137,7 +138,7 @@ describe('query with consistency level', () => {
 describe('where filters', () => {
   test('a query with a valid where filter', () => {
     const mockClient: any = {
-      query: jest.fn(),
+      query: vi.fn(),
     };
 
     const expectedQuery = `{Get{Person(where:{operator:Equal,valueText:"John Doe",path:["name"]}){name}}}`;
@@ -154,7 +155,7 @@ describe('where filters', () => {
 
   test('a query with a deprecated valueString', () => {
     const mockClient: any = {
-      query: jest.fn(),
+      query: vi.fn(),
     };
 
     const expectedQuery = `{Get{Person(where:{operator:Equal,valueString:"John Doe",path:["name"]}){name}}}`;
@@ -173,7 +174,7 @@ describe('where filters', () => {
   // https://github.com/weaviate/weaviate-javascript-client/issues/6
   test('a query with a where filter containing a geo query', () => {
     const mockClient: any = {
-      query: jest.fn(),
+      query: vi.fn(),
     };
 
     const expectedQuery =
@@ -203,7 +204,7 @@ describe('where filters', () => {
 
   test('a query with a valid nested where filter', () => {
     const mockClient: any = {
-      query: jest.fn(),
+      query: vi.fn(),
     };
 
     const expectedQuery =
@@ -230,7 +231,7 @@ describe('where filters', () => {
 describe('nearText searchers', () => {
   test('a query with a valid nearText', () => {
     const mockClient: any = {
-      query: jest.fn(),
+      query: vi.fn(),
     };
 
     const subQuery = `(nearText:{concepts:["foo","bar"]})`;
@@ -247,7 +248,7 @@ describe('nearText searchers', () => {
 
   test('with optional parameters (with certainty)', () => {
     const mockClient: any = {
-      query: jest.fn(),
+      query: vi.fn(),
     };
 
     const expectedQuery =
@@ -271,7 +272,7 @@ describe('nearText searchers', () => {
 
   test('with optional parameters (with distance)', () => {
     const mockClient: any = {
-      query: jest.fn(),
+      query: vi.fn(),
     };
 
     const expectedQuery =
@@ -295,7 +296,7 @@ describe('nearText searchers', () => {
 
   test('with optional parameters and autocorrect (with certainty)', () => {
     const mockClient: any = {
-      query: jest.fn(),
+      query: vi.fn(),
     };
 
     const expectedQuery =
@@ -320,7 +321,7 @@ describe('nearText searchers', () => {
 
   test('with optional parameters and autocorrect (with distance)', () => {
     const mockClient: any = {
-      query: jest.fn(),
+      query: vi.fn(),
     };
 
     const expectedQuery =
@@ -345,7 +346,7 @@ describe('nearText searchers', () => {
 
   test('a query with a valid nearText and autocorrect set to false', () => {
     const mockClient: any = {
-      query: jest.fn(),
+      query: vi.fn(),
     };
 
     const expectedQuery = `{Get{Person(nearText:{concepts:["foo","bar"],autocorrect:false}){name}}}`;
@@ -361,7 +362,7 @@ describe('nearText searchers', () => {
 
   test('with moveTo with objects parameter (with certainty)', () => {
     const mockClient: any = {
-      query: jest.fn(),
+      query: vi.fn(),
     };
 
     const expectedQuery =
@@ -384,7 +385,7 @@ describe('nearText searchers', () => {
 
   test('with moveTo with objects parameter (with distance)', () => {
     const mockClient: any = {
-      query: jest.fn(),
+      query: vi.fn(),
     };
 
     const expectedQuery =
@@ -407,7 +408,7 @@ describe('nearText searchers', () => {
 
   test('with moveAwayFrom with objects parameter (with certainty)', () => {
     const mockClient: any = {
-      query: jest.fn(),
+      query: vi.fn(),
     };
 
     const expectedQuery =
@@ -433,7 +434,7 @@ describe('nearText searchers', () => {
 
   test('with moveAwayFrom with objects parameter (with distance)', () => {
     const mockClient: any = {
-      query: jest.fn(),
+      query: vi.fn(),
     };
 
     const expectedQuery =
@@ -459,7 +460,7 @@ describe('nearText searchers', () => {
 
   test('with moveTo and moveAway with objects parameter (with certainty)', () => {
     const mockClient: any = {
-      query: jest.fn(),
+      query: vi.fn(),
     };
 
     const expectedQuery =
@@ -483,7 +484,7 @@ describe('nearText searchers', () => {
 
   test('with moveTo and moveAway with objects parameter (with distance)', () => {
     const mockClient: any = {
-      query: jest.fn(),
+      query: vi.fn(),
     };
 
     const expectedQuery =
@@ -507,7 +508,7 @@ describe('nearText searchers', () => {
 
   describe('queries with invalid nearText searchers', () => {
     const mockClient: any = {
-      query: jest.fn(),
+      query: vi.fn(),
     };
 
     interface testCase {
@@ -581,7 +582,7 @@ describe('nearText searchers', () => {
 describe('nearVector searchers', () => {
   test('a query with a valid nearVector', () => {
     const mockClient: any = {
-      query: jest.fn(),
+      query: vi.fn(),
     };
 
     const subQuery = `(nearVector:{vector:[0.1234,0.9876]})`;
@@ -598,7 +599,7 @@ describe('nearVector searchers', () => {
 
   test('with optional parameters (with certainty)', () => {
     const mockClient: any = {
-      query: jest.fn(),
+      query: vi.fn(),
     };
 
     const expectedQuery = `{Get{Person(nearVector:{vector:[0.1234,0.9876],certainty:0.7}){name}}}`;
@@ -617,7 +618,7 @@ describe('nearVector searchers', () => {
 
   test('with optional parameters (with distance)', () => {
     const mockClient: any = {
-      query: jest.fn(),
+      query: vi.fn(),
     };
 
     const expectedQuery = `{Get{Person(nearVector:{vector:[0.1234,0.9876],distance:0.7}){name}}}`;
@@ -638,7 +639,7 @@ describe('nearVector searchers', () => {
 describe('nearObject searchers', () => {
   test('a query with a valid nearObject with id', () => {
     const mockClient: any = {
-      query: jest.fn(),
+      query: vi.fn(),
     };
 
     const subQuery = `(nearObject:{id:"some-uuid"})`;
@@ -655,7 +656,7 @@ describe('nearObject searchers', () => {
 
   test('a query with a valid nearObject with beacon', () => {
     const mockClient: any = {
-      query: jest.fn(),
+      query: vi.fn(),
     };
 
     const subQuery = `(nearObject:{beacon:"weaviate/some-uuid"})`;
@@ -672,7 +673,7 @@ describe('nearObject searchers', () => {
 
   test('a query with a valid nearObject with all params (with certainty)', () => {
     const mockClient: any = {
-      query: jest.fn(),
+      query: vi.fn(),
     };
 
     const expectedQuery = `{Get{Person(nearObject:{id:"some-uuid",beacon:"weaviate/some-uuid",certainty:0.7}){name}}}`;
@@ -692,7 +693,7 @@ describe('nearObject searchers', () => {
 
   test('a query with a valid nearObject with all params (with distance)', () => {
     const mockClient: any = {
-      query: jest.fn(),
+      query: vi.fn(),
     };
 
     const expectedQuery = `{Get{Person(nearObject:{id:"some-uuid",beacon:"weaviate/some-uuid",distance:0.7}){name}}}`;
@@ -712,7 +713,7 @@ describe('nearObject searchers', () => {
 
   describe('queries with invalid nearObject searchers', () => {
     const mockClient: any = {
-      query: jest.fn(),
+      query: vi.fn(),
     };
 
     interface testCase {
@@ -750,7 +751,7 @@ describe('nearObject searchers', () => {
 describe('ask searchers', () => {
   test('a query with a valid ask with question', () => {
     const mockClient: any = {
-      query: jest.fn(),
+      query: vi.fn(),
     };
 
     const subQuery = `(ask:{question:"What is Weaviate?"})`;
@@ -767,7 +768,7 @@ describe('ask searchers', () => {
 
   test('a query with a valid ask with question and properties', () => {
     const mockClient: any = {
-      query: jest.fn(),
+      query: vi.fn(),
     };
 
     const expectedQuery = `{Get{Person(ask:{question:"What is Weaviate?",properties:["prop1","prop2"]}){name}}}`;
@@ -786,7 +787,7 @@ describe('ask searchers', () => {
 
   test('a query with a valid ask with question, properties, certainty', () => {
     const mockClient: any = {
-      query: jest.fn(),
+      query: vi.fn(),
     };
 
     const expectedQuery =
@@ -809,7 +810,7 @@ describe('ask searchers', () => {
 
   test('a query with a valid ask with question, properties, distance', () => {
     const mockClient: any = {
-      query: jest.fn(),
+      query: vi.fn(),
     };
 
     const expectedQuery =
@@ -832,7 +833,7 @@ describe('ask searchers', () => {
 
   test('a query with a valid ask with all params (with certainty)', () => {
     const mockClient: any = {
-      query: jest.fn(),
+      query: vi.fn(),
     };
 
     const expectedQuery =
@@ -857,7 +858,7 @@ describe('ask searchers', () => {
 
   test('a query with a valid ask with all params (with distance)', () => {
     const mockClient: any = {
-      query: jest.fn(),
+      query: vi.fn(),
     };
 
     const expectedQuery =
@@ -882,7 +883,7 @@ describe('ask searchers', () => {
 
   test('a query with a valid ask with question and autocorrect', () => {
     const mockClient: any = {
-      query: jest.fn(),
+      query: vi.fn(),
     };
 
     const expectedQuery = `{Get{Person(ask:{question:"What is Weaviate?",autocorrect:true}){name}}}`;
@@ -898,7 +899,7 @@ describe('ask searchers', () => {
 
   test('a query with a valid ask with question and autocorrect set to false', () => {
     const mockClient: any = {
-      query: jest.fn(),
+      query: vi.fn(),
     };
 
     const expectedQuery = `{Get{Person(ask:{question:"What is Weaviate?",autocorrect:false}){name}}}`;
@@ -914,7 +915,7 @@ describe('ask searchers', () => {
 
   test('a query with a valid ask with question and rerank', () => {
     const mockClient: any = {
-      query: jest.fn(),
+      query: vi.fn(),
     };
 
     const expectedQuery = `{Get{Person(ask:{question:"What is Weaviate?",rerank:true}){name}}}`;
@@ -930,7 +931,7 @@ describe('ask searchers', () => {
 
   test('a query with a valid ask with question and rerank set to false', () => {
     const mockClient: any = {
-      query: jest.fn(),
+      query: vi.fn(),
     };
 
     const expectedQuery = `{Get{Person(ask:{question:"What is Weaviate?",rerank:false}){name}}}`;
@@ -946,7 +947,7 @@ describe('ask searchers', () => {
 
   describe('queries with invalid ask searchers', () => {
     const mockClient: any = {
-      query: jest.fn(),
+      query: vi.fn(),
     };
 
     interface testCase {
@@ -984,7 +985,7 @@ describe('ask searchers', () => {
 describe('nearImage searchers', () => {
   test('a query with a valid nearImage with image', () => {
     const mockClient: any = {
-      query: jest.fn(),
+      query: vi.fn(),
     };
 
     const subQuery = `(nearImage:{image:"iVBORw0KGgoAAAANS"})`;
@@ -1001,7 +1002,7 @@ describe('nearImage searchers', () => {
 
   test('a query with a valid nearImage with all params (with certainty)', () => {
     const mockClient: any = {
-      query: jest.fn(),
+      query: vi.fn(),
     };
 
     const expectedQuery = `{Get{Person(nearImage:{image:"iVBORw0KGgoAAAANS",certainty:0.8}){name}}}`;
@@ -1020,7 +1021,7 @@ describe('nearImage searchers', () => {
 
   test('a query with a valid nearImage with all params (with distance)', () => {
     const mockClient: any = {
-      query: jest.fn(),
+      query: vi.fn(),
     };
 
     const expectedQuery = `{Get{Person(nearImage:{image:"iVBORw0KGgoAAAANS",distance:0.8}){name}}}`;
@@ -1039,7 +1040,7 @@ describe('nearImage searchers', () => {
 
   test('a query with a valid nearImage with base64 encoded image', () => {
     const mockClient: any = {
-      query: jest.fn(),
+      query: vi.fn(),
     };
 
     const subQuery = `(nearImage:{image:"iVBORw0KGgoAAAANS"})`;
@@ -1056,7 +1057,7 @@ describe('nearImage searchers', () => {
 
   describe('queries with invalid nearImage searchers', () => {
     const mockClient: any = {
-      query: jest.fn(),
+      query: vi.fn(),
     };
 
     interface testCase {
@@ -1094,7 +1095,7 @@ describe('nearImage searchers', () => {
 describe('nearMedia searchers', () => {
   test('a query with a valid nearVideo', () => {
     const mockClient: any = {
-      query: jest.fn(),
+      query: vi.fn(),
     };
 
     const subQuery = `(nearVideo:{video:"iVBORw0KGgoAAAANS"})`;
@@ -1111,7 +1112,7 @@ describe('nearMedia searchers', () => {
 
   test('a query with a valid nearVideo with all params', () => {
     const mockClient: any = {
-      query: jest.fn(),
+      query: vi.fn(),
     };
 
     const expectedQuery = `{Get{Person(nearVideo:{video:"iVBORw0KGgoAAAANS",certainty:0.8,distance:0.6}){name}}}`;
@@ -1131,7 +1132,7 @@ describe('nearMedia searchers', () => {
 
   test('a query with a valid nearAudio', () => {
     const mockClient: any = {
-      query: jest.fn(),
+      query: vi.fn(),
     };
 
     const subQuery = `(nearAudio:{audio:"iVBORw0KGgoAAAANS"})`;
@@ -1148,7 +1149,7 @@ describe('nearMedia searchers', () => {
 
   test('a query with a valid nearThermal', () => {
     const mockClient: any = {
-      query: jest.fn(),
+      query: vi.fn(),
     };
 
     const subQuery = `(nearThermal:{thermal:"iVBORw0KGgoAAAANS"})`;
@@ -1165,7 +1166,7 @@ describe('nearMedia searchers', () => {
 
   test('a query with a valid nearDepth', () => {
     const mockClient: any = {
-      query: jest.fn(),
+      query: vi.fn(),
     };
 
     const subQuery = `(nearDepth:{depth:"iVBORw0KGgoAAAANS"})`;
@@ -1182,7 +1183,7 @@ describe('nearMedia searchers', () => {
 
   test('a query with a valid nearIMU', () => {
     const mockClient: any = {
-      query: jest.fn(),
+      query: vi.fn(),
     };
 
     const subQuery = `(nearIMU:{imu:"iVBORw0KGgoAAAANS"})`;
@@ -1201,7 +1202,7 @@ describe('nearMedia searchers', () => {
 describe('sort filters', () => {
   test('a query with a valid sort filter', () => {
     const mockClient: any = {
-      query: jest.fn(),
+      query: vi.fn(),
     };
 
     const subQuery = `(sort:[{path:["property"],order:asc}])`;
@@ -1216,7 +1217,7 @@ describe('sort filters', () => {
 
   test('a query with a valid array of sort filter', () => {
     const mockClient: any = {
-      query: jest.fn(),
+      query: vi.fn(),
     };
 
     const subQuery = `(sort:[{path:["property"],order:asc}])`;
@@ -1231,7 +1232,7 @@ describe('sort filters', () => {
 
   test('a query with a valid array of sort filters', () => {
     const mockClient: any = {
-      query: jest.fn(),
+      query: vi.fn(),
     };
 
     const expectedQuery =
@@ -1253,7 +1254,7 @@ describe('sort filters', () => {
 
 describe('bm25 valid searchers', () => {
   const mockClient: any = {
-    query: jest.fn(),
+    query: vi.fn(),
   };
 
   test('query and no properties', () => {
@@ -1308,7 +1309,7 @@ describe('bm25 valid searchers', () => {
 
 describe('hybrid valid searchers', () => {
   const mockClient: any = {
-    query: jest.fn(),
+    query: vi.fn(),
   };
 
   test('query and no alpha, no vector', () => {
@@ -1446,7 +1447,7 @@ describe('hybrid valid searchers', () => {
 
 describe('generative search', () => {
   const mockClient: any = {
-    query: jest.fn(),
+    query: vi.fn(),
   };
 
   test('singlePrompt', () => {
@@ -1580,7 +1581,7 @@ describe('generative search', () => {
 
 describe('groupBy valid searchers', () => {
   const mockClient: any = {
-    query: jest.fn(),
+    query: vi.fn(),
   };
 
   test('valid groupBy', () => {
@@ -1599,7 +1600,7 @@ describe('groupBy valid searchers', () => {
 
 describe('query with where with ContainsAny / ContainsAll operators', () => {
   const mockClient: any = {
-    query: jest.fn(),
+    query: vi.fn(),
   };
 
   const operators: Array<WhereFilter['operator']> = ['ContainsAll', 'ContainsAny'];
