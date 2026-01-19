@@ -39,6 +39,7 @@ import { LiveChecker, OpenidConfigurationGetter, ReadyChecker } from './misc/ind
 import weaviateV2 from './v2/index.js';
 
 import alias, { Aliases } from './alias/index.js';
+import batch, { Batch } from './collections/data/batch.js';
 import filter from './collections/filters/index.js';
 import { ConsistencyLevel } from './data/replication.js';
 import groups, { Groups } from './groups/index.js';
@@ -106,6 +107,7 @@ export type ClientParams = {
 export interface WeaviateClient {
   alias: Aliases;
   backup: Backup;
+  batch: Batch;
   cluster: Cluster;
   collections: Collections;
   oidcAuth?: OidcAuthenticator;
@@ -230,6 +232,7 @@ async function client(params: ClientParams): Promise<WeaviateClient> {
   const ifc: WeaviateClient = {
     alias: alias(connection),
     backup: backup(connection),
+    batch: batch(connection),
     cluster: cluster(connection),
     collections: collections(connection, dbVersionSupport),
     groups: groups(connection),

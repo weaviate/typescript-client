@@ -26,6 +26,7 @@ import {
   BatchObject_MultiTargetRefProps,
   BatchObject_Properties,
   BatchObject_SingleTargetRefProps,
+  BatchReference as BatchReferenceGRPC,
 } from '../../proto/v1/batch.js';
 import {
   GenerativeProvider,
@@ -109,6 +110,7 @@ import {
   AggregateBaseOptions,
   AggregateHybridOptions,
   AggregateNearOptions,
+  BatchReference,
   GenerativeConfigRuntime,
   GroupByAggregate,
   GroupedTask,
@@ -1994,6 +1996,21 @@ export class Serialize {
     return waitFor().then(() => {
       return { batch: batch, mapped: objs };
     });
+  };
+
+  public static batchReference = (ref: BatchReference) => {
+    const beacon = `weaviate://localhost/${ref.fromObjectCollection}/${ref.fromObjectUuid}/${ref.fromPropertyName}`;
+    return {
+      grpc: BatchReferenceGRPC.fromPartial({
+        fromCollection: ref.fromObjectCollection,
+        fromUuid: ref.fromObjectUuid,
+        toCollection: ref.toObjectCollection,
+        toUuid: ref.toObjectUuid,
+        name: ref.fromPropertyName,
+        tenant: ref.tenant,
+      }),
+      beacon,
+    };
   };
 
   public static tenants<T, M>(tenants: T[], mapper: (tenant: T) => M): M[][] {

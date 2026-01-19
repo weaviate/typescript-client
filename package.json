@@ -20,7 +20,7 @@
     "node": ">=20.0.0"
   },
   "scripts": {
-    "test": "vitest run --no-file-parallelism --isolate=false --reporter=default --reporter=hanging-process",
+    "test": "vitest run --no-file-parallelism --isolate=false --reporter=default --reporter=hanging-process --silent=false",
     "test:coverage": "npm run test -- --coverage",
     "build": "npm run build:node",
     "build:web": "tsup",
@@ -51,6 +51,7 @@
   },
   "homepage": "https://github.com/weaviate/typescript-client#readme",
   "dependencies": {
+    "@datastructures-js/deque": "^1.0.8",
     "abort-controller-x": "^0.5.0",
     "graphql": "^16.12.0",
     "graphql-request": "^6.1.0",

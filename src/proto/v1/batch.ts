@@ -65,6 +65,7 @@ export interface BatchStreamReply {
   started?: BatchStreamReply_Started | undefined;
   backoff?: BatchStreamReply_Backoff | undefined;
   acks?: BatchStreamReply_Acks | undefined;
+  outOfMemory?: BatchStreamReply_OutOfMemory | undefined;
 }
 
 export interface BatchStreamReply_Started {
@@ -74,6 +75,11 @@ export interface BatchStreamReply_ShuttingDown {
 }
 
 export interface BatchStreamReply_Shutdown {
+}
+
+export interface BatchStreamReply_OutOfMemory {
+  uuids: string[];
+  beacons: string[];
 }
 
 export interface BatchStreamReply_Backoff {
@@ -725,6 +731,7 @@ function createBaseBatchStreamReply(): BatchStreamReply {
     started: undefined,
     backoff: undefined,
     acks: undefined,
+    outOfMemory: undefined,
   };
 }
 
@@ -747,6 +754,9 @@ export const BatchStreamReply = {
     }
     if (message.acks !== undefined) {
       BatchStreamReply_Acks.encode(message.acks, writer.uint32(50).fork()).ldelim();
+    }
+    if (message.outOfMemory !== undefined) {
+      BatchStreamReply_OutOfMemory.encode(message.outOfMemory, writer.uint32(58).fork()).ldelim();
     }
     return writer;
   },
@@ -800,6 +810,13 @@ export const BatchStreamReply = {
 
           message.acks = BatchStreamReply_Acks.decode(reader, reader.uint32());
           continue;
+        case 7:
+          if (tag !== 58) {
+            break;
+          }
+
+          message.outOfMemory = BatchStreamReply_OutOfMemory.decode(reader, reader.uint32());
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -819,6 +836,7 @@ export const BatchStreamReply = {
       started: isSet(object.started) ? BatchStreamReply_Started.fromJSON(object.started) : undefined,
       backoff: isSet(object.backoff) ? BatchStreamReply_Backoff.fromJSON(object.backoff) : undefined,
       acks: isSet(object.acks) ? BatchStreamReply_Acks.fromJSON(object.acks) : undefined,
+      outOfMemory: isSet(object.outOfMemory) ? BatchStreamReply_OutOfMemory.fromJSON(object.outOfMemory) : undefined,
     };
   },
 
@@ -841,6 +859,9 @@ export const BatchStreamReply = {
     }
     if (message.acks !== undefined) {
       obj.acks = BatchStreamReply_Acks.toJSON(message.acks);
+    }
+    if (message.outOfMemory !== undefined) {
+      obj.outOfMemory = BatchStreamReply_OutOfMemory.toJSON(message.outOfMemory);
     }
     return obj;
   },
@@ -867,6 +888,9 @@ export const BatchStreamReply = {
       : undefined;
     message.acks = (object.acks !== undefined && object.acks !== null)
       ? BatchStreamReply_Acks.fromPartial(object.acks)
+      : undefined;
+    message.outOfMemory = (object.outOfMemory !== undefined && object.outOfMemory !== null)
+      ? BatchStreamReply_OutOfMemory.fromPartial(object.outOfMemory)
       : undefined;
     return message;
   },
@@ -997,6 +1021,80 @@ export const BatchStreamReply_Shutdown = {
   },
   fromPartial(_: DeepPartial<BatchStreamReply_Shutdown>): BatchStreamReply_Shutdown {
     const message = createBaseBatchStreamReply_Shutdown();
+    return message;
+  },
+};
+
+function createBaseBatchStreamReply_OutOfMemory(): BatchStreamReply_OutOfMemory {
+  return { uuids: [], beacons: [] };
+}
+
+export const BatchStreamReply_OutOfMemory = {
+  encode(message: BatchStreamReply_OutOfMemory, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    for (const v of message.uuids) {
+      writer.uint32(10).string(v!);
+    }
+    for (const v of message.beacons) {
+      writer.uint32(18).string(v!);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): BatchStreamReply_OutOfMemory {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseBatchStreamReply_OutOfMemory();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.uuids.push(reader.string());
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.beacons.push(reader.string());
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): BatchStreamReply_OutOfMemory {
+    return {
+      uuids: globalThis.Array.isArray(object?.uuids) ? object.uuids.map((e: any) => globalThis.String(e)) : [],
+      beacons: globalThis.Array.isArray(object?.beacons) ? object.beacons.map((e: any) => globalThis.String(e)) : [],
+    };
+  },
+
+  toJSON(message: BatchStreamReply_OutOfMemory): unknown {
+    const obj: any = {};
+    if (message.uuids?.length) {
+      obj.uuids = message.uuids;
+    }
+    if (message.beacons?.length) {
+      obj.beacons = message.beacons;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<BatchStreamReply_OutOfMemory>): BatchStreamReply_OutOfMemory {
+    return BatchStreamReply_OutOfMemory.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<BatchStreamReply_OutOfMemory>): BatchStreamReply_OutOfMemory {
+    const message = createBaseBatchStreamReply_OutOfMemory();
+    message.uuids = object.uuids?.map((e) => e) || [];
+    message.beacons = object.beacons?.map((e) => e) || [];
     return message;
   },
 };

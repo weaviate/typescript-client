@@ -22,7 +22,7 @@ import {
   ReferenceInputs,
   Vectors,
 } from '../types/index.js';
-import { Batch, isInternalError } from './batch.js';
+import { Batcher } from './batch.js';
 
 /** The available options to the `data.deleteMany` method.  */
 export type DeleteManyOptions<V> = {
@@ -242,22 +242,25 @@ const data = <T>(
         consistencyLevel,
         tenant
       ).do(),
-    ingest: async (objs: Iterable<DataObject<T> | NonReferenceInputs<T>>) => {
+    ingest: async (objs) => {
       const allResponses: (string | ErrorObject<T>)[] = [];
-      const errors: Record<number, ErrorObject<T>> = {};
-      const uuids: Record<number, string> = {};
 
-      const batch = new Batch<T>(name, consistencyLevel, tenant).withIterable(objs);
+      const batcher = new Batcher<T>(consistencyLevel);
       const start = Date.now();
+      const batching = batcher.start(connection);
 
-      for await (const result of batch.do(connection)) {
-        if (isInternalError<T>(result)) {
-          const { index, ...error } = result;
-          errors[index] = error;
-        } else if (result.type === 'success') {
-          uuids[result.index] = result.uuid;
-        }
+      for (const obj of objs) {
+        // eslint-disable-next-line no-await-in-loop
+        await batcher.addObject({
+          collection: name,
+          ...obj,
+          tenant,
+        });
       }
+      await batching;
+
+      const errors = batcher.objErrors;
+      const uuids = batcher.uuids;
 
       for (let i = 0; i < Object.keys(uuids).length + Object.keys(errors).length; i++) {
         if (uuids[i]) {
