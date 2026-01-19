@@ -1,3 +1,4 @@
+import { describe, it } from 'vitest';
 import { DbVersion } from '../src/utils/dbVersion';
 
 const version = DbVersion.fromString(`v${process.env.WEAVIATE_VERSION!}`);
