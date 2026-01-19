@@ -7,6 +7,7 @@ import {
   GenerativeAnyscaleMetadata,
   GenerativeCohere as GenerativeCohereGRPC,
   GenerativeCohereMetadata,
+  GenerativeContextualAI as GenerativeContextualAIGRPC,
   GenerativeDatabricks as GenerativeDatabricksGRPC,
   GenerativeDatabricksMetadata,
   GenerativeDebug,
@@ -145,7 +146,11 @@ export type GenerativeConfigRuntime =
   | ModuleConfig<'generative-nvidia', GenerativeConfigRuntimeType<'generative-nvidia'> | undefined>
   | ModuleConfig<'generative-ollama', GenerativeConfigRuntimeType<'generative-ollama'> | undefined>
   | ModuleConfig<'generative-openai', GenerativeConfigRuntimeType<'generative-openai'>>
-  | ModuleConfig<'generative-xai', GenerativeConfigRuntimeType<'generative-xai'> | undefined>;
+  | ModuleConfig<'generative-xai', GenerativeConfigRuntimeType<'generative-xai'> | undefined>
+  | ModuleConfig<
+      'generative-contextualai',
+      GenerativeConfigRuntimeType<'generative-contextualai'> | undefined
+    >;
 
 export type GenerativeConfigRuntimeType<G> = G extends 'generative-anthropic'
   ? Omit<GenerativeAnthropicGRPC, omitFields>
@@ -173,6 +178,8 @@ export type GenerativeConfigRuntimeType<G> = G extends 'generative-anthropic'
   ? Omit<GenerativeOpenAIGRPC, omitFields> & { isAzure?: false }
   : G extends 'generative-xai'
   ? Omit<GenerativeXAIGRPC, omitFields>
+  : G extends 'generative-contextualai'
+  ? Omit<GenerativeContextualAIGRPC, omitFields>
   : G extends 'none'
   ? undefined
   : Record<string, any> | undefined;
@@ -329,3 +336,13 @@ export type GenerativeOpenAIConfigRuntime = {
 };
 
 export type GenerativeXAIConfigRuntime = GenerativeXAIConfig;
+
+export type GenerativeContextualAIConfigRuntime = {
+  model?: string | undefined;
+  temperature?: number | undefined;
+  topP?: number | undefined;
+  maxNewTokens?: number | undefined;
+  systemPrompt?: string | undefined;
+  avoidCommentary?: boolean | undefined;
+  knowledge?: string[] | undefined;
+};
