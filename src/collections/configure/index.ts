@@ -1,3 +1,4 @@
+import { ReplicationDeletionStrategy, VectorIndexType } from '../config/types/index.js';
 import {
   InvertedIndexConfigCreate,
   InvertedIndexConfigUpdate,
@@ -7,12 +8,10 @@ import {
   ObjectTTLConfigUpdate,
   ReplicationConfigCreate,
   ReplicationConfigUpdate,
-  ReplicationDeletionStrategy,
   ShardingConfigCreate,
   VectorConfigUpdate,
-  VectorIndexType,
   VectorizerUpdateOptions,
-} from '../types/index.js';
+} from './types/index.js';
 
 import generative from './generative.js';
 import reranker from './reranker.js';

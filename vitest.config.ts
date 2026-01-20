@@ -11,6 +11,20 @@ export default defineConfig({
     ],
   },
   test: {
+    projects: [
+      {
+        name: 'unit',
+        include: ['test/**/unit.test.ts'],
+      },
+      {
+        name: 'integration',
+        include: ['test/**/integration.test.ts'],
+      },
+      {
+        name: 'journey',
+        include: ['test/**/journey.test.ts'],
+      },
+    ],
     clearMocks: false,
     coverage: {
       enabled: false,

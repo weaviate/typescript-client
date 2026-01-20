@@ -14,8 +14,8 @@ import weaviate, {
   WeaviateClient,
   weaviateV2,
 } from '../../../src/index.js';
+import { WeaviateClass } from '../../../src/openapi/types.js';
 import { requireAtLeast } from '../../../test/version.js';
-import { WeaviateClass } from '../../openapi/types.js';
 
 describe('Testing of the collection.config namespace', () => {
   let client: WeaviateClient;

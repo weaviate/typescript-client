@@ -31,7 +31,7 @@ import {
   GenerativeOpenAIConfigCreate,
   GenerativePaLMConfigCreate,
   GenerativeXAIConfigCreate,
-} from '../index.js';
+} from './types/index.js';
 
 export default {
   /**

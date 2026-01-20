@@ -9,7 +9,7 @@ import {
   GenerativeOllamaConfig,
   GenerativePaLMConfig,
   GenerativeXAIConfig,
-} from '../../index.js';
+} from '../../config/types/index.js';
 
 export type GenerativeOpenAIConfigBaseCreate = {
   baseURL?: string;
