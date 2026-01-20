@@ -20,7 +20,7 @@
     "node": ">=20.0.0"
   },
   "scripts": {
-    "test": "vitest run --no-watch --no-file-parallelism --isolate=false --reporter=default --reporter=hanging-process --silent=false",
+    "test": "vitest run --no-file-parallelism --isolate=true --reporter=default --reporter=hanging-process --silent=false",
     "test:coverage": "npm run test -- --coverage",
     "build": "npm run build:node",
     "build:web": "tsup",

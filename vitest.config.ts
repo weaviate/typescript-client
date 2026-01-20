@@ -13,16 +13,25 @@ export default defineConfig({
   test: {
     projects: [
       {
-        name: 'unit',
-        include: ['test/**/unit.test.ts'],
+        test: {
+          name: 'unit',
+          include: ['test/**/unit.test.ts'],
+        },
+        extends: true,
       },
       {
-        name: 'integration',
-        include: ['test/**/integration.test.ts'],
+        extends: true,
+        test: {
+          name: 'integration',
+          include: ['test/**/integration.test.ts'],
+        },
       },
       {
-        name: 'journey',
-        include: ['test/**/journey.test.ts'],
+        extends: true,
+        test: {
+          name: 'journey',
+          include: ['test/**/journey.test.ts'],
+        },
       },
     ],
     clearMocks: false,
@@ -38,7 +47,6 @@ export default defineConfig({
       ],
     },
     environment: 'node',
-    include: ['**/*.test.ts'],
     testTimeout: 100000,
   },
 });

@@ -7,11 +7,20 @@ vi.mock('../../src/connection/http.js');
 describe('downloadImageFromURLAsBase64()', () => {
   const mockHttpClient = {
     externalGet: vi.fn(),
+    close: vi.fn(),
+    post: vi.fn(),
+    head: vi.fn(),
+    get: vi.fn(),
+    patch: vi.fn(),
+    externalPost: vi.fn(),
+    put: vi.fn(),
+    delete: vi.fn(),
+    getRaw: vi.fn(),
   };
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (httpClient as any).mockReturnValue(mockHttpClient);
+    vi.mocked(httpClient).mockReturnValue(mockHttpClient);
   });
 
   it('should convert a downloaded image to base64', async () => {
