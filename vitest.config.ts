@@ -13,11 +13,11 @@ export default defineConfig({
   test: {
     projects: [
       {
+        extends: true,
         test: {
           name: 'unit',
           include: ['test/**/unit.test.ts'],
         },
-        extends: true,
       },
       {
         extends: true,

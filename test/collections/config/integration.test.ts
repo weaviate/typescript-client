@@ -751,7 +751,7 @@ describe('Testing of the collection.config namespace', () => {
     expect(config.vectorizers.default.vectorizer.name).toEqual('none');
   });
 
-  it.only('should be able to update the generative & reranker configs of a collection', async () => {
+  it('should be able to update the generative & reranker configs of a collection', async () => {
     if ((await client.getWeaviateVersion()).isLowerThan(1, 25, 0)) {
       console.warn('Skipping test because Weaviate version is lower than 1.25.0');
       return;
