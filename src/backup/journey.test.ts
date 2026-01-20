@@ -5,15 +5,14 @@ import {
   BackupRestoreResponse,
   BackupRestoreStatusResponse,
 } from '../openapi/types.js';
-import weaviate, { WeaviateClient } from '../v2/index.js';
-import { Backend } from './index.js';
-
-const {
-  createTestFoodSchemaAndData,
+import {
   cleanupTestFood,
+  createTestFoodSchemaAndData,
   PIZZA_CLASS_NAME,
   SOUP_CLASS_NAME,
-} = require('../utils/testData');
+} from '../utils/testData';
+import weaviate, { WeaviateClient } from '../v2/index.js';
+import { Backend } from './index.js';
 
 const DOCKER_COMPOSE_BACKUPS_DIR = '/tmp/backups';
 
