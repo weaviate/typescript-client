@@ -71,7 +71,7 @@ jobs:
         npm ci
         ci/run_dependencies.sh ${{ matrix.versions.weaviate }}
     - name: "Run tests without authentication tests"
-      run: WEAVIATE_VERSION=${{ matrix.versions.weaviate }} npm test test/
+      run: WEAVIATE_VERSION=${{ matrix.versions.weaviate }} npm test
     - name: "Transpile the package"
       run: npm run build
     - name: "Stop Weaviate"
@@ -108,7 +108,7 @@ jobs:
         WCS_DUMMY_CI_PW: ${{ secrets.WCS_DUMMY_CI_PW }}
         AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
         OKTA_CLIENT_SECRET: ${{ secrets.OKTA_CLIENT_SECRET }}
-      run: WEAVIATE_VERSION=${{ matrix.versions.weaviate }} npm test test/
+      run: WEAVIATE_VERSION=${{ matrix.versions.weaviate }} npm test
     - name: "Stop Weaviate"
       run: ci/stop_dependencies.sh ${{ matrix.versions.weaviate }}
 
