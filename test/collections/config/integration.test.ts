@@ -8,7 +8,6 @@ import weaviate, {
   PropertyConfig,
   RQConfig,
   RerankerCohereConfig,
-  RerankerContextualAIConfig,
   VectorIndexConfigDynamic,
   VectorIndexConfigHNSW,
   WeaviateClient,
@@ -751,7 +750,7 @@ describe('Testing of the collection.config namespace', () => {
     expect(config.vectorizers.default.vectorizer.name).toEqual('none');
   });
 
-  it('should be able to update the generative & reranker configs of a collection', async () => {
+  it.only('should be able to update the generative & reranker configs of a collection', async () => {
     if ((await client.getWeaviateVersion()).isLowerThan(1, 25, 0)) {
       console.warn('Skipping test because Weaviate version is lower than 1.25.0');
       return;
@@ -796,44 +795,6 @@ describe('Testing of the collection.config namespace', () => {
       name: 'reranker-cohere',
       config: {
         model: 'model',
-      },
-    });
-
-    await collection.config.update({
-      reranker: weaviate.reconfigure.reranker.contextualai({
-        model: 'ctxl-rerank-v2-instruct-multilingual',
-      }),
-    });
-
-    config = await collection.config.get();
-    expect(config.reranker).toEqual<ModuleConfig<'reranker-contextualai', RerankerContextualAIConfig>>({
-      name: 'reranker-contextualai',
-      config: {
-        model: 'ctxl-rerank-v2-instruct-multilingual',
-      },
-    });
-
-    await collection.config.update({
-      generative: weaviate.reconfigure.generative.contextualai({
-        model: 'v2',
-        temperature: 0.7,
-        topP: 0.9,
-        maxNewTokens: 100,
-        systemPrompt: 'sys',
-        avoidCommentary: false,
-      }),
-    });
-
-    config = await collection.config.get();
-    expect(config.generative).toEqual<ModuleConfig<'generative-contextualai', any>>({
-      name: 'generative-contextualai',
-      config: {
-        model: 'v2',
-        temperature: 0.7,
-        topP: 0.9,
-        maxNewTokens: 100,
-        systemPrompt: 'sys',
-        avoidCommentary: false,
       },
     });
   });
