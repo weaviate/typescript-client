@@ -21,7 +21,7 @@ import { multiVectors, vectorizer, vectors } from './vectorizer.js';
 
 import { parseWithDefault } from './parsing.js';
 
-const dataType = {
+export const dataType = {
   INT: 'int' as const,
   INT_ARRAY: 'int[]' as const,
   NUMBER: 'number' as const,
@@ -41,7 +41,7 @@ const dataType = {
   PHONE_NUMBER: 'phoneNumber' as const,
 };
 
-const tokenization = {
+export const tokenization = {
   WORD: 'word' as const,
   LOWERCASE: 'lowercase' as const,
   WHITESPACE: 'whitespace' as const,
@@ -51,14 +51,14 @@ const tokenization = {
   KAGOME_KR: 'kagome_kr' as const,
 };
 
-const vectorDistances = {
+export const vectorDistances = {
   COSINE: 'cosine' as const,
   DOT: 'dot' as const,
   HAMMING: 'hamming' as const,
   L2_SQUARED: 'l2-squared' as const,
 };
 
-const configure = {
+export const configure = {
   generative,
   multiVectors,
   reranker,
@@ -218,7 +218,7 @@ const configure = {
   },
 };
 
-const reconfigure = {
+export const reconfigure = {
   vectorIndex: reconfigureVectorIndex,
   /**
    * Create an `InvertedIndexConfigUpdate` object to be used when updating the configuration of the keyword searching algorithm of your collection.
@@ -368,17 +368,4 @@ const reconfigure = {
   generative: configure.generative,
   reranker: configure.reranker,
 };
-
-export {
-  configure,
-  dataType,
-  generative,
-  multiVectors,
-  reconfigure,
-  reranker,
-  tokenization,
-  vectorDistances,
-  configureVectorIndex as vectorIndex,
-  vectorizer,
-  vectors,
-};
+export { generative, multiVectors, reranker, configureVectorIndex as vectorIndex, vectorizer, vectors };
