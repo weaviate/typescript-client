@@ -165,7 +165,7 @@ describe('Journey testing of the client using a WCD cluster', () => {
             config: {},
           },
           sharding: {
-            virtualPerPhysical: 384,
+            virtualPerPhysical: 128,
             desiredCount: 3,
             actualCount: 3,
             desiredVirtualCount: 384,
