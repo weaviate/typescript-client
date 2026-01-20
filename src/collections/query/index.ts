@@ -319,12 +319,14 @@ export {
   HybridOptions,
   HybridSubSearchBase,
   MoveOptions,
+  MultiVectorType,
   NearMediaType,
   NearOptions,
   NearTextOptions,
   Query,
   QueryReturn,
   SearchOptions,
+  SingleVectorType,
 } from './types.js';
 
 export { Bm25Operator } from './utils.js';
