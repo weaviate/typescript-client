@@ -5,7 +5,8 @@ import { NearObjectArgs } from '../../src/graphql//nearObject.js';
 import { NearTextArgs } from '../../src/graphql//nearText.js';
 import { SortArgs } from '../../src/graphql//sort.js';
 import { AskArgs } from '../../src/graphql/ask.js';
-import { WhereFilter } from '../openapi/types.js';
+import Raw from '../../src/graphql/raw.js';
+import { WhereFilter } from '../../src/openapi/types.js';
 
 test('a simple query without params', () => {
   const mockClient: any = {
@@ -1706,5 +1707,27 @@ describe('query with where with ContainsAny / ContainsAll operators', () => {
       .do();
 
     expect(mockClient.query).toHaveBeenCalledWith(expectedQuery);
+  });
+});
+
+test('a simple raw query', () => {
+  const mockClient: any = {
+    query: vi.fn(),
+  };
+
+  const expectedQuery = `{Get{Person{name}}}`;
+
+  new Raw(mockClient).withQuery(expectedQuery).do();
+
+  expect(mockClient.query).toHaveBeenCalledWith(expectedQuery);
+});
+
+test('reject empty raw query', () => {
+  const mockClient: any = {
+    query: vi.fn(),
+  };
+
+  new Raw(mockClient).do().catch((err: Error) => {
+    expect(err.message).toEqual('invalid usage: query must be set - set with .raw().withQuery(query)');
   });
 });

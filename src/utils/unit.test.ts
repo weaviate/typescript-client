@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { httpClient } from '../../src/connection/http.js';
-import { downloadImageFromURLAsBase64 } from '../../src/utils/base64.js';
+import { httpClient } from '../connection/http.js';
+import { downloadImageFromURLAsBase64 } from './base64.js';
 
 vi.mock('../../src/connection/http.js');
 

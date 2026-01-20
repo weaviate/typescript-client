@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import cluster from '../../../src/collections/cluster/index.js';
-import { IConnection } from '../../../src/connection';
+import { IConnection } from '../../../src/connection/index.js';
 
 // These tests do not validate the response from Weaviate. This is because the server responses are not mapped at all by the client so are assumed to be correct.
 // Instead, these tests validate that the client sends the correct requests to the server and that the responses are handled correctly.

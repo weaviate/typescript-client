@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { generativeParameters } from '../../../src/collections/generate/config';
-import { GenerativeConfigRuntimeType, ModuleConfig } from '../../../src/collections/types';
+import { GenerativeConfigRuntimeType, ModuleConfig } from '../types';
+import { generativeParameters } from './config';
 
 // only tests fields that must be mapped from some public name to a gRPC name, e.g. baseURL -> baseUrl and stop: string[] -> stop: TextArray
 describe('Unit testing of the generativeParameters factory methods', () => {

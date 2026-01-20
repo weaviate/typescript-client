@@ -2,8 +2,8 @@ import express, { Response } from 'express';
 import { Server as HttpServer } from 'http';
 import { Server as GrpcServer, createServer } from 'nice-grpc';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
-import { BackupStatus } from '../../../src/collections/backup/types';
-import { WeaviateBackupCanceled } from '../../../src/errors';
+import { BackupStatus } from '../../../src/collections/backup/types.js';
+import { WeaviateBackupCanceled } from '../../../src/errors.js';
 import weaviate, { WeaviateClient } from '../../../src/index.js';
 import {
   HealthCheckRequest,
@@ -11,8 +11,12 @@ import {
   HealthCheckResponse_ServingStatus,
   HealthDefinition,
   HealthServiceImplementation,
-} from '../../../src/proto/google/health/v1/health';
-import { BackupCreateResponse, BackupCreateStatusResponse, BackupRestoreResponse } from '../../../src/v2';
+} from '../../../src/proto/google/health/v1/health.js';
+import {
+  BackupCreateResponse,
+  BackupCreateStatusResponse,
+  BackupRestoreResponse,
+} from '../../../src/v2/index.js';
 
 const BACKUP_ID = 'test-backup-123';
 const BACKEND = 'filesystem';

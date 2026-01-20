@@ -16,14 +16,14 @@ export default defineConfig({
         extends: true,
         test: {
           name: 'unit',
-          include: ['test/**/unit.test.ts'],
+          include: ['src/**/unit.test.ts'],
         },
       },
       {
         extends: true,
         test: {
           name: 'integration',
-          include: ['test/**/integration.test.ts'],
+          include: ['test/**/integration.test.ts', 'test/**/mock.test.ts'],
         },
       },
       {

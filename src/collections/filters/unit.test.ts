@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import maker, { FilterValue, Filters } from '../../../src/collections/filters/index.js';
-import { GeoRangeFilter } from '../../../src/collections/filters/types.js';
-import { CrossReference } from '../../../src/collections/references/index.js';
-import { Serialize } from '../../../src/collections/serialize/index.js';
-import { WhereFilter } from '../../../src/openapi/types.js';
+import { WhereFilter } from '../../openapi/types.js';
+import { CrossReference } from '../references/index.js';
+import { Serialize } from '../serialize/index.js';
+import maker, { FilterValue, Filters } from './index.js';
+import { GeoRangeFilter } from './types.js';
 
 describe('Unit testing of filters', () => {
   type Person = {

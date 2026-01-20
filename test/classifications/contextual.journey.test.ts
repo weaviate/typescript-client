@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
+import { Classification } from '../../src/openapi/types.js';
 import weaviate from '../../src/v2/index.js';
-import { Classification } from '../openapi/types.js';
 
 const targetDessertId = '9f399d3e-45a4-44f4-b0fd-fa291abfb211';
 const targetSavoryId = 'b7a64fbd-7c22-44ac-afbb-8d1432b8061b';

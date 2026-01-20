@@ -9,11 +9,11 @@ import {
   HealthCheckResponse_ServingStatus,
   HealthDefinition,
   HealthServiceImplementation,
-} from '../../../src/proto/google/health/v1/health';
-import { TenantActivityStatus, TenantsGetReply, TenantsGetRequest } from '../../../src/proto/v1/tenants';
-import { WeaviateDefinition, WeaviateServiceImplementation } from '../../../src/proto/v1/weaviate';
+} from '../../proto/google/health/v1/health';
+import { TenantActivityStatus, TenantsGetReply, TenantsGetRequest } from '../../proto/v1/tenants';
+import { WeaviateDefinition, WeaviateServiceImplementation } from '../../proto/v1/weaviate';
 
-import weaviate, { Tenant } from '../../../src/index';
+import weaviate, { Tenant } from '../../index';
 
 const TENANTS_COLLECTION_NAME = 'TestCollectionTenants';
 

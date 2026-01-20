@@ -1,12 +1,4 @@
 import { describe, expect, it } from 'vitest';
-import { Filters as FiltersFactory } from '../../../src/collections/filters/classes.js';
-import filter from '../../../src/collections/filters/index.js';
-import { TargetVectorInputType } from '../../../src/collections/query/types.js';
-import { Reference } from '../../../src/collections/references/index.js';
-import { DataGuards, Serialize } from '../../../src/collections/serialize/index.js';
-import sort from '../../../src/collections/sort/index.js';
-import { WeaviateField } from '../../../src/collections/types/index.js';
-import multiTargetVector from '../../../src/collections/vectors/multiTargetVector.js';
 import {
   SearchBm25Args,
   SearchFetchArgs,
@@ -20,8 +12,8 @@ import {
   SearchNearThermalArgs,
   SearchNearVectorArgs,
   SearchNearVideoArgs,
-} from '../../../src/grpc/searcher.js';
-import { Filters, Filters_Operator, Vectors, Vectors_VectorType } from '../../../src/proto/v1/base.js';
+} from '../../grpc/searcher.js';
+import { Filters, Filters_Operator, Vectors, Vectors_VectorType } from '../../proto/v1/base.js';
 import {
   BM25,
   CombinationMethod,
@@ -38,9 +30,17 @@ import {
   NearVector,
   NearVideoSearch,
   Targets,
-} from '../../../src/proto/v1/base_search.js';
-import { GenerativeSearch } from '../../../src/proto/v1/generative.js';
-import { GroupBy, MetadataRequest, PropertiesRequest } from '../../../src/proto/v1/search_get.js';
+} from '../../proto/v1/base_search.js';
+import { GenerativeSearch } from '../../proto/v1/generative.js';
+import { GroupBy, MetadataRequest, PropertiesRequest } from '../../proto/v1/search_get.js';
+import { Filters as FiltersFactory } from '../filters/classes.js';
+import filter from '../filters/index.js';
+import { TargetVectorInputType } from '../query/types.js';
+import { Reference } from '../references/index.js';
+import sort from '../sort/index.js';
+import { WeaviateField } from '../types/index.js';
+import multiTargetVector from '../vectors/multiTargetVector.js';
+import { DataGuards, Serialize } from './index.js';
 
 describe('Unit testing of Serialize', () => {
   it('should parse args for fetchObjects', () => {

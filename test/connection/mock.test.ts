@@ -9,7 +9,7 @@ import {
   AuthUserPasswordCredentials,
 } from '../../src/connection/auth.js';
 import Connection from '../../src/connection/index.js';
-import { testServer } from '../../test/server.js';
+import { testServer } from '../server.js';
 
 import { createServer, Server as GrpcServer } from 'nice-grpc';
 import {
@@ -18,9 +18,9 @@ import {
   HealthCheckResponse_ServingStatus,
   HealthDefinition,
   HealthServiceImplementation,
-} from '../../src/proto/google/health/v1/health';
-import { TenantsGetReply } from '../../src/proto/v1/tenants';
-import { WeaviateDefinition, WeaviateServiceImplementation } from '../../src/proto/v1/weaviate';
+} from '../../src/proto/google/health/v1/health.js';
+import { TenantsGetReply } from '../../src/proto/v1/tenants.js';
+import { WeaviateDefinition, WeaviateServiceImplementation } from '../../src/proto/v1/weaviate.js';
 
 import { WeaviateRequestTimeoutError } from '../../src/errors.js';
 import weaviate, { Collection, WeaviateClient } from '../../src/index.js';

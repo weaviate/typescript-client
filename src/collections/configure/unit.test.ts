@@ -1,14 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { configure } from '../../../src/collections/configure/index.js';
-import {
-  InvertedIndexConfigCreate,
-  MultiTenancyConfigCreate,
-  ReplicationConfigCreate,
-  ReplicationConfigUpdate,
-  ShardingConfigCreate,
-  VectorIndexConfigFlatCreate,
-  VectorIndexConfigHNSWCreate,
-} from '../../../src/collections/configure/types/index.js';
+import { requireAtLeast } from '../../../test/version.js';
 import {
   GenerativeAWSConfig,
   GenerativeAnthropicConfig,
@@ -30,9 +21,18 @@ import {
   RerankerNvidiaConfig,
   RerankerTransformersConfig,
   RerankerVoyageAIConfig,
+} from '../config/types/index.js';
+import { configure } from './index.js';
+import {
+  InvertedIndexConfigCreate,
+  MultiTenancyConfigCreate,
+  ReplicationConfigCreate,
+  ReplicationConfigUpdate,
+  ShardingConfigCreate,
   VectorConfigCreate,
-} from '../../../src/collections/types/index.js';
-import { requireAtLeast } from '../../../test/version.js';
+  VectorIndexConfigFlatCreate,
+  VectorIndexConfigHNSWCreate,
+} from './types/index.js';
 
 describe('Unit testing of the configure & reconfigure factory classes', () => {
   it('should create the correct InvertedIndexConfig type with defaults', () => {
