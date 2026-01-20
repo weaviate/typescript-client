@@ -1,21 +1,22 @@
 {
   "compilerOptions": {
-    "target": "ES6",
+    "target": "es2022",
+    "lib": ["esnext"],
     "strict": true,
     "preserveConstEnums": true,
     "alwaysStrict": true,
     "noImplicitAny": true,
     "noImplicitThis": true,
     "strictFunctionTypes": true,
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
+    "module": "node16",
+    "moduleResolution": "node16",
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "esModuleInterop": true,
     "outDir": "./dist/node",
     "declaration": true,
     "rootDir": "./src",
-    "types": ["node", "uuid", "jest"]
+    "types": ["node", "uuid"]
   },
   "include": ["./src/**/*"],
   "exclude": ["**/*.test.ts"]

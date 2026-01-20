@@ -97,7 +97,11 @@ export class MergeWithExisting {
     if (current === undefined) throw Error('Module config is missing from the class schema.');
     if (update === undefined) return current;
     const generative = update.name === 'generative-azure-openai' ? 'generative-openai' : update.name;
-    const currentGenerative = current[generative] as Record<string, any>;
+    const old = Object.keys(current).find((key) => key.startsWith('generative-') && key !== update.name);
+    if (old !== undefined) {
+      delete current[old];
+    }
+    const currentGenerative = (current[generative] as Record<string, any>) || {};
     current[generative] = {
       ...currentGenerative,
       ...update.config,
@@ -112,6 +116,10 @@ export class MergeWithExisting {
     if (current === undefined) throw Error('Module config is missing from the class schema.');
     if (update === undefined) return current;
     const reranker = current[update.name] as Record<string, any>;
+    const old = Object.keys(current).find((key) => key.startsWith('reranker-') && key !== update.name);
+    if (old !== undefined) {
+      delete current[old];
+    }
     current[update.name] = {
       ...reranker,
       ...update.config,

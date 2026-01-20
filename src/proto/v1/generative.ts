@@ -54,6 +54,7 @@ export interface GenerativeProvider {
   friendliai?: GenerativeFriendliAI | undefined;
   nvidia?: GenerativeNvidia | undefined;
   xai?: GenerativeXAI | undefined;
+  contextualai?: GenerativeContextualAI | undefined;
 }
 
 export interface GenerativeAnthropic {
@@ -85,6 +86,7 @@ export interface GenerativeAWS {
   images?: TextArray | undefined;
   imageProperties?: TextArray | undefined;
   maxTokens?: number | undefined;
+  stopSequences?: TextArray | undefined;
 }
 
 export interface GenerativeCohere {
@@ -292,6 +294,16 @@ export interface GenerativeXAI {
   maxTokens?: number | undefined;
   images?: TextArray | undefined;
   imageProperties?: TextArray | undefined;
+}
+
+export interface GenerativeContextualAI {
+  model?: string | undefined;
+  temperature?: number | undefined;
+  topP?: number | undefined;
+  maxNewTokens?: number | undefined;
+  systemPrompt?: string | undefined;
+  avoidCommentary?: boolean | undefined;
+  knowledge?: TextArray | undefined;
 }
 
 export interface GenerativeAnthropicMetadata {
@@ -801,6 +813,7 @@ function createBaseGenerativeProvider(): GenerativeProvider {
     friendliai: undefined,
     nvidia: undefined,
     xai: undefined,
+    contextualai: undefined,
   };
 }
 
@@ -847,6 +860,9 @@ export const GenerativeProvider = {
     }
     if (message.xai !== undefined) {
       GenerativeXAI.encode(message.xai, writer.uint32(114).fork()).ldelim();
+    }
+    if (message.contextualai !== undefined) {
+      GenerativeContextualAI.encode(message.contextualai, writer.uint32(122).fork()).ldelim();
     }
     return writer;
   },
@@ -956,6 +972,13 @@ export const GenerativeProvider = {
 
           message.xai = GenerativeXAI.decode(reader, reader.uint32());
           continue;
+        case 15:
+          if (tag !== 122) {
+            break;
+          }
+
+          message.contextualai = GenerativeContextualAI.decode(reader, reader.uint32());
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -981,6 +1004,7 @@ export const GenerativeProvider = {
       friendliai: isSet(object.friendliai) ? GenerativeFriendliAI.fromJSON(object.friendliai) : undefined,
       nvidia: isSet(object.nvidia) ? GenerativeNvidia.fromJSON(object.nvidia) : undefined,
       xai: isSet(object.xai) ? GenerativeXAI.fromJSON(object.xai) : undefined,
+      contextualai: isSet(object.contextualai) ? GenerativeContextualAI.fromJSON(object.contextualai) : undefined,
     };
   },
 
@@ -1028,6 +1052,9 @@ export const GenerativeProvider = {
     if (message.xai !== undefined) {
       obj.xai = GenerativeXAI.toJSON(message.xai);
     }
+    if (message.contextualai !== undefined) {
+      obj.contextualai = GenerativeContextualAI.toJSON(message.contextualai);
+    }
     return obj;
   },
 
@@ -1072,6 +1099,9 @@ export const GenerativeProvider = {
       ? GenerativeNvidia.fromPartial(object.nvidia)
       : undefined;
     message.xai = (object.xai !== undefined && object.xai !== null) ? GenerativeXAI.fromPartial(object.xai) : undefined;
+    message.contextualai = (object.contextualai !== undefined && object.contextualai !== null)
+      ? GenerativeContextualAI.fromPartial(object.contextualai)
+      : undefined;
     return message;
   },
 };
@@ -1372,6 +1402,7 @@ function createBaseGenerativeAWS(): GenerativeAWS {
     images: undefined,
     imageProperties: undefined,
     maxTokens: undefined,
+    stopSequences: undefined,
   };
 }
 
@@ -1406,6 +1437,9 @@ export const GenerativeAWS = {
     }
     if (message.maxTokens !== undefined) {
       writer.uint32(128).int64(message.maxTokens);
+    }
+    if (message.stopSequences !== undefined) {
+      TextArray.encode(message.stopSequences, writer.uint32(138).fork()).ldelim();
     }
     return writer;
   },
@@ -1487,6 +1521,13 @@ export const GenerativeAWS = {
 
           message.maxTokens = longToNumber(reader.int64() as Long);
           continue;
+        case 17:
+          if (tag !== 138) {
+            break;
+          }
+
+          message.stopSequences = TextArray.decode(reader, reader.uint32());
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1508,6 +1549,7 @@ export const GenerativeAWS = {
       images: isSet(object.images) ? TextArray.fromJSON(object.images) : undefined,
       imageProperties: isSet(object.imageProperties) ? TextArray.fromJSON(object.imageProperties) : undefined,
       maxTokens: isSet(object.maxTokens) ? globalThis.Number(object.maxTokens) : undefined,
+      stopSequences: isSet(object.stopSequences) ? TextArray.fromJSON(object.stopSequences) : undefined,
     };
   },
 
@@ -1543,6 +1585,9 @@ export const GenerativeAWS = {
     if (message.maxTokens !== undefined) {
       obj.maxTokens = Math.round(message.maxTokens);
     }
+    if (message.stopSequences !== undefined) {
+      obj.stopSequences = TextArray.toJSON(message.stopSequences);
+    }
     return obj;
   },
 
@@ -1565,6 +1610,9 @@ export const GenerativeAWS = {
       ? TextArray.fromPartial(object.imageProperties)
       : undefined;
     message.maxTokens = object.maxTokens ?? undefined;
+    message.stopSequences = (object.stopSequences !== undefined && object.stopSequences !== null)
+      ? TextArray.fromPartial(object.stopSequences)
+      : undefined;
     return message;
   },
 };
@@ -3322,6 +3370,165 @@ export const GenerativeXAI = {
       : undefined;
     message.imageProperties = (object.imageProperties !== undefined && object.imageProperties !== null)
       ? TextArray.fromPartial(object.imageProperties)
+      : undefined;
+    return message;
+  },
+};
+
+function createBaseGenerativeContextualAI(): GenerativeContextualAI {
+  return {
+    model: undefined,
+    temperature: undefined,
+    topP: undefined,
+    maxNewTokens: undefined,
+    systemPrompt: undefined,
+    avoidCommentary: undefined,
+    knowledge: undefined,
+  };
+}
+
+export const GenerativeContextualAI = {
+  encode(message: GenerativeContextualAI, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.model !== undefined) {
+      writer.uint32(10).string(message.model);
+    }
+    if (message.temperature !== undefined) {
+      writer.uint32(17).double(message.temperature);
+    }
+    if (message.topP !== undefined) {
+      writer.uint32(25).double(message.topP);
+    }
+    if (message.maxNewTokens !== undefined) {
+      writer.uint32(32).int64(message.maxNewTokens);
+    }
+    if (message.systemPrompt !== undefined) {
+      writer.uint32(42).string(message.systemPrompt);
+    }
+    if (message.avoidCommentary !== undefined) {
+      writer.uint32(48).bool(message.avoidCommentary);
+    }
+    if (message.knowledge !== undefined) {
+      TextArray.encode(message.knowledge, writer.uint32(58).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): GenerativeContextualAI {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGenerativeContextualAI();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.model = reader.string();
+          continue;
+        case 2:
+          if (tag !== 17) {
+            break;
+          }
+
+          message.temperature = reader.double();
+          continue;
+        case 3:
+          if (tag !== 25) {
+            break;
+          }
+
+          message.topP = reader.double();
+          continue;
+        case 4:
+          if (tag !== 32) {
+            break;
+          }
+
+          message.maxNewTokens = longToNumber(reader.int64() as Long);
+          continue;
+        case 5:
+          if (tag !== 42) {
+            break;
+          }
+
+          message.systemPrompt = reader.string();
+          continue;
+        case 6:
+          if (tag !== 48) {
+            break;
+          }
+
+          message.avoidCommentary = reader.bool();
+          continue;
+        case 7:
+          if (tag !== 58) {
+            break;
+          }
+
+          message.knowledge = TextArray.decode(reader, reader.uint32());
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GenerativeContextualAI {
+    return {
+      model: isSet(object.model) ? globalThis.String(object.model) : undefined,
+      temperature: isSet(object.temperature) ? globalThis.Number(object.temperature) : undefined,
+      topP: isSet(object.topP) ? globalThis.Number(object.topP) : undefined,
+      maxNewTokens: isSet(object.maxNewTokens) ? globalThis.Number(object.maxNewTokens) : undefined,
+      systemPrompt: isSet(object.systemPrompt) ? globalThis.String(object.systemPrompt) : undefined,
+      avoidCommentary: isSet(object.avoidCommentary) ? globalThis.Boolean(object.avoidCommentary) : undefined,
+      knowledge: isSet(object.knowledge) ? TextArray.fromJSON(object.knowledge) : undefined,
+    };
+  },
+
+  toJSON(message: GenerativeContextualAI): unknown {
+    const obj: any = {};
+    if (message.model !== undefined) {
+      obj.model = message.model;
+    }
+    if (message.temperature !== undefined) {
+      obj.temperature = message.temperature;
+    }
+    if (message.topP !== undefined) {
+      obj.topP = message.topP;
+    }
+    if (message.maxNewTokens !== undefined) {
+      obj.maxNewTokens = Math.round(message.maxNewTokens);
+    }
+    if (message.systemPrompt !== undefined) {
+      obj.systemPrompt = message.systemPrompt;
+    }
+    if (message.avoidCommentary !== undefined) {
+      obj.avoidCommentary = message.avoidCommentary;
+    }
+    if (message.knowledge !== undefined) {
+      obj.knowledge = TextArray.toJSON(message.knowledge);
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<GenerativeContextualAI>): GenerativeContextualAI {
+    return GenerativeContextualAI.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<GenerativeContextualAI>): GenerativeContextualAI {
+    const message = createBaseGenerativeContextualAI();
+    message.model = object.model ?? undefined;
+    message.temperature = object.temperature ?? undefined;
+    message.topP = object.topP ?? undefined;
+    message.maxNewTokens = object.maxNewTokens ?? undefined;
+    message.systemPrompt = object.systemPrompt ?? undefined;
+    message.avoidCommentary = object.avoidCommentary ?? undefined;
+    message.knowledge = (object.knowledge !== undefined && object.knowledge !== null)
+      ? TextArray.fromPartial(object.knowledge)
       : undefined;
     return message;
   },

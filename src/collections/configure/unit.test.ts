@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { requireAtLeast } from '../../../test/version.js';
 import {
   GenerativeAWSConfig,
@@ -20,8 +21,7 @@ import {
   RerankerNvidiaConfig,
   RerankerTransformersConfig,
   RerankerVoyageAIConfig,
-  VectorConfigCreate,
-} from '../types/index.js';
+} from '../config/types/index.js';
 import { configure } from './index.js';
 import {
   InvertedIndexConfigCreate,
@@ -29,6 +29,7 @@ import {
   ReplicationConfigCreate,
   ReplicationConfigUpdate,
   ShardingConfigCreate,
+  VectorConfigCreate,
   VectorIndexConfigFlatCreate,
   VectorIndexConfigHNSWCreate,
 } from './types/index.js';
