@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import weaviate from './index.js';
+import weaviate from '../src/index.js';
 
 describe('Integration testing of the client methods', () => {
   it('should connect using connectToLocal defaults', () => {

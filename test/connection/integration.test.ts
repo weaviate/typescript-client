@@ -3,8 +3,8 @@ import { Wait } from 'testcontainers';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { WeaviateStartUpError } from '../../src/errors.js';
 import weaviate from '../../src/index.js';
+import { Meta } from '../../src/openapi/types.js';
 import { DbVersion } from '../../src/utils/dbVersion.js';
-import { Meta } from '../openapi/types.js';
 
 describe('Integration testing of the ConnectionGRPC class', () => {
   let container: StartedWeaviateContainer;

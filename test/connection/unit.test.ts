@@ -18,16 +18,16 @@ import {
   HealthCheckResponse_ServingStatus,
   HealthDefinition,
   HealthServiceImplementation,
-} from '../proto/google/health/v1/health';
-import { TenantsGetReply } from '../proto/v1/tenants';
-import { WeaviateDefinition, WeaviateServiceImplementation } from '../proto/v1/weaviate';
+} from '../../src/proto/google/health/v1/health';
+import { TenantsGetReply } from '../../src/proto/v1/tenants';
+import { WeaviateDefinition, WeaviateServiceImplementation } from '../../src/proto/v1/weaviate';
 
 import { WeaviateRequestTimeoutError } from '../../src/errors.js';
 import weaviate, { Collection, WeaviateClient } from '../../src/index.js';
-import { AggregateReply } from '../proto/v1/aggregate.js';
-import { BatchObjectsReply } from '../proto/v1/batch.js';
-import { BatchDeleteReply } from '../proto/v1/batch_delete.js';
-import { SearchReply } from '../proto/v1/search_get.js';
+import { AggregateReply } from '../../src/proto/v1/aggregate.js';
+import { BatchObjectsReply } from '../../src/proto/v1/batch.js';
+import { BatchDeleteReply } from '../../src/proto/v1/batch_delete.js';
+import { SearchReply } from '../../src/proto/v1/search_get.js';
 
 describe('mock server auth tests', () => {
   const server = testServer();
