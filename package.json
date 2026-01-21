@@ -36,7 +36,7 @@
     "refresh-schema": "./tools/refresh_schema.sh",
     "refresh-protos": "./tools/refresh_protos.sh",
     "docs": "typedoc --plugin typedoc-plugin-extras --favicon public/favicon.ico --out docs/ src/",
-    "generate:version": "node ./scripts/gen-cersion.mjs"
+    "generate:version": "node ./scripts/gen-version.mjs"
   },
   "repository": {
     "type": "git",
