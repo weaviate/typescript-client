@@ -7,6 +7,7 @@ import {
   BatchReference as BatchReferenceGRPC,
   BatchStreamRequest,
 } from '../../proto/v1/batch.js';
+import { DbVersionSupport } from '../../utils/dbVersion.js';
 import { BatchObject, BatchReference, ErrorObject, ErrorReference } from '../index.js';
 import { Serialize } from '../serialize/index.js';
 
@@ -46,15 +47,19 @@ const isBatchReference = <T>(obj: BatchObject<T> | BatchReference | null): obj i
 };
 
 export interface Batch {
-  ingest: (consistencyLevel?: ConsistencyLevel) => {
+  ingest: (consistencyLevel?: ConsistencyLevel) => Promise<{
     batcher: Batcher<any>;
     stop: () => Promise<void>;
-  };
+  }>;
 }
 
-export default function (connection: Connection) {
+export default function (connection: Connection, dbVersionSupport: DbVersionSupport): Batch {
   return {
-    ingest: (consistencyLevel?: ConsistencyLevel) => {
+    ingest: async (consistencyLevel) => {
+      const { supports, message } = await dbVersionSupport.supportsServerSideBatching();
+      if (!supports) {
+        throw new Error(message);
+      }
       const batcher = new Batcher<any>(consistencyLevel);
       const batching = batcher.start(connection);
       return {

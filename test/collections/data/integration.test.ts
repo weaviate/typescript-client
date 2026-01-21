@@ -1143,7 +1143,7 @@ requireAtLeast(1, 36, 0).describe('Testing of the collection.data.{import, inges
   });
 
   it('should be able to ingest 2000 self-referencing objects with vectors from the client object', async () => {
-    const { batcher, stop } = client.batch.ingest();
+    const { batcher, stop } = await client.batch.ingest();
 
     for (let i = 0; i < 2000; i++) {
       const obj = {

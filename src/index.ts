@@ -232,7 +232,7 @@ async function client(params: ClientParams): Promise<WeaviateClient> {
   const ifc: WeaviateClient = {
     alias: alias(connection),
     backup: backup(connection),
-    batch: batch(connection),
+    batch: batch(connection, dbVersionSupport),
     cluster: cluster(connection),
     collections: collections(connection, dbVersionSupport),
     groups: groups(connection),
