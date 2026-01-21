@@ -27,4 +27,3 @@ if git rev-parse "$VERSION" >/dev/null 2>&1; then
 fi
 
 npm version "${VERSION/v}"
-npm run generate:version
