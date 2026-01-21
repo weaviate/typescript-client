@@ -49,7 +49,4 @@ export default defineConfig({
     environment: 'node',
     testTimeout: 100000,
   },
-  define: {
-    WEAVIATE_CLIENT_VERSION: 'test-version',
-  },
 });

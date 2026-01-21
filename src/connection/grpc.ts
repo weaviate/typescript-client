@@ -1,7 +1,7 @@
 import { isAbortError } from 'abort-controller-x';
 
 import ConnectionGQL from './gql.js';
-import { InternalConnectionParams } from './http.js';
+import { getClientVersionHeader, InternalConnectionParams } from './http.js';
 
 import { ConsistencyLevel } from '../data/index.js';
 
@@ -32,10 +32,6 @@ export interface GrpcConnectionParams extends InternalConnectionParams {
   grpcAddress: string;
   grpcSecure: boolean;
 }
-
-// WEAVIATE_CLIENT_VERSION is injected at build time by tsup's define option
-// In test environment, it's set via global scope
-declare const WEAVIATE_CLIENT_VERSION: string;
 
 const clientFactory = createClientFactory().use(retryMiddleware);
 
@@ -270,5 +266,5 @@ const getMetadataWithEmbeddingServiceAuth = (config: GrpcConnectionParams, beare
           'X-Weaviate-Cluster-Url': config.host,
         }
       : config.headers),
-    'X-Weaviate-Client': `weaviate-client-typescript/${WEAVIATE_CLIENT_VERSION}`,
+    ...getClientVersionHeader(),
   });

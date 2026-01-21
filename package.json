@@ -30,12 +30,13 @@
     "prepack": "npm run build",
     "lint": "eslint --ext .ts,.js .",
     "lint:fix": "npm run lint -- --fix",
-    "format": "prettier --write --no-error-on-unmatched-pattern '**/*.{ts,js}' '!dist/**'",
+    "format": "npm run generate:version && prettier --write --no-error-on-unmatched-pattern '**/*.{ts,js}' '!dist/**'",
     "format:check": "prettier --check --no-error-on-unmatched-pattern '**/*.{ts,js}' '!dist/**'",
     "format:dist": "prettier --write --no-error-on-unmatched-pattern '**/dist/**/*.{ts,js}'",
     "refresh-schema": "./tools/refresh_schema.sh",
     "refresh-protos": "./tools/refresh_protos.sh",
-    "docs": "typedoc --plugin typedoc-plugin-extras --favicon public/favicon.ico --out docs/ src/"
+    "docs": "typedoc --plugin typedoc-plugin-extras --favicon public/favicon.ico --out docs/ src/",
+    "generate:version": "node ./scripts/gen-cersion.mjs"
   },
   "repository": {
     "type": "git",

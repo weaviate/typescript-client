@@ -28,8 +28,7 @@ import { AggregateReply } from '../../src/proto/v1/aggregate.js';
 import { BatchObjectsReply } from '../../src/proto/v1/batch.js';
 import { BatchDeleteReply } from '../../src/proto/v1/batch_delete.js';
 import { SearchReply } from '../../src/proto/v1/search_get.js';
-
-(global as any).WEAVIATE_CLIENT_VERSION = 'test-version';
+import { WEAVIATE_CLIENT_VERSION } from '../../src/version.js';
 
 describe('mock server auth tests', () => {
   const server = testServer();
@@ -345,39 +344,26 @@ describe('Mock testing of timeout behaviour', () => {
 });
 
 describe('client version header', () => {
-  const server = testServer();
+  const app = express();
+  let lastRequest: any = null;
+  app.use((req, res, next) => {
+    lastRequest = req;
+    next();
+  });
+  app.get('/v1/test', (req, res) => res.json({ message: 'ok' }));
+  const port = 40202;
+  const server = app.listen(port);
+  beforeAll(() => server);
+  afterAll(() => server.close());
   it('should send the correct X-Weaviate-Client header', async () => {
     const conn = new Connection({
       scheme: 'http',
-      host: 'localhost:' + server.port,
+      host: 'localhost:' + port,
     });
     // Make a request that triggers an HTTP call
-    try {
-      await conn.http.post('/testEndpoint', {}, true, '');
-    } catch (e) {
-      // ignore errors, we only care about the request
-    }
-    const request = server.lastRequest();
-    console.log('Captured request headers:', request.headers);
-    expect(request.headers.get('x-weaviate-client')).toBe('weaviate-client-typescript/test-version');
+    await conn.http.get('/test');
+    expect(lastRequest.headers['x-weaviate-client']).toBe(
+      `weaviate-client-typescript/${WEAVIATE_CLIENT_VERSION}`
+    );
   });
-});
-
-describe('minimal fetch header test', () => {
-  const server = testServer();
-  it('should capture custom headers with fetch', async () => {
-    await fetch(`http://localhost:${server.port}/v1/testEndpoint`, {
-      method: 'POST',
-      headers: {
-        'X-Weaviate-Client': 'weaviate-client-typescript/TEST',
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify({ foo: 'bar' }),
-    });
-    const request = server.lastRequest();
-    console.log('Minimal fetch captured headers:', request.headers);
-    expect(request.headers.get('x-weaviate-client')).toBe('weaviate-client-typescript/TEST');
-  });
-
-  afterAll(() => server.close());
 });
