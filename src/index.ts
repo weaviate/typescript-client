@@ -251,7 +251,7 @@ async function client(params: ClientParams): Promise<WeaviateClient> {
   return ifc;
 }
 
-const app = {
+export default {
   connectToCustom,
   connectToLocal,
   connectToWCD,
@@ -269,8 +269,6 @@ const app = {
   permissions,
   query: queryFactory,
 };
-
-export default app;
 export * from './collections/index.js';
 export * from './connection/index.js';
 export * from './roles/types.js';

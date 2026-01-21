@@ -1,13 +1,14 @@
-import { MuveraEncodingConfigCreate, UncompressedConfigCreate } from '../index.js';
 import {
   BQConfigCreate,
   BQConfigUpdate,
+  MuveraEncodingConfigCreate,
   PQConfigCreate,
   PQConfigUpdate,
   RQConfigCreate,
   RQConfigUpdate,
   SQConfigCreate,
   SQConfigUpdate,
+  UncompressedConfigCreate,
   VectorIndexConfigDynamicCreate,
   VectorIndexConfigFlatCreate,
   VectorIndexConfigHNSWCreate,
