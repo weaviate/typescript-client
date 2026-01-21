@@ -43,12 +43,14 @@ export type TimeoutParams = {
   init?: number;
 };
 
+export type Headers = [string, string][] | Record<string, string>;
+
 export type InternalConnectionParams = {
   authClientSecret?: AuthClientCredentials | AuthAccessTokenCredentials | AuthUserPasswordCredentials;
   apiKey?: ApiKey;
   host: string;
   scheme?: string;
-  headers?: HeadersInit;
+  headers?: Headers;
   // http1Agent?: Agent;
   grpcProxyUrl?: string;
   agent?: Agent;
@@ -59,7 +61,7 @@ export type InternalConnectionParams = {
 export interface ConnectionDetails {
   host: string;
   bearerToken?: string;
-  headers?: HeadersInit;
+  headers?: Headers;
 }
 
 export interface IConnection {
@@ -76,7 +78,7 @@ export interface IConnection {
 
 export default class ConnectionREST implements IConnection {
   private apiKey?: string;
-  private headers?: HeadersInit;
+  private headers?: Headers;
   protected authEnabled: boolean;
   public readonly host: string;
   public readonly http: HttpClient;

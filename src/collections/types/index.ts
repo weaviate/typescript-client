@@ -10,15 +10,15 @@ export type {
   IsPrimitiveField,
   IsWeaviateField,
   NestedKeys,
-  NonRefKeys,
   NonReferenceInputs,
+  NonRefKeys,
   PrimitiveKeys,
   QueryNested,
   QueryProperty,
   QueryReference,
-  RefKeys,
   ReferenceInput,
   ReferenceInputs,
+  RefKeys,
 } from './internal.js';
 export * from './query.js';
 

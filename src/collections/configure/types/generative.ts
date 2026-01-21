@@ -2,7 +2,6 @@ import {
   GenerativeAWSConfig,
   GenerativeAnthropicConfig,
   GenerativeAnyscaleConfig,
-  GenerativeContextualAIConfig,
   GenerativeDatabricksConfig,
   GenerativeFriendliAIConfig,
   GenerativeMistralConfig,
@@ -10,7 +9,7 @@ import {
   GenerativeOllamaConfig,
   GenerativePaLMConfig,
   GenerativeXAIConfig,
-} from '../../index.js';
+} from '../../config/types/index.js';
 
 export type GenerativeOpenAIConfigBaseCreate = {
   baseURL?: string;

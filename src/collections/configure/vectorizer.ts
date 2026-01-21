@@ -11,19 +11,20 @@ import {
   Vectorizer,
   VectorizerConfigType,
 } from '../config/types/index.js';
+import { PrimitiveKeys } from '../types/internal.js';
+import { VectorIndexGuards } from './parsing.js';
 import {
   ConfigureNonTextMultiVectorizerOptions,
+  ConfigureNonTextVectorizerOptions,
   ConfigureTextMultiVectorizerOptions,
+  ConfigureTextVectorizerOptions,
   MultiVectorEncodingConfigCreate,
   QuantizerConfigCreate,
   VectorConfigCreate,
   VectorIndexConfigCreateType,
   VectorizerCreateOptions,
-  vectorIndex,
-} from '../index.js';
-import { PrimitiveKeys } from '../types/internal.js';
-import { VectorIndexGuards } from './parsing.js';
-import { ConfigureNonTextVectorizerOptions, ConfigureTextVectorizerOptions } from './types/index.js';
+} from './types/index.js';
+import { configure } from './vectorIndex.js';
 
 const makeVectorIndex = (opts?: {
   config?: ModuleConfig<any, VectorIndexConfigCreateType<any>>;
@@ -46,24 +47,24 @@ const makeVectorIndex = (opts?: {
                   ? { ...conf.multiVector.encoding, ...opts.encoding }
                   : opts.encoding,
               }
-            : vectorIndex.multiVector.multiVector({ encoding: opts.encoding }),
+            : configure.multiVector.multiVector({ encoding: opts.encoding }),
         }
       : {
-          multiVector: vectorIndex.multiVector.multiVector({ encoding: opts.encoding }),
+          multiVector: configure.multiVector.multiVector({ encoding: opts.encoding }),
           type: 'hnsw',
         };
   }
   if (opts?.quantizer) {
     if (!conf) {
-      conf = vectorIndex.hnsw({ quantizer: opts.quantizer }).config!;
+      conf = configure.hnsw({ quantizer: opts.quantizer }).config!;
     }
     if (VectorIndexGuards.isDynamic(conf)) {
       conf.hnsw = conf.hnsw
         ? { ...conf.hnsw, quantizer: opts.quantizer }
-        : vectorIndex.hnsw({ quantizer: opts.quantizer }).config;
+        : configure.hnsw({ quantizer: opts.quantizer }).config;
       conf.flat = conf.flat
         ? { ...conf.flat, quantizer: opts.quantizer }
-        : vectorIndex.flat({ quantizer: opts.quantizer }).config;
+        : configure.flat({ quantizer: opts.quantizer }).config;
     } else {
       conf.quantizer = opts.quantizer;
     }

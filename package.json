@@ -20,7 +20,7 @@
     "node": ">=20.0.0"
   },
   "scripts": {
-    "test": "jest --no-cache --useStderr --runInBand --detectOpenHandles",
+    "test": "vitest run --no-file-parallelism --isolate=true --reporter=default --reporter=hanging-process --silent=false",
     "test:coverage": "npm run test -- --coverage",
     "build": "npm run build:node",
     "build:web": "tsup",
@@ -51,6 +51,7 @@
   },
   "homepage": "https://github.com/weaviate/typescript-client#readme",
   "dependencies": {
+    "@datastructures-js/deque": "^1.0.8",
     "abort-controller-x": "^0.5.0",
     "graphql": "^16.12.0",
     "graphql-request": "^6.1.0",
@@ -70,9 +71,7 @@
     "@rollup/plugin-babel": "^5.3.1",
     "@testcontainers/weaviate": "^10.14.0",
     "@types/express": "^4.17.21",
-    "@types/isomorphic-fetch": "^0.0.36",
-    "@types/jest": "^29.4.0",
-    "@types/node": "^18.14.0",
+    "@types/node": "^25.0.3",
     "@types/uuid": "^9.0.1",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
     "@typescript-eslint/parser": "^6.21.0",
@@ -93,9 +92,10 @@
     "ts-node": "^10.9.2",
     "ts-proto": "^1.176.0",
     "tsup": "^8.0.2",
-    "typedoc": "^0.25.12",
-    "typedoc-plugin-extras": "^3.0.0",
-    "typescript": "^5.3.3"
+    "typedoc": "^0.28.15",
+    "typedoc-plugin-extras": "^4.0.1",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.16"
   },
   "lint-staged": {
     "*.{ts,js}": [
