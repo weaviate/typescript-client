@@ -28,6 +28,7 @@ import { AggregateReply } from '../../src/proto/v1/aggregate.js';
 import { BatchObjectsReply } from '../../src/proto/v1/batch.js';
 import { BatchDeleteReply } from '../../src/proto/v1/batch_delete.js';
 import { SearchReply } from '../../src/proto/v1/search_get.js';
+import { WEAVIATE_CLIENT_VERSION } from '../../src/version.js';
 
 describe('mock server auth tests', () => {
   const server = testServer();
@@ -340,4 +341,29 @@ describe('Mock testing of timeout behaviour', () => {
     expect(collection.aggregate.overAll()).rejects.toThrow(WeaviateRequestTimeoutError));
 
   afterAll(() => Promise.all([servers.rest.close(), servers.grpc.shutdown()]));
+});
+
+describe('client version header', () => {
+  const app = express();
+  let lastRequest: any = null;
+  app.use((req, res, next) => {
+    lastRequest = req;
+    next();
+  });
+  app.get('/v1/test', (req, res) => res.json({ message: 'ok' }));
+  const port = 40202;
+  const server = app.listen(port);
+  beforeAll(() => server);
+  afterAll(() => server.close());
+  it('should send the correct X-Weaviate-Client header', async () => {
+    const conn = new Connection({
+      scheme: 'http',
+      host: 'localhost:' + port,
+    });
+    // Make a request that triggers an HTTP call
+    await conn.http.get('/test');
+    expect(lastRequest.headers['x-weaviate-client']).toBe(
+      `weaviate-client-typescript/${WEAVIATE_CLIENT_VERSION}`
+    );
+  });
 });

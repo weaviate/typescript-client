@@ -30,12 +30,13 @@
     "prepack": "npm run build",
     "lint": "eslint --ext .ts,.js .",
     "lint:fix": "npm run lint -- --fix",
-    "format": "prettier --write --no-error-on-unmatched-pattern '**/*.{ts,js}' '!dist/**'",
+    "format": "npm run generate:version && prettier --write --no-error-on-unmatched-pattern '**/*.{ts,js}' '!dist/**'",
     "format:check": "prettier --check --no-error-on-unmatched-pattern '**/*.{ts,js}' '!dist/**'",
     "format:dist": "prettier --write --no-error-on-unmatched-pattern '**/dist/**/*.{ts,js}'",
     "refresh-schema": "./tools/refresh_schema.sh",
     "refresh-protos": "./tools/refresh_protos.sh",
-    "docs": "typedoc --plugin typedoc-plugin-extras --favicon public/favicon.ico --out docs/ src/"
+    "docs": "typedoc --plugin typedoc-plugin-extras --favicon public/favicon.ico --out docs/ src/",
+    "generate:version": "node ./scripts/gen-version.mjs"
   },
   "repository": {
     "type": "git",
@@ -87,7 +88,7 @@
     "prettier-plugin-organize-imports": "^3.2.4",
     "protobufjs": "^7.2.6",
     "ts-node": "^10.9.2",
-    "ts-proto": "^1.163.0",
+    "ts-proto": "^1.176.0",
     "tsup": "^8.0.2",
     "typedoc": "^0.28.15",
     "typedoc-plugin-extras": "^4.0.1",
