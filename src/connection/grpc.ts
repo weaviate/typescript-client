@@ -1,7 +1,7 @@
 import { isAbortError } from 'abort-controller-x';
 
 import ConnectionGQL from './gql.js';
-import { InternalConnectionParams } from './http.js';
+import { getClientVersionHeader, InternalConnectionParams } from './http.js';
 
 import { ConsistencyLevel } from '../data/index.js';
 
@@ -258,12 +258,13 @@ export const grpcClient = (config: GrpcConnectionParams & { grpcMaxMessageLength
 };
 
 const getMetadataWithEmbeddingServiceAuth = (config: GrpcConnectionParams, bearerToken?: string) =>
-  new Metadata(
-    bearerToken
+  new Metadata({
+    ...(bearerToken
       ? {
           ...config.headers,
           authorization: bearerToken,
           'X-Weaviate-Cluster-Url': config.host,
         }
-      : config.headers
-  );
+      : config.headers),
+    ...getClientVersionHeader(),
+  });

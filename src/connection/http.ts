@@ -10,6 +10,7 @@ import {
   WeaviateUnauthenticatedError,
   WeaviateUnexpectedStatusCodeError,
 } from '../errors.js';
+import { WEAVIATE_CLIENT_VERSION } from '../version.js';
 import {
   ApiKey,
   AuthAccessTokenCredentials,
@@ -270,6 +271,7 @@ export const httpClient = (config: InternalConnectionParams): HttpClient => {
           ...config.headers,
           'content-type': 'application/json',
           ...getAuthHeaders(config, bearerToken),
+          ...getClientVersionHeader(),
         },
         body: JSON.stringify(payload),
         agent: config.agent,
@@ -290,6 +292,7 @@ export const httpClient = (config: InternalConnectionParams): HttpClient => {
           ...config.headers,
           'content-type': 'application/json',
           ...getAuthHeaders(config, bearerToken),
+          ...getClientVersionHeader(),
         },
         body: JSON.stringify(payload),
         agent: config.agent,
@@ -305,6 +308,7 @@ export const httpClient = (config: InternalConnectionParams): HttpClient => {
           ...config.headers,
           'content-type': 'application/json',
           ...getAuthHeaders(config, bearerToken),
+          ...getClientVersionHeader(),
         },
         body: JSON.stringify(payload),
         agent: config.agent,
@@ -318,6 +322,7 @@ export const httpClient = (config: InternalConnectionParams): HttpClient => {
           ...config.headers,
           'content-type': 'application/json',
           ...getAuthHeaders(config, bearerToken),
+          ...getClientVersionHeader(),
         },
         body: payload ? JSON.stringify(payload) : undefined,
         agent: config.agent,
@@ -333,6 +338,7 @@ export const httpClient = (config: InternalConnectionParams): HttpClient => {
           ...config.headers,
           'content-type': 'application/json',
           ...getAuthHeaders(config, bearerToken),
+          ...getClientVersionHeader(),
         },
         body: payload ? JSON.stringify(payload) : undefined,
         agent: config.agent,
@@ -347,6 +353,7 @@ export const httpClient = (config: InternalConnectionParams): HttpClient => {
         headers: {
           ...config.headers,
           ...getAuthHeaders(config, bearerToken),
+          ...getClientVersionHeader(),
         },
         agent: config.agent,
       };
@@ -361,6 +368,7 @@ export const httpClient = (config: InternalConnectionParams): HttpClient => {
         headers: {
           ...config.headers,
           ...getAuthHeaders(config, bearerToken),
+          ...getClientVersionHeader(),
         },
         agent: config.agent,
       };
@@ -439,3 +447,9 @@ const getAuthHeaders = (config: InternalConnectionParams, bearerToken: string) =
         'X-Weaviate-Cluster-Url': config.host,
       }
     : undefined;
+
+export const getClientVersionHeader = () => {
+  return {
+    'X-Weaviate-Client': `weaviate-client-typescript/${WEAVIATE_CLIENT_VERSION}`,
+  };
+};
