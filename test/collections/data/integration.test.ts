@@ -17,6 +17,7 @@ import weaviate, {
   WeaviateObject,
   weaviateV2,
 } from '../../../src/index.js';
+import { requireAtLeast } from '../../version.js';
 
 type TestCollectionData = {
   testProp: string;
@@ -1093,7 +1094,7 @@ describe('Testing of BYOV insertion with legacy vectorizer', () => {
   });
 });
 
-describe.only('Testing of the collection.data.{import, ingest} methods', () => {
+requireAtLeast(1, 36, 0).describe('Testing of the collection.data.{import, ingest} methods', () => {
   let client: WeaviateClient;
   let collection: Collection;
   const collectionName = 'TestCollectionDataIngest';
