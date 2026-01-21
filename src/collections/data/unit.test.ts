@@ -68,10 +68,8 @@ describe('Unit testing of the Queue class', () => {
     const queue = new Queue<number>();
     const start = Date.now();
     const result = await queue.pull(200); // 200ms timeout
-    const duration = Date.now() - start;
-
     expect(result).toBeNull();
-    expect(duration).toBeGreaterThanOrEqual(200);
+    expect(Date.now() - start).toBeGreaterThanOrEqual(200);
   });
 
   it('should pull a pushed item while a pull is waiting', async () => {
