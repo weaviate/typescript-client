@@ -2373,4 +2373,64 @@ describe('Unit testing of the reranker factory class', () => {
       },
     });
   });
+
+  it('should create correct Multi2VecWeaviateConfig type with defaults', () => {
+    const config = configure.multiVectors.multi2VecWeaviate({
+      imageField: 'img',
+    });
+    expect(config).toEqual<VectorConfigCreate<never, undefined, 'hnsw', 'multi2multivec-weaviate'>>({
+      name: undefined,
+      properties: undefined,
+      vectorIndex: {
+        name: 'hnsw',
+        config: undefined,
+      },
+      vectorizer: {
+        name: 'multi2multivec-weaviate',
+        config: {
+          imageFields: ['img'],
+        },
+      },
+    });
+  });
+
+  it('should create correct Multi2VecWeaviateConfig type with all values', () => {
+    const config = configure.multiVectors.multi2VecWeaviate({
+      name: 'test',
+      imageField: 'img',
+      model: 'model',
+      baseURL: 'base-url',
+      vectorIndexConfig: configure.vectorIndex.hnsw({
+        efConstruction: 256,
+        maxConnections: 128,
+      }),
+    });
+    expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'multi2multivec-weaviate'>>({
+      name: 'test',
+      properties: undefined,
+      vectorIndex: {
+        name: 'hnsw',
+        config: {
+          distance: undefined,
+          efConstruction: 256,
+          maxConnections: 128,
+          type: 'hnsw',
+        },
+      },
+      vectorizer: {
+        name: 'multi2multivec-weaviate',
+        config: {
+          imageFields: ['img'],
+          model: 'model',
+          baseURL: 'base-url',
+        },
+      },
+    });
+  });
+
+  it('should throw error when imageField is not provided for multi2VecWeaviate', () => {
+    expect(() => {
+      configure.multiVectors.multi2VecWeaviate({} as any);
+    }).toThrow('imageField is required for multi2VecWeaviate');
+  });
 });
