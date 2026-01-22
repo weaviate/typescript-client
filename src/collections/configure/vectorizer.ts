@@ -1073,14 +1073,16 @@ export const multiVectors = {
    *
    * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/jinaai/embeddings-multimodal) for detailed usage.
    *
-   * @param {ConfigureNonTextVectorizerOptions<N, I, 'multi2multivec-jinaai'>} [opts] The configuration options for the `multi2multivec-jinaai` vectorizer.
+   * @param {ConfigureNonTextMultiVectorizerOptions<N, I, 'multi2multivec-jinaai'>} [opts] The configuration options for the `multi2multivec-jinaai` vectorizer.
    * @returns {VectorConfigCreate<PrimitiveKeys<T>[], N, I, 'multi2multivec-jinaai'>} The configuration object.
    */
   multi2VecJinaAI: <N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
-    opts?: ConfigureNonTextVectorizerOptions<N, I, 'multi2multivec-jinaai'>
+    opts?: ConfigureNonTextMultiVectorizerOptions<N, I, 'multi2multivec-jinaai'>
   ): VectorConfigCreate<never, N, I, 'multi2multivec-jinaai'> => {
-    const { name, vectorIndexConfig, ...config } = opts || {};
+    const { name, encoding, quantizer, vectorIndexConfig, ...config } = opts || {};
     return makeVectorizer(name, {
+      encoding,
+      quantizer,
       vectorIndexConfig,
       vectorizerConfig: {
         name: 'multi2multivec-jinaai',
@@ -1094,15 +1096,16 @@ export const multiVectors = {
    *
    * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/weaviate/embeddings-multimodal) for detailed usage.
    *
-   * @param {ConfigureNonTextVectorizerOptions<N, I, 'multi2multivec-weaviate'>} [opts] The configuration options for the `multi2multivec-weaviate` vectorizer.
+   * @param {ConfigureNonTextMultiVectorizerOptions<N, I, 'multi2multivec-weaviate'>} [opts] The configuration options for the `multi2multivec-weaviate` vectorizer.
    * @returns {VectorConfigCreate<PrimitiveKeys<T>[], N, I, 'multi2multivec-weaviate'>} The configuration object.
    */
   multi2VecWeaviate: <N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
-    opts: ConfigureNonTextVectorizerOptions<N, I, 'multi2multivec-weaviate'>
+    opts: ConfigureNonTextMultiVectorizerOptions<N, I, 'multi2multivec-weaviate'>
   ): VectorConfigCreate<never, N, I, 'multi2multivec-weaviate'> => {
-    const { name, vectorIndexConfig, imageField, ...config } = opts;
-    if (!imageField) throw new WeaviateInvalidInputError('imageField is required for multi2VecWeaviate');
+    const { name, encoding, quantizer, vectorIndexConfig, imageField, ...config } = opts;
     return makeVectorizer(name, {
+      encoding,
+      quantizer,
       vectorIndexConfig,
       vectorizerConfig: {
         name: 'multi2multivec-weaviate',
