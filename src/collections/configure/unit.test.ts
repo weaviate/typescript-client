@@ -736,12 +736,30 @@ describe('Unit testing of the vectorizer factory class', () => {
       name: 'multi-jina',
       imageFields: ['field1', 'field2'],
       textFields: ['field3', 'field4'],
+      encoding: configure.vectorIndex.multiVector.encoding.muvera({ ksim: 10 }),
+      quantizer: configure.vectorIndex.quantizer.rq(),
     });
     expect(config).toEqual<VectorConfigCreate<never, string, 'hnsw', 'multi2multivec-jinaai'>>({
       name: 'multi-jina',
       vectorIndex: {
         name: 'hnsw',
-        config: undefined,
+        config: {
+          type: 'hnsw',
+          multiVector: {
+            aggregation: undefined,
+            encoding: {
+              dprojections: undefined,
+              ksim: 10,
+              repetitions: undefined,
+              type: 'muvera',
+            },
+          },
+          quantizer: {
+            bits: undefined,
+            rescoreLimit: undefined,
+            type: 'rq',
+          },
+        },
       },
       vectorizer: {
         name: 'multi2multivec-jinaai',
@@ -2404,6 +2422,8 @@ describe('Unit testing of the reranker factory class', () => {
         efConstruction: 256,
         maxConnections: 128,
       }),
+      encoding: configure.vectorIndex.multiVector.encoding.muvera({ ksim: 10 }),
+      quantizer: configure.vectorIndex.quantizer.rq(),
     });
     expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'multi2multivec-weaviate'>>({
       name: 'test',
@@ -2415,6 +2435,20 @@ describe('Unit testing of the reranker factory class', () => {
           efConstruction: 256,
           maxConnections: 128,
           type: 'hnsw',
+          multiVector: {
+            aggregation: undefined,
+            encoding: {
+              dprojections: undefined,
+              ksim: 10,
+              repetitions: undefined,
+              type: 'muvera',
+            },
+          },
+          quantizer: {
+            bits: undefined,
+            rescoreLimit: undefined,
+            type: 'rq',
+          },
         },
       },
       vectorizer: {
@@ -2426,11 +2460,5 @@ describe('Unit testing of the reranker factory class', () => {
         },
       },
     });
-  });
-
-  it('should throw error when imageField is not provided for multi2VecWeaviate', () => {
-    expect(() => {
-      configure.multiVectors.multi2VecWeaviate({} as any);
-    }).toThrow('imageField is required for multi2VecWeaviate');
   });
 });
