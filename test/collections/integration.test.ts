@@ -710,3 +710,66 @@ describe('Testing of the collections.create method', () => {
     });
   });
 });
+
+describe('Testing collection creation with name vs class parameter', () => {
+  let client: WeaviateClient;
+
+  beforeAll(async () => {
+    client = await weaviate.connectToLocal({
+      port: 8080,
+      grpcPort: 50051,
+    });
+  });
+
+  afterAll(() => client.collections.deleteAll());
+
+  it('should create a collection using {"name": "ExampleSchema"}', async () => {
+    const collectionName = 'ExampleSchema';
+    const collection = await client.collections.create({
+      name: collectionName,
+    });
+
+    expect(collection.name).toEqual(collectionName);
+    const exists = await collection.exists();
+    expect(exists).toEqual(true);
+
+    const config = await collection.config.get();
+    expect(config.name).toEqual(collectionName);
+  });
+
+  it('should create a collection using {"class": "ExampleSchema2"} via createFromSchema', async () => {
+    const collectionName = 'ExampleSchema2';
+    const collection = await client.collections.createFromSchema({
+      class: collectionName,
+    });
+
+    expect(collection.name).toEqual(collectionName);
+    const exists = await collection.exists();
+    expect(exists).toEqual(true);
+
+    const config = await collection.config.get();
+    expect(config.name).toEqual(collectionName);
+  });
+
+  it('should verify both collections exist in the schema', async () => {
+    const allCollections = await client.collections.listAll();
+    const collectionNames = allCollections.map((c) => c.name);
+
+    expect(collectionNames).toContain('ExampleSchema');
+    expect(collectionNames).toContain('ExampleSchema2');
+  });
+
+  it('should create a collection using {"name": "ExampleSchema3"} via createFromSchema', async () => {
+    const collectionName = 'ExampleSchema3';
+    const collection = await client.collections.createFromSchema({
+      name: collectionName,
+    });
+
+    expect(collection.name).toEqual(collectionName);
+    const exists = await collection.exists();
+    expect(exists).toEqual(true);
+
+    const config = await collection.config.get();
+    expect(config.name).toEqual(collectionName);
+  });
+});

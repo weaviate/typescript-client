@@ -116,8 +116,10 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
       await new ClassCreator(connection).withClass(schema).do();
       return collection<TProperties, TName, TVectors>(connection, name, dbVersionSupport);
     },
-    createFromSchema: async function (config: WeaviateClass) {
-      const { class: name } = await new ClassCreator(connection).withClass(config).do();
+    createFromSchema: async function (config: WeaviateClass & { name?: string }) {
+      // Support both 'class' and 'name' properties for backwards compatibility
+      const schemaWithClass = config.name && !config.class ? { ...config, class: config.name } : config;
+      const { class: name } = await new ClassCreator(connection).withClass(schemaWithClass).do();
       return collection<Properties, string, undefined>(connection, name as string, dbVersionSupport);
     },
     delete: deleteCollection,
@@ -150,7 +152,7 @@ export interface Collections {
   >(
     config: CollectionConfigCreate<TProperties, TName, TVectors>
   ): Promise<Collection<TProperties, TName, TVectors>>;
-  createFromSchema(config: WeaviateClass): Promise<Collection<Properties, string>>;
+  createFromSchema(config: WeaviateClass & { name?: string }): Promise<Collection<Properties, string>>;
   delete(collection: string): Promise<void>;
   deleteAll(): Promise<void[]>;
   exists(name: string): Promise<boolean>;
