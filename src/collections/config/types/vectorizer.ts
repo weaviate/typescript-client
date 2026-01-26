@@ -27,6 +27,7 @@ export type Vectorizer =
   | 'multi2vec-google'
   | 'multi2vec-jinaai'
   | 'multi2multivec-jinaai'
+  | 'multi2multivec-weaviate'
   | 'multi2vec-voyageai'
   | 'ref2vec-centroid'
   | 'text2vec-aws'
@@ -261,6 +262,22 @@ export type Multi2MultivecJinaAIConfig = {
 
   /** The text fields used when vectorizing. */
   textFields?: string[];
+};
+
+/** The configuration for multi-media-to-multi-vector vectorization using
+ * the ModernVBERT/colmodernvbert model
+ *
+ * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/weaviate/embeddings-multimodal) for detailed usage.
+ */
+export type Multi2MultivecWeaviateConfig = {
+  /** The base URL to use where API requests should go. */
+  baseURL?: string;
+
+  /** The model to use. */
+  model?: 'ModernVBERT/colmodernvbert' | string;
+
+  /** The image fields used when vectorizing. */
+  imageFields?: string[];
 };
 
 /** The configuration for multi-media vectorization using the Jina module.
@@ -643,6 +660,7 @@ export type VectorizerConfig =
   | Multi2VecGoogleConfig
   | Multi2VecJinaAIConfig
   | Multi2MultivecJinaAIConfig
+  | Multi2MultivecWeaviateConfig
   | Multi2VecPalmConfig
   | Multi2VecVoyageAIConfig
   | Ref2VecCentroidConfig
@@ -679,6 +697,8 @@ export type VectorizerConfigType<V> = V extends 'img2vec-neural'
   ? Multi2VecJinaAIConfig | undefined
   : V extends 'multi2multivec-jinaai'
   ? Multi2MultivecJinaAIConfig | undefined
+  : V extends 'multi2multivec-weaviate'
+  ? Multi2MultivecWeaviateConfig | undefined
   : V extends Multi2VecPalmVectorizer
   ? Multi2VecPalmConfig
   : V extends 'multi2vec-voyageai'

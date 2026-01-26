@@ -736,12 +736,30 @@ describe('Unit testing of the vectorizer factory class', () => {
       name: 'multi-jina',
       imageFields: ['field1', 'field2'],
       textFields: ['field3', 'field4'],
+      encoding: configure.vectorIndex.multiVector.encoding.muvera({ ksim: 10 }),
+      quantizer: configure.vectorIndex.quantizer.rq(),
     });
     expect(config).toEqual<VectorConfigCreate<never, string, 'hnsw', 'multi2multivec-jinaai'>>({
       name: 'multi-jina',
       vectorIndex: {
         name: 'hnsw',
-        config: undefined,
+        config: {
+          type: 'hnsw',
+          multiVector: {
+            aggregation: undefined,
+            encoding: {
+              dprojections: undefined,
+              ksim: 10,
+              repetitions: undefined,
+              type: 'muvera',
+            },
+          },
+          quantizer: {
+            bits: undefined,
+            rescoreLimit: undefined,
+            type: 'rq',
+          },
+        },
       },
       vectorizer: {
         name: 'multi2multivec-jinaai',
@@ -2370,6 +2388,76 @@ describe('Unit testing of the reranker factory class', () => {
       config: {
         baseURL: 'base-url',
         model: 'model',
+      },
+    });
+  });
+
+  it('should create correct Multi2VecWeaviateConfig type with defaults', () => {
+    const config = configure.multiVectors.multi2VecWeaviate({
+      imageField: 'img',
+    });
+    expect(config).toEqual<VectorConfigCreate<never, undefined, 'hnsw', 'multi2multivec-weaviate'>>({
+      name: undefined,
+      properties: undefined,
+      vectorIndex: {
+        name: 'hnsw',
+        config: undefined,
+      },
+      vectorizer: {
+        name: 'multi2multivec-weaviate',
+        config: {
+          imageFields: ['img'],
+        },
+      },
+    });
+  });
+
+  it('should create correct Multi2VecWeaviateConfig type with all values', () => {
+    const config = configure.multiVectors.multi2VecWeaviate({
+      name: 'test',
+      imageField: 'img',
+      model: 'model',
+      baseURL: 'base-url',
+      vectorIndexConfig: configure.vectorIndex.hnsw({
+        efConstruction: 256,
+        maxConnections: 128,
+      }),
+      encoding: configure.vectorIndex.multiVector.encoding.muvera({ ksim: 10 }),
+      quantizer: configure.vectorIndex.quantizer.rq(),
+    });
+    expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'multi2multivec-weaviate'>>({
+      name: 'test',
+      properties: undefined,
+      vectorIndex: {
+        name: 'hnsw',
+        config: {
+          distance: undefined,
+          efConstruction: 256,
+          maxConnections: 128,
+          type: 'hnsw',
+          multiVector: {
+            aggregation: undefined,
+            encoding: {
+              dprojections: undefined,
+              ksim: 10,
+              repetitions: undefined,
+              type: 'muvera',
+            },
+          },
+          quantizer: {
+            bits: undefined,
+            rescoreLimit: undefined,
+            type: 'rq',
+          },
+        },
+      },
+      vectorizer: {
+        name: 'multi2multivec-weaviate',
+        config: {
+          imageFields: ['img'],
+          model: 'model',
+          baseURL: 'base-url',
+        },
       },
     });
   });
