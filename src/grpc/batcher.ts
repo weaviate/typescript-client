@@ -65,7 +65,7 @@ export default class Batcher extends Base implements Batch {
         yield req;
       }
     }
-    for await (const res of this.connection.batchStream(generate())) {
+    for await (const res of this.connection.batchStream(generate(), { metadata: this.metadata })) {
       yield res;
     }
   }
