@@ -22,7 +22,7 @@ import {
   ReferenceInputs,
   Vectors,
 } from '../types/index.js';
-import { Batcher } from './batch.js';
+import batch from './batch.js';
 
 /** The available options to the `data.deleteMany` method.  */
 export type DeleteManyOptions<V> = {
@@ -245,22 +245,21 @@ const data = <T>(
     ingest: async (objs) => {
       const allResponses: (string | ErrorObject<T>)[] = [];
 
-      const batcher = new Batcher<T>(consistencyLevel);
+      const batching = await batch(connection, dbVersionSupport).stream(consistencyLevel);
       const start = Date.now();
-      const batching = batcher.start(connection);
 
       for (const obj of objs) {
         // eslint-disable-next-line no-await-in-loop
-        await batcher.addObject({
+        await batching.addObject({
           collection: name,
           ...obj,
           tenant,
         });
       }
-      await batching;
+      await batching.stop();
 
-      const errors = batcher.objErrors;
-      const uuids = batcher.uuids;
+      const errors = batching.objErrors();
+      const uuids = batching.uuids();
 
       for (let i = 0; i < Object.keys(uuids).length + Object.keys(errors).length; i++) {
         if (uuids[i]) {

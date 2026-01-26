@@ -1,4 +1,4 @@
-import { Metadata, ServerError, Status } from 'nice-grpc';
+import { ClientError, Metadata, ServerError, Status } from 'nice-grpc';
 
 import { ConsistencyLevel } from '../data/index.js';
 
@@ -14,6 +14,7 @@ import { WeaviateClient } from '../proto/v1/weaviate.js';
 import { RetryOptions } from 'nice-grpc-client-middleware-retry';
 import {
   WeaviateBatchError,
+  WeaviateBatchStreamError,
   WeaviateDeleteManyError,
   WeaviateInsufficientPermissionsError,
   WeaviateRequestTimeoutError,
@@ -65,8 +66,15 @@ export default class Batcher extends Base implements Batch {
         yield req;
       }
     }
-    for await (const res of this.connection.batchStream(generate(), { metadata: this.metadata })) {
-      yield res;
+    try {
+      for await (const res of this.connection.batchStream(generate(), { metadata: this.metadata })) {
+        yield res;
+      }
+    } catch (err) {
+      if (err instanceof ClientError) {
+        throw new WeaviateBatchStreamError(err.message);
+      }
+      throw err;
     }
   }
 

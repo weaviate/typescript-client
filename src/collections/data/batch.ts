@@ -34,10 +34,6 @@ export const isInternalError = (obj: InternalError<any> | InternalSuccess): obj 
   return obj.type === 'error';
 };
 
-export const isInternalSuccess = (obj: InternalError<any> | InternalSuccess): obj is InternalSuccess => {
-  return obj.type === 'success';
-};
-
 const isBatchObject = <T>(obj: BatchObject<T> | BatchReference | null): obj is BatchObject<T> => {
   return (obj as BatchObject<T>).collection !== undefined;
 };
@@ -46,34 +42,58 @@ const isBatchReference = <T>(obj: BatchObject<T> | BatchReference | null): obj i
   return (obj as BatchReference).fromObjectCollection !== undefined;
 };
 
+export interface Batching {
+  addObject: (obj: BatchObject<any>) => Promise<string>;
+  addReference: (ref: BatchReference) => Promise<void>;
+  stop: () => Promise<void>;
+  hasErrors: () => boolean;
+  uuids: () => Record<number, string>;
+  beacons: () => Record<number, string>;
+  objErrors: () => Record<number, ErrorObject<any>>;
+  refErrors: () => Record<number, ErrorReference>;
+}
+
 export interface Batch {
-  ingest: (consistencyLevel?: ConsistencyLevel) => Promise<{
-    batcher: Batcher<any>;
-    stop: () => Promise<void>;
-  }>;
+  stream: (consistencyLevel?: ConsistencyLevel) => Promise<Batching>;
 }
 
 export default function (connection: Connection, dbVersionSupport: DbVersionSupport): Batch {
   return {
-    ingest: async (consistencyLevel) => {
+    stream: async (consistencyLevel) => {
       const { supports, message } = await dbVersionSupport.supportsServerSideBatching();
       if (!supports) {
         throw new Error(message);
       }
       const batcher = new Batcher<any>(consistencyLevel);
-      const batching = batcher.start(connection);
+      let batchingErr: Error | null = null;
+      const batching = batcher.start(connection).catch((err) => {
+        batchingErr = err;
+      });
+      const check = (err: Error | null) => {
+        if (err) {
+          throw err;
+        }
+        return batcher;
+      };
       return {
-        batcher,
-        stop: async () => {
-          batcher.stop();
-          await batching;
+        addObject: (obj) => check(batchingErr).addObject(obj),
+        addReference: (ref) => check(batchingErr).addReference(ref),
+        stop: () => {
+          check(batchingErr).stop();
+          return batching;
         },
+        hasErrors: () =>
+          Object.keys(batcher.objErrors).length > 0 || Object.keys(batcher.refErrors).length > 0,
+        uuids: () => batcher.uuids,
+        beacons: () => batcher.beacons,
+        objErrors: () => batcher.objErrors,
+        refErrors: () => batcher.refErrors,
       };
     },
   };
 }
 
-export class Batcher<T> {
+class Batcher<T> {
   private consistencyLevel?: ConsistencyLevel;
   private queue: Queue<BatchObject<T> | BatchReference>;
 
@@ -104,10 +124,6 @@ export class Batcher<T> {
     return !this.isShuttingDown && !this.isOom && !this.isShutdown;
   }
 
-  public hasErrors() {
-    return Object.keys(this.objErrors).length > 0 || Object.keys(this.refErrors).length > 0;
-  }
-
   public addObject = async (obj: BatchObject<T>) => {
     while (this.inflightObjs.size >= this.batchSize || !this.healthy()) {
       await Batcher.sleep(10); // eslint-disable-line no-await-in-loop
@@ -130,7 +146,7 @@ export class Batcher<T> {
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
-  async *generateStreamRequests(grpcMaxMessageSize: number): AsyncGenerator<BatchStreamRequest> {
+  private async *generateStreamRequests(grpcMaxMessageSize: number): AsyncGenerator<BatchStreamRequest> {
     while (!this.isStarted) {
       console.info('Waiting for server to start the batch ingestion...');
       await Batcher.sleep(100); // eslint-disable-line no-await-in-loop
@@ -266,7 +282,7 @@ export class Batcher<T> {
     return this.start(connection);
   }
 
-  stop() {
+  public stop() {
     this.isStopped = true;
   }
 

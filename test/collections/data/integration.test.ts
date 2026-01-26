@@ -1143,7 +1143,7 @@ requireAtLeast(1, 36, 0).describe('Testing of the collection.data.{import, inges
   });
 
   it('should be able to ingest 2000 self-referencing objects with vectors from the client object', async () => {
-    const { batcher, stop } = await client.batch.ingest();
+    const batching = await client.batch.stream();
 
     for (let i = 0; i < 2000; i++) {
       const obj = {
@@ -1153,8 +1153,8 @@ requireAtLeast(1, 36, 0).describe('Testing of the collection.data.{import, inges
         },
         vectors: Array.from({ length: 128 }, () => Math.random()),
       };
-      const id = await batcher.addObject(obj);
-      await batcher.addReference({
+      const id = await batching.addObject(obj);
+      await batching.addReference({
         fromObjectCollection: collectionName,
         fromObjectUuid: id,
         fromPropertyName: 'self',
@@ -1162,11 +1162,11 @@ requireAtLeast(1, 36, 0).describe('Testing of the collection.data.{import, inges
       });
     }
 
-    await stop();
+    await batching.stop();
 
-    expect(batcher.hasErrors()).toBeFalsy();
-    expect(Object.values(batcher.objErrors).length).toEqual(0);
-    expect(Object.values(batcher.uuids).length).toEqual(2000);
+    expect(batching.hasErrors()).toBeFalsy();
+    expect(Object.values(batching.objErrors()).length).toEqual(0);
+    expect(Object.values(batching.uuids()).length).toEqual(2000);
     expect(await collection.length()).toEqual(2000);
   });
 });
