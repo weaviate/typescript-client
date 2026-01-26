@@ -12,5 +12,5 @@ else {
 
 fs.writeFileSync(
   'src/version.ts',
-  `export const WEAVIATE_CLIENT_VERSION = '${version}';\n`
+  `export const WEAVIATE_CLIENT_VERSION = '${version.replace('v', '')}';\n`
 );

@@ -27,4 +27,6 @@ if git rev-parse "$VERSION" >/dev/null 2>&1; then
 fi
 
 npm run generate:version $VERSION
+git add .
+git commit -m "chore: prepare release $VERSION"
 npm version "${VERSION/v}"
