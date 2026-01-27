@@ -44,17 +44,18 @@ jobs:
       fail-fast: false
       matrix:
         versions: [
-          { node: "24.x", weaviate: $WEAVIATE_127},
-          { node: "24.x", weaviate: $WEAVIATE_128},
-          { node: "24.x", weaviate: $WEAVIATE_129},
-          { node: "24.x", weaviate: $WEAVIATE_130},
-          { node: "24.x", weaviate: $WEAVIATE_131},
-          { node: "24.x", weaviate: $WEAVIATE_132},
-          { node: "24.x", weaviate: $WEAVIATE_133},
-          { node: "24.x", weaviate: $WEAVIATE_134},
-          { node: "20.x", weaviate: $WEAVIATE_135},
-          { node: "22.x", weaviate: $WEAVIATE_135},
-          { node: "24.x", weaviate: $WEAVIATE_135},
+          { node: "24.x", weaviate: $WEAVIATE_127 },
+          { node: "24.x", weaviate: $WEAVIATE_128 },
+          { node: "24.x", weaviate: $WEAVIATE_129 },
+          { node: "24.x", weaviate: $WEAVIATE_130 },
+          { node: "24.x", weaviate: $WEAVIATE_131 },
+          { node: "24.x", weaviate: $WEAVIATE_132 },
+          { node: "24.x", weaviate: $WEAVIATE_133 },
+          { node: "24.x", weaviate: $WEAVIATE_134 },
+          { node: "20.x", weaviate: $WEAVIATE_135 },
+          { node: "22.x", weaviate: $WEAVIATE_135 },
+          { node: "24.x", weaviate: $WEAVIATE_135 },
+          { node: "24.x", weaviate: $WEAVIATE_136 },
         ]
     steps:
     - uses: actions/checkout@v3

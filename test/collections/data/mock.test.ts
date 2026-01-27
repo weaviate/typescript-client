@@ -27,7 +27,7 @@ describe('Mock testing of batch streaming when the server errors', () => {
   afterAll(() => closeFn());
 
   it('should handle server errors in batch streaming', async () => {
-    const client = await weaviate.connectToLocal();
+    const client = await weaviate.connectToLocal({ port: 8976, grpcPort: 8977 });
     const batching = await client.batch.stream();
 
     // give time for the server to throw the expected error
