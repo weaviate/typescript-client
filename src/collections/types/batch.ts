@@ -1,4 +1,4 @@
-import { BatchReference } from '../../openapi/types.js';
+import { BatchReference as BatchReferenceREST } from '../../openapi/types.js';
 import { BatchObject as BatchObjectGRPC } from '../../proto/v1/batch.js';
 import { NonReferenceInputs, ReferenceInputs, Vectors } from '../index.js';
 
@@ -31,9 +31,18 @@ export type BatchObjects<T> = {
   mapped: BatchObjectGRPC[];
 };
 
+export type BatchReference = {
+  fromObjectCollection: string;
+  fromObjectUuid: string;
+  fromPropertyName: string;
+  toObjectCollection?: string;
+  toObjectUuid: string;
+  tenant?: string;
+};
+
 export type ErrorReference = {
   message: string;
-  reference: BatchReference;
+  reference: BatchReferenceREST;
 };
 
 export type BatchReferencesReturn = {

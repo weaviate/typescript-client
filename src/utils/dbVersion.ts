@@ -141,6 +141,13 @@ export class DbVersionSupport {
       supports: version.isAtLeast(1, 30, 0),
       message: this.errorMessage('Generative config runtime', version.show(), '1.30.0'),
     }));
+
+  supportsServerSideBatching = () =>
+    this.dbVersionProvider.getVersion().then((version) => ({
+      version,
+      supports: version.isAtLeast(1, 36, 0),
+      message: this.errorMessage('Server-side batching', version.show(), '1.36.0'),
+    }));
 }
 
 const EMPTY_VERSION = '';

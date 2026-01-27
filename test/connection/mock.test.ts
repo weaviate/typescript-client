@@ -351,7 +351,7 @@ describe('client version header', () => {
     next();
   });
   app.get('/v1/test', (req, res) => res.json({ message: 'ok' }));
-  const port = 40202;
+  const port = 8960;
   const server = app.listen(port);
   beforeAll(() => server);
   afterAll(() => server.close());
