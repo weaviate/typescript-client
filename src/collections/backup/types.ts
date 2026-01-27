@@ -1,7 +1,15 @@
 import { Backend, BackupCompressionLevel } from '../../index.js';
 
 /** The status of a backup operation */
-export type BackupStatus = 'STARTED' | 'TRANSFERRING' | 'TRANSFERRED' | 'SUCCESS' | 'FAILED' | 'CANCELED';
+export type BackupStatus =
+  | 'STARTED'
+  | 'TRANSFERRING'
+  | 'TRANSFERRED'
+  | 'FINALIZING'
+  | 'SUCCESS'
+  | 'FAILED'
+  | 'CANCELLING'
+  | 'CANCELED';
 
 /** The status of a backup operation */
 export type BackupStatusReturn = {
