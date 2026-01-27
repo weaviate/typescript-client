@@ -1208,7 +1208,15 @@ export interface definitions {
      * @default STARTED
      * @enum {string}
      */
-    status?: 'STARTED' | 'TRANSFERRING' | 'TRANSFERRED' | 'SUCCESS' | 'FAILED' | 'CANCELED';
+    status?:
+      | 'STARTED'
+      | 'TRANSFERRING'
+      | 'TRANSFERRED'
+      | 'FINALIZING'
+      | 'SUCCESS'
+      | 'FAILED'
+      | 'CANCELLING'
+      | 'CANCELED';
   };
   /** @description Backup custom configuration. */
   BackupConfig: {
@@ -1354,7 +1362,15 @@ export interface definitions {
      * @default STARTED
      * @enum {string}
      */
-    status?: 'STARTED' | 'TRANSFERRING' | 'TRANSFERRED' | 'SUCCESS' | 'FAILED' | 'CANCELED';
+    status?:
+      | 'STARTED'
+      | 'TRANSFERRING'
+      | 'TRANSFERRED'
+      | 'FINALIZING'
+      | 'SUCCESS'
+      | 'FAILED'
+      | 'CANCELLING'
+      | 'CANCELED';
   };
   /** @description The summary of Weaviate's statistics. */
   NodeStats: {
