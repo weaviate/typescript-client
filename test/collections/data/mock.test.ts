@@ -20,7 +20,7 @@ describe('Mock testing of batch streaming when the server errors', () => {
         throw serverErr;
       },
     });
-    const { close } = await listen(restApp, grpcApp, 8080, 'localhost:50051');
+    const { close } = await listen(restApp, grpcApp, 8976, 'localhost:8977');
     closeFn = close;
   });
 
