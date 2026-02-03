@@ -11,6 +11,8 @@ import { DbVersionSupport } from '../../utils/dbVersion.js';
 import { BatchObject, BatchReference, ErrorObject, ErrorReference } from '../index.js';
 import { Serialize } from '../serialize/index.js';
 
+const GCP_STREAM_TIMEOUT = 160 * 1000; // 160 seconds
+
 type Internal<E> = {
   entry: E;
   index: number;
@@ -64,7 +66,7 @@ export default function (connection: Connection, dbVersionSupport: DbVersionSupp
       if (!supports) {
         throw new Error(message);
       }
-      const batcher = new Batcher<any>(consistencyLevel);
+      const batcher = new Batcher<any>({ consistencyLevel, isGcpOnWcd: connection.isGcpOnWcd() });
       let batchingErr: Error | null = null;
       const batching = batcher.start(connection).catch((err) => {
         batchingErr = err;
@@ -93,6 +95,11 @@ export default function (connection: Connection, dbVersionSupport: DbVersionSupp
   };
 }
 
+type BatcherArgs = {
+  consistencyLevel?: ConsistencyLevel;
+  isGcpOnWcd: boolean;
+};
+
 class Batcher<T> {
   private consistencyLevel?: ConsistencyLevel;
   private queue: Queue<BatchObject<T> | BatchReference>;
@@ -109,15 +116,18 @@ class Batcher<T> {
   private isShuttingDown: boolean = false;
   private isOom: boolean = false;
   private isStopped: boolean = false;
+  private isGcpOnWcd: boolean = false;
+  private isRenewingStream: boolean = false;
 
   public objErrors: Record<number, ErrorObject<T>> = {};
   public refErrors: Record<number, ErrorReference> = {};
   public uuids: Record<number, string> = {};
   public beacons: Record<number, string> = {};
 
-  constructor(consistencyLevel?: ConsistencyLevel) {
-    this.consistencyLevel = consistencyLevel;
+  constructor(args: BatcherArgs) {
+    this.consistencyLevel = args.consistencyLevel;
     this.queue = new Queue();
+    this.isGcpOnWcd = args.isGcpOnWcd;
   }
 
   private healthy() {
@@ -146,11 +156,13 @@ class Batcher<T> {
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
+  // eslint-disable-next-line complexity
   private async *generateStreamRequests(grpcMaxMessageSize: number): AsyncGenerator<BatchStreamRequest> {
     while (!this.isStarted) {
       console.info('Waiting for server to start the batch ingestion...');
       await Batcher.sleep(100); // eslint-disable-line no-await-in-loop
     }
+    const streamStart = Date.now();
 
     const perObjectOverhead = 4; // extra overhead bytes per object in the request
 
@@ -175,6 +187,14 @@ class Batcher<T> {
         this.pendingRefs = req.data?.references?.values || [];
         return;
       }
+      if (this.isGcpOnWcd && Date.now() - streamStart > GCP_STREAM_TIMEOUT) {
+        console.info(
+          'GCP connections have a maximum lifetime. Re-establishing the batch stream to avoid timeout errors.'
+        );
+        this.isRenewingStream = true;
+        yield BatchStreamRequest.create({ stop: {} });
+        return;
+      }
 
       const entry = await this.queue.pull(100); // eslint-disable-line no-await-in-loop
       if (entry === null && !this.isStopped) {
@@ -190,6 +210,7 @@ class Batcher<T> {
         ) {
           yield req;
         }
+        this.isRenewingStream = true;
         yield BatchStreamRequest.create({ stop: {} });
         return;
       }
@@ -259,6 +280,10 @@ class Batcher<T> {
       console.warn('Reconnecting after server shutdown...');
       await this.reconnect(connection);
       console.warn('Reconnected, resuming batch ingestion...');
+      return this.restart(connection);
+    } else if (this.isRenewingStream) {
+      console.info('Restarting batch recv after renewing stream...');
+      this.isRenewingStream = false;
       return this.restart(connection);
     }
   }
