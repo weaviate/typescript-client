@@ -210,7 +210,7 @@ class Batcher<T> {
         ) {
           yield req;
         }
-        this.isRenewingStream = true;
+
         yield BatchStreamRequest.create({ stop: {} });
         return;
       }
