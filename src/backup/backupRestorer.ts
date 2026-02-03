@@ -118,7 +118,11 @@ export default class BackupRestorer extends CommandBase {
             this.statusGetter
               .do()
               .then((restoreStatusResponse: any) => {
-                if (restoreStatusResponse.status == 'SUCCESS' || restoreStatusResponse.status == 'FAILED') {
+                if (
+                  restoreStatusResponse.status == 'SUCCESS' ||
+                  restoreStatusResponse.status == 'FAILED' ||
+                  restoreStatusResponse.status == 'CANCELED'
+                ) {
                   resolve(this._merge(restoreStatusResponse, restoreResponse));
                 } else {
                   setTimeout(loop, WAIT_INTERVAL);
