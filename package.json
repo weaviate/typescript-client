@@ -1,6 +1,6 @@
 {
   "name": "weaviate-client",
-  "version": "3.11.0",
+  "version": "3.12.0-alpha.0",
   "description": "JS/TS client for Weaviate",
   "main": "dist/node/cjs/index.js",
   "type": "module",
@@ -20,7 +20,7 @@
     "node": ">=20.0.0"
   },
   "scripts": {
-    "test": "vitest run --no-file-parallelism --isolate=true --reporter=default --reporter=hanging-process --silent=false",
+    "test": "vitest run --no-file-parallelism --isolate=true --reporter=verbose --reporter=hanging-process --silent=false",
     "test:coverage": "npm run test -- --coverage",
     "build": "npm run build:node",
     "build:web": "tsup",

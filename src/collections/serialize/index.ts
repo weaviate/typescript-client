@@ -26,6 +26,7 @@ import {
   BatchObject_MultiTargetRefProps,
   BatchObject_Properties,
   BatchObject_SingleTargetRefProps,
+  BatchReference as BatchReferenceGRPC,
 } from '../../proto/v1/batch.js';
 import {
   GenerativeProvider,
@@ -109,6 +110,7 @@ import {
   AggregateBaseOptions,
   AggregateHybridOptions,
   AggregateNearOptions,
+  BatchReference,
   GenerativeConfigRuntime,
   GroupByAggregate,
   GroupedTask,
@@ -1889,6 +1891,65 @@ export class Serialize {
     };
   };
 
+  public static batchObject = <T>(
+    collection: string,
+    object: DataObject<T> | NonReferenceInputs<T>,
+    requiresInsertFix: boolean,
+    tenant?: string
+  ) => {
+    const obj = DataGuards.isDataObject(object)
+      ? object
+      : { id: undefined, properties: object, references: undefined, vectors: undefined };
+
+    let vectorBytes: Uint8Array | undefined;
+    let vectors: VectorsGrpc[] | undefined;
+    if (obj.vectors !== undefined && !Array.isArray(obj.vectors)) {
+      vectors = Object.entries(obj.vectors).flatMap(([k, v]) =>
+        NearVectorInputGuards.is1D(v)
+          ? [
+              VectorsGrpc.fromPartial({
+                vectorBytes: Serialize.vectorToBytes(v),
+                name: k,
+              }),
+            ]
+          : v.map((vv) =>
+              VectorsGrpc.fromPartial({
+                vectorBytes: Serialize.vectorToBytes(vv),
+                name: k,
+              })
+            )
+      );
+    } else if (Array.isArray(obj.vectors) && requiresInsertFix) {
+      vectors = [
+        VectorsGrpc.fromPartial({
+          vectorBytes: Serialize.vectorToBytes(obj.vectors),
+          name: 'default',
+        }),
+      ];
+      vectorBytes = Serialize.vectorToBytes(obj.vectors);
+      // required in case collection was made with <1.24.0 and has since been migrated to >=1.24.0
+    } else if (obj.vectors !== undefined) {
+      vectorBytes = Serialize.vectorToBytes(obj.vectors);
+    }
+    const uuid = obj.id ? obj.id : uuidv4();
+    return {
+      grpc: BatchObjectGRPC.fromPartial({
+        collection: collection,
+        properties: Serialize.batchProperties(obj.properties, obj.references),
+        tenant: tenant,
+        uuid: uuid,
+        vectorBytes,
+        vectors,
+      }),
+      object: {
+        ...obj,
+        id: uuid,
+        collection: collection,
+        tenant: tenant,
+      },
+    };
+  };
+
   public static batchObjects = <T>(
     collection: string,
     objects: (DataObject<T> | NonReferenceInputs<T>)[],
@@ -1909,58 +1970,14 @@ export class Serialize {
         return;
       }
 
-      const object = objects[index];
-      const obj = DataGuards.isDataObject(object)
-        ? object
-        : { id: undefined, properties: object, references: undefined, vectors: undefined };
-
-      let vectorBytes: Uint8Array | undefined;
-      let vectors: VectorsGrpc[] | undefined;
-      if (obj.vectors !== undefined && !Array.isArray(obj.vectors)) {
-        vectors = Object.entries(obj.vectors).flatMap(([k, v]) =>
-          NearVectorInputGuards.is1D(v)
-            ? [
-                VectorsGrpc.fromPartial({
-                  vectorBytes: Serialize.vectorToBytes(v),
-                  name: k,
-                }),
-              ]
-            : v.map((vv) =>
-                VectorsGrpc.fromPartial({
-                  vectorBytes: Serialize.vectorToBytes(vv),
-                  name: k,
-                })
-              )
-        );
-      } else if (Array.isArray(obj.vectors) && requiresInsertFix) {
-        vectors = [
-          VectorsGrpc.fromPartial({
-            vectorBytes: Serialize.vectorToBytes(obj.vectors),
-            name: 'default',
-          }),
-        ];
-        vectorBytes = Serialize.vectorToBytes(obj.vectors);
-        // required in case collection was made with <1.24.0 and has since been migrated to >=1.24.0
-      } else if (obj.vectors !== undefined) {
-        vectorBytes = Serialize.vectorToBytes(obj.vectors);
-      }
-
-      objs.push(
-        BatchObjectGRPC.fromPartial({
-          collection: collection,
-          properties: Serialize.batchProperties(obj.properties, obj.references),
-          tenant: tenant,
-          uuid: obj.id ? obj.id : uuidv4(),
-          vectorBytes,
-          vectors,
-        })
+      const { grpc, object } = Serialize.batchObject<T>(
+        collection,
+        objects[index],
+        requiresInsertFix,
+        tenant
       );
-
-      batch.push({
-        ...obj,
-        collection: collection,
-        tenant: tenant,
-      });
+      objs.push(grpc);
+      batch.push(object);
     };
 
     const waitFor = () => {
@@ -1979,6 +1996,21 @@ export class Serialize {
     return waitFor().then(() => {
       return { batch: batch, mapped: objs };
     });
+  };
+
+  public static batchReference = (ref: BatchReference) => {
+    const beacon = `weaviate://localhost/${ref.fromObjectCollection}/${ref.fromObjectUuid}/${ref.fromPropertyName}`;
+    return {
+      grpc: BatchReferenceGRPC.fromPartial({
+        fromCollection: ref.fromObjectCollection,
+        fromUuid: ref.fromObjectUuid,
+        toCollection: ref.toObjectCollection,
+        toUuid: ref.toObjectUuid,
+        name: ref.fromPropertyName,
+        tenant: ref.tenant,
+      }),
+      beacon,
+    };
   };
 
   public static tenants<T, M>(tenants: T[], mapper: (tenant: T) => M): M[][] {
