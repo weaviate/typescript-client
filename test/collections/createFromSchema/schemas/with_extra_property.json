@@ -1,0 +1,15 @@
+{
+  "class": "LegacyComplexCollection",
+  "description": "A complex legacy collection",
+  "properties": [
+    {
+      "teste": ["teste"],
+      "name": "title",
+      "dataType": ["text"],
+      "indexFilterable": true,
+      "indexSearchable": true,
+      "tokenization": "field",
+      "indexRangeFilters": false
+    }
+  ]
+}

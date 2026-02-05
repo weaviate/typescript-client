@@ -69,16 +69,28 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
       TName = string,
       TVectors extends Vectors | undefined = undefined
     >(config: CollectionConfigCreate<TProperties, TName, TVectors>) {
-      const { name, invertedIndex, multiTenancy, objectTTL, replication, sharding, ...rest } = config;
+      // Handle legacy schema format conversion
+      const processedConfig: any = { ...config };
+      // Convert 'class' to 'name' if needed (legacy format)
+      if ('class' in processedConfig && !processedConfig.name) {
+        processedConfig.name = processedConfig.class;
+        delete processedConfig.class;
+      }
+      const { name, invertedIndex, multiTenancy, objectTTL, replication, sharding, ...rest } =
+        processedConfig;
 
       const moduleConfig: any = {};
-      if (config.generative) {
+      if (processedConfig.generative) {
         const generative =
-          config.generative.name === 'generative-azure-openai' ? 'generative-openai' : config.generative.name;
-        moduleConfig[generative] = config.generative.config ? config.generative.config : {};
+          processedConfig.generative.name === 'generative-azure-openai'
+            ? 'generative-openai'
+            : processedConfig.generative.name;
+        moduleConfig[generative] = processedConfig.generative.config ? processedConfig.generative.config : {};
       }
-      if (config.reranker) {
-        moduleConfig[config.reranker.name] = config.reranker.config ? config.reranker.config : {};
+      if (processedConfig.reranker) {
+        moduleConfig[processedConfig.reranker.name] = processedConfig.reranker.config
+          ? processedConfig.reranker.config
+          : {};
       }
 
       let objectTtlConfig: WeaviateObjectTTLConfig | undefined;
@@ -102,15 +114,19 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
         shardingConfig: sharding,
       };
 
-      const { vectorsConfig, vectorizers } = config.vectorizers
-        ? makeVectorsConfig(config.vectorizers)
+      const { vectorsConfig, vectorizers } = processedConfig.vectorizers
+        ? makeVectorsConfig(processedConfig.vectorizers)
         : { vectorsConfig: undefined, vectorizers: [] };
       schema.vectorConfig = vectorsConfig;
 
-      const properties = config.properties
-        ? config.properties.map((prop) => resolveProperty<TProperties>(prop as any, vectorizers))
+      const properties = processedConfig.properties
+        ? processedConfig.properties.map((prop: any) =>
+            resolveProperty<TProperties>(prop as any, vectorizers)
+          )
         : [];
-      const references = config.references ? config.references.map(resolveReference<TProperties>) : [];
+      const references = processedConfig.references
+        ? processedConfig.references.map(resolveReference<TProperties>)
+        : [];
       schema.properties = [...properties, ...references];
 
       await new ClassCreator(connection).withClass(schema).do();

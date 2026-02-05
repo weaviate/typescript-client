@@ -1,0 +1,24 @@
+{
+  "class": "LegacyWithProperties",
+  "properties": [
+    {
+      "name": "textField",
+      "dataType": ["text"],
+      "indexFilterable": true,
+      "indexSearchable": true,
+      "tokenization": "field"
+    },
+    {
+      "name": "textArray",
+      "dataType": ["text[]"],
+      "indexFilterable": true,
+      "indexSearchable": true,
+      "tokenization": "word"
+    },
+    {
+      "name": "numberField",
+      "dataType": ["number"],
+      "indexFilterable": true
+    }
+  ]
+}

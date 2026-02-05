@@ -1,0 +1,8 @@
+{
+  "class": "LegacyWithMultiTenancy",
+  "multiTenancyConfig": {
+    "enabled": true,
+    "autoTenantCreation": true,
+    "autoTenantActivation": true
+  }
+}

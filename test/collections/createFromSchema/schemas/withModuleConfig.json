@@ -1,0 +1,6 @@
+{
+  "class": "LegacyWithModuleConfig",
+  "moduleConfig": {
+    "reranker-cohere": {}
+  }
+}

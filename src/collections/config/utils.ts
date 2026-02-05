@@ -85,7 +85,7 @@ export const resolveProperty = <T>(
   });
   return {
     ...rest,
-    dataType: [dataType],
+    dataType: Array.isArray(dataType) ? dataType : [dataType],
     nestedProperties: nestedProperties
       ? nestedProperties.map((prop) => resolveNestedProperty(prop))
       : undefined,
@@ -97,7 +97,7 @@ const resolveNestedProperty = <T, D>(prop: any): WeaviateNestedProperty => {
   const { dataType, nestedProperties, ...rest } = prop;
   return {
     ...rest,
-    dataType: [dataType],
+    dataType: Array.isArray(dataType) ? dataType : [dataType],
     nestedProperties: nestedProperties ? nestedProperties.map(resolveNestedProperty) : undefined,
   };
 };

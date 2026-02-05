@@ -1,0 +1,19 @@
+{
+  "class": "LegacyWithVectorConfig",
+  "properties": [
+    {
+      "name": "content",
+      "dataType": ["text"]
+    }
+  ],
+  "vectorConfig": {
+    "namedVector1": {
+      "vectorizer": {
+        "text2vec-openai": {
+          "properties": ["content"]
+        }
+      },
+      "vectorIndexType": "hnsw"
+    }
+  }
+}

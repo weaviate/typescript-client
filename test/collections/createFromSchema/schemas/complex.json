@@ -1,0 +1,48 @@
+{
+  "class": "LegacyComplexCollection",
+  "description": "A complex legacy collection",
+  "properties": [
+    {
+      "name": "title",
+      "dataType": ["text"],
+      "indexFilterable": true,
+      "indexSearchable": true,
+      "tokenization": "field",
+      "indexRangeFilters": false
+    },
+    {
+      "name": "tags",
+      "dataType": ["text[]"],
+      "indexFilterable": true,
+      "indexSearchable": true,
+      "tokenization": "word",
+      "indexRangeFilters": false
+    },
+    {
+      "name": "array_datatype",
+      "dataType": ["text"],
+      "indexFilterable": true,
+      "indexSearchable": true,
+      "tokenization": "word",
+      "indexRangeFilters": false
+    }
+  ],
+  "vectorConfig": {
+    "mainVector": {
+      "vectorizer": {
+        "text2vec-openai": {
+          "properties": ["title", "tags"]
+        }
+      },
+      "vectorIndexType": "hnsw"
+    }
+  },
+  "moduleConfig": {
+    "reranker-cohere": {}
+  },
+  "multiTenancyConfig": {
+    "enabled": true,
+    "autoTenantCreation": true,
+    "autoTenantActivation": true
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "class": "LegacyBasicWithProperty",
+  "description": "A complex legacy collection",
+  "properties": [
+    {
+      "name": "title",
+      "dataType": ["text"],
+      "indexFilterable": true,
+      "indexSearchable": true,
+      "tokenization": "field",
+      "indexRangeFilters": false
+    }
+  ]
+}
