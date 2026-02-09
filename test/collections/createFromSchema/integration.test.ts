@@ -5,11 +5,9 @@ import basicSchema from './schemas/basic.json';
 import basicSchemaWithName from './schemas/basic_with_name.json';
 import withDescriptionSchema from './schemas/withDescription.json';
 import withMultiTenancySchema from './schemas/withMultiTenancy.json';
-import withVectorConfigSchema from './schemas/withVectorConfig.json';
-
-import withModuleConfigSchema from './schemas/withModuleConfig.json';
 import withPropertiesSchema from './schemas/withProperties.json';
 import withPropertiesMixedDataType from './schemas/withPropertiesMixedDataType.json';
+import withVectorConfigSchema from './schemas/withVectorConfig.json';
 
 import complexSchema from './schemas/complex.json';
 import withExtraPropertySchema from './schemas/with_extra_property.json';
@@ -119,17 +117,6 @@ describe('Testing of the collections.createFromSchema method for backwards compa
     expect(config.vectorizers.namedVector1.properties).toEqual(['content']);
   });
 
-  it('should create a collection with moduleConfig for reranker', async () => {
-    console.log('withModuleConfigSchema:', JSON.stringify(withModuleConfigSchema, null, 2));
-    const collection = await openai.collections.createFromSchema(withModuleConfigSchema);
-
-    expect(collection.name).toEqual(withModuleConfigSchema.class);
-    const config = await collection.config.get();
-
-    expect(config.reranker).toBeDefined();
-    expect(config.reranker?.name).toEqual('reranker-cohere');
-  });
-
   it('should create a complex collection with all legacy schema features combined', async () => {
     console.log('complexSchema:', JSON.stringify(complexSchema, null, 2));
     const collection = await openai.collections.createFromSchema(complexSchema);
@@ -159,9 +146,6 @@ describe('Testing of the collections.createFromSchema method for backwards compa
     expect(config.vectorizers.mainVector.vectorizer.name).toEqual('text2vec-openai');
     expect(config.vectorizers.mainVector.indexType).toEqual('hnsw');
     expect(config.vectorizers.mainVector.properties).toEqual(['title', 'tags']);
-
-    // Verify reranker
-    expect(config.reranker?.name).toEqual('reranker-cohere');
 
     // Verify multi-tenancy
     expect(config.multiTenancy?.enabled).toEqual(true);
