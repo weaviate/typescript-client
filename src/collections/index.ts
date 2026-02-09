@@ -134,7 +134,21 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
     },
     createFromSchema: async function (config: WeaviateClass & { name?: string }) {
       // Support both 'class' and 'name' properties for backwards compatibility
-      const schemaWithClass = config.name && !config.class ? { ...config, class: config.name } : config;
+      let schemaWithClass = config.name && !config.class ? { ...config, class: config.name } : config;
+
+      // Normalize dataType: convert string to array if necessary
+      if (schemaWithClass.properties) {
+        schemaWithClass = {
+          ...schemaWithClass,
+          properties: schemaWithClass.properties.map((prop: any) => {
+            if (prop.dataType && typeof prop.dataType === 'string') {
+              return { ...prop, dataType: [prop.dataType] };
+            }
+            return prop;
+          }),
+        };
+      }
+
       const { class: name } = await new ClassCreator(connection).withClass(schemaWithClass).do();
       return collection<Properties, string, undefined>(connection, name as string, dbVersionSupport);
     },

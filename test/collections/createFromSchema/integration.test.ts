@@ -9,6 +9,7 @@ import withVectorConfigSchema from './schemas/withVectorConfig.json';
 
 import withModuleConfigSchema from './schemas/withModuleConfig.json';
 import withPropertiesSchema from './schemas/withProperties.json';
+import withPropertiesMixedDataType from './schemas/withPropertiesMixedDataType.json';
 
 import complexSchema from './schemas/complex.json';
 import withExtraPropertySchema from './schemas/with_extra_property.json';
@@ -197,5 +198,35 @@ describe('Testing of the collections.createFromSchema method for backwards compa
     const config = await collection.config.get();
     const title = config.properties.find((p) => p.name === 'title');
     expect(title?.dataType).toEqual('text'); // Should be string, not array
+  });
+
+  it('should create a collection with properties where dataType can be string or array', async () => {
+    console.log('withPropertiesMixedDataType:', JSON.stringify(withPropertiesMixedDataType, null, 2));
+    const collection = await client.collections.createFromSchema(withPropertiesMixedDataType as any);
+
+    expect(collection.name).toEqual(withPropertiesMixedDataType.class);
+    const config = await collection.config.get();
+
+    expect(config.properties).toHaveLength(3);
+
+    // textField has dataType as string (not array)
+    const textField = config.properties.find((p) => p.name === 'textField');
+    expect(textField).toBeDefined();
+    expect(textField?.dataType).toEqual('text');
+    expect(textField?.indexFilterable).toEqual(true);
+    expect(textField?.indexSearchable).toEqual(true);
+    expect(textField?.tokenization).toEqual('field');
+
+    // textArray has dataType as array
+    const textArray = config.properties.find((p) => p.name === 'textArray');
+    expect(textArray).toBeDefined();
+    expect(textArray?.dataType).toEqual('text[]');
+    expect(textArray?.tokenization).toEqual('word');
+
+    // numberField has dataType as array
+    const numberField = config.properties.find((p) => p.name === 'numberField');
+    expect(numberField).toBeDefined();
+    expect(numberField?.dataType).toEqual('number');
+    expect(numberField?.indexFilterable).toEqual(true);
   });
 });
