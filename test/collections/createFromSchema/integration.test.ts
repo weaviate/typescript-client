@@ -30,7 +30,6 @@ describe('Testing of the collections.createFromSchema method for backwards compa
   afterAll(() => Promise.all([client.collections.deleteAll(), openai.collections.deleteAll()]));
 
   it('should create a collection using legacy {"class": "CollectionName"} format', async () => {
-    console.log('basicSchema:', JSON.stringify(basicSchema, null, 2));
     const collection = await client.collections.createFromSchema(basicSchema);
 
     expect(collection.name).toEqual(basicSchema.class);
@@ -42,7 +41,6 @@ describe('Testing of the collections.createFromSchema method for backwards compa
   });
 
   it('should create a collection using {"name": "CollectionName"} format', async () => {
-    console.log('basicSchemaWithName:', JSON.stringify(basicSchemaWithName, null, 2));
     const collection = await client.collections.createFromSchema(basicSchemaWithName);
 
     expect(collection.name).toEqual(basicSchemaWithName.name);
@@ -54,7 +52,6 @@ describe('Testing of the collections.createFromSchema method for backwards compa
   });
 
   it('should create a collection with description using legacy schema format', async () => {
-    console.log('withDescriptionSchema:', JSON.stringify(withDescriptionSchema, null, 2));
     const collection = await client.collections.createFromSchema(withDescriptionSchema);
 
     expect(collection.name).toEqual(withDescriptionSchema.class);
@@ -64,7 +61,6 @@ describe('Testing of the collections.createFromSchema method for backwards compa
   });
 
   it('should create a collection with properties using legacy dataType array format', async () => {
-    console.log('withPropertiesSchema:', JSON.stringify(withPropertiesSchema, null, 2));
     const collection = await client.collections.createFromSchema(withPropertiesSchema as any);
 
     expect(collection.name).toEqual(withPropertiesSchema.class);
@@ -91,7 +87,6 @@ describe('Testing of the collections.createFromSchema method for backwards compa
   });
 
   it('should create a collection with multi-tenancy using legacy multiTenancyConfig', async () => {
-    console.log('withMultiTenancySchema:', JSON.stringify(withMultiTenancySchema, null, 2));
     const collection = await client.collections.createFromSchema(withMultiTenancySchema);
 
     expect(collection.name).toEqual(withMultiTenancySchema.class);
@@ -104,7 +99,6 @@ describe('Testing of the collections.createFromSchema method for backwards compa
   });
 
   it('should create a collection with vectorConfig using legacy format', async () => {
-    console.log('withVectorConfigSchema:', JSON.stringify(withVectorConfigSchema, null, 2));
     const collection = await openai.collections.createFromSchema(withVectorConfigSchema);
 
     expect(collection.name).toEqual(withVectorConfigSchema.class);
