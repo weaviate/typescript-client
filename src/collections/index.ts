@@ -160,6 +160,7 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
         .withClassName(name)
         .do()
         .then(classToCollection<TProperties>),
+    exportToJson: (name: string) => connection.get<WeaviateClass>(`/schema/${name}`, true),
     listAll: listAll,
     get: <TProperties extends Properties | undefined = undefined, TName extends string = string>(
       name: TName
@@ -187,6 +188,7 @@ export interface Collections {
   deleteAll(): Promise<void[]>;
   exists(name: string): Promise<boolean>;
   export(name: string): Promise<CollectionConfig>;
+  exportToJson(name: string): Promise<WeaviateClass>;
   get<TProperties extends Properties | undefined = undefined, TName extends string = string>(
     name: TName
   ): Collection<TProperties, TName>;
