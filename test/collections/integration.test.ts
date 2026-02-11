@@ -721,7 +721,29 @@ describe('Testing of collections.exportToJson and collections.createFromJson met
     });
   });
 
-  afterAll(() => client.collections.deleteAll());
+  afterAll(async () => {
+    // Delete only the collections created by these tests
+    const collectionsToDelete = [
+      'TestCollectionExportToJson',
+      'TestCollectionCreateFromJson',
+      'TestCollectionRoundTrip',
+      'TestCollectionRoundTripReimported',
+      'TestCollectionComplexExport',
+      'TestCollectionMinimalJson',
+      'TestCollectionNamedVectorsOriginal',
+      'TestCollectionNamedVectorsReimported',
+    ];
+
+    await Promise.all(
+      collectionsToDelete.map(async (name) => {
+        try {
+          await client.collections.delete(name);
+        } catch (e) {
+          // Ignore errors if collection doesn't exist
+        }
+      })
+    );
+  });
 
   it('should export a collection schema to JSON using exportToJson', async () => {
     const collectionName = 'TestCollectionExportToJson';
