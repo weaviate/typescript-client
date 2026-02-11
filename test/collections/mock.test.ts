@@ -1,7 +1,8 @@
 import express from 'express';
 import { Server as HttpServer } from 'http';
-import { Server as GrpcServer, createServer } from 'nice-grpc';
+import { createServer, Server as GrpcServer } from 'nice-grpc';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
+
 import weaviate, { WeaviateClient } from '../../src/index.js';
 import {
   HealthCheckRequest,
@@ -89,84 +90,85 @@ const mockNamedVectorSchema: WeaviateClass = {
   },
 };
 
-class SchemaJsonMock {
-  private grpc: GrpcServer;
-  private http: HttpServer;
-  private createdSchemas: Map<string, WeaviateClass> = new Map();
+const makeRestApp = (version: string, createdSchemas: Map<string, WeaviateClass>) => {
+  const httpApp = express();
+  httpApp.use(express.json());
 
-  constructor(grpc: GrpcServer, http: HttpServer) {
-    this.grpc = grpc;
-    this.http = http;
-    // Pre-populate with mock schemas
-    this.createdSchemas.set('TestCollection', mockExportedSchema);
-    this.createdSchemas.set('ComplexCollection', mockComplexSchema);
-    this.createdSchemas.set('NamedVectorCollection', mockNamedVectorSchema);
-  }
+  // Meta endpoint required for client instantiation
+  httpApp.get('/v1/meta', (req, res) => res.send({ version }));
 
-  public static use = async (version: string, httpPort: number, grpcPort: number) => {
-    const httpApp = express();
-    httpApp.use(express.json());
+  // Export schema endpoint - GET /v1/schema/:className
+  httpApp.get('/v1/schema/:className', (req, res) => {
+    const className = req.params.className;
+    const schema = createdSchemas.get(className);
 
-    // Meta endpoint required for client instantiation
-    httpApp.get('/v1/meta', (req, res) => res.send({ version }));
+    if (!schema) {
+      res.status(404).send({ error: `Collection ${className} not found` });
+      return;
+    }
 
-    const instance = new SchemaJsonMock(createServer(), null as any);
+    res.send(schema);
+  });
 
-    // Export schema endpoint - GET /v1/schema/:className
-    httpApp.get('/v1/schema/:className', (req, res) => {
-      const className = req.params.className;
-      const schema = instance.createdSchemas.get(className);
+  // Create schema endpoint - POST /v1/schema
+  httpApp.post('/v1/schema', (req, res) => {
+    const schema: WeaviateClass = req.body;
 
-      if (!schema) {
-        res.status(404).send({ error: `Collection ${className} not found` });
-        return;
-      }
+    if (!schema.class) {
+      res.status(400).send({ error: 'Class name is required' });
+      return;
+    }
 
-      res.send(schema);
-    });
+    // Store the created schema
+    createdSchemas.set(schema.class, schema);
 
-    // Create schema endpoint - POST /v1/schema
-    httpApp.post('/v1/schema', (req, res) => {
-      const schema: WeaviateClass = req.body;
+    res.status(200).send(schema);
+  });
 
-      if (!schema.class) {
-        res.status(400).send({ error: 'Class name is required' });
-        return;
-      }
+  return httpApp;
+};
 
-      // Store the created schema
-      instance.createdSchemas.set(schema.class, schema);
-
-      res.status(200).send(schema);
-    });
-
-    // gRPC health check required for client instantiation
-    const healthMockImpl: HealthServiceImplementation = {
-      check: (request: HealthCheckRequest): Promise<HealthCheckResponse> =>
-        Promise.resolve(HealthCheckResponse.create({ status: HealthCheckResponse_ServingStatus.SERVING })),
-      watch: vi.fn(),
-    };
-
-    instance.grpc.add(HealthDefinition, healthMockImpl);
-
-    await instance.grpc.listen(`localhost:${grpcPort}`);
-    instance.http = await httpApp.listen(httpPort);
-    return instance;
+const makeGrpcApp = () => {
+  // gRPC health check required for client instantiation
+  const healthMockImpl: HealthServiceImplementation = {
+    check: (request: HealthCheckRequest): Promise<HealthCheckResponse> =>
+      Promise.resolve(HealthCheckResponse.create({ status: HealthCheckResponse_ServingStatus.SERVING })),
+    watch: vi.fn(),
   };
 
-  public close = () => Promise.all([this.http.close(), this.grpc.shutdown()]);
-}
+  const grpcApp = createServer();
+  grpcApp.add(HealthDefinition, healthMockImpl);
+
+  return grpcApp;
+};
+
+const makeMockServers = async (weaviateVersion: string, httpPort: number, grpcAddress: string) => {
+  // Pre-populate with mock schemas
+  const createdSchemas = new Map<string, WeaviateClass>();
+  createdSchemas.set('TestCollection', mockExportedSchema);
+  createdSchemas.set('ComplexCollection', mockComplexSchema);
+  createdSchemas.set('NamedVectorCollection', mockNamedVectorSchema);
+
+  const rest = makeRestApp(weaviateVersion, createdSchemas);
+  const grpc = makeGrpcApp();
+  const server = await rest.listen(httpPort);
+  await grpc.listen(grpcAddress);
+  return { rest: server, grpc };
+};
 
 describe('Mock testing of exportToJson and createFromJson', () => {
+  let servers: {
+    rest: HttpServer;
+    grpc: GrpcServer;
+  };
   let client: WeaviateClient;
-  let mock: SchemaJsonMock;
 
   beforeAll(async () => {
-    mock = await SchemaJsonMock.use('1.27.0', 8920, 8921);
+    servers = await makeMockServers('1.27.0', 8920, 'localhost:8921');
     client = await weaviate.connectToLocal({ port: 8920, grpcPort: 8921 });
   });
 
-  afterAll(() => mock.close());
+  afterAll(() => Promise.all([servers.rest.close(), servers.grpc.shutdown()]));
 
   describe('exportToJson', () => {
     it('should export a simple collection schema to JSON', async () => {
