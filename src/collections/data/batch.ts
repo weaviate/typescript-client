@@ -106,18 +106,18 @@ class Batcher<T> {
 
   private inflightObjs: Set<string> = new Set();
   private inflightRefs: Set<string> = new Set();
-  private batchSize: number = 1000;
+  private batchSize = 1000;
   private objsCache: Record<string, Internal<BatchObject<T>>> = {};
   private refsCache: Record<string, Internal<BatchReference>> = {};
   private pendingObjs: BatchObjectGRPC[] = [];
   private pendingRefs: BatchReferenceGRPC[] = [];
-  private isStarted: boolean = false;
-  private isShutdown: boolean = false;
-  private isShuttingDown: boolean = false;
-  private isOom: boolean = false;
-  private isStopped: boolean = false;
-  private isGcpOnWcd: boolean = false;
-  private isRenewingStream: boolean = false;
+  private isStarted = false;
+  private isShuttingDown = false;
+  private isOom = false;
+  private isStopped = false;
+  private isGcpOnWcd = false;
+  private isRenewingStream = false;
+  private oomWaitTime = 300;
 
   public objErrors: Record<number, ErrorObject<T>> = {};
   public refErrors: Record<number, ErrorReference> = {};
@@ -131,7 +131,7 @@ class Batcher<T> {
   }
 
   private healthy() {
-    return !this.isShuttingDown && !this.isOom && !this.isShutdown;
+    return !this.isShuttingDown && !this.isOom;
   }
 
   public addObject = async (obj: BatchObject<T>) => {
@@ -181,18 +181,32 @@ class Batcher<T> {
         this.pendingRefs = req.data?.references?.values || [];
         return;
       }
-      if (this.isOom) {
-        console.warn('Server out-of-memory, closing the client-side of the stream');
-        this.pendingObjs = req.data?.objects?.values || [];
-        this.pendingRefs = req.data?.references?.values || [];
-        return;
-      }
       if (this.isGcpOnWcd && Date.now() - streamStart > GCP_STREAM_TIMEOUT) {
         console.info(
           'GCP connections have a maximum lifetime. Re-establishing the batch stream to avoid timeout errors.'
         );
         this.isRenewingStream = true;
         yield BatchStreamRequest.create({ stop: {} });
+        return;
+      }
+
+      let logged = false;
+      const start = Date.now();
+      while (this.isOom) {
+        if (!logged) {
+          console.warn(
+            'Server out-of-memory, waiting for server to recover before resuming batch ingestion...'
+          );
+          this.pendingObjs = req.data?.objects?.values || [];
+          this.pendingRefs = req.data?.references?.values || [];
+          logged = true;
+        }
+        if (Date.now() - start > this.oomWaitTime * 1000) {
+          throw new Error(
+            `Batch stream was not re-established within ${this.oomWaitTime} seconds after an OOM message. Terminating batch.`
+          );
+        }
+        await Batcher.sleep(100); // eslint-disable-line no-await-in-loop
         return;
       }
 
@@ -276,7 +290,7 @@ class Batcher<T> {
         if (result.beacon !== undefined) this.beacons[result.index] = result.beacon;
       }
     }
-    if (this.isShutdown) {
+    if (this.isShuttingDown) {
       console.warn('Reconnecting after server shutdown...');
       await this.reconnect(connection);
       console.warn('Reconnected, resuming batch ingestion...');
@@ -302,7 +316,6 @@ class Batcher<T> {
   }
 
   private restart(connection: Connection): Promise<void> {
-    this.isShutdown = false;
     this.isStarted = false;
     return this.start(connection);
   }
@@ -329,6 +342,7 @@ class Batcher<T> {
       }
       if (msg.outOfMemory !== undefined) {
         this.isOom = true;
+        this.oomWaitTime = msg.outOfMemory.waitTime;
         msg.outOfMemory.uuids.forEach((uuid) => this.queue.push(this.objsCache[uuid].entry));
         msg.outOfMemory.beacons.forEach((beacon) => this.queue.push(this.refsCache[beacon].entry));
         this.inflightObjs = this.inflightObjs.difference(new Set(msg.outOfMemory.uuids));
@@ -338,11 +352,6 @@ class Batcher<T> {
         console.warn('Received shutting down signal from server');
         this.isShuttingDown = true;
         this.isOom = false;
-      }
-      if (msg.shutdown !== undefined) {
-        console.warn('Received shutdown signal from server');
-        this.isShutdown = true;
-        this.isShuttingDown = false;
       }
       if (msg.started !== undefined) {
         this.isStarted = true;
