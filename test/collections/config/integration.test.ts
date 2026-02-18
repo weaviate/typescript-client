@@ -929,6 +929,41 @@ describe('Testing of the collection.config namespace', () => {
     }
   );
 
+  requireAtLeast(1, 36, 0).describe('dropInvertedIndex', () => {
+    it('should drop indices from a property', async () => {
+      const collectionName = 'TestDropInvertedIndices';
+      const collection = await client.collections.create({
+        name: collectionName,
+        properties: [
+          {
+            name: 'testProp',
+            dataType: 'text',
+          },
+        ],
+        vectorizers: weaviate.configure.vectors.none(),
+      });
+
+      let config = await collection.config.get();
+      const prop = config.properties.find((p) => p.name === 'testProp')!;
+      expect(prop.indexSearchable).toEqual(true);
+      expect(prop.indexFilterable).toEqual(true);
+
+      await collection.config.dropInvertedIndex('testProp', 'searchable');
+
+      config = await collection.config.get();
+      const updatedProp = config.properties.find((p) => p.name === 'testProp')!;
+      expect(updatedProp.indexSearchable).toEqual(false);
+      expect(updatedProp.indexFilterable).toEqual(true);
+
+      await collection.config.dropInvertedIndex('testProp', 'filterable');
+
+      config = await collection.config.get();
+      const updatedProp2 = config.properties.find((p) => p.name === 'testProp')!;
+      expect(updatedProp2.indexSearchable).toEqual(false);
+      expect(updatedProp2.indexFilterable).toEqual(false);
+    });
+  });
+
   requireAtLeast(1, 35, 0).it('should create and update Object TTL configuration', async () => {
     const collectionName = 'TestObjectTTL';
     const collection = await client.collections.create({
