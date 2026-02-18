@@ -341,9 +341,7 @@ class Batcher<T> {
         this.inflightRefs = this.inflightRefs.difference(new Set(msg.acks.beacons));
       }
       if (msg.backoff !== undefined) {
-        if (this.batchSize !== msg.backoff.batchSize && this.healthy() && !this.isStopped) {
-          this.batchSize = msg.backoff.batchSize;
-        }
+        this.batchSize = msg.backoff.batchSize;
       }
       if (msg.outOfMemory !== undefined) {
         this.isOom = true;
