@@ -15,6 +15,8 @@ import { Reranker, RerankerConfig } from './reranker.js';
 import { VectorIndexType } from './vectorIndex.js';
 import { VectorConfig } from './vectorizer.js';
 
+export type InvertedIndexName = 'filterable' | 'searchable' | 'rangeFilters';
+
 export type ModuleConfig<N, C = undefined> = {
   name: N;
   config: C;

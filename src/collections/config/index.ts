@@ -17,6 +17,7 @@ import {
   BQConfig,
   CollectionConfig,
   CollectionConfigUpdate,
+  InvertedIndexName,
   PQConfig,
   QuantizerConfig,
   RQConfig,
@@ -93,6 +94,8 @@ const config = <T>(
         .then((merged) => new ClassUpdater(connection).withClass(merged).do())
         .then(() => {});
     },
+    dropInvertedIndex: (propertyName, indexName) =>
+      connection.delete(`/schema/${name}/properties/${propertyName}/index/${indexName}`, null),
   };
 };
 
@@ -162,6 +165,14 @@ export interface Config<T> {
    * @returns {Promise<void>} A promise that resolves when the collection has been updated.
    */
   update: (config?: CollectionConfigUpdate<T>) => Promise<void>;
+  /**
+   * Drop an inverted index from a property of this collection.
+   *
+   * @param {string} propertyName The name of the property to drop the index from.
+   * @param {InvertedIndexName} indexName The index to drop: 'filterable', 'searchable', or 'rangeFilters'.
+   * @returns {Promise<void>} A promise that resolves when the index has been dropped.
+   */
+  dropInvertedIndex: (propertyName: string, indexName: InvertedIndexName) => Promise<void>;
 }
 
 export class VectorIndex {
