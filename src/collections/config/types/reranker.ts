@@ -1,6 +1,7 @@
 export type RerankerTransformersConfig = {};
 
 export type RerankerCohereConfig = {
+  baseURL?: string;
   model?: 'rerank-english-v2.0' | 'rerank-multilingual-v2.0' | string;
 };
 

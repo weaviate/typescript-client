@@ -2286,11 +2286,13 @@ describe('Unit testing of the reranker factory class', () => {
 
   it('should create the correct RerankerCohereConfig type with all values', () => {
     const config = configure.reranker.cohere({
+      baseURL: 'base-url',
       model: 'model',
     });
     expect(config).toEqual<ModuleConfig<'reranker-cohere', RerankerCohereConfig | undefined>>({
       name: 'reranker-cohere',
       config: {
+        baseURL: 'base-url',
         model: 'model',
       },
     });
