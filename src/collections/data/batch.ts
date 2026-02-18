@@ -72,7 +72,7 @@ export default function (connection: Connection, dbVersionSupport: DbVersionSupp
       }
       const batcher = new Batcher<any>({ consistencyLevel, isGcpOnWcd: connection.isGcpOnWcd() });
       let batchingErr: Error | null = null;
-      const batching = batcher.start(connection).catch((err) => {
+      const context = batcher.start(connection).catch((err) => {
         batchingErr = err;
       });
       const check = (err: Error | null) => {
@@ -86,7 +86,7 @@ export default function (connection: Connection, dbVersionSupport: DbVersionSupp
         addReference: (ref) => check(batchingErr).addReference(ref),
         stop: () => {
           check(batchingErr).stop();
-          return batching;
+          return context;
         },
         hasErrors: () =>
           Object.keys(batcher.objErrors).length > 0 || Object.keys(batcher.refErrors).length > 0,
