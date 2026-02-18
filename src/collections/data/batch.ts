@@ -134,33 +134,27 @@ class Batcher<T> {
     this.isGcpOnWcd = args.isGcpOnWcd;
   }
 
-  private healthy() {
-    return !this.isShuttingDown && !this.isOom;
-  }
-
-  public addObject = async (obj: BatchObject<T>) => {
+  private async acceptNext(inflight: number) {
     if (this.isStopped) {
       throw new Error('Batching has been stopped, cannot add more objects');
     }
-    while (this.inflightObjs.size >= this.batchSize || !this.healthy()) {
+    while (inflight >= this.batchSize || this.isShuttingDown || this.isOom) {
+      // wait until there's room in the batch and the server is healthy before accepting more objects
       await Batcher.sleep(REFRESH_TIME); // eslint-disable-line no-await-in-loop
     }
-    if (obj.id === undefined) {
-      obj.id = uuidv4();
-    }
-    this.queue.push(obj);
-    return obj.id!;
-  };
+  }
 
-  public addReference = async (ref: BatchReference) => {
-    if (this.isStopped) {
-      throw new Error('Batching has been stopped, cannot add more references');
-    }
-    while (this.inflightRefs.size >= this.batchSize || !this.healthy()) {
-      await Batcher.sleep(REFRESH_TIME); // eslint-disable-line no-await-in-loop
-    }
-    this.queue.push(ref);
-  };
+  public addObject = (obj: BatchObject<T>) =>
+    this.acceptNext(this.inflightObjs.size).then(() => {
+      if (obj.id === undefined) {
+        obj.id = uuidv4();
+      }
+      this.queue.push(obj);
+      return obj.id!;
+    });
+
+  public addReference = (ref: BatchReference) =>
+    this.acceptNext(this.inflightRefs.size).then(() => this.queue.push(ref));
 
   private static sleep(ms: number) {
     return new Promise((resolve) => setTimeout(resolve, ms));
