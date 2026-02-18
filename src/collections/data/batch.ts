@@ -177,7 +177,8 @@ class Batcher<T> {
     let req = BatchStreamRequest.create({
       data: { objects: { values: this.pendingObjs }, references: { values: this.pendingRefs } },
     });
-    let totalSize = BatchStreamRequest.encode(req).finish().length;
+    const emptyReqSize = BatchStreamRequest.encode(req).finish().length;
+    let totalSize = emptyReqSize;
 
     let objIndex = 0;
     let refIndex = 0;
@@ -242,6 +243,11 @@ class Batcher<T> {
         this.objsCache[grpc.uuid] = { entry, index: objIndex };
 
         const objSize = BatchObjectGRPC.encode(grpc).finish().length + PER_OBJECT_OVERHEAD;
+        if (objSize + PER_OBJECT_OVERHEAD + emptyReqSize >= grpcMaxMessageSize) {
+          throw new Error(
+            `Object at index ${objIndex} exceeds the gRPC max message size limit and cannot be sent.`
+          );
+        }
         if (totalSize + objSize >= grpcMaxMessageSize || req.data!.objects!.values.length >= this.batchSize) {
           while (this.inflightObjs.size >= this.batchSize) {
             await Batcher.sleep(REFRESH_TIME); // eslint-disable-line no-await-in-loop
