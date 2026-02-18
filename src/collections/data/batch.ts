@@ -237,7 +237,7 @@ class Batcher<T> {
 
         const objSize = BatchObjectGRPC.encode(grpc).finish().length + PER_OBJECT_OVERHEAD;
         if (totalSize + objSize >= grpcMaxMessageSize || req.data!.objects!.values.length >= this.batchSize) {
-          while (this.inflightObjs.size > this.batchSize) {
+          while (this.inflightObjs.size >= this.batchSize) {
             await Batcher.sleep(REFRESH_TIME); // eslint-disable-line no-await-in-loop
           }
           this.inflightObjs = new Set(req.data?.objects?.values.map((o) => o.uuid!));
@@ -261,6 +261,9 @@ class Batcher<T> {
           totalSize + refSize >= grpcMaxMessageSize ||
           req.data!.references!.values.length >= this.batchSize
         ) {
+          while (this.inflightRefs.size >= this.batchSize) {
+            await Batcher.sleep(REFRESH_TIME); // eslint-disable-line no-await-in-loop
+          }
           this.inflightRefs = new Set(
             req.data?.references?.values.map(
               (r) => `weaviate://localhost/${r.fromCollection}/${r.fromUuid}/${r.name}`
