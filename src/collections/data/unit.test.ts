@@ -32,7 +32,7 @@ describe('Unit testing of the Queue class', () => {
     }, 50);
 
     // Pull items concurrently
-    for (let i = 0; i < 5; i++) {
+    while (results.length < 5) {
       const item = await queue.pull();
       if (item !== null) {
         results.push(item);
