@@ -75,17 +75,17 @@ export default function (connection: Connection, dbVersionSupport: DbVersionSupp
       const context = batcher.start(connection).catch((err) => {
         batchingErr = err;
       });
-      const check = (err: Error | null) => {
-        if (err) {
-          throw err;
+      const check = () => {
+        if (batchingErr) {
+          throw batchingErr;
         }
         return batcher;
       };
       return {
-        addObject: (obj) => check(batchingErr).addObject(obj),
-        addReference: (ref) => check(batchingErr).addReference(ref),
+        addObject: (obj) => check().addObject(obj),
+        addReference: (ref) => check().addReference(ref),
         stop: () => {
-          check(batchingErr).stop();
+          check().stop();
           return context;
         },
         hasErrors: () =>
