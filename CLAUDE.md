@@ -6,6 +6,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Official Weaviate TypeScript/JavaScript client library. Provides a typed SDK for interacting with Weaviate vector database instances via both REST/GraphQL (HTTP/1.1) and gRPC (HTTP/2) protocols.
 
+## Contribution Guidelines
+
+- Develop all features in a user-centric way, prioritizing ease of use and intuitive API design. This includes:
+    - not only thoughtful method naming, parameter structures, and return types,
+    - but also ensuring that core implementations do not collide with user requirements.
+    - E.g., any tradeoffs should be shouldered by the internal implementation rather than exposing complexity to the user.
+- Follow existing code style and architecture patterns.
+- Write unit tests for new logic and integration/journey tests for new features.
+- Use descriptive commit messages and PR titles.
+- Ensure all tests pass before merging.
+
 ## Common Commands
 
 ```bash
