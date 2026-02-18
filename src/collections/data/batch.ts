@@ -237,7 +237,7 @@ class Batcher<T> {
         this.objsCache[grpc.uuid] = { entry, index: objIndex };
 
         const objSize = BatchObjectGRPC.encode(grpc).finish().length + PER_OBJECT_OVERHEAD;
-        if (objSize + PER_OBJECT_OVERHEAD + emptyReqSize >= grpcMaxMessageSize) {
+        if (objSize + emptyReqSize >= grpcMaxMessageSize) {
           throw new Error(
             `Object at index ${objIndex} exceeds the gRPC max message size limit and cannot be sent.`
           );
