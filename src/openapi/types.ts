@@ -58,6 +58,8 @@ export type WeaviateShardStatus = definitions['ShardStatusGetResponse'];
 export type WeaviateVectorIndexConfig = WeaviateClass['vectorIndexConfig'];
 export type WeaviateVectorsConfig = WeaviateClass['vectorConfig'];
 export type WeaviateVectorConfig = definitions['VectorConfig'];
+export type WeaviateDropPropertyIndexName =
+  operations['schema.objects.properties.delete']['parameters']['path']['indexName'];
 // Nodes
 export type NodesStatusResponse = definitions['NodesStatusResponse'];
 export type NodeStats = definitions['NodeStats'];

@@ -260,6 +260,10 @@ export interface paths {
     /** Adds a new property definition to an existing collection (`className`) definition. */
     post: operations['schema.objects.properties.add'];
   };
+  '/schema/{className}/properties/{propertyName}/index/{indexName}': {
+    /** Deletes an inverted index of a specific property within a collection (`className`). The index to delete is identified by `indexName` and must be one of `filterable`, `searchable`, or `rangeFilters`. */
+    delete: operations['schema.objects.properties.delete'];
+  };
   '/schema/{className}/shards': {
     /** Retrieves the status of all shards associated with the specified collection (`className`). For multi-tenant collections, use the `tenant` query parameter to retrieve status for a specific tenant's shards. */
     get: operations['schema.objects.shards.get'];
@@ -307,7 +311,7 @@ export interface paths {
   '/backups/{backend}/{id}': {
     /** Checks the status of a specific backup creation process identified by its ID on the specified backend.<br/><br/>Client libraries often provide a 'wait for completion' feature that polls this endpoint automatically. Use this endpoint for manual status checks or if 'wait for completion' is disabled. */
     get: operations['backups.create.status'];
-    /** Deletes a backup identified by its ID from the specified backend storage. */
+    /** Cancels an ongoing backup operation identified by its ID. */
     delete: operations['backups.cancel'];
   };
   '/backups/{backend}/{id}/restore': {
@@ -315,6 +319,8 @@ export interface paths {
     get: operations['backups.restore.status'];
     /** Initiates the restoration of collections from a specified backup located on a designated backend.<br/><br/>Requirements:<br/>- Target cluster must have the same number of nodes as the source cluster where the backup was created.<br/>- Collections included in the restore must not already exist on the target cluster.<br/>- Node names must match between the backup and the target cluster. */
     post: operations['backups.restore'];
+    /** Cancels an ongoing backup restoration process identified by its ID on the specified backend storage. */
+    delete: operations['backups.restore.cancel'];
   };
   '/cluster/statistics': {
     /** Provides statistics about the internal Raft consensus protocol state for the Weaviate cluster. */
@@ -726,6 +732,8 @@ export interface definitions {
     factor?: number;
     /** @description Enable asynchronous replication (default: `false`). */
     asyncEnabled?: boolean;
+    /** @description Configuration parameters for asynchronous replication. */
+    asyncConfig?: definitions['ReplicationAsyncConfig'];
     /**
      * @description Conflict resolution strategy for deleted objects.
      * @enum {string}
@@ -1120,6 +1128,11 @@ export interface definitions {
       | 'gse_ch';
     /** @description The properties of the nested object(s). Applies to object and object[] data types. */
     nestedProperties?: definitions['NestedProperty'][];
+    /**
+     * @description If set to false, allows multiple references to the same target object within this property. Setting it to true will enforce uniqueness of references within this property. By default, this is set to true.
+     * @default true
+     */
+    disableDuplicatedReferences?: boolean;
   };
   VectorConfig: {
     /** @description Configuration of a specific vectorizer used by this vector */
@@ -1192,6 +1205,11 @@ export interface definitions {
      * @description Timestamp when the backup process completed (successfully or with failure)
      */
     completedAt?: string;
+    /**
+     * Format: float64
+     * @description Size of the backup in Gibs
+     */
+    size?: number;
   };
   /** @description The definition of a backup restore metadata. */
   BackupRestoreStatusResponse: {
@@ -1208,15 +1226,7 @@ export interface definitions {
      * @default STARTED
      * @enum {string}
      */
-    status?:
-      | 'STARTED'
-      | 'TRANSFERRING'
-      | 'TRANSFERRED'
-      | 'FINALIZING'
-      | 'SUCCESS'
-      | 'FAILED'
-      | 'CANCELLING'
-      | 'CANCELED';
+    status?: 'STARTED' | 'TRANSFERRING' | 'TRANSFERRED' | 'SUCCESS' | 'FAILED' | 'CANCELED';
   };
   /** @description Backup custom configuration. */
   BackupConfig: {
@@ -1362,15 +1372,7 @@ export interface definitions {
      * @default STARTED
      * @enum {string}
      */
-    status?:
-      | 'STARTED'
-      | 'TRANSFERRING'
-      | 'TRANSFERRED'
-      | 'FINALIZING'
-      | 'SUCCESS'
-      | 'FAILED'
-      | 'CANCELLING'
-      | 'CANCELED';
+    status?: 'STARTED' | 'TRANSFERRING' | 'TRANSFERRED' | 'SUCCESS' | 'FAILED' | 'CANCELED';
   };
   /** @description The summary of Weaviate's statistics. */
   NodeStats: {
@@ -1447,6 +1449,79 @@ export interface definitions {
     startDiffTimeUnixMillis?: number;
     /** @description The target node of the replication, if set, otherwise empty. */
     targetNode?: string;
+  };
+  /** @description Configuration for asynchronous replication. */
+  ReplicationAsyncConfig: {
+    /**
+     * Format: int64
+     * @description Maximum number of async replication workers.
+     */
+    maxWorkers?: number;
+    /**
+     * Format: int64
+     * @description Height of the hashtree used for diffing.
+     */
+    hashtreeHeight?: number;
+    /**
+     * Format: int64
+     * @description Base frequency in milliseconds at which async replication runs diff calculations.
+     */
+    frequency?: number;
+    /**
+     * Format: int64
+     * @description Frequency in milliseconds at which async replication runs while propagation is active.
+     */
+    frequencyWhilePropagating?: number;
+    /**
+     * Format: int64
+     * @description Interval in milliseconds at which liveness of target nodes is checked.
+     */
+    aliveNodesCheckingFrequency?: number;
+    /**
+     * Format: int64
+     * @description Interval in seconds at which async replication logs its status.
+     */
+    loggingFrequency?: number;
+    /**
+     * Format: int64
+     * @description Maximum number of object keys included in a single diff batch.
+     */
+    diffBatchSize?: number;
+    /**
+     * Format: int64
+     * @description Timeout in seconds for computing a diff against a single node.
+     */
+    diffPerNodeTimeout?: number;
+    /**
+     * Format: int64
+     * @description Overall timeout in seconds for the pre-propagation phase.
+     */
+    prePropagationTimeout?: number;
+    /**
+     * Format: int64
+     * @description Timeout in seconds for propagating batch of changes to a node.
+     */
+    propagationTimeout?: number;
+    /**
+     * Format: int64
+     * @description Maximum number of objects to propagate in a single async replication run.
+     */
+    propagationLimit?: number;
+    /**
+     * Format: int64
+     * @description Delay in milliseconds before newly added or updated objects are propagated.
+     */
+    propagationDelay?: number;
+    /**
+     * Format: int64
+     * @description Maximum number of concurrent propagation workers.
+     */
+    propagationConcurrency?: number;
+    /**
+     * Format: int64
+     * @description Number of objects to include in a single propagation batch.
+     */
+    propagationBatchSize?: number;
   };
   /** @description The definition of a backup node status response body */
   NodeStatus: {
@@ -4540,6 +4615,37 @@ export interface operations {
       };
     };
   };
+  /** Deletes an inverted index of a specific property within a collection (`className`). The index to delete is identified by `indexName` and must be one of `filterable`, `searchable`, or `rangeFilters`. */
+  'schema.objects.properties.delete': {
+    parameters: {
+      path: {
+        /** The name of the collection (class) containing the property. */
+        className: string;
+        /** The name of the property whose inverted index should be deleted. */
+        propertyName: string;
+        /** The name of the inverted index to delete from the property. */
+        indexName: 'filterable' | 'searchable' | 'rangeFilters';
+      };
+    };
+    responses: {
+      /** Index deleted successfully. */
+      200: unknown;
+      /** Unauthorized or invalid credentials. */
+      401: unknown;
+      /** Forbidden */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Invalid index, property or collection provided. */
+      422: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** An error occurred while deleting the index. Check the ErrorResponse for details. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
   /** Retrieves the status of all shards associated with the specified collection (`className`). For multi-tenant collections, use the `tenant` query parameter to retrieve status for a specific tenant's shards. */
   'schema.objects.shards.get': {
     parameters: {
@@ -5078,13 +5184,13 @@ export interface operations {
       };
     };
   };
-  /** Deletes a backup identified by its ID from the specified backend storage. */
+  /** Cancels an ongoing backup operation identified by its ID. */
   'backups.cancel': {
     parameters: {
       path: {
         /** Specifies the backend storage system where the backup resides (e.g., `filesystem`, `gcs`, `s3`, `azure`). */
         backend: string;
-        /** The unique identifier of the backup to delete. Must be URL-safe and compatible with filesystem paths (only lowercase, numbers, underscore, minus characters allowed). */
+        /** The unique identifier of the backup to cancel. Must be URL-safe and compatible with filesystem paths (only lowercase, numbers, underscore, minus characters allowed). */
         id: string;
       };
       query: {
@@ -5095,7 +5201,7 @@ export interface operations {
       };
     };
     responses: {
-      /** Backup deleted successfully. */
+      /** Backup canceled successfully. */
       204: never;
       /** Unauthorized or invalid credentials. */
       401: unknown;
@@ -5103,11 +5209,11 @@ export interface operations {
       403: {
         schema: definitions['ErrorResponse'];
       };
-      /** Invalid backup deletion request. */
+      /** Invalid backup cancellation request. */
       422: {
         schema: definitions['ErrorResponse'];
       };
-      /** An internal server error occurred during backup deletion. Check the ErrorResponse for details. */
+      /** An internal server error occurred during backup cancellation. Check the ErrorResponse for details. */
       500: {
         schema: definitions['ErrorResponse'];
       };
@@ -5184,6 +5290,41 @@ export interface operations {
         schema: definitions['ErrorResponse'];
       };
       /** An internal server error occurred during restore initiation. Check the ErrorResponse for details. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
+  /** Cancels an ongoing backup restoration process identified by its ID on the specified backend storage. */
+  'backups.restore.cancel': {
+    parameters: {
+      path: {
+        /** Specifies the backend storage system where the backup resides (e.g., `filesystem`, `gcs`, `s3`, `azure`). */
+        backend: string;
+        /** The unique identifier of the backup restoration to cancel. Must be URL-safe and compatible with filesystem paths (only lowercase, numbers, underscore, minus characters allowed). */
+        id: string;
+      };
+      query: {
+        /** Optional: Specifies the bucket, container, or volume name if required by the backend. */
+        bucket?: string;
+        /** Optional: Specifies the path within the bucket/container/volume if the backup is not at the root. */
+        path?: string;
+      };
+    };
+    responses: {
+      /** Backup restoration cancelled successfully. */
+      204: never;
+      /** Unauthorized or invalid credentials. */
+      401: unknown;
+      /** Forbidden */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Invalid backup restoration cancellation request. */
+      422: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** An internal server error occurred during backup restoration cancellation. Check the ErrorResponse for details. */
       500: {
         schema: definitions['ErrorResponse'];
       };

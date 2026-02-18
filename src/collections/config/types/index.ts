@@ -3,6 +3,7 @@ export * from './reranker.js';
 export * from './vectorIndex.js';
 export * from './vectorizer.js';
 
+import { WeaviateDropPropertyIndexName } from '../../../openapi/types.js';
 import {
   InvertedIndexConfigUpdate,
   MultiTenancyConfigUpdate,
@@ -15,7 +16,7 @@ import { Reranker, RerankerConfig } from './reranker.js';
 import { VectorIndexType } from './vectorIndex.js';
 import { VectorConfig } from './vectorizer.js';
 
-export type InvertedIndexName = 'filterable' | 'searchable' | 'rangeFilters';
+export type InvertedIndexName = WeaviateDropPropertyIndexName;
 
 export type ModuleConfig<N, C = undefined> = {
   name: N;
