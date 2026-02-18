@@ -139,6 +139,9 @@ class Batcher<T> {
   }
 
   public addObject = async (obj: BatchObject<T>) => {
+    if (this.isStopped) {
+      throw new Error('Batching has been stopped, cannot add more objects');
+    }
     while (this.inflightObjs.size >= this.batchSize || !this.healthy()) {
       await Batcher.sleep(REFRESH_TIME); // eslint-disable-line no-await-in-loop
     }
@@ -150,6 +153,9 @@ class Batcher<T> {
   };
 
   public addReference = async (ref: BatchReference) => {
+    if (this.isStopped) {
+      throw new Error('Batching has been stopped, cannot add more references');
+    }
     while (this.inflightRefs.size >= this.batchSize || !this.healthy()) {
       await Batcher.sleep(REFRESH_TIME); // eslint-disable-line no-await-in-loop
     }
