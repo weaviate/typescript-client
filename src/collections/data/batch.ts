@@ -12,6 +12,9 @@ import { BatchObject, BatchReference, ErrorObject, ErrorReference } from '../ind
 import { Serialize } from '../serialize/index.js';
 
 const GCP_STREAM_TIMEOUT = 160 * 1000; // 160 seconds
+const REFRESH_TIME = 10; // 10ms
+const OOM_REFRESH_TIME = 1000; // 100ms
+const QUEUE_PULL_TIMEOUT = 100; // 100ms
 
 type Internal<E> = {
   entry: E;
@@ -136,7 +139,7 @@ class Batcher<T> {
 
   public addObject = async (obj: BatchObject<T>) => {
     while (this.inflightObjs.size >= this.batchSize || !this.healthy()) {
-      await Batcher.sleep(10); // eslint-disable-line no-await-in-loop
+      await Batcher.sleep(REFRESH_TIME); // eslint-disable-line no-await-in-loop
     }
     if (obj.id === undefined) {
       obj.id = uuidv4();
@@ -147,7 +150,7 @@ class Batcher<T> {
 
   public addReference = async (ref: BatchReference) => {
     while (this.inflightRefs.size >= this.batchSize || !this.healthy()) {
-      await Batcher.sleep(10); // eslint-disable-line no-await-in-loop
+      await Batcher.sleep(REFRESH_TIME); // eslint-disable-line no-await-in-loop
     }
     this.queue.push(ref);
   };
@@ -160,7 +163,7 @@ class Batcher<T> {
   private async *generateStreamRequests(grpcMaxMessageSize: number): AsyncGenerator<BatchStreamRequest> {
     while (!this.isStarted) {
       console.info('Waiting for server to start the batch ingestion...');
-      await Batcher.sleep(100); // eslint-disable-line no-await-in-loop
+      await Batcher.sleep(REFRESH_TIME); // eslint-disable-line no-await-in-loop
     }
     const streamStart = Date.now();
 
@@ -206,11 +209,11 @@ class Batcher<T> {
             `Batch stream was not re-established within ${this.oomWaitTime} seconds after an OOM message. Terminating batch.`
           );
         }
-        await Batcher.sleep(100); // eslint-disable-line no-await-in-loop
+        await Batcher.sleep(OOM_REFRESH_TIME); // eslint-disable-line no-await-in-loop
         return;
       }
 
-      const entry = await this.queue.pull(100); // eslint-disable-line no-await-in-loop
+      const entry = await this.queue.pull(QUEUE_PULL_TIMEOUT); // eslint-disable-line no-await-in-loop
       if (entry === null && !this.isStopped) {
         // user may be holding the batcher open and not added to it in the last second
         continue;
@@ -236,7 +239,7 @@ class Batcher<T> {
         const objSize = BatchObjectGRPC.encode(grpc).finish().length + perObjectOverhead;
         if (totalSize + objSize >= grpcMaxMessageSize || req.data!.objects!.values.length >= this.batchSize) {
           while (this.inflightObjs.size > this.batchSize) {
-            await Batcher.sleep(10); // eslint-disable-line no-await-in-loop
+            await Batcher.sleep(REFRESH_TIME); // eslint-disable-line no-await-in-loop
           }
           this.inflightObjs = new Set(req.data?.objects?.values.map((o) => o.uuid!));
 
