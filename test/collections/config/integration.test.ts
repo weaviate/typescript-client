@@ -930,8 +930,8 @@ describe('Testing of the collection.config namespace', () => {
   );
 
   requireAtLeast(1, 36, 0).describe('dropInvertedIndex', () => {
-    it('should drop the searchable index from a property', async () => {
-      const collectionName = 'TestDropInvertedIndexSearchable';
+    it('should drop indices from a property', async () => {
+      const collectionName = 'TestDropInvertedIndices';
       const collection = await client.collections.create({
         name: collectionName,
         properties: [
@@ -954,32 +954,13 @@ describe('Testing of the collection.config namespace', () => {
       const updatedProp = config.properties.find((p) => p.name === 'testProp')!;
       expect(updatedProp.indexSearchable).toEqual(false);
       expect(updatedProp.indexFilterable).toEqual(true);
-    });
-
-    it('should drop the filterable index from a property', async () => {
-      const collectionName = 'TestDropInvertedIndexFilterable';
-      const collection = await client.collections.create({
-        name: collectionName,
-        properties: [
-          {
-            name: 'testProp',
-            dataType: 'text',
-          },
-        ],
-        vectorizers: weaviate.configure.vectors.none(),
-      });
-
-      let config = await collection.config.get();
-      const prop = config.properties.find((p) => p.name === 'testProp')!;
-      expect(prop.indexFilterable).toEqual(true);
-      expect(prop.indexSearchable).toEqual(true);
 
       await collection.config.dropInvertedIndex('testProp', 'filterable');
 
       config = await collection.config.get();
-      const updatedProp = config.properties.find((p) => p.name === 'testProp')!;
-      expect(updatedProp.indexFilterable).toEqual(false);
-      expect(updatedProp.indexSearchable).toEqual(true);
+      const updatedProp2 = config.properties.find((p) => p.name === 'testProp')!;
+      expect(updatedProp2.indexSearchable).toEqual(false);
+      expect(updatedProp2.indexFilterable).toEqual(false);
     });
   });
 
