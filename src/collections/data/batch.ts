@@ -15,6 +15,7 @@ const GCP_STREAM_TIMEOUT = 160 * 1000; // 160 seconds
 const REFRESH_TIME = 10; // 10ms
 const OOM_REFRESH_TIME = 1000; // 100ms
 const QUEUE_PULL_TIMEOUT = 100; // 100ms
+const PER_OBJECT_OVERHEAD = 4; // extra overhead bytes per object in the request to avoid hitting the gRPC max message size limit accidentally due to serialization overhead
 
 type Internal<E> = {
   entry: E;
@@ -167,8 +168,6 @@ class Batcher<T> {
     }
     const streamStart = Date.now();
 
-    const perObjectOverhead = 4; // extra overhead bytes per object in the request
-
     let req = BatchStreamRequest.create({
       data: { objects: { values: this.pendingObjs }, references: { values: this.pendingRefs } },
     });
@@ -236,7 +235,7 @@ class Batcher<T> {
         const { grpc } = Serialize.batchObject<T>(entry.collection, entry, false, entry.tenant);
         this.objsCache[grpc.uuid] = { entry, index: objIndex };
 
-        const objSize = BatchObjectGRPC.encode(grpc).finish().length + perObjectOverhead;
+        const objSize = BatchObjectGRPC.encode(grpc).finish().length + PER_OBJECT_OVERHEAD;
         if (totalSize + objSize >= grpcMaxMessageSize || req.data!.objects!.values.length >= this.batchSize) {
           while (this.inflightObjs.size > this.batchSize) {
             await Batcher.sleep(REFRESH_TIME); // eslint-disable-line no-await-in-loop
@@ -257,7 +256,7 @@ class Batcher<T> {
         const { grpc, beacon } = Serialize.batchReference(entry);
         this.refsCache[beacon] = { entry, index: refIndex };
 
-        const refSize = BatchReferenceGRPC.encode(grpc).finish().length + perObjectOverhead;
+        const refSize = BatchReferenceGRPC.encode(grpc).finish().length + PER_OBJECT_OVERHEAD;
         if (
           totalSize + refSize >= grpcMaxMessageSize ||
           req.data!.references!.values.length >= this.batchSize
