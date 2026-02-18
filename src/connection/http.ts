@@ -89,7 +89,7 @@ export default class ConnectionREST implements IConnection {
     this.authEnabled = this.parseAuthParams(params);
   }
 
-  public isGcpOnWcd = (): boolean =>
+  public isWcdOnGcp = (): boolean =>
     ['weaviate.io', 'semi.technology', 'weaviate.cloud'].some((d) => this.host.toLowerCase().includes(d)) &&
     this.host.toLowerCase().includes('gcp');
 

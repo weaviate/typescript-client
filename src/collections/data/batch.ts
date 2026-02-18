@@ -70,7 +70,7 @@ export default function (connection: Connection, dbVersionSupport: DbVersionSupp
       if (!supports) {
         throw new Error(message);
       }
-      const batcher = new Batcher<any>({ consistencyLevel, isGcpOnWcd: connection.isGcpOnWcd() });
+      const batcher = new Batcher<any>({ consistencyLevel, isWcdOnGcp: connection.isWcdOnGcp() });
       let batchingErr: Error | null = null;
       const context = batcher.start(connection).catch((err) => {
         batchingErr = err;
@@ -101,7 +101,7 @@ export default function (connection: Connection, dbVersionSupport: DbVersionSupp
 
 type BatcherArgs = {
   consistencyLevel?: ConsistencyLevel;
-  isGcpOnWcd: boolean;
+  isWcdOnGcp: boolean;
 };
 
 class Batcher<T> {
@@ -119,7 +119,7 @@ class Batcher<T> {
   private isShuttingDown = false;
   private isOom = false;
   private isStopped = false;
-  private isGcpOnWcd = false;
+  private isWcdOnGcp = false;
   private isRenewingStream = false;
   private oomWaitTime = 300;
 
@@ -131,7 +131,7 @@ class Batcher<T> {
   constructor(args: BatcherArgs) {
     this.consistencyLevel = args.consistencyLevel;
     this.queue = new Queue();
-    this.isGcpOnWcd = args.isGcpOnWcd;
+    this.isWcdOnGcp = args.isWcdOnGcp;
   }
 
   private async acceptNext(inflight: number) {
@@ -184,7 +184,7 @@ class Batcher<T> {
         this.pendingRefs = req.data?.references?.values || [];
         return;
       }
-      if (this.isGcpOnWcd && Date.now() - streamStart > GCP_STREAM_TIMEOUT) {
+      if (this.isWcdOnGcp && Date.now() - streamStart > GCP_STREAM_TIMEOUT) {
         console.info(
           'GCP connections have a maximum lifetime. Re-establishing the batch stream to avoid timeout errors.'
         );
