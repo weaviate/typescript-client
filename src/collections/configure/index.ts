@@ -1,4 +1,8 @@
-import { ReplicationDeletionStrategy, VectorIndexType } from '../config/types/index.js';
+import {
+  AsyncReplicationConfig,
+  ReplicationDeletionStrategy,
+  VectorIndexType,
+} from '../config/types/index.js';
 import {
   InvertedIndexConfigCreate,
   InvertedIndexConfigUpdate,
@@ -179,11 +183,13 @@ const configure = {
    * See [the docs](https://weaviate.io/developers/weaviate/concepts/replication-architecture#replication-vs-sharding) for more details.
    *
    * @param {boolean} [options.asyncEnabled] Whether asynchronous replication is enabled. Default is false.
+   * @param {AsyncReplicationConfig} [options.asyncConfig] The asynchronous replication configuration.
    * @param {ReplicationDeletionStrategy} [options.deletionStrategy] The deletion strategy when replication conflicts are detected between deletes and reads.
    * @param {number} [options.factor] The replication factor. Default is 1.
    */
   replication: (options: {
     asyncEnabled?: boolean;
+    asyncConfig?: AsyncReplicationConfig;
     deletionStrategy?: ReplicationDeletionStrategy;
     factor?: number;
   }): ReplicationConfigCreate => {
@@ -191,6 +197,7 @@ const configure = {
       asyncEnabled: options.asyncEnabled,
       deletionStrategy: options.deletionStrategy,
       factor: options.factor,
+      asyncConfig: options.asyncConfig,
     };
   },
   /**
@@ -299,11 +306,13 @@ const reconfigure = {
    * See [the docs](https://weaviate.io/developers/weaviate/concepts/replication-architecture#replication-vs-sharding) for more details.
    *
    * @param {boolean} [options.asyncEnabled] Whether to enable asynchronous replication.
+   * @param {AsyncReplicationConfig} [options.asyncConfig] The asynchronous replication configuration to update.
    * @param {ReplicationDeletionStrategy} [options.deletionStrategy] The deletion strategy to update when replication conflicts are detected between deletes and reads.
    * @param {number} [options.factor] The replication factor to update.
    */
   replication: (options: {
     asyncEnabled?: boolean;
+    asyncConfig?: AsyncReplicationConfig;
     deletionStrategy?: ReplicationDeletionStrategy;
     factor?: number;
   }): ReplicationConfigUpdate => {
@@ -311,6 +320,7 @@ const reconfigure = {
       asyncEnabled: options.asyncEnabled,
       deletionStrategy: options.deletionStrategy,
       factor: options.factor,
+      asyncConfig: options.asyncConfig,
     };
   },
   /**
