@@ -60,6 +60,7 @@ export type WeaviateVectorsConfig = WeaviateClass['vectorConfig'];
 export type WeaviateVectorConfig = definitions['VectorConfig'];
 export type WeaviateDropPropertyIndexName =
   operations['schema.objects.properties.delete']['parameters']['path']['indexName'];
+export type WeaviateAsyncReplicationConfig = definitions['ReplicationAsyncConfig'];
 // Nodes
 export type NodesStatusResponse = definitions['NodesStatusResponse'];
 export type NodeStats = definitions['NodeStats'];

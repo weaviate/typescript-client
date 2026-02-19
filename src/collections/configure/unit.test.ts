@@ -22,12 +22,11 @@ import {
   RerankerTransformersConfig,
   RerankerVoyageAIConfig,
 } from '../config/types/index.js';
-import { configure } from './index.js';
+import { configure, reconfigure } from './index.js';
 import {
   InvertedIndexConfigCreate,
   MultiTenancyConfigCreate,
   ReplicationConfigCreate,
-  ReplicationConfigUpdate,
   ShardingConfigCreate,
   VectorConfigCreate,
   VectorIndexConfigFlatCreate,
@@ -96,24 +95,36 @@ describe('Unit testing of the configure & reconfigure factory classes', () => {
       asyncEnabled: true,
       deletionStrategy: 'DeleteOnConflict',
       factor: 2,
+      asyncConfig: {
+        maxWorkers: 10,
+      },
     });
     expect(config).toEqual<ReplicationConfigCreate>({
       asyncEnabled: true,
       deletionStrategy: 'DeleteOnConflict',
       factor: 2,
+      asyncConfig: {
+        maxWorkers: 10,
+      },
     });
   });
 
   it('should create the correct ReplicationConfigUpdate type with all values', () => {
-    const config = configure.replication({
+    const config = reconfigure.replication({
       asyncEnabled: true,
       deletionStrategy: 'DeleteOnConflict',
       factor: 2,
+      asyncConfig: {
+        maxWorkers: 10,
+      },
     });
-    expect(config).toEqual<ReplicationConfigUpdate>({
+    expect(config).toEqual<ReplicationConfigCreate>({
       asyncEnabled: true,
       deletionStrategy: 'DeleteOnConflict',
       factor: 2,
+      asyncConfig: {
+        maxWorkers: 10,
+      },
     });
   });
 

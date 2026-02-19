@@ -3,7 +3,7 @@ export * from './reranker.js';
 export * from './vectorIndex.js';
 export * from './vectorizer.js';
 
-import { WeaviateDropPropertyIndexName } from '../../../openapi/types.js';
+import { WeaviateAsyncReplicationConfig, WeaviateDropPropertyIndexName } from '../../../openapi/types.js';
 import {
   InvertedIndexConfigUpdate,
   MultiTenancyConfigUpdate,
@@ -57,8 +57,11 @@ export type ReplicationDeletionStrategy =
   | 'NoAutomatedResolution'
   | 'TimeBasedResolution';
 
+export type AsyncReplicationConfig = WeaviateAsyncReplicationConfig;
+
 export type ReplicationConfig = {
   asyncEnabled: boolean;
+  asyncConfig?: AsyncReplicationConfig;
   deletionStrategy: ReplicationDeletionStrategy;
   factor: number;
 };

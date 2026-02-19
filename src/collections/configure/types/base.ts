@@ -5,7 +5,6 @@ import {
   ObjectTTLConfig,
   QuantizerConfig,
   ReplicationConfig,
-  ReplicationDeletionStrategy,
 } from '../../config/types/index.js';
 import { DataType, QuantizerRecursivePartial } from '../../types/index.js';
 import { NonRefKeys, RefKeys } from '../../types/internal.js';
@@ -163,11 +162,7 @@ export type ReferenceConfigCreate<T> =
 
 export type ReplicationConfigCreate = RecursivePartial<ReplicationConfig>;
 
-export type ReplicationConfigUpdate = {
-  asyncEnabled?: boolean;
-  deletionStrategy?: ReplicationDeletionStrategy;
-  factor?: number;
-};
+export type ReplicationConfigUpdate = RecursivePartial<ReplicationConfig>;
 
 export type ShardingConfigCreate = {
   virtualPerPhysical?: number;
