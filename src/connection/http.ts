@@ -89,6 +89,10 @@ export default class ConnectionREST implements IConnection {
     this.authEnabled = this.parseAuthParams(params);
   }
 
+  public isWcdOnGcp = (): boolean =>
+    ['weaviate.io', 'semi.technology', 'weaviate.cloud'].some((d) => this.host.toLowerCase().includes(d)) &&
+    this.host.toLowerCase().includes('gcp');
+
   private parseAuthParams(params: InternalConnectionParams): boolean {
     if (params.authClientSecret && params.apiKey) {
       throw new WeaviateInvalidInputError(

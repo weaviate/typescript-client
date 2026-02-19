@@ -61,7 +61,6 @@ export interface BatchStreamRequest_Data_References {
 export interface BatchStreamReply {
   results?: BatchStreamReply_Results | undefined;
   shuttingDown?: BatchStreamReply_ShuttingDown | undefined;
-  shutdown?: BatchStreamReply_Shutdown | undefined;
   started?: BatchStreamReply_Started | undefined;
   backoff?: BatchStreamReply_Backoff | undefined;
   acks?: BatchStreamReply_Acks | undefined;
@@ -74,12 +73,14 @@ export interface BatchStreamReply_Started {
 export interface BatchStreamReply_ShuttingDown {
 }
 
-export interface BatchStreamReply_Shutdown {
-}
-
 export interface BatchStreamReply_OutOfMemory {
   uuids: string[];
   beacons: string[];
+  /**
+   * How long to wait until ShuttingDown is sent, in seconds
+   * If ShuttingDown is not set by this time, the client should exit the stream
+   */
+  waitTime: number;
 }
 
 export interface BatchStreamReply_Backoff {
@@ -727,7 +728,6 @@ function createBaseBatchStreamReply(): BatchStreamReply {
   return {
     results: undefined,
     shuttingDown: undefined,
-    shutdown: undefined,
     started: undefined,
     backoff: undefined,
     acks: undefined,
@@ -742,9 +742,6 @@ export const BatchStreamReply = {
     }
     if (message.shuttingDown !== undefined) {
       BatchStreamReply_ShuttingDown.encode(message.shuttingDown, writer.uint32(18).fork()).ldelim();
-    }
-    if (message.shutdown !== undefined) {
-      BatchStreamReply_Shutdown.encode(message.shutdown, writer.uint32(26).fork()).ldelim();
     }
     if (message.started !== undefined) {
       BatchStreamReply_Started.encode(message.started, writer.uint32(34).fork()).ldelim();
@@ -781,13 +778,6 @@ export const BatchStreamReply = {
           }
 
           message.shuttingDown = BatchStreamReply_ShuttingDown.decode(reader, reader.uint32());
-          continue;
-        case 3:
-          if (tag !== 26) {
-            break;
-          }
-
-          message.shutdown = BatchStreamReply_Shutdown.decode(reader, reader.uint32());
           continue;
         case 4:
           if (tag !== 34) {
@@ -832,7 +822,6 @@ export const BatchStreamReply = {
       shuttingDown: isSet(object.shuttingDown)
         ? BatchStreamReply_ShuttingDown.fromJSON(object.shuttingDown)
         : undefined,
-      shutdown: isSet(object.shutdown) ? BatchStreamReply_Shutdown.fromJSON(object.shutdown) : undefined,
       started: isSet(object.started) ? BatchStreamReply_Started.fromJSON(object.started) : undefined,
       backoff: isSet(object.backoff) ? BatchStreamReply_Backoff.fromJSON(object.backoff) : undefined,
       acks: isSet(object.acks) ? BatchStreamReply_Acks.fromJSON(object.acks) : undefined,
@@ -847,9 +836,6 @@ export const BatchStreamReply = {
     }
     if (message.shuttingDown !== undefined) {
       obj.shuttingDown = BatchStreamReply_ShuttingDown.toJSON(message.shuttingDown);
-    }
-    if (message.shutdown !== undefined) {
-      obj.shutdown = BatchStreamReply_Shutdown.toJSON(message.shutdown);
     }
     if (message.started !== undefined) {
       obj.started = BatchStreamReply_Started.toJSON(message.started);
@@ -876,9 +862,6 @@ export const BatchStreamReply = {
       : undefined;
     message.shuttingDown = (object.shuttingDown !== undefined && object.shuttingDown !== null)
       ? BatchStreamReply_ShuttingDown.fromPartial(object.shuttingDown)
-      : undefined;
-    message.shutdown = (object.shutdown !== undefined && object.shutdown !== null)
-      ? BatchStreamReply_Shutdown.fromPartial(object.shutdown)
       : undefined;
     message.started = (object.started !== undefined && object.started !== null)
       ? BatchStreamReply_Started.fromPartial(object.started)
@@ -982,51 +965,8 @@ export const BatchStreamReply_ShuttingDown = {
   },
 };
 
-function createBaseBatchStreamReply_Shutdown(): BatchStreamReply_Shutdown {
-  return {};
-}
-
-export const BatchStreamReply_Shutdown = {
-  encode(_: BatchStreamReply_Shutdown, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): BatchStreamReply_Shutdown {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseBatchStreamReply_Shutdown();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(_: any): BatchStreamReply_Shutdown {
-    return {};
-  },
-
-  toJSON(_: BatchStreamReply_Shutdown): unknown {
-    const obj: any = {};
-    return obj;
-  },
-
-  create(base?: DeepPartial<BatchStreamReply_Shutdown>): BatchStreamReply_Shutdown {
-    return BatchStreamReply_Shutdown.fromPartial(base ?? {});
-  },
-  fromPartial(_: DeepPartial<BatchStreamReply_Shutdown>): BatchStreamReply_Shutdown {
-    const message = createBaseBatchStreamReply_Shutdown();
-    return message;
-  },
-};
-
 function createBaseBatchStreamReply_OutOfMemory(): BatchStreamReply_OutOfMemory {
-  return { uuids: [], beacons: [] };
+  return { uuids: [], beacons: [], waitTime: 0 };
 }
 
 export const BatchStreamReply_OutOfMemory = {
@@ -1036,6 +976,9 @@ export const BatchStreamReply_OutOfMemory = {
     }
     for (const v of message.beacons) {
       writer.uint32(18).string(v!);
+    }
+    if (message.waitTime !== 0) {
+      writer.uint32(24).int32(message.waitTime);
     }
     return writer;
   },
@@ -1061,6 +1004,13 @@ export const BatchStreamReply_OutOfMemory = {
 
           message.beacons.push(reader.string());
           continue;
+        case 3:
+          if (tag !== 24) {
+            break;
+          }
+
+          message.waitTime = reader.int32();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1074,6 +1024,7 @@ export const BatchStreamReply_OutOfMemory = {
     return {
       uuids: globalThis.Array.isArray(object?.uuids) ? object.uuids.map((e: any) => globalThis.String(e)) : [],
       beacons: globalThis.Array.isArray(object?.beacons) ? object.beacons.map((e: any) => globalThis.String(e)) : [],
+      waitTime: isSet(object.waitTime) ? globalThis.Number(object.waitTime) : 0,
     };
   },
 
@@ -1085,6 +1036,9 @@ export const BatchStreamReply_OutOfMemory = {
     if (message.beacons?.length) {
       obj.beacons = message.beacons;
     }
+    if (message.waitTime !== 0) {
+      obj.waitTime = Math.round(message.waitTime);
+    }
     return obj;
   },
 
@@ -1095,6 +1049,7 @@ export const BatchStreamReply_OutOfMemory = {
     const message = createBaseBatchStreamReply_OutOfMemory();
     message.uuids = object.uuids?.map((e) => e) || [];
     message.beacons = object.beacons?.map((e) => e) || [];
+    message.waitTime = object.waitTime ?? 0;
     return message;
   },
 };

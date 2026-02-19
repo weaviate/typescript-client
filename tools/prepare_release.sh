@@ -29,4 +29,5 @@ fi
 npm run generate:version $VERSION
 git add .
 git commit -m "chore: prepare release $VERSION"
+git push
 npm version "${VERSION/v}"
