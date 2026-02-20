@@ -78,8 +78,8 @@ export type BackupCancelArgs = {
   backupId: string;
   /** The backend to use for the backup. */
   backend: Backend;
-  /** The type of operation to cancel (backup creation or restoration). Defaults to 'backup'. */
-  type?: 'backup' | 'restore';
+  /** The type of operation to cancel (backup creation or restoration). Defaults to 'create'. */
+  type?: 'create' | 'restore';
 };
 
 /** The options available when listing backups. */

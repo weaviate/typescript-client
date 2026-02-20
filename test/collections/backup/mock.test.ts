@@ -138,7 +138,7 @@ describe('Mock testing of backup cancellation', () => {
   });
 
   it('should return true if creation cancellation was successful', async () => {
-    const success = await client.backup.cancel({ backupId: BACKUP_ID, backend: BACKEND, type: 'backup' });
+    const success = await client.backup.cancel({ backupId: BACKUP_ID, backend: BACKEND, type: 'create' });
     expect(success).toBe(true);
   });
 
