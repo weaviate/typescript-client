@@ -138,7 +138,11 @@ describe('Mock testing of backup cancellation', () => {
   });
 
   it('should return true if creation cancellation was successful', async () => {
-    const success = await client.backup.cancel({ backupId: BACKUP_ID, backend: BACKEND, type: 'create' });
+    const success = await client.backup.cancel({
+      backupId: BACKUP_ID,
+      backend: BACKEND,
+      operation: 'create',
+    });
     expect(success).toBe(true);
   });
 
@@ -163,7 +167,11 @@ describe('Mock testing of backup cancellation', () => {
   });
 
   it('should return true if restore cancellation was successful', async () => {
-    const success = await client.backup.cancel({ backupId: BACKUP_ID, backend: BACKEND, type: 'restore' });
+    const success = await client.backup.cancel({
+      backupId: BACKUP_ID,
+      backend: BACKEND,
+      operation: 'restore',
+    });
     expect(success).toBe(true);
   });
 
@@ -171,7 +179,7 @@ describe('Mock testing of backup cancellation', () => {
     const success = await client.backup.cancel({
       backupId: `${BACKUP_ID}-unknown`,
       backend: BACKEND,
-      type: 'restore',
+      operation: 'restore',
     });
     expect(success).toBe(false);
   });

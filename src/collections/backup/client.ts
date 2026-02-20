@@ -94,7 +94,7 @@ export const backup = (connection: Connection): Backup => {
       }
 
       const root = `/backups/${args.backend}/${args.backupId}`;
-      const path = args.type === 'restore' ? `${root}/restore` : root;
+      const path = args.operation === 'restore' ? `${root}/restore` : root;
 
       try {
         await connection.delete(path, undefined, false);
