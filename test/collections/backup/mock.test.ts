@@ -41,6 +41,11 @@ class CancelMock {
       CancelMock.status = 'CANCELED';
       res.send();
     });
+    // Restore cancellation endpoint
+    httpApp.delete(`/v1/backups/${BACKEND}/${BACKUP_ID}/restore`, (req, res) => {
+      CancelMock.status = 'CANCELED';
+      res.send();
+    });
 
     // Backup creation endpoint
     httpApp.post(`/v1/backups/${BACKEND}`, (req, res: Response<BackupCreateResponse, any>) => {
@@ -133,12 +138,41 @@ describe('Mock testing of backup cancellation', () => {
   });
 
   it('should return true if creation cancellation was successful', async () => {
-    const success = await client.backup.cancel({ backupId: BACKUP_ID, backend: BACKEND });
+    const success = await client.backup.cancel({ backupId: BACKUP_ID, backend: BACKEND, type: 'backup' });
     expect(success).toBe(true);
   });
 
   it('should return false if creation backup does not exist', async () => {
     const success = await client.backup.cancel({ backupId: `${BACKUP_ID}-unknown`, backend: BACKEND });
+    expect(success).toBe(false);
+  });
+
+  it('should start a restore process without waiting', async () => {
+    const response = await client.backup.restore({
+      backupId: BACKUP_ID,
+      backend: BACKEND,
+      waitForCompletion: false,
+    });
+    expect(response).toEqual({
+      id: BACKUP_ID,
+      backend: BACKEND,
+      path: 'path/to/backup',
+      status: 'STARTED',
+      collections: [],
+    });
+  });
+
+  it('should return true if restore cancellation was successful', async () => {
+    const success = await client.backup.cancel({ backupId: BACKUP_ID, backend: BACKEND, type: 'restore' });
+    expect(success).toBe(true);
+  });
+
+  it('should return false if restore backup does not exist', async () => {
+    const success = await client.backup.cancel({
+      backupId: `${BACKUP_ID}-unknown`,
+      backend: BACKEND,
+      type: 'restore',
+    });
     expect(success).toBe(false);
   });
 

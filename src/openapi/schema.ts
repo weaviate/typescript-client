@@ -1194,7 +1194,15 @@ export interface definitions {
      * @default STARTED
      * @enum {string}
      */
-    status?: 'STARTED' | 'TRANSFERRING' | 'TRANSFERRED' | 'SUCCESS' | 'FAILED' | 'CANCELED';
+    status?:
+      | 'STARTED'
+      | 'TRANSFERRING'
+      | 'TRANSFERRED'
+      | 'FINALIZING'
+      | 'SUCCESS'
+      | 'FAILED'
+      | 'CANCELLING'
+      | 'CANCELED';
     /**
      * Format: date-time
      * @description Timestamp when the backup process started
@@ -1226,7 +1234,15 @@ export interface definitions {
      * @default STARTED
      * @enum {string}
      */
-    status?: 'STARTED' | 'TRANSFERRING' | 'TRANSFERRED' | 'SUCCESS' | 'FAILED' | 'CANCELED';
+    status?:
+      | 'STARTED'
+      | 'TRANSFERRING'
+      | 'TRANSFERRED'
+      | 'FINALIZING'
+      | 'SUCCESS'
+      | 'FAILED'
+      | 'CANCELLING'
+      | 'CANCELED';
   };
   /** @description Backup custom configuration. */
   BackupConfig: {
@@ -1313,7 +1329,15 @@ export interface definitions {
      * @default STARTED
      * @enum {string}
      */
-    status?: 'STARTED' | 'TRANSFERRING' | 'TRANSFERRED' | 'SUCCESS' | 'FAILED' | 'CANCELED';
+    status?:
+      | 'STARTED'
+      | 'TRANSFERRING'
+      | 'TRANSFERRED'
+      | 'FINALIZING'
+      | 'SUCCESS'
+      | 'FAILED'
+      | 'CANCELLING'
+      | 'CANCELED';
   };
   /** @description The definition of a backup create response body. */
   BackupListResponse: {
@@ -1325,7 +1349,15 @@ export interface definitions {
      * @description Status of backup process.
      * @enum {string}
      */
-    status?: 'STARTED' | 'TRANSFERRING' | 'TRANSFERRED' | 'SUCCESS' | 'FAILED' | 'CANCELED';
+    status?:
+      | 'STARTED'
+      | 'TRANSFERRING'
+      | 'TRANSFERRED'
+      | 'FINALIZING'
+      | 'SUCCESS'
+      | 'FAILED'
+      | 'CANCELLING'
+      | 'CANCELED';
     /**
      * Format: date-time
      * @description Timestamp when the backup process started
@@ -1372,7 +1404,15 @@ export interface definitions {
      * @default STARTED
      * @enum {string}
      */
-    status?: 'STARTED' | 'TRANSFERRING' | 'TRANSFERRED' | 'SUCCESS' | 'FAILED' | 'CANCELED';
+    status?:
+      | 'STARTED'
+      | 'TRANSFERRING'
+      | 'TRANSFERRED'
+      | 'FINALIZING'
+      | 'SUCCESS'
+      | 'FAILED'
+      | 'CANCELLING'
+      | 'CANCELED';
   };
   /** @description The summary of Weaviate's statistics. */
   NodeStats: {

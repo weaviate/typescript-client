@@ -93,8 +93,11 @@ export const backup = (connection: Connection): Backup => {
         throw new WeaviateInvalidInputError(errors.join(', '));
       }
 
+      const root = `/backups/${args.backend}/${args.backupId}`;
+      const path = args.type === 'restore' ? `${root}/restore` : root;
+
       try {
-        await connection.delete(`/backups/${args.backend}/${args.backupId}`, undefined, false);
+        await connection.delete(path, undefined, false);
       } catch (err) {
         if (err instanceof WeaviateUnexpectedStatusCodeError) {
           if (err.code === 404) {

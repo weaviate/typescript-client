@@ -1,15 +1,8 @@
 import { Backend, BackupCompressionLevel } from '../../index.js';
+import { WeaviateBackupStatus } from '../../openapi/types.js';
 
 /** The status of a backup operation */
-export type BackupStatus =
-  | 'STARTED'
-  | 'TRANSFERRING'
-  | 'TRANSFERRED'
-  | 'FINALIZING'
-  | 'SUCCESS'
-  | 'FAILED'
-  | 'CANCELLING'
-  | 'CANCELED';
+export type BackupStatus = NonNullable<WeaviateBackupStatus>;
 
 /** The status of a backup operation */
 export type BackupStatusReturn = {
@@ -85,6 +78,8 @@ export type BackupCancelArgs = {
   backupId: string;
   /** The backend to use for the backup. */
   backend: Backend;
+  /** The type of operation to cancel (backup creation or restoration). Defaults to 'backup'. */
+  type?: 'backup' | 'restore';
 };
 
 /** The options available when listing backups. */
