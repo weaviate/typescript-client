@@ -18,6 +18,7 @@ import {
   ReplicationConfigUpdate,
   VectorConfigUpdate,
   VectorIndexConfigFlatUpdate,
+  VectorIndexConfigHFreshUpdate,
   VectorIndexConfigHNSWUpdate,
 } from '../configure/types/index.js';
 import {
@@ -72,6 +73,8 @@ export class MergeWithExisting {
         current.vectorIndexConfig =
           update.vectorizers?.vectorIndex.name === 'hnsw'
             ? MergeWithExisting.hnsw(current.vectorIndexConfig, update.vectorizers.vectorIndex.config)
+            : update.vectorizers?.vectorIndex.name === 'hfresh'
+            ? MergeWithExisting.hfresh(current.vectorIndexConfig, update.vectorizers.vectorIndex.config)
             : MergeWithExisting.flat(current.vectorIndexConfig, update.vectorizers.vectorIndex.config);
       }
     }
@@ -176,6 +179,8 @@ export class MergeWithExisting {
         current[v.name].vectorIndexConfig =
           v.vectorIndex.name === 'hnsw'
             ? MergeWithExisting.hnsw(existing.vectorIndexConfig, v.vectorIndex.config)
+            : v.vectorIndex.name === 'hfresh'
+            ? MergeWithExisting.hfresh(existing.vectorIndexConfig, v.vectorIndex.config)
             : MergeWithExisting.flat(existing.vectorIndexConfig, v.vectorIndex.config);
       }
     });
@@ -198,6 +203,13 @@ export class MergeWithExisting {
       merged.bq = { ...current!.bq!, ...quant, enabled: true };
     }
     return merged;
+  }
+
+  static hfresh(
+    current: WeaviateVectorIndexConfig,
+    update: VectorIndexConfigHFreshUpdate
+  ): WeaviateVectorIndexConfig {
+    return { ...current, ...update };
   }
 
   static hnsw(

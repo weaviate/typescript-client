@@ -11,6 +11,7 @@ import {
   UncompressedConfigCreate,
   VectorIndexConfigDynamicCreate,
   VectorIndexConfigFlatCreate,
+  VectorIndexConfigHFreshCreate,
   VectorIndexConfigHNSWCreate,
 } from './types/index.js';
 
@@ -67,6 +68,9 @@ export class VectorIndexGuards {
   }
   static isFlat(config?: VectorIndexConfigCreate): config is VectorIndexConfigFlatCreate {
     return (config as VectorIndexConfigFlatCreate)?.type === 'flat';
+  }
+  static isHFresh(config?: VectorIndexConfigCreate): config is VectorIndexConfigHFreshCreate {
+    return (config as VectorIndexConfigHFreshCreate)?.type === 'hfresh';
   }
   static isDynamic(config?: VectorIndexConfigCreate): config is VectorIndexConfigDynamicCreate {
     return (config as VectorIndexConfigDynamicCreate)?.type === 'dynamic';

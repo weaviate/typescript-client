@@ -65,7 +65,7 @@ const makeVectorIndex = (opts?: {
       conf.flat = conf.flat
         ? { ...conf.flat, quantizer: opts.quantizer }
         : configure.flat({ quantizer: opts.quantizer }).config;
-    } else {
+    } else if (!VectorIndexGuards.isHFresh(conf)) {
       conf.quantizer = opts.quantizer;
     }
   }
