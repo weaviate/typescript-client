@@ -21,6 +21,9 @@ import {
   VectorIndexConfigFlatCreate,
   VectorIndexConfigFlatCreateOptions,
   VectorIndexConfigFlatUpdate,
+  VectorIndexConfigHFreshCreate,
+  VectorIndexConfigHFreshCreateOptions,
+  VectorIndexConfigHFreshUpdate,
   VectorIndexConfigHNSWCreate,
   VectorIndexConfigHNSWCreateOptions,
   VectorIndexConfigHNSWUpdate,
@@ -72,6 +75,29 @@ const configure = {
             ...rest,
             distance: distanceMetric,
             type: 'hnsw',
+          }
+        : undefined,
+    };
+  },
+  /**
+   * Create a `ModuleConfig<'hfresh', VectorIndexConfigHFreshCreate | undefined>` object when defining the configuration of the HFresh vector index.
+   *
+   * Use this method when defining the `options.vectorIndexConfig` argument of the `configure.vectors` method.
+   *
+   * @param {VectorIndexConfigHFreshCreateOptions} [opts] The options available for configuring the HFresh vector index.
+   * @returns {ModuleConfig<'HFresh', VectorIndexConfigHFreshCreate | undefined>} The configuration object.
+   */
+  hfresh: (
+    opts?: VectorIndexConfigHFreshCreateOptions
+  ): ModuleConfig<'hfresh', VectorIndexConfigHFreshCreate | undefined> => {
+    const { distanceMetric, ...rest } = opts || {};
+    return {
+      name: 'hfresh',
+      config: rest
+        ? {
+            ...rest,
+            distance: distanceMetric,
+            type: 'hfresh',
           }
         : undefined,
     };
@@ -249,7 +275,7 @@ const reconfigure = {
    * @param {VectorDistance} [options.distanceMetric] The distance metric to use. Default is 'cosine'.
    * @param {number} [options.vectorCacheMaxObjects] The maximum number of objects to cache in the vector cache. Default is 1000000000000.
    * @param {BQConfigCreate} [options.quantizer] The quantizer configuration to use. Default is `bq`.
-   * @returns {ModuleConfig<'flat', VectorIndexConfigFlatCreate>} The configuration object.
+   * @returns {ModuleConfig<'flat', VectorIndexConfigFlatUpdate>} The configuration object.
    */
   flat: (options: {
     vectorCacheMaxObjects?: number;
@@ -257,6 +283,24 @@ const reconfigure = {
   }): ModuleConfig<'flat', VectorIndexConfigFlatUpdate> => {
     return {
       name: 'flat',
+      config: options,
+    };
+  },
+  /**
+   * Create a `ModuleConfig<'hfresh', VectorIndexConfigHFreshUpdate>` object to update the configuration of the HFRESH vector index.
+   *
+   * Use this method when defining the `options.vectorIndexConfig` argument of the `reconfigure.vectors` method.
+   *
+   * @param {number} [options.maxPostingSizeKb] Maximum posting size in KB. Default is 48.
+   * @param {number} [options.searchProbe] The number of postings read during each search. Default is 64.
+   * @returns {ModuleConfig<'hfresh', VectorIndexConfigHFreshUpdate>} The configuration object.
+   */
+  hfresh: (options: {
+    maxPostingSizeKb?: number;
+    searchProbe?: number;
+  }): ModuleConfig<'hfresh', VectorIndexConfigHFreshUpdate> => {
+    return {
+      name: 'hfresh',
       config: options,
     };
   },

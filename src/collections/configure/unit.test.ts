@@ -30,6 +30,7 @@ import {
   ShardingConfigCreate,
   VectorConfigCreate,
   VectorIndexConfigFlatCreate,
+  VectorIndexConfigHFreshCreate,
   VectorIndexConfigHNSWCreate,
 } from './types/index.js';
 
@@ -245,6 +246,42 @@ describe('Unit testing of the configure & reconfigure factory classes', () => {
           type: 'bq',
         },
         type: 'flat',
+      },
+    });
+  });
+
+  it('should create the correct hfresh VectorIndexConfig type with defaults', () => {
+    const config = configure.vectorIndex.hfresh({ quantizer: configure.vectorIndex.quantizer.rq() });
+    expect(config).toEqual<ModuleConfig<'hfresh', VectorIndexConfigHFreshCreate | undefined>>({
+      name: 'hfresh',
+      config: {
+        quantizer: {
+          type: 'rq',
+        },
+        type: 'hfresh',
+      },
+    });
+  });
+
+  it('should create the correct hfresh VectorIndexConfig type with all values', () => {
+    const config = configure.vectorIndex.hfresh({
+      distanceMetric: 'cosine',
+      maxPostingSizeKb: 10,
+      searchProbe: 20,
+      replicas: 30,
+      quantizer: configure.vectorIndex.quantizer.rq(),
+    });
+    expect(config).toEqual<ModuleConfig<'hfresh', VectorIndexConfigHFreshCreate>>({
+      name: 'hfresh',
+      config: {
+        distance: 'cosine',
+        maxPostingSizeKb: 10,
+        searchProbe: 20,
+        replicas: 30,
+        quantizer: {
+          type: 'rq',
+        },
+        type: 'hfresh',
       },
     });
   });
