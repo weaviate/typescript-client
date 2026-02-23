@@ -20,6 +20,9 @@ export type BackupRestoreResponse = definitions['BackupRestoreResponse'];
 export type BackupRestoreStatusResponse = definitions['BackupRestoreStatusResponse'];
 export type BackupConfig = definitions['BackupConfig'];
 export type RestoreConfig = definitions['RestoreConfig'];
+export type WeaviateBackupStatus =
+  | BackupCreateStatusResponse['status']
+  | BackupRestoreStatusResponse['status'];
 // Batch
 export type BatchDelete = definitions['BatchDelete'];
 export type BatchDeleteResponse = definitions['BatchDeleteResponse'];
