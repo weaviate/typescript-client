@@ -251,10 +251,13 @@ describe('Unit testing of the configure & reconfigure factory classes', () => {
   });
 
   it('should create the correct hfresh VectorIndexConfig type with defaults', () => {
-    const config = configure.vectorIndex.hfresh();
+    const config = configure.vectorIndex.hfresh({ quantizer: configure.vectorIndex.quantizer.rq() });
     expect(config).toEqual<ModuleConfig<'hfresh', VectorIndexConfigHFreshCreate | undefined>>({
       name: 'hfresh',
       config: {
+        quantizer: {
+          type: 'rq',
+        },
         type: 'hfresh',
       },
     });
@@ -266,6 +269,7 @@ describe('Unit testing of the configure & reconfigure factory classes', () => {
       maxPostingSizeKb: 10,
       searchProbe: 20,
       replicas: 30,
+      quantizer: configure.vectorIndex.quantizer.rq(),
     });
     expect(config).toEqual<ModuleConfig<'hfresh', VectorIndexConfigHFreshCreate>>({
       name: 'hfresh',
@@ -274,6 +278,9 @@ describe('Unit testing of the configure & reconfigure factory classes', () => {
         maxPostingSizeKb: 10,
         searchProbe: 20,
         replicas: 30,
+        quantizer: {
+          type: 'rq',
+        },
         type: 'hfresh',
       },
     });

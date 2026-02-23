@@ -89,7 +89,9 @@ export type VectorIndexConfigHNSWCreate = RecursivePartial<Omit<VectorIndexConfi
   quantizer?: QuantizerConfigCreate;
 };
 
-export type VectorIndexConfigHFreshCreate = RecursivePartial<VectorIndexConfigHFresh>;
+export type VectorIndexConfigHFreshCreate = RecursivePartial<Omit<VectorIndexConfigHFresh, 'quantizer'>> & {
+  quantizer?: QuantizerConfigCreate;
+};
 
 export type VectorIndexConfigDynamicCreate = RecursivePartial<
   Omit<VectorIndexConfigDynamic, 'hnsw' | 'flat'>
@@ -119,6 +121,7 @@ export type VectorIndexConfigHNSWUpdate = {
 export type VectorIndexConfigHFreshUpdate = {
   maxPostingSizeKb?: number;
   searchProbe?: number;
+  quantizer?: QuantizerConfigUpdate;
 };
 
 export type VectorIndexConfigCreateType<I> = I extends 'hnsw'
@@ -224,6 +227,8 @@ export type VectorIndexConfigHFreshCreateOptions = {
   replicas?: number;
   /** The number of postings read during each search. Default is 64. */
   searchProbe?: number;
+  /** The quantizer configuration to use. Default is `bq`. */
+  quantizer?: QuantizerConfigCreate;
 };
 
 export type VectorIndexConfigDynamicCreateOptions = {

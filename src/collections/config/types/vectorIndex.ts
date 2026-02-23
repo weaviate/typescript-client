@@ -25,6 +25,7 @@ export type VectorIndexConfigHFresh = {
   replicas: number;
   /** Search probe. Default is 64. */
   searchProbe: number;
+  quantizer: QuantizerConfig | undefined;
   type: 'hfresh';
 };
 
