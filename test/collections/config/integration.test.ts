@@ -358,7 +358,7 @@ describe('Testing of the collection.config namespace', () => {
     expect(config.vectorizers.default.vectorizer.name).toEqual('none');
   });
 
-  requireAtLeast(1, 35, 0).it.only(
+  requireAtLeast(1, 35, 0).it(
     'should be able to get the config of a single-vector collection with dynamic hnsw-rq & flat-rq',
     async () => {
       const asyncIndexing = await weaviate.connectToLocal({ port: 8078, grpcPort: 50049 }); // need async indexing for dynamic vectorizer
