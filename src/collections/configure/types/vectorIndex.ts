@@ -129,9 +129,9 @@ export type VectorIndexConfigCreateType<I> = I extends 'hnsw'
   : I extends 'flat'
   ? VectorIndexConfigFlatCreate | undefined
   : I extends 'dynamic'
-  ? VectorIndexConfigHFreshCreate | undefined
-  : I extends 'hfresh'
   ? VectorIndexConfigDynamicCreate | undefined
+  : I extends 'hfresh'
+  ? VectorIndexConfigHFreshCreate | undefined
   : I extends string
   ? Record<string, any>
   : never;

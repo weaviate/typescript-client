@@ -632,10 +632,19 @@ class ConfigMapping {
       throw new WeaviateDeserializationError('Vector index distance was not returned by Weaviate');
     if (!exists<Record<string, unknown>>(v.bq))
       throw new WeaviateDeserializationError('Vector index bq was not returned by Weaviate');
+
+    let quantizer: QuantizerConfig | undefined;
+    if (exists<Record<string, any>>(v.bq) && v.bq.enabled === true) {
+      quantizer = ConfigMapping.bq(v.bq);
+    } else if (exists<Record<string, any>>(v.rq) && v.rq.enabled === true) {
+      quantizer = ConfigMapping.rq(v.rq);
+    } else {
+      quantizer = undefined;
+    }
     return {
       vectorCacheMaxObjects: v.vectorCacheMaxObjects,
       distance: v.distance,
-      quantizer: ConfigMapping.bq(v.bq),
+      quantizer: quantizer,
       type: 'flat',
     };
   }

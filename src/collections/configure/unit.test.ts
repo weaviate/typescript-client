@@ -29,6 +29,7 @@ import {
   ReplicationConfigCreate,
   ShardingConfigCreate,
   VectorConfigCreate,
+  VectorIndexConfigDynamicCreate,
   VectorIndexConfigFlatCreate,
   VectorIndexConfigHFreshCreate,
   VectorIndexConfigHNSWCreate,
@@ -246,6 +247,41 @@ describe('Unit testing of the configure & reconfigure factory classes', () => {
           type: 'bq',
         },
         type: 'flat',
+      },
+    });
+  });
+
+  it('should create the correct dynamic VectorIndexConfig type with RQ quantizer', () => {
+    const config = configure.vectorIndex.dynamic({
+      flat: configure.vectorIndex.flat({
+        quantizer: configure.vectorIndex.quantizer.rq({
+          bits: 1,
+        }),
+      }),
+      hnsw: configure.vectorIndex.hnsw({
+        quantizer: configure.vectorIndex.quantizer.rq({
+          bits: 8,
+        }),
+      }),
+    });
+    expect(config).toEqual<ModuleConfig<'dynamic', VectorIndexConfigDynamicCreate>>({
+      name: 'dynamic',
+      config: {
+        flat: {
+          quantizer: {
+            bits: 1,
+            type: 'rq',
+          },
+          type: 'flat',
+        },
+        hnsw: {
+          quantizer: {
+            bits: 8,
+            type: 'rq',
+          },
+          type: 'hnsw',
+        },
+        type: 'dynamic',
       },
     });
   });
