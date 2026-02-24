@@ -48,6 +48,8 @@ export type VectorIndexConfigType<I> = I extends 'hnsw'
   ? VectorIndexConfigHNSW
   : I extends 'flat'
   ? VectorIndexConfigFlat
+  : I extends 'hfresh'
+  ? VectorIndexConfigHFresh
   : I extends 'dynamic'
   ? VectorIndexConfigDynamic
   : I extends string
@@ -113,6 +115,10 @@ export type VectorIndexType = 'hnsw' | 'hfresh' | 'flat' | 'dynamic' | string;
 
 export type VectorIndexFilterStrategy = 'sweeping' | 'acorn';
 
-export type VectorIndexConfig = VectorIndexConfigHNSW | VectorIndexConfigFlat | VectorIndexConfigDynamic;
+export type VectorIndexConfig =
+  | VectorIndexConfigHNSW
+  | VectorIndexConfigFlat
+  | VectorIndexConfigDynamic
+  | VectorIndexConfigHFresh;
 
 export type QuantizerConfig = PQConfig | BQConfig | SQConfig | RQConfig;

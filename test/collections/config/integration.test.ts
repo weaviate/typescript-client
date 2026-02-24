@@ -9,6 +9,7 @@ import weaviate, {
   RQConfig,
   RerankerCohereConfig,
   VectorIndexConfigDynamic,
+  VectorIndexConfigHFresh,
   VectorIndexConfigHNSW,
   WeaviateClient,
   weaviateV2,
@@ -236,6 +237,29 @@ describe('Testing of the collection.config namespace', () => {
     expect(vectorIndexConfig.quantizer).toBeDefined();
     expect(vectorIndexConfig.quantizer?.type).toEqual('rq');
     expect(config.vectorizers.default.indexType).toEqual('hnsw');
+    expect(config.vectorizers.default.properties).toBeUndefined();
+    expect(config.vectorizers.default.vectorizer.name).toEqual('none');
+  });
+
+  requireAtLeast(1, 36, 0).it('should create a collection with hfresh index', async () => {
+    const collectionName = 'TestCollectionConfigGetHFresh';
+    await client.collections.delete(collectionName);
+    const collection = await client.collections.create({
+      name: collectionName,
+      vectorizers: weaviate.configure.vectorizer.none({
+        vectorIndexConfig: weaviate.configure.vectorIndex.hfresh(),
+      }),
+    });
+    const config = await collection.config.get();
+
+    const vectorIndexConfig = config.vectorizers.default.indexConfig as VectorIndexConfigHFresh;
+    expect(config.name).toEqual(collectionName);
+    expect(config.generative).toBeUndefined();
+    expect(config.reranker).toBeUndefined();
+    expect(vectorIndexConfig).toBeDefined();
+    expect(vectorIndexConfig.quantizer).toBeDefined();
+    expect(vectorIndexConfig.quantizer?.type).toEqual('rq');
+    expect(config.vectorizers.default.indexType).toEqual('hfresh');
     expect(config.vectorizers.default.properties).toBeUndefined();
     expect(config.vectorizers.default.vectorizer.name).toEqual('none');
   });
