@@ -12,6 +12,7 @@ import {
   MuveraEncodingConfigCreate,
   PQConfigCreate,
   PQConfigUpdate,
+  QuantizerConfigUpdate,
   RQConfigCreate,
   RQConfigUpdate,
   SQConfigCreate,
@@ -279,7 +280,7 @@ const reconfigure = {
    */
   flat: (options: {
     vectorCacheMaxObjects?: number;
-    quantizer?: BQConfigUpdate;
+    quantizer?: QuantizerConfigUpdate;
   }): ModuleConfig<'flat', VectorIndexConfigFlatUpdate> => {
     return {
       name: 'flat',
@@ -298,6 +299,7 @@ const reconfigure = {
   hfresh: (options: {
     maxPostingSizeKb?: number;
     searchProbe?: number;
+    quantizer?: QuantizerConfigUpdate;
   }): ModuleConfig<'hfresh', VectorIndexConfigHFreshUpdate> => {
     return {
       name: 'hfresh',
@@ -315,7 +317,7 @@ const reconfigure = {
    * @param {number} [options.ef] The ef parameter. Default is -1.
    * @param {VectorIndexFilterStrategy} [options.filterStrategy] The filter strategy. Default is 'sweeping'.
    * @param {number} [options.flatSearchCutoff] The flat search cutoff. Default is 40000.
-   * @param {PQConfigUpdate | BQConfigUpdate | SQConfigUpdate | RQConfigUpdate} [options.quantizer] The quantizer configuration to use. Use `vectorIndex.quantizer.bq` or `vectorIndex.quantizer.pq` to make one.
+   * @param {QuantizerConfigUpdate} [options.quantizer] The quantizer configuration to use. Use `vectorIndex.quantizer.bq` or `vectorIndex.quantizer.pq` to make one.
    * @param {number} [options.vectorCacheMaxObjects] The maximum number of objects to cache in the vector cache. Default is 1000000000000.
    * @returns {ModuleConfig<'hnsw', VectorIndexConfigHNSWUpdate>} The configuration object.
    */
@@ -326,7 +328,7 @@ const reconfigure = {
     ef?: number;
     filterStrategy?: VectorIndexFilterStrategy;
     flatSearchCutoff?: number;
-    quantizer?: PQConfigUpdate | BQConfigUpdate | SQConfigUpdate | RQConfigUpdate;
+    quantizer?: QuantizerConfigUpdate;
     vectorCacheMaxObjects?: number;
   }): ModuleConfig<'hnsw', VectorIndexConfigHNSWUpdate> => {
     return {
@@ -361,7 +363,7 @@ const reconfigure = {
      * So if you want to change the quantizer type, you must recreate the collection.
      *
      * @param {number} [options.rescoreLimit] The new rescore limit.
-     * @returns {BQConfigUpdate} The configuration object.
+     * @returns {RQConfigUpdate} The configuration object.
      */
     rq: (options?: { rescoreLimit?: number }): RQConfigUpdate => {
       return {

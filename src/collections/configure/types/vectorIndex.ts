@@ -141,7 +141,7 @@ export type VectorIndexConfigFlatCreate = RecursivePartial<Omit<VectorIndexConfi
 };
 
 export type VectorIndexConfigFlatUpdate = {
-  quantizer?: BQConfigUpdate;
+  quantizer?: QuantizerConfigUpdate;
   vectorCacheMaxObjects?: number;
 };
 
