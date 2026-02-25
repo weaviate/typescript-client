@@ -9,6 +9,7 @@ import weaviate, {
   RQConfig,
   RerankerCohereConfig,
   VectorIndexConfigDynamic,
+  VectorIndexConfigHFresh,
   VectorIndexConfigHNSW,
   WeaviateClient,
   weaviateV2,
@@ -240,6 +241,29 @@ describe('Testing of the collection.config namespace', () => {
     expect(config.vectorizers.default.vectorizer.name).toEqual('none');
   });
 
+  requireAtLeast(1, 36, 0).it('should create a collection with hfresh index', async () => {
+    const collectionName = 'TestCollectionConfigGetHFresh';
+    await client.collections.delete(collectionName);
+    const collection = await client.collections.create({
+      name: collectionName,
+      vectorizers: weaviate.configure.vectorizer.none({
+        vectorIndexConfig: weaviate.configure.vectorIndex.hfresh(),
+      }),
+    });
+    const config = await collection.config.get();
+
+    const vectorIndexConfig = config.vectorizers.default.indexConfig as VectorIndexConfigHFresh;
+    expect(config.name).toEqual(collectionName);
+    expect(config.generative).toBeUndefined();
+    expect(config.reranker).toBeUndefined();
+    expect(vectorIndexConfig).toBeDefined();
+    expect(vectorIndexConfig.quantizer).toBeDefined();
+    expect(vectorIndexConfig.quantizer?.type).toEqual('rq');
+    expect(config.vectorizers.default.indexType).toEqual('hfresh');
+    expect(config.vectorizers.default.properties).toBeUndefined();
+    expect(config.vectorizers.default.vectorizer.name).toEqual('none');
+  });
+
   it('should be able to get the config of a collection with hnsw-bq', async () => {
     const collectionName = 'TestCollectionConfigGetHNSWPlusBQ';
     const query = () =>
@@ -357,6 +381,46 @@ describe('Testing of the collection.config namespace', () => {
     expect(config.vectorizers.default.properties).toBeUndefined();
     expect(config.vectorizers.default.vectorizer.name).toEqual('none');
   });
+
+  requireAtLeast(1, 35, 0).it(
+    'should be able to get the config of a single-vector collection with dynamic hnsw-rq & flat-rq',
+    async () => {
+      const asyncIndexing = await weaviate.connectToLocal({ port: 8078, grpcPort: 50049 }); // need async indexing for dynamic vectorizer
+      const collectionName = 'TestCollectionConfigDynamicWithRQ';
+      await asyncIndexing.collections.delete(collectionName);
+      const query = () =>
+        asyncIndexing.collections.create({
+          name: collectionName,
+          vectorizers: weaviate.configure.vectors.none({
+            vectorIndexConfig: weaviate.configure.vectorIndex.dynamic({
+              hnsw: weaviate.configure.vectorIndex.hnsw({
+                quantizer: weaviate.configure.vectorIndex.quantizer.rq(),
+              }),
+              flat: weaviate.configure.vectorIndex.flat({
+                quantizer: weaviate.configure.vectorIndex.quantizer.rq(),
+              }),
+            }),
+          }),
+        });
+      const config = await query().then((collection) => collection.config.get());
+
+      const vectorIndexConfig = config.vectorizers.default.indexConfig as VectorIndexConfigDynamic;
+      expect(config.name).toEqual(collectionName);
+      expect(config.generative).toBeUndefined();
+      expect(config.reranker).toBeUndefined();
+      expect(vectorIndexConfig).toBeDefined();
+      expect((vectorIndexConfig as any).quantizer).toBeUndefined();
+      expect(vectorIndexConfig.hnsw).toBeDefined();
+      expect(vectorIndexConfig.hnsw.quantizer).toBeDefined();
+      expect(vectorIndexConfig.hnsw.quantizer?.type).toEqual('rq');
+      expect(vectorIndexConfig.flat).toBeDefined();
+      expect(vectorIndexConfig.flat.quantizer).toBeDefined();
+      expect(vectorIndexConfig.flat.quantizer?.type).toEqual('rq');
+      expect(config.vectorizers.default.indexType).toEqual('dynamic');
+      expect(config.vectorizers.default.properties).toBeUndefined();
+      expect(config.vectorizers.default.vectorizer.name).toEqual('none');
+    }
+  );
 
   it('should be able to get the config of a multi-vector collection with dynamic hnsw-pq & flat-bq', async () => {
     const asyncIndexing = await weaviate.connectToLocal({ port: 8078, grpcPort: 50049 }); // need async indexing for dynamic vectorizer

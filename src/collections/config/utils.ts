@@ -55,6 +55,7 @@ import {
   VectorDistance,
   VectorIndexConfigDynamic,
   VectorIndexConfigFlat,
+  VectorIndexConfigHFresh,
   VectorIndexConfigHNSW,
   VectorIndexConfigType,
   VectorIndexFilterStrategy,
@@ -622,6 +623,28 @@ class ConfigMapping {
       type: 'sq',
     };
   }
+  static vectorIndexHFresh(v: WeaviateVectorIndexConfig): VectorIndexConfigHFresh {
+    if (v === undefined) throw new WeaviateDeserializationError('Vector index was not returned by Weaviate');
+    if (!exists<VectorDistance>(v.distance))
+      throw new WeaviateDeserializationError('Vector index distance was not returned by Weaviate');
+    if (!exists<number>(v.maxPostingSizeKB))
+      throw new WeaviateDeserializationError('Vector index maxPostingSizeKb was not returned by Weaviate');
+    if (!exists<number>(v.searchProbe))
+      throw new WeaviateDeserializationError('Vector index searchProbe was not returned by Weaviate');
+    if (!exists<number>(v.replicas))
+      throw new WeaviateDeserializationError('Vector index replicas was not returned by Weaviate');
+    if (!exists<Record<string, unknown>>(v.rq))
+      throw new WeaviateDeserializationError('Vector index rq was not returned by Weaviate');
+
+    return {
+      distance: v.distance,
+      maxPostingSizeKb: v.maxPostingSizeKB,
+      searchProbe: v.searchProbe,
+      replicas: v.replicas,
+      quantizer: ConfigMapping.rq(v.rq),
+      type: 'hfresh',
+    };
+  }
   static vectorIndexFlat(v: WeaviateVectorIndexConfig): VectorIndexConfigFlat {
     if (v === undefined) throw new WeaviateDeserializationError('Vector index was not returned by Weaviate');
     if (!exists<number>(v.vectorCacheMaxObjects))
@@ -630,12 +653,19 @@ class ConfigMapping {
       );
     if (!exists<VectorDistance>(v.distance))
       throw new WeaviateDeserializationError('Vector index distance was not returned by Weaviate');
-    if (!exists<Record<string, unknown>>(v.bq))
-      throw new WeaviateDeserializationError('Vector index bq was not returned by Weaviate');
+
+    let quantizer: QuantizerConfig | undefined;
+    if (exists<Record<string, any>>(v.bq) && v.bq.enabled === true) {
+      quantizer = ConfigMapping.bq(v.bq);
+    } else if (exists<Record<string, any>>(v.rq) && v.rq.enabled === true) {
+      quantizer = ConfigMapping.rq(v.rq);
+    } else {
+      quantizer = undefined;
+    }
     return {
       vectorCacheMaxObjects: v.vectorCacheMaxObjects,
       distance: v.distance,
-      quantizer: ConfigMapping.bq(v.bq),
+      quantizer: quantizer,
       type: 'flat',
     };
   }
@@ -660,6 +690,8 @@ class ConfigMapping {
   static vectorIndex<I>(v: WeaviateVectorIndexConfig, t?: string): VectorIndexConfigType<I> {
     if (t === 'hnsw') {
       return ConfigMapping.vectorIndexHNSW(v) as VectorIndexConfigType<I>;
+    } else if (t === 'hfresh') {
+      return ConfigMapping.vectorIndexHFresh(v) as VectorIndexConfigType<I>;
     } else if (t === 'flat') {
       return ConfigMapping.vectorIndexFlat(v) as VectorIndexConfigType<I>;
     } else if (t === 'dynamic') {
