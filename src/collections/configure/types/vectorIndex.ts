@@ -100,7 +100,9 @@ export type VectorIndexConfigDynamicCreate = RecursivePartial<
   flat?: VectorIndexConfigFlatCreate;
 };
 
-export type VectorIndexConfigDymamicUpdate = RecursivePartial<
+/** @deprecated Contains typo, use [VectorIndexConfigDynamicUpdate]. */
+export type VectorIndexConfigDymamicUpdate = VectorIndexConfigDynamicUpdate;
+export type VectorIndexConfigDynamicUpdate = RecursivePartial<
   Omit<VectorIndexConfigDynamic, 'hnsw' | 'flat'>
 > & {
   hnsw?: VectorIndexConfigHNSWUpdate;
@@ -156,7 +158,7 @@ export type VectorIndexConfigCreate =
 export type VectorIndexConfigUpdate =
   | VectorIndexConfigFlatUpdate
   | VectorIndexConfigHNSWUpdate
-  | VectorIndexConfigDymamicUpdate
+  | VectorIndexConfigDynamicUpdate
   | VectorIndexConfigHFreshUpdate
   | Record<string, any>
   | undefined;
@@ -168,7 +170,7 @@ export type VectorIndexConfigUpdateType<I> = I extends 'hnsw'
   : I extends 'dynamic'
   ? VectorIndexConfigHFreshUpdate
   : I extends 'hfresh'
-  ? VectorIndexConfigDymamicUpdate
+  ? VectorIndexConfigDynamicUpdate
   : I extends string
   ? Record<string, any>
   : never;

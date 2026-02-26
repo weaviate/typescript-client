@@ -17,9 +17,9 @@ import {
   RQConfigUpdate,
   SQConfigCreate,
   SQConfigUpdate,
-  VectorIndexConfigDymamicUpdate,
   VectorIndexConfigDynamicCreate,
   VectorIndexConfigDynamicCreateOptions,
+  VectorIndexConfigDynamicUpdate,
   VectorIndexConfigFlatCreate,
   VectorIndexConfigFlatCreateOptions,
   VectorIndexConfigFlatUpdate,
@@ -322,14 +322,14 @@ const reconfigure = {
     };
   },
   /**
-   * Create a `ModuleConfig<'dynamic', VectorIndexConfigDymamicUpdate | undefined>` object when defining the configuration of the dynamic vector index.
+   * Create a `ModuleConfig<'dynamic', VectorIndexConfigDynamicUpdate | undefined>` object when defining the configuration of the dynamic vector index.
    *
-   * @param {VectorIndexConfigDymamicUpdateOptions} [opts] The options available for reconfiguring the dynamic vector index.
-   * @returns {ModuleConfig<'dynamic', VectorIndexConfigDymamicUpdate | undefined>} The new configuration object.
+   * @param {VectorIndexConfigDynamicUpdateOptions} [opts] The options available for reconfiguring the dynamic vector index.
+   * @returns {ModuleConfig<'dynamic', VectorIndexConfigDynamicUpdate | undefined>} The new configuration object.
    */
   dynamic: (
-    opts?: VectorIndexConfigDymamicUpdate
-  ): ModuleConfig<'dynamic', VectorIndexConfigDymamicUpdate | undefined> => {
+    opts?: VectorIndexConfigDynamicUpdate
+  ): ModuleConfig<'dynamic', VectorIndexConfigDynamicUpdate | undefined> => {
     return {
       name: 'dynamic',
       config: opts
