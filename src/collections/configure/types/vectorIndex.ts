@@ -12,6 +12,7 @@ import {
   VectorDistance,
   VectorIndexConfigDynamic,
   VectorIndexConfigFlat,
+  VectorIndexConfigHFresh,
   VectorIndexConfigHNSW,
   VectorIndexFilterStrategy,
 } from '../../config/types/index.js';
@@ -88,6 +89,10 @@ export type VectorIndexConfigHNSWCreate = RecursivePartial<Omit<VectorIndexConfi
   quantizer?: QuantizerConfigCreate;
 };
 
+export type VectorIndexConfigHFreshCreate = RecursivePartial<Omit<VectorIndexConfigHFresh, 'quantizer'>> & {
+  quantizer?: QuantizerConfigCreate;
+};
+
 export type VectorIndexConfigDynamicCreate = RecursivePartial<
   Omit<VectorIndexConfigDynamic, 'hnsw' | 'flat'>
 > & {
@@ -113,12 +118,20 @@ export type VectorIndexConfigHNSWUpdate = {
   vectorCacheMaxObjects?: number;
 };
 
+export type VectorIndexConfigHFreshUpdate = {
+  maxPostingSizeKb?: number;
+  searchProbe?: number;
+  quantizer?: QuantizerConfigUpdate;
+};
+
 export type VectorIndexConfigCreateType<I> = I extends 'hnsw'
   ? VectorIndexConfigHNSWCreate | undefined
   : I extends 'flat'
   ? VectorIndexConfigFlatCreate | undefined
   : I extends 'dynamic'
   ? VectorIndexConfigDynamicCreate | undefined
+  : I extends 'hfresh'
+  ? VectorIndexConfigHFreshCreate | undefined
   : I extends string
   ? Record<string, any>
   : never;
@@ -128,7 +141,7 @@ export type VectorIndexConfigFlatCreate = RecursivePartial<Omit<VectorIndexConfi
 };
 
 export type VectorIndexConfigFlatUpdate = {
-  quantizer?: BQConfigUpdate;
+  quantizer?: QuantizerConfigUpdate;
   vectorCacheMaxObjects?: number;
 };
 
@@ -136,6 +149,7 @@ export type VectorIndexConfigCreate =
   | VectorIndexConfigFlatCreate
   | VectorIndexConfigHNSWCreate
   | VectorIndexConfigDynamicCreate
+  | VectorIndexConfigHFreshCreate
   | Record<string, any>
   | undefined;
 
@@ -143,6 +157,7 @@ export type VectorIndexConfigUpdate =
   | VectorIndexConfigFlatUpdate
   | VectorIndexConfigHNSWUpdate
   | VectorIndexConfigDymamicUpdate
+  | VectorIndexConfigHFreshUpdate
   | Record<string, any>
   | undefined;
 
@@ -151,6 +166,8 @@ export type VectorIndexConfigUpdateType<I> = I extends 'hnsw'
   : I extends 'flat'
   ? VectorIndexConfigFlatUpdate
   : I extends 'dynamic'
+  ? VectorIndexConfigHFreshUpdate
+  : I extends 'hfresh'
   ? VectorIndexConfigDymamicUpdate
   : I extends string
   ? Record<string, any>
@@ -197,6 +214,19 @@ export type VectorIndexConfigFlatCreateOptions = {
   distanceMetric?: VectorDistance;
   /** The maximum number of objects to cache in the vector cache. Default is 1000000000000. */
   vectorCacheMaxObjects?: number;
+  /** The quantizer configuration to use. Default is `bq`. */
+  quantizer?: QuantizerConfigCreate;
+};
+
+export type VectorIndexConfigHFreshCreateOptions = {
+  /** The distance metric to use. Default is 'cosine'. */
+  distanceMetric?: VectorDistance;
+  /** Maximum posting size in KB. Default is 48. */
+  maxPostingSizeKb?: number;
+  /** The number of times each vector is stored in the index. Default is 4. */
+  replicas?: number;
+  /** The number of postings read during each search. Default is 64. */
+  searchProbe?: number;
   /** The quantizer configuration to use. Default is `bq`. */
   quantizer?: QuantizerConfigCreate;
 };

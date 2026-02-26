@@ -16,6 +16,19 @@ export type VectorIndexConfigHNSW = {
   type: 'hnsw';
 };
 
+export type VectorIndexConfigHFresh = {
+  /** The distance metric to use. Default is 'cosine'. */
+  distance: VectorDistance;
+  /** Maximum posting size in KB. Default is 48. */
+  maxPostingSizeKb: number;
+  /** Number of replicas. Default is 4. */
+  replicas: number;
+  /** Search probe. Default is 64. */
+  searchProbe: number;
+  quantizer: QuantizerConfig | undefined;
+  type: 'hfresh';
+};
+
 export type VectorIndexConfigFlat = {
   distance: VectorDistance;
   vectorCacheMaxObjects: number;
@@ -35,6 +48,8 @@ export type VectorIndexConfigType<I> = I extends 'hnsw'
   ? VectorIndexConfigHNSW
   : I extends 'flat'
   ? VectorIndexConfigFlat
+  : I extends 'hfresh'
+  ? VectorIndexConfigHFresh
   : I extends 'dynamic'
   ? VectorIndexConfigDynamic
   : I extends string
@@ -96,10 +111,14 @@ export type VectorDistance = 'cosine' | 'dot' | 'l2-squared' | 'hamming';
 export type PQEncoderType = 'kmeans' | 'tile';
 export type PQEncoderDistribution = 'log-normal' | 'normal';
 
-export type VectorIndexType = 'hnsw' | 'flat' | 'dynamic' | string;
+export type VectorIndexType = 'hnsw' | 'hfresh' | 'flat' | 'dynamic' | string;
 
 export type VectorIndexFilterStrategy = 'sweeping' | 'acorn';
 
-export type VectorIndexConfig = VectorIndexConfigHNSW | VectorIndexConfigFlat | VectorIndexConfigDynamic;
+export type VectorIndexConfig =
+  | VectorIndexConfigHNSW
+  | VectorIndexConfigFlat
+  | VectorIndexConfigDynamic
+  | VectorIndexConfigHFresh;
 
 export type QuantizerConfig = PQConfig | BQConfig | SQConfig | RQConfig;

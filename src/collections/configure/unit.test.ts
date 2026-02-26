@@ -22,15 +22,16 @@ import {
   RerankerTransformersConfig,
   RerankerVoyageAIConfig,
 } from '../config/types/index.js';
-import { configure } from './index.js';
+import { configure, reconfigure } from './index.js';
 import {
   InvertedIndexConfigCreate,
   MultiTenancyConfigCreate,
   ReplicationConfigCreate,
-  ReplicationConfigUpdate,
   ShardingConfigCreate,
   VectorConfigCreate,
+  VectorIndexConfigDynamicCreate,
   VectorIndexConfigFlatCreate,
+  VectorIndexConfigHFreshCreate,
   VectorIndexConfigHNSWCreate,
 } from './types/index.js';
 
@@ -96,24 +97,36 @@ describe('Unit testing of the configure & reconfigure factory classes', () => {
       asyncEnabled: true,
       deletionStrategy: 'DeleteOnConflict',
       factor: 2,
+      asyncConfig: {
+        maxWorkers: 10,
+      },
     });
     expect(config).toEqual<ReplicationConfigCreate>({
       asyncEnabled: true,
       deletionStrategy: 'DeleteOnConflict',
       factor: 2,
+      asyncConfig: {
+        maxWorkers: 10,
+      },
     });
   });
 
   it('should create the correct ReplicationConfigUpdate type with all values', () => {
-    const config = configure.replication({
+    const config = reconfigure.replication({
       asyncEnabled: true,
       deletionStrategy: 'DeleteOnConflict',
       factor: 2,
+      asyncConfig: {
+        maxWorkers: 10,
+      },
     });
-    expect(config).toEqual<ReplicationConfigUpdate>({
+    expect(config).toEqual<ReplicationConfigCreate>({
       asyncEnabled: true,
       deletionStrategy: 'DeleteOnConflict',
       factor: 2,
+      asyncConfig: {
+        maxWorkers: 10,
+      },
     });
   });
 
@@ -234,6 +247,77 @@ describe('Unit testing of the configure & reconfigure factory classes', () => {
           type: 'bq',
         },
         type: 'flat',
+      },
+    });
+  });
+
+  it('should create the correct dynamic VectorIndexConfig type with RQ quantizer', () => {
+    const config = configure.vectorIndex.dynamic({
+      flat: configure.vectorIndex.flat({
+        quantizer: configure.vectorIndex.quantizer.rq({
+          bits: 1,
+        }),
+      }),
+      hnsw: configure.vectorIndex.hnsw({
+        quantizer: configure.vectorIndex.quantizer.rq({
+          bits: 8,
+        }),
+      }),
+    });
+    expect(config).toEqual<ModuleConfig<'dynamic', VectorIndexConfigDynamicCreate>>({
+      name: 'dynamic',
+      config: {
+        flat: {
+          quantizer: {
+            bits: 1,
+            type: 'rq',
+          },
+          type: 'flat',
+        },
+        hnsw: {
+          quantizer: {
+            bits: 8,
+            type: 'rq',
+          },
+          type: 'hnsw',
+        },
+        type: 'dynamic',
+      },
+    });
+  });
+
+  it('should create the correct hfresh VectorIndexConfig type with defaults', () => {
+    const config = configure.vectorIndex.hfresh({ quantizer: configure.vectorIndex.quantizer.rq() });
+    expect(config).toEqual<ModuleConfig<'hfresh', VectorIndexConfigHFreshCreate | undefined>>({
+      name: 'hfresh',
+      config: {
+        quantizer: {
+          type: 'rq',
+        },
+        type: 'hfresh',
+      },
+    });
+  });
+
+  it('should create the correct hfresh VectorIndexConfig type with all values', () => {
+    const config = configure.vectorIndex.hfresh({
+      distanceMetric: 'cosine',
+      maxPostingSizeKb: 10,
+      searchProbe: 20,
+      replicas: 30,
+      quantizer: configure.vectorIndex.quantizer.rq(),
+    });
+    expect(config).toEqual<ModuleConfig<'hfresh', VectorIndexConfigHFreshCreate>>({
+      name: 'hfresh',
+      config: {
+        distance: 'cosine',
+        maxPostingSizeKb: 10,
+        searchProbe: 20,
+        replicas: 30,
+        quantizer: {
+          type: 'rq',
+        },
+        type: 'hfresh',
       },
     });
   });
@@ -2286,11 +2370,13 @@ describe('Unit testing of the reranker factory class', () => {
 
   it('should create the correct RerankerCohereConfig type with all values', () => {
     const config = configure.reranker.cohere({
+      baseURL: 'base-url',
       model: 'model',
     });
     expect(config).toEqual<ModuleConfig<'reranker-cohere', RerankerCohereConfig | undefined>>({
       name: 'reranker-cohere',
       config: {
+        baseURL: 'base-url',
         model: 'model',
       },
     });

@@ -1,7 +1,9 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
+/* eslint-disable no-await-in-loop */
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+
 import { v4 } from 'uuid';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { WeaviateUnsupportedFeatureError } from '../../../src/errors.js';
 import weaviate, {
   Collection,
@@ -15,6 +17,7 @@ import weaviate, {
   WeaviateObject,
   weaviateV2,
 } from '../../../src/index.js';
+import { requireAtLeast } from '../../version.js';
 
 type TestCollectionData = {
   testProp: string;
@@ -1088,5 +1091,82 @@ describe('Testing of BYOV insertion with legacy vectorizer', () => {
     const id = await collection.data.insert({ vectors: [7, 8, 9] });
     const object = await collection.query.fetchObjectById(id, { includeVector: true });
     expect(object?.vectors.default).toEqual([7, 8, 9]);
+  });
+});
+
+requireAtLeast(1, 36, 0).describe('Testing of the collection.data.{import, ingest} methods', () => {
+  let client: WeaviateClient;
+  let collection: Collection;
+  const collectionName = 'TestCollectionDataIngest';
+
+  beforeAll(async () => {
+    client = await weaviate.connectToLocal();
+  });
+
+  beforeEach(async () => {
+    collection = await client.collections.create({
+      name: collectionName,
+      properties: [
+        {
+          name: 'text',
+          dataType: 'text',
+        },
+      ],
+      references: [
+        {
+          name: 'self',
+          targetCollection: collectionName,
+        },
+      ],
+      vectorizers: weaviate.configure.vectors.selfProvided(),
+    });
+  });
+
+  afterEach(() => client.collections.delete(collectionName));
+
+  it('should be able to ingest 2000 objects with vectors from the collection object', async () => {
+    const objects: DataObject<any>[] = [];
+    for (let i = 0; i < 2000; i++) {
+      objects.push({
+        properties: {
+          text: `object ${i}`,
+        },
+        vectors: Array.from({ length: 128 }, () => Math.random()),
+      });
+    }
+    const insert = await collection.data.ingest(objects);
+    expect(insert.hasErrors).toBeFalsy();
+    expect(insert.allResponses.length).toEqual(2000);
+    expect(Object.values(insert.errors).length).toEqual(0);
+    expect(Object.values(insert.uuids).length).toEqual(2000);
+    expect(await collection.length()).toEqual(2000);
+  });
+
+  it('should be able to ingest 2000 self-referencing objects with vectors from the client object', async () => {
+    const batching = await client.batch.stream();
+
+    for (let i = 0; i < 2000; i++) {
+      const obj = {
+        collection: collectionName,
+        properties: {
+          text: `object ${i}`,
+        },
+        vectors: Array.from({ length: 128 }, () => Math.random()),
+      };
+      const id = await batching.addObject(obj);
+      await batching.addReference({
+        fromObjectCollection: collectionName,
+        fromObjectUuid: id,
+        fromPropertyName: 'self',
+        toObjectUuid: id,
+      });
+    }
+
+    await batching.stop();
+
+    expect(batching.hasErrors()).toBeFalsy();
+    expect(Object.values(batching.objErrors()).length).toEqual(0);
+    expect(Object.values(batching.uuids()).length).toEqual(2000);
+    expect(await collection.length()).toEqual(2000);
   });
 });

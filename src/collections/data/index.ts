@@ -14,6 +14,7 @@ import {
   BatchReferencesReturn,
   DataObject,
   DeleteManyReturn,
+  ErrorObject,
   ErrorReference,
   NonReferenceInputs,
   Properties,
@@ -21,6 +22,7 @@ import {
   ReferenceInputs,
   Vectors,
 } from '../types/index.js';
+import batch from './batch.js';
 
 /** The available options to the `data.deleteMany` method.  */
 export type DeleteManyOptions<V> = {
@@ -83,6 +85,7 @@ export interface Data<T> {
     opts?: DeleteManyOptions<V>
   ) => Promise<DeleteManyReturn<V>>;
   exists: (id: string) => Promise<boolean>;
+  ingest: (objs: Iterable<DataObject<T> | NonReferenceInputs<T>>) => Promise<BatchObjectsReturn<T>>;
   /**
    * Insert a single object into the collection.
    *
@@ -239,6 +242,44 @@ const data = <T>(
         consistencyLevel,
         tenant
       ).do(),
+    ingest: async (objs) => {
+      const allResponses: (string | ErrorObject<T>)[] = [];
+
+      const batching = await batch(connection, dbVersionSupport).stream(consistencyLevel);
+      const start = Date.now();
+
+      for (const obj of objs) {
+        // eslint-disable-next-line no-await-in-loop
+        await batching.addObject({
+          collection: name,
+          ...obj,
+          tenant,
+        });
+      }
+      await batching.stop();
+
+      const errors = batching.objErrors();
+      const uuids = batching.uuids();
+
+      for (let i = 0; i < Object.keys(uuids).length + Object.keys(errors).length; i++) {
+        if (uuids[i]) {
+          allResponses.push(uuids[i]);
+        } else if (errors[i]) {
+          allResponses.push(errors[i]);
+        }
+      }
+
+      const end = Date.now();
+      const elapsedSeconds = (end - start) / 1000;
+
+      return {
+        allResponses,
+        elapsedSeconds,
+        errors,
+        uuids,
+        hasErrors: Object.keys(errors).length > 0,
+      };
+    },
     insert: (obj?: InsertObject<T> | NonReferenceInputs<T>): Promise<string> =>
       Promise.all([
         objectsPath.buildCreate(consistencyLevel),
