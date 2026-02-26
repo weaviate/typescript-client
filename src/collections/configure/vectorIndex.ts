@@ -17,6 +17,7 @@ import {
   RQConfigUpdate,
   SQConfigCreate,
   SQConfigUpdate,
+  VectorIndexConfigDymamicUpdate,
   VectorIndexConfigDynamicCreate,
   VectorIndexConfigDynamicCreateOptions,
   VectorIndexConfigFlatCreate,
@@ -278,10 +279,7 @@ const reconfigure = {
    * @param {BQConfigCreate} [options.quantizer] The quantizer configuration to use. Default is `bq`.
    * @returns {ModuleConfig<'flat', VectorIndexConfigFlatUpdate>} The configuration object.
    */
-  flat: (options: {
-    vectorCacheMaxObjects?: number;
-    quantizer?: QuantizerConfigUpdate;
-  }): ModuleConfig<'flat', VectorIndexConfigFlatUpdate> => {
+  flat: (options: VectorIndexConfigFlatUpdate): ModuleConfig<'flat', VectorIndexConfigFlatUpdate> => {
     return {
       name: 'flat',
       config: options,
@@ -296,11 +294,7 @@ const reconfigure = {
    * @param {number} [options.searchProbe] The number of postings read during each search. Default is 64.
    * @returns {ModuleConfig<'hfresh', VectorIndexConfigHFreshUpdate>} The configuration object.
    */
-  hfresh: (options: {
-    maxPostingSizeKb?: number;
-    searchProbe?: number;
-    quantizer?: QuantizerConfigUpdate;
-  }): ModuleConfig<'hfresh', VectorIndexConfigHFreshUpdate> => {
+  hfresh: (options: VectorIndexConfigHFreshUpdate): ModuleConfig<'hfresh', VectorIndexConfigHFreshUpdate> => {
     return {
       name: 'hfresh',
       config: options,
@@ -321,19 +315,32 @@ const reconfigure = {
    * @param {number} [options.vectorCacheMaxObjects] The maximum number of objects to cache in the vector cache. Default is 1000000000000.
    * @returns {ModuleConfig<'hnsw', VectorIndexConfigHNSWUpdate>} The configuration object.
    */
-  hnsw: (options: {
-    dynamicEfFactor?: number;
-    dynamicEfMax?: number;
-    dynamicEfMin?: number;
-    ef?: number;
-    filterStrategy?: VectorIndexFilterStrategy;
-    flatSearchCutoff?: number;
-    quantizer?: QuantizerConfigUpdate;
-    vectorCacheMaxObjects?: number;
-  }): ModuleConfig<'hnsw', VectorIndexConfigHNSWUpdate> => {
+  hnsw: (options: VectorIndexConfigHNSWUpdate): ModuleConfig<'hnsw', VectorIndexConfigHNSWUpdate> => {
     return {
       name: 'hnsw',
       config: options,
+    };
+  },
+  /**
+   * Create a `ModuleConfig<'dynamic', VectorIndexConfigDymamicUpdate | undefined>` object when defining the configuration of the dynamic vector index.
+   *
+   * @param {VectorIndexConfigDymamicUpdateOptions} [opts] The options available for reconfiguring the dynamic vector index.
+   * @returns {ModuleConfig<'dynamic', VectorIndexConfigDymamicUpdate | undefined>} The new configuration object.
+   */
+  dynamic: (
+    opts?: VectorIndexConfigDymamicUpdate
+  ): ModuleConfig<'dynamic', VectorIndexConfigDymamicUpdate | undefined> => {
+    return {
+      name: 'dynamic',
+      config: opts
+        ? {
+            distance: opts.distance,
+            threshold: opts.threshold,
+            hnsw: isModuleConfig(opts.hnsw) ? opts.hnsw.config : reconfigure.hnsw({ ...opts.hnsw }).config,
+            flat: isModuleConfig(opts.flat) ? opts.flat.config : reconfigure.flat({ ...opts.flat }).config,
+            type: 'dynamic',
+          }
+        : undefined,
     };
   },
   /**
