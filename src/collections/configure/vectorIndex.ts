@@ -324,23 +324,28 @@ const reconfigure = {
   /**
    * Create a `ModuleConfig<'dynamic', VectorIndexConfigDynamicUpdate | undefined>` object when defining the configuration of the dynamic vector index.
    *
-   * @param {VectorIndexConfigDynamicUpdateOptions} [opts] The options available for reconfiguring the dynamic vector index.
+   * @param {VectorIndexConfigDynamicUpdate} [opts] The options available for reconfiguring the dynamic vector index.
    * @returns {ModuleConfig<'dynamic', VectorIndexConfigDynamicUpdate | undefined>} The new configuration object.
    */
   dynamic: (
-    opts?: VectorIndexConfigDynamicUpdate
-  ): ModuleConfig<'dynamic', VectorIndexConfigDynamicUpdate | undefined> => {
+    opts: VectorIndexConfigDynamicUpdate
+  ): ModuleConfig<'dynamic', VectorIndexConfigDynamicUpdate> => {
     return {
       name: 'dynamic',
-      config: opts
-        ? {
-            distance: opts.distance,
-            threshold: opts.threshold,
-            hnsw: isModuleConfig(opts.hnsw) ? opts.hnsw.config : reconfigure.hnsw({ ...opts.hnsw }).config,
-            flat: isModuleConfig(opts.flat) ? opts.flat.config : reconfigure.flat({ ...opts.flat }).config,
-            type: 'dynamic',
-          }
-        : undefined,
+      config: {
+        threshold: opts.threshold,
+        hnsw: opts.hnsw
+          ? isModuleConfig(opts.hnsw)
+            ? opts.hnsw.config
+            : reconfigure.hnsw({ ...opts.hnsw }).config
+          : undefined,
+        flat: opts.flat
+          ? isModuleConfig(opts.flat)
+            ? opts.flat.config
+            : reconfigure.flat({ ...opts.flat }).config
+          : undefined,
+        type: 'dynamic',
+      },
     };
   },
   /**

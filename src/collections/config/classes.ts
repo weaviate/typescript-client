@@ -17,6 +17,7 @@ import {
   ObjectTTLConfigUpdate,
   ReplicationConfigUpdate,
   VectorConfigUpdate,
+  VectorIndexConfigDynamicUpdate,
   VectorIndexConfigFlatUpdate,
   VectorIndexConfigHFreshUpdate,
   VectorIndexConfigHNSWUpdate,
@@ -29,6 +30,7 @@ import {
   PropertyDescriptionsUpdate,
   Reranker,
   RerankerConfig,
+  VectorIndexConfigDynamic,
   VectorIndexType,
 } from './types/index.js';
 
@@ -75,6 +77,8 @@ export class MergeWithExisting {
             ? MergeWithExisting.hnsw(current.vectorIndexConfig, update.vectorizers.vectorIndex.config)
             : update.vectorizers?.vectorIndex.name === 'hfresh'
             ? MergeWithExisting.hfresh(current.vectorIndexConfig, update.vectorizers.vectorIndex.config)
+            : update.vectorizers?.vectorIndex.name === 'dynamic'
+            ? MergeWithExisting.dynamic(current.vectorIndexConfig, update.vectorizers.vectorIndex.config)
             : MergeWithExisting.flat(current.vectorIndexConfig, update.vectorizers.vectorIndex.config);
       }
     }
@@ -181,6 +185,8 @@ export class MergeWithExisting {
             ? MergeWithExisting.hnsw(existing.vectorIndexConfig, v.vectorIndex.config)
             : v.vectorIndex.name === 'hfresh'
             ? MergeWithExisting.hfresh(existing.vectorIndexConfig, v.vectorIndex.config)
+            : v.vectorIndex.name === 'dynamic'
+            ? MergeWithExisting.dynamic(existing.vectorIndexConfig, v.vectorIndex.config)
             : MergeWithExisting.flat(existing.vectorIndexConfig, v.vectorIndex.config);
       }
     });
@@ -210,6 +216,25 @@ export class MergeWithExisting {
     update: VectorIndexConfigHFreshUpdate
   ): WeaviateVectorIndexConfig {
     return { ...current, ...update };
+  }
+
+  static dynamic(
+    current: WeaviateVectorIndexConfig,
+    update: VectorIndexConfigDynamicUpdate
+  ): WeaviateVectorIndexConfig {
+    if (!current) {
+      return update;
+    }
+    current as VectorIndexConfigDynamic;
+    const { hnsw, flat, ...rest } = update;
+    const merged: WeaviateVectorIndexConfig = { ...current, ...rest };
+    if (hnsw) {
+      merged.hnsw = MergeWithExisting.hnsw((current as VectorIndexConfigDynamic).hnsw, hnsw);
+    }
+    if (flat) {
+      merged.flat = MergeWithExisting.flat((current as VectorIndexConfigDynamic).flat, flat);
+    }
+    return merged;
   }
 
   static hnsw(

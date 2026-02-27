@@ -241,6 +241,63 @@ describe('Testing of the collection.config namespace', () => {
     expect(config.vectorizers.default.vectorizer.name).toEqual('none');
   });
 
+  requireAtLeast(1, 36, 0).it('should reconfigure dynamic index', async () => {
+    const asyncIndexing = await weaviate.connectToLocal({ port: 8078, grpcPort: 50049 }); // need async indexing for dynamic vectorizer
+    const collectionName = 'TestCollectionConfigReconfigureDynamic';
+    await asyncIndexing.collections.delete(collectionName);
+    const collection = await asyncIndexing.collections.create({
+      name: collectionName,
+      vectorizers: weaviate.configure.vectorizer.none({
+        vectorIndexConfig: weaviate.configure.vectorIndex.dynamic({
+          distanceMetric: 'dot',
+          threshold: 1,
+          flat: {
+            distanceMetric: 'dot',
+            vectorCacheMaxObjects: 2,
+            quantizer: weaviate.configure.vectorIndex.quantizer.bq(),
+          },
+          hnsw: {
+            dynamicEfMin: 1,
+            dynamicEfMax: 2,
+            dynamicEfFactor: 3,
+          },
+        }),
+      }),
+    });
+
+    await asyncIndexing.collections.use(collectionName).config.update({
+      vectorizers: weaviate.reconfigure.vectorizer.update({
+        vectorIndexConfig: weaviate.reconfigure.vectorIndex.dynamic({
+          threshold: 10,
+          hnsw: {
+            dynamicEfMin: 4,
+            dynamicEfMax: 5,
+            dynamicEfFactor: 6,
+          },
+        }),
+      }),
+    });
+
+    const config = await collection.config.get();
+
+    const vectorIndexConfig = config.vectorizers.default.indexConfig as VectorIndexConfigDynamic;
+    expect(vectorIndexConfig).toBeDefined();
+    expect(vectorIndexConfig.threshold).toEqual(10);
+    expect(config.vectorizers.default.indexType).toEqual('dynamic');
+    expect(config.vectorizers.default.vectorizer.name).toEqual('none');
+
+    expect(vectorIndexConfig.flat).toBeDefined();
+    expect(vectorIndexConfig.flat.distance).toEqual('dot');
+    expect(vectorIndexConfig.flat.vectorCacheMaxObjects).toEqual(2);
+    expect(vectorIndexConfig.flat.quantizer).toBeDefined();
+    expect(vectorIndexConfig.flat.quantizer?.type).toEqual('bq');
+
+    expect(vectorIndexConfig.hnsw).toBeDefined();
+    expect(vectorIndexConfig.hnsw.dynamicEfMin).toEqual(4);
+    expect(vectorIndexConfig.hnsw.dynamicEfMax).toEqual(5);
+    expect(vectorIndexConfig.hnsw.dynamicEfFactor).toEqual(6);
+  });
+
   requireAtLeast(1, 36, 0).it('should create a collection with hfresh index', async () => {
     const collectionName = 'TestCollectionConfigGetHFresh';
     await client.collections.delete(collectionName);
