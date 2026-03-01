@@ -120,6 +120,10 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
       const { class: name } = await new ClassCreator(connection).withClass(config).do();
       return collection<Properties, string, undefined>(connection, name as string, dbVersionSupport);
     },
+    createFromJson: async (schemaJson: any) => {
+      const { class: name } = await connection.postReturn<any, WeaviateClass>('/schema', schemaJson);
+      return collection<Properties, string, undefined>(connection, name as string, dbVersionSupport);
+    },
     delete: deleteCollection,
     deleteAll: () => listAll().then((configs) => Promise.all(configs?.map((c) => deleteCollection(c.name)))),
     exists: (name: string) => new ClassExists(connection).withClassName(name).do(),
@@ -128,6 +132,7 @@ const collections = (connection: Connection, dbVersionSupport: DbVersionSupport)
         .withClassName(name)
         .do()
         .then(classToCollection<TProperties>),
+    exportToJson: (name: string) => connection.get<WeaviateClass>(`/schema/${name}`, true),
     listAll: listAll,
     get: <TProperties extends Properties | undefined = undefined, TName extends string = string>(
       name: TName
@@ -151,10 +156,12 @@ export interface Collections {
     config: CollectionConfigCreate<TProperties, TName, TVectors>
   ): Promise<Collection<TProperties, TName, TVectors>>;
   createFromSchema(config: WeaviateClass): Promise<Collection<Properties, string>>;
+  createFromJson(schemaJson: any): Promise<Collection<Properties, string>>;
   delete(collection: string): Promise<void>;
   deleteAll(): Promise<void[]>;
   exists(name: string): Promise<boolean>;
   export(name: string): Promise<CollectionConfig>;
+  exportToJson(name: string): Promise<WeaviateClass>;
   get<TProperties extends Properties | undefined = undefined, TName extends string = string>(
     name: TName
   ): Collection<TProperties, TName>;
