@@ -6,9 +6,6 @@ on:
       - "**"
   pull_request:
 
-permissions:
-  id-token: write
-
 env:
   WEAVIATE_127: 1.27.27
   WEAVIATE_128: 1.28.16
@@ -123,7 +120,7 @@ jobs:
     permissions:
       contents: write # to upload the release
       pages: write # to deploy to Pages
-      id-token: write # to verify the deployment originates from an appropriate source
+      id-token: write # to authenticate with OIDC when publishing to npm
     steps:
       - uses: actions/checkout@v3
       # Setup .npmrc file to publish to npm
@@ -134,8 +131,6 @@ jobs:
       - run: npm ci
       - run: npm run build
       - run: npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTOMATION_TOKEN }}
       - run: npm run docs
       - name: "Upload docs as pages artifact"
         uses: actions/upload-pages-artifact@v3
