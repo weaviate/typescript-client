@@ -9,6 +9,7 @@ import {
   Multi2VecCohereConfig,
   Multi2VecField,
   Multi2VecGoogleConfig,
+  Multi2VecGoogleGeminiConfig,
   Multi2VecJinaAIConfig,
   Multi2VecNvidiaConfig,
   Multi2VecVoyageAIConfig,
@@ -20,8 +21,8 @@ import {
   Text2VecContextionaryConfig,
   Text2VecDatabricksConfig,
   Text2VecGPT4AllConfig,
-  Text2VecGoogleAiStudioConfig,
   Text2VecGoogleConfig,
+  Text2VecGoogleGeminiConfig,
   Text2VecHuggingFaceConfig,
   Text2VecJinaAIConfig,
   Text2VecMistralConfig,
@@ -228,6 +229,16 @@ export type Multi2VecGoogleConfigCreate = Omit<Multi2VecGoogleConfig, Multi2VecO
   videoFields?: string[] | Multi2VecField[];
 };
 
+/** The configuration for the `multi2vec-google` vectorizer. */
+export type Multi2VecGoogleGeminiConfigCreate = Omit<Multi2VecGoogleGeminiConfig, Multi2VecOmissions> & {
+  /** The image fields to use in vectorization. Can be string of `Multi2VecField` type. If string, weight 0 will be assumed. */
+  imageFields?: string[] | Multi2VecField[];
+  /** The text fields to use in vectorization. Can be string of `Multi2VecField` type. If string, weight 0 will be assumed. */
+  textFields?: string[] | Multi2VecField[];
+  /** The video fields to use in vectorization. Can be string of `Multi2VecField` type. If string, weight 0 will be assumed. */
+  videoFields?: string[] | Multi2VecField[];
+};
+
 export type Multi2VecVoyageAIConfigCreate = Omit<Multi2VecVoyageAIConfig, Multi2VecOmissions> & {
   /** The image fields to use in vectorization. Can be string of `Multi2VecField` type. If string, weight 0 will be assumed. */
   imageFields?: string[] | Multi2VecField[];
@@ -272,7 +283,10 @@ export type Text2VecPalmConfigCreate = Text2VecGoogleConfig;
 
 export type Text2VecGoogleConfigCreate = Text2VecGoogleConfig;
 
-export type Text2VecGoogleAiStudioConfigCreate = Text2VecGoogleAiStudioConfig;
+/** @deprecated Use [Text2VecGoogleGeminiConfigCreate] */
+export type Text2VecGoogleAiStudioConfigCreate = Text2VecGoogleGeminiConfig;
+
+export type Text2VecGoogleGeminiConfigCreate = Text2VecGoogleGeminiConfig;
 
 export type Text2VecTransformersConfigCreate = Text2VecTransformersConfig;
 
@@ -302,6 +316,8 @@ export type VectorizerConfigCreateType<V> = V extends 'img2vec-neural'
   ? Multi2VecPalmConfigCreate
   : V extends 'multi2vec-google'
   ? Multi2VecGoogleConfigCreate
+  : V extends 'multi2vec-google-gemini'
+  ? Multi2VecGoogleGeminiConfigCreate
   : V extends 'multi2vec-voyageai'
   ? Multi2VecVoyageAIConfigCreate | undefined
   : V extends 'ref2vec-centroid'
@@ -338,8 +354,8 @@ export type VectorizerConfigCreateType<V> = V extends 'img2vec-neural'
   ? Text2VecPalmConfigCreate | undefined
   : V extends 'text2vec-google'
   ? Text2VecGoogleConfigCreate | undefined
-  : V extends 'text2vec-google-ai-studio'
-  ? Text2VecGoogleAiStudioConfigCreate | undefined
+  : V extends 'text2vec-google-gemini'
+  ? Text2VecGoogleGeminiConfigCreate | undefined
   : V extends 'text2vec-transformers'
   ? Text2VecTransformersConfigCreate | undefined
   : V extends 'text2vec-voyageai'

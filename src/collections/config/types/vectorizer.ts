@@ -25,6 +25,7 @@ export type Vectorizer =
   | 'multi2vec-bind'
   | Multi2VecPalmVectorizer
   | 'multi2vec-google'
+  | 'multi2vec-google-gemini'
   | 'multi2vec-jinaai'
   | 'multi2multivec-jinaai'
   | 'multi2multivec-weaviate'
@@ -46,7 +47,7 @@ export type Vectorizer =
   | 'text2vec-openai'
   | Text2VecPalmVectorizer
   | 'text2vec-google'
-  | 'text2vec-google-ai-studio'
+  | 'text2vec-google-gemini'
   | 'text2vec-transformers'
   | 'text2vec-voyageai'
   | 'text2vec-weaviate'
@@ -220,9 +221,11 @@ export type Multi2VecPalmConfig = Multi2VecGoogleConfig;
  */
 export type Multi2VecGoogleConfig = {
   /** The project ID of the model in GCP. */
-  projectId: string;
+  projectId?: string;
   /** The location where the model runs. */
-  location: string;
+  location?: string;
+  /** The base URL for the vectorizer. */
+  apiEndpoint?: string;
   /** The image fields used when vectorizing. */
   imageFields?: string[];
   /** The text fields used when vectorizing. */
@@ -250,6 +253,15 @@ export type Multi2VecGoogleConfig = {
     videoFields?: number[];
   };
 };
+
+/** The configuration for multi-media vectorization using the Google module with Gemini API settings.
+ *
+ * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/google/embeddings) for detailed usage.
+ */
+export type Multi2VecGoogleGeminiConfig = Omit<
+  Multi2VecGoogleConfig,
+  'location' | 'projectId' | 'apiEndpoint'
+>;
 
 /** The configuration for multi-media-to-multi-vector vectorization using
  * the jina-embeddings-v4 model
@@ -572,7 +584,10 @@ export type Text2VecGoogleConfig = {
   vectorizeCollectionName?: boolean;
 };
 
-export type Text2VecGoogleAiStudioConfig = {
+/** @deprecated Use [Text2VecGoogleGeminiConfig]. */
+export type Text2VecGoogleAiStudioConfig = Text2VecGoogleGeminiConfig;
+
+export type Text2VecGoogleGeminiConfig = {
   /** The model ID to use. */
   model?: string;
   /** The Weaviate property name for the `gecko-002` or `gecko-003` model to use as the title. */
@@ -658,6 +673,7 @@ export type VectorizerConfig =
   | Multi2VecClipConfig
   | Multi2VecBindConfig
   | Multi2VecGoogleConfig
+  | Multi2VecGoogleGeminiConfig
   | Multi2VecJinaAIConfig
   | Multi2MultivecJinaAIConfig
   | Multi2MultivecWeaviateConfig
@@ -693,6 +709,8 @@ export type VectorizerConfigType<V> = V extends 'img2vec-neural'
   ? Multi2VecBindConfig | undefined
   : V extends 'multi2vec-google'
   ? Multi2VecGoogleConfig
+  : V extends 'multi2vec-google-gemini'
+  ? Multi2VecGoogleGeminiConfig
   : V extends 'multi2vec-jinaai'
   ? Multi2VecJinaAIConfig | undefined
   : V extends 'multi2multivec-jinaai'

@@ -1542,8 +1542,8 @@ describe('Unit testing of the vectorizer factory class', () => {
     });
   });
 
-  it('should create the correct Text2VecGoogleAiStudioConfig type with defaults', () => {
-    const config = configure.vectors.text2VecGoogleAiStudio();
+  it('should create the correct Text2VecGoogleGeminiConfig type with defaults', () => {
+    const config = configure.vectors.text2VecGoogleGemini();
     expect(config).toEqual<VectorConfigCreate<never, undefined, 'hnsw', 'text2vec-google'>>({
       name: undefined,
       vectorIndex: {
@@ -1559,8 +1559,8 @@ describe('Unit testing of the vectorizer factory class', () => {
     });
   });
 
-  it('should create the correct Text2VecGoogleAiStudioConfig type with all values', () => {
-    const config = configure.vectors.text2VecGoogleAiStudio({
+  it('should create the correct Text2VecGoogleGeminiConfig type with all values', () => {
+    const config = configure.vectors.text2VecGoogleGemini({
       name: 'test',
       model: 'model-id',
       titleProperty: 'title',
@@ -1577,6 +1577,49 @@ describe('Unit testing of the vectorizer factory class', () => {
           apiEndpoint: 'generativelanguage.googleapis.com',
           model: 'model-id',
           titleProperty: 'title',
+        },
+      },
+    });
+  });
+
+  it('should create the correct Multi2VecGoogleGeminiConfig type with defaults', () => {
+    const config = configure.vectors.multi2VecGoogleGemini();
+    expect(config).toEqual<VectorConfigCreate<never, undefined, 'hnsw', 'multi2vec-google'>>({
+      name: undefined,
+      vectorIndex: {
+        name: 'hnsw',
+        config: undefined,
+      },
+      vectorizer: {
+        name: 'multi2vec-google',
+        config: {
+          apiEndpoint: 'generativelanguage.googleapis.com',
+        },
+      },
+    });
+  });
+
+  it('should create the correct Multi2VecGoogleGeminiConfig type', () => {
+    const config = configure.vectors.multi2VecGoogleGemini({
+      imageFields: ['image'],
+      textFields: ['text'],
+      videoFields: ['video'],
+      dimensions: 768,
+    });
+    expect(config).toEqual<VectorConfigCreate<never, undefined, 'hnsw', 'multi2vec-google'>>({
+      name: undefined,
+      vectorIndex: {
+        name: 'hnsw',
+        config: undefined,
+      },
+      vectorizer: {
+        name: 'multi2vec-google',
+        config: {
+          apiEndpoint: 'generativelanguage.googleapis.com',
+          imageFields: ['image'],
+          textFields: ['text'],
+          videoFields: ['video'],
+          dimensions: 768,
         },
       },
     });
