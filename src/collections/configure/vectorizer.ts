@@ -4,6 +4,7 @@ import {
   Multi2VecBindConfig,
   Multi2VecClipConfig,
   Multi2VecField,
+  Multi2VecGoogleGeminiConfig,
   Multi2VecNvidiaConfig,
   Multi2VecPalmConfig,
   Multi2VecVoyageAIConfig,
@@ -978,11 +979,13 @@ export const vectors = (({ text2VecPalm, multi2VecPalm, ...rest }) => ({
    *
    * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/google/embeddings) for detailed usage.
    *
-   * @param {ConfigureTextVectorizerOptions<T, N, I, 'text2vec-google-ai-studio'>} [opts] The configuration for the `text2vec-google` vectorizer.
+   * @param {ConfigureTextVectorizerOptions<T, N, I, 'text2vec-google-gemini'>} [opts] The configuration for the `text2vec-google` vectorizer.
    * @returns {VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2vec-google'>} The configuration object.
+   *
+   * @deprecated Use [text2VecGoogleGemini]
    */
   text2VecGoogleAiStudio: <T, N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
-    opts?: ConfigureTextVectorizerOptions<T, N, I, 'text2vec-google-ai-studio'>
+    opts?: ConfigureTextVectorizerOptions<T, N, I, 'text2vec-google-gemini'>
   ): VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2vec-google'> => {
     const { name, sourceProperties, quantizer, vectorIndexConfig, ...config } = opts || {};
     return makeVectorizer(name, {
@@ -994,6 +997,66 @@ export const vectors = (({ text2VecPalm, multi2VecPalm, ...rest }) => ({
         config: {
           apiEndpoint: 'generativelanguage.googleapis.com',
           ...config,
+        },
+      },
+    });
+  },
+  /**
+   * Create a `VectorConfigCreate` object with the vectorizer set to `'text2vec-google'` with specific options for AI studio deployments.
+   *
+   * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/google/embeddings) for detailed usage.
+   *
+   * @param {ConfigureTextVectorizerOptions<T, N, I, 'text2vec-google-gemini'>} [opts] The configuration for the `text2vec-google` vectorizer.
+   * @returns {VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2vec-google'>} The configuration object.
+   */
+  text2VecGoogleGemini: <T, N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
+    opts?: ConfigureTextVectorizerOptions<T, N, I, 'text2vec-google-gemini'>
+  ): VectorConfigCreate<PrimitiveKeys<T>, N, I, 'text2vec-google'> => {
+    const { name, sourceProperties, quantizer, vectorIndexConfig, ...config } = opts || {};
+    return makeVectorizer(name, {
+      quantizer,
+      sourceProperties,
+      vectorIndexConfig,
+      vectorizerConfig: {
+        name: 'text2vec-google',
+        config: {
+          apiEndpoint: 'generativelanguage.googleapis.com',
+          ...config,
+        },
+      },
+    });
+  },
+  /**
+   * Create a `VectorConfigCreate` object with the vectorizer set to `'multi2vec-google'` with Google Gemini API endpoint.
+   *
+   * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/google/embeddings) for detailed usage.
+   *
+   * @param {ConfigureTextVectorizerOptions<T, N, I, 'multi2vec-google-gemini'>} [opts] The configuration for the `multi2vec-google` vectorizer.
+   * @returns {VectorConfigCreate<PrimitiveKeys<T>, N, I, 'multi2vec-google'>} The configuration object.
+   */
+  multi2VecGoogleGemini: <T, N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
+    opts?: ConfigureTextVectorizerOptions<T, N, I, 'multi2vec-google-gemini'>
+  ): VectorConfigCreate<PrimitiveKeys<T>, N, I, 'multi2vec-google'> => {
+    const { name, quantizer, vectorIndexConfig, ...config } = opts || {};
+    const imageFields = config.imageFields?.map(mapMulti2VecField);
+    const textFields = config.textFields?.map(mapMulti2VecField);
+    const videoFields = config.videoFields?.map(mapMulti2VecField);
+    let weights: Multi2VecGoogleGeminiConfig['weights'] = {};
+    weights = formatMulti2VecFields(weights, 'imageFields', imageFields);
+    weights = formatMulti2VecFields(weights, 'textFields', textFields);
+    weights = formatMulti2VecFields(weights, 'videoFields', videoFields);
+    return makeVectorizer(name, {
+      quantizer,
+      vectorIndexConfig,
+      vectorizerConfig: {
+        name: 'multi2vec-google',
+        config: {
+          ...config,
+          apiEndpoint: 'generativelanguage.googleapis.com',
+          imageFields: imageFields?.map((f) => f.name),
+          textFields: textFields?.map((f) => f.name),
+          videoFields: videoFields?.map((f) => f.name),
+          weights: Object.keys(weights).length === 0 ? undefined : weights,
         },
       },
     });
