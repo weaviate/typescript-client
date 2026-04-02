@@ -1095,7 +1095,7 @@ describe('Testing of the collection.config namespace', () => {
     const created = await collection.config.get();
     expect(created.objectTTL).toBeDefined();
     expect(created.objectTTL.enabled).toEqual(true);
-    expect(created.objectTTL.deleteOn).toEqual('_creationTimeUnix');
+    expect(created.objectTTL.deleteOn).toEqual('creationTime');
     expect(created.objectTTL.defaultTTLSeconds).toEqual(120);
 
     await collection.config.update({
@@ -1105,7 +1105,7 @@ describe('Testing of the collection.config namespace', () => {
     const updated = await collection.config.get();
     expect(updated.objectTTL).toBeDefined();
     expect(updated.objectTTL.enabled).toEqual(true);
-    expect(updated.objectTTL.deleteOn).toEqual('_lastUpdateTimeUnix');
+    expect(updated.objectTTL.deleteOn).toEqual('updateTime');
     expect(updated.objectTTL.defaultTTLSeconds).toEqual(400);
 
     await collection.config.update({

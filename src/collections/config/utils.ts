@@ -403,11 +403,16 @@ class ConfigMapping {
       return { enabled: false };
     }
     return {
+      ...v,
       enabled: v.enabled ?? false,
-      deleteOn: v.deleteOn,
+      deleteOn:
+        v.deleteOn == '_creationTimeUnix'
+          ? 'creationTime'
+          : v.deleteOn == '_lastUpdateTimeUnix'
+          ? 'updateTime'
+          : v.deleteOn,
       defaultTTLSeconds: v.defaultTtl,
       filterExpiredObjects: v.filterExpiredObjects,
-      ...v,
     };
   }
   static multiTenancy(v?: WeaviateMultiTenancyConfig): MultiTenancyConfig {
