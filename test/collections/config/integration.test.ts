@@ -685,8 +685,8 @@ describe('Testing of the collection.config namespace', () => {
       .update({
         propertyDescriptions: supportsUpdatingPropertyDescriptions
           ? {
-            testProp: 'This is a test property',
-          }
+              testProp: 'This is a test property',
+            }
           : undefined,
         vectorizers: weaviate.reconfigure.vectors.update({
           vectorIndexConfig: weaviate.reconfigure.vectorIndex.hnsw({

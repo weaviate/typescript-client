@@ -76,10 +76,10 @@ export class MergeWithExisting {
           update.vectorizers?.vectorIndex.name === 'hnsw'
             ? MergeWithExisting.hnsw(current.vectorIndexConfig, update.vectorizers.vectorIndex.config)
             : update.vectorizers?.vectorIndex.name === 'hfresh'
-              ? MergeWithExisting.hfresh(current.vectorIndexConfig, update.vectorizers.vectorIndex.config)
-              : update.vectorizers?.vectorIndex.name === 'dynamic'
-                ? MergeWithExisting.dynamic(current.vectorIndexConfig, update.vectorizers.vectorIndex.config)
-                : MergeWithExisting.flat(current.vectorIndexConfig, update.vectorizers.vectorIndex.config);
+            ? MergeWithExisting.hfresh(current.vectorIndexConfig, update.vectorizers.vectorIndex.config)
+            : update.vectorizers?.vectorIndex.name === 'dynamic'
+            ? MergeWithExisting.dynamic(current.vectorIndexConfig, update.vectorizers.vectorIndex.config)
+            : MergeWithExisting.flat(current.vectorIndexConfig, update.vectorizers.vectorIndex.config);
       }
     }
     return current;
@@ -184,10 +184,10 @@ export class MergeWithExisting {
           v.vectorIndex.name === 'hnsw'
             ? MergeWithExisting.hnsw(existing.vectorIndexConfig, v.vectorIndex.config)
             : v.vectorIndex.name === 'hfresh'
-              ? MergeWithExisting.hfresh(existing.vectorIndexConfig, v.vectorIndex.config)
-              : v.vectorIndex.name === 'dynamic'
-                ? MergeWithExisting.dynamic(existing.vectorIndexConfig, v.vectorIndex.config)
-                : MergeWithExisting.flat(existing.vectorIndexConfig, v.vectorIndex.config);
+            ? MergeWithExisting.hfresh(existing.vectorIndexConfig, v.vectorIndex.config)
+            : v.vectorIndex.name === 'dynamic'
+            ? MergeWithExisting.dynamic(existing.vectorIndexConfig, v.vectorIndex.config)
+            : MergeWithExisting.flat(existing.vectorIndexConfig, v.vectorIndex.config);
       }
     });
     return current;
