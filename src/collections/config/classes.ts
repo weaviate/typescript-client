@@ -148,7 +148,7 @@ export class MergeWithExisting {
   }
 
   static objectTTL(current: WeaviateObjectTTLConfig, update: ObjectTTLConfigUpdate): WeaviateObjectTTLConfig {
-    if (current === undefined) return current;
+    if (current === undefined) return update;
     return {
       enabled: update.enabled ?? current.enabled,
       deleteOn: update.deleteOn ?? current.deleteOn,

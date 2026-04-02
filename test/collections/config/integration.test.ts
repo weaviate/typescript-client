@@ -1085,7 +1085,7 @@ describe('Testing of the collection.config namespace', () => {
     });
   });
 
-  requireAtLeast(1, 35, 0).it.only('should create and update Object TTL configuration', async () => {
+  requireAtLeast(1, 35, 0).it('should create and update Object TTL configuration', async () => {
     const collectionName = 'TestObjectTTL';
     const collection = await client.collections.create({
       name: collectionName,
