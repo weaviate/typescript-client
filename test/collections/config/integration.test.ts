@@ -685,8 +685,8 @@ describe('Testing of the collection.config namespace', () => {
       .update({
         propertyDescriptions: supportsUpdatingPropertyDescriptions
           ? {
-              testProp: 'This is a test property',
-            }
+            testProp: 'This is a test property',
+          }
           : undefined,
         vectorizers: weaviate.reconfigure.vectors.update({
           vectorIndexConfig: weaviate.reconfigure.vectorIndex.hnsw({
@@ -1085,7 +1085,7 @@ describe('Testing of the collection.config namespace', () => {
     });
   });
 
-  requireAtLeast(1, 35, 0).it('should create and update Object TTL configuration', async () => {
+  requireAtLeast(1, 35, 0).it.only('should create and update Object TTL configuration', async () => {
     const collectionName = 'TestObjectTTL';
     const collection = await client.collections.create({
       name: collectionName,
@@ -1095,7 +1095,7 @@ describe('Testing of the collection.config namespace', () => {
     const created = await collection.config.get();
     expect(created.objectTTL).toBeDefined();
     expect(created.objectTTL.enabled).toEqual(true);
-    expect(created.objectTTL.deleteOn).toEqual('_creationTimeUnix');
+    expect(created.objectTTL.deleteOn).toEqual('creationTime');
     expect(created.objectTTL.defaultTTLSeconds).toEqual(120);
 
     await collection.config.update({
@@ -1105,7 +1105,7 @@ describe('Testing of the collection.config namespace', () => {
     const updated = await collection.config.get();
     expect(updated.objectTTL).toBeDefined();
     expect(updated.objectTTL.enabled).toEqual(true);
-    expect(updated.objectTTL.deleteOn).toEqual('_lastUpdateTimeUnix');
+    expect(updated.objectTTL.deleteOn).toEqual('updateTime');
     expect(updated.objectTTL.defaultTTLSeconds).toEqual(400);
 
     await collection.config.update({
