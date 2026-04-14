@@ -89,6 +89,15 @@ export interface VectorForTarget {
   vectors: Vectors[];
 }
 
+export interface Selection {
+  mmr?: Selection_MMR | undefined;
+}
+
+export interface Selection_MMR {
+  limit?: number | undefined;
+  balance?: number | undefined;
+}
+
 export interface SearchOperatorOptions {
   operator: SearchOperatorOptions_Operator;
   minimumOrTokensMatch?: number | undefined;
@@ -142,6 +151,11 @@ export interface Hybrid {
    * @deprecated
    */
   vector: number[];
+  /**
+   * deprecated in 1.36.0 - use alpha_param
+   *
+   * @deprecated
+   */
   alpha: number;
   fusionType: Hybrid_FusionType;
   /**
@@ -164,6 +178,15 @@ export interface Hybrid {
   nearVector: NearVector | undefined;
   targets: Targets | undefined;
   bm25SearchOperator?: SearchOperatorOptions | undefined;
+  alphaParam?:
+    | number
+    | undefined;
+  /**
+   * if true, alpha_param is used instead of alpha.
+   * This is for backward compatibility, as alpha was used before alpha_param was introduced.
+   */
+  useAlphaParam: boolean;
+  selection?: Selection | undefined;
   vectorDistance?: number | undefined;
   vectors: Vectors[];
 }
@@ -241,6 +264,7 @@ export interface NearVector {
   vectorPerTarget: { [key: string]: Uint8Array };
   vectorForTargets: VectorForTarget[];
   vectors: Vectors[];
+  selection?: Selection | undefined;
 }
 
 export interface NearVector_VectorPerTargetEntry {
@@ -261,6 +285,7 @@ export interface NearObject {
    */
   targetVectors: string[];
   targets: Targets | undefined;
+  selection?: Selection | undefined;
 }
 
 export interface NearTextSearch {
@@ -279,6 +304,7 @@ export interface NearTextSearch {
    */
   targetVectors: string[];
   targets: Targets | undefined;
+  selection?: Selection | undefined;
 }
 
 export interface NearTextSearch_Move {
@@ -300,6 +326,7 @@ export interface NearImageSearch {
    */
   targetVectors: string[];
   targets: Targets | undefined;
+  selection?: Selection | undefined;
 }
 
 export interface NearAudioSearch {
@@ -315,6 +342,7 @@ export interface NearAudioSearch {
    */
   targetVectors: string[];
   targets: Targets | undefined;
+  selection?: Selection | undefined;
 }
 
 export interface NearVideoSearch {
@@ -330,6 +358,7 @@ export interface NearVideoSearch {
    */
   targetVectors: string[];
   targets: Targets | undefined;
+  selection?: Selection | undefined;
 }
 
 export interface NearDepthSearch {
@@ -345,6 +374,7 @@ export interface NearDepthSearch {
    */
   targetVectors: string[];
   targets: Targets | undefined;
+  selection?: Selection | undefined;
 }
 
 export interface NearThermalSearch {
@@ -360,6 +390,7 @@ export interface NearThermalSearch {
    */
   targetVectors: string[];
   targets: Targets | undefined;
+  selection?: Selection | undefined;
 }
 
 export interface NearIMUSearch {
@@ -375,6 +406,7 @@ export interface NearIMUSearch {
    */
   targetVectors: string[];
   targets: Targets | undefined;
+  selection?: Selection | undefined;
 }
 
 export interface BM25 {
@@ -639,6 +671,137 @@ export const VectorForTarget = {
   },
 };
 
+function createBaseSelection(): Selection {
+  return { mmr: undefined };
+}
+
+export const Selection = {
+  encode(message: Selection, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.mmr !== undefined) {
+      Selection_MMR.encode(message.mmr, writer.uint32(10).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): Selection {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseSelection();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.mmr = Selection_MMR.decode(reader, reader.uint32());
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): Selection {
+    return { mmr: isSet(object.mmr) ? Selection_MMR.fromJSON(object.mmr) : undefined };
+  },
+
+  toJSON(message: Selection): unknown {
+    const obj: any = {};
+    if (message.mmr !== undefined) {
+      obj.mmr = Selection_MMR.toJSON(message.mmr);
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<Selection>): Selection {
+    return Selection.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<Selection>): Selection {
+    const message = createBaseSelection();
+    message.mmr = (object.mmr !== undefined && object.mmr !== null) ? Selection_MMR.fromPartial(object.mmr) : undefined;
+    return message;
+  },
+};
+
+function createBaseSelection_MMR(): Selection_MMR {
+  return { limit: undefined, balance: undefined };
+}
+
+export const Selection_MMR = {
+  encode(message: Selection_MMR, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.limit !== undefined) {
+      writer.uint32(8).uint32(message.limit);
+    }
+    if (message.balance !== undefined) {
+      writer.uint32(21).float(message.balance);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): Selection_MMR {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseSelection_MMR();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 8) {
+            break;
+          }
+
+          message.limit = reader.uint32();
+          continue;
+        case 2:
+          if (tag !== 21) {
+            break;
+          }
+
+          message.balance = reader.float();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): Selection_MMR {
+    return {
+      limit: isSet(object.limit) ? globalThis.Number(object.limit) : undefined,
+      balance: isSet(object.balance) ? globalThis.Number(object.balance) : undefined,
+    };
+  },
+
+  toJSON(message: Selection_MMR): unknown {
+    const obj: any = {};
+    if (message.limit !== undefined) {
+      obj.limit = Math.round(message.limit);
+    }
+    if (message.balance !== undefined) {
+      obj.balance = message.balance;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<Selection_MMR>): Selection_MMR {
+    return Selection_MMR.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<Selection_MMR>): Selection_MMR {
+    const message = createBaseSelection_MMR();
+    message.limit = object.limit ?? undefined;
+    message.balance = object.balance ?? undefined;
+    return message;
+  },
+};
+
 function createBaseSearchOperatorOptions(): SearchOperatorOptions {
   return { operator: 0, minimumOrTokensMatch: undefined };
 }
@@ -728,6 +891,9 @@ function createBaseHybrid(): Hybrid {
     nearVector: undefined,
     targets: undefined,
     bm25SearchOperator: undefined,
+    alphaParam: undefined,
+    useAlphaParam: false,
+    selection: undefined,
     vectorDistance: undefined,
     vectors: [],
   };
@@ -769,6 +935,15 @@ export const Hybrid = {
     }
     if (message.bm25SearchOperator !== undefined) {
       SearchOperatorOptions.encode(message.bm25SearchOperator, writer.uint32(90).fork()).ldelim();
+    }
+    if (message.alphaParam !== undefined) {
+      writer.uint32(101).float(message.alphaParam);
+    }
+    if (message.useAlphaParam !== false) {
+      writer.uint32(104).bool(message.useAlphaParam);
+    }
+    if (message.selection !== undefined) {
+      Selection.encode(message.selection, writer.uint32(114).fork()).ldelim();
     }
     if (message.vectorDistance !== undefined) {
       writer.uint32(165).float(message.vectorDistance);
@@ -873,6 +1048,27 @@ export const Hybrid = {
 
           message.bm25SearchOperator = SearchOperatorOptions.decode(reader, reader.uint32());
           continue;
+        case 12:
+          if (tag !== 101) {
+            break;
+          }
+
+          message.alphaParam = reader.float();
+          continue;
+        case 13:
+          if (tag !== 104) {
+            break;
+          }
+
+          message.useAlphaParam = reader.bool();
+          continue;
+        case 14:
+          if (tag !== 114) {
+            break;
+          }
+
+          message.selection = Selection.decode(reader, reader.uint32());
+          continue;
         case 20:
           if (tag !== 165) {
             break;
@@ -915,6 +1111,9 @@ export const Hybrid = {
       bm25SearchOperator: isSet(object.bm25SearchOperator)
         ? SearchOperatorOptions.fromJSON(object.bm25SearchOperator)
         : undefined,
+      alphaParam: isSet(object.alphaParam) ? globalThis.Number(object.alphaParam) : undefined,
+      useAlphaParam: isSet(object.useAlphaParam) ? globalThis.Boolean(object.useAlphaParam) : false,
+      selection: isSet(object.selection) ? Selection.fromJSON(object.selection) : undefined,
       vectorDistance: isSet(object.vectorDistance) ? globalThis.Number(object.vectorDistance) : undefined,
       vectors: globalThis.Array.isArray(object?.vectors) ? object.vectors.map((e: any) => Vectors.fromJSON(e)) : [],
     };
@@ -955,6 +1154,15 @@ export const Hybrid = {
     if (message.bm25SearchOperator !== undefined) {
       obj.bm25SearchOperator = SearchOperatorOptions.toJSON(message.bm25SearchOperator);
     }
+    if (message.alphaParam !== undefined) {
+      obj.alphaParam = message.alphaParam;
+    }
+    if (message.useAlphaParam !== false) {
+      obj.useAlphaParam = message.useAlphaParam;
+    }
+    if (message.selection !== undefined) {
+      obj.selection = Selection.toJSON(message.selection);
+    }
     if (message.vectorDistance !== undefined) {
       obj.vectorDistance = message.vectorDistance;
     }
@@ -988,6 +1196,11 @@ export const Hybrid = {
     message.bm25SearchOperator = (object.bm25SearchOperator !== undefined && object.bm25SearchOperator !== null)
       ? SearchOperatorOptions.fromPartial(object.bm25SearchOperator)
       : undefined;
+    message.alphaParam = object.alphaParam ?? undefined;
+    message.useAlphaParam = object.useAlphaParam ?? false;
+    message.selection = (object.selection !== undefined && object.selection !== null)
+      ? Selection.fromPartial(object.selection)
+      : undefined;
     message.vectorDistance = object.vectorDistance ?? undefined;
     message.vectors = object.vectors?.map((e) => Vectors.fromPartial(e)) || [];
     return message;
@@ -1005,6 +1218,7 @@ function createBaseNearVector(): NearVector {
     vectorPerTarget: {},
     vectorForTargets: [],
     vectors: [],
+    selection: undefined,
   };
 }
 
@@ -1038,6 +1252,9 @@ export const NearVector = {
     }
     for (const v of message.vectors) {
       Vectors.encode(v!, writer.uint32(74).fork()).ldelim();
+    }
+    if (message.selection !== undefined) {
+      Selection.encode(message.selection, writer.uint32(82).fork()).ldelim();
     }
     return writer;
   },
@@ -1125,6 +1342,13 @@ export const NearVector = {
 
           message.vectors.push(Vectors.decode(reader, reader.uint32()));
           continue;
+        case 10:
+          if (tag !== 82) {
+            break;
+          }
+
+          message.selection = Selection.decode(reader, reader.uint32());
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1154,6 +1378,7 @@ export const NearVector = {
         ? object.vectorForTargets.map((e: any) => VectorForTarget.fromJSON(e))
         : [],
       vectors: globalThis.Array.isArray(object?.vectors) ? object.vectors.map((e: any) => Vectors.fromJSON(e)) : [],
+      selection: isSet(object.selection) ? Selection.fromJSON(object.selection) : undefined,
     };
   },
 
@@ -1192,6 +1417,9 @@ export const NearVector = {
     if (message.vectors?.length) {
       obj.vectors = message.vectors.map((e) => Vectors.toJSON(e));
     }
+    if (message.selection !== undefined) {
+      obj.selection = Selection.toJSON(message.selection);
+    }
     return obj;
   },
 
@@ -1219,6 +1447,9 @@ export const NearVector = {
     );
     message.vectorForTargets = object.vectorForTargets?.map((e) => VectorForTarget.fromPartial(e)) || [];
     message.vectors = object.vectors?.map((e) => Vectors.fromPartial(e)) || [];
+    message.selection = (object.selection !== undefined && object.selection !== null)
+      ? Selection.fromPartial(object.selection)
+      : undefined;
     return message;
   },
 };
@@ -1298,7 +1529,14 @@ export const NearVector_VectorPerTargetEntry = {
 };
 
 function createBaseNearObject(): NearObject {
-  return { id: "", certainty: undefined, distance: undefined, targetVectors: [], targets: undefined };
+  return {
+    id: "",
+    certainty: undefined,
+    distance: undefined,
+    targetVectors: [],
+    targets: undefined,
+    selection: undefined,
+  };
 }
 
 export const NearObject = {
@@ -1317,6 +1555,9 @@ export const NearObject = {
     }
     if (message.targets !== undefined) {
       Targets.encode(message.targets, writer.uint32(42).fork()).ldelim();
+    }
+    if (message.selection !== undefined) {
+      Selection.encode(message.selection, writer.uint32(50).fork()).ldelim();
     }
     return writer;
   },
@@ -1363,6 +1604,13 @@ export const NearObject = {
 
           message.targets = Targets.decode(reader, reader.uint32());
           continue;
+        case 6:
+          if (tag !== 50) {
+            break;
+          }
+
+          message.selection = Selection.decode(reader, reader.uint32());
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1381,6 +1629,7 @@ export const NearObject = {
         ? object.targetVectors.map((e: any) => globalThis.String(e))
         : [],
       targets: isSet(object.targets) ? Targets.fromJSON(object.targets) : undefined,
+      selection: isSet(object.selection) ? Selection.fromJSON(object.selection) : undefined,
     };
   },
 
@@ -1401,6 +1650,9 @@ export const NearObject = {
     if (message.targets !== undefined) {
       obj.targets = Targets.toJSON(message.targets);
     }
+    if (message.selection !== undefined) {
+      obj.selection = Selection.toJSON(message.selection);
+    }
     return obj;
   },
 
@@ -1416,6 +1668,9 @@ export const NearObject = {
     message.targets = (object.targets !== undefined && object.targets !== null)
       ? Targets.fromPartial(object.targets)
       : undefined;
+    message.selection = (object.selection !== undefined && object.selection !== null)
+      ? Selection.fromPartial(object.selection)
+      : undefined;
     return message;
   },
 };
@@ -1429,6 +1684,7 @@ function createBaseNearTextSearch(): NearTextSearch {
     moveAway: undefined,
     targetVectors: [],
     targets: undefined,
+    selection: undefined,
   };
 }
 
@@ -1454,6 +1710,9 @@ export const NearTextSearch = {
     }
     if (message.targets !== undefined) {
       Targets.encode(message.targets, writer.uint32(58).fork()).ldelim();
+    }
+    if (message.selection !== undefined) {
+      Selection.encode(message.selection, writer.uint32(66).fork()).ldelim();
     }
     return writer;
   },
@@ -1514,6 +1773,13 @@ export const NearTextSearch = {
 
           message.targets = Targets.decode(reader, reader.uint32());
           continue;
+        case 8:
+          if (tag !== 66) {
+            break;
+          }
+
+          message.selection = Selection.decode(reader, reader.uint32());
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1534,6 +1800,7 @@ export const NearTextSearch = {
         ? object.targetVectors.map((e: any) => globalThis.String(e))
         : [],
       targets: isSet(object.targets) ? Targets.fromJSON(object.targets) : undefined,
+      selection: isSet(object.selection) ? Selection.fromJSON(object.selection) : undefined,
     };
   },
 
@@ -1560,6 +1827,9 @@ export const NearTextSearch = {
     if (message.targets !== undefined) {
       obj.targets = Targets.toJSON(message.targets);
     }
+    if (message.selection !== undefined) {
+      obj.selection = Selection.toJSON(message.selection);
+    }
     return obj;
   },
 
@@ -1580,6 +1850,9 @@ export const NearTextSearch = {
     message.targetVectors = object.targetVectors?.map((e) => e) || [];
     message.targets = (object.targets !== undefined && object.targets !== null)
       ? Targets.fromPartial(object.targets)
+      : undefined;
+    message.selection = (object.selection !== undefined && object.selection !== null)
+      ? Selection.fromPartial(object.selection)
       : undefined;
     return message;
   },
@@ -1675,7 +1948,14 @@ export const NearTextSearch_Move = {
 };
 
 function createBaseNearImageSearch(): NearImageSearch {
-  return { image: "", certainty: undefined, distance: undefined, targetVectors: [], targets: undefined };
+  return {
+    image: "",
+    certainty: undefined,
+    distance: undefined,
+    targetVectors: [],
+    targets: undefined,
+    selection: undefined,
+  };
 }
 
 export const NearImageSearch = {
@@ -1694,6 +1974,9 @@ export const NearImageSearch = {
     }
     if (message.targets !== undefined) {
       Targets.encode(message.targets, writer.uint32(42).fork()).ldelim();
+    }
+    if (message.selection !== undefined) {
+      Selection.encode(message.selection, writer.uint32(50).fork()).ldelim();
     }
     return writer;
   },
@@ -1740,6 +2023,13 @@ export const NearImageSearch = {
 
           message.targets = Targets.decode(reader, reader.uint32());
           continue;
+        case 6:
+          if (tag !== 50) {
+            break;
+          }
+
+          message.selection = Selection.decode(reader, reader.uint32());
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1758,6 +2048,7 @@ export const NearImageSearch = {
         ? object.targetVectors.map((e: any) => globalThis.String(e))
         : [],
       targets: isSet(object.targets) ? Targets.fromJSON(object.targets) : undefined,
+      selection: isSet(object.selection) ? Selection.fromJSON(object.selection) : undefined,
     };
   },
 
@@ -1778,6 +2069,9 @@ export const NearImageSearch = {
     if (message.targets !== undefined) {
       obj.targets = Targets.toJSON(message.targets);
     }
+    if (message.selection !== undefined) {
+      obj.selection = Selection.toJSON(message.selection);
+    }
     return obj;
   },
 
@@ -1793,12 +2087,22 @@ export const NearImageSearch = {
     message.targets = (object.targets !== undefined && object.targets !== null)
       ? Targets.fromPartial(object.targets)
       : undefined;
+    message.selection = (object.selection !== undefined && object.selection !== null)
+      ? Selection.fromPartial(object.selection)
+      : undefined;
     return message;
   },
 };
 
 function createBaseNearAudioSearch(): NearAudioSearch {
-  return { audio: "", certainty: undefined, distance: undefined, targetVectors: [], targets: undefined };
+  return {
+    audio: "",
+    certainty: undefined,
+    distance: undefined,
+    targetVectors: [],
+    targets: undefined,
+    selection: undefined,
+  };
 }
 
 export const NearAudioSearch = {
@@ -1817,6 +2121,9 @@ export const NearAudioSearch = {
     }
     if (message.targets !== undefined) {
       Targets.encode(message.targets, writer.uint32(42).fork()).ldelim();
+    }
+    if (message.selection !== undefined) {
+      Selection.encode(message.selection, writer.uint32(50).fork()).ldelim();
     }
     return writer;
   },
@@ -1863,6 +2170,13 @@ export const NearAudioSearch = {
 
           message.targets = Targets.decode(reader, reader.uint32());
           continue;
+        case 6:
+          if (tag !== 50) {
+            break;
+          }
+
+          message.selection = Selection.decode(reader, reader.uint32());
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1881,6 +2195,7 @@ export const NearAudioSearch = {
         ? object.targetVectors.map((e: any) => globalThis.String(e))
         : [],
       targets: isSet(object.targets) ? Targets.fromJSON(object.targets) : undefined,
+      selection: isSet(object.selection) ? Selection.fromJSON(object.selection) : undefined,
     };
   },
 
@@ -1901,6 +2216,9 @@ export const NearAudioSearch = {
     if (message.targets !== undefined) {
       obj.targets = Targets.toJSON(message.targets);
     }
+    if (message.selection !== undefined) {
+      obj.selection = Selection.toJSON(message.selection);
+    }
     return obj;
   },
 
@@ -1916,12 +2234,22 @@ export const NearAudioSearch = {
     message.targets = (object.targets !== undefined && object.targets !== null)
       ? Targets.fromPartial(object.targets)
       : undefined;
+    message.selection = (object.selection !== undefined && object.selection !== null)
+      ? Selection.fromPartial(object.selection)
+      : undefined;
     return message;
   },
 };
 
 function createBaseNearVideoSearch(): NearVideoSearch {
-  return { video: "", certainty: undefined, distance: undefined, targetVectors: [], targets: undefined };
+  return {
+    video: "",
+    certainty: undefined,
+    distance: undefined,
+    targetVectors: [],
+    targets: undefined,
+    selection: undefined,
+  };
 }
 
 export const NearVideoSearch = {
@@ -1940,6 +2268,9 @@ export const NearVideoSearch = {
     }
     if (message.targets !== undefined) {
       Targets.encode(message.targets, writer.uint32(42).fork()).ldelim();
+    }
+    if (message.selection !== undefined) {
+      Selection.encode(message.selection, writer.uint32(50).fork()).ldelim();
     }
     return writer;
   },
@@ -1986,6 +2317,13 @@ export const NearVideoSearch = {
 
           message.targets = Targets.decode(reader, reader.uint32());
           continue;
+        case 6:
+          if (tag !== 50) {
+            break;
+          }
+
+          message.selection = Selection.decode(reader, reader.uint32());
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -2004,6 +2342,7 @@ export const NearVideoSearch = {
         ? object.targetVectors.map((e: any) => globalThis.String(e))
         : [],
       targets: isSet(object.targets) ? Targets.fromJSON(object.targets) : undefined,
+      selection: isSet(object.selection) ? Selection.fromJSON(object.selection) : undefined,
     };
   },
 
@@ -2024,6 +2363,9 @@ export const NearVideoSearch = {
     if (message.targets !== undefined) {
       obj.targets = Targets.toJSON(message.targets);
     }
+    if (message.selection !== undefined) {
+      obj.selection = Selection.toJSON(message.selection);
+    }
     return obj;
   },
 
@@ -2039,12 +2381,22 @@ export const NearVideoSearch = {
     message.targets = (object.targets !== undefined && object.targets !== null)
       ? Targets.fromPartial(object.targets)
       : undefined;
+    message.selection = (object.selection !== undefined && object.selection !== null)
+      ? Selection.fromPartial(object.selection)
+      : undefined;
     return message;
   },
 };
 
 function createBaseNearDepthSearch(): NearDepthSearch {
-  return { depth: "", certainty: undefined, distance: undefined, targetVectors: [], targets: undefined };
+  return {
+    depth: "",
+    certainty: undefined,
+    distance: undefined,
+    targetVectors: [],
+    targets: undefined,
+    selection: undefined,
+  };
 }
 
 export const NearDepthSearch = {
@@ -2063,6 +2415,9 @@ export const NearDepthSearch = {
     }
     if (message.targets !== undefined) {
       Targets.encode(message.targets, writer.uint32(42).fork()).ldelim();
+    }
+    if (message.selection !== undefined) {
+      Selection.encode(message.selection, writer.uint32(50).fork()).ldelim();
     }
     return writer;
   },
@@ -2109,6 +2464,13 @@ export const NearDepthSearch = {
 
           message.targets = Targets.decode(reader, reader.uint32());
           continue;
+        case 6:
+          if (tag !== 50) {
+            break;
+          }
+
+          message.selection = Selection.decode(reader, reader.uint32());
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -2127,6 +2489,7 @@ export const NearDepthSearch = {
         ? object.targetVectors.map((e: any) => globalThis.String(e))
         : [],
       targets: isSet(object.targets) ? Targets.fromJSON(object.targets) : undefined,
+      selection: isSet(object.selection) ? Selection.fromJSON(object.selection) : undefined,
     };
   },
 
@@ -2147,6 +2510,9 @@ export const NearDepthSearch = {
     if (message.targets !== undefined) {
       obj.targets = Targets.toJSON(message.targets);
     }
+    if (message.selection !== undefined) {
+      obj.selection = Selection.toJSON(message.selection);
+    }
     return obj;
   },
 
@@ -2162,12 +2528,22 @@ export const NearDepthSearch = {
     message.targets = (object.targets !== undefined && object.targets !== null)
       ? Targets.fromPartial(object.targets)
       : undefined;
+    message.selection = (object.selection !== undefined && object.selection !== null)
+      ? Selection.fromPartial(object.selection)
+      : undefined;
     return message;
   },
 };
 
 function createBaseNearThermalSearch(): NearThermalSearch {
-  return { thermal: "", certainty: undefined, distance: undefined, targetVectors: [], targets: undefined };
+  return {
+    thermal: "",
+    certainty: undefined,
+    distance: undefined,
+    targetVectors: [],
+    targets: undefined,
+    selection: undefined,
+  };
 }
 
 export const NearThermalSearch = {
@@ -2186,6 +2562,9 @@ export const NearThermalSearch = {
     }
     if (message.targets !== undefined) {
       Targets.encode(message.targets, writer.uint32(42).fork()).ldelim();
+    }
+    if (message.selection !== undefined) {
+      Selection.encode(message.selection, writer.uint32(50).fork()).ldelim();
     }
     return writer;
   },
@@ -2232,6 +2611,13 @@ export const NearThermalSearch = {
 
           message.targets = Targets.decode(reader, reader.uint32());
           continue;
+        case 6:
+          if (tag !== 50) {
+            break;
+          }
+
+          message.selection = Selection.decode(reader, reader.uint32());
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -2250,6 +2636,7 @@ export const NearThermalSearch = {
         ? object.targetVectors.map((e: any) => globalThis.String(e))
         : [],
       targets: isSet(object.targets) ? Targets.fromJSON(object.targets) : undefined,
+      selection: isSet(object.selection) ? Selection.fromJSON(object.selection) : undefined,
     };
   },
 
@@ -2270,6 +2657,9 @@ export const NearThermalSearch = {
     if (message.targets !== undefined) {
       obj.targets = Targets.toJSON(message.targets);
     }
+    if (message.selection !== undefined) {
+      obj.selection = Selection.toJSON(message.selection);
+    }
     return obj;
   },
 
@@ -2285,12 +2675,22 @@ export const NearThermalSearch = {
     message.targets = (object.targets !== undefined && object.targets !== null)
       ? Targets.fromPartial(object.targets)
       : undefined;
+    message.selection = (object.selection !== undefined && object.selection !== null)
+      ? Selection.fromPartial(object.selection)
+      : undefined;
     return message;
   },
 };
 
 function createBaseNearIMUSearch(): NearIMUSearch {
-  return { imu: "", certainty: undefined, distance: undefined, targetVectors: [], targets: undefined };
+  return {
+    imu: "",
+    certainty: undefined,
+    distance: undefined,
+    targetVectors: [],
+    targets: undefined,
+    selection: undefined,
+  };
 }
 
 export const NearIMUSearch = {
@@ -2309,6 +2709,9 @@ export const NearIMUSearch = {
     }
     if (message.targets !== undefined) {
       Targets.encode(message.targets, writer.uint32(42).fork()).ldelim();
+    }
+    if (message.selection !== undefined) {
+      Selection.encode(message.selection, writer.uint32(50).fork()).ldelim();
     }
     return writer;
   },
@@ -2355,6 +2758,13 @@ export const NearIMUSearch = {
 
           message.targets = Targets.decode(reader, reader.uint32());
           continue;
+        case 6:
+          if (tag !== 50) {
+            break;
+          }
+
+          message.selection = Selection.decode(reader, reader.uint32());
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -2373,6 +2783,7 @@ export const NearIMUSearch = {
         ? object.targetVectors.map((e: any) => globalThis.String(e))
         : [],
       targets: isSet(object.targets) ? Targets.fromJSON(object.targets) : undefined,
+      selection: isSet(object.selection) ? Selection.fromJSON(object.selection) : undefined,
     };
   },
 
@@ -2393,6 +2804,9 @@ export const NearIMUSearch = {
     if (message.targets !== undefined) {
       obj.targets = Targets.toJSON(message.targets);
     }
+    if (message.selection !== undefined) {
+      obj.selection = Selection.toJSON(message.selection);
+    }
     return obj;
   },
 
@@ -2407,6 +2821,9 @@ export const NearIMUSearch = {
     message.targetVectors = object.targetVectors?.map((e) => e) || [];
     message.targets = (object.targets !== undefined && object.targets !== null)
       ? Targets.fromPartial(object.targets)
+      : undefined;
+    message.selection = (object.selection !== undefined && object.selection !== null)
+      ? Selection.fromPartial(object.selection)
       : undefined;
     return message;
   },

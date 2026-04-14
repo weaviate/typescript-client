@@ -28,7 +28,7 @@ import {
   GenerativeXAI as GenerativeXAIGRPC,
   GenerativeXAIMetadata,
 } from '../../proto/v1/generative.js';
-import { GenerativeXAIConfig, ModuleConfig } from '../index.js';
+import { GenerativeXAIConfig, ModuleConfig, QueryProfile } from '../index.js';
 import { GroupByObject, GroupByResult, WeaviateGenericObject, WeaviateNonGenericObject } from './query.js';
 
 export type GenerativeGenericObject<
@@ -81,6 +81,8 @@ export type GenerativeReturn<T, V, C extends GenerativeConfigRuntime | undefined
   /** @deprecated (use `generative.text` instead) The LLM-generated output applicable to this query as a whole. */
   generated?: string;
   generative?: GenerativeGrouped<C>;
+  /** The metadata about the query execution. This contains different datastructures depending on the search type, e.g. vector vs keyword. */
+  queryProfile?: QueryProfile;
 };
 
 export type GenerativeGroupByResult<T, V, C extends GenerativeConfigRuntime | undefined> = GroupByResult<
@@ -101,6 +103,8 @@ export type GenerativeGroupByReturn<T, V, C extends GenerativeConfigRuntime | un
   /** @deprecated (use `generative.text` instead) The LLM-generated output applicable to this query as a whole. */
   generated?: string;
   generative?: GenerativeGrouped<C>;
+  /** The metadata about the query execution. This contains different datastructures depending on the search type, e.g. vector vs keyword. */
+  queryProfile?: QueryProfile;
 };
 
 /** Options available when defining queries using methods in the `collection.generate` namespace. */
