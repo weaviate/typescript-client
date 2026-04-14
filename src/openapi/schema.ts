@@ -710,11 +710,6 @@ export interface definitions {
     include?: string[];
     /** @description List of collection names to exclude from the export. Cannot be used with 'include'. */
     exclude?: string[];
-    /** @description Backend-specific configuration */
-    config?: {
-      /** @description Path prefix within the bucket or filesystem */
-      path?: string;
-    };
   };
   /** @description Response from creating an export operation */
   ExportCreateResponse: {
@@ -5647,10 +5642,6 @@ export interface operations {
         /** The unique identifier of the export. */
         id: string;
       };
-      query: {
-        /** Optional path prefix within the bucket. If not specified, uses the backend's default path. */
-        path?: string;
-      };
     };
     responses: {
       /** Successfully retrieved export status */
@@ -5685,10 +5676,6 @@ export interface operations {
         backend: string;
         /** The unique identifier of the export to cancel. */
         id: string;
-      };
-      query: {
-        /** Optional path prefix within the bucket. */
-        path?: string;
       };
     };
     responses: {
