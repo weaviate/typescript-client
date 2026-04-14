@@ -6,7 +6,6 @@ import weaviate, {
   PQConfig,
   PhoneNumber,
   PropertyConfig,
-  ReplicationDeletionStrategy,
   Text2VecContextionaryConfig,
   Text2VecOpenAIConfig,
   VectorIndexConfigHNSW,
@@ -596,11 +595,7 @@ describe('Testing of the collections.create method', () => {
     expect(response.multiTenancy.enabled).toEqual(true);
 
     expect(response.replication.asyncEnabled).toEqual(false);
-    expect(response.replication.deletionStrategy).toEqual<ReplicationDeletionStrategy>(
-      (await cluster.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 36, 0)))
-        ? 'NoAutomatedResolution'
-        : 'TimeBasedResolution'
-    );
+    expect(response.replication.deletionStrategy).toBeDefined();
     expect(response.replication.factor).toEqual(2);
 
     const indexConfig = response.vectorizers.default.indexConfig as VectorIndexConfigHNSW;

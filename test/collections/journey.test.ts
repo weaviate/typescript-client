@@ -157,7 +157,7 @@ describe('Journey testing of the client using a WCD cluster', () => {
           references: [],
           replication: {
             asyncEnabled: false,
-            deletionStrategy: 'NoAutomatedResolution',
+            deletionStrategy: 'TimeBasedResolution',
             factor: 3,
           },
           reranker: {
