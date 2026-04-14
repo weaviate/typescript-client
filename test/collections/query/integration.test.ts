@@ -247,7 +247,7 @@ describe('Testing of the collection.query methods with a simple collection', () 
     expect(ret.objects[0].uuid).toEqual(id);
   });
 
-  it('should return query profiling metadata with filtered fetch', async () => {
+  requireAtLeast(1, 36, 0).it('should return query profiling metadata with filtered fetch', async () => {
     const ret = await collection.query.fetchObjects({
       filters: collection.filter.byProperty('testProp').equal('carrot'),
       returnMetadata: ['queryProfile'],
@@ -258,7 +258,7 @@ describe('Testing of the collection.query methods with a simple collection', () 
     expect(ret.queryProfile?.shards[0].searches.object).toBeDefined();
   });
 
-  it('should return query profiling metadata with nearVector', async () => {
+  requireAtLeast(1, 36, 0).it('should return query profiling metadata with nearVector', async () => {
     const ret = await collection.query.nearVector(vector, { returnMetadata: ['queryProfile'] });
     expect(ret.queryProfile).toBeDefined();
     expect(ret.queryProfile?.shards[0].searches.vector).toBeDefined();
@@ -266,7 +266,7 @@ describe('Testing of the collection.query methods with a simple collection', () 
     expect(ret.queryProfile?.shards[0].searches.object).toBeUndefined();
   });
 
-  it('should return query profiling metadata with bm25', async () => {
+  requireAtLeast(1, 36, 0).it('should return query profiling metadata with bm25', async () => {
     const ret = await collection.query.bm25('carrot', { returnMetadata: ['queryProfile'] });
     expect(ret.queryProfile).toBeDefined();
     expect(ret.queryProfile?.shards[0].searches.vector).toBeUndefined();
@@ -274,7 +274,7 @@ describe('Testing of the collection.query methods with a simple collection', () 
     expect(ret.queryProfile?.shards[0].searches.object).toBeUndefined();
   });
 
-  it('should return query profiling metadata with hybrid', async () => {
+  requireAtLeast(1, 36, 0).it('should return query profiling metadata with hybrid', async () => {
     const ret = await collection.query.hybrid('carrot', { returnMetadata: ['queryProfile'] });
     expect(ret.queryProfile).toBeDefined();
     expect(ret.queryProfile?.shards[0].searches.vector).toBeDefined();
