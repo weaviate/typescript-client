@@ -458,7 +458,6 @@ requireAtLeast(1, 29, 0).describe('Integration testing of the roles namespace', 
     });
   });
 
-
   it('should delete one of the created roles', async () => {
     await client.roles.delete('backups');
     await expect(client.roles.byName('backups')).rejects.toThrowError(WeaviateUnexpectedStatusCodeError);
