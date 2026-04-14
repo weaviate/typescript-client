@@ -48,7 +48,6 @@ export type ShardStatus = definitions['ShardStatus'];
 export type ShardStatusList = definitions['ShardStatusList'];
 export type Tenant = definitions['Tenant'];
 export type TenantActivityStatus = Tenant['activityStatus'];
-export type SchemaClusterStatus = definitions['SchemaClusterStatus'];
 export type WeaviateModuleConfig = WeaviateClass['moduleConfig'];
 export type WeaviateInvertedIndexConfig = WeaviateClass['invertedIndexConfig'];
 export type WeaviateBM25Config = definitions['BM25Config'];
