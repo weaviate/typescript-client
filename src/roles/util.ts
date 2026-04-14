@@ -21,6 +21,8 @@ import {
   GroupAssignment,
   GroupsAction,
   GroupsPermission,
+  McpAction,
+  McpPermission,
   NodesAction,
   NodesPermission,
   Permission,
@@ -53,6 +55,8 @@ export class PermissionGuards {
     );
   static isBackups = (permission: Permission): permission is BackupsPermission =>
     PermissionGuards.includes<BackupsAction>(permission, 'manage_backups');
+  static isMcp = (permission: Permission): permission is McpPermission =>
+    PermissionGuards.includes<McpAction>(permission, 'manage_mcp');
   static isCluster = (permission: Permission): permission is ClusterPermission =>
     PermissionGuards.includes<ClusterAction>(permission, 'read_cluster');
   static isCollections = (permission: Permission): permission is CollectionsPermission =>
@@ -131,6 +135,8 @@ export class Map {
         backups: permission,
         action,
       }));
+    } else if (PermissionGuards.isMcp(permission)) {
+      return Array.from(permission.actions).map((action) => ({ action }));
     } else if (PermissionGuards.isCluster(permission)) {
       return Array.from(permission.actions).map((action) => ({ action }));
     } else if (PermissionGuards.isCollections(permission)) {
@@ -232,6 +238,7 @@ class PermissionsMapping {
       collections: {},
       data: {},
       groups: {},
+      mcp: {},
       nodes: {},
       replicate: {},
       roles: {},
@@ -257,6 +264,7 @@ class PermissionsMapping {
       collectionsPermissions: Object.values(this.mappings.collections),
       dataPermissions: Object.values(this.mappings.data),
       groupsPermissions: Object.values(this.mappings.groups),
+      mcpPermissions: Object.values(this.mappings.mcp),
       nodesPermissions: Object.values(this.mappings.nodes),
       replicatePermissions: Object.values(this.mappings.replicate),
       rolesPermissions: Object.values(this.mappings.roles),
@@ -283,6 +291,13 @@ class PermissionsMapping {
       if (this.mappings.backups[key] === undefined)
         this.mappings.backups[key] = { collection: key, actions: [] };
       this.mappings.backups[key].actions.push(permission.action as BackupsAction);
+    }
+  };
+
+  private mcp = (permission: WeaviatePermission) => {
+    if (permission.action === 'manage_mcp') {
+      if (this.mappings.mcp[''] === undefined) this.mappings.mcp[''] = { actions: [] };
+      this.mappings.mcp[''].actions.push('manage_mcp');
     }
   };
 
@@ -390,6 +405,7 @@ class PermissionsMapping {
     this.collections(permission);
     this.data(permission);
     this.groups(permission);
+    this.mcp(permission);
     this.nodes(permission);
     this.replicate(permission);
     this.roles(permission);
@@ -405,6 +421,7 @@ type PermissionMappings = {
   collections: Record<string, CollectionsPermission>;
   data: Record<string, DataPermission>;
   groups: Record<string, GroupsPermission>;
+  mcp: Record<string, McpPermission>;
   nodes: Record<string, NodesPermission>;
   replicate: Record<string, ReplicatePermission>;
   roles: Record<string, RolesPermission>;

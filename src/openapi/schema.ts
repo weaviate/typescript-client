@@ -562,7 +562,8 @@ export interface definitions {
       | 'update_aliases'
       | 'delete_aliases'
       | 'assign_and_revoke_groups'
-      | 'read_groups';
+      | 'read_groups'
+      | 'manage_mcp';
   };
   /** @description List of roles. */
   RolesListResponse: definitions['Role'][];

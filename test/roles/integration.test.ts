@@ -27,6 +27,7 @@ const emptyPermissions = {
   collectionsPermissions: [],
   dataPermissions: [],
   groupsPermissions: [],
+  mcpPermissions: [],
   nodesPermissions: [],
   replicatePermissions: [],
   rolesPermissions: [],
@@ -61,6 +62,16 @@ const testCases: TestCase[] = [
       name: 'backups',
       ...emptyPermissions,
       backupsPermissions: [{ collection: 'Some-collection', actions: ['manage_backups'] }],
+    },
+  },
+  {
+    roleName: 'mcp',
+    requireVersion: [1, 37, 0],
+    permissions: weaviate.permissions.mcp({ manage: true }),
+    expected: {
+      name: 'mcp',
+      ...emptyPermissions,
+      mcpPermissions: [{ actions: ['manage_mcp'] }],
     },
   },
   {
@@ -446,6 +457,7 @@ requireAtLeast(1, 29, 0).describe('Integration testing of the roles namespace', 
       backupsPermissions: [{ collection: 'Some-collection', actions: ['manage_backups'] }],
     });
   });
+
 
   it('should delete one of the created roles', async () => {
     await client.roles.delete('backups');

@@ -14,6 +14,7 @@ import {
   GroupAssignment,
   GroupsAction,
   GroupsPermission,
+  McpPermission,
   NodesPermission,
   Permission,
   PermissionsInput,
@@ -211,6 +212,19 @@ export const permissions = {
       if (args.manage) out.actions.push('manage_backups');
       return out;
     });
+  },
+  /**
+   * Create a set of permissions specific to Weaviate's MCP (Model Context Protocol) functionality.
+   *
+   * Requires Weaviate v1.37.0 or later.
+   *
+   * @param {boolean} [args.manage] Whether to allow managing MCP. Defaults to `false`.
+   * @returns {McpPermission[]} The MCP permissions.
+   */
+  mcp: (args: { manage?: boolean }): McpPermission[] => {
+    const out: McpPermission = { actions: [] };
+    if (args.manage) out.actions.push('manage_mcp');
+    return [out];
   },
   /**
    * Create a set of permissions specific to Weaviate's cluster endpoints.
