@@ -565,6 +565,7 @@ class Search {
         score: true,
         explainScore: true,
         isConsistent: true,
+        queryProfile: false,
       };
     }
     metadata?.forEach((key) => {
