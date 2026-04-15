@@ -78,6 +78,7 @@ describe('Unit testing of Serialize', () => {
         isConsistent: true,
         explainScore: true,
         score: true,
+        queryProfile: undefined,
       }),
       properties: PropertiesRequest.fromPartial({
         nonRefProperties: ['name'],
