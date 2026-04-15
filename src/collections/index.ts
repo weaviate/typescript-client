@@ -176,6 +176,7 @@ export interface Collections {
 }
 
 export default collections;
+export { WeaviateClass } from '../openapi/types.js';
 export * from './aggregate/index.js';
 export * from './backup/index.js';
 export * from './cluster/index.js';
