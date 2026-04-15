@@ -21,6 +21,7 @@
   },
   "scripts": {
     "test": "vitest run --no-file-parallelism --isolate=true --reporter=verbose --reporter=hanging-process --silent=false",
+    "test:unit": "vitest run --no-file-parallelism --isolate=true --reporter=verbose --reporter=hanging-process --silent=false --project unit",
     "test:coverage": "npm run test -- --coverage",
     "build": "npm run build:node",
     "build:web": "tsup",

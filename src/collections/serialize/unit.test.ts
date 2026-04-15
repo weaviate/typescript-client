@@ -78,7 +78,6 @@ describe('Unit testing of Serialize', () => {
         isConsistent: true,
         explainScore: true,
         score: true,
-        queryProfile: undefined,
       }),
       properties: PropertiesRequest.fromPartial({
         nonRefProperties: ['name'],
@@ -90,6 +89,25 @@ describe('Unit testing of Serialize', () => {
             targetCollection: '',
           },
         ],
+      }),
+    });
+  });
+
+  it('should parse args for fetchObjects with all+queryProfile metadata', () => {
+    const args = Serialize.search.fetchObjects({
+      returnMetadata: 'all+queryProfile',
+    });
+    expect(args).toEqual<SearchFetchArgs>({
+      metadata: MetadataRequest.fromPartial({
+        uuid: true,
+        creationTimeUnix: true,
+        lastUpdateTimeUnix: true,
+        distance: true,
+        certainty: true,
+        score: true,
+        explainScore: true,
+        isConsistent: true,
+        queryProfile: true,
       }),
     });
   });
