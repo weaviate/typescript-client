@@ -24,7 +24,7 @@ export interface Collection<T = undefined, N = string, V = undefined> {
   /** This namespace includes all the backup methods available to you when backing up a collection in Weaviate. */
   backup: BackupCollection;
   /** This namespace includes all the CRUD methods available to you when modifying the configuration of the collection in Weaviate. */
-  config: Config<T>;
+  config: Config<T, V>;
   /** This namespace includes all the CUD methods available to you when modifying the data of the collection in Weaviate. */
   data: Data<T>;
   /** This namespace includes the methods by which you can create the `FilterValue<V>` values for use when filtering queries over your collection. */
@@ -139,7 +139,7 @@ const collection = <T, N, V>(
   return {
     aggregate: aggregateCollection,
     backup: backupCollection(connection, capitalizedName),
-    config: config<T>(connection, capitalizedName, dbVersionSupport, tenant),
+    config: config<T, V>(connection, capitalizedName, dbVersionSupport, tenant),
     data: data<T>(connection, capitalizedName, dbVersionSupport, consistencyLevel, tenant),
     filter: filter<T extends undefined ? any : T>(),
     generate: generate<T, V>(connection, capitalizedName, dbVersionSupport, consistencyLevel, tenant),
