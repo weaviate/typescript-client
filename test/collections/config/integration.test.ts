@@ -1085,6 +1085,76 @@ describe('Testing of the collection.config namespace', () => {
     });
   });
 
+  requireAtLeast(1, 37, 0).describe('dropVectorIndex', () => {
+    it('should drop default vector index from a collection', async () => {
+      const collectionName = 'TestDropDefaultVectorIndex';
+      const collection = await client.collections.create({
+        name: collectionName,
+        vectorizers: weaviate.configure.vectors.selfProvided({
+          vectorIndexConfig: weaviate.configure.vectorIndex.hnsw(),
+        }),
+      });
+
+      let config = await collection.config.get();
+      expect(config.vectorizers.default.indexType).toEqual('hnsw');
+
+      await collection.config.dropVectorIndex();
+
+      config = await collection.config.get();
+      expect(config.vectorizers.default.indexType).toEqual('none');
+    });
+
+    it('should throw an error when trying to drop a non-existent named vector index', async () => {
+      const collectionName = 'TestDropNonExistentNamedVectorIndex';
+      const collection = await client.collections.create({
+        name: collectionName,
+        vectorizers: weaviate.configure.vectors.selfProvided({
+          name: 'existing',
+          vectorIndexConfig: weaviate.configure.vectorIndex.hnsw(),
+        }),
+      });
+
+      await expect(collection.config.dropVectorIndex('nonexistent')).rejects.toThrow(
+        'The request to Weaviate failed with status code: 422 and message: {"error":[{"message":"not found: vector index \\"nonexistent\\" not found in class \\"TestDropNonExistentNamedVectorIndex\\""}]}'
+      );
+
+      // Ensure existing vector index is still intact
+      const config = await collection.config.get();
+      expect(config.vectorizers.existing.indexType).toEqual('hnsw');
+    });
+
+    it('should drop named vector index from a collection with generics', async () => {
+      type TestDropVectorIndexVectors = {
+        one: number[];
+        two: number[];
+      };
+      const collectionName = 'TestDropNamedVectorIndex';
+      const collection = await client.collections.create<any, string, TestDropVectorIndexVectors>({
+        name: collectionName,
+        vectorizers: [
+          weaviate.configure.vectors.selfProvided({
+            name: 'one',
+            vectorIndexConfig: weaviate.configure.vectorIndex.hnsw(),
+          }),
+          weaviate.configure.vectors.selfProvided({
+            name: 'two',
+            vectorIndexConfig: weaviate.configure.vectorIndex.hnsw(),
+          }),
+        ],
+      });
+
+      let config = await collection.config.get();
+      expect(config.vectorizers.one.indexType).toEqual('hnsw');
+      expect(config.vectorizers.two.indexType).toEqual('hnsw');
+
+      await collection.config.dropVectorIndex('one');
+
+      config = await collection.config.get();
+      expect(config.vectorizers.one.indexType).toEqual('none');
+      expect(config.vectorizers.two.indexType).toEqual('hnsw');
+    });
+  });
+
   requireAtLeast(1, 35, 0).it('should create and update Object TTL configuration', async () => {
     const collectionName = 'TestObjectTTL';
     const collection = await client.collections.create({

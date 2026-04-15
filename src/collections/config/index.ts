@@ -29,12 +29,12 @@ import {
 } from './types/index.js';
 import { classToCollection, makeVectorsConfig, resolveProperty, resolveReference } from './utils.js';
 
-const config = <T>(
+const config = <T, V>(
   connection: Connection,
   name: string,
   dbVersionSupport: DbVersionSupport,
   tenant?: string
-): Config<T> => {
+): Config<T, V> => {
   const getRaw = new ClassGetter(connection).withClassName(name).do;
   return {
     addProperty: (property: PropertyConfigCreate<any>) =>
@@ -96,12 +96,14 @@ const config = <T>(
     },
     dropInvertedIndex: (propertyName, indexName) =>
       connection.delete(`/schema/${name}/properties/${propertyName}/index/${indexName}`, null),
+    dropVectorIndex: (vectorName) =>
+      connection.delete(`/schema/${name}/vectors/${vectorName ? String(vectorName) : 'default'}/index`, null),
   };
 };
 
 export default config;
 
-export interface Config<T> {
+export interface Config<T, V> {
   /**
    * Add a property to the collection in Weaviate.
    *
@@ -173,6 +175,17 @@ export interface Config<T> {
    * @returns {Promise<void>} A promise that resolves when the index has been dropped.
    */
   dropInvertedIndex: (propertyName: string, indexName: InvertedIndexName) => Promise<void>;
+  /**
+   * Drop the vector index associated with a named vector of this collection.
+   *
+   * This is a destructive operation. The index will need to be regenerated if you wish to use it again.
+   *
+   * @param {keyof V & string} [vectorName] The name of the vector to drop the index from. If not provided, the default vector index will be dropped.
+   * @returns {Promise<void>} A promise that resolves when the index has been dropped.
+   */
+  dropVectorIndex: <VN extends V extends undefined ? string : keyof V & string>(
+    vectorName?: VN
+  ) => Promise<void>;
 }
 
 export class VectorIndex {
