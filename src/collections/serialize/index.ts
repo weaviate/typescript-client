@@ -371,6 +371,10 @@ export class MetadataGuards {
     return argument === 'all';
   };
 
+  static isAllAndQueryProfile = (argument?: QueryMetadata): argument is 'all+queryProfile' => {
+    return argument === 'all+queryProfile';
+  };
+
   static isUndefined = (argument?: QueryMetadata): argument is undefined => {
     return argument === undefined;
   };
@@ -555,19 +559,30 @@ class Search {
       vector: typeof includeVector === 'boolean' ? includeVector : false,
       vectors: Array.isArray(includeVector) ? includeVector : [],
     };
+    const all = {
+      creationTimeUnix: true,
+      lastUpdateTimeUnix: true,
+      distance: true,
+      certainty: true,
+      score: true,
+      explainScore: true,
+      isConsistent: true,
+    };
     if (MetadataGuards.isAll(metadata)) {
       return {
         ...out,
-        creationTimeUnix: true,
-        lastUpdateTimeUnix: true,
-        distance: true,
-        certainty: true,
-        score: true,
-        explainScore: true,
-        isConsistent: true,
+        ...all,
+        queryProfile: false,
+      };
+    }
+    if (MetadataGuards.isAllAndQueryProfile(metadata)) {
+      return {
+        ...out,
+        ...all,
         queryProfile: true,
       };
     }
+
     metadata?.forEach((key) => {
       let weaviateKey: string;
       if (key === 'creationTime') {
