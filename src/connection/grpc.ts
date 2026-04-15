@@ -133,13 +133,20 @@ export default class ConnectionGRPC extends ConnectionGQL {
     );
   };
 
-  search = (collection: string, consistencyLevel?: ConsistencyLevel, tenant?: string) => {
+  search = (
+    collection: string,
+    consistencyLevel?: ConsistencyLevel,
+    tenant?: string,
+    abortSignal?: AbortSignal
+  ) => {
     if (this.authEnabled) {
       return this.login().then((token) =>
-        this.grpc.search(collection, consistencyLevel, tenant, `Bearer ${token}`)
+        this.grpc.search(collection, consistencyLevel, tenant, `Bearer ${token}`, abortSignal)
       );
     }
-    return new Promise<Search>((resolve) => resolve(this.grpc.search(collection, consistencyLevel, tenant)));
+    return new Promise<Search>((resolve) =>
+      resolve(this.grpc.search(collection, consistencyLevel, tenant, undefined, abortSignal))
+    );
   };
 
   tenants = (collection: string) => {
@@ -174,7 +181,8 @@ export interface GrpcClient {
     collection: string,
     consistencyLevel?: ConsistencyLevel,
     tenant?: string,
-    bearerToken?: string
+    bearerToken?: string,
+    abortSignal?: AbortSignal
   ) => Search;
   tenants: (collection: string, bearerToken?: string) => Tenants;
 }
@@ -251,7 +259,8 @@ export const grpcClient = (config: GrpcConnectionParams & { grpcMaxMessageLength
       collection: string,
       consistencyLevel?: ConsistencyLevel,
       tenant?: string,
-      bearerToken?: string
+      bearerToken?: string,
+      abortSignal?: AbortSignal
     ) =>
       Searcher.use(
         client,
@@ -259,7 +268,8 @@ export const grpcClient = (config: GrpcConnectionParams & { grpcMaxMessageLength
         getMetadataWithEmbeddingServiceAuth(config, bearerToken),
         config.timeout?.query || 30,
         consistencyLevel,
-        tenant
+        tenant,
+        abortSignal
       ),
     tenants: (collection: string, bearerToken?: string) =>
       TenantsManager.use(

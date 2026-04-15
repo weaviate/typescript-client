@@ -2,7 +2,7 @@ import Connection from '../../connection/grpc.js';
 import { WeaviateUnsupportedFeatureError } from '../../errors.js';
 import { ConsistencyLevel } from '../../index.js';
 import { DbVersionSupport } from '../../utils/dbVersion.js';
-import { GenerativeConfigRuntime } from '../index.js';
+import { CallOptions, GenerativeConfigRuntime } from '../index.js';
 import { Serialize } from '../serialize/index.js';
 import {
   BaseHybridOptions,
@@ -33,7 +33,8 @@ export class Check<T, V> {
     this.tenant = tenant;
   }
 
-  private getSearcher = () => this.connection.search(this.name, this.consistencyLevel, this.tenant);
+  private getSearcher = (callOpts?: CallOptions) =>
+    this.connection.search(this.name, this.consistencyLevel, this.tenant, callOpts?.abortSignal);
 
   private checkSupportForVectors = async (
     vec?: NearVectorInputType | HybridNearVectorSubSearch | HybridNearTextSubSearch
@@ -56,10 +57,14 @@ export class Check<T, V> {
     return check.supports;
   };
 
-  public nearSearch = () => this.getSearcher().then((search) => ({ search }));
+  public nearSearch = (callOpts?: CallOptions) => this.getSearcher(callOpts).then((search) => ({ search }));
 
-  public nearVector = (vec: NearVectorInputType, opts?: BaseNearOptions<any, any, any>) => {
-    return Promise.all([this.getSearcher(), this.checkSupportForVectors(vec)]).then(
+  public nearVector = (
+    vec: NearVectorInputType,
+    opts?: BaseNearOptions<any, any, any>,
+    callOpts?: CallOptions
+  ) => {
+    return Promise.all([this.getSearcher(callOpts), this.checkSupportForVectors(vec)]).then(
       ([search, supportsVectors]) => {
         const is129 = supportsVectors;
         return {
@@ -70,8 +75,8 @@ export class Check<T, V> {
     );
   };
 
-  public hybridSearch = (opts?: BaseHybridOptions<any, any, any>) => {
-    return Promise.all([this.getSearcher(), this.checkSupportForVectors(opts?.vector)]).then(
+  public hybridSearch = (opts?: BaseHybridOptions<any, any, any>, callOpts?: CallOptions) => {
+    return Promise.all([this.getSearcher(callOpts), this.checkSupportForVectors(opts?.vector)]).then(
       ([search, supportsVectors]) => {
         const is129 = supportsVectors;
         return {
@@ -82,9 +87,10 @@ export class Check<T, V> {
     );
   };
 
-  public fetchObjects = () => this.getSearcher().then((search) => ({ search }));
+  public fetchObjects = (callOpts?: CallOptions) => this.getSearcher(callOpts).then((search) => ({ search }));
 
-  public fetchObjectById = () => this.getSearcher().then((search) => ({ search }));
+  public fetchObjectById = (callOpts?: CallOptions) =>
+    this.getSearcher(callOpts).then((search) => ({ search }));
 
-  public bm25 = () => this.getSearcher().then((search) => ({ search }));
+  public bm25 = (callOpts?: CallOptions) => this.getSearcher(callOpts).then((search) => ({ search }));
 }
