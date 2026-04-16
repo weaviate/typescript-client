@@ -242,6 +242,10 @@ export interface paths {
     /** Provides meta-information about the running Weaviate instance, including its version, loaded modules, and network hostname. This information can be useful for monitoring, compatibility checks, or inter-instance communication. */
     get: operations['meta.get'];
   };
+  '/tokenize': {
+    /** Tokenizes the provided text using the specified tokenization method. This is a stateless utility endpoint useful for debugging and understanding how text will be processed during indexing and querying. The response includes both the indexed tokens (as stored in the inverted index) and query tokens (after optional stopword removal). */
+    post: operations['tokenize'];
+  };
   '/schema': {
     /** Retrieves the definitions of all collections (classes) currently in the database schema. */
     get: operations['schema.dump'];
@@ -263,6 +267,14 @@ export interface paths {
   '/schema/{className}/properties/{propertyName}/index/{indexName}': {
     /** Deletes an inverted index of a specific property within a collection (`className`). The index to delete is identified by `indexName` and must be one of `filterable`, `searchable`, or `rangeFilters`. */
     delete: operations['schema.objects.properties.delete'];
+  };
+  '/schema/{className}/properties/{propertyName}/tokenize': {
+    /** Tokenizes the provided text using the tokenization method configured for the specified property. This endpoint automatically applies the property's tokenization setting and the collection's stopword configuration, making it useful for understanding exactly how text will be processed for a given property during indexing and querying. */
+    post: operations['schema.objects.properties.tokenize'];
+  };
+  '/schema/{className}/vectors/{vectorIndexName}/index': {
+    /** Deletes a specific vector index within a collection (`className`). The vector index to delete is identified by `vectorIndexName`. */
+    delete: operations['schema.objects.vectors.delete'];
   };
   '/schema/{className}/shards': {
     /** Retrieves the status of all shards associated with the specified collection (`className`). For multi-tenant collections, use the `tenant` query parameter to retrieve status for a specific tenant's shards. */
@@ -322,6 +334,16 @@ export interface paths {
     /** Cancels an ongoing backup restoration process identified by its ID on the specified backend storage. */
     delete: operations['backups.restore.cancel'];
   };
+  '/export/{backend}': {
+    /** Initiates an export operation on the specified backend storage (S3, GCS, Azure, or filesystem). The output format is controlled by the required 'file_format' field in the request body (currently only 'parquet' is supported). Each collection is exported to a separate file. */
+    post: operations['export.create'];
+  };
+  '/export/{backend}/{id}': {
+    /** Retrieves the current status of an export operation, including progress for each collection being exported. */
+    get: operations['export.status'];
+    /** Cancels an ongoing export operation identified by its ID. */
+    delete: operations['export.cancel'];
+  };
   '/cluster/statistics': {
     /** Provides statistics about the internal Raft consensus protocol state for the Weaviate cluster. */
     get: operations['cluster.get.statistics'];
@@ -344,6 +366,14 @@ export interface paths {
   '/classifications/{id}': {
     /** Retrieves the status, metadata, and results (if completed) of a classification task identified by its unique ID. */
     get: operations['classifications.get'];
+  };
+  '/mcp': {
+    /** Opens an SSE stream for receiving MCP server-sent events. */
+    get: operations['mcp.get'];
+    /** MCP Streamable HTTP endpoint. Handles JSON-RPC requests for tool discovery and invocation. */
+    post: operations['mcp.post'];
+    /** Terminates an MCP session. */
+    delete: operations['mcp.delete'];
   };
 }
 
@@ -524,6 +554,8 @@ export interface definitions {
        */
       alias?: string;
     };
+    /** @description resources applicable for MCP actions */
+    mcp?: { [key: string]: unknown };
     /**
      * @description Allowed actions in weaviate.
      * @enum {string}
@@ -562,7 +594,8 @@ export interface definitions {
       | 'update_aliases'
       | 'delete_aliases'
       | 'assign_and_revoke_groups'
-      | 'read_groups';
+      | 'read_groups'
+      | 'manage_mcp';
   };
   /** @description List of roles. */
   RolesListResponse: definitions['Role'][];
@@ -628,17 +661,6 @@ export interface definitions {
   Vector: { [key: string]: unknown };
   /** @description A map of named vectors for multi-vector representations. */
   Vectors: { [key: string]: definitions['Vector'] };
-  /** @description Receive question based on array of collection names (classes), properties and values. */
-  C11yVectorBasedQuestion: {
-    /** @description Vectorized collection (class) name. */
-    classVectors?: number[];
-    /** @description Vectorized properties. */
-    classProps?: {
-      propsVectors?: number[];
-      /** @description String with valuename. */
-      value?: string;
-    }[];
-  }[];
   Deprecation: {
     /** @description The id that uniquely identifies this particular deprecation (mostly used internally). */
     id?: string;
@@ -674,6 +696,95 @@ export interface definitions {
     error?: {
       message?: string;
     }[];
+  };
+  /** @description Request to create a new export operation */
+  ExportCreateRequest: {
+    /** @description Unique identifier for this export. Must be URL-safe. */
+    id: string;
+    /**
+     * @description Output file format for the export.
+     * @enum {string}
+     */
+    file_format: 'parquet';
+    /** @description List of collection names to include in the export. Cannot be used with 'exclude'. */
+    include?: string[];
+    /** @description List of collection names to exclude from the export. Cannot be used with 'include'. */
+    exclude?: string[];
+  };
+  /** @description Response from creating an export operation */
+  ExportCreateResponse: {
+    /** @description Unique identifier for this export */
+    id?: string;
+    /** @description The backend storage system used */
+    backend?: string;
+    /** @description Full path where the export is being written */
+    path?: string;
+    /**
+     * @description Current status of the export
+     * @enum {string}
+     */
+    status?: 'STARTED';
+    /**
+     * Format: date-time
+     * @description When the export started
+     */
+    startedAt?: string;
+    /** @description List of collections being exported */
+    classes?: string[];
+  };
+  /** @description Current status of an export operation */
+  ExportStatusResponse: {
+    /** @description Unique identifier for this export */
+    id?: string;
+    /** @description The backend storage system used */
+    backend?: string;
+    /** @description Full path where the export is stored */
+    path?: string;
+    /**
+     * @description Current status of the export
+     * @enum {string}
+     */
+    status?: 'STARTED' | 'TRANSFERRING' | 'SUCCESS' | 'FAILED' | 'CANCELED';
+    /**
+     * Format: date-time
+     * @description When the export started
+     */
+    startedAt?: string;
+    /**
+     * Format: date-time
+     * @description When the export completed (successfully, with failure, or was canceled)
+     */
+    completedAt?: string;
+    /**
+     * Format: int64
+     * @description Duration of the export in milliseconds
+     */
+    tookInMs?: number;
+    /** @description List of collections in this export */
+    classes?: string[];
+    /** @description Per-shard progress: className -> shardName -> status */
+    shardStatus?: {
+      [key: string]: { [key: string]: definitions['ShardProgress'] };
+    };
+    /** @description Error message if export failed */
+    error?: string;
+  };
+  /** @description Progress information for exporting a single shard */
+  ShardProgress: {
+    /**
+     * @description Status of this shard's export
+     * @enum {string}
+     */
+    status?: 'TRANSFERRING' | 'SUCCESS' | 'FAILED' | 'SKIPPED';
+    /**
+     * Format: int64
+     * @description Number of objects exported from this shard
+     */
+    objectsExported?: number;
+    /** @description Error message if this shard's export failed */
+    error?: string;
+    /** @description Reason why this shard was skipped (e.g. tenant status) */
+    skipReason?: string;
   };
   /** @description An error response caused by a GraphQL query. */
   GraphQLError: {
@@ -725,6 +836,8 @@ export interface definitions {
     usingBlockMaxWAND?: boolean;
     /** @description User-defined dictionary for tokenization. */
     tokenizerUserDict?: definitions['TokenizerUserDictConfig'][];
+    /** @description User-defined named stopword lists. Each key is a preset name that can be referenced by a property's textAnalyzer.stopwordPreset field. The value is an array of stopword strings. */
+    stopwordPresets?: { [key: string]: string[] };
   };
   /** @description Configure how replication is executed in a cluster */
   ReplicationConfig: {
@@ -773,6 +886,47 @@ export interface definitions {
       target: string;
     }[];
   };
+  /** @description Request body for the generic tokenize endpoint. */
+  TokenizeRequest: {
+    /** @description The text to tokenize. */
+    text: string;
+    /**
+     * @description The tokenization method to apply.
+     * @enum {string}
+     */
+    tokenization:
+      | 'word'
+      | 'lowercase'
+      | 'whitespace'
+      | 'field'
+      | 'trigram'
+      | 'gse'
+      | 'kagome_kr'
+      | 'kagome_ja'
+      | 'gse_ch';
+    /** @description Optional text analyzer configuration (e.g. ASCII folding). */
+    analyzerConfig?: definitions['TextAnalyzerConfig'];
+    /** @description Optional named stopword configurations. Each key is a preset name that can be referenced by analyzerConfig.stopwordPreset. Each value is a StopwordConfig (with optional preset, additions, and removals). */
+    stopwordPresets?: { [key: string]: definitions['StopwordConfig'] };
+  };
+  /** @description Response from the tokenize endpoint. */
+  TokenizeResponse: {
+    /** @description The tokenization method that was applied. */
+    tokenization?: string;
+    /** @description The text analyzer configuration that was used, if any. */
+    analyzerConfig?: definitions['TextAnalyzerConfig'];
+    /** @description The stopword configuration that was used, if any. */
+    stopwordConfig?: definitions['StopwordConfig'];
+    /** @description The tokens as they would be stored in the inverted index. */
+    indexed?: string[];
+    /** @description The tokens as they would be used for query matching (e.g., after stopword removal). */
+    query?: string[];
+  };
+  /** @description Request body for the property-specific tokenize endpoint. */
+  PropertyTokenizeRequest: {
+    /** @description The text to tokenize using the property's configured tokenization. */
+    text: string;
+  };
   /** @description Configuration related to multi-tenancy within a collection (class) */
   MultiTenancyConfig: {
     /** @description Whether or not multi-tenancy is enabled for this collection (class) (default: `false`). */
@@ -811,36 +965,6 @@ export interface definitions {
   };
   /** @description Multiple instances of references to other objects. */
   MultipleRef: definitions['SingleRef'][];
-  /** @description Either a JSONPatch document as defined by RFC 6902 (from, op, path, value), or a merge document (RFC 7396). */
-  PatchDocumentObject: {
-    /** @description A string containing a JSON Pointer value. */
-    from?: string;
-    /**
-     * @description The operation to be performed.
-     * @enum {string}
-     */
-    op: 'add' | 'remove' | 'replace' | 'move' | 'copy' | 'test';
-    /** @description A JSON-Pointer. */
-    path: string;
-    /** @description The value to be used within the operations. */
-    value?: { [key: string]: unknown };
-    merge?: definitions['Object'];
-  };
-  /** @description Either a JSONPatch document as defined by RFC 6902 (from, op, path, value), or a merge document (RFC 7396). */
-  PatchDocumentAction: {
-    /** @description A string containing a JSON Pointer value. */
-    from?: string;
-    /**
-     * @description The operation to be performed.
-     * @enum {string}
-     */
-    op: 'add' | 'remove' | 'replace' | 'move' | 'copy' | 'test';
-    /** @description A JSON-Pointer. */
-    path: string;
-    /** @description The value to be used within the operations. */
-    value?: { [key: string]: unknown };
-    merge?: definitions['Object'];
-  };
   /** @description Specifies the parameters required to initiate a shard replica movement operation between two nodes for a given collection and shard. This request defines the source and target node, the collection and type of transfer. */
   ReplicationReplicateReplicaRequest: {
     /** @description The name of the Weaviate node currently hosting the shard replica that needs to be moved or copied. */
@@ -900,24 +1024,6 @@ export interface definitions {
     planId: string;
     /** @description The name of the collection associated with this replication scaling plan. */
     collection: string;
-  };
-  /** @description Specifies the parameters required to mark a specific shard replica as inactive (soft-delete) on a particular node. This action typically prevents the replica from serving requests but does not immediately remove its data. */
-  ReplicationDisableReplicaRequest: {
-    /** @description The name of the Weaviate node hosting the shard replica that is to be disabled. */
-    node: string;
-    /** @description The name of the collection to which the shard replica belongs. */
-    collection: string;
-    /** @description The ID of the shard whose replica is to be disabled. */
-    shard: string;
-  };
-  /** @description Specifies the parameters required to permanently delete a specific shard replica from a particular node. This action will remove the replica's data from the node. */
-  ReplicationDeleteReplicaRequest: {
-    /** @description The name of the Weaviate node from which the shard replica will be deleted. */
-    node: string;
-    /** @description The name of the collection to which the shard replica belongs. */
-    collection: string;
-    /** @description The ID of the shard whose replica is to be deleted. */
-    shard: string;
   };
   /** @description Represents a shard and lists the nodes that currently host its replicas. */
   ReplicationShardReplicas: {
@@ -1035,14 +1141,10 @@ export interface definitions {
     /** @description The latest known hash of the peer's schema. */
     schemaHash?: string;
   };
-  /** @description List of known peers. */
-  PeerUpdateList: definitions['PeerUpdate'][];
   /** @description Allow custom overrides of vector weights as math expressions. E.g. `pancake`: `7` will set the weight for the word pancake to 7 in the vectorization, whereas `w * 3` would triple the originally calculated word. This is an open object, with OpenAPI Specification 3.0 this will be more detailed. See Weaviate docs for more info. In the future this will become a key/value (string/string) object. */
   VectorWeights: { [key: string]: unknown };
   /** @description Names and values of an individual property. A returned response may also contain additional metadata, such as from classification or feature projection. */
   PropertySchema: { [key: string]: unknown };
-  /** @description This is an open object, with OpenAPI Specification 3.0 this will be more detailed. See Weaviate docs for more info. In the future this will become a key/value OR a SingleRef definition. */
-  SchemaHistory: { [key: string]: unknown };
   /** @description Definitions of semantic schemas (also see: https://github.com/weaviate/weaviate-semantic-schemas). */
   Schema: {
     /** @description Semantic classes that are available. */
@@ -1054,22 +1156,6 @@ export interface definitions {
     maintainer?: string;
     /** @description Name of the schema. */
     name?: string;
-  };
-  /** @description Indicates the health of the schema in a cluster. */
-  SchemaClusterStatus: {
-    /** @description True if the cluster is in sync, false if there is an issue (see error). */
-    healthy?: boolean;
-    /** @description Contains the sync check error if one occurred */
-    error?: string;
-    /** @description Hostname of the coordinating node, i.e. the one that received the cluster. This can be useful information if the error message contains phrases such as 'other nodes agree, but local does not', etc. */
-    hostname?: string;
-    /**
-     * Format: int
-     * @description Number of nodes that participated in the sync check
-     */
-    nodeCount?: number;
-    /** @description The cluster check at startup can be ignored (to recover from an out-of-sync situation). */
-    ignoreSchemaSync?: boolean;
   };
   Class: {
     /** @description Name of the collection (formerly 'class') (required). Multiple words should be concatenated in CamelCase, e.g. `ArticleAuthor`. */
@@ -1133,6 +1219,16 @@ export interface definitions {
      * @default true
      */
     disableDuplicatedReferences?: boolean;
+    textAnalyzer?: definitions['TextAnalyzerConfig'];
+  };
+  /** @description Text analysis options for a property. The asciiFold setting is immutable after creation, while the asciiFoldIgnore list can be updated later; changes to asciiFoldIgnore only affect newly indexed data and do not retroactively re-index existing data. Applies only to text and text[] data types that use an inverted index (searchable or filterable). */
+  TextAnalyzerConfig: {
+    /** @description If true, accent/diacritic marks are folded to their base characters during indexing and search. For example, 'école' matches 'ecole'. Defaults to false. */
+    asciiFold?: boolean;
+    /** @description If provided, specifies a list of characters that should be excluded from ascii folding. For example, if ['é'] is provided, then 'é' will not be folded to 'e' during indexing and search. This list can be updated after the property is created, but updates only affect documents indexed after the change. */
+    asciiFoldIgnore?: string[];
+    /** @description Stopword preset name. Overrides the collection-level invertedIndexConfig.stopwords for this property. Only applies to properties using 'word' tokenization. Can be a built-in preset ('en', 'none') or a user-defined preset from invertedIndexConfig.stopwordPresets. */
+    stopwordPreset?: string;
   };
   VectorConfig: {
     /** @description Configuration of a specific vectorizer used by this vector */
@@ -1162,6 +1258,7 @@ export interface definitions {
       | 'gse_ch';
     /** @description The properties of the nested object(s). Applies to object and object[] data types. */
     nestedProperties?: definitions['NestedProperty'][];
+    textAnalyzer?: definitions['TextAnalyzerConfig'];
   };
   /** @description The status of all the shards of a Class */
   ShardStatusList: definitions['ShardStatusGetResponse'][];
@@ -1309,6 +1406,11 @@ export interface definitions {
     include?: string[];
     /** @description List of collections to exclude from the backup creation process. If not set, all collections are included. Cannot be used together with `include`. */
     exclude?: string[];
+    /**
+     * @description The ID of an existing backup to use as the base for a file-based incremental backup. If set, only files that have changed since the base backup will be included in the new backup.
+     * @default null
+     */
+    incremental_base_backup_id?: string;
   };
   /** @description The definition of a backup create response body */
   BackupCreateResponse: {
@@ -1617,6 +1719,34 @@ export interface definitions {
     error?: string;
     /** @description The payload of the task. */
     payload?: { [key: string]: unknown };
+    /** @description Units of the task. Only present for tasks that use unit tracking. */
+    units?: definitions['DistributedTaskUnit'][];
+  };
+  /** @description A unit of a distributed task. */
+  DistributedTaskUnit: {
+    /** @description The ID of the unit. */
+    id?: string;
+    /** @description The node that owns this unit. */
+    nodeId?: string;
+    /** @description The status of the unit. */
+    status?: string;
+    /**
+     * Format: float
+     * @description The progress of the unit (0.0 to 1.0).
+     */
+    progress?: number;
+    /** @description The error message if the unit failed. */
+    error?: string;
+    /**
+     * Format: date-time
+     * @description The time when the unit was last updated.
+     */
+    updatedAt?: string;
+    /**
+     * Format: date-time
+     * @description The time when the unit finished.
+     */
+    finishedAt?: string;
   };
   /** @description Active distributed tasks by namespace. */
   DistributedTasks: { [key: string]: definitions['DistributedTask'][] };
@@ -4473,6 +4603,36 @@ export interface operations {
       };
     };
   };
+  /** Tokenizes the provided text using the specified tokenization method. This is a stateless utility endpoint useful for debugging and understanding how text will be processed during indexing and querying. The response includes both the indexed tokens (as stored in the inverted index) and query tokens (after optional stopword removal). */
+  tokenize: {
+    parameters: {
+      body: {
+        body: definitions['TokenizeRequest'];
+      };
+    };
+    responses: {
+      /** Successfully tokenized the text. */
+      200: {
+        schema: definitions['TokenizeResponse'];
+      };
+      /** Invalid or malformed request body. */
+      400: unknown;
+      /** Unauthorized or invalid credentials. */
+      401: unknown;
+      /** Forbidden */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Request binding or validation error. Check the ErrorResponse for details. */
+      422: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** An unexpected error occurred while tokenizing the text. Check the ErrorResponse for details. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
   /** Retrieves the definitions of all collections (classes) currently in the database schema. */
   'schema.dump': {
     parameters: {
@@ -4681,6 +4841,73 @@ export interface operations {
         schema: definitions['ErrorResponse'];
       };
       /** An error occurred while deleting the index. Check the ErrorResponse for details. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
+  /** Tokenizes the provided text using the tokenization method configured for the specified property. This endpoint automatically applies the property's tokenization setting and the collection's stopword configuration, making it useful for understanding exactly how text will be processed for a given property during indexing and querying. */
+  'schema.objects.properties.tokenize': {
+    parameters: {
+      path: {
+        /** The name of the collection (class) containing the property. */
+        className: string;
+        /** The name of the property whose tokenization configuration should be used. */
+        propertyName: string;
+      };
+      body: {
+        body: definitions['PropertyTokenizeRequest'];
+      };
+    };
+    responses: {
+      /** Successfully tokenized the text using the property's configuration. */
+      200: {
+        schema: definitions['TokenizeResponse'];
+      };
+      /** Invalid request body, missing required fields, or property does not have tokenization configured. */
+      400: unknown;
+      /** Unauthorized or invalid credentials. */
+      401: unknown;
+      /** Forbidden */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Collection or property not found. */
+      404: unknown;
+      /** Validation error, such as invalid class or property configuration for tokenization. */
+      422: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Unexpected server error while tokenizing the text. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
+  /** Deletes a specific vector index within a collection (`className`). The vector index to delete is identified by `vectorIndexName`. */
+  'schema.objects.vectors.delete': {
+    parameters: {
+      path: {
+        /** The name of the collection (class) containing the property. */
+        className: string;
+        /** The name of the vector index. */
+        vectorIndexName: string;
+      };
+    };
+    responses: {
+      /** Vector index deleted successfully. */
+      200: unknown;
+      /** Unauthorized or invalid credentials. */
+      401: unknown;
+      /** Forbidden */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Invalid vector index or collection provided. */
+      422: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** An error occurred while deleting the vector index. Check the ErrorResponse for details. */
       500: {
         schema: definitions['ErrorResponse'];
       };
@@ -5370,6 +5597,114 @@ export interface operations {
       };
     };
   };
+  /** Initiates an export operation on the specified backend storage (S3, GCS, Azure, or filesystem). The output format is controlled by the required 'file_format' field in the request body (currently only 'parquet' is supported). Each collection is exported to a separate file. */
+  'export.create': {
+    parameters: {
+      path: {
+        /** The backend storage system to use for the export (e.g., `filesystem`, `gcs`, `s3`, `azure`). */
+        backend: string;
+      };
+      body: {
+        body: definitions['ExportCreateRequest'];
+      };
+    };
+    responses: {
+      /** Successfully started export operation */
+      200: {
+        schema: definitions['ExportCreateResponse'];
+      };
+      /** Unauthorized or invalid credentials */
+      401: unknown;
+      /** Forbidden - insufficient permissions */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Export already exists or another export is already in progress */
+      409: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Invalid export request */
+      422: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Internal server error occurred while starting export */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
+  /** Retrieves the current status of an export operation, including progress for each collection being exported. */
+  'export.status': {
+    parameters: {
+      path: {
+        /** The backend storage system where the export is stored. */
+        backend: string;
+        /** The unique identifier of the export. */
+        id: string;
+      };
+    };
+    responses: {
+      /** Successfully retrieved export status */
+      200: {
+        schema: definitions['ExportStatusResponse'];
+      };
+      /** Unauthorized or invalid credentials */
+      401: unknown;
+      /** Forbidden - insufficient permissions */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Export not found */
+      404: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Invalid request (e.g., unsupported backend) */
+      422: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Internal server error occurred while retrieving export status */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
+  /** Cancels an ongoing export operation identified by its ID. */
+  'export.cancel': {
+    parameters: {
+      path: {
+        /** The backend storage system where the export is stored. */
+        backend: string;
+        /** The unique identifier of the export to cancel. */
+        id: string;
+      };
+    };
+    responses: {
+      /** Export cancelled successfully. */
+      204: never;
+      /** Unauthorized or invalid credentials. */
+      401: unknown;
+      /** Forbidden - insufficient permissions */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Export not found */
+      404: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Export has already finished and cannot be cancelled */
+      409: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Invalid request (e.g., unsupported backend) */
+      422: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Internal server error occurred while cancelling export */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
   /** Provides statistics about the internal Raft consensus protocol state for the Weaviate cluster. */
   'cluster.get.statistics': {
     responses: {
@@ -5534,6 +5869,27 @@ export interface operations {
       500: {
         schema: definitions['ErrorResponse'];
       };
+    };
+  };
+  /** Opens an SSE stream for receiving MCP server-sent events. */
+  'mcp.get': {
+    responses: {
+      /** SSE event stream */
+      200: unknown;
+    };
+  };
+  /** MCP Streamable HTTP endpoint. Handles JSON-RPC requests for tool discovery and invocation. */
+  'mcp.post': {
+    responses: {
+      /** JSON-RPC response or SSE stream */
+      200: unknown;
+    };
+  };
+  /** Terminates an MCP session. */
+  'mcp.delete': {
+    responses: {
+      /** Session terminated */
+      200: unknown;
     };
   };
 }
