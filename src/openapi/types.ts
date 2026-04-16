@@ -93,3 +93,9 @@ export type WeaviateAlias = definitions['Alias'];
 export type WeaviateAliasResponse = {
   aliases?: Required<Exclude<definitions['AliasResponse']['aliases'], undefined>[0]>[] | undefined;
 };
+// Tokenize
+export type WeaviateTokenizeResponse = definitions['TokenizeResponse'];
+export type WeaviateTextAnalyzerConfig = definitions['TextAnalyzerConfig'];
+export type WeaviateTokenizeRequest = definitions['TokenizeRequest'];
+export type WeaviateTokenization = definitions['TokenizeRequest']['tokenization'];
+export type WeaviatePropertyTokenizeRequest = definitions['PropertyTokenizeRequest'];

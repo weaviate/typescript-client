@@ -15,6 +15,7 @@ import weaviate, {
   weaviateV2,
 } from '../../../src/index.js';
 import { WeaviateClass } from '../../../src/openapi/types.js';
+import { TokenizeResult } from '../../../src/tokenize/types.js';
 import { requireAtLeast } from '../../../test/version.js';
 
 describe('Testing of the collection.config namespace', () => {
@@ -1116,4 +1117,28 @@ describe('Testing of the collection.config namespace', () => {
     expect(disabled.objectTTL).toBeDefined();
     expect(disabled.objectTTL.enabled).toEqual(false);
   });
+
+  requireAtLeast(1, 37, 0).it.only(
+    'should tokenize text with the tokenization config of a property',
+    async () => {
+      const collectionName = 'TestCollectionTokenization';
+      const collection = await client.collections.create({
+        name: collectionName,
+        properties: [
+          {
+            name: 'textProp',
+            dataType: 'text',
+            tokenization: 'word',
+          },
+        ],
+      });
+      await collection.config.tokenizeProperty('textProp', 'This is a test').then((tokens) => {
+        expect(tokens).toEqual<TokenizeResult>({
+          tokenization: 'word',
+          indexed: ['this', 'is', 'a', 'test'],
+          query: ['this', 'is', 'a', 'test'],
+        });
+      });
+    }
+  );
 });
