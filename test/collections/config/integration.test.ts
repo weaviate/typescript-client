@@ -1118,27 +1118,23 @@ describe('Testing of the collection.config namespace', () => {
     expect(disabled.objectTTL.enabled).toEqual(false);
   });
 
-  requireAtLeast(1, 37, 0).it.only(
-    'should tokenize text with the tokenization config of a property',
-    async () => {
-      const collectionName = 'TestCollectionTokenization';
-      const collection = await client.collections.create({
-        name: collectionName,
-        properties: [
-          {
-            name: 'textProp',
-            dataType: 'text',
-            tokenization: 'word',
-          },
-        ],
-      });
-      await collection.config.tokenizeProperty('textProp', 'This is a test').then((tokens) => {
-        expect(tokens).toEqual<TokenizeResult>({
+  requireAtLeast(1, 37, 0).it('should tokenize text with the tokenization config of a property', async () => {
+    const collectionName = 'TestCollectionTokenization';
+    const collection = await client.collections.create({
+      name: collectionName,
+      properties: [
+        {
+          name: 'textProp',
+          dataType: 'text',
           tokenization: 'word',
-          indexed: ['this', 'is', 'a', 'test'],
-          query: ['this', 'is', 'a', 'test'],
-        });
-      });
-    }
-  );
+        },
+      ],
+    });
+    const tokens = await collection.config.tokenizeProperty('textProp', 'This is a test');
+    expect(tokens).toEqual<TokenizeResult>({
+      tokenization: 'word',
+      indexed: ['this', 'is', 'a', 'test'],
+      query: ['this', 'is', 'a', 'test'],
+    });
+  });
 });
