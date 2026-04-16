@@ -3,11 +3,7 @@ import { ConsistencyLevel } from '../data/index.js';
 import { isAbortError } from 'abort-controller-x';
 import { Metadata, ServerError, Status } from 'nice-grpc';
 import { RetryOptions } from 'nice-grpc-client-middleware-retry';
-import {
-  WeaviateInsufficientPermissionsError,
-  WeaviateQueryError,
-  WeaviateRequestTimeoutError,
-} from '../errors.js';
+import { WeaviateInsufficientPermissionsError, WeaviateRequestTimeoutError } from '../errors.js';
 import { ConsistencyLevel as ConsistencyLevelGRPC } from '../proto/v1/base.js';
 import { WeaviateClient } from '../proto/v1/weaviate.js';
 
@@ -51,7 +47,10 @@ export default class Base {
     }
   }
 
-  protected sendWithTimeout = <T>(send: (signal: AbortSignal) => Promise<T>): Promise<T> => {
+  protected sendWithTimeout = <T>(
+    send: (signal: AbortSignal) => Promise<T>,
+    errMkr: (err: Error) => Error
+  ): Promise<T> => {
     const controller = new AbortController();
 
     const signal = this.abortSignal
@@ -70,7 +69,7 @@ export default class Base {
         if (isAbortError(err) && this.abortSignal !== undefined) {
           throw err; // if the error is an abort error caused by the caller's abort signal, we re-throw it so that the caller can handle it as they see fit
         }
-        throw new WeaviateQueryError(err.message, 'gRPC');
+        throw errMkr(err);
       })
       .finally(() => clearTimeout(timeoutId));
   };

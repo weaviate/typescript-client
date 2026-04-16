@@ -27,6 +27,7 @@ import {
 import { WeaviateClient } from '../proto/v1/weaviate.js';
 
 import { RetryOptions } from 'nice-grpc-client-middleware-retry';
+import { WeaviateQueryError } from '../errors.js';
 import { NearMediaType } from '../index.js';
 import { GenerativeSearch } from '../proto/v1/generative.js';
 import Base from './base.js';
@@ -156,22 +157,24 @@ export default class Searcher extends Base implements Search {
   public withNearVideo = (args: SearchNearVideoArgs) => this.call(SearchRequest.fromPartial(args));
 
   private call = (message: SearchRequest) =>
-    this.sendWithTimeout((signal: AbortSignal) =>
-      this.connection.search(
-        {
-          ...message,
-          collection: this.collection,
-          consistencyLevel: this.consistencyLevel,
-          tenant: this.tenant,
-          uses123Api: true,
-          uses125Api: true,
-          uses127Api: true,
-        },
-        {
-          metadata: this.metadata,
-          signal,
-          ...retryOptions,
-        }
-      )
+    this.sendWithTimeout(
+      (signal: AbortSignal) =>
+        this.connection.search(
+          {
+            ...message,
+            collection: this.collection,
+            consistencyLevel: this.consistencyLevel,
+            tenant: this.tenant,
+            uses123Api: true,
+            uses125Api: true,
+            uses127Api: true,
+          },
+          {
+            metadata: this.metadata,
+            signal,
+            ...retryOptions,
+          }
+        ),
+      (err) => new WeaviateQueryError(err.message, 'gRPC')
     );
 }
