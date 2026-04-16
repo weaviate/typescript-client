@@ -148,6 +148,13 @@ export class DbVersionSupport {
       supports: version.isAtLeast(1, 36, 0),
       message: this.errorMessage('Server-side batching', version.show(), '1.36.0'),
     }));
+
+  supportsTokenize = () =>
+    this.dbVersionProvider.getVersion().then((version) => ({
+      version,
+      supports: version.isAtLeast(1, 37, 0),
+      message: this.errorMessage('Tokenize endpoint', version.show(), '1.37.0'),
+    }));
 }
 
 const EMPTY_VERSION = '';

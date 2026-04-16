@@ -3,7 +3,11 @@ export * from './reranker.js';
 export * from './vectorIndex.js';
 export * from './vectorizer.js';
 
-import { WeaviateAsyncReplicationConfig, WeaviateDropPropertyIndexName } from '../../../openapi/types.js';
+import {
+  WeaviateAsyncReplicationConfig,
+  WeaviateDropPropertyIndexName,
+  WeaviateTokenization,
+} from '../../../openapi/types.js';
 import {
   InvertedIndexConfigUpdate,
   MultiTenancyConfigUpdate,
@@ -21,6 +25,14 @@ export type InvertedIndexName = WeaviateDropPropertyIndexName;
 export type ModuleConfig<N, C = undefined> = {
   name: N;
   config: C;
+};
+
+export type StopwordPreset = 'en' | 'none';
+
+export type Stopwords = {
+  preset: StopwordPreset | string;
+  additions: string[];
+  removals: string[];
 };
 
 export type InvertedIndexConfig = {
@@ -74,6 +86,8 @@ export type PropertyVectorizerConfig = Record<
   }
 >;
 
+export type Tokenization = WeaviateTokenization;
+
 export type PropertyConfig = {
   name: string;
   dataType: string;
@@ -83,7 +97,7 @@ export type PropertyConfig = {
   indexRangeFilters: boolean;
   indexSearchable: boolean;
   nestedProperties?: PropertyConfig[];
-  tokenization: string;
+  tokenization: Tokenization | string;
   vectorizerConfig?: PropertyVectorizerConfig;
 };
 
