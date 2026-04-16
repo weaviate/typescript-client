@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
+import { AbortError } from 'abort-controller-x';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { WeaviateUnsupportedFeatureError } from '../../../src/errors.js';
 import weaviate, {
@@ -80,6 +81,15 @@ describe('Testing of the collection.query methods with a simple collection', () 
     expect(ret.objects.length).toEqual(2);
     expect(ret.objects[0].properties.testProp).toBeDefined();
     expect(ret.objects[0].uuid).toBeDefined();
+  });
+
+  it('should be able to abort a query using an external signal', async () => {
+    const controller = new AbortController();
+    const query = collection.query.fetchObjects(undefined, {
+      abortSignal: controller.signal,
+    });
+    controller.abort();
+    await expect(query).rejects.toThrow(AbortError);
   });
 
   it('should query without search specifying return properties', async () => {

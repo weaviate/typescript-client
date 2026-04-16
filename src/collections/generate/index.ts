@@ -8,6 +8,7 @@ import { toBase64FromMedia } from '../../index.js';
 import { GenerativeSearch } from '../../proto/v1/generative.js';
 import { SearchReply } from '../../proto/v1/search_get.js';
 import { Deserialize } from '../deserialize/index.js';
+import { CallOptions } from '../index.js';
 import { Check } from '../query/check.js';
 import {
   BaseBm25Options,
@@ -74,10 +75,11 @@ class GenerateManager<T, V> implements Generate<T, V> {
 
   public fetchObjects<C extends GenerativeConfigRuntime | undefined = undefined>(
     generate: GenerateOptions<T, C>,
-    opts?: FetchObjectsOptions<T, V>
+    opts?: FetchObjectsOptions<T, V>,
+    callOpts?: CallOptions
   ): Promise<GenerativeReturn<T, V, C>> {
     return Promise.all([
-      this.check.fetchObjects(),
+      this.check.fetchObjects(callOpts),
       this.check.supportForSingleGroupedGenerative(),
       this.check.supportForGenerativeConfigRuntime(generate.config),
     ])
@@ -99,7 +101,8 @@ class GenerateManager<T, V> implements Generate<T, V> {
   >(
     query: string,
     generate: GenerateOptions<T, C>,
-    opts?: BaseBm25Options<T, I>
+    opts?: BaseBm25Options<T, I>,
+    callOpts?: CallOptions
   ): Promise<GenerativeReturn<T, RV, C>>;
   public bm25<
     I extends IncludeVector<V>,
@@ -108,15 +111,21 @@ class GenerateManager<T, V> implements Generate<T, V> {
   >(
     query: string,
     generate: GenerateOptions<T, C>,
-    opts: GroupByBm25Options<T, I>
+    opts: GroupByBm25Options<T, I>,
+    callOpts?: CallOptions
   ): Promise<GenerativeGroupByReturn<T, RV, C>>;
   public bm25<
     I extends IncludeVector<V>,
     RV extends ReturnVectors<V, I>,
     C extends GenerativeConfigRuntime | undefined = undefined
-  >(query: string, generate: GenerateOptions<T, C>, opts?: Bm25Options<T, I>): GenerateReturn<T, RV, C> {
+  >(
+    query: string,
+    generate: GenerateOptions<T, C>,
+    opts?: Bm25Options<T, I>,
+    callOpts?: CallOptions
+  ): GenerateReturn<T, RV, C> {
     return Promise.all([
-      this.check.bm25(),
+      this.check.bm25(callOpts),
       this.check.supportForSingleGroupedGenerative(),
       this.check.supportForGenerativeConfigRuntime(generate.config),
     ])
@@ -138,7 +147,8 @@ class GenerateManager<T, V> implements Generate<T, V> {
   >(
     query: string,
     generate: GenerateOptions<T, C>,
-    opts?: BaseHybridOptions<T, V, I>
+    opts?: BaseHybridOptions<T, V, I>,
+    callOpts?: CallOptions
   ): Promise<GenerativeReturn<T, RV, C>>;
   public hybrid<
     I extends IncludeVector<V>,
@@ -147,15 +157,21 @@ class GenerateManager<T, V> implements Generate<T, V> {
   >(
     query: string,
     generate: GenerateOptions<T, C>,
-    opts: GroupByHybridOptions<T, V, I>
+    opts: GroupByHybridOptions<T, V, I>,
+    callOpts?: CallOptions
   ): Promise<GenerativeGroupByReturn<T, RV, C>>;
   public hybrid<
     I extends IncludeVector<V>,
     RV extends ReturnVectors<V, I>,
     C extends GenerativeConfigRuntime | undefined = undefined
-  >(query: string, generate: GenerateOptions<T, C>, opts?: HybridOptions<T, V, I>): GenerateReturn<T, RV, C> {
+  >(
+    query: string,
+    generate: GenerateOptions<T, C>,
+    opts?: HybridOptions<T, V, I>,
+    callOpts?: CallOptions
+  ): GenerateReturn<T, RV, C> {
     return Promise.all([
-      this.check.hybridSearch(opts),
+      this.check.hybridSearch(opts, callOpts),
       this.check.supportForSingleGroupedGenerative(),
       this.check.supportForGenerativeConfigRuntime(generate.config),
     ])
@@ -183,7 +199,8 @@ class GenerateManager<T, V> implements Generate<T, V> {
   >(
     image: string | Buffer,
     generate: GenerateOptions<T, C>,
-    opts?: BaseNearOptions<T, V, I>
+    opts?: BaseNearOptions<T, V, I>,
+    callOpts?: CallOptions
   ): Promise<GenerativeReturn<T, RV, C>>;
   public nearImage<
     I extends IncludeVector<V>,
@@ -192,7 +209,8 @@ class GenerateManager<T, V> implements Generate<T, V> {
   >(
     image: string | Buffer,
     generate: GenerateOptions<T, C>,
-    opts: GroupByNearOptions<T, V, I>
+    opts: GroupByNearOptions<T, V, I>,
+    callOpts?: CallOptions
   ): Promise<GenerativeGroupByReturn<T, RV, C>>;
   public nearImage<
     I extends IncludeVector<V>,
@@ -201,10 +219,11 @@ class GenerateManager<T, V> implements Generate<T, V> {
   >(
     image: string | Buffer,
     generate: GenerateOptions<T, C>,
-    opts?: NearOptions<T, V, I>
+    opts?: NearOptions<T, V, I>,
+    callOpts?: CallOptions
   ): GenerateReturn<T, RV, C> {
     return Promise.all([
-      this.check.nearSearch(),
+      this.check.nearSearch(callOpts),
       this.check.supportForSingleGroupedGenerative(),
       this.check.supportForGenerativeConfigRuntime(generate.config),
     ])
@@ -231,7 +250,8 @@ class GenerateManager<T, V> implements Generate<T, V> {
   >(
     id: string,
     generate: GenerateOptions<T, C>,
-    opts?: BaseNearOptions<T, V, I>
+    opts?: BaseNearOptions<T, V, I>,
+    callOpts?: CallOptions
   ): Promise<GenerativeReturn<T, RV, C>>;
   public nearObject<
     I extends IncludeVector<V>,
@@ -240,15 +260,21 @@ class GenerateManager<T, V> implements Generate<T, V> {
   >(
     id: string,
     generate: GenerateOptions<T, C>,
-    opts: GroupByNearOptions<T, V, I>
+    opts: GroupByNearOptions<T, V, I>,
+    callOpts?: CallOptions
   ): Promise<GenerativeGroupByReturn<T, RV, C>>;
   public nearObject<
     I extends IncludeVector<V>,
     RV extends ReturnVectors<V, I>,
     C extends GenerativeConfigRuntime | undefined = undefined
-  >(id: string, generate: GenerateOptions<T, C>, opts?: NearOptions<T, V, I>): GenerateReturn<T, RV, C> {
+  >(
+    id: string,
+    generate: GenerateOptions<T, C>,
+    opts?: NearOptions<T, V, I>,
+    callOpts?: CallOptions
+  ): GenerateReturn<T, RV, C> {
     return Promise.all([
-      this.check.nearSearch(),
+      this.check.nearSearch(callOpts),
       this.check.supportForSingleGroupedGenerative(),
       this.check.supportForGenerativeConfigRuntime(generate.config),
     ])
@@ -275,7 +301,8 @@ class GenerateManager<T, V> implements Generate<T, V> {
   >(
     query: string | string[],
     generate: GenerateOptions<T, C>,
-    opts?: BaseNearTextOptions<T, V, I>
+    opts?: BaseNearTextOptions<T, V, I>,
+    callOpts?: CallOptions
   ): Promise<GenerativeReturn<T, RV, C>>;
   public nearText<
     I extends IncludeVector<V>,
@@ -284,7 +311,8 @@ class GenerateManager<T, V> implements Generate<T, V> {
   >(
     query: string | string[],
     generate: GenerateOptions<T, C>,
-    opts: GroupByNearTextOptions<T, V, I>
+    opts: GroupByNearTextOptions<T, V, I>,
+    callOpts?: CallOptions
   ): Promise<GenerativeGroupByReturn<T, RV, C>>;
   public nearText<
     I extends IncludeVector<V>,
@@ -293,10 +321,11 @@ class GenerateManager<T, V> implements Generate<T, V> {
   >(
     query: string | string[],
     generate: GenerateOptions<T, C>,
-    opts?: NearOptions<T, V, I>
+    opts?: NearOptions<T, V, I>,
+    callOpts?: CallOptions
   ): GenerateReturn<T, RV, C> {
     return Promise.all([
-      this.check.nearSearch(),
+      this.check.nearSearch(callOpts),
       this.check.supportForSingleGroupedGenerative(),
       this.check.supportForGenerativeConfigRuntime(generate.config),
     ])
@@ -323,7 +352,8 @@ class GenerateManager<T, V> implements Generate<T, V> {
   >(
     vector: number[],
     generate: GenerateOptions<T, C>,
-    opts?: BaseNearOptions<T, V, I>
+    opts?: BaseNearOptions<T, V, I>,
+    callOpts?: CallOptions
   ): Promise<GenerativeReturn<T, RV, C>>;
   public nearVector<
     I extends IncludeVector<V>,
@@ -332,7 +362,8 @@ class GenerateManager<T, V> implements Generate<T, V> {
   >(
     vector: number[],
     generate: GenerateOptions<T, C>,
-    opts: GroupByNearOptions<T, V, I>
+    opts: GroupByNearOptions<T, V, I>,
+    callOpts?: CallOptions
   ): Promise<GenerativeGroupByReturn<T, RV, C>>;
   public nearVector<
     I extends IncludeVector<V>,
@@ -341,10 +372,11 @@ class GenerateManager<T, V> implements Generate<T, V> {
   >(
     vector: number[],
     generate: GenerateOptions<T, C>,
-    opts?: NearOptions<T, V, I>
+    opts?: NearOptions<T, V, I>,
+    callOpts?: CallOptions
   ): GenerateReturn<T, RV, C> {
     return Promise.all([
-      this.check.nearVector(vector, opts),
+      this.check.nearVector(vector, opts, callOpts),
       this.check.supportForSingleGroupedGenerative(),
       this.check.supportForGenerativeConfigRuntime(generate.config),
     ])
@@ -373,7 +405,8 @@ class GenerateManager<T, V> implements Generate<T, V> {
     media: string | Buffer,
     type: NearMediaType,
     generate: GenerateOptions<T, C>,
-    opts?: BaseNearOptions<T, V, I>
+    opts?: BaseNearOptions<T, V, I>,
+    callOpts?: CallOptions
   ): Promise<GenerativeReturn<T, RV, C>>;
   public nearMedia<
     I extends IncludeVector<V>,
@@ -383,7 +416,8 @@ class GenerateManager<T, V> implements Generate<T, V> {
     media: string | Buffer,
     type: NearMediaType,
     generate: GenerateOptions<T, C>,
-    opts: GroupByNearOptions<T, V, I>
+    opts: GroupByNearOptions<T, V, I>,
+    callOpts?: CallOptions
   ): Promise<GenerativeGroupByReturn<T, RV, C>>;
   public nearMedia<
     I extends IncludeVector<V>,
@@ -393,10 +427,11 @@ class GenerateManager<T, V> implements Generate<T, V> {
     media: string | Buffer,
     type: NearMediaType,
     generate: GenerateOptions<T, C>,
-    opts?: NearOptions<T, V, I>
+    opts?: NearOptions<T, V, I>,
+    callOpts?: CallOptions
   ): GenerateReturn<T, RV, C> {
     return Promise.all([
-      this.check.nearSearch(),
+      this.check.nearSearch(callOpts),
       this.check.supportForSingleGroupedGenerative(),
       this.check.supportForGenerativeConfigRuntime(generate.config),
     ])
