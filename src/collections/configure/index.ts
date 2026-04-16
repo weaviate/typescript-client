@@ -40,6 +40,7 @@ const dataType = {
   OBJECT: 'object' as const,
   OBJECT_ARRAY: 'object[]' as const,
   BLOB: 'blob' as const,
+  BLOBHASH: 'blobHash' as const,
   GEO_COORDINATES: 'geoCoordinates' as const,
   PHONE_NUMBER: 'phoneNumber' as const,
 };
