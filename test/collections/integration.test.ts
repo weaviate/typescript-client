@@ -323,6 +323,7 @@ describe('Testing of the collections.create method', () => {
         nestedProp: string;
       }[];
       blob: string;
+      blobHash: string;
       geoCoordinates: GeoCoordinate;
       phoneNumber: PhoneNumber;
     };
@@ -393,6 +394,10 @@ describe('Testing of the collections.create method', () => {
         {
           name: 'blob',
           dataType: 'blob',
+        },
+        {
+          name: 'blobHash',
+          dataType: 'blobHash',
         },
         {
           name: 'geoCoordinates',
@@ -493,6 +498,10 @@ describe('Testing of the collections.create method', () => {
             dataType: weaviate.configure.dataType.BLOB,
           },
           {
+            name: 'blobHash',
+            dataType: weaviate.configure.dataType.BLOBHASH,
+          },
+          {
             name: 'geoCoordinates',
             dataType: weaviate.configure.dataType.GEO_COORDINATES,
           },
@@ -577,10 +586,12 @@ describe('Testing of the collections.create method', () => {
     expect(response.properties?.[11].nestedProperties?.[0].dataType).toEqual('text');
     expect(response.properties?.[12].name).toEqual('blob');
     expect(response.properties?.[12].dataType).toEqual('blob');
-    expect(response.properties?.[13].name).toEqual('geoCoordinates');
-    expect(response.properties?.[13].dataType).toEqual('geoCoordinates');
-    expect(response.properties?.[14].name).toEqual('phoneNumber');
-    expect(response.properties?.[14].dataType).toEqual('phoneNumber');
+    expect(response.properties?.[13].name).toEqual('blobHash');
+    expect(response.properties?.[13].dataType).toEqual('blobHash');
+    expect(response.properties?.[14].name).toEqual('geoCoordinates');
+    expect(response.properties?.[14].dataType).toEqual('geoCoordinates');
+    expect(response.properties?.[15].name).toEqual('phoneNumber');
+    expect(response.properties?.[15].dataType).toEqual('phoneNumber');
 
     expect(response.invertedIndex.bm25.b).toEqual(0.8);
     expect(response.invertedIndex.bm25.k1).toEqual(1.3);
