@@ -5,6 +5,7 @@ export type AliasAction = Extract<
   'create_aliases' | 'read_aliases' | 'update_aliases' | 'delete_aliases'
 >;
 export type BackupsAction = Extract<Action, 'manage_backups'>;
+export type McpAction = Extract<Action, 'create_mcp' | 'read_mcp' | 'update_mcp'>;
 export type ClusterAction = Extract<Action, 'read_cluster'>;
 export type CollectionsAction = Extract<
   Action,
@@ -50,6 +51,10 @@ export type AliasPermission = {
 export type BackupsPermission = {
   collection: string;
   actions: BackupsAction[];
+};
+
+export type McpPermission = {
+  actions: McpAction[];
 };
 
 export type ClusterPermission = {
@@ -109,6 +114,7 @@ export type Role = {
   collectionsPermissions: CollectionsPermission[];
   dataPermissions: DataPermission[];
   groupsPermissions: GroupsPermission[];
+  mcpPermissions: McpPermission[];
   nodesPermissions: NodesPermission[];
   replicatePermissions: ReplicatePermission[];
   rolesPermissions: RolesPermission[];
@@ -123,6 +129,7 @@ export type Permission =
   | CollectionsPermission
   | DataPermission
   | GroupsPermission
+  | McpPermission
   | NodesPermission
   | ReplicatePermission
   | RolesPermission
