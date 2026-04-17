@@ -56,7 +56,7 @@ export class PermissionGuards {
   static isBackups = (permission: Permission): permission is BackupsPermission =>
     PermissionGuards.includes<BackupsAction>(permission, 'manage_backups');
   static isMcp = (permission: Permission): permission is McpPermission =>
-    PermissionGuards.includes<McpAction>(permission, 'manage_mcp');
+    PermissionGuards.includes<McpAction>(permission, 'create_mcp', 'read_mcp', 'update_mcp');
   static isCluster = (permission: Permission): permission is ClusterPermission =>
     PermissionGuards.includes<ClusterAction>(permission, 'read_cluster');
   static isCollections = (permission: Permission): permission is CollectionsPermission =>
@@ -295,9 +295,13 @@ class PermissionsMapping {
   };
 
   private mcp = (permission: WeaviatePermission) => {
-    if (permission.action === 'manage_mcp') {
+    if (
+      permission.action === 'create_mcp' ||
+      permission.action === 'read_mcp' ||
+      permission.action === 'update_mcp'
+    ) {
       if (this.mappings.mcp[''] === undefined) this.mappings.mcp[''] = { actions: [] };
-      this.mappings.mcp[''].actions.push('manage_mcp');
+      this.mappings.mcp[''].actions.push(permission.action as McpAction);
     }
   };
 

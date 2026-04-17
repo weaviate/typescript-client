@@ -67,11 +67,11 @@ const testCases: TestCase[] = [
   {
     roleName: 'mcp',
     requireVersion: [1, 37, 0],
-    permissions: weaviate.permissions.mcp({ manage: true }),
+    permissions: weaviate.permissions.mcp({ create: true, read: true, update: true }),
     expected: {
       name: 'mcp',
       ...emptyPermissions,
-      mcpPermissions: [{ actions: ['manage_mcp'] }],
+      mcpPermissions: [{ actions: ['create_mcp', 'read_mcp', 'update_mcp'] }],
     },
   },
   {

@@ -218,12 +218,16 @@ export const permissions = {
    *
    * Requires Weaviate v1.37.0 or later.
    *
-   * @param {boolean} [args.manage] Whether to allow managing MCP. Defaults to `false`.
+   * @param {boolean} [args.create] Whether to allow creating objects via MCP. Defaults to `false`.
+   * @param {boolean} [args.read] Whether to allow reading data via MCP. Defaults to `false`.
+   * @param {boolean} [args.update] Whether to allow updating objects via MCP. Defaults to `false`.
    * @returns {McpPermission[]} The MCP permissions.
    */
-  mcp: (args: { manage?: boolean }): McpPermission[] => {
+  mcp: (args: { create?: boolean; read?: boolean; update?: boolean }): McpPermission[] => {
     const out: McpPermission = { actions: [] };
-    if (args.manage) out.actions.push('manage_mcp');
+    if (args.create) out.actions.push('create_mcp');
+    if (args.read) out.actions.push('read_mcp');
+    if (args.update) out.actions.push('update_mcp');
     return [out];
   },
   /**
