@@ -27,6 +27,7 @@ const emptyPermissions = {
   collectionsPermissions: [],
   dataPermissions: [],
   groupsPermissions: [],
+  mcpPermissions: [],
   nodesPermissions: [],
   replicatePermissions: [],
   rolesPermissions: [],
@@ -61,6 +62,16 @@ const testCases: TestCase[] = [
       name: 'backups',
       ...emptyPermissions,
       backupsPermissions: [{ collection: 'Some-collection', actions: ['manage_backups'] }],
+    },
+  },
+  {
+    roleName: 'mcp',
+    requireVersion: [1, 37, 1],
+    permissions: weaviate.permissions.mcp({ create: true, read: true, update: true }),
+    expected: {
+      name: 'mcp',
+      ...emptyPermissions,
+      mcpPermissions: [{ actions: ['create_mcp', 'read_mcp', 'update_mcp'] }],
     },
   },
   {
