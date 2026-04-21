@@ -1,4 +1,4 @@
-import { CallOptions } from '../index.js';
+import { CallOptions } from '../query/index.js';
 import {
   BaseBm25Options,
   BaseHybridOptions,

@@ -8,8 +8,8 @@ import { toBase64FromMedia } from '../../index.js';
 import { GenerativeSearch } from '../../proto/v1/generative.js';
 import { SearchReply } from '../../proto/v1/search_get.js';
 import { Deserialize } from '../deserialize/index.js';
-import { CallOptions } from '../index.js';
 import { Check } from '../query/check.js';
+import { CallOptions } from '../query/index.js';
 import {
   BaseBm25Options,
   BaseHybridOptions,
