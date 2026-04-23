@@ -35,9 +35,9 @@ export type Metadata = {
   isConsistent: boolean;
 };
 
-export type MetadataKeys = (keyof Metadata | 'queryProfile')[];
+export type MetadataKeys = (keyof Metadata | 'all' | 'queryProfile')[];
 
-export type QueryMetadata = 'all' | 'all+queryProfile' | MetadataKeys | undefined;
+export type QueryMetadata = 'all' | MetadataKeys | undefined;
 
 export type ReturnMetadata = Partial<Metadata>;
 

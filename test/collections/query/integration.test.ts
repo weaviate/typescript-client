@@ -256,7 +256,23 @@ describe('Testing of the collection.query methods with a simple collection', () 
     expect(ret.queryProfile?.shards[0].searches.vector).toBeUndefined();
     expect(ret.queryProfile?.shards[0].searches.keyword).toBeUndefined();
     expect(ret.queryProfile?.shards[0].searches.object).toBeDefined();
+    expect(Object.keys(ret.objects[0].metadata!).length).toEqual(0);
   });
+
+  requireAtLeast(1, 36, 0).it(
+    'should return all and query profiling metadata with filtered fetch',
+    async () => {
+      const ret = await collection.query.fetchObjects({
+        filters: collection.filter.byProperty('testProp').equal('carrot'),
+        returnMetadata: ['all', 'queryProfile'],
+      });
+      expect(ret.queryProfile).toBeDefined();
+      expect(ret.queryProfile?.shards[0].searches.vector).toBeUndefined();
+      expect(ret.queryProfile?.shards[0].searches.keyword).toBeUndefined();
+      expect(ret.queryProfile?.shards[0].searches.object).toBeDefined();
+      expect(Object.keys(ret.objects[0].metadata!).length).toBeGreaterThan(0);
+    }
+  );
 
   requireAtLeast(1, 36, 0).it('should return query profiling metadata with nearVector', async () => {
     const ret = await collection.query.nearVector(vector, { returnMetadata: ['queryProfile'] });

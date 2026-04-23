@@ -93,9 +93,9 @@ describe('Unit testing of Serialize', () => {
     });
   });
 
-  it('should parse args for fetchObjects with all+queryProfile metadata', () => {
+  it('should parse args for fetchObjects with all & queryProfile metadata', () => {
     const args = Serialize.search.fetchObjects({
-      returnMetadata: 'all+queryProfile',
+      returnMetadata: ['all', 'queryProfile'],
     });
     expect(args).toEqual<SearchFetchArgs>({
       metadata: MetadataRequest.fromPartial({
