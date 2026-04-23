@@ -14,7 +14,6 @@ import { Iterator } from '../iterator/index.js';
 import query, { Query } from '../query/index.js';
 import sort, { Sort } from '../sort/index.js';
 import tenants, { TenantBase, Tenants } from '../tenants/index.js';
-import tokenize, { Tokenize } from '../tokenize/index.js';
 import { QueryMetadata, QueryProperty, QueryReference, ReturnVectors } from '../types/index.js';
 import { IncludeVector } from '../types/internal.js';
 import multiTargetVector, { MultiTargetVector } from '../vectors/multiTargetVector.js';
@@ -42,8 +41,6 @@ export interface Collection<T = undefined, N = string, V = undefined> {
   sort: Sort<T>;
   /** This namespace includes all the CRUD methods available to you when modifying the tenants of a multi-tenancy-enabled collection in Weaviate. */
   tenants: Tenants;
-  /** This namespace includes all the methods available to you for understanding how your text will be tokenized based on the tokenization configuration of the properties in your collection. */
-  tokenize: Tokenize<T>;
   /** This namespaces includes the methods by which you cna create the `MultiTargetVectorJoin` values for use when performing multi-target vector searches over your collection. */
   multiTargetVector: MultiTargetVector<V>;
   /**
@@ -152,7 +149,6 @@ const collection = <T, N, V>(
     query: queryCollection,
     sort: sort<T>(),
     tenants: tenants(connection, capitalizedName, dbVersionSupport),
-    tokenize: tokenize<T>(connection, capitalizedName, dbVersionSupport),
     exists: () => new ClassExists(connection).withClassName(capitalizedName).do(),
     iterator: <I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(opts?: IteratorOptions<T, I>) =>
       new Iterator<T, RV>((limit: number, after?: string) =>

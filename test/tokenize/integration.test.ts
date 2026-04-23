@@ -58,4 +58,45 @@ requireAtLeast(1, 37, 0).describe('tokenize integration test', () => {
       },
     });
   });
+
+  it('should tokenize text with the tokenization config of a property and default stopwords', async () => {
+    const c = await client.collections.create({
+      name: 'TestPropertyTokenizeEnStopwords',
+      properties: [
+        {
+          name: 'textProp',
+          dataType: 'text',
+          tokenization: 'word',
+        },
+      ],
+    });
+    const conf = await c.config.get();
+    const tokens = await client.tokenize.forProperty(conf.name, conf.properties[0].name, 'This is a test');
+    expect(tokens).toEqual<TokenizeResult>({
+      tokenization: 'word',
+      indexed: ['this', 'is', 'a', 'test'],
+      query: ['test'],
+    });
+  });
+
+  it('should tokenize text with the tokenization config of a property and no stopwords', async () => {
+    const c = await client.collections.create({
+      name: 'TestPropertyTokenizeNoneStopwords',
+      properties: [
+        {
+          name: 'textProp',
+          dataType: 'text',
+          tokenization: 'word',
+        },
+      ],
+      invertedIndex: { stopwords: { preset: 'none' } },
+    });
+    const conf = await c.config.get();
+    const tokens = await client.tokenize.forProperty(conf.name, conf.properties[0].name, 'This is a test');
+    expect(tokens).toEqual<TokenizeResult>({
+      tokenization: 'word',
+      indexed: ['this', 'is', 'a', 'test'],
+      query: ['this', 'is', 'a', 'test'],
+    });
+  });
 });

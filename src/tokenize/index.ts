@@ -1,6 +1,10 @@
 import { Stopwords, Tokenization } from '../collections/types/index.js';
 import ConnectionGRPC from '../connection/grpc.js';
-import { WeaviateTokenizeRequest, WeaviateTokenizeResponse } from '../openapi/types.js';
+import {
+  WeaviatePropertyTokenizeRequest,
+  WeaviateTokenizeRequest,
+  WeaviateTokenizeResponse,
+} from '../openapi/types.js';
 import { DbVersionSupport } from '../utils/dbVersion.js';
 import { TextAnalyzerConfig, TokenizeResult } from './types.js';
 import { parseResult } from './util.js';
@@ -36,6 +40,17 @@ const tokenize = (connection: ConnectionGRPC, dbVersionSupport: DbVersionSupport
             .then(parseResult)
         );
     },
+    forProperty: (collection, property, text) =>
+      dbVersionSupport
+        .supportsTokenize()
+        .then(({ supports, message }) => (supports ? Promise.resolve() : Promise.reject(new Error(message))))
+        .then(() =>
+          connection.postReturn<WeaviatePropertyTokenizeRequest, WeaviateTokenizeResponse>(
+            `/schema/${collection}/properties/${property}/tokenize`,
+            { text }
+          )
+        )
+        .then(parseResult),
   };
 };
 
@@ -48,6 +63,7 @@ export interface Tokenize {
       stopwordPresets?: Record<string, Partial<Stopwords>>;
     }
   ) => Promise<TokenizeResult>;
+  forProperty: (collection: string, property: string, text: string) => Promise<TokenizeResult>;
 }
 
 export default tokenize;
