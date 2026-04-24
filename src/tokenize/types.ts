@@ -1,4 +1,4 @@
-import { Stopwords, Tokenization } from '../collections/types/index.js';
+import { Stopwords } from '../collections/types/index.js';
 
 export type TextAnalyzerConfig = {
   asciiFold?: boolean | { ignore: string[] };
@@ -6,9 +6,6 @@ export type TextAnalyzerConfig = {
 };
 
 export type TokenizeResult = {
-  tokenization: Tokenization | string;
   indexed: string[];
   query: string[];
-  analyzerConfig?: TextAnalyzerConfig;
-  stopwordConfig?: Partial<Stopwords>;
 };

@@ -13,7 +13,6 @@ requireAtLeast(1, 37, 0).describe('tokenize integration test', () => {
   it('should tokenize text without configs', async () => {
     const result = await client.tokenize.text('Hello world', 'word');
     expect(result).toEqual<TokenizeResult>({
-      tokenization: 'word',
       indexed: ['hello', 'world'],
       query: ['hello', 'world'],
     });
@@ -29,15 +28,8 @@ requireAtLeast(1, 37, 0).describe('tokenize integration test', () => {
       },
     });
     expect(result).toEqual<TokenizeResult>({
-      tokenization: 'word',
       indexed: ['buna', 'dimineața', 'lume'],
       query: ['buna', 'dimineața', 'lume'],
-      analyzerConfig: {
-        asciiFold: {
-          ignore: ['ț'],
-        },
-        stopwordPreset: 'en',
-      },
     });
   });
 
@@ -49,13 +41,8 @@ requireAtLeast(1, 37, 0).describe('tokenize integration test', () => {
       },
     });
     expect(result).toEqual<TokenizeResult>({
-      tokenization: 'word',
       indexed: ['buna', 'dimineata', 'lume'],
       query: ['buna', 'dimineata', 'lume'],
-      analyzerConfig: {
-        asciiFold: true,
-        stopwordPreset: 'en',
-      },
     });
   });
 
@@ -73,7 +60,6 @@ requireAtLeast(1, 37, 0).describe('tokenize integration test', () => {
     const conf = await c.config.get();
     const tokens = await client.tokenize.forProperty(conf.name, conf.properties[0].name, 'This is a test');
     expect(tokens).toEqual<TokenizeResult>({
-      tokenization: 'word',
       indexed: ['this', 'is', 'a', 'test'],
       query: ['test'],
     });
@@ -94,7 +80,6 @@ requireAtLeast(1, 37, 0).describe('tokenize integration test', () => {
     const conf = await c.config.get();
     const tokens = await client.tokenize.forProperty(conf.name, conf.properties[0].name, 'This is a test');
     expect(tokens).toEqual<TokenizeResult>({
-      tokenization: 'word',
       indexed: ['this', 'is', 'a', 'test'],
       query: ['this', 'is', 'a', 'test'],
     });
