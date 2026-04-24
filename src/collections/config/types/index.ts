@@ -27,10 +27,10 @@ export type ModuleConfig<N, C = undefined> = {
   config: C;
 };
 
-export type StopwordPreset = 'en' | 'none';
+export type StopwordsPreset = 'en' | 'none';
 
 export type Stopwords = {
-  preset: StopwordPreset | string;
+  preset: StopwordsPreset | string;
   additions: string[];
   removals: string[];
 };
@@ -44,11 +44,7 @@ export type InvertedIndexConfig = {
   indexTimestamps: boolean;
   indexPropertyLength: boolean;
   indexNullState: boolean;
-  stopwords: {
-    preset: string;
-    additions: string[];
-    removals: string[];
-  };
+  stopwords: Stopwords;
 };
 
 export type ObjectTTLConfig = {
