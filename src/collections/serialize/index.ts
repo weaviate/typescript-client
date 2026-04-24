@@ -367,8 +367,19 @@ export class MetadataGuards {
     return argument instanceof Array && argument.length > 0;
   };
 
-  static isAll = (argument?: QueryMetadata): argument is 'all' => {
-    return argument === 'all';
+  static isAll = (argument?: QueryMetadata) => {
+    return (
+      argument === 'all' || (argument instanceof Array && argument.length === 1 && argument[0] === 'all')
+    );
+  };
+
+  static isAllAndQueryProfile = (argument?: QueryMetadata) => {
+    return (
+      argument instanceof Array &&
+      argument.length === 2 &&
+      argument.includes('all') &&
+      argument.includes('queryProfile')
+    );
   };
 
   static isUndefined = (argument?: QueryMetadata): argument is undefined => {
@@ -555,19 +566,40 @@ class Search {
       vector: typeof includeVector === 'boolean' ? includeVector : false,
       vectors: Array.isArray(includeVector) ? includeVector : [],
     };
+
+    if (MetadataGuards.isUndefined(metadata)) {
+      return MetadataRequest.fromPartial(out);
+    }
+
+    const all = {
+      creationTimeUnix: true,
+      lastUpdateTimeUnix: true,
+      distance: true,
+      certainty: true,
+      score: true,
+      explainScore: true,
+      isConsistent: true,
+    };
+
     if (MetadataGuards.isAll(metadata)) {
       return {
         ...out,
-        creationTimeUnix: true,
-        lastUpdateTimeUnix: true,
-        distance: true,
-        certainty: true,
-        score: true,
-        explainScore: true,
-        isConsistent: true,
+        ...all,
         queryProfile: false,
       };
     }
+    if (MetadataGuards.isAllAndQueryProfile(metadata)) {
+      return {
+        ...out,
+        ...all,
+        queryProfile: true,
+      };
+    }
+
+    if (!MetadataGuards.isKeys(metadata)) {
+      throw new WeaviateInvalidInputError(`Invalid returnMetadata argument: ${metadata}.`);
+    }
+
     metadata?.forEach((key) => {
       let weaviateKey: string;
       if (key === 'creationTime') {

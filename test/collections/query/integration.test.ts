@@ -82,14 +82,28 @@ describe('Testing of the collection.query methods with a simple collection', () 
     expect(ret.objects[0].uuid).toBeDefined();
   });
 
-  it('should query without search specifying return properties', async () => {
+  it('should query without search specifying returns', async () => {
     const ret = await collection.query.fetchObjects({
       returnProperties: ['testProp'],
+      returnMetadata: ['creationTime'],
     });
     expect(ret.objects.length).toEqual(2);
     expect(ret.objects[0].properties.testProp).toBeDefined();
     expect(ret.objects[0].properties.testProp2).toBeUndefined();
     expect(ret.objects[0].uuid).toBeDefined();
+    expect(ret.objects[0].metadata?.creationTime).toBeDefined();
+  });
+
+  it('should query without search specifying all metadata', async () => {
+    const ret = await collection.query.fetchObjects({
+      returnProperties: ['testProp'],
+      returnMetadata: 'all',
+    });
+    expect(ret.objects.length).toEqual(2);
+    expect(ret.objects[0].properties.testProp).toBeDefined();
+    expect(ret.objects[0].properties.testProp2).toBeUndefined();
+    expect(ret.objects[0].uuid).toBeDefined();
+    expect(ret.objects[0].metadata).toBeDefined();
   });
 
   it('should query with bm25', async () => {
@@ -231,6 +245,57 @@ describe('Testing of the collection.query methods with a simple collection', () 
     expect(ret.objects.length).toEqual(1);
     expect(ret.objects[0].properties.testProp).toEqual('carrot');
     expect(ret.objects[0].uuid).toEqual(id);
+  });
+
+  requireAtLeast(1, 36, 0).it('should return query profiling metadata with filtered fetch', async () => {
+    const ret = await collection.query.fetchObjects({
+      filters: collection.filter.byProperty('testProp').equal('carrot'),
+      returnMetadata: ['queryProfile'],
+    });
+    expect(ret.queryProfile).toBeDefined();
+    expect(ret.queryProfile?.shards[0].searches.vector).toBeUndefined();
+    expect(ret.queryProfile?.shards[0].searches.keyword).toBeUndefined();
+    expect(ret.queryProfile?.shards[0].searches.object).toBeDefined();
+    expect(Object.keys(ret.objects[0].metadata!).length).toEqual(0);
+  });
+
+  requireAtLeast(1, 36, 0).it(
+    'should return all and query profiling metadata with filtered fetch',
+    async () => {
+      const ret = await collection.query.fetchObjects({
+        filters: collection.filter.byProperty('testProp').equal('carrot'),
+        returnMetadata: ['all', 'queryProfile'],
+      });
+      expect(ret.queryProfile).toBeDefined();
+      expect(ret.queryProfile?.shards[0].searches.vector).toBeUndefined();
+      expect(ret.queryProfile?.shards[0].searches.keyword).toBeUndefined();
+      expect(ret.queryProfile?.shards[0].searches.object).toBeDefined();
+      expect(Object.keys(ret.objects[0].metadata!).length).toBeGreaterThan(0);
+    }
+  );
+
+  requireAtLeast(1, 36, 0).it('should return query profiling metadata with nearVector', async () => {
+    const ret = await collection.query.nearVector(vector, { returnMetadata: ['queryProfile'] });
+    expect(ret.queryProfile).toBeDefined();
+    expect(ret.queryProfile?.shards[0].searches.vector).toBeDefined();
+    expect(ret.queryProfile?.shards[0].searches.keyword).toBeUndefined();
+    expect(ret.queryProfile?.shards[0].searches.object).toBeUndefined();
+  });
+
+  requireAtLeast(1, 36, 0).it('should return query profiling metadata with bm25', async () => {
+    const ret = await collection.query.bm25('carrot', { returnMetadata: ['queryProfile'] });
+    expect(ret.queryProfile).toBeDefined();
+    expect(ret.queryProfile?.shards[0].searches.vector).toBeUndefined();
+    expect(ret.queryProfile?.shards[0].searches.keyword).toBeDefined();
+    expect(ret.queryProfile?.shards[0].searches.object).toBeUndefined();
+  });
+
+  requireAtLeast(1, 36, 0).it('should return query profiling metadata with hybrid', async () => {
+    const ret = await collection.query.hybrid('carrot', { returnMetadata: ['queryProfile'] });
+    expect(ret.queryProfile).toBeDefined();
+    expect(ret.queryProfile?.shards[0].searches.vector).toBeDefined();
+    expect(ret.queryProfile?.shards[0].searches.keyword).toBeDefined();
+    expect(ret.queryProfile?.shards[0].searches.object).toBeUndefined();
   });
 });
 

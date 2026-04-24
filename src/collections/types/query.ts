@@ -10,6 +10,20 @@ import {
   RefKeys,
 } from './internal.js';
 
+export type SearchProfile = {
+  details: Record<string, string>;
+};
+
+export type ShardProfile = {
+  name: string;
+  node: string;
+  searches: Record<string, SearchProfile>;
+};
+
+export type QueryProfile = {
+  shards: ShardProfile[];
+};
+
 export type Metadata = {
   creationTime: Date;
   updateTime: Date;
@@ -21,7 +35,7 @@ export type Metadata = {
   isConsistent: boolean;
 };
 
-export type MetadataKeys = (keyof Metadata)[];
+export type MetadataKeys = (keyof Metadata | 'all' | 'queryProfile')[];
 
 export type QueryMetadata = 'all' | MetadataKeys | undefined;
 
@@ -91,6 +105,8 @@ export type WeaviateObject<T, V> = T extends undefined // need this instead of P
 export type WeaviateReturn<T, V> = {
   /** The objects that were found by the query. */
   objects: WeaviateObject<T, V>[];
+  /** The metadata about the query execution. This contains different datastructures depending on the search type, e.g. vector vs keyword. */
+  queryProfile?: QueryProfile;
 };
 
 export type GroupByObject<T, V> = WeaviateObject<T, V> & {
@@ -111,6 +127,8 @@ export type GroupByReturn<T, V> = {
   objects: GroupByObject<T, V>[];
   /** The groups that were created by the query. */
   groups: Record<string, GroupByResult<T, V>>;
+  /** The metadata about the query execution. This contains different datastructures depending on the search type, e.g. vector vs keyword. */
+  queryProfile?: QueryProfile;
 };
 
 export type GroupByOptions<T> = T extends undefined
