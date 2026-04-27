@@ -43,6 +43,7 @@ import batch, { Batch } from './collections/data/batch.js';
 import filter from './collections/filters/index.js';
 import { ConsistencyLevel } from './data/replication.js';
 import groups, { Groups } from './groups/index.js';
+import tokenize, { Tokenize } from './tokenize/index.js';
 import users, { Users } from './users/index.js';
 
 export type ProtocolParams = {
@@ -113,6 +114,7 @@ export interface WeaviateClient {
   oidcAuth?: OidcAuthenticator;
   groups: Groups;
   roles: Roles;
+  tokenize: Tokenize;
   users: Users;
 
   close: () => Promise<void>;
@@ -237,6 +239,7 @@ async function client(params: ClientParams): Promise<WeaviateClient> {
     collections: collections(connection, dbVersionSupport),
     groups: groups(connection),
     roles: roles(connection),
+    tokenize: tokenize(connection, dbVersionSupport),
     users: users(connection),
     close: () => Promise.resolve(connection.close()), // hedge against future changes to add I/O to .close()
     getMeta: () => new MetaGetter(connection).do(),
