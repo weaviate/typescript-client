@@ -77,56 +77,64 @@ class QueryManager<T, V> implements Query<T, V> {
 
   public fetchObjectById<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
     id: string,
-    opts?: FetchObjectByIdOptions<T, I>
+    opts?: FetchObjectByIdOptions<T, I>,
+    callOpts?: CallOptions
   ): Promise<WeaviateObject<T, RV> | null> {
     return this.check
-      .fetchObjectById()
+      .fetchObjectById(callOpts)
       .then(({ search }) => search.withFetch(Serialize.search.fetchObjectById({ id, ...opts })))
       .then((reply) => this.parseReply<RV>(reply))
       .then((ret) => (ret.objects.length === 1 ? ret.objects[0] : null));
   }
 
   public fetchObjects<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
-    opts?: FetchObjectsOptions<T, I>
+    opts?: FetchObjectsOptions<T, I>,
+    callOpts?: CallOptions
   ): Promise<WeaviateReturn<T, RV>> {
     return this.check
-      .fetchObjects()
+      .fetchObjects(callOpts)
       .then(({ search }) => search.withFetch(Serialize.search.fetchObjects(opts)))
       .then((reply) => this.parseReply(reply));
   }
 
   public bm25<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
     query: string,
-    opts?: BaseBm25Options<T, I>
+    opts?: BaseBm25Options<T, I>,
+    callOpts?: CallOptions
   ): Promise<WeaviateReturn<T, RV>>;
   public bm25<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
     query: string,
-    opts: GroupByBm25Options<T, I>
+    opts: GroupByBm25Options<T, I>,
+    callOpts?: CallOptions
   ): Promise<GroupByReturn<T, RV>>;
   public bm25<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
     query: string,
-    opts?: Bm25Options<T, I>
+    opts?: Bm25Options<T, I>,
+    callOpts?: CallOptions
   ): QueryReturn<T, RV> {
     return this.check
-      .bm25()
+      .bm25(callOpts)
       .then(({ search }) => search.withBm25(Serialize.search.bm25(query, opts)))
       .then((reply) => this.parseGroupByReply(opts, reply));
   }
 
   public hybrid<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
     query: string,
-    opts?: BaseHybridOptions<T, V, I>
+    opts?: BaseHybridOptions<T, V, I>,
+    callOpts?: CallOptions
   ): Promise<WeaviateReturn<T, RV>>;
   public hybrid<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
     query: string,
-    opts: GroupByHybridOptions<T, V, I>
+    opts: GroupByHybridOptions<T, V, I>,
+    callOpts?: CallOptions
   ): Promise<GroupByReturn<T, RV>>;
   public hybrid<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
     query: string,
-    opts?: HybridOptions<T, V, I>
+    opts?: HybridOptions<T, V, I>,
+    callOpts?: CallOptions
   ): QueryReturn<T, RV> {
     return this.check
-      .hybridSearch(opts)
+      .hybridSearch(opts, callOpts)
       .then(async ({ search, supportsVectors }) => ({
         search,
         args: await Serialize.search.hybrid(
@@ -143,18 +151,21 @@ class QueryManager<T, V> implements Query<T, V> {
 
   public nearImage<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
     image: string | Buffer,
-    opts?: BaseNearOptions<T, V, I>
+    opts?: BaseNearOptions<T, V, I>,
+    callOpts?: CallOptions
   ): Promise<WeaviateReturn<T, RV>>;
   public nearImage<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
     image: string | Buffer,
-    opts: GroupByNearOptions<T, V, I>
+    opts: GroupByNearOptions<T, V, I>,
+    callOpts?: CallOptions
   ): Promise<GroupByReturn<T, RV>>;
   public nearImage<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
     image: string | Buffer,
-    opts?: NearOptions<T, V, I>
+    opts?: NearOptions<T, V, I>,
+    callOpts?: CallOptions
   ): QueryReturn<T, RV> {
     return this.check
-      .nearSearch()
+      .nearSearch(callOpts)
       .then(({ search }) => {
         return toBase64FromMedia(image).then((image) => ({
           search,
@@ -173,20 +184,23 @@ class QueryManager<T, V> implements Query<T, V> {
   public nearMedia<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
     media: string | Buffer,
     type: NearMediaType,
-    opts?: BaseNearOptions<T, V, I>
+    opts?: BaseNearOptions<T, V, I>,
+    callOpts?: CallOptions
   ): Promise<WeaviateReturn<T, RV>>;
   public nearMedia<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
     media: string | Buffer,
     type: NearMediaType,
-    opts: GroupByNearOptions<T, V, I>
+    opts: GroupByNearOptions<T, V, I>,
+    callOpts?: CallOptions
   ): Promise<GroupByReturn<T, RV>>;
   public nearMedia<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
     media: string | Buffer,
     type: NearMediaType,
-    opts?: NearOptions<T, V, I>
+    opts?: NearOptions<T, V, I>,
+    callOpts?: CallOptions
   ): QueryReturn<T, RV> {
     return this.check
-      .nearSearch()
+      .nearSearch(callOpts)
       .then(({ search }) => {
         let send: (media: string) => Promise<SearchReply>;
         switch (type) {
@@ -218,18 +232,21 @@ class QueryManager<T, V> implements Query<T, V> {
 
   public nearObject<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
     id: string,
-    opts?: BaseNearOptions<T, V, I>
+    opts?: BaseNearOptions<T, V, I>,
+    callOpts?: CallOptions
   ): Promise<WeaviateReturn<T, RV>>;
   public nearObject<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
     id: string,
-    opts: GroupByNearOptions<T, V, I>
+    opts: GroupByNearOptions<T, V, I>,
+    callOpts?: CallOptions
   ): Promise<GroupByReturn<T, RV>>;
   public nearObject<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
     id: string,
-    opts?: NearOptions<T, V, I>
+    opts?: NearOptions<T, V, I>,
+    callOpts?: CallOptions
   ): QueryReturn<T, RV> {
     return this.check
-      .nearSearch()
+      .nearSearch(callOpts)
       .then(({ search }) => ({
         search,
         args: Serialize.search.nearObject(
@@ -245,18 +262,21 @@ class QueryManager<T, V> implements Query<T, V> {
 
   public nearText<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
     query: string | string[],
-    opts?: BaseNearTextOptions<T, V, I>
+    opts?: BaseNearTextOptions<T, V, I>,
+    callOpts?: CallOptions
   ): Promise<WeaviateReturn<T, RV>>;
   public nearText<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
     query: string | string[],
-    opts: GroupByNearTextOptions<T, V, I>
+    opts: GroupByNearTextOptions<T, V, I>,
+    callOpts?: CallOptions
   ): Promise<GroupByReturn<T, RV>>;
   public nearText<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
     query: string | string[],
-    opts?: NearTextOptions<T, V, I>
+    opts?: NearTextOptions<T, V, I>,
+    callOpts?: CallOptions
   ): QueryReturn<T, RV> {
     return this.check
-      .nearSearch()
+      .nearSearch(callOpts)
       .then(({ search }) => ({
         search,
         args: Serialize.search.nearText(
@@ -272,18 +292,21 @@ class QueryManager<T, V> implements Query<T, V> {
 
   public nearVector<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
     vector: NearVectorInputType,
-    opts?: BaseNearOptions<T, V, I>
+    opts?: BaseNearOptions<T, V, I>,
+    callOpts?: CallOptions
   ): Promise<WeaviateReturn<T, RV>>;
   public nearVector<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
     vector: NearVectorInputType,
-    opts: GroupByNearOptions<T, V, I>
+    opts: GroupByNearOptions<T, V, I>,
+    callOpts?: CallOptions
   ): Promise<GroupByReturn<T, RV>>;
   public nearVector<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
     vector: NearVectorInputType,
-    opts?: NearOptions<T, V, I>
+    opts?: NearOptions<T, V, I>,
+    callOpts?: CallOptions
   ): QueryReturn<T, RV> {
     return this.check
-      .nearVector(vector, opts)
+      .nearVector(vector, opts, callOpts)
       .then(async ({ search, supportsVectors }) => ({
         search,
         args: await Serialize.search.nearVector(
@@ -298,6 +321,10 @@ class QueryManager<T, V> implements Query<T, V> {
       .then((reply) => this.parseGroupByReply(opts, reply));
   }
 }
+
+export type CallOptions = {
+  abortSignal?: AbortSignal;
+};
 
 export default QueryManager.use;
 export { queryFactory } from './factories.js';

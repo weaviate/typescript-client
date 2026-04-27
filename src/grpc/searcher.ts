@@ -1,6 +1,6 @@
 import { ConsistencyLevel } from '../data/index.js';
 
-import { Metadata, ServerError, Status } from 'nice-grpc';
+import { Metadata } from 'nice-grpc';
 import { Filters } from '../proto/v1/base.js';
 import {
   BM25,
@@ -26,13 +26,8 @@ import {
 } from '../proto/v1/search_get.js';
 import { WeaviateClient } from '../proto/v1/weaviate.js';
 
-import { isAbortError } from 'abort-controller-x';
 import { RetryOptions } from 'nice-grpc-client-middleware-retry';
-import {
-  WeaviateInsufficientPermissionsError,
-  WeaviateQueryError,
-  WeaviateRequestTimeoutError,
-} from '../errors.js';
+import { WeaviateQueryError } from '../errors.js';
 import { NearMediaType } from '../index.js';
 import { GenerativeSearch } from '../proto/v1/generative.js';
 import Base from './base.js';
@@ -142,9 +137,10 @@ export default class Searcher extends Base implements Search {
     metadata: Metadata,
     timeout: number,
     consistencyLevel?: ConsistencyLevel,
-    tenant?: string
+    tenant?: string,
+    abortSignal?: AbortSignal
   ): Search {
-    return new Searcher(connection, collection, metadata, timeout, consistencyLevel, tenant);
+    return new Searcher(connection, collection, metadata, timeout, consistencyLevel, tenant, abortSignal);
   }
 
   public withFetch = (args: SearchFetchArgs) => this.call(SearchRequest.fromPartial(args));
@@ -161,9 +157,9 @@ export default class Searcher extends Base implements Search {
   public withNearVideo = (args: SearchNearVideoArgs) => this.call(SearchRequest.fromPartial(args));
 
   private call = (message: SearchRequest) =>
-    this.sendWithTimeout((signal: AbortSignal) =>
-      this.connection
-        .search(
+    this.sendWithTimeout(
+      (signal: AbortSignal) =>
+        this.connection.search(
           {
             ...message,
             collection: this.collection,
@@ -178,15 +174,7 @@ export default class Searcher extends Base implements Search {
             signal,
             ...retryOptions,
           }
-        )
-        .catch((err) => {
-          if (err instanceof ServerError && err.code === Status.PERMISSION_DENIED) {
-            throw new WeaviateInsufficientPermissionsError(7, err.message);
-          }
-          if (isAbortError(err)) {
-            throw new WeaviateRequestTimeoutError(`timed out after ${this.timeout}ms`);
-          }
-          throw new WeaviateQueryError(err.message, 'gRPC');
-        })
+        ),
+      (err) => new WeaviateQueryError(err.message, 'gRPC')
     );
 }
