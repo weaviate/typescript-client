@@ -44,7 +44,6 @@ jobs:
             { node: "24.x", weaviate: $WEAVIATE_134 },
             { node: "24.x", weaviate: $WEAVIATE_135 },
             { node: "24.x", weaviate: $WEAVIATE_136 },
-            { node: "20.x", weaviate: $WEAVIATE_137 },
             { node: "22.x", weaviate: $WEAVIATE_137 },
             { node: "24.x", weaviate: $WEAVIATE_137 },
           ]

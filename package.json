@@ -1,6 +1,6 @@
 {
   "name": "weaviate-client",
-  "version": "3.13.0",
+  "version": "3.12.1",
   "description": "JS/TS client for Weaviate",
   "main": "dist/node/cjs/index.js",
   "type": "module",
@@ -17,7 +17,7 @@
     }
   },
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=22.0.0"
   },
   "scripts": {
     "test": "vitest run --no-file-parallelism --isolate=true --reporter=verbose --reporter=hanging-process --silent=false",
