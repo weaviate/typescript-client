@@ -104,6 +104,11 @@ export interface MetadataRequest {
   explainScore: boolean;
   isConsistent: boolean;
   vectors: string[];
+  /**
+   * query_profile enables per-shard query profiling. When true, the response includes
+   * timing breakdowns for each shard and search type.
+   */
+  queryProfile: boolean;
 }
 
 export interface PropertiesRequest {
@@ -138,6 +143,41 @@ export interface SearchReply {
   generativeGroupedResult?: string | undefined;
   groupByResults: GroupByResult[];
   generativeGroupedResults?: GenerativeResult | undefined;
+  queryProfile?: QueryProfile | undefined;
+}
+
+/**
+ * QueryProfile contains per-shard profiling data for a search query.
+ * Only populated when MetadataRequest.profile is true.
+ */
+export interface QueryProfile {
+  shards: QueryProfile_ShardProfile[];
+}
+
+/** SearchProfile holds the profiling details for a single search type within a shard. */
+export interface QueryProfile_SearchProfile {
+  /** details contains human-readable profiling metrics keyed by metric name. */
+  details: { [key: string]: string };
+}
+
+export interface QueryProfile_SearchProfile_DetailsEntry {
+  key: string;
+  value: string;
+}
+
+/** ShardProfile holds profiling data for a single shard's contribution to a search query. */
+export interface QueryProfile_ShardProfile {
+  /** name is the identifier of the shard that was searched. */
+  name: string;
+  /** node is the name of the cluster node that executed this shard search. */
+  node: string;
+  /** searches maps search type (e.g., "vector", "keyword") to its profiling details. */
+  searches: { [key: string]: QueryProfile_SearchProfile };
+}
+
+export interface QueryProfile_ShardProfile_SearchesEntry {
+  key: string;
+  value: QueryProfile_SearchProfile | undefined;
 }
 
 export interface RerankReply {
@@ -914,6 +954,7 @@ function createBaseMetadataRequest(): MetadataRequest {
     explainScore: false,
     isConsistent: false,
     vectors: [],
+    queryProfile: false,
   };
 }
 
@@ -948,6 +989,9 @@ export const MetadataRequest = {
     }
     for (const v of message.vectors) {
       writer.uint32(82).string(v!);
+    }
+    if (message.queryProfile !== false) {
+      writer.uint32(88).bool(message.queryProfile);
     }
     return writer;
   },
@@ -1029,6 +1073,13 @@ export const MetadataRequest = {
 
           message.vectors.push(reader.string());
           continue;
+        case 11:
+          if (tag !== 88) {
+            break;
+          }
+
+          message.queryProfile = reader.bool();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1050,6 +1101,7 @@ export const MetadataRequest = {
       explainScore: isSet(object.explainScore) ? globalThis.Boolean(object.explainScore) : false,
       isConsistent: isSet(object.isConsistent) ? globalThis.Boolean(object.isConsistent) : false,
       vectors: globalThis.Array.isArray(object?.vectors) ? object.vectors.map((e: any) => globalThis.String(e)) : [],
+      queryProfile: isSet(object.queryProfile) ? globalThis.Boolean(object.queryProfile) : false,
     };
   },
 
@@ -1085,6 +1137,9 @@ export const MetadataRequest = {
     if (message.vectors?.length) {
       obj.vectors = message.vectors;
     }
+    if (message.queryProfile !== false) {
+      obj.queryProfile = message.queryProfile;
+    }
     return obj;
   },
 
@@ -1103,6 +1158,7 @@ export const MetadataRequest = {
     message.explainScore = object.explainScore ?? false;
     message.isConsistent = object.isConsistent ?? false;
     message.vectors = object.vectors?.map((e) => e) || [];
+    message.queryProfile = object.queryProfile ?? false;
     return message;
   },
 };
@@ -1501,6 +1557,7 @@ function createBaseSearchReply(): SearchReply {
     generativeGroupedResult: undefined,
     groupByResults: [],
     generativeGroupedResults: undefined,
+    queryProfile: undefined,
   };
 }
 
@@ -1520,6 +1577,9 @@ export const SearchReply = {
     }
     if (message.generativeGroupedResults !== undefined) {
       GenerativeResult.encode(message.generativeGroupedResults, writer.uint32(42).fork()).ldelim();
+    }
+    if (message.queryProfile !== undefined) {
+      QueryProfile.encode(message.queryProfile, writer.uint32(50).fork()).ldelim();
     }
     return writer;
   },
@@ -1566,6 +1626,13 @@ export const SearchReply = {
 
           message.generativeGroupedResults = GenerativeResult.decode(reader, reader.uint32());
           continue;
+        case 6:
+          if (tag !== 50) {
+            break;
+          }
+
+          message.queryProfile = QueryProfile.decode(reader, reader.uint32());
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1590,6 +1657,7 @@ export const SearchReply = {
       generativeGroupedResults: isSet(object.generativeGroupedResults)
         ? GenerativeResult.fromJSON(object.generativeGroupedResults)
         : undefined,
+      queryProfile: isSet(object.queryProfile) ? QueryProfile.fromJSON(object.queryProfile) : undefined,
     };
   },
 
@@ -1610,6 +1678,9 @@ export const SearchReply = {
     if (message.generativeGroupedResults !== undefined) {
       obj.generativeGroupedResults = GenerativeResult.toJSON(message.generativeGroupedResults);
     }
+    if (message.queryProfile !== undefined) {
+      obj.queryProfile = QueryProfile.toJSON(message.queryProfile);
+    }
     return obj;
   },
 
@@ -1626,6 +1697,409 @@ export const SearchReply = {
       (object.generativeGroupedResults !== undefined && object.generativeGroupedResults !== null)
         ? GenerativeResult.fromPartial(object.generativeGroupedResults)
         : undefined;
+    message.queryProfile = (object.queryProfile !== undefined && object.queryProfile !== null)
+      ? QueryProfile.fromPartial(object.queryProfile)
+      : undefined;
+    return message;
+  },
+};
+
+function createBaseQueryProfile(): QueryProfile {
+  return { shards: [] };
+}
+
+export const QueryProfile = {
+  encode(message: QueryProfile, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    for (const v of message.shards) {
+      QueryProfile_ShardProfile.encode(v!, writer.uint32(10).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): QueryProfile {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseQueryProfile();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.shards.push(QueryProfile_ShardProfile.decode(reader, reader.uint32()));
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): QueryProfile {
+    return {
+      shards: globalThis.Array.isArray(object?.shards)
+        ? object.shards.map((e: any) => QueryProfile_ShardProfile.fromJSON(e))
+        : [],
+    };
+  },
+
+  toJSON(message: QueryProfile): unknown {
+    const obj: any = {};
+    if (message.shards?.length) {
+      obj.shards = message.shards.map((e) => QueryProfile_ShardProfile.toJSON(e));
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<QueryProfile>): QueryProfile {
+    return QueryProfile.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<QueryProfile>): QueryProfile {
+    const message = createBaseQueryProfile();
+    message.shards = object.shards?.map((e) => QueryProfile_ShardProfile.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseQueryProfile_SearchProfile(): QueryProfile_SearchProfile {
+  return { details: {} };
+}
+
+export const QueryProfile_SearchProfile = {
+  encode(message: QueryProfile_SearchProfile, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    Object.entries(message.details).forEach(([key, value]) => {
+      QueryProfile_SearchProfile_DetailsEntry.encode({ key: key as any, value }, writer.uint32(10).fork()).ldelim();
+    });
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): QueryProfile_SearchProfile {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseQueryProfile_SearchProfile();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          const entry1 = QueryProfile_SearchProfile_DetailsEntry.decode(reader, reader.uint32());
+          if (entry1.value !== undefined) {
+            message.details[entry1.key] = entry1.value;
+          }
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): QueryProfile_SearchProfile {
+    return {
+      details: isObject(object.details)
+        ? Object.entries(object.details).reduce<{ [key: string]: string }>((acc, [key, value]) => {
+          acc[key] = String(value);
+          return acc;
+        }, {})
+        : {},
+    };
+  },
+
+  toJSON(message: QueryProfile_SearchProfile): unknown {
+    const obj: any = {};
+    if (message.details) {
+      const entries = Object.entries(message.details);
+      if (entries.length > 0) {
+        obj.details = {};
+        entries.forEach(([k, v]) => {
+          obj.details[k] = v;
+        });
+      }
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<QueryProfile_SearchProfile>): QueryProfile_SearchProfile {
+    return QueryProfile_SearchProfile.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<QueryProfile_SearchProfile>): QueryProfile_SearchProfile {
+    const message = createBaseQueryProfile_SearchProfile();
+    message.details = Object.entries(object.details ?? {}).reduce<{ [key: string]: string }>((acc, [key, value]) => {
+      if (value !== undefined) {
+        acc[key] = globalThis.String(value);
+      }
+      return acc;
+    }, {});
+    return message;
+  },
+};
+
+function createBaseQueryProfile_SearchProfile_DetailsEntry(): QueryProfile_SearchProfile_DetailsEntry {
+  return { key: "", value: "" };
+}
+
+export const QueryProfile_SearchProfile_DetailsEntry = {
+  encode(message: QueryProfile_SearchProfile_DetailsEntry, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.key !== "") {
+      writer.uint32(10).string(message.key);
+    }
+    if (message.value !== "") {
+      writer.uint32(18).string(message.value);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): QueryProfile_SearchProfile_DetailsEntry {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseQueryProfile_SearchProfile_DetailsEntry();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.key = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.value = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): QueryProfile_SearchProfile_DetailsEntry {
+    return {
+      key: isSet(object.key) ? globalThis.String(object.key) : "",
+      value: isSet(object.value) ? globalThis.String(object.value) : "",
+    };
+  },
+
+  toJSON(message: QueryProfile_SearchProfile_DetailsEntry): unknown {
+    const obj: any = {};
+    if (message.key !== "") {
+      obj.key = message.key;
+    }
+    if (message.value !== "") {
+      obj.value = message.value;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<QueryProfile_SearchProfile_DetailsEntry>): QueryProfile_SearchProfile_DetailsEntry {
+    return QueryProfile_SearchProfile_DetailsEntry.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<QueryProfile_SearchProfile_DetailsEntry>): QueryProfile_SearchProfile_DetailsEntry {
+    const message = createBaseQueryProfile_SearchProfile_DetailsEntry();
+    message.key = object.key ?? "";
+    message.value = object.value ?? "";
+    return message;
+  },
+};
+
+function createBaseQueryProfile_ShardProfile(): QueryProfile_ShardProfile {
+  return { name: "", node: "", searches: {} };
+}
+
+export const QueryProfile_ShardProfile = {
+  encode(message: QueryProfile_ShardProfile, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.name !== "") {
+      writer.uint32(10).string(message.name);
+    }
+    if (message.node !== "") {
+      writer.uint32(18).string(message.node);
+    }
+    Object.entries(message.searches).forEach(([key, value]) => {
+      QueryProfile_ShardProfile_SearchesEntry.encode({ key: key as any, value }, writer.uint32(26).fork()).ldelim();
+    });
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): QueryProfile_ShardProfile {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseQueryProfile_ShardProfile();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.name = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.node = reader.string();
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          const entry3 = QueryProfile_ShardProfile_SearchesEntry.decode(reader, reader.uint32());
+          if (entry3.value !== undefined) {
+            message.searches[entry3.key] = entry3.value;
+          }
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): QueryProfile_ShardProfile {
+    return {
+      name: isSet(object.name) ? globalThis.String(object.name) : "",
+      node: isSet(object.node) ? globalThis.String(object.node) : "",
+      searches: isObject(object.searches)
+        ? Object.entries(object.searches).reduce<{ [key: string]: QueryProfile_SearchProfile }>((acc, [key, value]) => {
+          acc[key] = QueryProfile_SearchProfile.fromJSON(value);
+          return acc;
+        }, {})
+        : {},
+    };
+  },
+
+  toJSON(message: QueryProfile_ShardProfile): unknown {
+    const obj: any = {};
+    if (message.name !== "") {
+      obj.name = message.name;
+    }
+    if (message.node !== "") {
+      obj.node = message.node;
+    }
+    if (message.searches) {
+      const entries = Object.entries(message.searches);
+      if (entries.length > 0) {
+        obj.searches = {};
+        entries.forEach(([k, v]) => {
+          obj.searches[k] = QueryProfile_SearchProfile.toJSON(v);
+        });
+      }
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<QueryProfile_ShardProfile>): QueryProfile_ShardProfile {
+    return QueryProfile_ShardProfile.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<QueryProfile_ShardProfile>): QueryProfile_ShardProfile {
+    const message = createBaseQueryProfile_ShardProfile();
+    message.name = object.name ?? "";
+    message.node = object.node ?? "";
+    message.searches = Object.entries(object.searches ?? {}).reduce<{ [key: string]: QueryProfile_SearchProfile }>(
+      (acc, [key, value]) => {
+        if (value !== undefined) {
+          acc[key] = QueryProfile_SearchProfile.fromPartial(value);
+        }
+        return acc;
+      },
+      {},
+    );
+    return message;
+  },
+};
+
+function createBaseQueryProfile_ShardProfile_SearchesEntry(): QueryProfile_ShardProfile_SearchesEntry {
+  return { key: "", value: undefined };
+}
+
+export const QueryProfile_ShardProfile_SearchesEntry = {
+  encode(message: QueryProfile_ShardProfile_SearchesEntry, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.key !== "") {
+      writer.uint32(10).string(message.key);
+    }
+    if (message.value !== undefined) {
+      QueryProfile_SearchProfile.encode(message.value, writer.uint32(18).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): QueryProfile_ShardProfile_SearchesEntry {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseQueryProfile_ShardProfile_SearchesEntry();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.key = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.value = QueryProfile_SearchProfile.decode(reader, reader.uint32());
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): QueryProfile_ShardProfile_SearchesEntry {
+    return {
+      key: isSet(object.key) ? globalThis.String(object.key) : "",
+      value: isSet(object.value) ? QueryProfile_SearchProfile.fromJSON(object.value) : undefined,
+    };
+  },
+
+  toJSON(message: QueryProfile_ShardProfile_SearchesEntry): unknown {
+    const obj: any = {};
+    if (message.key !== "") {
+      obj.key = message.key;
+    }
+    if (message.value !== undefined) {
+      obj.value = QueryProfile_SearchProfile.toJSON(message.value);
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<QueryProfile_ShardProfile_SearchesEntry>): QueryProfile_ShardProfile_SearchesEntry {
+    return QueryProfile_ShardProfile_SearchesEntry.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<QueryProfile_ShardProfile_SearchesEntry>): QueryProfile_ShardProfile_SearchesEntry {
+    const message = createBaseQueryProfile_ShardProfile_SearchesEntry();
+    message.key = object.key ?? "";
+    message.value = (object.value !== undefined && object.value !== null)
+      ? QueryProfile_SearchProfile.fromPartial(object.value)
+      : undefined;
     return message;
   },
 };
@@ -2636,6 +3110,10 @@ function longToNumber(long: Long): number {
 if (_m0.util.Long !== Long) {
   _m0.util.Long = Long as any;
   _m0.configure();
+}
+
+function isObject(value: any): boolean {
+  return typeof value === "object" && value !== null;
 }
 
 function isSet(value: any): boolean {

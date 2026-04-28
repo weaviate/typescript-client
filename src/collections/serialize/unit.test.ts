@@ -93,6 +93,25 @@ describe('Unit testing of Serialize', () => {
     });
   });
 
+  it('should parse args for fetchObjects with all & queryProfile metadata', () => {
+    const args = Serialize.search.fetchObjects({
+      returnMetadata: ['all', 'queryProfile'],
+    });
+    expect(args).toEqual<SearchFetchArgs>({
+      metadata: MetadataRequest.fromPartial({
+        uuid: true,
+        creationTimeUnix: true,
+        lastUpdateTimeUnix: true,
+        distance: true,
+        certainty: true,
+        score: true,
+        explainScore: true,
+        isConsistent: true,
+        queryProfile: true,
+      }),
+    });
+  });
+
   it('should parse args for fetchObjectById', () => {
     const args = Serialize.search.fetchObjectById({
       id: '1',

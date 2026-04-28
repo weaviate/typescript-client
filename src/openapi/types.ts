@@ -48,7 +48,6 @@ export type ShardStatus = definitions['ShardStatus'];
 export type ShardStatusList = definitions['ShardStatusList'];
 export type Tenant = definitions['Tenant'];
 export type TenantActivityStatus = Tenant['activityStatus'];
-export type SchemaClusterStatus = definitions['SchemaClusterStatus'];
 export type WeaviateModuleConfig = WeaviateClass['moduleConfig'];
 export type WeaviateInvertedIndexConfig = WeaviateClass['invertedIndexConfig'];
 export type WeaviateBM25Config = definitions['BM25Config'];
@@ -94,3 +93,9 @@ export type WeaviateAlias = definitions['Alias'];
 export type WeaviateAliasResponse = {
   aliases?: Required<Exclude<definitions['AliasResponse']['aliases'], undefined>[0]>[] | undefined;
 };
+// Tokenize
+export type WeaviateTokenizeResponse = definitions['TokenizeResponse'];
+export type WeaviateTextAnalyzerConfig = definitions['TextAnalyzerConfig'];
+export type WeaviateTokenizeRequest = definitions['TokenizeRequest'];
+export type WeaviateTokenization = definitions['TokenizeRequest']['tokenization'];
+export type WeaviatePropertyTokenizeRequest = definitions['PropertyTokenizeRequest'];

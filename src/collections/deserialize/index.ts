@@ -210,6 +210,7 @@ export class Deserialize {
           } as unknown as WeaviateObject<T, V>;
         })
       ),
+      queryProfile: reply.queryProfile,
     };
   }
 
@@ -261,6 +262,7 @@ export class Deserialize {
             text: reply.generativeGroupedResult,
           }
         : undefined,
+      queryProfile: reply.queryProfile,
     };
   }
 
@@ -293,6 +295,7 @@ export class Deserialize {
     return {
       objects: objects,
       groups: groups,
+      queryProfile: reply.queryProfile,
     };
   }
 
@@ -327,6 +330,7 @@ export class Deserialize {
       objects: objects,
       groups: groups,
       generated: reply.generativeGroupedResult,
+      queryProfile: reply.queryProfile,
     };
   }
 
