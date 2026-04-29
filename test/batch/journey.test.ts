@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { describe, expect, it } from 'vitest';
 import weaviate, { WeaviateClient } from '../../src/v2/index.js';
+import { TEST_HOST, TEST_REST_PORT } from '../env.js';
 import {
   BatchDeleteResponse,
   BatchReference,
@@ -77,7 +78,7 @@ const someReferences = [
 describe('batch importing', () => {
   const client = weaviate.client({
     scheme: 'http',
-    host: 'localhost:8080',
+    host: `${TEST_HOST}:${TEST_REST_PORT}`,
   });
 
   it('can add objects with different methods', () => {
@@ -349,7 +350,7 @@ describe('batch importing', () => {
 describe('batch deleting', () => {
   const client = weaviate.client({
     scheme: 'http',
-    host: 'localhost:8080',
+    host: `${TEST_HOST}:${TEST_REST_PORT}`,
   });
 
   it('sets up schema', () => setup(client));
@@ -504,7 +505,7 @@ describe('batch deleting', () => {
 describe('multi tenancy', () => {
   const client = weaviate.client({
     scheme: 'http',
-    host: 'localhost:8080',
+    host: `${TEST_HOST}:${TEST_REST_PORT}`,
   });
 
   const passageClassName = 'Passage';

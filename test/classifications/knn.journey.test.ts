@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { Classification } from '../../src/openapi/types.js';
 import weaviate, { WeaviateClient } from '../../src/v2/index.js';
+import { TEST_HOST, TEST_REST_PORT } from '../env.js';
 
 const targetDessertId = 'cd54852a-209d-423b-bf1c-884468215237';
 const targetSavoryId = 'e5da0127-327e-4184-85b8-7b9d1af4a850';
@@ -11,7 +12,7 @@ describe('a classification journey', () => {
   describe('knn - manually polling the status', () => {
     const client = weaviate.client({
       scheme: 'http',
-      host: 'localhost:8080',
+      host: `${TEST_HOST}:${TEST_REST_PORT}`,
     });
 
     it('setups the schema and data', () => setup(client));
@@ -104,7 +105,7 @@ describe('a classification journey', () => {
   describe("knn - using the client's wait method", () => {
     const client = weaviate.client({
       scheme: 'http',
-      host: 'localhost:8080',
+      host: `${TEST_HOST}:${TEST_REST_PORT}`,
     });
 
     it('setups the schema and data', () => setup(client));
@@ -169,7 +170,7 @@ describe('a classification journey', () => {
   describe('knn - running into a timeout', () => {
     const client = weaviate.client({
       scheme: 'http',
-      host: 'localhost:8080',
+      host: `${TEST_HOST}:${TEST_REST_PORT}`,
     });
 
     it('setups the schema and data', () => setup(client));

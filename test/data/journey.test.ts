@@ -9,6 +9,7 @@ import {
   WeaviateObjectsList,
 } from '../../src/openapi/types.js';
 import weaviate, { WeaviateClient } from '../../src/v2/index.js';
+import { TEST_HOST, TEST_REST_PORT } from '../env.js';
 
 const thingClassName = 'DataJourneyTestThing';
 const refSourceClassName = 'DataJourneyTestRefSource';
@@ -21,7 +22,7 @@ const fail = (msg: string) => {
 describe('data', () => {
   const client = weaviate.client({
     scheme: 'http',
-    host: 'localhost:8080',
+    host: `${TEST_HOST}:${TEST_REST_PORT}`,
   });
 
   it('creates a schema class', () => {
@@ -1382,7 +1383,7 @@ describe('data', () => {
 describe('uuid support', () => {
   const client = weaviate.client({
     scheme: 'http',
-    host: 'localhost:8080',
+    host: `${TEST_HOST}:${TEST_REST_PORT}`,
   });
 
   it('creates class with properties of uuid and uuid[]', async () => {
@@ -1449,7 +1450,7 @@ describe('uuid support', () => {
 describe('multi tenancy', () => {
   const client = weaviate.client({
     scheme: 'http',
-    host: 'localhost:8080',
+    host: `${TEST_HOST}:${TEST_REST_PORT}`,
   });
 
   const documentClassName = 'Document';

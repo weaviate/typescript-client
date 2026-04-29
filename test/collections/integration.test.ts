@@ -11,6 +11,15 @@ import weaviate, {
   VectorIndexConfigHNSW,
   WeaviateClient,
 } from '../../src/index';
+import {
+  TEST_CLUSTER_HOST,
+  TEST_CLUSTER_REST_PORT,
+  TEST_GRPC_PORT,
+  TEST_HOST,
+  TEST_REST_PORT,
+  TEST_VECTOR_HOST,
+  TEST_VECTOR_REST_PORT,
+} from '../env';
 
 describe('Testing of the collections.create method', () => {
   let cluster: WeaviateClient;
@@ -19,16 +28,19 @@ describe('Testing of the collections.create method', () => {
 
   beforeAll(async () => {
     cluster = await weaviate.connectToLocal({
-      port: 8087,
-      grpcPort: 50051,
+      host: TEST_CLUSTER_HOST,
+      port: TEST_CLUSTER_REST_PORT,
+      grpcPort: TEST_GRPC_PORT,
     });
     contextionary = await weaviate.connectToLocal({
-      port: 8080,
-      grpcPort: 50051,
+      host: TEST_HOST,
+      port: TEST_REST_PORT,
+      grpcPort: TEST_GRPC_PORT,
     });
     openai = await weaviate.connectToLocal({
-      port: 8086,
-      grpcPort: 50051,
+      host: TEST_VECTOR_HOST,
+      port: TEST_VECTOR_REST_PORT,
+      grpcPort: TEST_GRPC_PORT,
     });
   });
 

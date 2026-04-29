@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import weaviate, { Collection, WeaviateClient } from '../../../src/index.js';
+import { TEST_GRPC_PORT, TEST_HOST, TEST_REST_PORT } from '../../env.js';
 
 describe('Testing of the collection.iterator method with a simple collection', () => {
   let client: WeaviateClient;
@@ -22,7 +23,11 @@ describe('Testing of the collection.iterator method with a simple collection', (
   });
 
   beforeAll(async () => {
-    client = await weaviate.connectToLocal({ port: 8080, grpcPort: 50051 });
+    client = await weaviate.connectToLocal({
+      host: TEST_HOST,
+      port: TEST_REST_PORT,
+      grpcPort: TEST_GRPC_PORT,
+    });
     collection = client.collections.use(collectionName);
     id = await client.collections
       .create({

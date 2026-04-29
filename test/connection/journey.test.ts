@@ -9,6 +9,13 @@ import Connection from '../../src/connection/index.js';
 
 import { WeaviateStartUpError } from '../../src/errors.js';
 import weaviate from '../../src/index.js';
+import {
+  TEST_AUTH_GRPC_PORT,
+  TEST_AUTH_HOST,
+  TEST_AUTH_REST_PORT,
+  TEST_OIDC_OKTA_CC_PORT,
+  TEST_OIDC_OKTA_USERS_PORT,
+} from '../env.js';
 
 const check = (cred?: string) => {
   if (cred == undefined || cred == '') {
@@ -24,7 +31,8 @@ describe('connection', () => {
     'makes a logged-in request when client host param has trailing slashes',
     async () => {
       const client = await weaviate.connectToLocal({
-        port: 8085,
+        host: TEST_AUTH_HOST,
+        port: TEST_AUTH_REST_PORT,
         authCredentials: new AuthUserPasswordCredentials({
           username: 'oidc-test-user@weaviate.io',
           password: process.env.WCS_DUMMY_CI_PW,
@@ -71,7 +79,7 @@ describe('connection', () => {
     'makes an Okta logged-in request with client credentials',
     async () => {
       const client = await weaviate.connectToLocal({
-        port: 8082,
+        port: TEST_OIDC_OKTA_CC_PORT,
         authCredentials: new AuthClientCredentials({
           clientSecret: process.env.OKTA_CLIENT_SECRET!,
           scopes: ['some_scope'],
@@ -92,7 +100,7 @@ describe('connection', () => {
 
   check(process.env.OKTA_DUMMY_CI_PW)('makes an Okta logged-in request with username/password', async () => {
     const client = await weaviate.connectToLocal({
-      port: 8083,
+      port: TEST_OIDC_OKTA_USERS_PORT,
       authCredentials: new AuthUserPasswordCredentials({
         username: 'test@test.de',
         password: process.env.OKTA_DUMMY_CI_PW,
@@ -112,7 +120,8 @@ describe('connection', () => {
 
   check(process.env.WCS_DUMMY_CI_PW)('makes a WCS logged-in request with username/password', async () => {
     const client = await weaviate.connectToLocal({
-      port: 8085,
+      host: TEST_AUTH_HOST,
+      port: TEST_AUTH_REST_PORT,
       authCredentials: new AuthUserPasswordCredentials({
         username: 'oidc-test-user@weaviate.io',
         password: process.env.WCS_DUMMY_CI_PW,
@@ -132,8 +141,9 @@ describe('connection', () => {
 
   it('makes a logged-in request with API key', async () => {
     const client = await weaviate.connectToLocal({
-      port: 8085,
-      grpcPort: 50056,
+      host: TEST_AUTH_HOST,
+      port: TEST_AUTH_REST_PORT,
+      grpcPort: TEST_AUTH_GRPC_PORT,
       authCredentials: new ApiKey('my-secret-key'),
     });
 
@@ -149,8 +159,9 @@ describe('connection', () => {
 
   it('makes a logged-in request with API key as string', async () => {
     const client = await weaviate.connectToLocal({
-      port: 8085,
-      grpcPort: 50056,
+      host: TEST_AUTH_HOST,
+      port: TEST_AUTH_REST_PORT,
+      grpcPort: TEST_AUTH_GRPC_PORT,
       authCredentials: 'my-secret-key',
     });
 
@@ -167,7 +178,7 @@ describe('connection', () => {
   check(process.env.WCS_DUMMY_CI_PW)('makes a logged-in request with access token', async () => {
     const dummy = new Connection({
       scheme: 'http',
-      host: 'localhost:8085',
+      host: `${TEST_AUTH_HOST}:${TEST_AUTH_REST_PORT}`,
       authClientSecret: new AuthUserPasswordCredentials({
         username: 'oidc-test-user@weaviate.io',
         password: process.env.WCS_DUMMY_CI_PW,
@@ -180,8 +191,9 @@ describe('connection', () => {
 
     const accessToken = (dummy as any).oidcAuth?.accessToken || '';
     const client = await weaviate.connectToLocal({
-      port: 8085,
-      grpcPort: 50056,
+      host: TEST_AUTH_HOST,
+      port: TEST_AUTH_REST_PORT,
+      grpcPort: TEST_AUTH_GRPC_PORT,
       authCredentials: new AuthAccessTokenCredentials({
         accessToken: accessToken,
         expiresIn: 900,
@@ -202,7 +214,7 @@ describe('connection', () => {
   check(process.env.WCS_DUMMY_CI_PW)('uses refresh token to fetch new access token', async () => {
     const dummy = new Connection({
       scheme: 'http',
-      host: 'localhost:8085',
+      host: `${TEST_AUTH_HOST}:${TEST_AUTH_REST_PORT}`,
       authClientSecret: new AuthUserPasswordCredentials({
         username: 'oidc-test-user@weaviate.io',
         password: process.env.WCS_DUMMY_CI_PW,
@@ -216,7 +228,7 @@ describe('connection', () => {
     const accessToken = (dummy as any).oidcAuth?.accessToken || '';
     const conn = new Connection({
       scheme: 'http',
-      host: 'localhost:8085',
+      host: `${TEST_AUTH_HOST}:${TEST_AUTH_REST_PORT}`,
       authClientSecret: new AuthAccessTokenCredentials({
         accessToken: accessToken,
         expiresIn: 1,
@@ -240,8 +252,9 @@ describe('connection', () => {
     expect.assertions(3);
     try {
       await weaviate.connectToLocal({
-        port: 8085,
-        grpcPort: 50056,
+        host: TEST_AUTH_HOST,
+        port: TEST_AUTH_REST_PORT,
+        grpcPort: TEST_AUTH_GRPC_PORT,
       });
       throw new Error('Promise should have been rejected');
     } catch (error: any) {
@@ -278,7 +291,7 @@ describe('connection', () => {
 
     const conn = new Connection({
       scheme: 'http',
-      host: 'localhost:8085',
+      host: `${TEST_AUTH_HOST}:${TEST_AUTH_REST_PORT}`,
       authClientSecret: new AuthAccessTokenCredentials({
         accessToken: 'abcd1234',
         expiresIn: 1,
@@ -307,7 +320,7 @@ describe('connection', () => {
       // eslint-disable-next-line no-new
       new Connection({
         scheme: 'http',
-        host: 'localhost:8085',
+        host: `${TEST_AUTH_HOST}:${TEST_AUTH_REST_PORT}`,
         authClientSecret: new AuthAccessTokenCredentials({
           accessToken: 'abcd1234',
           expiresIn: 1,
