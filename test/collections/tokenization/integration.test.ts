@@ -15,13 +15,13 @@ describe('Tokenization v1.37: schema config round-trip', () => {
   afterAll(async () => {
     // Only clean up collections this suite owns; deleteAll() races with
     // sibling integration tests that share the same Weaviate instance.
-    await client.collections.delete('TestTokenizationRoundTrip').catch(() => { });
+    await client.collections.delete('TestTokenizationRoundTrip').catch(() => {});
     await client.close();
   });
 
   it('round-trips invertedIndex.stopwordPresets and per-property textAnalyzer through collection.config.get()', async () => {
     const collectionName = 'TestTokenizationRoundTrip';
-    await client.collections.delete(collectionName).catch(() => { });
+    await client.collections.delete(collectionName).catch(() => {});
 
     await client.collections.create({
       name: collectionName,
@@ -91,7 +91,7 @@ describe('Tokenization v1.37: schema config round-trip', () => {
 
   it('round-trips textAnalyzer when configured via the ergonomic asciiFold object form', async () => {
     const collectionName = 'TestTokenizationRoundTripErgonomic';
-    await client.collections.delete(collectionName).catch(() => { });
+    await client.collections.delete(collectionName).catch(() => {});
 
     await client.collections.create({
       name: collectionName,
