@@ -16,6 +16,7 @@ import weaviate, {
 } from '../../../src/index.js';
 import { WeaviateClass } from '../../../src/openapi/types.js';
 import { requireAtLeast } from '../../../test/version.js';
+import { TEST_HOST, TEST_REST_PORT } from '../../env';
 
 describe('Testing of the collection.config namespace', () => {
   let client: WeaviateClient;
@@ -813,7 +814,7 @@ describe('Testing of the collection.config namespace', () => {
 
   it('should be able update the config of a collection with legacy vectors', async () => {
     const clientV2 = weaviateV2.client({
-      host: 'http://localhost:8080',
+      host: `http://${TEST_HOST}:${TEST_REST_PORT}`,
     });
     const collectionName = 'TestCollectionConfigUpdateLegacyVectors';
     await clientV2.schema
@@ -981,7 +982,7 @@ describe('Testing of the collection.config namespace', () => {
         .then((config) =>
           expect((config.vectorizers.default.indexConfig as VectorIndexConfigHNSW).quantizer).toBeUndefined()
         );
-      await fetch(`http://localhost:8080/v1/schema/${collectionName}`)
+      await fetch(`http://${TEST_HOST}:${TEST_REST_PORT}/v1/schema/${collectionName}`)
         .then((res) => res.json() as WeaviateClass)
         .then((schema) =>
           expect(schema.vectorConfig?.default.vectorIndexConfig?.skipDefaultQuantization).toBe(true)
@@ -1002,7 +1003,7 @@ describe('Testing of the collection.config namespace', () => {
         .then((config) =>
           expect((config.vectorizers.custom.indexConfig as VectorIndexConfigHNSW).quantizer).toBeUndefined()
         );
-      await fetch(`http://localhost:8080/v1/schema/${collectionName}`)
+      await fetch(`http://${TEST_HOST}:${TEST_REST_PORT}/v1/schema/${collectionName}`)
         .then((res) => res.json() as WeaviateClass)
         .then((schema) =>
           expect(schema.vectorConfig?.custom.vectorIndexConfig?.skipDefaultQuantization).toBe(true)

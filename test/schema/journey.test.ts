@@ -9,6 +9,7 @@ import {
   WeaviateClass,
 } from '../../src/openapi/types.js';
 import weaviate, { WeaviateClient } from '../../src/v2/index.js';
+import { TEST_HOST, TEST_REST_PORT } from '../env.js';
 
 const isVer = (client: WeaviateClient, minor: number, patch: number) =>
   client.misc
@@ -29,7 +30,7 @@ const isVer = (client: WeaviateClient, minor: number, patch: number) =>
 describe('schema', () => {
   const client = weaviate.client({
     scheme: 'http',
-    host: 'localhost:8080',
+    host: `${TEST_HOST}:${TEST_REST_PORT}`,
   });
 
   const classObjPromise = newClassObject('MyThingClass', client);
@@ -340,7 +341,7 @@ describe('schema', () => {
 describe('property setting defaults and migrations', () => {
   const client = weaviate.client({
     scheme: 'http',
-    host: 'localhost:8080',
+    host: `${TEST_HOST}:${TEST_REST_PORT}`,
   });
 
   test.each([
@@ -583,7 +584,7 @@ describe('property setting defaults and migrations', () => {
 describe('multi tenancy', () => {
   const client = weaviate.client({
     scheme: 'http',
-    host: 'localhost:8080',
+    host: `${TEST_HOST}:${TEST_REST_PORT}`,
   });
   const classObj: WeaviateClass = {
     class: 'MultiTenancy',

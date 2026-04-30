@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { Classification } from '../../src/openapi/types.js';
 import weaviate from '../../src/v2/index.js';
+import { TEST_HOST, TEST_REST_PORT } from '../env.js';
 
 const targetDessertId = '9f399d3e-45a4-44f4-b0fd-fa291abfb211';
 const targetSavoryId = 'b7a64fbd-7c22-44ac-afbb-8d1432b8061b';
@@ -14,7 +15,7 @@ describe('a classification journey', () => {
   describe("knn - using the client's wait method", () => {
     const client = weaviate.client({
       scheme: 'http',
-      host: 'localhost:8080',
+      host: `${TEST_HOST}:${TEST_REST_PORT}`,
     });
 
     it('setups the schema and data', () => setup(client));

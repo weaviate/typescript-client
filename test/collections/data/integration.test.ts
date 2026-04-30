@@ -17,6 +17,7 @@ import weaviate, {
   WeaviateObject,
   weaviateV2,
 } from '../../../src/index.js';
+import { TEST_HOST, TEST_REST_PORT } from '../../env.js';
 import { requireAtLeast } from '../../version.js';
 
 type TestCollectionData = {
@@ -1055,7 +1056,7 @@ describe('Testing of the collection.data methods with a vector index', () => {
 
 describe('Testing of BYOV insertion with legacy vectorizer', () => {
   const collectionName = 'TestBYOVEdgeCase';
-  const oldClient = weaviateV2.client({ scheme: 'http', host: 'localhost:8080' });
+  const oldClient = weaviateV2.client({ scheme: 'http', host: `${TEST_HOST}:${TEST_REST_PORT}` });
 
   beforeAll(() =>
     oldClient.schema

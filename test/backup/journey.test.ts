@@ -7,6 +7,7 @@ import {
   SOUP_CLASS_NAME,
 } from '../../src/utils/testData';
 import weaviate, { WeaviateClient } from '../../src/v2/index.js';
+import { TEST_HOST, TEST_REST_PORT } from '../env.js';
 import {
   BackupCreateResponse,
   BackupCreateStatusResponse,
@@ -22,7 +23,7 @@ describe('create and restore backup with waiting', () => {
 
   const client = weaviate.client({
     scheme: 'http',
-    host: 'localhost:8080',
+    host: `${TEST_HOST}:${TEST_REST_PORT}`,
   });
 
   it('sets up', () => createTestFoodSchemaAndData(client));
@@ -132,7 +133,7 @@ describe('create and restore backup without waiting', () => {
 
   const client = weaviate.client({
     scheme: 'http',
-    host: 'localhost:8080',
+    host: `${TEST_HOST}:${TEST_REST_PORT}`,
   });
 
   it('sets up', () => createTestFoodSchemaAndData(client));
@@ -262,7 +263,7 @@ describe('create and restore 1 of 2 classes', () => {
 
   const client = weaviate.client({
     scheme: 'http',
-    host: 'localhost:8080',
+    host: `${TEST_HOST}:${TEST_REST_PORT}`,
   });
 
   it('sets up', () => createTestFoodSchemaAndData(client));
@@ -375,7 +376,7 @@ describe('fail creating backup for not existing class', () => {
 
   const client = weaviate.client({
     scheme: 'http',
-    host: 'localhost:8080',
+    host: `${TEST_HOST}:${TEST_REST_PORT}`,
   });
 
   it('sets up', () => createTestFoodSchemaAndData(client));
@@ -405,7 +406,7 @@ describe('fail restoring backup for existing class', () => {
 
   const client = weaviate.client({
     scheme: 'http',
-    host: 'localhost:8080',
+    host: `${TEST_HOST}:${TEST_REST_PORT}`,
   });
 
   it('sets up', () => createTestFoodSchemaAndData(client));
@@ -447,7 +448,7 @@ describe('fail creating existing backup', () => {
 
   const client = weaviate.client({
     scheme: 'http',
-    host: 'localhost:8080',
+    host: `${TEST_HOST}:${TEST_REST_PORT}`,
   });
 
   it('sets up', () => createTestFoodSchemaAndData(client));
@@ -490,7 +491,7 @@ describe('fail checking create status for not existing backup', () => {
 
   const client = weaviate.client({
     scheme: 'http',
-    host: 'localhost:8080',
+    host: `${TEST_HOST}:${TEST_REST_PORT}`,
   });
 
   it('sets up', () => createTestFoodSchemaAndData(client));
@@ -519,7 +520,7 @@ describe('fail restoring not existing backup', () => {
 
   const client = weaviate.client({
     scheme: 'http',
-    host: 'localhost:8080',
+    host: `${TEST_HOST}:${TEST_REST_PORT}`,
   });
 
   it('sets up', () => createTestFoodSchemaAndData(client));
@@ -549,7 +550,7 @@ describe('fail checking restore status for not started restore', () => {
 
   const client = weaviate.client({
     scheme: 'http',
-    host: 'localhost:8080',
+    host: `${TEST_HOST}:${TEST_REST_PORT}`,
   });
 
   it('sets up', () => createTestFoodSchemaAndData(client));
@@ -591,7 +592,7 @@ describe('fail creating backup for both include and exclude classes', () => {
 
   const client = weaviate.client({
     scheme: 'http',
-    host: 'localhost:8080',
+    host: `${TEST_HOST}:${TEST_REST_PORT}`,
   });
 
   it('sets up', () => createTestFoodSchemaAndData(client));
@@ -624,7 +625,7 @@ describe('fail restoring backup for both include and exclude classes', () => {
 
   const client = weaviate.client({
     scheme: 'http',
-    host: 'localhost:8080',
+    host: `${TEST_HOST}:${TEST_REST_PORT}`,
   });
 
   it('sets up', () => createTestFoodSchemaAndData(client));
@@ -679,7 +680,7 @@ describe('creates backup with valid compression config values', () => {
 
   const client = weaviate.client({
     scheme: 'http',
-    host: 'localhost:8080',
+    host: `${TEST_HOST}:${TEST_REST_PORT}`,
   });
 
   it('sets up', () => createTestFoodSchemaAndData(client));
@@ -710,7 +711,7 @@ describe('fails creating backup with invalid compression config', () => {
 
   const client = weaviate.client({
     scheme: 'http',
-    host: 'localhost:8080',
+    host: `${TEST_HOST}:${TEST_REST_PORT}`,
   });
 
   it('sets up', () => createTestFoodSchemaAndData(client));
@@ -762,7 +763,7 @@ describe('restores backup with valid compression config values', () => {
 
   const client = weaviate.client({
     scheme: 'http',
-    host: 'localhost:8080',
+    host: `${TEST_HOST}:${TEST_REST_PORT}`,
   });
 
   it('sets up', () => createTestFoodSchemaAndData(client));
@@ -838,7 +839,7 @@ describe('fails restoring backup with invalid compression config', () => {
 
   const client = weaviate.client({
     scheme: 'http',
-    host: 'localhost:8080',
+    host: `${TEST_HOST}:${TEST_REST_PORT}`,
   });
 
   it('sets up', () => createTestFoodSchemaAndData(client));

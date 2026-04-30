@@ -9,13 +9,15 @@ import weaviate, {
   WeaviateClient,
   generativeParameters,
 } from '../../../src/index.js';
+import { TEST_VECTOR_GRPC_PORT, TEST_VECTOR_HOST, TEST_VECTOR_REST_PORT } from '../../env';
 
 const maybe = process.env.OPENAI_APIKEY ? describe : describe.skip;
 
 const makeOpenAIClient = () =>
   weaviate.connectToLocal({
-    port: 8086,
-    grpcPort: 50057,
+    host: TEST_VECTOR_HOST,
+    port: TEST_VECTOR_REST_PORT,
+    grpcPort: TEST_VECTOR_GRPC_PORT,
     headers: {
       'X-Openai-Api-Key': process.env.OPENAI_APIKEY!,
     },
@@ -579,8 +581,9 @@ maybeContextualAI('Testing of the collection.generate methods with Contextual AI
 
   beforeAll(async () => {
     client = await weaviate.connectToLocal({
-      port: 8086,
-      grpcPort: 50057,
+      host: TEST_VECTOR_HOST,
+      port: TEST_VECTOR_REST_PORT,
+      grpcPort: TEST_VECTOR_GRPC_PORT,
       headers: {
         'X-Contextual-Api-Key': process.env.CONTEXTUALAI_API_KEY!,
         'X-Openai-Api-Key': process.env.OPENAI_APIKEY!,

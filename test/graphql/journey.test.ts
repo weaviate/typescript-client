@@ -12,6 +12,14 @@ import weaviate, {
   WeaviateObject,
   WhereFilter,
 } from '../../src/v2/index.js';
+import {
+  TEST_CLUSTER_HOST,
+  TEST_CLUSTER_REST_PORT,
+  TEST_HOST,
+  TEST_REST_PORT,
+  TEST_VECTOR_HOST,
+  TEST_VECTOR_REST_PORT,
+} from '../env.js';
 
 describe('the graphql journey', () => {
   let client: WeaviateClient;
@@ -20,7 +28,7 @@ describe('the graphql journey', () => {
   beforeEach(async () => {
     client = weaviate.client({
       scheme: 'http',
-      host: 'localhost:8080',
+      host: `${TEST_HOST}:${TEST_REST_PORT}`,
     });
     versionLessThan125 = await client.misc
       .metaGetter()
@@ -1395,7 +1403,7 @@ describe('the graphql journey', () => {
   it('search object with uuid and uuid props', async () => {
     const client = weaviate.client({
       scheme: 'http',
-      host: 'localhost:8080',
+      host: `${TEST_HOST}:${TEST_REST_PORT}`,
     });
 
     const className = 'ClassUUID';
@@ -1480,7 +1488,7 @@ skip().describe(
   'query with generative search',
   () => {
     const client = weaviate.client({
-      host: 'localhost:8086',
+      host: `${TEST_VECTOR_HOST}:${TEST_VECTOR_REST_PORT}`,
       scheme: 'http',
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       headers: { 'X-OpenAI-Api-Key': process.env.OPENAI_APIKEY! },
@@ -1597,7 +1605,7 @@ Tastes like a fresh ocean breeze: {review}`,
 describe('query cluster with consistency level', () => {
   const client = weaviate.client({
     scheme: 'http',
-    host: 'localhost:8087',
+    host: `${TEST_CLUSTER_HOST}:${TEST_CLUSTER_REST_PORT}`,
   });
 
   it('sets up replicated class', () => {
@@ -1670,7 +1678,7 @@ describe.skip('query with group by SKIPPED BECAUSE OF XREFS RETURN OPTIMISATION 
   beforeEach(() => {
     client = weaviate.client({
       scheme: 'http',
-      host: 'localhost:8080',
+      host: `${TEST_HOST}:${TEST_REST_PORT}`,
     });
   });
 
@@ -1761,7 +1769,7 @@ describe('multi tenancy', () => {
   beforeEach(() => {
     client = weaviate.client({
       scheme: 'http',
-      host: 'localhost:8080',
+      host: `${TEST_HOST}:${TEST_REST_PORT}`,
     });
   });
 
@@ -1883,7 +1891,7 @@ describe('where test', () => {
   beforeEach(() => {
     client = weaviate.client({
       scheme: 'http',
-      host: 'localhost:8080',
+      host: `${TEST_HOST}:${TEST_REST_PORT}`,
     });
   });
 
@@ -2261,7 +2269,7 @@ describe('named vectors test', () => {
   beforeEach(() => {
     client = weaviate.client({
       scheme: 'http',
-      host: 'localhost:8080',
+      host: `${TEST_HOST}:${TEST_REST_PORT}`,
     });
   });
 

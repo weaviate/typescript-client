@@ -1,15 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import weaviate from '../../src/v2/index.js';
+import { TEST_AUTH_HOST, TEST_AUTH_REST_PORT, TEST_HOST, TEST_REST_PORT } from '../env.js';
 
 describe('misc endpoints', () => {
   const client = weaviate.client({
     scheme: 'http',
-    host: 'localhost:8080',
+    host: `${TEST_HOST}:${TEST_REST_PORT}`,
   });
 
   const authClient = weaviate.client({
     scheme: 'http',
-    host: 'localhost:8085',
+    host: `${TEST_AUTH_HOST}:${TEST_AUTH_REST_PORT}`,
   });
 
   it('reports as live', () => {
