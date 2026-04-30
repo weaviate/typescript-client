@@ -1,4 +1,5 @@
-import { Stopwords, Tokenization } from '../collections/types/index.js';
+import { textAnalyzerConfigToWire } from '../collections/config/utils.js';
+import { Tokenization } from '../collections/types/index.js';
 import ConnectionGRPC from '../connection/grpc.js';
 import {
   WeaviatePropertyTokenizeRequest,
@@ -10,20 +11,6 @@ import { TextAnalyzerConfig, TokenizeResult } from './types.js';
 import { parseResult } from './util.js';
 
 const tokenize = (connection: ConnectionGRPC, dbVersionSupport: DbVersionSupport): Tokenize => {
-  const parseTextAnalyzerConfig = (config?: TextAnalyzerConfig) => {
-    if (config == undefined) return undefined;
-    const out = { stopwordPreset: config.stopwordPreset ? String(config.stopwordPreset) : undefined };
-    if (typeof config?.asciiFold === 'boolean') {
-      return { ...out, asciiFold: config?.asciiFold };
-    } else if (typeof config?.asciiFold === 'object') {
-      return {
-        ...out,
-        asciiFold: true,
-        asciiFoldIgnore: config?.asciiFold.ignore,
-      };
-    }
-    return out;
-  };
   return {
     text: (text, tokenization, opts) => {
       return dbVersionSupport
@@ -34,8 +21,8 @@ const tokenize = (connection: ConnectionGRPC, dbVersionSupport: DbVersionSupport
             .postReturn<WeaviateTokenizeRequest, WeaviateTokenizeResponse>('/tokenize', {
               text,
               tokenization,
-              analyzerConfig: parseTextAnalyzerConfig(opts?.analyzerConfig),
-              stopwordPresets: opts?.stopwordPresets,
+              analyzerConfig: textAnalyzerConfigToWire(opts?.analyzerConfig),
+              stopwordPresets: opts?.stopwordPresets as WeaviateTokenizeRequest['stopwordPresets'],
             })
             .then(parseResult)
         );
@@ -60,7 +47,13 @@ export interface Tokenize {
     tokenization: Tokenization,
     opts?: {
       analyzerConfig?: TextAnalyzerConfig;
-      stopwordPresets?: Record<string, Partial<Stopwords>>;
+      /**
+       * User-defined named stopword lists. Keyed by preset name; each value is a
+       * flat array of stopword strings. Mirrors the wire format accepted by
+       * Weaviate's `/v1/tokenize` endpoint (>= v1.37.2) and the schema-level
+       * `invertedIndexConfig.stopwordPresets`.
+       */
+      stopwordPresets?: { [presetName: string]: string[] };
     }
   ) => Promise<TokenizeResult>;
   forProperty: (collection: string, property: string, text: string) => Promise<TokenizeResult>;

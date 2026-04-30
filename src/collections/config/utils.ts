@@ -51,6 +51,7 @@ import {
   RerankerConfig,
   SQConfig,
   ShardingConfig,
+  TextAnalyzerConfig,
   VectorConfig,
   VectorDistance,
   VectorIndexConfigDynamic,
@@ -62,6 +63,50 @@ import {
   VectorIndexType,
   VectorizerConfig,
 } from './types/index.js';
+
+/**
+ * Translates the user-facing `TextAnalyzerConfig` (with the ergonomic
+ * `asciiFold: boolean | { ignore: string[] }` union) into the flat wire
+ * shape Weaviate's REST API expects (`asciiFold: boolean`,
+ * `asciiFoldIgnore: string[]`, `stopwordPreset: string`). Returns `undefined`
+ * when the input is empty so callers can omit the field from the payload.
+ */
+export const textAnalyzerConfigToWire = (
+  config?: TextAnalyzerConfig
+): { asciiFold?: boolean; asciiFoldIgnore?: string[]; stopwordPreset?: string } | undefined => {
+  if (config == undefined) return undefined;
+  const out: { asciiFold?: boolean; asciiFoldIgnore?: string[]; stopwordPreset?: string } = {
+    stopwordPreset: config.stopwordPreset ? String(config.stopwordPreset) : undefined,
+  };
+  if (typeof config.asciiFold === 'boolean') {
+    out.asciiFold = config.asciiFold;
+  } else if (typeof config.asciiFold === 'object') {
+    out.asciiFold = true;
+    out.asciiFoldIgnore = config.asciiFold.ignore;
+  }
+  return out;
+};
+
+/**
+ * Inverse of `textAnalyzerConfigToWire`: translates the server-returned flat
+ * shape back into the user-facing union form so values round-trip cleanly
+ * through `client.collections.create({...})` → `collection.config.get()`.
+ */
+export const textAnalyzerConfigFromWire = (wire?: {
+  asciiFold?: boolean;
+  asciiFoldIgnore?: string[];
+  stopwordPreset?: string;
+}): TextAnalyzerConfig | undefined => {
+  if (wire == undefined) return undefined;
+  const out: TextAnalyzerConfig = {};
+  if (wire.stopwordPreset != undefined) out.stopwordPreset = wire.stopwordPreset;
+  if (wire.asciiFoldIgnore && wire.asciiFoldIgnore.length > 0) {
+    out.asciiFold = { ignore: wire.asciiFoldIgnore };
+  } else if (typeof wire.asciiFold === 'boolean') {
+    out.asciiFold = wire.asciiFold;
+  }
+  return Object.keys(out).length === 0 ? undefined : out;
+};
 
 export class ReferenceTypeGuards {
   static isSingleTarget<T>(ref: ReferenceConfigCreate<T>): ref is ReferenceSingleTargetConfigCreate<T> {
@@ -76,7 +121,8 @@ export const resolveProperty = <T>(
   prop: PropertyConfigCreate<T>,
   vectorizers?: string[]
 ): WeaviateProperty => {
-  const { dataType, nestedProperties, skipVectorization, vectorizePropertyName, ...rest } = prop;
+  const { dataType, nestedProperties, skipVectorization, vectorizePropertyName, textAnalyzer, ...rest } =
+    prop as PropertyConfigCreate<T> & { textAnalyzer?: TextAnalyzerConfig };
   const moduleConfig: any = {};
   vectorizers?.forEach((vectorizer) => {
     moduleConfig[vectorizer] = {
@@ -91,6 +137,7 @@ export const resolveProperty = <T>(
       ? nestedProperties.map((prop) => resolveNestedProperty(prop))
       : undefined,
     moduleConfig: Object.keys(moduleConfig).length > 0 ? moduleConfig : undefined,
+    textAnalyzer: textAnalyzerConfigToWire(textAnalyzer),
   };
 };
 
@@ -393,6 +440,7 @@ class ConfigMapping {
       bm25: ConfigMapping.bm25(v.bm25),
       cleanupIntervalSeconds: v.cleanupIntervalSeconds,
       stopwords: ConfigMapping.stopwords(v.stopwords),
+      stopwordPresets: v.stopwordPresets,
       indexNullState: v.indexNullState ? v.indexNullState : false,
       indexPropertyLength: v.indexPropertyLength ? v.indexPropertyLength : false,
       indexTimestamps: v.indexTimestamps ? v.indexTimestamps : false,
@@ -741,6 +789,7 @@ class ConfigMapping {
             ? ConfigMapping.properties(prop.nestedProperties)
             : undefined,
           tokenization: prop.tokenization ? prop.tokenization : 'none',
+          textAnalyzer: textAnalyzerConfigFromWire(prop.textAnalyzer),
         };
       });
   }
