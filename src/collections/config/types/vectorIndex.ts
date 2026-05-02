@@ -111,7 +111,7 @@ export type VectorDistance = 'cosine' | 'dot' | 'l2-squared' | 'hamming';
 export type PQEncoderType = 'kmeans' | 'tile';
 export type PQEncoderDistribution = 'log-normal' | 'normal';
 
-export type VectorIndexType = 'hnsw' | 'hfresh' | 'flat' | 'dynamic' | string;
+export type VectorIndexType = 'hnsw' | 'hfresh' | 'flat' | 'dynamic' | 'none' | string;
 
 export type VectorIndexFilterStrategy = 'sweeping' | 'acorn';
 
