@@ -89,6 +89,7 @@ const configure = {
    * @param {'en' | 'none'} [options.stopwordsPreset] The stopwords preset to use.
    * @param {string[]} [options.stopwordsAdditions] Additional stopwords to add.
    * @param {string[]} [options.stopwordsRemovals] Stopwords to remove.
+   * @param {{ [presetName: string]: string[] }} [options.stopwordPresets] User-defined named stopword lists, referenced by name from a property's `textAnalyzer.stopwordPreset`. Requires Weaviate >= 1.37.2.
    */
   invertedIndex: (options: {
     bm25b?: number;
@@ -100,6 +101,7 @@ const configure = {
     stopwordsPreset?: 'en' | 'none';
     stopwordsAdditions?: string[];
     stopwordsRemovals?: string[];
+    stopwordPresets?: { [presetName: string]: string[] };
   }): InvertedIndexConfigCreate => {
     return {
       bm25:
@@ -121,6 +123,7 @@ const configure = {
               removals: options.stopwordsRemovals,
             }
           : undefined,
+      stopwordPresets: options.stopwordPresets,
     };
   },
   objectTTL: {
@@ -238,6 +241,7 @@ const reconfigure = {
    * @param {'en' | 'none'} [options.stopwordsPreset] The stopwords preset to use.
    * @param {string[]} [options.stopwordsAdditions] Additional stopwords to add.
    * @param {string[]} [options.stopwordsRemovals] Stopwords to remove.
+   * @param {{ [presetName: string]: string[] }} [options.stopwordPresets] User-defined named stopword lists, referenced by name from a property's `textAnalyzer.stopwordPreset`. Requires Weaviate >= 1.37.2.
    */
   invertedIndex: (options: {
     bm25b?: number;
@@ -246,6 +250,7 @@ const reconfigure = {
     stopwordsPreset?: 'en' | 'none';
     stopwordsAdditions?: string[];
     stopwordsRemovals?: string[];
+    stopwordPresets?: { [presetName: string]: string[] };
   }): InvertedIndexConfigUpdate => {
     return {
       bm25:
@@ -264,6 +269,7 @@ const reconfigure = {
               removals: options.stopwordsRemovals,
             }
           : undefined,
+      stopwordPresets: options.stopwordPresets,
     };
   },
   /**

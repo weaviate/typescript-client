@@ -21,9 +21,19 @@ const tokenize = (connection: ConnectionGRPC, dbVersionSupport: DbVersionSupport
           )
         );
       }
+      const requiresStopwordsField = opts?.stopwords !== undefined || opts?.stopwordPresets !== undefined;
       return dbVersionSupport
         .supportsTokenize()
         .then(({ supports, message }) => (supports ? Promise.resolve() : Promise.reject(new Error(message))))
+        .then(() =>
+          requiresStopwordsField
+            ? dbVersionSupport
+                .supportsTokenizeStopwords()
+                .then(({ supports, message }) =>
+                  supports ? Promise.resolve() : Promise.reject(new Error(message))
+                )
+            : Promise.resolve()
+        )
         .then(() =>
           connection
             .postReturn<WeaviateTokenizeRequest, WeaviateTokenizeResponse>('/tokenize', {
