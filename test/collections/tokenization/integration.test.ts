@@ -16,6 +16,7 @@ describe('Tokenization v1.37: schema config round-trip', () => {
     // Only clean up collections this suite owns; deleteAll() races with
     // sibling integration tests that share the same Weaviate instance.
     await client.collections.delete('TestTokenizationRoundTrip').catch(() => {});
+    await client.collections.delete('TestTokenizationRoundTripErgonomic').catch(() => {});
     await client.close();
   });
 

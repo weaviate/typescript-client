@@ -1,6 +1,7 @@
 import { textAnalyzerConfigToWire } from '../collections/config/utils.js';
-import { Tokenization } from '../collections/types/index.js';
+import { Stopwords, Tokenization } from '../collections/types/index.js';
 import ConnectionGRPC from '../connection/grpc.js';
+import { WeaviateInvalidInputError } from '../errors.js';
 import {
   WeaviatePropertyTokenizeRequest,
   WeaviateTokenizeRequest,
@@ -13,6 +14,13 @@ import { parseResult } from './util.js';
 const tokenize = (connection: ConnectionGRPC, dbVersionSupport: DbVersionSupport): Tokenize => {
   return {
     text: (text, tokenization, opts) => {
+      if (opts?.stopwords !== undefined && opts?.stopwordPresets !== undefined) {
+        return Promise.reject(
+          new WeaviateInvalidInputError(
+            'stopwords and stopwordPresets are mutually exclusive; pass at most one'
+          )
+        );
+      }
       return dbVersionSupport
         .supportsTokenize()
         .then(({ supports, message }) => (supports ? Promise.resolve() : Promise.reject(new Error(message))))
@@ -22,7 +30,8 @@ const tokenize = (connection: ConnectionGRPC, dbVersionSupport: DbVersionSupport
               text,
               tokenization,
               analyzerConfig: textAnalyzerConfigToWire(opts?.analyzerConfig),
-              stopwordPresets: opts?.stopwordPresets as WeaviateTokenizeRequest['stopwordPresets'],
+              stopwords: opts?.stopwords,
+              stopwordPresets: opts?.stopwordPresets,
             })
             .then(parseResult)
         );
@@ -48,10 +57,17 @@ export interface Tokenize {
     opts?: {
       analyzerConfig?: TextAnalyzerConfig;
       /**
+       * One-off stopwords block applied directly to this request. Mirrors the
+       * collection-level `invertedIndexConfig.stopwords` shape (preset +
+       * additions + removals). Mutually exclusive with `stopwordPresets`.
+       */
+      stopwords?: Partial<Stopwords>;
+      /**
        * User-defined named stopword lists. Keyed by preset name; each value is a
        * flat array of stopword strings. Mirrors the wire format accepted by
        * Weaviate's `/v1/tokenize` endpoint (>= v1.37.2) and the schema-level
-       * `invertedIndexConfig.stopwordPresets`.
+       * `invertedIndexConfig.stopwordPresets`. Mutually exclusive with
+       * `stopwords`.
        */
       stopwordPresets?: { [presetName: string]: string[] };
     }

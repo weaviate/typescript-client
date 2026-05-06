@@ -1,8 +1,8 @@
-import { Stopwords } from '../collections/types/index.js';
+import { StopwordsPreset } from '../collections/types/index.js';
 
 export type TextAnalyzerConfig = {
   asciiFold?: boolean | { ignore: string[] };
-  stopwordPreset?: Stopwords | string;
+  stopwordPreset?: StopwordsPreset | string;
 };
 
 export type TokenizeResult = {

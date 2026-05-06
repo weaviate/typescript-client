@@ -76,7 +76,7 @@ export const textAnalyzerConfigToWire = (
 ): { asciiFold?: boolean; asciiFoldIgnore?: string[]; stopwordPreset?: string } | undefined => {
   if (config == undefined) return undefined;
   const out: { asciiFold?: boolean; asciiFoldIgnore?: string[]; stopwordPreset?: string } = {
-    stopwordPreset: config.stopwordPreset ? String(config.stopwordPreset) : undefined,
+    stopwordPreset: config.stopwordPreset,
   };
   if (typeof config.asciiFold === 'boolean') {
     out.asciiFold = config.asciiFold;
@@ -84,7 +84,9 @@ export const textAnalyzerConfigToWire = (
     out.asciiFold = true;
     out.asciiFoldIgnore = config.asciiFold.ignore;
   }
-  return out;
+  return out.asciiFold !== undefined || out.asciiFoldIgnore !== undefined || out.stopwordPreset !== undefined
+    ? out
+    : undefined;
 };
 
 /**
