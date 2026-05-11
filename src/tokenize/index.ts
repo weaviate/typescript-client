@@ -21,12 +21,12 @@ const tokenize = (connection: ConnectionGRPC, dbVersionSupport: DbVersionSupport
           )
         );
       }
-      const requiresStopwordsField = opts?.stopwords !== undefined || opts?.stopwordPresets !== undefined;
+      const hasStopwordsField = opts?.stopwords !== undefined || opts?.stopwordPresets !== undefined;
       return dbVersionSupport
         .supportsTokenize()
         .then(({ supports, message }) => (supports ? Promise.resolve() : Promise.reject(new Error(message))))
         .then(() =>
-          requiresStopwordsField
+          hasStopwordsField
             ? dbVersionSupport
                 .supportsTokenizeStopwords()
                 .then(({ supports, message }) =>
