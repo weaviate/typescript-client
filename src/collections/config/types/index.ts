@@ -35,6 +35,11 @@ export type Stopwords = {
   removals: string[];
 };
 
+export type TextAnalyzerConfig = {
+  asciiFold?: boolean | { ignore: string[] };
+  stopwordPreset?: StopwordsPreset | string;
+};
+
 export type InvertedIndexConfig = {
   bm25: {
     k1: number;
@@ -45,6 +50,7 @@ export type InvertedIndexConfig = {
   indexPropertyLength: boolean;
   indexNullState: boolean;
   stopwords: Stopwords;
+  stopwordPresets?: { [presetName: string]: string[] };
 };
 
 export type ObjectTTLConfig = {
@@ -95,6 +101,7 @@ export type PropertyConfig = {
   nestedProperties?: PropertyConfig[];
   tokenization: Tokenization | string;
   vectorizerConfig?: PropertyVectorizerConfig;
+  textAnalyzer?: TextAnalyzerConfig;
 };
 
 export type ReferenceConfig = {

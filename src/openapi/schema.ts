@@ -554,8 +554,6 @@ export interface definitions {
        */
       alias?: string;
     };
-    /** @description resources applicable for MCP actions */
-    mcp?: { [key: string]: unknown };
     /**
      * @description Allowed actions in weaviate.
      * @enum {string}
@@ -838,7 +836,7 @@ export interface definitions {
     usingBlockMaxWAND?: boolean;
     /** @description User-defined dictionary for tokenization. */
     tokenizerUserDict?: definitions['TokenizerUserDictConfig'][];
-    /** @description User-defined named stopword lists. Each key is a preset name that can be referenced by a property's textAnalyzer.stopwordPreset field. The value is an array of stopword strings. */
+    /** @description User-defined named stopword lists. Each key is a preset name that can be referenced by a property's textAnalyzer.stopwordPreset field. The value is an array of stopword strings. Preset names must not be empty or whitespace-only; each list must contain at least one word; individual words must not be empty or whitespace-only. */
     stopwordPresets?: { [key: string]: string[] };
   };
   /** @description Configure how replication is executed in a cluster */
@@ -908,17 +906,13 @@ export interface definitions {
       | 'gse_ch';
     /** @description Optional text analyzer configuration (e.g. ASCII folding). */
     analyzerConfig?: definitions['TextAnalyzerConfig'];
-    /** @description Optional named stopword configurations. Each key is a preset name that can be referenced by analyzerConfig.stopwordPreset. Each value is a StopwordConfig (with optional preset, additions, and removals). */
-    stopwordPresets?: { [key: string]: definitions['StopwordConfig'] };
+    /** @description Optional fallback stopword configuration. Used when analyzerConfig.stopwordPreset is not set. Shape matches InvertedIndexConfig.stopwords on a collection. When analyzerConfig.stopwordPreset is not set and this field is omitted, word tokenization defaults to preset 'en'. Mutually exclusive with stopwordPresets — pass one or the other, not both. */
+    stopwords?: definitions['StopwordConfig'];
+    /** @description Optional user-defined named stopword presets. Shape matches InvertedIndexConfig.stopwordPresets on a collection: each key is a preset name, each value is a plain list of stopwords. A preset name that matches a built-in ('en', 'none') fully replaces the built-in. Preset names must not be empty or whitespace-only; each word list must contain at least one word; individual words must not be empty or whitespace-only. Mutually exclusive with stopwords — pass one or the other, not both. */
+    stopwordPresets?: { [key: string]: string[] };
   };
-  /** @description Response from the tokenize endpoint. */
+  /** @description Response from the tokenize endpoints. Returns `indexed` text and text used at `query` time */
   TokenizeResponse: {
-    /** @description The tokenization method that was applied. */
-    tokenization?: string;
-    /** @description The text analyzer configuration that was used, if any. */
-    analyzerConfig?: definitions['TextAnalyzerConfig'];
-    /** @description The stopword configuration that was used, if any. */
-    stopwordConfig?: definitions['StopwordConfig'];
     /** @description The tokens as they would be stored in the inverted index. */
     indexed?: string[];
     /** @description The tokens as they would be used for query matching (e.g., after stopword removal). */

@@ -1,4 +1,5 @@
 import { beforeAll, expect, it } from 'vitest';
+import { WeaviateInvalidInputError } from '../../src/errors.js';
 import weaviate, { WeaviateClient } from '../../src/index.js';
 import { TokenizeResult } from '../../src/tokenize/types.js';
 import { requireAtLeast } from '../version.js';
@@ -83,5 +84,73 @@ requireAtLeast(1, 37, 0).describe('tokenize integration test', () => {
       indexed: ['this', 'is', 'a', 'test'],
       query: ['this', 'is', 'a', 'test'],
     });
+  });
+});
+
+requireAtLeast(1, 37, 2).describe('tokenize stopwords / stopwordPresets', () => {
+  let client: WeaviateClient;
+
+  beforeAll(async () => {
+    client = await weaviate.connectToLocal();
+  });
+
+  it('applies a one-off stopwords block with preset + additions', async () => {
+    const result = await client.tokenize.text('the quick brown fox', 'word', {
+      stopwords: { preset: 'en', additions: ['quick'] },
+    });
+    expect(result).toEqual<TokenizeResult>({
+      indexed: ['the', 'quick', 'brown', 'fox'],
+      query: ['brown', 'fox'],
+    });
+  });
+
+  it('applies a one-off stopwords block with additions only (server defaults preset to en)', async () => {
+    const result = await client.tokenize.text('the quick hello world', 'word', {
+      stopwords: { additions: ['hello'] },
+    });
+    expect(result).toEqual<TokenizeResult>({
+      indexed: ['the', 'quick', 'hello', 'world'],
+      query: ['quick', 'world'],
+    });
+  });
+
+  it('applies a one-off stopwords block with removals only (server defaults preset to en)', async () => {
+    const result = await client.tokenize.text('the quick is fast', 'word', {
+      stopwords: { removals: ['the'] },
+    });
+    expect(result).toEqual<TokenizeResult>({
+      indexed: ['the', 'quick', 'is', 'fast'],
+      query: ['the', 'quick', 'fast'],
+    });
+  });
+
+  it('resolves a stopwordPresets entry referenced by analyzerConfig.stopwordPreset', async () => {
+    const result = await client.tokenize.text('hello world test', 'word', {
+      analyzerConfig: { stopwordPreset: 'custom' },
+      stopwordPresets: { custom: ['test'] },
+    });
+    expect(result).toEqual<TokenizeResult>({
+      indexed: ['hello', 'world', 'test'],
+      query: ['hello', 'world'],
+    });
+  });
+
+  it('overrides a built-in preset by reusing its name in stopwordPresets', async () => {
+    const result = await client.tokenize.text('the quick hello world', 'word', {
+      stopwordPresets: { en: ['hello'] },
+    });
+    expect(result).toEqual<TokenizeResult>({
+      indexed: ['the', 'quick', 'hello', 'world'],
+      query: ['the', 'quick', 'world'],
+    });
+  });
+
+  it('rejects passing both stopwords and stopwordPresets client-side', async () => {
+    await expect(
+      client.tokenize.text('hello', 'word', {
+        stopwords: { preset: 'en' },
+        stopwordPresets: { custom: ['hello'] },
+      })
+    ).rejects.toThrow(WeaviateInvalidInputError);
   });
 });

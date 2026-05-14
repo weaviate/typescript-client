@@ -155,6 +155,13 @@ export class DbVersionSupport {
       supports: version.isAtLeast(1, 37, 0),
       message: this.errorMessage('Tokenize endpoint', version.show(), '1.37.0'),
     }));
+
+  supportsTokenizeStopwords = () =>
+    this.dbVersionProvider.getVersion().then((version) => ({
+      version,
+      supports: version.isAtLeast(1, 37, 2),
+      message: this.errorMessage('Tokenize endpoint stopwords / stopwordPresets', version.show(), '1.37.2'),
+    }));
 }
 
 const EMPTY_VERSION = '';

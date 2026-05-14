@@ -5,6 +5,7 @@ import {
   ObjectTTLConfig,
   QuantizerConfig,
   ReplicationConfig,
+  TextAnalyzerConfig,
 } from '../../config/types/index.js';
 import { DataType, QuantizerRecursivePartial } from '../../types/index.js';
 import { NonRefKeys, RefKeys } from '../../types/internal.js';
@@ -30,6 +31,7 @@ export type InvertedIndexConfigUpdate = {
     additions?: string[];
     removals?: string[];
   };
+  stopwordPresets?: { [presetName: string]: string[] };
 };
 
 export type ObjectTTLConfigCreate = RecursivePartial<ObjectTTLConfig>;
@@ -99,6 +101,7 @@ export type PropertyConfigCreateBase = {
   tokenization?: WeaviateProperty['tokenization'];
   skipVectorization?: boolean;
   vectorizePropertyName?: boolean;
+  textAnalyzer?: TextAnalyzerConfig;
 };
 
 export type NestedPropertyConfigCreateBase = {
@@ -121,6 +124,7 @@ export type PropertyConfigCreate<T> = T extends undefined
       tokenization?: WeaviateProperty['tokenization'];
       skipVectorization?: boolean;
       vectorizePropertyName?: boolean;
+      textAnalyzer?: TextAnalyzerConfig;
     } & NestedDataTypeConfig<T>
   : {
       [K in NonRefKeys<T>]: RequiresNested<DataType<T[K]>> extends true
