@@ -68,8 +68,7 @@ import {
  * Translates the user-facing `TextAnalyzerConfig` (with the ergonomic
  * `asciiFold: boolean | { ignore: string[] }` union) into the flat wire
  * shape Weaviate's REST API expects (`asciiFold: boolean`,
- * `asciiFoldIgnore: string[]`, `stopwordPreset: string`). Returns `undefined`
- * when the input is empty so callers can omit the field from the payload.
+ * `asciiFoldIgnore: string[]`, `stopwordPreset: string`).
  */
 export const textAnalyzerConfigToWire = (
   config?: TextAnalyzerConfig
@@ -84,9 +83,7 @@ export const textAnalyzerConfigToWire = (
     out.asciiFold = true;
     out.asciiFoldIgnore = config.asciiFold.ignore;
   }
-  return out.asciiFold !== undefined || out.asciiFoldIgnore !== undefined || out.stopwordPreset !== undefined
-    ? out
-    : undefined;
+  return out;
 };
 
 /**

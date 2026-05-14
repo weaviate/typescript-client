@@ -87,7 +87,7 @@ requireAtLeast(1, 37, 0).describe('tokenize integration test', () => {
   });
 });
 
-requireAtLeast(1, 37, 2).describe('tokenize stopwords / stopwordPresets (>= 1.37.2)', () => {
+requireAtLeast(1, 37, 2).describe('tokenize stopwords / stopwordPresets', () => {
   let client: WeaviateClient;
 
   beforeAll(async () => {
