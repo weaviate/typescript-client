@@ -5,12 +5,9 @@ import { getClientVersionHeader, InternalConnectionParams } from './http.js';
 
 import { ConsistencyLevel } from '../data/index.js';
 
-import { ChannelCredentials, ChannelOptions, createChannel, createClientFactory } from 'nice-grpc';
-import { retryMiddleware } from 'nice-grpc-client-middleware-retry';
 import { ClientError, Metadata, Status } from 'nice-grpc-common';
 
-import { HealthCheckResponse_ServingStatus, HealthDefinition } from '../proto/google/health/v1/health.js';
-import { WeaviateDefinition } from '../proto/v1/weaviate.js';
+import { HealthCheckResponse_ServingStatus } from '../proto/google/health/v1/health.js';
 
 import Batcher, { Batch } from '../grpc/batcher.js';
 import Searcher, { Search } from '../grpc/searcher.js';
@@ -20,13 +17,14 @@ import { DbVersionSupport, initDbVersionProvider } from '../utils/dbVersion.js';
 import { WeaviateGRPCUnavailableError, WeaviateUnsupportedFeatureError } from '../errors.js';
 import Aggregator, { Aggregate } from '../grpc/aggregator.js';
 import { Meta } from '../openapi/types.js';
+import { nativeGrpcTransport } from './transports/native.js';
+import { GrpcTransport } from './transports/types.js';
 
 export interface GrpcConnectionParams extends InternalConnectionParams {
   grpcAddress: string;
   grpcSecure: boolean;
+  transport?: GrpcTransport;
 }
-
-const clientFactory = createClientFactory().use(retryMiddleware);
 
 const MAX_GRPC_MESSAGE_LENGTH = 104858000; // 10mb, needs to be synchronized with GRPC server
 
@@ -181,23 +179,7 @@ export interface GrpcClient {
 }
 
 export const grpcClient = (config: GrpcConnectionParams & { grpcMaxMessageLength: number }): GrpcClient => {
-  const channelOptions: ChannelOptions = {
-    'grpc.max_send_message_length': config.grpcMaxMessageLength,
-    'grpc.max_receive_message_length': config.grpcMaxMessageLength,
-  };
-  if (config.grpcProxyUrl) {
-    // grpc.http_proxy is not used by grpc.js under-the-hood
-    // only uses the env var and whether http_proxy is enabled
-    process.env.grpc_proxy = config.grpcProxyUrl;
-    channelOptions['grpc.enabled_http_proxy'] = true;
-  }
-  const channel = createChannel(
-    config.grpcAddress,
-    config.grpcSecure ? ChannelCredentials.createSsl() : ChannelCredentials.createInsecure(),
-    channelOptions
-  );
-  const client = clientFactory.create(WeaviateDefinition, channel);
-  const health = clientFactory.create(HealthDefinition, channel);
+  const { client, health, close } = (config.transport ?? nativeGrpcTransport).create(config);
   return {
     aggregate: (
       collection: string,
@@ -222,7 +204,7 @@ export const grpcClient = (config: GrpcConnectionParams & { grpcMaxMessageLength
         consistencyLevel,
         tenant
       ),
-    close: () => channel.close(),
+    close: () => close(),
     health: () => {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), (config.timeout?.init || 2) * 1000);
