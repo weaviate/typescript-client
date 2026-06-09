@@ -1,4 +1,30 @@
-import { defineConfig } from 'tsup';
+import { defineConfig, type Options } from 'tsup';
+import { fileURLToPath } from 'url';
+
+// Shared esbuild tweaks that make a `platform: 'browser'` bundle load without Node
+// built-ins. Isomorphic code paths (utils/base64, collections/deserialize) statically
+// reference `fs`/`http`/`https` and `Buffer`, but the browser path never exercises the
+// file-system/agent helpers. We alias those built-ins to an empty stand-in and inject a
+// `Buffer` polyfill at the bundler level, leaving the runtime source untouched.
+const applyBrowserShims: NonNullable<Options['esbuildOptions']> = (options) => {
+  const shim = fileURLToPath(new URL('./src/web-shims/empty.ts', import.meta.url));
+  // The native gRPC transport (nice-grpc) is pulled into the graph via the isomorphic
+  // root entry but is never used in the browser; replace it with a stub so we don't
+  // bundle @grpc/grpc-js / Node's http2 stack.
+  const niceGrpc = fileURLToPath(new URL('./src/web-shims/nice-grpc.ts', import.meta.url));
+  options.alias = {
+    ...(options.alias ?? {}),
+    fs: shim,
+    http: shim,
+    https: shim,
+    'nice-grpc': niceGrpc,
+  };
+  options.inject = [
+    ...(options.inject ?? []),
+    fileURLToPath(new URL('./src/web-shims/buffer.ts', import.meta.url)),
+  ];
+  options.define = { ...(options.define ?? {}), 'process.env.NODE_ENV': '"production"' };
+};
 
 export default defineConfig([
   {
@@ -20,6 +46,25 @@ export default defineConfig([
     dts: true,
     splitting: true,
     treeshake: true,
+    // Force the native gRPC package to be bundled (not externalized) so the alias in
+    // `applyBrowserShims` can redirect it to the browser stub instead of leaving a bare
+    // `import ... from 'nice-grpc'` (which would drag in @grpc/grpc-js / http2).
+    noExternal: [/^nice-grpc$/],
+    esbuildOptions: applyBrowserShims,
+  },
+  {
+    entry: { 'index.web': 'src/index.web.ts' },
+    format: ['esm', 'cjs'],
+    outDir: 'dist/web',
+    clean: false,
+    platform: 'browser',
+    minify: true,
+    dts: true,
+    splitting: false,
+    treeshake: true,
+    // See note above: bundle `nice-grpc` so the stub alias takes effect.
+    noExternal: [/^nice-grpc$/],
+    esbuildOptions: applyBrowserShims,
   },
   // {
   //   entry: {

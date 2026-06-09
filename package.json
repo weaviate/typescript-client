@@ -14,8 +14,19 @@
         "require": "./dist/node/cjs/index.js",
         "default": "./dist/node/esm/index.js"
       }
+    },
+    "./web": {
+      "types": {
+        "require": "./dist/web/index.web.d.cts",
+        "default": "./dist/web/index.web.d.ts"
+      },
+      "default": {
+        "require": "./dist/web/index.web.cjs",
+        "default": "./dist/web/index.web.js"
+      }
     }
   },
+  "browser": "./dist/web/index.web.js",
   "engines": {
     "node": ">=22.0.0"
   },
@@ -79,6 +90,7 @@
     "@typescript-eslint/eslint-plugin": "^6.21.0",
     "@typescript-eslint/parser": "^6.21.0",
     "babel-jest": "^29.4.3",
+    "buffer": "^6.0.3",
     "eslint": "^8.35.0",
     "eslint-config-prettier": "^8.7.0",
     "eslint-plugin-prettier": "^4.2.1",
