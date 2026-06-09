@@ -1,5 +1,5 @@
 import { isAbortError } from 'abort-controller-x';
-import { Agent } from 'http';
+import type { Agent } from 'http';
 
 import OpenidConfigurationGetter from '../misc/openidConfigurationGetter.js';
 
@@ -262,7 +262,7 @@ export const httpClient = (config: InternalConnectionParams): HttpClient => {
   const url = makeUrl(baseUri);
 
   return {
-    close: () => config.agent?.destroy(),
+    close: () => config.agent?.destroy?.(),
     post: <B, T>(
       path: string,
       payload: B,

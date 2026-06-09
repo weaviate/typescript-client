@@ -17,7 +17,6 @@ import { DbVersionSupport, initDbVersionProvider } from '../utils/dbVersion.js';
 import { WeaviateGRPCUnavailableError, WeaviateUnsupportedFeatureError } from '../errors.js';
 import Aggregator, { Aggregate } from '../grpc/aggregator.js';
 import { Meta } from '../openapi/types.js';
-import { nativeGrpcTransport } from './transports/native.js';
 import { GrpcTransport } from './transports/types.js';
 
 export interface GrpcConnectionParams extends InternalConnectionParams {
@@ -181,7 +180,10 @@ export interface GrpcClient {
 }
 
 export const grpcClient = (config: GrpcConnectionParams & { grpcMaxMessageLength: number }): GrpcClient => {
-  const { client, health, close } = (config.transport ?? nativeGrpcTransport).create(config);
+  if (!config.transport) {
+    throw new Error('grpcClient requires a transport to be configured');
+  }
+  const { client, health, close } = config.transport.create(config);
   return {
     aggregate: (
       collection: string,

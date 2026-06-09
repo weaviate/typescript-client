@@ -11,8 +11,12 @@ export const webGrpcTransport: GrpcTransport = {
   supportsStreaming: false,
   create: (config): GrpcClients => {
     // nice-grpc-web needs a fully-qualified URL with a scheme, unlike the
-    // native transport which uses a bare `host:port` address.
-    const address = `${config.grpcSecure ? 'https' : 'http'}://${config.grpcAddress}`;
+    // native transport which uses a bare `host:port` address. The configured
+    // grpcAddress may be a bare `host:port`, a `host:port/path`, or an
+    // already-fully-qualified URL.
+    const address = /^https?:\/\//.test(config.grpcAddress)
+      ? config.grpcAddress
+      : `${config.grpcSecure ? 'https' : 'http'}://${config.grpcAddress}`;
     // eslint-disable-next-line new-cap -- FetchTransport is a factory function, not a constructor
     const channel = createChannel(address, FetchTransport());
     const client = clientFactory.create(WeaviateDefinition, channel);

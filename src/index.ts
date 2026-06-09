@@ -1,9 +1,9 @@
 import { Backend, BackupCompressionLevel, BackupStatus } from './backup/index.js';
-import { Backup, backup } from './collections/backup/client.js';
-import cluster, { Cluster } from './collections/cluster/index.js';
+import { Backup } from './collections/backup/client.js';
+import { Cluster } from './collections/cluster/index.js';
 import { configGuards } from './collections/config/index.js';
 import { configure, reconfigure } from './collections/configure/index.js';
-import collections, { Collections, queryFactory } from './collections/index.js';
+import { Collections, queryFactory } from './collections/index.js';
 import {
   AccessTokenCredentialsInput,
   ApiKey,
@@ -14,8 +14,6 @@ import {
   ClientCredentialsInput,
   OidcAuthenticator,
   UserPasswordCredentialsInput,
-  isApiKey,
-  mapApiKey,
 } from './connection/auth.js';
 import * as helpers from './connection/helpers.js';
 import {
@@ -26,26 +24,24 @@ import {
   ConnectToWeaviateCloudOptions,
 } from './connection/helpers.js';
 import { ConnectionDetails, Headers, ProxiesParams, TimeoutParams } from './connection/http.js';
-import { ConnectionGRPC } from './connection/index.js';
+import { makeClient } from './connection/makeClient.js';
 import { resolveGrpcTransport } from './connection/transports/index.js';
-import MetaGetter from './misc/metaGetter.js';
 import { Meta } from './openapi/types.js';
-import roles, { Roles, permissions } from './roles/index.js';
+import { Roles, permissions } from './roles/index.js';
 import { DbVersion } from './utils/dbVersion.js';
 
 import { Agent as HttpAgent } from 'http';
 import { Agent as HttpsAgent } from 'https';
-import { LiveChecker, OpenidConfigurationGetter, ReadyChecker } from './misc/index.js';
 
 import weaviateV2 from './v2/index.js';
 
-import alias, { Aliases } from './alias/index.js';
-import batch, { Batch } from './collections/data/batch.js';
+import { Aliases } from './alias/index.js';
+import { Batch } from './collections/data/batch.js';
 import filter from './collections/filters/index.js';
 import { ConsistencyLevel } from './data/replication.js';
-import groups, { Groups } from './groups/index.js';
-import tokenize, { Tokenize } from './tokenize/index.js';
-import users, { Users } from './users/index.js';
+import { Groups } from './groups/index.js';
+import { Tokenize } from './tokenize/index.js';
+import { Users } from './users/index.js';
 
 export type ProtocolParams = {
   /**
@@ -129,17 +125,6 @@ export interface WeaviateClient {
   isReady: () => Promise<boolean>;
 }
 
-const cleanHost = (host: string, protocol: 'rest' | 'grpc') => {
-  if (host.includes('http')) {
-    console.warn(
-      `The ${protocol}.host parameter should not include the protocol. Please remove the http:// or https:// from the ${protocol}.host parameter.\
-      To specify a secure connection, set the secure parameter to true. The protocol will be inferred from the secure parameter instead.`
-    );
-    return host.replace('http://', '').replace('https://', '');
-  }
-  return host;
-};
-
 /**
  * Connect to a custom Weaviate deployment, e.g. your own self-hosted Kubernetes cluster.
  *
@@ -206,62 +191,14 @@ export function connectToWeaviateCloud(
   return helpers.connectToWeaviateCloud(clusterURL, client, options);
 }
 
-async function client(params: ClientParams): Promise<WeaviateClient> {
-  let { host: httpHost } = params.connectionParams.http;
-  let { host: grpcHost } = params.connectionParams.grpc;
-  const { port: httpPort, secure: httpSecure, path: httpPath } = params.connectionParams.http;
-  const { port: grpcPort, secure: grpcSecure } = params.connectionParams.grpc;
-  httpHost = cleanHost(httpHost, 'rest');
-  grpcHost = cleanHost(grpcHost, 'grpc');
-
-  // check if headers are set
-  if (!params.headers) params.headers = {};
-
-  const scheme = httpSecure ? 'https' : 'http';
-  const grpcTransport = resolveGrpcTransport(params.transport);
-  const agent =
+function client(params: ClientParams): Promise<WeaviateClient> {
+  return makeClient(params, resolveGrpcTransport(params.transport), (secure) =>
     params.transport === 'grpc-web'
       ? undefined
-      : httpSecure
+      : secure
       ? new HttpsAgent({ keepAlive: true })
-      : new HttpAgent({ keepAlive: true });
-
-  const { connection, dbVersionProvider, dbVersionSupport } = await ConnectionGRPC.use({
-    host: `${scheme}://${httpHost}:${httpPort}${httpPath || ''}`,
-    scheme: scheme,
-    headers: params.headers,
-    grpcAddress: `${grpcHost}:${grpcPort}`,
-    grpcSecure: grpcSecure,
-    grpcProxyUrl: params.proxies?.grpc,
-    apiKey: isApiKey(params.auth) ? mapApiKey(params.auth) : undefined,
-    authClientSecret: isApiKey(params.auth) ? undefined : params.auth,
-    agent,
-    timeout: params.timeout,
-    skipInitChecks: params.skipInitChecks,
-    transport: grpcTransport,
-  });
-
-  const ifc: WeaviateClient = {
-    alias: alias(connection),
-    backup: backup(connection),
-    batch: batch(connection, dbVersionSupport),
-    cluster: cluster(connection),
-    collections: collections(connection, dbVersionSupport),
-    groups: groups(connection),
-    roles: roles(connection),
-    tokenize: tokenize(connection, dbVersionSupport),
-    users: users(connection),
-    close: () => Promise.resolve(connection.close()), // hedge against future changes to add I/O to .close()
-    getMeta: () => new MetaGetter(connection).do(),
-    getConnectionDetails: connection.getDetails,
-    getOpenIDConfig: () => new OpenidConfigurationGetter(connection.http).do(),
-    getWeaviateVersion: () => dbVersionSupport.getVersion(),
-    isLive: () => new LiveChecker(connection, dbVersionProvider).do(),
-    isReady: () => new ReadyChecker(connection, dbVersionProvider).do(),
-  };
-  if (connection.oidcAuth) ifc.oidcAuth = connection.oidcAuth;
-
-  return ifc;
+      : new HttpAgent({ keepAlive: true })
+  );
 }
 
 export default {
