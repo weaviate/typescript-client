@@ -1,6 +1,7 @@
 import { Deque } from '@datastructures-js/deque';
 import { v4 as uuidv4 } from 'uuid';
 import Connection from '../../connection/grpc.js';
+import { WeaviateUnsupportedFeatureError } from '../../errors.js';
 import { ConsistencyLevel } from '../../index.js';
 import {
   BatchObject as BatchObjectGRPC,
@@ -66,6 +67,11 @@ export interface Batch {
 export default function (connection: Connection, dbVersionSupport: DbVersionSupport): Batch {
   return {
     stream: async (consistencyLevel) => {
+      if (!connection.supportsStreaming()) {
+        throw new WeaviateUnsupportedFeatureError(
+          'Streaming batch (batch.stream / data.ingest) is not supported over gRPC-Web. Use data.insertMany instead.'
+        );
+      }
       const { supports, message } = await dbVersionSupport.supportsServerSideBatching();
       if (!supports) {
         throw new Error(message);

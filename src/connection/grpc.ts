@@ -147,6 +147,8 @@ export default class ConnectionGRPC extends ConnectionGQL {
     return new Promise<Tenants>((resolve) => resolve(this.grpc.tenants(collection)));
   };
 
+  public supportsStreaming = (): boolean => this.params.transport?.supportsStreaming ?? true;
+
   close = () => {
     this.grpc.close();
     this.http.close();
