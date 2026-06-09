@@ -1,5 +1,5 @@
-import { ClientError, Status } from 'nice-grpc';
 import { RetryOptions } from 'nice-grpc-client-middleware-retry';
+import { ClientError, Status } from 'nice-grpc-common';
 
 export const retryOptions: RetryOptions = {
   retry: true,

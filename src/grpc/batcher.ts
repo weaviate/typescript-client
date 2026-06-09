@@ -1,4 +1,4 @@
-import { ClientError, Metadata } from 'nice-grpc';
+import { ClientError, Metadata } from 'nice-grpc-common';
 
 import { ConsistencyLevel } from '../data/index.js';
 

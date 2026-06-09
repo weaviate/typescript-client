@@ -1,5 +1,5 @@
-import { Metadata } from 'nice-grpc';
 import { RetryOptions } from 'nice-grpc-client-middleware-retry';
+import { Metadata } from 'nice-grpc-common';
 import { WeaviateTenantsGetError } from '../errors.js';
 import { TenantsGetReply, TenantsGetRequest } from '../proto/v1/tenants.js';
 import { WeaviateClient } from '../proto/v1/weaviate.js';

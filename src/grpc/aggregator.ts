@@ -1,6 +1,6 @@
 import { ConsistencyLevel } from '../data/index.js';
 
-import { Metadata } from 'nice-grpc';
+import { Metadata } from 'nice-grpc-common';
 import {
   AggregateReply,
   AggregateRequest,

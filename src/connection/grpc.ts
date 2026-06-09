@@ -5,16 +5,9 @@ import { getClientVersionHeader, InternalConnectionParams } from './http.js';
 
 import { ConsistencyLevel } from '../data/index.js';
 
-import {
-  ChannelCredentials,
-  ChannelOptions,
-  ClientError,
-  createChannel,
-  createClientFactory,
-  Metadata,
-  Status,
-} from 'nice-grpc';
+import { ChannelCredentials, ChannelOptions, createChannel, createClientFactory } from 'nice-grpc';
 import { retryMiddleware } from 'nice-grpc-client-middleware-retry';
+import { ClientError, Metadata, Status } from 'nice-grpc-common';
 
 import { HealthCheckResponse_ServingStatus, HealthDefinition } from '../proto/google/health/v1/health.js';
 import { WeaviateDefinition } from '../proto/v1/weaviate.js';
