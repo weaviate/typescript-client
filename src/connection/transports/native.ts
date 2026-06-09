@@ -8,6 +8,7 @@ import { GrpcClients, GrpcTransport } from './types.js';
 const clientFactory = createClientFactory().use(retryMiddleware);
 
 export const nativeGrpcTransport: GrpcTransport = {
+  supportsStreaming: true,
   create: (config): GrpcClients => {
     const channelOptions: ChannelOptions = {
       'grpc.max_send_message_length': config.grpcMaxMessageLength,

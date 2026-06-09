@@ -27,6 +27,7 @@ import {
 } from './connection/helpers.js';
 import { ConnectionDetails, Headers, ProxiesParams, TimeoutParams } from './connection/http.js';
 import { ConnectionGRPC } from './connection/index.js';
+import { resolveGrpcTransport } from './connection/transports/index.js';
 import MetaGetter from './misc/metaGetter.js';
 import { Meta } from './openapi/types.js';
 import roles, { Roles, permissions } from './roles/index.js';
@@ -103,6 +104,8 @@ export type ClientParams = {
   timeout?: TimeoutParams;
   /** Whether to skip the initialization checks */
   skipInitChecks?: boolean;
+  /** Which gRPC transport to use: 'native' (default, Node) or 'grpc-web' (browser-compatible). */
+  transport?: 'native' | 'grpc-web';
 };
 
 export interface WeaviateClient {
@@ -215,7 +218,13 @@ async function client(params: ClientParams): Promise<WeaviateClient> {
   if (!params.headers) params.headers = {};
 
   const scheme = httpSecure ? 'https' : 'http';
-  const agent = httpSecure ? new HttpsAgent({ keepAlive: true }) : new HttpAgent({ keepAlive: true });
+  const grpcTransport = resolveGrpcTransport(params.transport);
+  const agent =
+    params.transport === 'grpc-web'
+      ? undefined
+      : httpSecure
+      ? new HttpsAgent({ keepAlive: true })
+      : new HttpAgent({ keepAlive: true });
 
   const { connection, dbVersionProvider, dbVersionSupport } = await ConnectionGRPC.use({
     host: `${scheme}://${httpHost}:${httpPort}${httpPath || ''}`,
@@ -229,6 +238,7 @@ async function client(params: ClientParams): Promise<WeaviateClient> {
     agent,
     timeout: params.timeout,
     skipInitChecks: params.skipInitChecks,
+    transport: grpcTransport,
   });
 
   const ifc: WeaviateClient = {

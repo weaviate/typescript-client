@@ -18,6 +18,8 @@ export type ConnectToWeaviateCloudOptions = {
   timeout?: TimeoutParams;
   /** Whether to skip the initialization checks */
   skipInitChecks?: boolean;
+  /** Which gRPC transport to use: 'native' (default, Node) or 'grpc-web' (browser-compatible). */
+  transport?: 'native' | 'grpc-web';
 };
 
 /** @deprecated Use `ConnectToWeaviateCloudOptions` instead. */
@@ -41,6 +43,8 @@ export type ConnectToLocalOptions = {
   timeout?: TimeoutParams;
   /** Whether to skip the initialization checks */
   skipInitChecks?: boolean;
+  /** Which gRPC transport to use: 'native' (default, Node) or 'grpc-web' (browser-compatible). */
+  transport?: 'native' | 'grpc-web';
 };
 
 export type ConnectToCustomOptions = {
@@ -68,6 +72,8 @@ export type ConnectToCustomOptions = {
   timeout?: TimeoutParams;
   /** Whether to skip the initialization checks */
   skipInitChecks?: boolean;
+  /** Which gRPC transport to use: 'native' (default, Node) or 'grpc-web' (browser-compatible). */
+  transport?: 'native' | 'grpc-web';
 };
 
 export function connectToWeaviateCloud(

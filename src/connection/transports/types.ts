@@ -10,5 +10,6 @@ export interface GrpcClients {
 }
 
 export interface GrpcTransport {
+  readonly supportsStreaming: boolean;
   create(config: GrpcConnectionParams & { grpcMaxMessageLength: number }): GrpcClients;
 }
