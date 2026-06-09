@@ -1,4 +1,4 @@
-import { ConnectionREST } from '../index.js';
+import { ConnectionREST } from '../connection/index.js';
 import {
   WeaviateAssignedUser,
   WeaviateGroupAssignment,

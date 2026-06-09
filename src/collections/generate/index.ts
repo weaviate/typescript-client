@@ -4,9 +4,9 @@ import { ConsistencyLevel } from '../../data/index.js';
 import { DbVersionSupport } from '../../utils/dbVersion.js';
 
 import { WeaviateInvalidInputError } from '../../errors.js';
-import { toBase64FromMedia } from '../../index.js';
 import { GenerativeSearch } from '../../proto/v1/generative.js';
 import { SearchReply } from '../../proto/v1/search_get.js';
+import { toBase64FromMedia } from '../../utils/base64.js';
 import { Deserialize } from '../deserialize/index.js';
 import { Check } from '../query/check.js';
 import { CallOptions } from '../query/index.js';

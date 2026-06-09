@@ -8,16 +8,11 @@ import { fileURLToPath } from 'url';
 // `Buffer` polyfill at the bundler level, leaving the runtime source untouched.
 const applyBrowserShims: NonNullable<Options['esbuildOptions']> = (options) => {
   const shim = fileURLToPath(new URL('./src/web-shims/empty.ts', import.meta.url));
-  // The native gRPC transport (nice-grpc) is pulled into the graph via the isomorphic
-  // root entry but is never used in the browser; replace it with a stub so we don't
-  // bundle @grpc/grpc-js / Node's http2 stack.
-  const niceGrpc = fileURLToPath(new URL('./src/web-shims/nice-grpc.ts', import.meta.url));
   options.alias = {
     ...(options.alias ?? {}),
     fs: shim,
     http: shim,
     https: shim,
-    'nice-grpc': niceGrpc,
   };
   options.inject = [
     ...(options.inject ?? []),
@@ -46,10 +41,6 @@ export default defineConfig([
     dts: true,
     splitting: true,
     treeshake: true,
-    // Force the native gRPC package to be bundled (not externalized) so the alias in
-    // `applyBrowserShims` can redirect it to the browser stub instead of leaving a bare
-    // `import ... from 'nice-grpc'` (which would drag in @grpc/grpc-js / http2).
-    noExternal: [/^nice-grpc$/],
     esbuildOptions: applyBrowserShims,
   },
   {
@@ -62,8 +53,6 @@ export default defineConfig([
     dts: true,
     splitting: false,
     treeshake: true,
-    // See note above: bundle `nice-grpc` so the stub alias takes effect.
-    noExternal: [/^nice-grpc$/],
     esbuildOptions: applyBrowserShims,
   },
   // {

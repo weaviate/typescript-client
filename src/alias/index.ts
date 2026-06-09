@@ -1,4 +1,4 @@
-import { ConnectionREST } from '../index.js';
+import { ConnectionREST } from '../connection/index.js';
 import { WeaviateAlias, WeaviateAliasResponse } from '../openapi/types.js';
 import { Alias, AliasListAllOptions, CreateAliasArgs, UpdateAliasArgs } from './types.js';
 

@@ -71,7 +71,6 @@ import {
   SearchNearVectorArgs,
   SearchNearVideoArgs,
 } from '../../grpc/searcher.js';
-import { toBase64FromMedia } from '../../index.js';
 import {
   AggregateRequest_Aggregation,
   AggregateRequest_Aggregation_Boolean,
@@ -97,6 +96,7 @@ import {
   Vectors as VectorsGrpc,
   Vectors_VectorType,
 } from '../../proto/v1/base.js';
+import { toBase64FromMedia } from '../../utils/base64.js';
 import { yieldToEventLoop } from '../../utils/yield.js';
 import { FilterId } from '../filters/classes.js';
 import { FilterValue, Filters } from '../filters/index.js';

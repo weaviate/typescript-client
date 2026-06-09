@@ -1,5 +1,5 @@
+import { ConnectionREST } from '../connection/index.js';
 import { WeaviateUnexpectedStatusCodeError } from '../errors.js';
-import { ConnectionREST } from '../index.js';
 import {
   WeaviateUserTypeInternal as UserTypeInternal,
   WeaviateDBUser,

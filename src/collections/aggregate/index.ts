@@ -7,7 +7,8 @@ import { FilterValue } from '../filters/index.js';
 
 import { WeaviateInvalidInputError, WeaviateQueryError } from '../../errors.js';
 import { Aggregator } from '../../graphql/index.js';
-import { PrimitiveKeys, toBase64FromMedia } from '../../index.js';
+import type { PrimitiveKeys } from '../../index.js';
+import { toBase64FromMedia } from '../../utils/base64.js';
 import { Deserialize } from '../deserialize/index.js';
 import { Bm25OperatorOptions, Bm25QueryProperty, NearVectorInputType, TargetVector } from '../query/types.js';
 import { NearVectorInputGuards } from '../query/utils.js';

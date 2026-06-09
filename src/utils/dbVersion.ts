@@ -1,4 +1,4 @@
-import { ConnectionGQL } from '../index.js';
+import type { ConnectionGQL } from '../connection/index.js';
 import MetaGetter from '../misc/metaGetter.js';
 
 export class DbVersionSupport {
