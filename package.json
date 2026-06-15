@@ -99,6 +99,9 @@
     "typescript": "^5.9.3",
     "vitest": "^4.0.16"
   },
+  "overrides": {
+    "esbuild": "^0.28.1"
+  },
   "lint-staged": {
     "*.{ts,js}": [
       "npm run format:check",
