@@ -1004,6 +1004,7 @@ describe('Unit testing of the vectorizer factory class', () => {
       model: 'model',
       region: 'region',
       service: 'service',
+      dimensions: 512,
     });
     expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'text2vec-aws'>>({
       name: 'test',
@@ -1014,6 +1015,7 @@ describe('Unit testing of the vectorizer factory class', () => {
           model: 'model',
           region: 'region',
           service: 'service',
+          dimensions: 512,
         },
       },
     });

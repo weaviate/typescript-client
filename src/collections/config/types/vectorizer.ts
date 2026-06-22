@@ -403,6 +403,8 @@ export type Text2VecAWSConfig = {
   region: string;
   /** The AWS service to use. */
   service: 'sagemaker' | 'bedrock' | string;
+  /** The number of dimensions for the generated embeddings. */
+  dimensions?: number;
   /** Whether the collection name is vectorized. */
   vectorizeCollectionName?: boolean;
 };
