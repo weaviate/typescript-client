@@ -4,8 +4,14 @@ export * from './vectorIndex.js';
 export * from './vectorizer.js';
 
 import {
+  WeaviateAsyncReplicationConfig,
+  WeaviateDropPropertyIndexName,
+  WeaviateTokenization,
+} from '../../../openapi/types.js';
+import {
   InvertedIndexConfigUpdate,
   MultiTenancyConfigUpdate,
+  ObjectTTLConfigUpdate,
   ReplicationConfigUpdate,
   VectorConfigUpdate,
 } from '../../configure/types/index.js';
@@ -14,9 +20,24 @@ import { Reranker, RerankerConfig } from './reranker.js';
 import { VectorIndexType } from './vectorIndex.js';
 import { VectorConfig } from './vectorizer.js';
 
+export type InvertedIndexName = WeaviateDropPropertyIndexName;
+
 export type ModuleConfig<N, C = undefined> = {
   name: N;
   config: C;
+};
+
+export type StopwordsPreset = 'en' | 'none';
+
+export type Stopwords = {
+  preset: StopwordsPreset | string;
+  additions: string[];
+  removals: string[];
+};
+
+export type TextAnalyzerConfig = {
+  asciiFold?: boolean | { ignore: string[] };
+  stopwordPreset?: StopwordsPreset | string;
 };
 
 export type InvertedIndexConfig = {
@@ -28,11 +49,15 @@ export type InvertedIndexConfig = {
   indexTimestamps: boolean;
   indexPropertyLength: boolean;
   indexNullState: boolean;
-  stopwords: {
-    preset: string;
-    additions: string[];
-    removals: string[];
-  };
+  stopwords: Stopwords;
+  stopwordPresets?: { [presetName: string]: string[] };
+};
+
+export type ObjectTTLConfig = {
+  enabled?: boolean;
+  defaultTTLSeconds?: number;
+  deleteOn?: string;
+  filterExpiredObjects?: boolean;
 };
 
 export type MultiTenancyConfig = {
@@ -46,8 +71,11 @@ export type ReplicationDeletionStrategy =
   | 'NoAutomatedResolution'
   | 'TimeBasedResolution';
 
+export type AsyncReplicationConfig = WeaviateAsyncReplicationConfig;
+
 export type ReplicationConfig = {
   asyncEnabled: boolean;
+  asyncConfig?: AsyncReplicationConfig;
   deletionStrategy: ReplicationDeletionStrategy;
   factor: number;
 };
@@ -60,6 +88,8 @@ export type PropertyVectorizerConfig = Record<
   }
 >;
 
+export type Tokenization = WeaviateTokenization;
+
 export type PropertyConfig = {
   name: string;
   dataType: string;
@@ -69,8 +99,9 @@ export type PropertyConfig = {
   indexRangeFilters: boolean;
   indexSearchable: boolean;
   nestedProperties?: PropertyConfig[];
-  tokenization: string;
+  tokenization: Tokenization | string;
   vectorizerConfig?: PropertyVectorizerConfig;
+  textAnalyzer?: TextAnalyzerConfig;
 };
 
 export type ReferenceConfig = {
@@ -96,6 +127,7 @@ export type CollectionConfig = {
   generative?: ModuleConfig<GenerativeSearch, GenerativeConfig>;
   invertedIndex: InvertedIndexConfig;
   multiTenancy: MultiTenancyConfig;
+  objectTTL: ObjectTTLConfig;
   properties: PropertyConfig[];
   references: ReferenceConfig[];
   replication: ReplicationConfig;
@@ -116,6 +148,7 @@ export type CollectionConfigUpdate<T> = {
   generative?: ModuleConfig<GenerativeSearch, GenerativeConfig>;
   invertedIndex?: InvertedIndexConfigUpdate;
   multiTenancy?: MultiTenancyConfigUpdate;
+  objectTTL?: ObjectTTLConfigUpdate;
   replication?: ReplicationConfigUpdate;
   reranker?: ModuleConfig<Reranker, RerankerConfig>;
   vectorizers?:

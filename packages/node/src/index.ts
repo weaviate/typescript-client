@@ -14,11 +14,11 @@ import weaviate, {
   Context,
   filter,
   helpers,
+  ICollection,
+  ICollections,
+  IWeaviateClient,
   permissions,
   reconfigure,
-  IWeaviateClient,
-  ICollections,
-  ICollection,
 } from '@weaviate/core';
 import { toBase64FromMedia } from './base64.js';
 import { transportsMaker } from './transports.js';
@@ -114,7 +114,8 @@ const app = {
 
 export interface WeaviateClient extends IWeaviateClient<string | Buffer> {}
 export interface Collections extends ICollections<string | Buffer> {}
-export interface Collection<T = undefined, N = string> extends ICollection<T, N, string | Buffer> {}
+export interface Collection<T = undefined, N = string, V = undefined>
+  extends ICollection<T, N, V, string | Buffer> {}
 
 export default app;
 

@@ -1,3 +1,5 @@
+import { TargetVector } from '../query/types.js';
+
 /** The allowed combination methods for multi-target vector joins */
 export type MultiTargetVectorJoinCombination =
   | 'sum'
@@ -7,55 +9,63 @@ export type MultiTargetVectorJoinCombination =
   | 'manual-weights';
 
 /** Weights for each target vector in a multi-target vector join */
-export type MultiTargetVectorWeights = Record<string, number | number[]>;
+export type MultiTargetVectorWeights<V> = Partial<Record<TargetVector<V>, number | number[]>>;
 
 /** A multi-target vector join used when specifying a vector-based query */
-export type MultiTargetVectorJoin = {
+export type MultiTargetVectorJoin<V> = {
   /** The combination method to use for the target vectors */
   combination: MultiTargetVectorJoinCombination;
   /** The target vectors to combine */
-  targetVectors: string[];
+  targetVectors: TargetVector<V>[];
   /** The weights to use for each target vector */
-  weights?: MultiTargetVectorWeights;
+  weights?: MultiTargetVectorWeights<V>;
 };
 
-export default () => {
+export default <V>() => {
   return {
-    sum: (targetVectors: string[]): MultiTargetVectorJoin => {
+    sum: <T extends TargetVector<V>[]>(targetVectors: T): MultiTargetVectorJoin<V> => {
       return { combination: 'sum' as MultiTargetVectorJoinCombination, targetVectors };
     },
-    average: (targetVectors: string[]): MultiTargetVectorJoin => {
+    average: <T extends TargetVector<V>[]>(targetVectors: T): MultiTargetVectorJoin<V> => {
       return { combination: 'average' as MultiTargetVectorJoinCombination, targetVectors };
     },
-    minimum: (targetVectors: string[]): MultiTargetVectorJoin => {
+    minimum: <T extends TargetVector<V>[]>(targetVectors: T): MultiTargetVectorJoin<V> => {
       return { combination: 'minimum' as MultiTargetVectorJoinCombination, targetVectors };
     },
-    relativeScore: (weights: MultiTargetVectorWeights): MultiTargetVectorJoin => {
+    relativeScore: <T extends TargetVector<V>[]>(
+      weights: MultiTargetVectorWeights<V>
+    ): MultiTargetVectorJoin<V> => {
       return {
         combination: 'relative-score' as MultiTargetVectorJoinCombination,
-        targetVectors: Object.keys(weights),
+        targetVectors: Object.keys(weights) as T,
         weights,
       };
     },
-    manualWeights: (weights: MultiTargetVectorWeights): MultiTargetVectorJoin => {
+    manualWeights: <T extends TargetVector<V>[]>(
+      weights: MultiTargetVectorWeights<V>
+    ): MultiTargetVectorJoin<V> => {
       return {
         combination: 'manual-weights' as MultiTargetVectorJoinCombination,
-        targetVectors: Object.keys(weights),
+        targetVectors: Object.keys(weights) as T,
         weights,
       };
     },
   };
 };
 
-export interface MultiTargetVector {
+export interface MultiTargetVector<V> {
   /** Create a multi-target vector join that sums the vector scores over the target vectors */
-  sum: (targetVectors: string[]) => MultiTargetVectorJoin;
+  sum: <T extends TargetVector<V>[]>(targetVectors: T) => MultiTargetVectorJoin<V>;
   /** Create a multi-target vector join that averages the vector scores over the target vectors */
-  average: (targetVectors: string[]) => MultiTargetVectorJoin;
+  average: <T extends TargetVector<V>[]>(targetVectors: T) => MultiTargetVectorJoin<V>;
   /** Create a multi-target vector join that takes the minimum vector score over the target vectors */
-  minimum: (targetVectors: string[]) => MultiTargetVectorJoin;
+  minimum: <T extends TargetVector<V>[]>(targetVectors: T) => MultiTargetVectorJoin<V>;
   /** Create a multi-target vector join that uses relative weights for each target vector */
-  relativeScore: (weights: MultiTargetVectorWeights) => MultiTargetVectorJoin;
+  relativeScore: <T extends TargetVector<V>[]>(
+    weights: MultiTargetVectorWeights<V>
+  ) => MultiTargetVectorJoin<V>;
   /** Create a multi-target vector join that uses manual weights for each target vector */
-  manualWeights: (weights: MultiTargetVectorWeights) => MultiTargetVectorJoin;
+  manualWeights: <T extends TargetVector<V>[]>(
+    weights: MultiTargetVectorWeights<V>
+  ) => MultiTargetVectorJoin<V>;
 }

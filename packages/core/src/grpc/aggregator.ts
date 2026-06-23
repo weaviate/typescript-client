@@ -1,6 +1,6 @@
 import { ConsistencyLevel } from '../replication.js';
 
-import { Metadata, ServerError, Status } from 'nice-grpc-common';
+import { Metadata } from 'nice-grpc-common';
 import {
   AggregateReply,
   AggregateRequest,
@@ -22,12 +22,7 @@ import {
 } from '../proto/v1/base_search.js';
 import { WeaviateClient } from '../proto/v1/weaviate.js';
 
-import { isAbortError } from 'abort-controller-x';
-import {
-  WeaviateInsufficientPermissionsError,
-  WeaviateQueryError,
-  WeaviateRequestTimeoutError,
-} from '../errors.js';
+import { WeaviateQueryError } from '../errors.js';
 import Base from './base.js';
 import { retryOptions } from './retry.js';
 
@@ -120,9 +115,9 @@ export default class Aggregator extends Base implements Aggregate {
   public withNearVideo = (args: AggregateNearVideoArgs) => this.call(AggregateRequest.fromPartial(args));
 
   private call = (message: AggregateRequest) =>
-    this.sendWithTimeout((signal: AbortSignal) =>
-      this.connection
-        .aggregate(
+    this.sendWithTimeout(
+      (signal: AbortSignal) =>
+        this.connection.aggregate(
           {
             ...message,
             collection: this.collection,
@@ -134,15 +129,7 @@ export default class Aggregator extends Base implements Aggregate {
             signal,
             ...retryOptions,
           }
-        )
-        .catch((err) => {
-          if (err instanceof ServerError && err.code === Status.PERMISSION_DENIED) {
-            throw new WeaviateInsufficientPermissionsError(7, err.message);
-          }
-          if (isAbortError(err)) {
-            throw new WeaviateRequestTimeoutError(`timed out after ${this.timeout}ms`);
-          }
-          throw new WeaviateQueryError(err.message, 'gRPC');
-        })
+        ),
+      (err) => new WeaviateQueryError(err.message, 'gRPC')
     );
 }

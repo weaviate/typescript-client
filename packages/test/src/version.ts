@@ -1,5 +1,5 @@
 import { DbVersion } from '@weaviate/core/utils/dbVersion';
-import { describe, it, SuiteAPI, TestAPI } from 'vitest';
+import { describe, it } from 'vitest';
 
 const version = DbVersion.fromString(`v${process.env.WEAVIATE_VERSION!}`);
 

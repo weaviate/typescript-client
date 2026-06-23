@@ -1,5 +1,5 @@
 import ConnectionGQL from './gql.js';
-import { InternalConnectionParams } from './http.js';
+import { getClientVersionHeader, InternalConnectionParams } from './http.js';
 
 import { ConsistencyLevel } from '../replication.js';
 
@@ -27,6 +27,8 @@ const MAX_GRPC_MESSAGE_LENGTH = 104858000; // 10mb, needs to be synchronized wit
 // which are tightly coupled to ConnectionGQL
 export default class ConnectionGRPC extends ConnectionGQL {
   private grpc: GrpcClient;
+  // public grpcMaxMessageLength: number;
+  // private params: GrpcConnectionParams & { grpcMaxMessageLength: number };
 
   private constructor(transports: Transports, params: GrpcConnectionParams) {
     super(params);
@@ -90,13 +92,20 @@ export default class ConnectionGRPC extends ConnectionGQL {
     );
   };
 
-  search = (collection: string, consistencyLevel?: ConsistencyLevel, tenant?: string) => {
+  search = (
+    collection: string,
+    consistencyLevel?: ConsistencyLevel,
+    tenant?: string,
+    abortSignal?: AbortSignal
+  ) => {
     if (this.authEnabled) {
       return this.login().then((token) =>
-        this.grpc.search(collection, consistencyLevel, tenant, `Bearer ${token}`)
+        this.grpc.search(collection, consistencyLevel, tenant, `Bearer ${token}`, abortSignal)
       );
     }
-    return new Promise<Search>((resolve) => resolve(this.grpc.search(collection, consistencyLevel, tenant)));
+    return new Promise<Search>((resolve) =>
+      resolve(this.grpc.search(collection, consistencyLevel, tenant, undefined, abortSignal))
+    );
   };
 
   tenants = (collection: string) => {
@@ -131,7 +140,8 @@ export interface GrpcClient {
     collection: string,
     consistencyLevel?: ConsistencyLevel,
     tenant?: string,
-    bearerToken?: string
+    bearerToken?: string,
+    abortSignal?: AbortSignal
   ) => Search;
   tenants: (collection: string, bearerToken?: string) => Tenants;
 }
@@ -160,7 +170,7 @@ const grpcClient = (transports: Transports, config: GrpcConnectionParams) => {
       Aggregator.use(
         transports.weaviate,
         collection,
-        new Metadata(bearerToken ? { ...config.headers, authorization: bearerToken } : config.headers),
+        getMetadataWithEmbeddingServiceAuth(config, bearerToken),
         config.timeout?.query || 30,
         consistencyLevel,
         tenant
@@ -204,7 +214,8 @@ const grpcClient = (transports: Transports, config: GrpcConnectionParams) => {
       collection: string,
       consistencyLevel?: ConsistencyLevel,
       tenant?: string,
-      bearerToken?: string
+      bearerToken?: string,
+      abortSignal?: AbortSignal
     ) =>
       Searcher.use(
         transports.weaviate,
@@ -212,7 +223,8 @@ const grpcClient = (transports: Transports, config: GrpcConnectionParams) => {
         getMetadataWithEmbeddingServiceAuth(config, bearerToken),
         config.timeout?.query || 30,
         consistencyLevel,
-        tenant
+        tenant,
+        abortSignal
       ),
     tenants: (collection: string, bearerToken?: string) =>
       TenantsManager.use(
@@ -225,14 +237,13 @@ const grpcClient = (transports: Transports, config: GrpcConnectionParams) => {
 };
 
 const getMetadataWithEmbeddingServiceAuth = (config: GrpcConnectionParams, bearerToken?: string) =>
-  new Metadata(
-    bearerToken
+  new Metadata({
+    ...(bearerToken
       ? {
           ...config.headers,
           authorization: bearerToken,
           'X-Weaviate-Cluster-Url': config.host,
-          //  keeping for backwards compatibility for older clusters for now. On newer clusters, Embedding Service reuses Authorization header.
-          'X-Weaviate-Api-Key': bearerToken,
         }
-      : config.headers
-  );
+      : config.headers),
+    ...getClientVersionHeader(),
+  });

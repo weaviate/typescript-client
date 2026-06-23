@@ -1,8 +1,8 @@
-import { requireAtLeast } from '../version.js';
-import weaviate, { ApiKey, WeaviateClient } from '@weaviate/node';
 import { WeaviateUserTypeDB } from '@weaviate/core/openapi/types';
 import { GetUserOptions, UserDB } from '@weaviate/core/users/types';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import weaviate, { ApiKey, WeaviateClient } from '@weaviate/node';
+import { afterAll, beforeAll, expect, it } from 'vitest';
+import { requireAtLeast } from '../version.js';
 
 requireAtLeast(1, 29, 0).describe('Integration testing of the users namespace', () => {
   const makeClient = (key: string) =>

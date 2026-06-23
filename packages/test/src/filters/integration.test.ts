@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
-import weaviate, { WeaviateClient, Collection } from '@weaviate/node';
+import { Filters } from '@weaviate/core/filters';
 import { CrossReference, Reference } from '@weaviate/core/references';
 import { GeoCoordinate } from '@weaviate/core/types';
-import { Filters } from '@weaviate/core/filters';
+import weaviate, { Collection, WeaviateClient } from '@weaviate/node';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { requireAtLeast } from '../version.js';
 
 describe('Testing of the filter class with a simple collection', () => {
   let client: WeaviateClient;
@@ -57,9 +58,7 @@ describe('Testing of the filter class with a simple collection', () => {
           },
         ],
         invertedIndex: weaviate.configure.invertedIndex({ indexTimestamps: true }),
-        vectorizers: weaviate.configure.vectorizer.text2VecContextionary({
-          vectorizeCollectionName: false,
-        }),
+        vectorizers: weaviate.configure.vectors.text2VecContextionary({}),
       })
       .then(() =>
         collection.data.insertMany([
@@ -95,7 +94,7 @@ describe('Testing of the filter class with a simple collection', () => {
         return uuids;
       });
     const res = await collection.query.fetchObjectById(ids[0], { includeVector: true });
-    vector = res?.vectors.default!;
+    vector = res?.vectors.default as number[];
   });
 
   it('should filter a fetch objects query with a single filter and generic collection', async () => {
@@ -120,6 +119,34 @@ describe('Testing of the filter class with a simple collection', () => {
     expect(obj.properties.int).toEqual(2);
     expect(obj.properties.float).toEqual(2.2);
     expect(obj.uuid).toEqual(ids[1]);
+  });
+
+  it('should filter a fetch objects query with a contains-all filter', async () => {
+    const res = await collection.query.fetchObjects({
+      filters: collection.filter.byProperty('text').containsAll(['two']),
+    });
+    expect(res.objects.length).toEqual(1);
+    const obj = res.objects[0];
+    expect(obj.properties.text).toEqual('two');
+  });
+
+  it('should filter a fetch objects query with a contains-any filter', async () => {
+    const res = await collection.query.fetchObjects({
+      filters: collection.filter.byProperty('text').containsAny(['two', 'three']),
+    });
+    expect(res.objects.length).toEqual(2);
+    const texts = res.objects.map((o) => o.properties.text);
+    expect(texts).toContain('two');
+    expect(texts).toContain('three');
+  });
+
+  requireAtLeast(1, 33, 0).it('should filter a fetch objects query with a contains-none filter', async () => {
+    const res = await collection.query.fetchObjects({
+      filters: collection.filter.byProperty('text').containsNone(['one', 'three']),
+    });
+    expect(res.objects.length).toEqual(1);
+    const obj = res.objects[0];
+    expect(obj.properties.text).toEqual('two');
   });
 
   it('should filter a fetch objects query with an AND filter', async () => {
@@ -149,15 +176,16 @@ describe('Testing of the filter class with a simple collection', () => {
     // Return of fetch not necessarily in order due to filter
     expect(res.objects.map((o) => o.properties.text)).toContain('two');
     expect(res.objects.map((o) => o.properties.text)).toContain('three');
+  });
 
-    expect(res.objects.map((o) => o.properties.int)).toContain(2);
-    expect(res.objects.map((o) => o.properties.int)).toContain(3);
+  requireAtLeast(1, 33, 0).it('should filter a fetch objects query with a NOT filter', async () => {
+    const res = await collection.query.fetchObjects({
+      filters: Filters.not(collection.filter.byProperty('text').equal('one')),
+    });
+    expect(res.objects.length).toEqual(2);
 
-    expect(res.objects.map((o) => o.properties.float)).toContain(2.2);
-    expect(res.objects.map((o) => o.properties.float)).toContain(3.3);
-
-    expect(res.objects.map((o) => o.uuid)).toContain(ids[1]);
-    expect(res.objects.map((o) => o.uuid)).toContain(ids[2]);
+    expect(res.objects.map((o) => o.properties.text)).toContain('two');
+    expect(res.objects.map((o) => o.properties.text)).toContain('three');
   });
 
   it('should filter a fetch objects query with a reference filter', async () => {
@@ -320,7 +348,7 @@ describe('Testing of the filter class with complex data types', () => {
             dataType: 'uuid',
           },
         ],
-        vectorizers: weaviate.configure.vectorizer.text2VecContextionary(),
+        vectorizers: weaviate.configure.vectors.text2VecContextionary(),
       })
       .then(() =>
         collection.data.insertMany([

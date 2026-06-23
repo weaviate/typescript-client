@@ -43,7 +43,7 @@ export class Filters {
   static and(...filters: FilterValue[]): FilterValue<null> {
     return {
       operator: 'And',
-      filters: filters,
+      filters,
       value: null,
     };
   }
@@ -55,7 +55,19 @@ export class Filters {
   static or(...filters: FilterValue[]): FilterValue<null> {
     return {
       operator: 'Or',
-      filters: filters,
+      filters,
+      value: null,
+    };
+  }
+  /**
+   * Negate a filter using the logical NOT operator.
+   *
+   * @param {FilterValue} filter The filter to negate.
+   */
+  static not(filter: FilterValue): FilterValue<null> {
+    return {
+      operator: 'Not',
+      filters: [filter],
       value: null,
     };
   }
@@ -81,7 +93,6 @@ export class FilterBase {
           : undefined,
       });
     }
-
     let target = this.target;
     while (target.target !== undefined) {
       if (TargetGuards.isTargetRef(target.target)) {
@@ -135,6 +146,14 @@ export class FilterProperty<V> extends FilterBase implements FilterByProperty<V>
   public containsAny<U extends ContainsValue<V>>(value: U[]): FilterValue<U[]> {
     return {
       operator: 'ContainsAny',
+      target: this.targetPath(),
+      value: value,
+    };
+  }
+
+  public containsNone<U extends ContainsValue<V>>(value: U[]): FilterValue<U[]> {
+    return {
+      operator: 'ContainsNone',
       target: this.targetPath(),
       value: value,
     };
@@ -222,32 +241,32 @@ export class FilterRef<T> implements Filter<T> {
 
   public byRef<K extends RefKeys<T> & string>(linkOn: K): Filter<ExtractCrossReferenceType<T[K]>> {
     this.target.target = { type_: 'single', linkOn: linkOn };
-    return new FilterRef<ExtractCrossReferenceType<T[K]>>(this.target);
+    return new FilterRef<ExtractCrossReferenceType<T[K]>>(Object.assign({}, this.target));
   }
 
   public byRefMultiTarget<K extends RefKeys<T> & string>(linkOn: K, targetCollection: string) {
     this.target.target = { type_: 'multi', linkOn: linkOn, targetCollection: targetCollection };
-    return new FilterRef<ExtractCrossReferenceType<T[K]>>(this.target);
+    return new FilterRef<ExtractCrossReferenceType<T[K]>>(Object.assign({}, this.target));
   }
 
   public byProperty<K extends NonRefKeys<T> & string>(name: K, length = false) {
-    return new FilterProperty<T[K]>(name, length, this.target);
+    return new FilterProperty<T[K]>(name, length, Object.assign({}, this.target));
   }
 
   public byRefCount<K extends RefKeys<T> & string>(linkOn: K) {
-    return new FilterCount(linkOn, this.target);
+    return new FilterCount(linkOn, Object.assign({}, this.target));
   }
 
   public byId() {
-    return new FilterId(this.target);
+    return new FilterId(Object.assign({}, this.target));
   }
 
   public byCreationTime() {
-    return new FilterCreationTime(this.target);
+    return new FilterCreationTime(Object.assign({}, this.target));
   }
 
   public byUpdateTime() {
-    return new FilterUpdateTime(this.target);
+    return new FilterUpdateTime(Object.assign({}, this.target));
   }
 }
 

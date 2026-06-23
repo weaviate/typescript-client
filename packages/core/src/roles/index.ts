@@ -1,17 +1,24 @@
 import { ConnectionREST } from '../connection/index.js';
 import {
   WeaviateAssignedUser,
+  WeaviateGroupAssignment,
   Permission as WeaviatePermission,
   Role as WeaviateRole,
 } from '../openapi/types.js';
 import {
+  AliasPermission,
   BackupsPermission,
   ClusterPermission,
   CollectionsPermission,
   DataPermission,
+  GroupAssignment,
+  GroupsAction,
+  GroupsPermission,
+  McpPermission,
   NodesPermission,
   Permission,
   PermissionsInput,
+  ReplicatePermission,
   Role,
   RolesPermission,
   TenantsPermission,
@@ -66,10 +73,10 @@ export interface Roles {
    * Create a new role.
    *
    * @param {string} roleName The name of the new role.
-   * @param {PermissionsInput} permissions The permissions to assign to the new role.
+   * @param {PermissionsInput} [permissions] The permissions to assign to the new role.
    * @returns {Promise<Role>} The newly created role.
    */
-  create: (roleName: string, permissions: PermissionsInput) => Promise<Role>;
+  create: (roleName: string, permissions?: PermissionsInput) => Promise<Role>;
   /**
    * Check if a role exists.
    *
@@ -101,6 +108,14 @@ export interface Roles {
    * @returns {Promise<boolean>} A promise that resolves to true if the role has the permissions, or false if it does not.
    */
   hasPermissions: (roleName: string, permission: Permission | Permission[]) => Promise<boolean>;
+
+  /**
+   * Get the IDs and group type of groups that assigned this role.
+   *
+   * @param {string} roleName The name of the role to check.
+   * @returns {Promise<GroupAssignment[]>} A promise that resolves to an array of group names assigned to this role.
+   */
+  getGroupAssignments: (roleName: string) => Promise<GroupAssignment[]>;
 }
 
 const roles = (connection: ConnectionREST): Roles => {
@@ -146,10 +161,41 @@ const roles = (connection: ConnectionREST): Roles => {
             connection.postReturn<WeaviatePermission, boolean>(`/authz/roles/${roleName}/has-permission`, p)
           )
       ).then((r) => r.every((b) => b)),
+    getGroupAssignments: (roleName: string) =>
+      connection
+        .get<WeaviateGroupAssignment[]>(`/authz/roles/${roleName}/group-assignments`)
+        .then(Map.groupsAssignments),
   };
 };
 
 export const permissions = {
+  /**
+   * Create a set of permissions specific to Weaviate's collection aliasing functionality.
+   *
+   * @param {string | string[]} [args.alias] Aliases that will be associated with these permissions.
+   * @returns {AliasPermission[]} The permissions for the specified aliases.
+   */
+  aliases: (args: {
+    alias: string | string[];
+    collection: string | string[];
+    create?: boolean;
+    read?: boolean;
+    update?: boolean;
+    delete?: boolean;
+  }): AliasPermission[] => {
+    const aliases = Array.isArray(args.alias) ? args.alias : [args.alias];
+    const collections = Array.isArray(args.collection) ? args.collection : [args.collection];
+    const combinations = aliases.flatMap((alias) => collections.map((collection) => ({ alias, collection })));
+    return combinations.map(({ collection, alias }) => {
+      const out: AliasPermission = { alias, collection, actions: [] };
+      if (args.create) out.actions.push('create_aliases');
+      if (args.read) out.actions.push('read_aliases');
+      if (args.update) out.actions.push('update_aliases');
+      if (args.delete) out.actions.push('delete_aliases');
+      return out;
+    });
+  },
+
   /**
    * Create a set of permissions specific to Weaviate's backup functionality.
    *
@@ -166,6 +212,23 @@ export const permissions = {
       if (args.manage) out.actions.push('manage_backups');
       return out;
     });
+  },
+  /**
+   * Create a set of permissions specific to Weaviate's MCP (Model Context Protocol) functionality.
+   *
+   * Requires Weaviate v1.37.0 or later.
+   *
+   * @param {boolean} [args.create] Whether to allow creating objects via MCP. Defaults to `false`.
+   * @param {boolean} [args.read] Whether to allow reading data via MCP. Defaults to `false`.
+   * @param {boolean} [args.update] Whether to allow updating objects via MCP. Defaults to `false`.
+   * @returns {McpPermission[]} The MCP permissions.
+   */
+  mcp: (args: { create?: boolean; read?: boolean; update?: boolean }): McpPermission[] => {
+    const out: McpPermission = { actions: [] };
+    if (args.create) out.actions.push('create_mcp');
+    if (args.read) out.actions.push('read_mcp');
+    if (args.update) out.actions.push('update_mcp');
+    return [out];
   },
   /**
    * Create a set of permissions specific to Weaviate's cluster endpoints.
@@ -244,6 +307,49 @@ export const permissions = {
     });
   },
   /**
+   * This namespace contains methods to create permissions specific to RBAC groups.
+   */
+  groups: {
+    /**
+     * Create a set of permissions for 'oidc' groups.
+     *
+     * @param {string | string[]} args.groupID IDs of the groups with permissions.
+     * @param {boolean} [args.read] Whether to allow reading groups. Defaults to `false`.
+     * @param {boolean} [args.assignAndRevoke] Whether to allow changing group assignements. Defaults to `false`.
+     * @returns {GroupsPermission[]} The permissions for managing groups.
+     */
+    oidc: (args: {
+      groupID: string | string[];
+      read?: boolean;
+      assignAndRevoke?: boolean;
+    }): GroupsPermission[] => {
+      const groups = Array.isArray(args.groupID) ? args.groupID : [args.groupID];
+      const actions: GroupsAction[] = [];
+      if (args.read) actions.push('read_groups');
+      if (args.assignAndRevoke) actions.push('assign_and_revoke_groups');
+      return groups.map((gid) => ({ groupID: gid, groupType: 'oidc', actions }));
+    },
+    /**
+     * Create a set of permissions for 'db' groups.
+     *
+     * @param {string | string[]} args.groupID IDs of the groups with permissions.
+     * @param {boolean} [args.read] Whether to allow reading groups. Defaults to `false`.
+     * @param {boolean} [args.assignAndRevoke] Whether to allow changing group assignements. Defaults to `false`.
+     * @returns {GroupsPermission[]} The permissions for managing groups.
+     */
+    // db: (args: {
+    //   groupID: string | string[];
+    //   read?: boolean;
+    //   assignAndRevoke?: boolean;
+    // }): GroupsPermission[] => {
+    //   const groups = Array.isArray(args.groupID) ? args.groupID : [args.groupID];
+    //   const actions: GroupsAction[] = [];
+    //   if (args.read) actions.push('read_groups');
+    //   if (args.assignAndRevoke) actions.push('assign_and_revoke_groups');
+    //   return groups.map((gid) => ({ groupID: gid, groupType: 'db', actions }));
+    // },
+  },
+  /**
    * This namespace contains methods to create permissions specific to nodes.
    */
   nodes: {
@@ -281,6 +387,43 @@ export const permissions = {
         return out;
       });
     },
+  },
+  /**
+   * Create a set of permissions specific to shard replica movement operations.
+   *
+   * For all collections, provide the `collection` argument as `'*'`.
+   * For all shards, provide the `shard` argument as `'*'`.
+   *
+   * Providing arrays of collections and shards will create permissions for each combination of collection and shard.
+   * E.g., `replicate({ collection: ['A', 'B'], shard: ['X', 'Y'] })` will create permissions for shards `X` and `Y` in both collections `A` and `B`.
+   *
+   * @param {string | string[]} args.collection The collection or collections to create permissions for.
+   * @param {string | string[]} args.shard The shard or shards to create permissions for.
+   * @param {boolean} [args.create] Whether to allow creating replicas. Defaults to `false`.
+   * @param {boolean} [args.read] Whether to allow reading replicas. Defaults to `false`.
+   * @param {boolean} [args.update] Whether to allow updating replicas. Defaults to `false`.
+   * @param {boolean} [args.delete] Whether to allow deleting replicas. Defaults to `false`.
+   * @returns {ReplicatePermission[]} The permissions for the specified collections and shards.
+   */
+  replicate: (args: {
+    collection: string | string[];
+    shard: string | string[];
+    create?: boolean;
+    read?: boolean;
+    update?: boolean;
+    delete?: boolean;
+  }): ReplicatePermission[] => {
+    const collections = Array.isArray(args.collection) ? args.collection : [args.collection];
+    const shards = Array.isArray(args.shard) ? args.shard : [args.shard];
+    const combinations = collections.flatMap((collection) => shards.map((shard) => ({ collection, shard })));
+    return combinations.map(({ collection, shard }) => {
+      const out: ReplicatePermission = { collection, shard, actions: [] };
+      if (args.create) out.actions.push('create_replicate');
+      if (args.read) out.actions.push('read_replicate');
+      if (args.update) out.actions.push('update_replicate');
+      if (args.delete) out.actions.push('delete_replicate');
+      return out;
+    });
   },
   /**
    * Create a set of permissions specific to any operations involving roles.

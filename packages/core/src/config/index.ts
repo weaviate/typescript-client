@@ -17,8 +17,10 @@ import {
   BQConfig,
   CollectionConfig,
   CollectionConfigUpdate,
+  InvertedIndexName,
   PQConfig,
   QuantizerConfig,
+  RQConfig,
   SQConfig,
   VectorIndexConfig,
   VectorIndexConfigDynamic,
@@ -50,8 +52,14 @@ const config = <T>(
         .do()
         .then(() => {}),
     addVector: async (vectors: VectorizersConfigAdd<T>) => {
-      const supportsDynamicVectorIndex = await dbVersionSupport.supportsDynamicVectorIndex();
-      const { vectorsConfig } = makeVectorsConfig(vectors, supportsDynamicVectorIndex);
+      const { vectorsConfig } = makeVectorsConfig(vectors);
+      const { supports: serverAppliesDefaultVectorIndexType } =
+        await dbVersionSupport.supportsServerSideDefaultVectorIndexType();
+      if (!serverAppliesDefaultVectorIndexType && vectorsConfig) {
+        for (const v of Object.values(vectorsConfig)) {
+          if (!(v as any).vectorIndexType) (v as any).vectorIndexType = 'hnsw';
+        }
+      }
       return new VectorAdder(connection).withClassName(name).withVectors(vectorsConfig).do();
     },
     get: () => getRaw().then(classToCollection<T>),
@@ -89,16 +97,12 @@ const config = <T>(
     },
     update: (config?: CollectionConfigUpdate<T>) => {
       return getRaw()
-        .then(async (current) =>
-          MergeWithExisting.schema(
-            current,
-            await dbVersionSupport.supportsNamedVectors().then((s) => s.supports),
-            config
-          )
-        )
+        .then((current) => MergeWithExisting.schema(current, config))
         .then((merged) => new ClassUpdater(connection).withClass(merged).do())
         .then(() => {});
     },
+    dropInvertedIndex: (propertyName, indexName) =>
+      connection.delete(`/schema/${name}/properties/${propertyName}/index/${indexName}`, null),
   };
 };
 
@@ -168,6 +172,14 @@ export interface Config<T> {
    * @returns {Promise<void>} A promise that resolves when the collection has been updated.
    */
   update: (config?: CollectionConfigUpdate<T>) => Promise<void>;
+  /**
+   * Drop an inverted index from a property of this collection.
+   *
+   * @param {string} propertyName The name of the property to drop the index from.
+   * @param {InvertedIndexName} indexName The index to drop: 'filterable', 'searchable', or 'rangeFilters'.
+   * @returns {Promise<void>} A promise that resolves when the index has been dropped.
+   */
+  dropInvertedIndex: (propertyName: string, indexName: InvertedIndexName) => Promise<void>;
 }
 
 export class VectorIndex {
@@ -191,6 +203,9 @@ export class Quantizer {
   }
   static isSQ(config?: QuantizerConfig): config is SQConfig {
     return config?.type === 'sq';
+  }
+  static isRQ(config?: QuantizerConfig): config is RQConfig {
+    return config?.type === 'rq';
   }
 }
 

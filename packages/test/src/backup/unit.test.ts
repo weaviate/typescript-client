@@ -1,8 +1,5 @@
-import express, { Response } from 'express';
-import { Server as HttpServer } from 'http';
-import { Server as GrpcServer, createServer } from 'nice-grpc';
+import { BackupStatus } from '@weaviate/core/backup/types';
 import { WeaviateBackupCanceled } from '@weaviate/core/errors';
-import weaviate, { WeaviateClient } from '@weaviate/node';
 import {
   HealthCheckRequest,
   HealthCheckResponse,
@@ -11,8 +8,11 @@ import {
   HealthServiceImplementation,
 } from '@weaviate/core/proto/google/health/v1/health';
 import { BackupCreateResponse, BackupCreateStatusResponse, BackupRestoreResponse } from '@weaviate/core/v2';
-import { BackupStatus } from '@weaviate/core/backup/types';
-import { afterAll, beforeAll, describe, expect, it, vitest } from 'vitest';
+import weaviate, { WeaviateClient } from '@weaviate/node';
+import express, { Response } from 'express';
+import { Server as HttpServer } from 'http';
+import { Server as GrpcServer, createServer } from 'nice-grpc';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
 const BACKUP_ID = 'test-backup-123';
 const BACKEND = 'filesystem';
@@ -34,6 +34,11 @@ class CancelMock {
 
     // Backup cancellation endpoint
     httpApp.delete(`/v1/backups/${BACKEND}/${BACKUP_ID}`, (req, res) => {
+      CancelMock.status = 'CANCELED';
+      res.send();
+    });
+    // Restore cancellation endpoint
+    httpApp.delete(`/v1/backups/${BACKEND}/${BACKUP_ID}/restore`, (req, res) => {
       CancelMock.status = 'CANCELED';
       res.send();
     });
@@ -89,7 +94,7 @@ class CancelMock {
     const healthMockImpl: HealthServiceImplementation = {
       check: (request: HealthCheckRequest): Promise<HealthCheckResponse> =>
         Promise.resolve(HealthCheckResponse.create({ status: HealthCheckResponse_ServingStatus.SERVING })),
-      watch: vitest.fn(),
+      watch: vi.fn(),
     };
 
     const grpc = createServer();
@@ -129,12 +134,49 @@ describe('Mock testing of backup cancellation', () => {
   });
 
   it('should return true if creation cancellation was successful', async () => {
-    const success = await client.backup.cancel({ backupId: BACKUP_ID, backend: BACKEND });
+    const success = await client.backup.cancel({
+      backupId: BACKUP_ID,
+      backend: BACKEND,
+      operation: 'create',
+    });
     expect(success).toBe(true);
   });
 
   it('should return false if creation backup does not exist', async () => {
     const success = await client.backup.cancel({ backupId: `${BACKUP_ID}-unknown`, backend: BACKEND });
+    expect(success).toBe(false);
+  });
+
+  it('should start a restore process without waiting', async () => {
+    const response = await client.backup.restore({
+      backupId: BACKUP_ID,
+      backend: BACKEND,
+      waitForCompletion: false,
+    });
+    expect(response).toEqual({
+      id: BACKUP_ID,
+      backend: BACKEND,
+      path: 'path/to/backup',
+      status: 'STARTED',
+      collections: [],
+    });
+  });
+
+  it('should return true if restore cancellation was successful', async () => {
+    const success = await client.backup.cancel({
+      backupId: BACKUP_ID,
+      backend: BACKEND,
+      operation: 'restore',
+    });
+    expect(success).toBe(true);
+  });
+
+  it('should return false if restore backup does not exist', async () => {
+    const success = await client.backup.cancel({
+      backupId: `${BACKUP_ID}-unknown`,
+      backend: BACKEND,
+      operation: 'restore',
+    });
     expect(success).toBe(false);
   });
 

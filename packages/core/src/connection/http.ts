@@ -9,6 +9,7 @@ import {
   WeaviateUnauthenticatedError,
   WeaviateUnexpectedStatusCodeError,
 } from '../errors.js';
+import { WEAVIATE_CLIENT_VERSION } from '../version.js';
 import {
   ApiKey,
   AuthAccessTokenCredentials,
@@ -17,15 +18,63 @@ import {
   OidcAuthenticator,
 } from './auth.js';
 
+/**
+ * You can only specify the gRPC proxy URL at this point in time. This is because ProxiesParams should be used to define tunnelling proxies
+ * and Weaviate does not support tunnelling proxies over HTTP/1.1 at this time.
+ *
+ * To use a forwarding proxy you should instead specify its URL as if it were the Weaviate instance itself.
+ */
+export type ProxiesParams = {
+  // http?: string;
+  // https?: string;
+  grpc?: string;
+};
+
+export type TimeoutParams = {
+  /** Define the configured timeout when querying data from Weaviate */
+  query?: number;
+  /** Define the configured timeout when mutating data to Weaviate */
+  insert?: number;
+  /** Define the configured timeout when initially connecting to Weaviate */
+  init?: number;
+};
+
+export type Headers = [string, string][] | Record<string, string>;
+
+export type InternalConnectionParams = {
+  authClientSecret?: AuthClientCredentials | AuthAccessTokenCredentials | AuthUserPasswordCredentials;
+  apiKey?: ApiKey;
+  host: string;
+  scheme?: string;
+  headers?: Headers;
+  // http1Agent?: Agent;
+  grpcProxyUrl?: string;
+  agent?: Agent;
+  timeout?: TimeoutParams;
+  skipInitChecks?: boolean;
+};
+
 export interface ConnectionDetails {
   host: string;
   bearerToken?: string;
-  headers?: HeadersInit;
+  headers?: Headers;
 }
 
-export default class ConnectionREST {
+export interface IConnection {
+  postReturn: <B, T>(path: string, payload: B) => Promise<T>;
+  postEmpty: <B>(path: string, payload: B) => Promise<void>;
+  put: (path: string, payload: any, expectReturnContent?: boolean) => Promise<any>;
+  patch: (path: string, payload: any) => Promise<any>;
+  delete: (path: string, payload: any, expectReturnContent?: boolean) => Promise<any>;
+  head: (path: string, payload: any) => Promise<boolean>;
+  get: <T>(path: string, expectReturnContent?: boolean) => Promise<T>;
+  login(): Promise<string>;
+  getDetails(): Promise<ConnectionDetails>;
+}
+
+export default class ConnectionREST implements IConnection {
   private apiKey?: string;
-  private headers?: HeadersInit;
+  private headers?: Headers;
   protected authEnabled: boolean;
   public readonly host: string;
   public readonly http: HttpClient;
@@ -38,6 +87,10 @@ export default class ConnectionREST {
     this.http = httpClient(params);
     this.authEnabled = this.parseAuthParams(params);
   }
+
+  public isWcdOnGcp = (): boolean =>
+    ['weaviate.io', 'semi.technology', 'weaviate.cloud'].some((d) => this.host.toLowerCase().includes(d)) &&
+    this.host.toLowerCase().includes('gcp');
 
   private parseAuthParams(params: InternalConnectionParams): boolean {
     if (params.authClientSecret && params.apiKey) {
@@ -164,40 +217,6 @@ export default class ConnectionREST {
   });
 }
 
-/**
- * You can only specify the gRPC proxy URL at this point in time. This is because ProxiesParams should be used to define tunnelling proxies
- * and Weaviate does not support tunnelling proxies over HTTP/1.1 at this time.
- *
- * To use a forwarding proxy you should instead specify its URL as if it were the Weaviate instance itself.
- */
-export type ProxiesParams = {
-  // http?: string;
-  // https?: string;
-  grpc?: string;
-};
-
-export type TimeoutParams = {
-  /** Define the configured timeout when querying data from Weaviate */
-  query?: number;
-  /** Define the configured timeout when mutating data to Weaviate */
-  insert?: number;
-  /** Define the configured timeout when initially connecting to Weaviate */
-  init?: number;
-};
-
-export type InternalConnectionParams = {
-  authClientSecret?: AuthClientCredentials | AuthAccessTokenCredentials | AuthUserPasswordCredentials;
-  apiKey?: ApiKey;
-  host: string;
-  scheme?: string;
-  headers?: Record<string, string>;
-  // http1Agent?: Agent;
-  grpcProxyUrl?: string;
-  agent?: Agent;
-  timeout?: TimeoutParams;
-  skipInitChecks?: boolean;
-};
-
 export interface HttpClient {
   close: () => void;
   patch: (path: string, payload: any, bearerToken?: string) => any;
@@ -253,6 +272,7 @@ export const httpClient = (config: InternalConnectionParams): HttpClient => {
           ...config.headers,
           'content-type': 'application/json',
           ...getAuthHeaders(config, bearerToken),
+          ...getClientVersionHeader(),
         },
         body: JSON.stringify(payload),
         agent: config.agent,
@@ -273,6 +293,7 @@ export const httpClient = (config: InternalConnectionParams): HttpClient => {
           ...config.headers,
           'content-type': 'application/json',
           ...getAuthHeaders(config, bearerToken),
+          ...getClientVersionHeader(),
         },
         body: JSON.stringify(payload),
         agent: config.agent,
@@ -288,6 +309,7 @@ export const httpClient = (config: InternalConnectionParams): HttpClient => {
           ...config.headers,
           'content-type': 'application/json',
           ...getAuthHeaders(config, bearerToken),
+          ...getClientVersionHeader(),
         },
         body: JSON.stringify(payload),
         agent: config.agent,
@@ -301,6 +323,7 @@ export const httpClient = (config: InternalConnectionParams): HttpClient => {
           ...config.headers,
           'content-type': 'application/json',
           ...getAuthHeaders(config, bearerToken),
+          ...getClientVersionHeader(),
         },
         body: payload ? JSON.stringify(payload) : undefined,
         agent: config.agent,
@@ -316,6 +339,7 @@ export const httpClient = (config: InternalConnectionParams): HttpClient => {
           ...config.headers,
           'content-type': 'application/json',
           ...getAuthHeaders(config, bearerToken),
+          ...getClientVersionHeader(),
         },
         body: payload ? JSON.stringify(payload) : undefined,
         agent: config.agent,
@@ -330,6 +354,7 @@ export const httpClient = (config: InternalConnectionParams): HttpClient => {
         headers: {
           ...config.headers,
           ...getAuthHeaders(config, bearerToken),
+          ...getClientVersionHeader(),
         },
         agent: config.agent,
       };
@@ -344,6 +369,7 @@ export const httpClient = (config: InternalConnectionParams): HttpClient => {
         headers: {
           ...config.headers,
           ...getAuthHeaders(config, bearerToken),
+          ...getClientVersionHeader(),
         },
         agent: config.agent,
       };
@@ -420,9 +446,12 @@ const getAuthHeaders = (config: InternalConnectionParams, bearerToken: string) =
     ? {
         Authorization: `Bearer ${bearerToken}`,
         'X-Weaviate-Cluster-Url': config.host,
-        //  keeping for backwards compatibility for older clusters for now. On newer clusters, Embedding Service reuses Authorization header.
-        'X-Weaviate-Api-Key': bearerToken,
       }
     : undefined;
 
 export * from './auth.js';
+export const getClientVersionHeader = () => {
+  return {
+    'X-Weaviate-Client': `weaviate-client-typescript/${WEAVIATE_CLIENT_VERSION}`,
+  };
+};

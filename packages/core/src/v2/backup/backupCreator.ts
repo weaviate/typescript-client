@@ -112,7 +112,11 @@ export default class BackupCreator extends CommandBase {
             this.statusGetter
               .do()
               .then((createStatusResponse: any) => {
-                if (createStatusResponse.status == 'SUCCESS' || createStatusResponse.status == 'FAILED') {
+                if (
+                  createStatusResponse.status == 'SUCCESS' ||
+                  createStatusResponse.status == 'FAILED' ||
+                  createStatusResponse.status == 'CANCELED'
+                ) {
                   resolve(this._merge(createStatusResponse, createResponse));
                 } else {
                   setTimeout(loop, WAIT_INTERVAL);

@@ -1,7 +1,6 @@
 import express from 'express';
 import { Server as HttpServer } from 'http';
 
-import { createServer, Server as GrpcServer } from 'nice-grpc';
 import {
   HealthCheckRequest,
   HealthCheckResponse,
@@ -11,6 +10,7 @@ import {
 } from '@weaviate/core/proto/google/health/v1/health';
 import { TenantActivityStatus, TenantsGetReply, TenantsGetRequest } from '@weaviate/core/proto/v1/tenants';
 import { WeaviateDefinition, WeaviateServiceImplementation } from '@weaviate/core/proto/v1/weaviate';
+import { createServer, Server as GrpcServer } from 'nice-grpc';
 
 import weaviate, { Tenant } from '@weaviate/node';
 
@@ -50,6 +50,8 @@ const makeGrpcApp = () => {
     search: vitest.fn(),
     batchDelete: vitest.fn(),
     batchObjects: vitest.fn(),
+    batchReferences: vitest.fn(),
+    batchStream: vitest.fn(),
   };
   const healthMockImpl: HealthServiceImplementation = {
     check: (request: HealthCheckRequest): Promise<HealthCheckResponse> =>
@@ -79,7 +81,7 @@ describe('Mock testing of tenants.get() method with a REST server', () => {
   };
 
   beforeAll(async () => {
-    servers = await makeMockServers('1.24.0', 8954, 'localhost:8955');
+    servers = await makeMockServers('1.27.0', 8954, 'localhost:8955');
   });
 
   it('should get mocked tenants', async () => {
@@ -105,7 +107,7 @@ describe('Mock testing of tenants.get() method with a gRPC server', () => {
   };
 
   beforeAll(async () => {
-    servers = await makeMockServers('1.25.0', 8956, 'localhost:8957');
+    servers = await makeMockServers('1.27.0', 8956, 'localhost:8957');
   });
 
   it('should get the mocked tenants', async () => {

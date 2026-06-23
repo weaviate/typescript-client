@@ -2,20 +2,30 @@ import {
   ModuleConfig,
   PQEncoderDistribution,
   PQEncoderType,
+  UncompressedConfig,
   VectorIndexFilterStrategy,
 } from '../config/types/index.js';
 import {
   BQConfigCreate,
   BQConfigUpdate,
+  MultiVectorConfigCreate,
+  MuveraEncodingConfigCreate,
   PQConfigCreate,
   PQConfigUpdate,
+  QuantizerConfigUpdate,
+  RQConfigCreate,
+  RQConfigUpdate,
   SQConfigCreate,
   SQConfigUpdate,
   VectorIndexConfigDynamicCreate,
   VectorIndexConfigDynamicCreateOptions,
+  VectorIndexConfigDynamicUpdate,
   VectorIndexConfigFlatCreate,
   VectorIndexConfigFlatCreateOptions,
   VectorIndexConfigFlatUpdate,
+  VectorIndexConfigHFreshCreate,
+  VectorIndexConfigHFreshCreateOptions,
+  VectorIndexConfigHFreshUpdate,
   VectorIndexConfigHNSWCreate,
   VectorIndexConfigHNSWCreateOptions,
   VectorIndexConfigHNSWUpdate,
@@ -29,7 +39,7 @@ const configure = {
   /**
    * Create a `ModuleConfig<'flat', VectorIndexConfigFlatCreate | undefined>` object when defining the configuration of the FLAT vector index.
    *
-   * Use this method when defining the `options.vectorIndexConfig` argument of the `configure.vectorizer` method.
+   * Use this method when defining the `options.vectorIndexConfig` argument of the `configure.vectors` method.
    *
    * @param {VectorIndexConfigFlatCreateOptions} [opts] The options available for configuring the flat vector index.
    * @returns {ModuleConfig<'flat', VectorIndexConfigFlatCreate | undefined>} The configuration object.
@@ -44,13 +54,14 @@ const configure = {
         distance,
         vectorCacheMaxObjects,
         quantizer: quantizer,
+        type: 'flat',
       },
     };
   },
   /**
    * Create a `ModuleConfig<'hnsw', VectorIndexConfigHNSWCreate | undefined>` object when defining the configuration of the HNSW vector index.
    *
-   * Use this method when defining the `options.vectorIndexConfig` argument of the `configure.vectorizer` method.
+   * Use this method when defining the `options.vectorIndexConfig` argument of the `configure.vectors` method.
    *
    * @param {VectorIndexConfigHNSWCreateOptions} [opts] The options available for configuring the HNSW vector index.
    * @returns {ModuleConfig<'hnsw', VectorIndexConfigHNSWCreate | undefined>} The configuration object.
@@ -65,7 +76,30 @@ const configure = {
         ? {
             ...rest,
             distance: distanceMetric,
-            quantizer: rest.quantizer,
+            type: 'hnsw',
+          }
+        : undefined,
+    };
+  },
+  /**
+   * Create a `ModuleConfig<'hfresh', VectorIndexConfigHFreshCreate | undefined>` object when defining the configuration of the HFresh vector index.
+   *
+   * Use this method when defining the `options.vectorIndexConfig` argument of the `configure.vectors` method.
+   *
+   * @param {VectorIndexConfigHFreshCreateOptions} [opts] The options available for configuring the HFresh vector index.
+   * @returns {ModuleConfig<'HFresh', VectorIndexConfigHFreshCreate | undefined>} The configuration object.
+   */
+  hfresh: (
+    opts?: VectorIndexConfigHFreshCreateOptions
+  ): ModuleConfig<'hfresh', VectorIndexConfigHFreshCreate | undefined> => {
+    const { distanceMetric, ...rest } = opts || {};
+    return {
+      name: 'hfresh',
+      config: rest
+        ? {
+            ...rest,
+            distance: distanceMetric,
+            type: 'hfresh',
           }
         : undefined,
     };
@@ -73,7 +107,7 @@ const configure = {
   /**
    * Create a `ModuleConfig<'dynamic', VectorIndexConfigDynamicCreate | undefined>` object when defining the configuration of the dynamic vector index.
    *
-   * Use this method when defining the `options.vectorIndexConfig` argument of the `configure.vectorizer` method.
+   * Use this method when defining the `options.vectorIndexConfig` argument of the `configure.vectors` method.
    *
    * @param {VectorIndexConfigDynamicCreateOptions} [opts] The options available for configuring the dynamic vector index.
    * @returns {ModuleConfig<'dynamic', VectorIndexConfigDynamicCreate | undefined>} The configuration object.
@@ -89,14 +123,71 @@ const configure = {
             threshold: opts.threshold,
             hnsw: isModuleConfig(opts.hnsw) ? opts.hnsw.config : configure.hnsw(opts.hnsw).config,
             flat: isModuleConfig(opts.flat) ? opts.flat.config : configure.flat(opts.flat).config,
+            type: 'dynamic',
           }
         : undefined,
     };
   },
   /**
+   * Define the configuration for a multi-vector index.
+   */
+  multiVector: {
+    /**
+     * Specify the encoding configuration for a multi-vector index.
+     */
+    encoding: {
+      /**
+       * Create an object of type `MuveraEncodingConfigCreate` to be used when defining the encoding configuration of a multi-vector index using MUVERA.
+       *
+       * @param {number} [options.ksim] The number of nearest neighbors to consider for similarity. Default is undefined.
+       * @param {number} [options.dprojections] The number of projections to use. Default is undefined.
+       * @param {number} [options.repetitions] The number of repetitions to use. Default is undefined.
+       * @returns {MuveraEncodingConfigCreate} The object of type `MuveraEncodingConfigCreate`.
+       */
+      muvera: (options?: {
+        ksim?: number;
+        dprojections?: number;
+        repetitions?: number;
+      }): MuveraEncodingConfigCreate => {
+        return {
+          ksim: options?.ksim,
+          dprojections: options?.dprojections,
+          repetitions: options?.repetitions,
+          type: 'muvera',
+        };
+      },
+    },
+    /**
+     * Create an object of type `MultiVectorConfigCreate` to be used when defining the configuration of a multi-vector index.
+     *
+     * @param {string} [options.aggregation] The aggregation method to use. Default is 'maxSim'.
+     * @param {MultiVectorConfig['encoding']} [options.encoding] The encoding configuration for the multi-vector index. Default is undefined.
+     * @returns {MultiVectorConfigCreate} The object of type `MultiVectorConfigCreate`.
+     */
+    multiVector: (options?: {
+      aggregation?: 'maxSim' | string;
+      encoding?: MultiVectorConfigCreate['encoding'];
+    }): MultiVectorConfigCreate => {
+      return {
+        aggregation: options?.aggregation,
+        encoding: options?.encoding,
+      };
+    },
+  },
+  /**
    * Define the quantizer configuration to use when creating a vector index.
    */
   quantizer: {
+    /**
+     * Create an object of type `UncompressedConfig` to be used when defining the quantizer configuration of a vector index.
+     *
+     * This is useful for disabling the default quantization present in Weaviate>=1.33.0.
+     *
+     * @returns {UncompressedConfig} The object of type `UncompressedConfig`.
+     */
+    none: (): UncompressedConfig => {
+      return { type: 'none' };
+    },
     /**
      * Create an object of type `BQConfigCreate` to be used when defining the quantizer configuration of a vector index.
      *
@@ -112,11 +203,25 @@ const configure = {
       };
     },
     /**
+     * Create an object of type `RQConfigCreate` to be used when defining the quantizer configuration of a vector index.
+     *
+     * @param {number} [options.bits] Number of bits to user per vector element.
+     * @param {number} [options.rescoreLimit] The rescore limit. Default is 1000.
+     * @returns {RQConfigCreate} The object of type `RQConfigCreate`.
+     */
+    rq: (options?: { bits?: number; rescoreLimit?: number }): RQConfigCreate => {
+      return {
+        bits: options?.bits,
+        rescoreLimit: options?.rescoreLimit,
+        type: 'rq',
+      };
+    },
+    /**
      * Create an object of type `PQConfigCreate` to be used when defining the quantizer configuration of a vector index.
      *
      * @param {boolean} [options.bitCompression] Whether to use bit compression.
-     * @param {number} [options.centroids] The number of centroids[.
-     * @param {PQEncoderDistribution} ]options.encoder.distribution The encoder distribution.
+     * @param {number} [options.centroids] The number of centroids.
+     * @param {PQEncoderDistribution} [options.encoder.distribution] The encoder distribution.
      * @param {PQEncoderType} [options.encoder.type] The encoder type.
      * @param {number} [options.segments] The number of segments.
      * @param {number} [options.trainingLimit] The training limit.
@@ -167,26 +272,38 @@ const reconfigure = {
   /**
    * Create a `ModuleConfig<'flat', VectorIndexConfigFlatUpdate>` object to update the configuration of the FLAT vector index.
    *
-   * Use this method when defining the `options.vectorIndexConfig` argument of the `reconfigure.vectorizer` method.
+   * Use this method when defining the `options.vectorIndexConfig` argument of the `reconfigure.vectors` method.
    *
    * @param {VectorDistance} [options.distanceMetric] The distance metric to use. Default is 'cosine'.
    * @param {number} [options.vectorCacheMaxObjects] The maximum number of objects to cache in the vector cache. Default is 1000000000000.
    * @param {BQConfigCreate} [options.quantizer] The quantizer configuration to use. Default is `bq`.
-   * @returns {ModuleConfig<'flat', VectorIndexConfigFlatCreate>} The configuration object.
+   * @returns {ModuleConfig<'flat', VectorIndexConfigFlatUpdate>} The configuration object.
    */
-  flat: (options: {
-    vectorCacheMaxObjects?: number;
-    quantizer?: BQConfigUpdate;
-  }): ModuleConfig<'flat', VectorIndexConfigFlatUpdate> => {
+  flat: (options: VectorIndexConfigFlatUpdate): ModuleConfig<'flat', VectorIndexConfigFlatUpdate> => {
     return {
       name: 'flat',
       config: options,
     };
   },
   /**
+   * Create a `ModuleConfig<'hfresh', VectorIndexConfigHFreshUpdate>` object to update the configuration of the HFRESH vector index.
+   *
+   * Use this method when defining the `options.vectorIndexConfig` argument of the `reconfigure.vectors` method.
+   *
+   * @param {number} [options.maxPostingSizeKb] Maximum posting size in KB. Default is 48.
+   * @param {number} [options.searchProbe] The number of postings read during each search. Default is 64.
+   * @returns {ModuleConfig<'hfresh', VectorIndexConfigHFreshUpdate>} The configuration object.
+   */
+  hfresh: (options: VectorIndexConfigHFreshUpdate): ModuleConfig<'hfresh', VectorIndexConfigHFreshUpdate> => {
+    return {
+      name: 'hfresh',
+      config: options,
+    };
+  },
+  /**
    * Create a `ModuleConfig<'hnsw', VectorIndexConfigHNSWCreate>` object to update the configuration of the HNSW vector index.
    *
-   * Use this method when defining the `options.vectorIndexConfig` argument of the `reconfigure.vectorizer` method.
+   * Use this method when defining the `options.vectorIndexConfig` argument of the `reconfigure.vectors` method.
    *
    * @param {number} [options.dynamicEfFactor] The dynamic ef factor. Default is 8.
    * @param {number} [options.dynamicEfMax] The dynamic ef max. Default is 500.
@@ -194,23 +311,41 @@ const reconfigure = {
    * @param {number} [options.ef] The ef parameter. Default is -1.
    * @param {VectorIndexFilterStrategy} [options.filterStrategy] The filter strategy. Default is 'sweeping'.
    * @param {number} [options.flatSearchCutoff] The flat search cutoff. Default is 40000.
-   * @param {PQConfigUpdate | BQConfigUpdate} [options.quantizer] The quantizer configuration to use. Use `vectorIndex.quantizer.bq` or `vectorIndex.quantizer.pq` to make one.
+   * @param {QuantizerConfigUpdate} [options.quantizer] The quantizer configuration to use. Use `vectorIndex.quantizer.bq` or `vectorIndex.quantizer.pq` to make one.
    * @param {number} [options.vectorCacheMaxObjects] The maximum number of objects to cache in the vector cache. Default is 1000000000000.
    * @returns {ModuleConfig<'hnsw', VectorIndexConfigHNSWUpdate>} The configuration object.
    */
-  hnsw: (options: {
-    dynamicEfFactor?: number;
-    dynamicEfMax?: number;
-    dynamicEfMin?: number;
-    ef?: number;
-    filterStrategy?: VectorIndexFilterStrategy;
-    flatSearchCutoff?: number;
-    quantizer?: PQConfigUpdate | BQConfigUpdate | SQConfigUpdate;
-    vectorCacheMaxObjects?: number;
-  }): ModuleConfig<'hnsw', VectorIndexConfigHNSWUpdate> => {
+  hnsw: (options: VectorIndexConfigHNSWUpdate): ModuleConfig<'hnsw', VectorIndexConfigHNSWUpdate> => {
     return {
       name: 'hnsw',
       config: options,
+    };
+  },
+  /**
+   * Create a `ModuleConfig<'dynamic', VectorIndexConfigDynamicUpdate | undefined>` object when defining the configuration of the dynamic vector index.
+   *
+   * @param {VectorIndexConfigDynamicUpdate} [opts] The options available for reconfiguring the dynamic vector index.
+   * @returns {ModuleConfig<'dynamic', VectorIndexConfigDynamicUpdate | undefined>} The new configuration object.
+   */
+  dynamic: (
+    opts: VectorIndexConfigDynamicUpdate
+  ): ModuleConfig<'dynamic', VectorIndexConfigDynamicUpdate> => {
+    return {
+      name: 'dynamic',
+      config: {
+        threshold: opts.threshold,
+        hnsw: opts.hnsw
+          ? isModuleConfig(opts.hnsw)
+            ? opts.hnsw.config
+            : reconfigure.hnsw({ ...opts.hnsw }).config
+          : undefined,
+        flat: opts.flat
+          ? isModuleConfig(opts.flat)
+            ? opts.flat.config
+            : reconfigure.flat({ ...opts.flat }).config
+          : undefined,
+        type: 'dynamic',
+      },
     };
   },
   /**
@@ -225,12 +360,27 @@ const reconfigure = {
      *
      * @param {boolean} [options.cache] Whether to cache the quantizer.
      * @param {number} [options.rescoreLimit] The new rescore limit.
-     * @returns {BQConfigCreate} The configuration object.
+     * @returns {BQConfigUpdate} The configuration object.
      */
     bq: (options?: { cache?: boolean; rescoreLimit?: number }): BQConfigUpdate => {
       return {
         ...options,
         type: 'bq',
+      };
+    },
+    /**
+     * Create an object of type `RQConfigUpdate` to be used when updating the quantizer configuration of a vector index.
+     *
+     * NOTE: If the vector index already has a quantizer configured, you cannot change its quantizer type; only its values.
+     * So if you want to change the quantizer type, you must recreate the collection.
+     *
+     * @param {number} [options.rescoreLimit] The new rescore limit.
+     * @returns {RQConfigUpdate} The configuration object.
+     */
+    rq: (options?: { rescoreLimit?: number }): RQConfigUpdate => {
+      return {
+        ...options,
+        type: 'rq',
       };
     },
     /**

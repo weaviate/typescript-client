@@ -1,5 +1,5 @@
+import { beforeEach, describe, expect, it, Mock, vitest } from 'vitest';
 import { downloadImageFromURLAsBase64 } from './base64.js';
-import { beforeEach, describe, expect, it, vitest, Mock } from 'vitest';
 
 vitest.mock('../connection/http.js');
 

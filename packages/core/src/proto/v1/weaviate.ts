@@ -7,7 +7,14 @@
 /* eslint-disable */
 import { type CallContext, type CallOptions } from "nice-grpc-common";
 import { AggregateReply, AggregateRequest } from "./aggregate.js";
-import { BatchObjectsReply, BatchObjectsRequest } from "./batch.js";
+import {
+  BatchObjectsReply,
+  BatchObjectsRequest,
+  BatchReferencesReply,
+  BatchReferencesRequest,
+  BatchStreamReply,
+  BatchStreamRequest,
+} from "./batch.js";
 import { BatchDeleteReply, BatchDeleteRequest } from "./batch_delete.js";
 import { SearchReply, SearchRequest } from "./search_get.js";
 import { TenantsGetReply, TenantsGetRequest } from "./tenants.js";
@@ -35,6 +42,14 @@ export const WeaviateDefinition = {
       responseStream: false,
       options: {},
     },
+    batchReferences: {
+      name: "BatchReferences",
+      requestType: BatchReferencesRequest,
+      requestStream: false,
+      responseType: BatchReferencesReply,
+      responseStream: false,
+      options: {},
+    },
     batchDelete: {
       name: "BatchDelete",
       requestType: BatchDeleteRequest,
@@ -59,6 +74,14 @@ export const WeaviateDefinition = {
       responseStream: false,
       options: {},
     },
+    batchStream: {
+      name: "BatchStream",
+      requestType: BatchStreamRequest,
+      requestStream: true,
+      responseType: BatchStreamReply,
+      responseStream: true,
+      options: {},
+    },
   },
 } as const;
 
@@ -68,12 +91,20 @@ export interface WeaviateServiceImplementation<CallContextExt = {}> {
     request: BatchObjectsRequest,
     context: CallContext & CallContextExt,
   ): Promise<DeepPartial<BatchObjectsReply>>;
+  batchReferences(
+    request: BatchReferencesRequest,
+    context: CallContext & CallContextExt,
+  ): Promise<DeepPartial<BatchReferencesReply>>;
   batchDelete(
     request: BatchDeleteRequest,
     context: CallContext & CallContextExt,
   ): Promise<DeepPartial<BatchDeleteReply>>;
   tenantsGet(request: TenantsGetRequest, context: CallContext & CallContextExt): Promise<DeepPartial<TenantsGetReply>>;
   aggregate(request: AggregateRequest, context: CallContext & CallContextExt): Promise<DeepPartial<AggregateReply>>;
+  batchStream(
+    request: AsyncIterable<BatchStreamRequest>,
+    context: CallContext & CallContextExt,
+  ): ServerStreamingMethodResult<DeepPartial<BatchStreamReply>>;
 }
 
 export interface WeaviateClient<CallOptionsExt = {}> {
@@ -82,12 +113,20 @@ export interface WeaviateClient<CallOptionsExt = {}> {
     request: DeepPartial<BatchObjectsRequest>,
     options?: CallOptions & CallOptionsExt,
   ): Promise<BatchObjectsReply>;
+  batchReferences(
+    request: DeepPartial<BatchReferencesRequest>,
+    options?: CallOptions & CallOptionsExt,
+  ): Promise<BatchReferencesReply>;
   batchDelete(
     request: DeepPartial<BatchDeleteRequest>,
     options?: CallOptions & CallOptionsExt,
   ): Promise<BatchDeleteReply>;
   tenantsGet(request: DeepPartial<TenantsGetRequest>, options?: CallOptions & CallOptionsExt): Promise<TenantsGetReply>;
   aggregate(request: DeepPartial<AggregateRequest>, options?: CallOptions & CallOptionsExt): Promise<AggregateReply>;
+  batchStream(
+    request: AsyncIterable<DeepPartial<BatchStreamRequest>>,
+    options?: CallOptions & CallOptionsExt,
+  ): AsyncIterable<BatchStreamReply>;
 }
 
 type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
@@ -97,3 +136,5 @@ export type DeepPartial<T> = T extends Builtin ? T
   : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
   : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
+
+export type ServerStreamingMethodResult<Response> = { [Symbol.asyncIterator](): AsyncIterator<Response, void> };

@@ -3,16 +3,16 @@ import { WeaviateObject } from '../types/index.js';
 
 const ITERATOR_CACHE_SIZE = 100;
 
-export class Iterator<T> {
-  private cache: WeaviateObject<T>[] = [];
+export class Iterator<T, V> {
+  private cache: WeaviateObject<T, V>[] = [];
   private last: string | undefined = undefined;
-  constructor(private query: (limit: number, after?: string) => Promise<WeaviateObject<T>[]>) {
+  constructor(private query: (limit: number, after?: string) => Promise<WeaviateObject<T, V>[]>) {
     this.query = query;
   }
 
   [Symbol.asyncIterator]() {
     return {
-      next: async (): Promise<IteratorResult<WeaviateObject<T>>> => {
+      next: async (): Promise<IteratorResult<WeaviateObject<T, V>>> => {
         const objects = await this.query(ITERATOR_CACHE_SIZE, this.last);
         this.cache = objects;
         if (this.cache.length == 0) {

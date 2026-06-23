@@ -1,12 +1,14 @@
+import { describe, expect, it } from 'vitest';
+import { configure } from '../configure/index.js';
 import {
   WeaviateInvertedIndexConfig,
   WeaviateModuleConfig,
   WeaviateMultiTenancyConfig,
   WeaviateVectorsConfig,
-} from '@weaviate/core/openapi/types';
-import { MergeWithExisting } from '@weaviate/core/config/classes';
-import { GenerativeCohereConfig, RerankerCohereConfig } from '@weaviate/core/config/types';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+} from '../openapi/types';
+import { MergeWithExisting } from './classes';
+import { GenerativeCohereConfig, RerankerCohereConfig } from './types';
+import { makeVectorsConfig } from './utils.js';
 
 describe('Unit testing of the MergeWithExisting class', () => {
   const deepCopy = (config: any) => JSON.parse(JSON.stringify(config));
@@ -333,6 +335,43 @@ describe('Unit testing of the MergeWithExisting class', () => {
     });
   });
 
+  it('should merge a RQ quantizer HNSW vectorIndexConfig with existing schema', () => {
+    const merged = MergeWithExisting.vectors(deepCopy(hnswVectorConfig), [
+      {
+        name: 'name',
+        vectorIndex: {
+          name: 'hnsw',
+          config: {
+            quantizer: {
+              type: 'rq',
+              rescoreLimit: 1000,
+              bits: 128,
+            },
+          },
+        },
+      },
+    ]);
+    expect(merged).toEqual({
+      name: {
+        vectorIndexConfig: {
+          ...hnswVectorConfig.name.vectorIndexConfig,
+          rq: {
+            enabled: true,
+            rescoreLimit: 1000,
+            bits: 128,
+          },
+        },
+        vectorIndexType: 'hnsw',
+        vectorizer: {
+          'text2vec-contextionary': {
+            properties: ['name'],
+            vectorizeCollectionName: false,
+          },
+        },
+      },
+    });
+  });
+
   it('should merge a BQ quantizer Flat vectorIndexConfig with existing schema', () => {
     const merged = MergeWithExisting.vectors(deepCopy(flatVectorConfig), [
       {
@@ -411,5 +450,32 @@ describe('Unit testing of the MergeWithExisting class', () => {
         model: 'other',
       } as RerankerCohereConfig,
     });
+  });
+});
+
+describe('makeVectorsConfig', () => {
+  it('should omit vectorIndexType and vectorIndexConfig when no index options are provided', () => {
+    const vec = configure.vectors.text2VecOpenAI({ name: 'default' });
+    expect(vec.vectorIndex).toBeUndefined();
+
+    const { vectorsConfig } = makeVectorsConfig(vec);
+    const entry = vectorsConfig!.default;
+    expect(entry).toBeDefined();
+    expect(entry.vectorIndexType).toBeUndefined();
+    expect(entry.vectorIndexConfig).toBeUndefined();
+    expect(entry.vectorizer).toBeDefined();
+  });
+
+  it('should include vectorIndexType and vectorIndexConfig when vectorIndex is defined', () => {
+    const vec = configure.vectors.text2VecOpenAI({
+      name: 'default',
+      vectorIndexConfig: configure.vectorIndex.hnsw(),
+    });
+    expect(vec.vectorIndex).toBeDefined();
+
+    const { vectorsConfig } = makeVectorsConfig(vec);
+    const entry = vectorsConfig!.default;
+    expect(entry.vectorIndexType).toBe('hnsw');
+    expect(entry.vectorIndexConfig).toBeDefined();
   });
 });

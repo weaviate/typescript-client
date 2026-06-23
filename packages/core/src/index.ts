@@ -15,9 +15,8 @@ import {
   mapApiKey,
 } from './connection/auth.js';
 import * as helpers from './connection/helpers.js';
-import { ConnectionDetails, ProxiesParams, TimeoutParams } from './connection/http.js';
+import { ConnectionDetails, Headers, ProxiesParams, TimeoutParams } from './connection/http.js';
 import { ConnectionGRPC } from './connection/index.js';
-import filter from './filters/index.js';
 import { Meta } from './openapi/types.js';
 import roles, { Roles, permissions } from './roles/index.js';
 import { DbVersion } from './utils/dbVersion.js';
@@ -30,8 +29,13 @@ import { LiveChecker, OpenidConfigurationGetter, ReadyChecker } from './v2/misc/
 
 import weaviateV2 from './v2/index.js';
 
+import alias, { Aliases } from './alias/index.js';
 import { TransportsMaker } from './connection/grpc.js';
+// import batch, { Batch } from './data/batch.js';
+import filter from './filters/index.js';
+import groups, { Groups } from './groups/index.js';
 import { ConsistencyLevel } from './replication.js';
+import tokenize, { Tokenize } from './tokenize/index.js';
 import users, { Users } from './users/index.js';
 import { ToBase64FromMedia } from './utils/base64.js';
 
@@ -81,7 +85,7 @@ export type ClientParams = {
   /**
    * Additional headers that should be passed to Weaviate in the underlying requests. E.g., X-OpenAI-Api-Key
    */
-  headers?: Record<string, string>;
+  headers?: Headers;
   /**
    * The connection parameters for any tunnelling proxies that should be used.
    *
@@ -95,11 +99,15 @@ export type ClientParams = {
 };
 
 export interface IWeaviateClient<TMedia = any> {
+  alias: Aliases;
   backup: Backup;
+  // batch: Batch;
   cluster: Cluster;
   collections: ICollections<TMedia>;
   oidcAuth?: OidcAuthenticator;
+  groups: Groups;
   roles: Roles;
+  tokenize: Tokenize;
   users: Users;
 
   close: () => Promise<void>;
@@ -162,10 +170,14 @@ const client = async <TMedia>(
   );
 
   const ifc: IWeaviateClient<TMedia> = {
+    alias: alias(connection),
     backup: backup(connection),
+    // batch: batch(connection, dbVersionSupport),
     cluster: cluster(connection),
     collections: collections(connection, dbVersionSupport, context.toBase64FromMedia),
+    groups: groups(connection),
     roles: roles(connection),
+    tokenize: tokenize(connection, dbVersionSupport),
     users: users(connection),
     close: () => Promise.resolve(connection.close()), // hedge against future changes to add I/O to .close()
     getMeta: () => new MetaGetter(connection).do(),

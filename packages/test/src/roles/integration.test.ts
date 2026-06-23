@@ -1,3 +1,4 @@
+import { WeaviateStartUpError, WeaviateUnexpectedStatusCodeError } from '@weaviate/core/errors';
 import weaviate, {
   ApiKey,
   CollectionsAction,
@@ -9,22 +10,26 @@ import weaviate, {
   UserAssignment,
   WeaviateClient,
 } from '@weaviate/node';
-import { requireAtLeast } from '../version';
-import { WeaviateStartUpError, WeaviateUnexpectedStatusCodeError } from '@weaviate/core/errors';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { requireAtLeast } from '../version';
 
 type TestCase = {
   roleName: string;
   permissions: Permission[];
   expected: Role;
+  requireVersion?: [number, number, number];
 };
 
 const emptyPermissions = {
+  aliasPermissions: [],
   backupsPermissions: [],
   clusterPermissions: [],
   collectionsPermissions: [],
   dataPermissions: [],
+  groupsPermissions: [],
+  mcpPermissions: [],
   nodesPermissions: [],
+  replicatePermissions: [],
   rolesPermissions: [],
   tenantsPermissions: [],
   usersPermissions: [],
@@ -57,6 +62,16 @@ const testCases: TestCase[] = [
       name: 'backups',
       ...emptyPermissions,
       backupsPermissions: [{ collection: 'Some-collection', actions: ['manage_backups'] }],
+    },
+  },
+  {
+    roleName: 'mcp',
+    requireVersion: [1, 37, 1],
+    permissions: weaviate.permissions.mcp({ create: true, read: true, update: true }),
+    expected: {
+      name: 'mcp',
+      ...emptyPermissions,
+      mcpPermissions: [{ actions: ['create_mcp', 'read_mcp', 'update_mcp'] }],
     },
   },
   {
@@ -156,6 +171,23 @@ const testCases: TestCase[] = [
           tenant: 'another-tenant',
           actions: dataActions,
         },
+      ],
+    },
+  },
+  {
+    roleName: 'groups-oidc',
+    requireVersion: [1, 33, 0],
+    permissions: weaviate.permissions.groups.oidc({
+      groupID: ['G1', 'G2'],
+      read: true,
+      assignAndRevoke: true,
+    }),
+    expected: {
+      name: 'groups-oidc',
+      ...emptyPermissions,
+      groupsPermissions: [
+        { groupID: 'G1', groupType: 'oidc', actions: ['read_groups', 'assign_and_revoke_groups'] },
+        { groupID: 'G2', groupType: 'oidc', actions: ['read_groups', 'assign_and_revoke_groups'] },
       ],
     },
   },
@@ -278,6 +310,46 @@ const testCases: TestCase[] = [
       usersPermissions: [{ users: 'some-user', actions: ['assign_and_revoke_users', 'read_users'] }],
     },
   },
+  {
+    roleName: 'aliases',
+    requireVersion: [1, 32, 0],
+    permissions: weaviate.permissions.aliases({
+      alias: 'SomeAlias',
+      collection: 'SomeCollection',
+      create: true,
+      delete: true,
+    }),
+    expected: {
+      name: 'aliases',
+      ...emptyPermissions,
+      aliasPermissions: [
+        { alias: 'SomeAlias', collection: 'SomeCollection', actions: ['create_aliases', 'delete_aliases'] },
+      ],
+    },
+  },
+  {
+    roleName: 'replicate',
+    requireVersion: [1, 32, 0],
+    permissions: weaviate.permissions.replicate({
+      collection: 'SomeCollection',
+      shard: 'shard1',
+      create: true,
+      read: true,
+      update: true,
+      delete: true,
+    }),
+    expected: {
+      name: 'replicate',
+      ...emptyPermissions,
+      replicatePermissions: [
+        {
+          collection: 'SomeCollection',
+          shard: 'shard1',
+          actions: ['create_replicate', 'read_replicate', 'update_replicate', 'delete_replicate'],
+        },
+      ],
+    },
+  },
 ];
 
 requireAtLeast(1, 29, 0).describe('Integration testing of the roles namespace', () => {
@@ -346,11 +418,14 @@ requireAtLeast(1, 29, 0).describe('Integration testing of the roles namespace', 
 
   describe('should be able to create roles using the permissions factory', () => {
     testCases.forEach((testCase) => {
-      it(`with ${testCase.roleName} permissions`, async () => {
-        await client.roles.create(testCase.roleName, testCase.permissions);
-        const role = await client.roles.byName(testCase.roleName);
-        expect(role).toEqual(testCase.expected);
-      });
+      (testCase.requireVersion !== undefined ? requireAtLeast(...testCase.requireVersion).it : it)(
+        `with ${testCase.roleName} permissions`,
+        async () => {
+          await client.roles.create(testCase.roleName, testCase.permissions);
+          const role = await client.roles.byName(testCase.roleName);
+          expect(role).toEqual(testCase.expected);
+        }
+      );
     });
   });
 

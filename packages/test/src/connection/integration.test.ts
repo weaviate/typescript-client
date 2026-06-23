@@ -1,8 +1,9 @@
 import { StartedWeaviateContainer, WeaviateContainer } from '@testcontainers/weaviate';
-import weaviate from '@weaviate/node';
 import { WeaviateStartUpError } from '@weaviate/core/errors';
 import { Meta } from '@weaviate/core/openapi/types';
 import { DbVersion } from '@weaviate/core/utils/dbVersion';
+import weaviate from '@weaviate/node';
+import { Wait } from 'testcontainers';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 describe('Integration testing of the ConnectionGRPC class', () => {
@@ -15,17 +16,18 @@ describe('Integration testing of the ConnectionGRPC class', () => {
 
   beforeAll(async () => {
     container = await new WeaviateContainer(`semitechnologies/weaviate:${process.env.WEAVIATE_VERSION}`)
+      .withWaitStrategy(Wait.forHttp('/v1/.well-known/ready', 8080).withStartupTimeout(30 * 1000))
       .withExposedPorts(8080, 50051)
       .withEnvironment({
         GRPC_MAX_MESSAGE_SIZE: '1',
       })
       .start();
     expect(container).toBeDefined();
-  });
+  }, 60_000);
   afterAll(async () => {
     await container.stop();
   });
-  it('should fail to startup due to message-size limit', async () => {
+  it('should fail to connect due to message-size limit', async () => {
     const dbVersion = await getVersion();
     try {
       await weaviate.connectToLocal({
@@ -42,4 +44,4 @@ describe('Integration testing of the ConnectionGRPC class', () => {
       expect(dbVersion.isAtLeast(1, 27, 1)).toBe(true);
     }
   });
-});
+}, 60_000);

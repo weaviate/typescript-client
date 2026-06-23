@@ -1,10 +1,18 @@
 import {
   BQConfigCreate,
   BQConfigUpdate,
+  MuveraEncodingConfigCreate,
   PQConfigCreate,
   PQConfigUpdate,
+  RQConfigCreate,
+  RQConfigUpdate,
   SQConfigCreate,
   SQConfigUpdate,
+  UncompressedConfigCreate,
+  VectorIndexConfigDynamicCreate,
+  VectorIndexConfigFlatCreate,
+  VectorIndexConfigHFreshCreate,
+  VectorIndexConfigHNSWCreate,
 } from './types/index.js';
 
 type QuantizerConfig =
@@ -13,7 +21,10 @@ type QuantizerConfig =
   | BQConfigCreate
   | BQConfigUpdate
   | SQConfigCreate
-  | SQConfigUpdate;
+  | SQConfigUpdate
+  | RQConfigCreate
+  | RQConfigUpdate
+  | Record<string, any>;
 
 export class QuantizerGuards {
   static isPQCreate(config?: QuantizerConfig): config is PQConfigCreate {
@@ -33,6 +44,42 @@ export class QuantizerGuards {
   }
   static isSQUpdate(config?: QuantizerConfig): config is SQConfigUpdate {
     return (config as SQConfigUpdate)?.type === 'sq';
+  }
+  static isRQCreate(config?: QuantizerConfig): config is RQConfigCreate {
+    return (config as RQConfigCreate)?.type === 'rq';
+  }
+  static isRQUpdate(config?: QuantizerConfig): config is RQConfigUpdate {
+    return (config as RQConfigUpdate)?.type === 'rq';
+  }
+  static isUncompressedCreate(config?: QuantizerConfig): config is UncompressedConfigCreate {
+    return (config as UncompressedConfigCreate)?.type === 'none';
+  }
+}
+
+type VectorIndexConfigCreate =
+  | VectorIndexConfigHNSWCreate
+  | VectorIndexConfigFlatCreate
+  | VectorIndexConfigDynamicCreate
+  | Record<string, any>;
+
+export class VectorIndexGuards {
+  static isHNSW(config?: VectorIndexConfigCreate): config is VectorIndexConfigHNSWCreate {
+    return (config as VectorIndexConfigHNSWCreate)?.type === 'hnsw';
+  }
+  static isFlat(config?: VectorIndexConfigCreate): config is VectorIndexConfigFlatCreate {
+    return (config as VectorIndexConfigFlatCreate)?.type === 'flat';
+  }
+  static isHFresh(config?: VectorIndexConfigCreate): config is VectorIndexConfigHFreshCreate {
+    return (config as VectorIndexConfigHFreshCreate)?.type === 'hfresh';
+  }
+  static isDynamic(config?: VectorIndexConfigCreate): config is VectorIndexConfigDynamicCreate {
+    return (config as VectorIndexConfigDynamicCreate)?.type === 'dynamic';
+  }
+}
+
+export class MultiVectorEncodingGuards {
+  static isMuvera(config?: Record<string, any>): config is MuveraEncodingConfigCreate {
+    return (config as { type: string })?.type === 'muvera';
   }
 }
 

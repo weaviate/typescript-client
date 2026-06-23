@@ -24,9 +24,10 @@ import {
   BackupReturn,
   BackupStatusArgs,
   BackupStatusReturn,
+  ListBackupOptions,
 } from './types.js';
 
-export const backup = (connection: Connection) => {
+export const backup = (connection: Connection): Backup => {
   const parseStatus = (res: BackupCreateStatusResponse | BackupRestoreResponse): BackupStatusReturn => {
     if (res.id === undefined) {
       throw new WeaviateUnexpectedResponseError('Backup ID is undefined in response');
@@ -88,8 +89,11 @@ export const backup = (connection: Connection) => {
         throw new WeaviateInvalidInputError(errors.join(', '));
       }
 
+      const root = `/backups/${args.backend}/${args.backupId}`;
+      const path = args.operation === 'restore' ? `${root}/restore` : root;
+
       try {
-        await connection.delete(`/backups/${args.backend}/${args.backupId}`, undefined, false);
+        await connection.delete(path, undefined, false);
       } catch (err) {
         if (err instanceof WeaviateUnexpectedStatusCodeError) {
           if (err.code === 404) {
@@ -113,7 +117,6 @@ export const backup = (connection: Connection) => {
       }
       if (args.config) {
         builder = builder.withConfig({
-          ChunkSize: args.config.chunkSize,
           CompressionLevel: args.config.compressionLevel,
           CPUPercentage: args.config.cpuPercentage,
         });
@@ -159,6 +162,9 @@ export const backup = (connection: Connection) => {
       if (args.excludeCollections) {
         builder = builder.withExcludeClassNames(...args.excludeCollections);
       }
+      if (args.config?.overwriteAlias) {
+        builder = builder.withOverwriteAlias(args.config?.overwriteAlias);
+      }
       if (args.config) {
         builder = builder.withConfig({
           CPUPercentage: args.config.cpuPercentage,
@@ -197,6 +203,13 @@ export const backup = (connection: Connection) => {
             ...status,
           }
         : parseResponse(res);
+    },
+    list: (backend: Backend, opts?: ListBackupOptions): Promise<BackupReturn[]> => {
+      let url = `/backups/${backend}`;
+      if (opts?.startedAtAsc) {
+        url += '?order=asc';
+      }
+      return connection.get<BackupReturn[]>(url);
     },
   };
 };
@@ -247,4 +260,12 @@ export interface Backup {
    * @throws {WeaviateBackupCanceled} If the backup restoration is canceled.
    */
   restore(args: BackupArgs<BackupConfigRestore>): Promise<BackupReturn>;
+
+  /** List existing backups (completed and in-progress) created in a given backend.
+   *
+   * @param {Backend} backend Backend whence to list backups.
+   * @param {ListBackupOptions} [opts] The options available when listing backups.
+   * @returns {Promise<BackupReturn[]>} The response from Weaviate.
+   */
+  list(backend: Backend, opts?: ListBackupOptions): Promise<BackupReturn[]>;
 }

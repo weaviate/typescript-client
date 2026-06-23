@@ -4,6 +4,7 @@ import {
   GenerativeAnyscaleConfigCreate,
   GenerativeAzureOpenAIConfigCreate,
   GenerativeCohereConfigCreate,
+  GenerativeContextualAIConfigCreate,
   GenerativeDatabricksConfigCreate,
   GenerativeFriendliAIConfigCreate,
   GenerativeMistralConfigCreate,
@@ -19,6 +20,7 @@ import {
   GenerativeAnyscaleConfig,
   GenerativeAzureOpenAIConfig,
   GenerativeCohereConfig,
+  GenerativeContextualAIConfig,
   GenerativeDatabricksConfig,
   GenerativeFriendliAIConfig,
   GenerativeGoogleConfig,
@@ -46,6 +48,31 @@ export default {
     return {
       name: 'generative-anthropic',
       config,
+    };
+  },
+  /**
+   * Create a `ModuleConfig<'generative-contextualai', GenerativeContextualAIConfig | undefined>` object for use when performing AI generation using the `generative-contextualai` module.
+   *
+   * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/contextualai/generative) for detailed usage.
+   *
+   * @param {GenerativeContextualAIConfigCreate} [config] The configuration for the `generative-contextualai` module.
+   * @returns {ModuleConfig<'generative-contextualai', GenerativeContextualAIConfig | undefined>} The configuration object.
+   */
+  contextualai: (
+    config?: GenerativeContextualAIConfigCreate
+  ): ModuleConfig<'generative-contextualai', GenerativeContextualAIConfig | undefined> => {
+    return {
+      name: 'generative-contextualai',
+      config: config
+        ? {
+            model: config.model,
+            temperature: config.temperature,
+            topP: config.topP,
+            maxNewTokens: config.maxNewTokens,
+            systemPrompt: config.systemPrompt,
+            avoidCommentary: config.avoidCommentary,
+          }
+        : undefined,
     };
   },
   /**
@@ -246,7 +273,14 @@ export default {
     console.warn('The `generative-palm` module is deprecated. Use `generative-google` instead.');
     return {
       name: 'generative-palm',
-      config,
+      // Do not populate config key if config === undefined.
+      config: config
+        ? {
+            ...config,
+            // Only create modelId key if either config.model or config.modelId are defined.
+            ...(config?.modelId || config?.model ? { modelId: config?.model ?? config?.model } : undefined),
+          }
+        : undefined,
     };
   },
   /**
@@ -262,7 +296,14 @@ export default {
   ): ModuleConfig<'generative-google', GenerativeGoogleConfig | undefined> => {
     return {
       name: 'generative-google',
-      config,
+      // Do not populate config key if config === undefined.
+      config: config
+        ? {
+            ...config,
+            // Only create modelId key if either config.model or config.modelId are defined.
+            ...(config?.modelId || config?.model ? { modelId: config?.model ?? config?.model } : undefined),
+          }
+        : undefined,
     };
   },
   /**

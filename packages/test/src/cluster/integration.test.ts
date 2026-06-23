@@ -1,7 +1,7 @@
 import weaviate, { WeaviateClient } from '@weaviate/node';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
-describe('Testing of the client.cluster methods', () => {
+describe('Integration testing of the client.cluster methods', () => {
   let client: WeaviateClient;
 
   const one = 'TestClusterCollectionOne';

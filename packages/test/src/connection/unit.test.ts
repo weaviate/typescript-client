@@ -1,16 +1,15 @@
 import express from 'express';
 import { Server as HttpServer } from 'http';
 
-import { testServer } from '../server';
+import Connection from '@weaviate/core/connection';
 import {
   ApiKey,
   AuthAccessTokenCredentials,
   AuthClientCredentials,
   AuthUserPasswordCredentials,
 } from '@weaviate/core/connection/auth';
-import Connection from '@weaviate/core/connection';
+import { testServer } from '../server';
 
-import { createServer, Server as GrpcServer } from 'nice-grpc';
 import {
   HealthCheckRequest,
   HealthCheckResponse,
@@ -20,14 +19,17 @@ import {
 } from '@weaviate/core/proto/google/health/v1/health';
 import { TenantsGetReply } from '@weaviate/core/proto/v1/tenants';
 import { WeaviateDefinition, WeaviateServiceImplementation } from '@weaviate/core/proto/v1/weaviate';
+import { createServer, Server as GrpcServer } from 'nice-grpc';
 
 import { WeaviateRequestTimeoutError } from '@weaviate/core/errors';
-import weaviate, { Collection, WeaviateClient } from '@weaviate/node';
 import { AggregateReply } from '@weaviate/core/proto/v1/aggregate';
 import { BatchObjectsReply } from '@weaviate/core/proto/v1/batch';
 import { BatchDeleteReply } from '@weaviate/core/proto/v1/batch_delete';
 import { SearchReply } from '@weaviate/core/proto/v1/search_get';
+import weaviate, { Collection, WeaviateClient } from '@weaviate/node';
 import { afterAll, beforeAll, describe, expect, it, vitest } from 'vitest';
+
+import { WEAVIATE_CLIENT_VERSION } from '@weaviate/core/version.js';
 
 describe('mock server auth tests', () => {
   const server = testServer();
@@ -282,6 +284,8 @@ const makeGrpcApp = () => {
           errors: [],
         };
       }),
+    batchReferences: vitest.fn(),
+    batchStream: vitest.fn(),
   };
   const healthMockImpl: HealthServiceImplementation = {
     check: (request: HealthCheckRequest): Promise<HealthCheckResponse> =>
@@ -338,4 +342,29 @@ describe('Mock testing of timeout behaviour', () => {
     expect(collection.aggregate.overAll()).rejects.toThrow(WeaviateRequestTimeoutError));
 
   afterAll(() => Promise.all([servers.rest.close(), servers.grpc.shutdown()]));
+});
+
+describe('client version header', () => {
+  const app = express();
+  let lastRequest: any = null;
+  app.use((req, res, next) => {
+    lastRequest = req;
+    next();
+  });
+  app.get('/v1/test', (req, res) => res.json({ message: 'ok' }));
+  const port = 8960;
+  const server = app.listen(port);
+  beforeAll(() => server);
+  afterAll(() => server.close());
+  it('should send the correct X-Weaviate-Client header', async () => {
+    const conn = new Connection({
+      scheme: 'http',
+      host: 'localhost:' + port,
+    });
+    // Make a request that triggers an HTTP call
+    await conn.http.get('/test');
+    expect(lastRequest.headers['x-weaviate-client']).toBe(
+      `weaviate-client-typescript/${WEAVIATE_CLIENT_VERSION}`
+    );
+  });
 });

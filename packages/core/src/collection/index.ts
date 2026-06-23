@@ -14,13 +14,14 @@ import { Iterator } from '../iterator/index.js';
 import query, { Query } from '../query/index.js';
 import sort, { Sort } from '../sort/index.js';
 import tenants, { TenantBase, Tenants } from '../tenants/index.js';
-import { QueryMetadata, QueryProperty, QueryReference } from '../types/index.js';
+import { QueryMetadata, QueryProperty, QueryReference, ReturnVectors } from '../types/index.js';
+import { IncludeVector } from '../types/internal.js';
 import { ToBase64FromMedia } from '../utils/base64.js';
 import multiTargetVector, { MultiTargetVector } from '../vectors/multiTargetVector.js';
 
-export interface ICollection<T = undefined, N = string, TMedia = any> {
+export interface ICollection<T = undefined, N = string, V = undefined, M = any> {
   /** This namespace includes all the querying methods available to you when using Weaviate's standard aggregation capabilities. */
-  aggregate: Aggregate<T, TMedia>;
+  aggregate: Aggregate<T, V, M>;
   /** This namespace includes all the backup methods available to you when backing up a collection in Weaviate. */
   backup: BackupCollection;
   /** This namespace includes all the CRUD methods available to you when modifying the configuration of the collection in Weaviate. */
@@ -30,19 +31,19 @@ export interface ICollection<T = undefined, N = string, TMedia = any> {
   /** This namespace includes the methods by which you can create the `FilterValue<V>` values for use when filtering queries over your collection. */
   filter: Filter<T extends undefined ? any : T>;
   /** This namespace includes all the querying methods available to you when using Weaviate's generative capabilities. */
-  generate: Generate<T, TMedia>;
+  generate: Generate<T, V, M>;
   /** This namespace includes the methods by which you can create the `MetricsX` values for use when aggregating over your collection. */
   metrics: Metrics<T>;
   /** The name of the collection. */
   name: N;
   /** This namespace includes all the querying methods available to you when using Weaviate's standard query capabilities. */
-  query: Query<T, TMedia>;
+  query: Query<T, V, M>;
   /** This namespaces includes the methods by which you can create the `Sorting<T>` values for use when sorting queries over your collection. */
   sort: Sort<T>;
   /** This namespace includes all the CRUD methods available to you when modifying the tenants of a multi-tenancy-enabled collection in Weaviate. */
   tenants: Tenants;
   /** This namespaces includes the methods by which you cna create the `MultiTargetVectorJoin` values for use when performing multi-target vector searches over your collection. */
-  multiTargetVector: MultiTargetVector;
+  multiTargetVector: MultiTargetVector<V>;
   /**
    * Use this method to check if the collection exists in Weaviate.
    *
@@ -55,15 +56,19 @@ export interface ICollection<T = undefined, N = string, TMedia = any> {
    * This iterator keeps a record of the last object that it returned to be used in each subsequent call to Weaviate.
    * Once the collection is exhausted, the iterator exits.
    *
+   * @typeParam I - The vector(s) to include in the response. If using named vectors, pass an array of strings to include only specific vectors.
+   * @typeParam RV - The vectors(s) to be returned in the response depending on the input in opts.includeVector.
    * @param {IteratorOptions<T>} opts The options to use when fetching objects from Weaviate.
    * @returns {Iterator<T>} An iterator over the objects in the collection as an async generator.
    *
    * @description If `return_properties` is not provided, all the properties of each object will be
    * requested from Weaviate except for its vector as this is an expensive operation. Specify `include_vector`
-   * to request the vector back as well. In addition, if `return_references=None` then none of the references
+   * to request the vectors back as well. In addition, if `return_references=None` then none of the references
    * are returned. Use `wvc.QueryReference` to specify which references to return.
    */
-  iterator: (opts?: IteratorOptions<T>) => Iterator<T>;
+  iterator: <I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
+    opts?: IteratorOptions<T, I>
+  ) => Iterator<T, RV>;
   /**
    * Use this method to return the total number of objects in the collection.
    *
@@ -78,9 +83,9 @@ export interface ICollection<T = undefined, N = string, TMedia = any> {
    * This method does not send a request to Weaviate. It only returns a new collection object that is specific to the consistency level you specify.
    *
    * @param {ConsistencyLevel} consistencyLevel The consistency level to use.
-   * @returns {ICollection<T, N>} A new collection object specific to the consistency level you specified.
+   * @returns {ICollection<T, N, V, M>} A new collection object specific to the consistency level you specified.
    */
-  withConsistency: (consistencyLevel: ConsistencyLevel) => ICollection<T, N, TMedia>;
+  withConsistency: (consistencyLevel: ConsistencyLevel) => ICollection<T, N, V, M>;
   /**
    * Use this method to return a collection object specific to a single tenant.
    *
@@ -90,13 +95,13 @@ export interface ICollection<T = undefined, N = string, TMedia = any> {
    *
    * @typedef {TenantBase} TT A type that extends TenantBase.
    * @param {string | TT} tenant The tenant name or tenant object to use.
-   * @returns {ICollection<T, N>} A new collection object specific to the tenant you specified.
+   * @returns {ICollection<T, N, V, M>} A new collection object specific to the tenant you specified.
    */
-  withTenant: <TT extends TenantBase>(tenant: string | TT) => ICollection<T, N, TMedia>;
+  withTenant: <TT extends TenantBase>(tenant: string | TT) => ICollection<T, N, V, M>;
 }
 
-export type IteratorOptions<T> = {
-  includeVector?: boolean | string[];
+export type IteratorOptions<T, I> = {
+  includeVector?: I;
   returnMetadata?: QueryMetadata;
   returnProperties?: QueryProperty<T>[];
   returnReferences?: QueryReference<T>[];
@@ -107,19 +112,19 @@ const isString = (value: any): value is string => typeof value === 'string';
 const capitalizeCollectionName = <N extends string>(name: N): N =>
   (name.charAt(0).toUpperCase() + name.slice(1)) as N;
 
-const collection = <T, N, TMedia>(
+const collection = <T, N, V, M>(
   connection: Connection,
   name: N,
   dbVersionSupport: DbVersionSupport,
-  toBase64FromMedia: ToBase64FromMedia<TMedia>,
+  toBase64FromMedia: ToBase64FromMedia<M>,
   consistencyLevel?: ConsistencyLevel,
   tenant?: string
-): ICollection<T, N, TMedia> => {
+): ICollection<T, N, V, M> => {
   if (!isString(name)) {
     throw new WeaviateInvalidInputError(`The collection name must be a string, got: ${typeof name}`);
   }
   const capitalizedName = capitalizeCollectionName(name);
-  const aggregateCollection = aggregate<T, TMedia>(
+  const aggregateCollection = aggregate<T, V, M>(
     connection,
     capitalizedName,
     dbVersionSupport,
@@ -127,7 +132,7 @@ const collection = <T, N, TMedia>(
     consistencyLevel,
     tenant
   );
-  const queryCollection = query<T, TMedia>(
+  const queryCollection = query<T, V, M>(
     connection,
     capitalizedName,
     dbVersionSupport,
@@ -141,7 +146,7 @@ const collection = <T, N, TMedia>(
     config: config<T>(connection, capitalizedName, dbVersionSupport, tenant),
     data: data<T>(connection, capitalizedName, dbVersionSupport, consistencyLevel, tenant),
     filter: filter<T extends undefined ? any : T>(),
-    generate: generate<T, TMedia>(
+    generate: generate<T, V, M>(
       connection,
       capitalizedName,
       dbVersionSupport,
@@ -150,16 +155,16 @@ const collection = <T, N, TMedia>(
       tenant
     ),
     metrics: metrics<T>(),
-    multiTargetVector: multiTargetVector(),
+    multiTargetVector: multiTargetVector<V>(),
     name: name,
     query: queryCollection,
     sort: sort<T>(),
     tenants: tenants(connection, capitalizedName, dbVersionSupport),
     exists: () => new ClassExists(connection).withClassName(capitalizedName).do(),
-    iterator: (opts?: IteratorOptions<T>) =>
-      new Iterator<T>((limit: number, after?: string) =>
+    iterator: <I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(opts?: IteratorOptions<T, I>) =>
+      new Iterator<T, RV>((limit: number, after?: string) =>
         queryCollection
-          .fetchObjects({
+          .fetchObjects<I, RV>({
             limit,
             after,
             includeVector: opts?.includeVector,
@@ -171,7 +176,7 @@ const collection = <T, N, TMedia>(
       ),
     length: () => aggregateCollection.overAll().then(({ totalCount }) => totalCount),
     withConsistency: (consistencyLevel: ConsistencyLevel) =>
-      collection<T, N, TMedia>(
+      collection<T, N, V, M>(
         connection,
         capitalizedName,
         dbVersionSupport,
@@ -180,7 +185,7 @@ const collection = <T, N, TMedia>(
         tenant
       ),
     withTenant: <TT extends TenantBase>(tenant: string | TT) =>
-      collection<T, N, TMedia>(
+      collection<T, N, V, M>(
         connection,
         capitalizedName,
         dbVersionSupport,

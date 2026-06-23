@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
+import { describe, expect, it } from 'vitest';
 import {
   BatchDeleteResponse,
   BatchReference,
@@ -627,7 +628,7 @@ describe('multi tenancy', () => {
       .objectsBatcher()
       .withObjects(...toImport)
       .do()
-      .then((res) => {
+      .then((res: any) => {
         expect(res).toHaveLength(3);
       })
       .catch((e: any) => {

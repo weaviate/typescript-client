@@ -1,13 +1,18 @@
 import {
   BQConfig,
   ModuleConfig,
+  MultiVectorConfig,
+  MuveraEncodingConfig,
   PQConfig,
   PQEncoderDistribution,
   PQEncoderType,
+  RQConfig,
   SQConfig,
+  UncompressedConfig,
   VectorDistance,
   VectorIndexConfigDynamic,
   VectorIndexConfigFlat,
+  VectorIndexConfigHFresh,
   VectorIndexConfigHNSW,
   VectorIndexFilterStrategy,
 } from '../../config/types/index.js';
@@ -15,6 +20,14 @@ import { RecursivePartial } from './base.js';
 
 export type QuantizerRecursivePartial<T> = {
   [P in keyof T]: P extends 'type' ? T[P] : RecursivePartial<T[P]> | undefined;
+};
+
+export type RQConfigCreate = QuantizerRecursivePartial<RQConfig>;
+
+export type RQConfigUpdate = {
+  bit?: number;
+  rescoreLimit?: number;
+  type: 'rq';
 };
 
 export type PQConfigCreate = QuantizerRecursivePartial<PQConfig>;
@@ -46,11 +59,55 @@ export type SQConfigUpdate = {
   type: 'sq';
 };
 
-export type VectorIndexConfigHNSWCreate = RecursivePartial<VectorIndexConfigHNSW>;
+export type UncompressedConfigCreate = QuantizerRecursivePartial<UncompressedConfig>;
 
-export type VectorIndexConfigDynamicCreate = RecursivePartial<VectorIndexConfigDynamic>;
+export type QuantizerConfigCreate =
+  | PQConfigCreate
+  | BQConfigCreate
+  | SQConfigCreate
+  | RQConfigCreate
+  | UncompressedConfigCreate
+  | Record<string, any>;
 
-export type VectorIndexConfigDymamicUpdate = RecursivePartial<VectorIndexConfigDynamic>;
+export type QuantizerConfigUpdate =
+  | PQConfigUpdate
+  | BQConfigUpdate
+  | SQConfigUpdate
+  | RQConfigUpdate
+  | Record<string, any>;
+
+export type MultiVectorConfigCreate = {
+  aggregation?: MultiVectorConfig['aggregation'];
+  encoding?: MultiVectorEncodingConfigCreate;
+};
+
+export type MuveraEncodingConfigCreate = RecursivePartial<MuveraEncodingConfig>;
+
+export type MultiVectorEncodingConfigCreate = MuveraEncodingConfigCreate;
+
+export type VectorIndexConfigHNSWCreate = RecursivePartial<Omit<VectorIndexConfigHNSW, 'quantizer'>> & {
+  quantizer?: QuantizerConfigCreate;
+};
+
+export type VectorIndexConfigHFreshCreate = RecursivePartial<Omit<VectorIndexConfigHFresh, 'quantizer'>> & {
+  quantizer?: QuantizerConfigCreate;
+};
+
+export type VectorIndexConfigDynamicCreate = RecursivePartial<
+  Omit<VectorIndexConfigDynamic, 'hnsw' | 'flat'>
+> & {
+  hnsw?: VectorIndexConfigHNSWCreate;
+  flat?: VectorIndexConfigFlatCreate;
+};
+
+/** @deprecated Contains typo, use [VectorIndexConfigDynamicUpdate]. */
+export type VectorIndexConfigDymamicUpdate = VectorIndexConfigDynamicUpdate;
+export type VectorIndexConfigDynamicUpdate = RecursivePartial<
+  Omit<VectorIndexConfigDynamic, 'hnsw' | 'flat' | 'distance'>
+> & {
+  hnsw?: VectorIndexConfigHNSWUpdate;
+  flat?: VectorIndexConfigFlatUpdate;
+};
 
 export type VectorIndexConfigHNSWUpdate = {
   dynamicEfMin?: number;
@@ -59,8 +116,14 @@ export type VectorIndexConfigHNSWUpdate = {
   ef?: number;
   filterStrategy?: VectorIndexFilterStrategy;
   flatSearchCutoff?: number;
-  quantizer?: PQConfigUpdate | BQConfigUpdate | SQConfigUpdate;
+  quantizer?: QuantizerConfigUpdate;
   vectorCacheMaxObjects?: number;
+};
+
+export type VectorIndexConfigHFreshUpdate = {
+  maxPostingSizeKb?: number;
+  searchProbe?: number;
+  quantizer?: QuantizerConfigUpdate;
 };
 
 export type VectorIndexConfigCreateType<I> = I extends 'hnsw'
@@ -69,14 +132,18 @@ export type VectorIndexConfigCreateType<I> = I extends 'hnsw'
   ? VectorIndexConfigFlatCreate | undefined
   : I extends 'dynamic'
   ? VectorIndexConfigDynamicCreate | undefined
+  : I extends 'hfresh'
+  ? VectorIndexConfigHFreshCreate | undefined
   : I extends string
   ? Record<string, any>
   : never;
 
-export type VectorIndexConfigFlatCreate = RecursivePartial<VectorIndexConfigFlat>;
+export type VectorIndexConfigFlatCreate = RecursivePartial<Omit<VectorIndexConfigFlat, 'quantizer'>> & {
+  quantizer?: QuantizerConfigCreate;
+};
 
 export type VectorIndexConfigFlatUpdate = {
-  quantizer?: BQConfigUpdate;
+  quantizer?: QuantizerConfigUpdate;
   vectorCacheMaxObjects?: number;
 };
 
@@ -84,13 +151,15 @@ export type VectorIndexConfigCreate =
   | VectorIndexConfigFlatCreate
   | VectorIndexConfigHNSWCreate
   | VectorIndexConfigDynamicCreate
+  | VectorIndexConfigHFreshCreate
   | Record<string, any>
   | undefined;
 
 export type VectorIndexConfigUpdate =
   | VectorIndexConfigFlatUpdate
   | VectorIndexConfigHNSWUpdate
-  | VectorIndexConfigDymamicUpdate
+  | VectorIndexConfigDynamicUpdate
+  | VectorIndexConfigHFreshUpdate
   | Record<string, any>
   | undefined;
 
@@ -99,7 +168,9 @@ export type VectorIndexConfigUpdateType<I> = I extends 'hnsw'
   : I extends 'flat'
   ? VectorIndexConfigFlatUpdate
   : I extends 'dynamic'
-  ? VectorIndexConfigDymamicUpdate
+  ? VectorIndexConfigDynamicUpdate
+  : I extends 'hfresh'
+  ? VectorIndexConfigHFreshUpdate
   : I extends string
   ? Record<string, any>
   : never;
@@ -130,8 +201,10 @@ export type VectorIndexConfigHNSWCreateOptions = {
   filterStrategy?: VectorIndexFilterStrategy;
   /** The maximum number of connections. Default is 64. */
   maxConnections?: number;
+  /** The multi-vector configuration to use. Use `vectorIndex.multiVector` to make one. */
+  multiVector?: MultiVectorConfigCreate;
   /** The quantizer configuration to use. Use `vectorIndex.quantizer.bq` or `vectorIndex.quantizer.pq` to make one. */
-  quantizer?: PQConfigCreate | BQConfigCreate | SQConfigCreate;
+  quantizer?: QuantizerConfigCreate;
   /** Whether to skip the index. Default is false. */
   skip?: boolean;
   /** The maximum number of objects to cache in the vector cache. Default is 1000000000000. */
@@ -144,7 +217,20 @@ export type VectorIndexConfigFlatCreateOptions = {
   /** The maximum number of objects to cache in the vector cache. Default is 1000000000000. */
   vectorCacheMaxObjects?: number;
   /** The quantizer configuration to use. Default is `bq`. */
-  quantizer?: BQConfigCreate;
+  quantizer?: QuantizerConfigCreate;
+};
+
+export type VectorIndexConfigHFreshCreateOptions = {
+  /** The distance metric to use. Default is 'cosine'. */
+  distanceMetric?: VectorDistance;
+  /** Maximum posting size in KB. Default is 48. */
+  maxPostingSizeKb?: number;
+  /** The number of times each vector is stored in the index. Default is 4. */
+  replicas?: number;
+  /** The number of postings read during each search. Default is 64. */
+  searchProbe?: number;
+  /** The quantizer configuration to use. Default is `bq`. */
+  quantizer?: QuantizerConfigCreate;
 };
 
 export type VectorIndexConfigDynamicCreateOptions = {

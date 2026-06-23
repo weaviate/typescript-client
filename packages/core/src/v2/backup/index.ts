@@ -6,7 +6,14 @@ import BackupRestorer from './backupRestorer.js';
 
 export type Backend = 'filesystem' | 's3' | 'gcs' | 'azure';
 export type BackupStatus = 'STARTED' | 'TRANSFERRING' | 'TRANSFERRED' | 'SUCCESS' | 'FAILED';
-export type BackupCompressionLevel = 'DefaultCompression' | 'BestSpeed' | 'BestCompression';
+export type BackupCompressionLevel =
+  | 'DefaultCompression'
+  | 'BestSpeed'
+  | 'BestCompression'
+  | 'ZstdBestSpeed'
+  | 'ZstdDefaultCompression'
+  | 'ZstdBestCompression'
+  | 'NoCompression';
 
 export interface Backup {
   creator: () => BackupCreator;

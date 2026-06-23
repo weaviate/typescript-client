@@ -20,6 +20,9 @@ export type BackupRestoreResponse = definitions['BackupRestoreResponse'];
 export type BackupRestoreStatusResponse = definitions['BackupRestoreStatusResponse'];
 export type BackupConfig = definitions['BackupConfig'];
 export type RestoreConfig = definitions['RestoreConfig'];
+export type WeaviateBackupStatus =
+  | BackupCreateStatusResponse['status']
+  | BackupRestoreStatusResponse['status'];
 // Batch
 export type BatchDelete = definitions['BatchDelete'];
 export type BatchDeleteResponse = definitions['BatchDeleteResponse'];
@@ -45,18 +48,21 @@ export type ShardStatus = definitions['ShardStatus'];
 export type ShardStatusList = definitions['ShardStatusList'];
 export type Tenant = definitions['Tenant'];
 export type TenantActivityStatus = Tenant['activityStatus'];
-export type SchemaClusterStatus = definitions['SchemaClusterStatus'];
 export type WeaviateModuleConfig = WeaviateClass['moduleConfig'];
 export type WeaviateInvertedIndexConfig = WeaviateClass['invertedIndexConfig'];
 export type WeaviateBM25Config = definitions['BM25Config'];
 export type WeaviateStopwordConfig = definitions['StopwordConfig'];
 export type WeaviateMultiTenancyConfig = WeaviateClass['multiTenancyConfig'];
+export type WeaviateObjectTTLConfig = WeaviateClass['objectTtlConfig'];
 export type WeaviateReplicationConfig = WeaviateClass['replicationConfig'];
 export type WeaviateShardingConfig = WeaviateClass['shardingConfig'];
 export type WeaviateShardStatus = definitions['ShardStatusGetResponse'];
 export type WeaviateVectorIndexConfig = WeaviateClass['vectorIndexConfig'];
 export type WeaviateVectorsConfig = WeaviateClass['vectorConfig'];
 export type WeaviateVectorConfig = definitions['VectorConfig'];
+export type WeaviateDropPropertyIndexName =
+  operations['schema.objects.properties.delete']['parameters']['path']['indexName'];
+export type WeaviateAsyncReplicationConfig = definitions['ReplicationAsyncConfig'];
 // Nodes
 export type NodesStatusResponse = definitions['NodesStatusResponse'];
 export type NodeStats = definitions['NodeStats'];
@@ -71,6 +77,25 @@ export type Action = definitions['Permission']['action'];
 export type WeaviateUser = definitions['UserOwnInfo'];
 export type WeaviateDBUser = definitions['DBUserInfo'];
 export type WeaviateUserType = definitions['UserTypeOutput'];
+export type WeaviateGroupType = definitions['GroupType'];
+export type WeaviateGroupAssignment = operations['getGroupsForRole']['responses']['200']['schema'][0];
 export type WeaviateUserTypeInternal = definitions['UserTypeInput'];
 export type WeaviateUserTypeDB = definitions['DBUserInfo']['dbUserType'];
 export type WeaviateAssignedUser = operations['getUsersForRole']['responses']['200']['schema'][0];
+// Cluster
+export type WeaviateShardingState = definitions['ReplicationShardingState'];
+export type WeaviateReplicationType = definitions['ReplicationReplicateDetailsReplicaResponse']['type'];
+export type WeaviateReplicateRequest = definitions['ReplicationReplicateReplicaRequest'];
+export type WeaviateReplicateResponse = definitions['ReplicationReplicateReplicaResponse'];
+export type WeaviateReplicationResponse = definitions['ReplicationReplicateDetailsReplicaResponse'];
+// Alias
+export type WeaviateAlias = definitions['Alias'];
+export type WeaviateAliasResponse = {
+  aliases?: Required<Exclude<definitions['AliasResponse']['aliases'], undefined>[0]>[] | undefined;
+};
+// Tokenize
+export type WeaviateTokenizeResponse = definitions['TokenizeResponse'];
+export type WeaviateTextAnalyzerConfig = definitions['TextAnalyzerConfig'];
+export type WeaviateTokenizeRequest = definitions['TokenizeRequest'];
+export type WeaviateTokenization = definitions['TokenizeRequest']['tokenization'];
+export type WeaviatePropertyTokenizeRequest = definitions['PropertyTokenizeRequest'];

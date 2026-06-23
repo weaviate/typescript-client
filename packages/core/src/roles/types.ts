@@ -1,6 +1,11 @@
-import { Action, WeaviateUserType } from '../openapi/types.js';
+import { Action, WeaviateGroupType, WeaviateUserType } from '../openapi/types.js';
 
+export type AliasAction = Extract<
+  Action,
+  'create_aliases' | 'read_aliases' | 'update_aliases' | 'delete_aliases'
+>;
 export type BackupsAction = Extract<Action, 'manage_backups'>;
+export type McpAction = Extract<Action, 'create_mcp' | 'read_mcp' | 'update_mcp'>;
 export type ClusterAction = Extract<Action, 'read_cluster'>;
 export type CollectionsAction = Extract<
   Action,
@@ -14,7 +19,12 @@ export type DataAction = Extract<
   Action,
   'create_data' | 'delete_data' | 'read_data' | 'update_data' | 'manage_data'
 >;
+export type GroupsAction = Extract<Action, 'read_groups' | 'assign_and_revoke_groups'>;
 export type NodesAction = Extract<Action, 'read_nodes'>;
+export type ReplicateAction = Extract<
+  Action,
+  'create_replicate' | 'read_replicate' | 'update_replicate' | 'delete_replicate'
+>;
 export type RolesAction = Extract<Action, 'create_roles' | 'read_roles' | 'update_roles' | 'delete_roles'>;
 export type TenantsAction = Extract<
   Action,
@@ -27,9 +37,24 @@ export type UserAssignment = {
   userType: WeaviateUserType;
 };
 
+export type GroupAssignment = {
+  groupID: string;
+  groupType: WeaviateGroupType;
+};
+
+export type AliasPermission = {
+  alias: string;
+  collection: string;
+  actions: AliasAction[];
+};
+
 export type BackupsPermission = {
   collection: string;
   actions: BackupsAction[];
+};
+
+export type McpPermission = {
+  actions: McpAction[];
 };
 
 export type ClusterPermission = {
@@ -47,10 +72,22 @@ export type DataPermission = {
   actions: DataAction[];
 };
 
+export type GroupsPermission = {
+  groupID: string;
+  groupType: WeaviateGroupType;
+  actions: GroupsAction[];
+};
+
 export type NodesPermission = {
   collection: string;
   verbosity: 'verbose' | 'minimal';
   actions: NodesAction[];
+};
+
+export type ReplicatePermission = {
+  collection: string;
+  shard: string;
+  actions: ReplicateAction[];
 };
 
 export type RolesPermission = {
@@ -71,22 +108,30 @@ export type UsersPermission = {
 
 export type Role = {
   name: string;
+  aliasPermissions: AliasPermission[];
   backupsPermissions: BackupsPermission[];
   clusterPermissions: ClusterPermission[];
   collectionsPermissions: CollectionsPermission[];
   dataPermissions: DataPermission[];
+  groupsPermissions: GroupsPermission[];
+  mcpPermissions: McpPermission[];
   nodesPermissions: NodesPermission[];
+  replicatePermissions: ReplicatePermission[];
   rolesPermissions: RolesPermission[];
   tenantsPermissions: TenantsPermission[];
   usersPermissions: UsersPermission[];
 };
 
 export type Permission =
+  | AliasPermission
   | BackupsPermission
   | ClusterPermission
   | CollectionsPermission
   | DataPermission
+  | GroupsPermission
+  | McpPermission
   | NodesPermission
+  | ReplicatePermission
   | RolesPermission
   | TenantsPermission
   | UsersPermission;

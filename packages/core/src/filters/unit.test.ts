@@ -1,9 +1,9 @@
-import { WhereFilter } from '@weaviate/core/openapi/types';
-import { CrossReference } from '@weaviate/core/references';
-import { Serialize } from '@weaviate/core/serialize';
-import maker, { FilterValue, Filters } from '@weaviate/core/filters';
-import { GeoRangeFilter } from '@weaviate/core/filters/types';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
+import { WhereFilter } from '../openapi/types.js';
+import { CrossReference } from '../references/index.js';
+import { Serialize } from '../serialize/index.js';
+import maker, { FilterValue, Filters } from './index.js';
+import { GeoRangeFilter } from './types.js';
 
 describe('Unit testing of filters', () => {
   type Person = {
@@ -26,7 +26,7 @@ describe('Unit testing of filters', () => {
       });
     });
 
-    it('should create a contains all filter with a primitive type', () => {
+    it('should create a contains all filter with an array type', () => {
       const f = filter.byProperty('name').containsAll(['John', 'Doe']);
       expect(f).toEqual<FilterValue<string[]>>({
         operator: 'ContainsAll',
@@ -48,7 +48,7 @@ describe('Unit testing of filters', () => {
       });
     });
 
-    it('should create a contains any filter with a primitive type', () => {
+    it('should create a contains any filter with an array type', () => {
       const f = filter.byProperty('name').containsAny(['John', 'Doe']);
       expect(f).toEqual<FilterValue<string[]>>({
         operator: 'ContainsAny',
@@ -63,6 +63,17 @@ describe('Unit testing of filters', () => {
       const f = filter.byProperty('friends').containsAny(['John', 'Doe']);
       expect(f).toEqual<FilterValue<string[]>>({
         operator: 'ContainsAny',
+        target: {
+          property: 'friends',
+        },
+        value: ['John', 'Doe'],
+      });
+    });
+
+    it('should create a contains none filter with an array type', () => {
+      const f = filter.byProperty('friends').containsNone(['John', 'Doe']);
+      expect(f).toEqual<FilterValue<string[]>>({
+        operator: 'ContainsNone',
         target: {
           property: 'friends',
         },
@@ -311,6 +322,36 @@ describe('Unit testing of filters', () => {
           },
         },
         value: now.toISOString(),
+      });
+    });
+
+    it('should create two filters through a single ref used multiple times', () => {
+      const f = filter.byRef('self');
+      const f1 = f.byProperty('name').equal('Jim');
+      const f2 = f.byProperty('name').equal('Bob');
+      expect(f1).toEqual<FilterValue<string>>({
+        operator: 'Equal',
+        target: {
+          singleTarget: {
+            on: 'self',
+            target: {
+              property: 'name',
+            },
+          },
+        },
+        value: 'Jim',
+      });
+      expect(f2).toEqual<FilterValue<string>>({
+        operator: 'Equal',
+        target: {
+          singleTarget: {
+            on: 'self',
+            target: {
+              property: 'name',
+            },
+          },
+        },
+        value: 'Bob',
       });
     });
 
@@ -890,6 +931,21 @@ describe('Unit testing of filters', () => {
             operator: 'Equal',
             path: ['age'],
             valueInt: 18,
+          },
+        ],
+      });
+    });
+
+    it('should map a NOT filter', () => {
+      const f = Filters.not(filter.byProperty('name').equal('John'));
+      const s = Serialize.filtersREST(f);
+      expect(s).toEqual<WhereFilter>({
+        operator: 'Not',
+        operands: [
+          {
+            operator: 'Equal',
+            path: ['name'],
+            valueText: 'John',
           },
         ],
       });

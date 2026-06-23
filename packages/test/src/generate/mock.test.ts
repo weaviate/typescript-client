@@ -1,7 +1,4 @@
-import express from 'express';
-import { Server as HttpServer } from 'http';
-import { Server as GrpcServer, createServer } from 'nice-grpc';
-import weaviate, { Collection, GenerativeConfigRuntime, WeaviateClient } from '@weaviate/node';
+import { generativeParameters } from '@weaviate/core/generate/config';
 import {
   HealthCheckRequest,
   HealthCheckResponse,
@@ -12,7 +9,10 @@ import {
 import { GenerativeResult } from '@weaviate/core/proto/v1/generative';
 import { SearchReply, SearchRequest, SearchResult } from '@weaviate/core/proto/v1/search_get';
 import { WeaviateDefinition, WeaviateServiceImplementation } from '@weaviate/core/proto/v1/weaviate';
-import { generativeParameters } from '@weaviate/core/generate/config';
+import weaviate, { Collection, GenerativeConfigRuntime, WeaviateClient } from '@weaviate/node';
+import express from 'express';
+import { Server as HttpServer } from 'http';
+import { Server as GrpcServer, createServer } from 'nice-grpc';
 import { afterAll, beforeAll, describe, expect, it, vitest } from 'vitest';
 
 const mockedSingleGenerative = 'Mocked single response';
@@ -80,6 +80,8 @@ class GenerateMock {
       },
       batchDelete: vitest.fn(),
       batchObjects: vitest.fn(),
+      batchReferences: vitest.fn(),
+      batchStream: vitest.fn(),
     };
     grpc.add(WeaviateDefinition, weaviateMockImpl);
 
@@ -145,6 +147,8 @@ describe('Mock testing of generate with runtime config', () => {
     generativeParameters.azureOpenAI(model),
     generativeParameters.cohere(),
     generativeParameters.cohere(model),
+    generativeParameters.contextualai(),
+    generativeParameters.contextualai(model),
     generativeParameters.databricks(),
     generativeParameters.databricks(model),
     generativeParameters.friendliai(),

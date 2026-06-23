@@ -1,21 +1,26 @@
 import {
+  AsyncReplicationConfig,
+  ReplicationDeletionStrategy,
+  VectorIndexType,
+} from '../config/types/index.js';
+import {
   InvertedIndexConfigCreate,
   InvertedIndexConfigUpdate,
   MultiTenancyConfigCreate,
   MultiTenancyConfigUpdate,
+  ObjectTTLConfigCreate,
+  ObjectTTLConfigUpdate,
   ReplicationConfigCreate,
   ReplicationConfigUpdate,
-  ReplicationDeletionStrategy,
   ShardingConfigCreate,
   VectorConfigUpdate,
-  VectorIndexType,
   VectorizerUpdateOptions,
-} from '../types/index.js';
+} from './types/index.js';
 
 import generative from './generative.js';
 import reranker from './reranker.js';
 import { configure as configureVectorIndex, reconfigure as reconfigureVectorIndex } from './vectorIndex.js';
-import { vectorizer } from './vectorizer.js';
+import { multiVectors, vectorizer, vectors } from './vectorizer.js';
 
 import { parseWithDefault } from './parsing.js';
 
@@ -35,6 +40,7 @@ const dataType = {
   OBJECT: 'object' as const,
   OBJECT_ARRAY: 'object[]' as const,
   BLOB: 'blob' as const,
+  BLOBHASH: 'blobHash' as const,
   GEO_COORDINATES: 'geoCoordinates' as const,
   PHONE_NUMBER: 'phoneNumber' as const,
 };
@@ -58,8 +64,13 @@ const vectorDistances = {
 
 const configure = {
   generative,
+  multiVectors,
   reranker,
-  vectorizer,
+  /**
+   * @deprecated Use `configure.vectors` instead.
+   */
+  vectorizer: vectorizer,
+  vectors,
   vectorIndex: configureVectorIndex,
   dataType,
   tokenization,
@@ -78,6 +89,7 @@ const configure = {
    * @param {'en' | 'none'} [options.stopwordsPreset] The stopwords preset to use.
    * @param {string[]} [options.stopwordsAdditions] Additional stopwords to add.
    * @param {string[]} [options.stopwordsRemovals] Stopwords to remove.
+   * @param {{ [presetName: string]: string[] }} [options.stopwordPresets] User-defined named stopword lists, referenced by name from a property's `textAnalyzer.stopwordPreset`. Requires Weaviate >= 1.37.2.
    */
   invertedIndex: (options: {
     bm25b?: number;
@@ -89,6 +101,7 @@ const configure = {
     stopwordsPreset?: 'en' | 'none';
     stopwordsAdditions?: string[];
     stopwordsRemovals?: string[];
+    stopwordPresets?: { [presetName: string]: string[] };
   }): InvertedIndexConfigCreate => {
     return {
       bm25:
@@ -110,7 +123,41 @@ const configure = {
               removals: options.stopwordsRemovals,
             }
           : undefined,
+      stopwordPresets: options.stopwordPresets,
     };
+  },
+  objectTTL: {
+    deleteByCreationTime: (options: {
+      defaultTTLSeconds: number;
+      filterExpiredObjects?: boolean;
+    }): ObjectTTLConfigCreate => {
+      return {
+        enabled: true,
+        deleteOn: '_creationTimeUnix',
+        ...options,
+      };
+    },
+    deleteByUpdateTime: (options: {
+      defaultTTLSeconds: number;
+      filterExpiredObjects?: boolean;
+    }): ObjectTTLConfigCreate => {
+      return {
+        enabled: true,
+        deleteOn: '_lastUpdateTimeUnix',
+        ...options,
+      };
+    },
+    deleteByDateProperty: (options: {
+      property: string;
+      defaultTTLSeconds?: number;
+      filterExpiredObjects?: boolean;
+    }): ObjectTTLConfigCreate => {
+      return {
+        enabled: true,
+        deleteOn: options.property,
+        ...options,
+      };
+    },
   },
   /**
    * Create a `MultiTenancyConfigCreate` object to be used when defining the multi-tenancy configuration of your collection.
@@ -140,11 +187,13 @@ const configure = {
    * See [the docs](https://weaviate.io/developers/weaviate/concepts/replication-architecture#replication-vs-sharding) for more details.
    *
    * @param {boolean} [options.asyncEnabled] Whether asynchronous replication is enabled. Default is false.
+   * @param {AsyncReplicationConfig} [options.asyncConfig] The asynchronous replication configuration.
    * @param {ReplicationDeletionStrategy} [options.deletionStrategy] The deletion strategy when replication conflicts are detected between deletes and reads.
    * @param {number} [options.factor] The replication factor. Default is 1.
    */
   replication: (options: {
     asyncEnabled?: boolean;
+    asyncConfig?: AsyncReplicationConfig;
     deletionStrategy?: ReplicationDeletionStrategy;
     factor?: number;
   }): ReplicationConfigCreate => {
@@ -152,6 +201,7 @@ const configure = {
       asyncEnabled: options.asyncEnabled,
       deletionStrategy: options.deletionStrategy,
       factor: options.factor,
+      asyncConfig: options.asyncConfig,
     };
   },
   /**
@@ -191,6 +241,7 @@ const reconfigure = {
    * @param {'en' | 'none'} [options.stopwordsPreset] The stopwords preset to use.
    * @param {string[]} [options.stopwordsAdditions] Additional stopwords to add.
    * @param {string[]} [options.stopwordsRemovals] Stopwords to remove.
+   * @param {{ [presetName: string]: string[] }} [options.stopwordPresets] User-defined named stopword lists, referenced by name from a property's `textAnalyzer.stopwordPreset`. Requires Weaviate >= 1.37.2.
    */
   invertedIndex: (options: {
     bm25b?: number;
@@ -199,6 +250,7 @@ const reconfigure = {
     stopwordsPreset?: 'en' | 'none';
     stopwordsAdditions?: string[];
     stopwordsRemovals?: string[];
+    stopwordPresets?: { [presetName: string]: string[] };
   }): InvertedIndexConfigUpdate => {
     return {
       bm25:
@@ -217,9 +269,29 @@ const reconfigure = {
               removals: options.stopwordsRemovals,
             }
           : undefined,
+      stopwordPresets: options.stopwordPresets,
     };
   },
+  /**
+   * @deprecated Use `vectors` instead.
+   */
   vectorizer: {
+    /**
+     * Create a `VectorConfigUpdate` object to be used when updating the named vector configuration of Weaviate.
+     *
+     * @param {string} name The name of the vector.
+     * @param {VectorizerOptions} options The options for the named vector.
+     */
+    update: <N extends string | undefined, I extends VectorIndexType>(
+      options: VectorizerUpdateOptions<N, I>
+    ): VectorConfigUpdate<N, I> => {
+      return {
+        name: options?.name as N,
+        vectorIndex: options.vectorIndexConfig,
+      };
+    },
+  },
+  vectors: {
     /**
      * Create a `VectorConfigUpdate` object to be used when updating the named vector configuration of Weaviate.
      *
@@ -241,11 +313,13 @@ const reconfigure = {
    * See [the docs](https://weaviate.io/developers/weaviate/concepts/replication-architecture#replication-vs-sharding) for more details.
    *
    * @param {boolean} [options.asyncEnabled] Whether to enable asynchronous replication.
+   * @param {AsyncReplicationConfig} [options.asyncConfig] The asynchronous replication configuration to update.
    * @param {ReplicationDeletionStrategy} [options.deletionStrategy] The deletion strategy to update when replication conflicts are detected between deletes and reads.
    * @param {number} [options.factor] The replication factor to update.
    */
   replication: (options: {
     asyncEnabled?: boolean;
+    asyncConfig?: AsyncReplicationConfig;
     deletionStrategy?: ReplicationDeletionStrategy;
     factor?: number;
   }): ReplicationConfigUpdate => {
@@ -253,6 +327,7 @@ const reconfigure = {
       asyncEnabled: options.asyncEnabled,
       deletionStrategy: options.deletionStrategy,
       factor: options.factor,
+      asyncConfig: options.asyncConfig,
     };
   },
   /**
@@ -273,6 +348,39 @@ const reconfigure = {
       autoTenantCreation: options.autoTenantCreation,
     };
   },
+  objectTTL: {
+    disable: (): ObjectTTLConfigUpdate => {
+      return { enabled: false };
+    },
+    deleteByCreationTime: (options: {
+      defaultTTLSeconds: number;
+      filterExpiredObjects?: boolean;
+    }): ObjectTTLConfigUpdate => {
+      return {
+        deleteOn: '_creationTimeUnix',
+        ...options,
+      };
+    },
+    deleteByUpdateTime: (options: {
+      defaultTTLSeconds: number;
+      filterExpiredObjects?: boolean;
+    }): ObjectTTLConfigUpdate => {
+      return {
+        deleteOn: '_lastUpdateTimeUnix',
+        ...options,
+      };
+    },
+    deleteByDateProperty: (options: {
+      propertyName: string;
+      defaultTTLSeconds?: number;
+      filterExpiredObjects?: boolean;
+    }): ObjectTTLConfigUpdate => {
+      return {
+        deleteOn: options.propertyName,
+        ...options,
+      };
+    },
+  },
   generative: configure.generative,
   reranker: configure.reranker,
 };
@@ -281,10 +389,12 @@ export {
   configure,
   dataType,
   generative,
+  multiVectors,
   reconfigure,
   reranker,
   tokenization,
   vectorDistances,
   configureVectorIndex as vectorIndex,
   vectorizer,
+  vectors,
 };

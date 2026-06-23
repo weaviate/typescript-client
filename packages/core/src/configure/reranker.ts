@@ -1,6 +1,7 @@
 import {
   ModuleConfig,
   RerankerCohereConfig,
+  RerankerContextualAIConfig,
   RerankerJinaAIConfig,
   RerankerNvidiaConfig,
   RerankerVoyageAIConfig,
@@ -20,6 +21,22 @@ export default {
   ): ModuleConfig<'reranker-cohere', RerankerCohereConfig | undefined> => {
     return {
       name: 'reranker-cohere',
+      config: config,
+    };
+  },
+  /**
+   * Create a `ModuleConfig<'reranker-contextualai', RerankerContextualAIConfig>` object for use when reranking using the `reranker-contextualai` module.
+   *
+   * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/contextualai/reranker) for detailed usage.
+   *
+   * @param {RerankerContextualAIConfig} [config] The configuration for the `reranker-contextualai` module.
+   * @returns {ModuleConfig<'reranker-contextualai', RerankerContextualAIConfig | undefined>} The configuration object.
+   */
+  contextualai: (
+    config?: RerankerContextualAIConfig
+  ): ModuleConfig<'reranker-contextualai', RerankerContextualAIConfig | undefined> => {
+    return {
+      name: 'reranker-contextualai',
       config: config,
     };
   },

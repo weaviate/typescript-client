@@ -174,3 +174,9 @@ export class WeaviateUnauthenticatedError extends WeaviateError {
     super(`Unauthenticated: ${message}`);
   }
 }
+
+export class WeaviateBatchStreamError extends WeaviateError {
+  constructor(message: string) {
+    super(`Batch stream failed with message: ${message}`);
+  }
+}

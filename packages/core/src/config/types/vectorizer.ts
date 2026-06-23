@@ -19,12 +19,16 @@ type Text2VecPalmVectorizer = 'text2vec-palm';
 
 export type Vectorizer =
   | 'img2vec-neural'
+  | 'multi2vec-nvidia'
   | 'multi2vec-clip'
   | 'multi2vec-cohere'
   | 'multi2vec-bind'
   | Multi2VecPalmVectorizer
   | 'multi2vec-google'
+  | 'multi2vec-google-gemini'
   | 'multi2vec-jinaai'
+  | 'multi2multivec-jinaai'
+  | 'multi2multivec-weaviate'
   | 'multi2vec-voyageai'
   | 'ref2vec-centroid'
   | 'text2vec-aws'
@@ -36,14 +40,19 @@ export type Vectorizer =
   | 'text2vec-huggingface'
   | 'text2vec-jinaai'
   | 'text2vec-nvidia'
+  | 'text2vec-digitalocean'
   | 'text2vec-mistral'
+  | 'text2vec-model2vec'
+  | 'text2vec-morph'
   | 'text2vec-ollama'
   | 'text2vec-openai'
   | Text2VecPalmVectorizer
   | 'text2vec-google'
+  | 'text2vec-google-gemini'
   | 'text2vec-transformers'
   | 'text2vec-voyageai'
   | 'text2vec-weaviate'
+  | 'text2multivec-jinaai'
   | 'none';
 
 /** The configuration for image vectorization using a neural network module.
@@ -61,6 +70,56 @@ export type Multi2VecField = {
   name: string;
   /** The weight of the field when performing multi-media vectorization. */
   weight?: number;
+};
+
+/** The configuration for multi-media vectorization using the NVIDIA module.
+ *
+ * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/nvidia/embeddings-multimodal) for detailed usage.
+ */
+export type Multi2VecNvidiaConfig = {
+  /** The model to use. Defaults to `None`, which uses the server-defined default. */
+  model?: string;
+  /** The base URL where API requests should go. */
+  baseURL?: string;
+  /** Whether to apply truncation. */
+  truncation?: boolean;
+  /** Format in which the embeddings are encoded. Defaults to `None`, so the embeddings are represented as a list of floating-point numbers. */
+  output_encoding?: string;
+  /** The image fields used when vectorizing. */
+  imageFields?: string[];
+  /** The text fields used when vectorizing. */
+  textFields?: string[];
+  /** The weights of the fields used for vectorization. */
+  weights?: {
+    /** The weights of the image fields. */
+    imageFields?: number[];
+    /** The weights of the text fields. */
+    textFields?: number[];
+  };
+};
+
+/** The configuration for multi-media vectorization using the AWS module.
+ *
+ * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/aws/embeddings-multimodal) for detailed usage.
+ */
+export type Multi2VecAWSConfig = {
+  /** The dimensionality of the vector once embedded. */
+  dimensions?: number;
+  /** The model to use. */
+  model?: string;
+  /** The AWS region where the model runs. */
+  region?: string;
+  /** The image fields used when vectorizing. */
+  imageFields?: string[];
+  /** The text fields used when vectorizing. */
+  textFields?: string[];
+  /** The weights of the fields used for vectorization. */
+  weights?: {
+    /** The weights of the image fields. */
+    imageFields?: number[];
+    /** The weights of the text fields. */
+    textFields?: number[];
+  };
 };
 
 /** The configuration for multi-media vectorization using the CLIP module.
@@ -97,6 +156,8 @@ export type Multi2VecCohereConfig = {
   imageFields?: string[];
   /** The specific model to use. */
   model?: string;
+  /** The number of dimensions for the generated embeddings. */
+  dimensions?: number;
   /** The text fields used when vectorizing. */
   textFields?: string[];
   /** The truncation strategy to use. */
@@ -161,9 +222,11 @@ export type Multi2VecPalmConfig = Multi2VecGoogleConfig;
  */
 export type Multi2VecGoogleConfig = {
   /** The project ID of the model in GCP. */
-  projectId: string;
+  projectId?: string;
   /** The location where the model runs. */
-  location: string;
+  location?: string;
+  /** The base URL for the vectorizer. */
+  apiEndpoint?: string;
   /** The image fields used when vectorizing. */
   imageFields?: string[];
   /** The text fields used when vectorizing. */
@@ -173,6 +236,9 @@ export type Multi2VecGoogleConfig = {
   /** Length of a video interval in seconds. */
   videoIntervalSeconds?: number;
   /** The model ID in use. */
+  model?: string;
+  /** The model ID in use.
+   * @deprecated Use `model` instead.*/
   modelId?: string;
   /** The dimensionality of the vector once embedded. */
   dimensions?: number;
@@ -187,6 +253,44 @@ export type Multi2VecGoogleConfig = {
     /** The weights of the video fields. */
     videoFields?: number[];
   };
+};
+
+/** The configuration for multi-media vectorization using the Google module with Gemini API settings.
+ *
+ * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/google/embeddings) for detailed usage.
+ */
+export type Multi2VecGoogleGeminiConfig = Omit<
+  Multi2VecGoogleConfig,
+  'location' | 'projectId' | 'apiEndpoint'
+>;
+
+/** The configuration for multi-media-to-multi-vector vectorization using
+ * the jina-embeddings-v4 model
+ *
+ * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/jinaai/embeddings-multimodal) for detailed usage.
+ */
+export type Multi2MultivecJinaAIConfig = {
+  /** The image fields used when vectorizing. */
+  imageFields?: string[];
+
+  /** The text fields used when vectorizing. */
+  textFields?: string[];
+};
+
+/** The configuration for multi-media-to-multi-vector vectorization using
+ * the ModernVBERT/colmodernvbert model
+ *
+ * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/weaviate/embeddings-multimodal) for detailed usage.
+ */
+export type Multi2MultivecWeaviateConfig = {
+  /** The base URL to use where API requests should go. */
+  baseURL?: string;
+
+  /** The model to use. */
+  model?: 'ModernVBERT/colmodernvbert' | string;
+
+  /** The image fields used when vectorizing. */
+  imageFields?: string[];
 };
 
 /** The configuration for multi-media vectorization using the Jina module.
@@ -204,7 +308,11 @@ export type Multi2VecJinaAIConfig = {
   model?: string;
   /** The text fields used when vectorizing. */
   textFields?: string[];
-  /** Whether the collection name is vectorized. */
+  /**
+   * Whether the collection name is vectorized.
+   *
+   * @deprecated This parameter is not applicable and has no effect on the underlying module.
+   * */
   vectorizeCollectionName?: boolean;
   /** The weights of the fields used for vectorization. */
   weights?: {
@@ -217,15 +325,17 @@ export type Multi2VecJinaAIConfig = {
 
 /** The configuration for multi-media vectorization using the VoyageAI module.
  *
- * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/transformers/embeddings-multimodal) for detailed usage.
+ * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/voyageai/embeddings-multimodal) for detailed usage.
  */
 export type Multi2VecVoyageAIConfig = {
   /** The base URL to use where API requests should go. */
   baseURL?: string;
+  /** The dimensionality of the vector once embedded. Supported values: 256, 512, 1024 (default), 2048. */
+  dimensions?: number;
   /** The image fields used when vectorizing. */
   imageFields?: string[];
   /** The model to use. */
-  model?: string;
+  model?: 'voyage-multimodal-3' | 'voyage-multimodal-3.5' | string;
   /** How the output from the model should be encoded on return. */
   outputEncoding?: string;
   /** The text fields used when vectorizing. */
@@ -234,12 +344,16 @@ export type Multi2VecVoyageAIConfig = {
   truncate?: boolean;
   /** Whether the collection name is vectorized. */
   vectorizeCollectionName?: boolean;
+  /** The video fields used when vectorizing. */
+  videoFields?: string[];
   /** The weights of the fields used for vectorization. */
   weights?: {
     /** The weights of the image fields. */
     imageFields?: number[];
     /** The weights of the text fields. */
     textFields?: number[];
+    /** The weights of the video fields. */
+    videoFields?: number[];
   };
 };
 
@@ -295,6 +409,8 @@ export type Text2VecCohereConfig = {
   baseURL?: string;
   /** The model to use. */
   model?: string;
+  /** The number of dimensions for the generated embeddings. */
+  dimensions?: number;
   /** Whether to truncate the input texts to fit within the context length. */
   truncate?: boolean;
   /** Whether to vectorize the collection name. */
@@ -365,6 +481,17 @@ export type Text2VecJinaAIConfig = {
   vectorizeCollectionName?: boolean;
 };
 
+/** The configuration for text vectorization using the Jina AI multi-vector module.
+ *
+ * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/jinaai/embeddings-colbert) for detailed usage.
+ */
+export type Text2MultiVecJinaAIConfig = {
+  /** The dimensionality of the multi-vector. */
+  dimensions?: number;
+  /** The model to use. */
+  model?: string;
+};
+
 /** @deprecated Use `Text2VecJinaAIConfig` instead. */
 export type Text2VecJinaConfig = Text2VecJinaAIConfig;
 
@@ -394,6 +521,20 @@ export type Text2VecMistralConfig = {
   baseURL?: string;
   /** The model to use. */
   model?: 'mistral-embed' | string;
+  /** Whether to vectorize the collection name. */
+  vectorizeCollectionName?: boolean;
+};
+
+/**
+ * The configuration for text vectorization using the DigitalOcean module.
+ *
+ * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/digitalocean/embeddings) for detailed usage.
+ */
+export type Text2VecDigitalOceanConfig = {
+  /** The base URL to use where API requests should go. Defaults to `https://inference.do-ai.run` on the server. */
+  baseURL?: string;
+  /** The model to use, e.g. `qwen3-embedding-0.6b`. Required by the server. */
+  model: string;
   /** Whether to vectorize the collection name. */
   vectorizeCollectionName?: boolean;
 };
@@ -443,7 +584,12 @@ export type Text2VecPalmConfig = Text2VecGoogleConfig;
 export type Text2VecGoogleConfig = {
   /** The API endpoint to use without a leading scheme such as `http://`. */
   apiEndpoint?: string;
+  /** The dimensionality of the vector once embedded. */
+  dimensions?: number;
   /** The model ID to use. */
+  model?: string;
+  /** The model ID to use.
+   * @deprecated Use `model `instead.*/
   modelId?: string;
   /** The project ID to use. */
   projectId?: string;
@@ -453,12 +599,24 @@ export type Text2VecGoogleConfig = {
   vectorizeCollectionName?: boolean;
 };
 
+/** @deprecated Use [Text2VecGoogleGeminiConfig]. */
+export type Text2VecGoogleAiStudioConfig = Text2VecGoogleGeminiConfig;
+
+export type Text2VecGoogleGeminiConfig = {
+  /** The model ID to use. */
+  model?: string;
+  /** The Weaviate property name for the `gecko-002` or `gecko-003` model to use as the title. */
+  titleProperty?: string;
+};
+
 /**
  * The configuration for text vectorization using the Transformers module.
  *
  * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/transformers/embeddings) for detailed usage.
  */
 export type Text2VecTransformersConfig = {
+  /** The number of dimensions for the generated embeddings. */
+  dimensions?: number;
   /** The inference url to use where API requests should go. You can use either this OR (`passage_inference_url` & `query_inference_url`). */
   inferenceUrl?: string;
   /** The inference url to use where passage API requests should go. You can use either (this AND query_inference_url) OR `inference_url`. */
@@ -485,6 +643,8 @@ export type Text2VecVoyageAIConfig = {
   truncate?: boolean;
   /** Whether to vectorize the collection name. */
   vectorizeCollectionName?: boolean;
+  /** The number of dimensions for the generated embeddings. */
+  dimensions?: number;
 };
 
 /**
@@ -503,14 +663,35 @@ export type Text2VecWeaviateConfig = {
   vectorizeCollectionName?: boolean;
 };
 
+/**
+ * The configuration for text vectorization using the Model2Vec module.
+ */
+export type Text2VecModel2Vec = {
+  /** The URL to use where API requests should go. */
+  inferenceURL?: string;
+  /** Whether to vectorize the collection name. */
+  vectorizeCollectionName?: boolean;
+};
+
+export type Text2VecMorphConfig = {
+  /** The base URL to use where API requests should go. */
+  baseURL?: string;
+  /** The model to use. */
+  model?: string;
+};
+
 export type NoVectorizerConfig = {};
 
 export type VectorizerConfig =
   | Img2VecNeuralConfig
+  | Multi2VecAWSConfig
   | Multi2VecClipConfig
   | Multi2VecBindConfig
   | Multi2VecGoogleConfig
+  | Multi2VecGoogleGeminiConfig
   | Multi2VecJinaAIConfig
+  | Multi2MultivecJinaAIConfig
+  | Multi2MultivecWeaviateConfig
   | Multi2VecPalmConfig
   | Multi2VecVoyageAIConfig
   | Ref2VecCentroidConfig
@@ -522,6 +703,7 @@ export type VectorizerConfig =
   | Text2VecGoogleConfig
   | Text2VecGPT4AllConfig
   | Text2VecHuggingFaceConfig
+  | Text2VecModel2Vec
   | Text2VecJinaAIConfig
   | Text2VecOpenAIConfig
   | Text2VecPalmConfig
@@ -532,6 +714,8 @@ export type VectorizerConfig =
 
 export type VectorizerConfigType<V> = V extends 'img2vec-neural'
   ? Img2VecNeuralConfig | undefined
+  : V extends 'multi2vec-nvidia'
+  ? Multi2VecNvidiaConfig | undefined
   : V extends 'multi2vec-clip'
   ? Multi2VecClipConfig | undefined
   : V extends 'multi2vec-cohere'
@@ -540,8 +724,14 @@ export type VectorizerConfigType<V> = V extends 'img2vec-neural'
   ? Multi2VecBindConfig | undefined
   : V extends 'multi2vec-google'
   ? Multi2VecGoogleConfig
+  : V extends 'multi2vec-google-gemini'
+  ? Multi2VecGoogleGeminiConfig
   : V extends 'multi2vec-jinaai'
   ? Multi2VecJinaAIConfig | undefined
+  : V extends 'multi2multivec-jinaai'
+  ? Multi2MultivecJinaAIConfig | undefined
+  : V extends 'multi2multivec-weaviate'
+  ? Multi2MultivecWeaviateConfig | undefined
   : V extends Multi2VecPalmVectorizer
   ? Multi2VecPalmConfig
   : V extends 'multi2vec-voyageai'
@@ -566,8 +756,14 @@ export type VectorizerConfigType<V> = V extends 'img2vec-neural'
   ? Text2VecJinaAIConfig | undefined
   : V extends 'text2vec-nvidia'
   ? Text2VecNvidiaConfig | undefined
+  : V extends 'text2vec-digitalocean'
+  ? Text2VecDigitalOceanConfig | undefined
   : V extends 'text2vec-mistral'
   ? Text2VecMistralConfig | undefined
+  : V extends 'text2vec-model2vec'
+  ? Text2VecModel2Vec | undefined
+  : V extends 'text2vec-morph'
+  ? Text2VecMorphConfig | undefined
   : V extends 'text2vec-ollama'
   ? Text2VecOllamaConfig | undefined
   : V extends 'text2vec-openai'
@@ -582,6 +778,8 @@ export type VectorizerConfigType<V> = V extends 'img2vec-neural'
   ? Text2VecVoyageAIConfig | undefined
   : V extends 'text2vec-weaviate'
   ? Text2VecWeaviateConfig | undefined
+  : V extends 'text2multivec-jinaai'
+  ? Text2MultiVecJinaAIConfig | undefined
   : V extends 'none'
   ? {}
   : V extends undefined

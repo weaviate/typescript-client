@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { WeaviateUnsupportedFeatureError } from '@weaviate/core/errors';
-import weaviate, { WeaviateClient, Collection } from '@weaviate/node';
+import weaviate, { Collection, WeaviateClient } from '@weaviate/node';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 describe('Testing of the collection.tenants methods', () => {
@@ -177,5 +177,18 @@ describe('Testing of the collection.tenants methods', () => {
     );
     expect(Object.entries(updated).length).toBe(howMany);
     expect(Object.values(updated).every((tenant) => tenant.activityStatus === 'INACTIVE')).toBe(true);
+  });
+
+  it('should be able to deactivate and activate a tenant using helper methods', async () => {
+    const tenantName = 'hot';
+    await collection.tenants
+      .deactivate(tenantName)
+      .then(() => collection.tenants.get())
+      .then((tenants) => expect(tenants[tenantName].activityStatus).toBe('INACTIVE'));
+
+    await collection.tenants
+      .activate([tenantName])
+      .then(() => collection.tenants.get())
+      .then((tenants) => expect(tenants[tenantName].activityStatus).toBe('ACTIVE'));
   });
 });

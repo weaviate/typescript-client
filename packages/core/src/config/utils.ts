@@ -1,29 +1,24 @@
-import { QuantizerGuards } from '../configure/parsing.js';
+import { MultiVectorEncodingGuards, QuantizerGuards, VectorIndexGuards } from '../configure/parsing.js';
 import {
   PropertyConfigCreate,
   ReferenceConfigCreate,
   ReferenceMultiTargetConfigCreate,
   ReferenceSingleTargetConfigCreate,
   VectorIndexConfigCreate,
-  VectorIndexConfigDynamicCreate,
   VectorIndexConfigFlatCreate,
   VectorIndexConfigHNSWCreate,
   VectorizersConfigAdd,
   VectorizersConfigCreate,
 } from '../configure/types/index.js';
+import { WeaviateDeserializationError, WeaviateInvalidInputError } from '../errors.js';
 import {
-  WeaviateDeserializationError,
-  WeaviateInvalidInputError,
-  WeaviateUnsupportedFeatureError,
-} from '../errors.js';
-import {
-  Properties,
   WeaviateBM25Config,
   WeaviateClass,
   WeaviateInvertedIndexConfig,
   WeaviateModuleConfig,
   WeaviateMultiTenancyConfig,
   WeaviateNestedProperty,
+  WeaviateObjectTTLConfig,
   WeaviateProperty,
   WeaviateReplicationConfig,
   WeaviateShardingConfig,
@@ -31,7 +26,6 @@ import {
   WeaviateVectorIndexConfig,
   WeaviateVectorsConfig,
 } from '../openapi/types.js';
-import { DbVersionSupport } from '../utils/dbVersion.js';
 import {
   BQConfig,
   CollectionConfig,
@@ -40,28 +34,78 @@ import {
   InvertedIndexConfig,
   ModuleConfig,
   MultiTenancyConfig,
+  MultiVectorConfig,
+  MultiVectorEncodingConfig,
+  ObjectTTLConfig,
   PQConfig,
   PQEncoderConfig,
   PQEncoderDistribution,
   PQEncoderType,
   PropertyConfig,
   PropertyVectorizerConfig,
+  QuantizerConfig,
+  RQConfig,
   ReferenceConfig,
   ReplicationConfig,
   Reranker,
   RerankerConfig,
   SQConfig,
   ShardingConfig,
+  TextAnalyzerConfig,
   VectorConfig,
   VectorDistance,
   VectorIndexConfigDynamic,
   VectorIndexConfigFlat,
+  VectorIndexConfigHFresh,
   VectorIndexConfigHNSW,
   VectorIndexConfigType,
   VectorIndexFilterStrategy,
   VectorIndexType,
   VectorizerConfig,
 } from './types/index.js';
+
+/**
+ * Translates the user-facing `TextAnalyzerConfig` (with the ergonomic
+ * `asciiFold: boolean | { ignore: string[] }` union) into the flat wire
+ * shape Weaviate's REST API expects (`asciiFold: boolean`,
+ * `asciiFoldIgnore: string[]`, `stopwordPreset: string`).
+ */
+export const textAnalyzerConfigToWire = (
+  config?: TextAnalyzerConfig
+): { asciiFold?: boolean; asciiFoldIgnore?: string[]; stopwordPreset?: string } | undefined => {
+  if (config == undefined) return undefined;
+  const out: { asciiFold?: boolean; asciiFoldIgnore?: string[]; stopwordPreset?: string } = {
+    stopwordPreset: config.stopwordPreset,
+  };
+  if (typeof config.asciiFold === 'boolean') {
+    out.asciiFold = config.asciiFold;
+  } else if (typeof config.asciiFold === 'object') {
+    out.asciiFold = true;
+    out.asciiFoldIgnore = config.asciiFold.ignore;
+  }
+  return out;
+};
+
+/**
+ * Inverse of `textAnalyzerConfigToWire`: translates the server-returned flat
+ * shape back into the user-facing union form so values round-trip cleanly
+ * through `client.collections.create({...})` → `collection.config.get()`.
+ */
+export const textAnalyzerConfigFromWire = (wire?: {
+  asciiFold?: boolean;
+  asciiFoldIgnore?: string[];
+  stopwordPreset?: string;
+}): TextAnalyzerConfig | undefined => {
+  if (wire == undefined) return undefined;
+  const out: TextAnalyzerConfig = {};
+  if (wire.stopwordPreset != undefined) out.stopwordPreset = wire.stopwordPreset;
+  if (wire.asciiFoldIgnore && wire.asciiFoldIgnore.length > 0) {
+    out.asciiFold = { ignore: wire.asciiFoldIgnore };
+  } else if (typeof wire.asciiFold === 'boolean') {
+    out.asciiFold = wire.asciiFold;
+  }
+  return Object.keys(out).length === 0 ? undefined : out;
+};
 
 export class ReferenceTypeGuards {
   static isSingleTarget<T>(ref: ReferenceConfigCreate<T>): ref is ReferenceSingleTargetConfigCreate<T> {
@@ -76,7 +120,8 @@ export const resolveProperty = <T>(
   prop: PropertyConfigCreate<T>,
   vectorizers?: string[]
 ): WeaviateProperty => {
-  const { dataType, nestedProperties, skipVectorization, vectorizePropertyName, ...rest } = prop;
+  const { dataType, nestedProperties, skipVectorization, vectorizePropertyName, textAnalyzer, ...rest } =
+    prop as PropertyConfigCreate<T> & { textAnalyzer?: TextAnalyzerConfig };
   const moduleConfig: any = {};
   vectorizers?.forEach((vectorizer) => {
     moduleConfig[vectorizer] = {
@@ -91,6 +136,7 @@ export const resolveProperty = <T>(
       ? nestedProperties.map((prop) => resolveNestedProperty(prop))
       : undefined,
     moduleConfig: Object.keys(moduleConfig).length > 0 ? moduleConfig : undefined,
+    textAnalyzer: textAnalyzerConfigToWire(textAnalyzer),
   };
 };
 
@@ -128,6 +174,7 @@ export const classToCollection = <T>(cls: WeaviateClass): CollectionConfig => {
     generative: ConfigMapping.generative(cls.moduleConfig),
     invertedIndex: ConfigMapping.invertedIndex(cls.invertedIndexConfig),
     multiTenancy: ConfigMapping.multiTenancy(cls.multiTenancyConfig),
+    objectTTL: ConfigMapping.objectTTL(cls.objectTtlConfig),
     properties: ConfigMapping.properties(cls.properties),
     references: ConfigMapping.references(cls.properties),
     replication: ConfigMapping.replication(cls.replicationConfig),
@@ -139,18 +186,43 @@ export const classToCollection = <T>(cls: WeaviateClass): CollectionConfig => {
 
 export const parseVectorIndex = (module: ModuleConfig<VectorIndexType, VectorIndexConfigCreate>): any => {
   if (module.config === undefined) return undefined;
-  if (module.name === 'dynamic') {
-    const { hnsw, flat, ...conf } = module.config as VectorIndexConfigDynamicCreate;
+  if (VectorIndexGuards.isDynamic(module.config)) {
+    const { hnsw, flat, ...conf } = module.config;
     return {
       ...conf,
       hnsw: parseVectorIndex({ name: 'hnsw', config: hnsw }),
       flat: parseVectorIndex({ name: 'flat', config: flat }),
     };
   }
-  const { quantizer, ...conf } = module.config as
+
+  let multivector: any;
+  if (VectorIndexGuards.isHNSW(module.config) && module.config.multiVector !== undefined) {
+    multivector = {
+      aggregation: module.config.multiVector.aggregation,
+      enabled: true,
+    };
+    if (
+      module.config.multiVector.encoding !== undefined &&
+      MultiVectorEncodingGuards.isMuvera(module.config.multiVector.encoding)
+    ) {
+      multivector.muvera = {
+        enabled: true,
+        ksim: module.config.multiVector.encoding.ksim,
+        dprojections: module.config.multiVector.encoding.dprojections,
+        repetitions: module.config.multiVector.encoding.repetitions,
+      };
+    }
+  }
+
+  const { quantizer, ...rest } = module.config as
     | VectorIndexConfigFlatCreate
     | VectorIndexConfigHNSWCreate
     | Record<string, any>;
+
+  const conf = {
+    ...rest,
+    multivector,
+  };
   if (quantizer === undefined) return conf;
   if (QuantizerGuards.isBQCreate(quantizer)) {
     const { type, ...quant } = quantizer;
@@ -182,6 +254,22 @@ export const parseVectorIndex = (module: ModuleConfig<VectorIndexType, VectorInd
       },
     };
   }
+  if (QuantizerGuards.isRQCreate(quantizer)) {
+    const { type, ...quant } = quantizer;
+    return {
+      ...conf,
+      rq: {
+        ...quant,
+        enabled: true,
+      },
+    };
+  }
+  if (QuantizerGuards.isUncompressedCreate(quantizer)) {
+    return {
+      ...conf,
+      skipDefaultQuantization: true,
+    };
+  }
 };
 
 export const parseVectorizerConfig = (config?: VectorizerConfig): any => {
@@ -193,9 +281,8 @@ export const parseVectorizerConfig = (config?: VectorizerConfig): any => {
   };
 };
 
-export const makeVectorsConfig = <TProperties extends Properties | undefined = undefined>(
-  configVectorizers: VectorizersConfigCreate<TProperties> | VectorizersConfigAdd<TProperties>,
-  supportsDynamicVectorIndex: Awaited<ReturnType<DbVersionSupport['supportsDynamicVectorIndex']>>
+export const makeVectorsConfig = (
+  configVectorizers: VectorizersConfigCreate<any, any> | VectorizersConfigAdd<any>
 ) => {
   let vectorizers: string[] = [];
   const vectorsConfig: Record<string, any> = {};
@@ -208,14 +295,11 @@ export const makeVectorsConfig = <TProperties extends Properties | undefined = u
         },
       ];
   vectorizersConfig.forEach((v) => {
-    if (v.vectorIndex.name === 'dynamic' && !supportsDynamicVectorIndex.supports) {
-      throw new WeaviateUnsupportedFeatureError(supportsDynamicVectorIndex.message);
+    const vectorConfig: any = { vectorizer: {} };
+    if (v.vectorIndex) {
+      vectorConfig.vectorIndexConfig = parseVectorIndex(v.vectorIndex);
+      vectorConfig.vectorIndexType = v.vectorIndex.name;
     }
-    const vectorConfig: any = {
-      vectorIndexConfig: parseVectorIndex(v.vectorIndex),
-      vectorIndexType: v.vectorIndex.name,
-      vectorizer: {},
-    };
     const vectorizer = v.vectorizer.name === 'text2vec-azure-openai' ? 'text2vec-openai' : v.vectorizer.name;
     vectorizers = [...vectorizers, vectorizer];
     vectorConfig.vectorizer[vectorizer] = {
@@ -355,13 +439,37 @@ class ConfigMapping {
       bm25: ConfigMapping.bm25(v.bm25),
       cleanupIntervalSeconds: v.cleanupIntervalSeconds,
       stopwords: ConfigMapping.stopwords(v.stopwords),
+      stopwordPresets: v.stopwordPresets,
       indexNullState: v.indexNullState ? v.indexNullState : false,
       indexPropertyLength: v.indexPropertyLength ? v.indexPropertyLength : false,
       indexTimestamps: v.indexTimestamps ? v.indexTimestamps : false,
     };
   }
+  static objectTTL(v?: WeaviateObjectTTLConfig): ObjectTTLConfig {
+    if (v === undefined) {
+      return { enabled: false };
+    }
+    return {
+      ...v,
+      enabled: v.enabled ?? false,
+      deleteOn:
+        v.deleteOn == '_creationTimeUnix'
+          ? 'creationTime'
+          : v.deleteOn == '_lastUpdateTimeUnix'
+          ? 'updateTime'
+          : v.deleteOn,
+      defaultTTLSeconds: v.defaultTtl,
+      filterExpiredObjects: v.filterExpiredObjects,
+    };
+  }
   static multiTenancy(v?: WeaviateMultiTenancyConfig): MultiTenancyConfig {
-    if (v === undefined) throw new WeaviateDeserializationError('Multi tenancy was not returned by Weaviate');
+    if (v === undefined) {
+      return {
+        autoTenantActivation: false,
+        autoTenantCreation: false,
+        enabled: false,
+      };
+    }
     return {
       autoTenantActivation: v.autoTenantActivation ? v.autoTenantActivation : false,
       autoTenantCreation: v.autoTenantCreation ? v.autoTenantCreation : false,
@@ -468,16 +576,19 @@ class ConfigMapping {
       throw new WeaviateDeserializationError(
         'Vector index vector cache max objects was not returned by Weaviate'
       );
-    let quantizer: PQConfig | BQConfig | SQConfig | undefined;
+    let quantizer: QuantizerConfig | undefined;
     if (exists<Record<string, any>>(v.pq) && v.pq.enabled === true) {
       quantizer = ConfigMapping.pq(v.pq);
     } else if (exists<Record<string, any>>(v.bq) && v.bq.enabled === true) {
       quantizer = ConfigMapping.bq(v.bq);
+    } else if (exists<Record<string, any>>(v.rq) && v.rq.enabled === true) {
+      quantizer = ConfigMapping.rq(v.rq);
     } else if (exists<Record<string, any>>(v.sq) && v.sq.enabled === true) {
       quantizer = ConfigMapping.sq(v.sq);
     } else {
       quantizer = undefined;
     }
+
     return {
       cleanupIntervalSeconds: v.cleanupIntervalSeconds,
       distance: v.distance,
@@ -489,10 +600,40 @@ class ConfigMapping {
       filterStrategy: exists<VectorIndexFilterStrategy>(v.filterStrategy) ? v.filterStrategy : 'sweeping',
       flatSearchCutoff: v.flatSearchCutoff,
       maxConnections: v.maxConnections,
+      multiVector: exists<MultiVectorConfig>(v.multivector)
+        ? ConfigMapping.multiVector(v.multivector)
+        : undefined,
       quantizer: quantizer,
       skip: v.skip,
       vectorCacheMaxObjects: v.vectorCacheMaxObjects,
       type: 'hnsw',
+    };
+  }
+  static multiVector(v: Record<string, unknown>): MultiVectorConfig | undefined {
+    if (!exists<boolean>(v.enabled))
+      throw new WeaviateDeserializationError('Multi vector enabled was not returned by Weaviate');
+    if (v.enabled === false) return undefined;
+    if (!exists<string>(v.aggregation))
+      throw new WeaviateDeserializationError('Multi vector aggregation was not returned by Weaviate');
+    let encoding: MultiVectorEncodingConfig | undefined;
+    if (
+      exists<{
+        ksim: number;
+        dprojections: number;
+        repetitions: number;
+        enabled: boolean;
+      }>(v.muvera)
+    ) {
+      encoding = v.muvera.enabled
+        ? {
+            type: 'muvera',
+            ...v.muvera,
+          }
+        : undefined;
+    }
+    return {
+      aggregation: v.aggregation,
+      encoding,
     };
   }
   static bq(v?: Record<string, unknown>): BQConfig | undefined {
@@ -508,6 +649,19 @@ class ConfigMapping {
       type: 'bq',
     };
   }
+  static rq(v?: Record<string, unknown>): RQConfig | undefined {
+    if (v === undefined) throw new WeaviateDeserializationError('RQ was not returned by Weaviate');
+    if (!exists<boolean>(v.enabled))
+      throw new WeaviateDeserializationError('RQ enabled was not returned by Weaviate');
+    if (v.enabled === false) return undefined;
+    const bits = v.bits === undefined ? 6 : (v.bits as number);
+    const rescoreLimit = v.rescoreLimit === undefined ? 20 : (v.rescoreLimit as number);
+    return {
+      bits,
+      rescoreLimit,
+      type: 'rq',
+    };
+  }
   static sq(v?: Record<string, unknown>): SQConfig | undefined {
     if (v === undefined) throw new WeaviateDeserializationError('SQ was not returned by Weaviate');
     if (!exists<boolean>(v.enabled))
@@ -521,6 +675,28 @@ class ConfigMapping {
       type: 'sq',
     };
   }
+  static vectorIndexHFresh(v: WeaviateVectorIndexConfig): VectorIndexConfigHFresh {
+    if (v === undefined) throw new WeaviateDeserializationError('Vector index was not returned by Weaviate');
+    if (!exists<VectorDistance>(v.distance))
+      throw new WeaviateDeserializationError('Vector index distance was not returned by Weaviate');
+    if (!exists<number>(v.maxPostingSizeKB))
+      throw new WeaviateDeserializationError('Vector index maxPostingSizeKb was not returned by Weaviate');
+    if (!exists<number>(v.searchProbe))
+      throw new WeaviateDeserializationError('Vector index searchProbe was not returned by Weaviate');
+    if (!exists<number>(v.replicas))
+      throw new WeaviateDeserializationError('Vector index replicas was not returned by Weaviate');
+    if (!exists<Record<string, unknown>>(v.rq))
+      throw new WeaviateDeserializationError('Vector index rq was not returned by Weaviate');
+
+    return {
+      distance: v.distance,
+      maxPostingSizeKb: v.maxPostingSizeKB,
+      searchProbe: v.searchProbe,
+      replicas: v.replicas,
+      quantizer: ConfigMapping.rq(v.rq),
+      type: 'hfresh',
+    };
+  }
   static vectorIndexFlat(v: WeaviateVectorIndexConfig): VectorIndexConfigFlat {
     if (v === undefined) throw new WeaviateDeserializationError('Vector index was not returned by Weaviate');
     if (!exists<number>(v.vectorCacheMaxObjects))
@@ -529,12 +705,19 @@ class ConfigMapping {
       );
     if (!exists<VectorDistance>(v.distance))
       throw new WeaviateDeserializationError('Vector index distance was not returned by Weaviate');
-    if (!exists<Record<string, unknown>>(v.bq))
-      throw new WeaviateDeserializationError('Vector index bq was not returned by Weaviate');
+
+    let quantizer: QuantizerConfig | undefined;
+    if (exists<Record<string, any>>(v.bq) && v.bq.enabled === true) {
+      quantizer = ConfigMapping.bq(v.bq);
+    } else if (exists<Record<string, any>>(v.rq) && v.rq.enabled === true) {
+      quantizer = ConfigMapping.rq(v.rq);
+    } else {
+      quantizer = undefined;
+    }
     return {
       vectorCacheMaxObjects: v.vectorCacheMaxObjects,
       distance: v.distance,
-      quantizer: ConfigMapping.bq(v.bq),
+      quantizer: quantizer,
       type: 'flat',
     };
   }
@@ -559,6 +742,8 @@ class ConfigMapping {
   static vectorIndex<I>(v: WeaviateVectorIndexConfig, t?: string): VectorIndexConfigType<I> {
     if (t === 'hnsw') {
       return ConfigMapping.vectorIndexHNSW(v) as VectorIndexConfigType<I>;
+    } else if (t === 'hfresh') {
+      return ConfigMapping.vectorIndexHFresh(v) as VectorIndexConfigType<I>;
     } else if (t === 'flat') {
       return ConfigMapping.vectorIndexFlat(v) as VectorIndexConfigType<I>;
     } else if (t === 'dynamic') {
@@ -603,6 +788,7 @@ class ConfigMapping {
             ? ConfigMapping.properties(prop.nestedProperties)
             : undefined,
           tokenization: prop.tokenization ? prop.tokenization : 'none',
+          textAnalyzer: textAnalyzerConfigFromWire(prop.textAnalyzer),
         };
       });
   }

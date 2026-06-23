@@ -1,17 +1,19 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { requireAtLeast } from '../version.js';
-import { WeaviateUnsupportedFeatureError } from '@weaviate/core/errors';
-import weaviate, { WeaviateClient, weaviateV2 } from '@weaviate/node';
 import {
   GenerativeCohereConfig,
   ModuleConfig,
   MultiTenancyConfig,
   PropertyConfig,
+  RQConfig,
   RerankerCohereConfig,
   VectorIndexConfigDynamic,
+  VectorIndexConfigHFresh,
   VectorIndexConfigHNSW,
 } from '@weaviate/core/config/types';
+import { WeaviateUnsupportedFeatureError } from '@weaviate/core/errors';
+import weaviate, { WeaviateClass, WeaviateClient, weaviateV2 } from '@weaviate/node';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { requireAtLeast } from '../version.js';
 
 describe('Testing of the collection.config namespace', () => {
   let client: WeaviateClient;
@@ -22,7 +24,7 @@ describe('Testing of the collection.config namespace', () => {
 
   afterAll(() => client.collections.deleteAll());
 
-  it('should be able get the config of a collection without generics', async () => {
+  it('should be able to get the config of a collection without generics', async () => {
     const collectionName = 'TestCollectionConfigGetWithGenerics';
     type TestCollectionConfigGet = {
       testProp: string;
@@ -35,7 +37,7 @@ describe('Testing of the collection.config namespace', () => {
           dataType: 'text',
         },
       ],
-      vectorizers: weaviate.configure.vectorizer.none(),
+      vectorizers: weaviate.configure.vectors.none(),
     });
     const collection = client.collections.get<TestCollectionConfigGet>(collectionName);
     const config = await collection.config.get();
@@ -57,23 +59,9 @@ describe('Testing of the collection.config namespace', () => {
     ]);
     expect(config.generative).toBeUndefined();
     expect(config.reranker).toBeUndefined();
-    expect(config.vectorizers.default.indexConfig).toEqual<VectorIndexConfigHNSW>({
-      skip: false,
-      cleanupIntervalSeconds: 300,
-      maxConnections: (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 26, 0))) ? 64 : 32,
-      efConstruction: 128,
-      ef: -1,
-      dynamicEfMin: 100,
-      dynamicEfMax: 500,
-      dynamicEfFactor: 8,
-      vectorCacheMaxObjects: 1000000000000,
-      filterStrategy: 'sweeping',
-      flatSearchCutoff: 40000,
-      distance: 'cosine',
-      quantizer: undefined,
-      type: 'hnsw',
-    });
-    expect(config.vectorizers.default.indexType).toEqual('hnsw');
+    expect(config.vectorizers.default.indexType).toEqual(
+      await client.getWeaviateVersion().then((ver) => (ver.isAtLeast(1, 37, 5) ? 'hfresh' : 'hnsw'))
+    );
     expect(config.vectorizers.default.vectorizer.name).toEqual('none');
   });
 
@@ -90,7 +78,7 @@ describe('Testing of the collection.config namespace', () => {
           dataType: 'text',
         },
       ],
-      vectorizers: weaviate.configure.vectorizer.none(),
+      vectorizers: weaviate.configure.vectors.none(),
     });
     const collection = client.collections.get<TestCollectionConfigGet>(collectionName);
     const config = await collection.config.get();
@@ -112,23 +100,9 @@ describe('Testing of the collection.config namespace', () => {
     ]);
     expect(config.generative).toBeUndefined();
     expect(config.reranker).toBeUndefined();
-    expect(config.vectorizers.default.indexConfig).toEqual<VectorIndexConfigHNSW>({
-      skip: false,
-      cleanupIntervalSeconds: 300,
-      maxConnections: (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 26, 0))) ? 64 : 32,
-      efConstruction: 128,
-      ef: -1,
-      dynamicEfMin: 100,
-      dynamicEfMax: 500,
-      dynamicEfFactor: 8,
-      vectorCacheMaxObjects: 1000000000000,
-      filterStrategy: 'sweeping',
-      flatSearchCutoff: 40000,
-      distance: 'cosine',
-      quantizer: undefined,
-      type: 'hnsw',
-    });
-    expect(config.vectorizers.default.indexType).toEqual('hnsw');
+    expect(config.vectorizers.default.indexType).toEqual(
+      await client.getWeaviateVersion().then((ver) => (ver.isAtLeast(1, 37, 5) ? 'hfresh' : 'hnsw'))
+    );
     expect(config.vectorizers.default.vectorizer.name).toEqual('none');
   });
 
@@ -150,11 +124,11 @@ describe('Testing of the collection.config namespace', () => {
           },
         ],
         vectorizers: [
-          weaviate.configure.vectorizer.text2VecContextionary({
+          weaviate.configure.vectors.text2VecContextionary({
             name: 'title',
             sourceProperties: ['title'],
           }),
-          weaviate.configure.vectorizer.text2VecContextionary({
+          weaviate.configure.vectors.text2VecContextionary({
             name: 'age',
             sourceProperties: ['age'],
           }),
@@ -178,7 +152,9 @@ describe('Testing of the collection.config namespace', () => {
     );
     expect(config.properties[1].vectorizerConfig?.['text2vec-contextionary'].skip).toEqual(false);
     expect(config.vectorizers.title.indexConfig).toBeDefined();
-    expect(config.vectorizers.title.indexType).toEqual('hnsw');
+    expect(config.vectorizers.title.indexType).toEqual(
+      await client.getWeaviateVersion().then((ver) => (ver.isAtLeast(1, 37, 5) ? 'hfresh' : 'hnsw'))
+    );
     expect(config.vectorizers.title.properties).toEqual(['title']);
     expect(config.vectorizers.title.vectorizer.name).toEqual('text2vec-contextionary');
   });
@@ -187,7 +163,7 @@ describe('Testing of the collection.config namespace', () => {
     const collectionName = 'TestCollectionConfigGetHNSWPlusPQ';
     const collection = await client.collections.create({
       name: collectionName,
-      vectorizers: weaviate.configure.vectorizer.none({
+      vectorizers: weaviate.configure.vectors.none({
         vectorIndexConfig: weaviate.configure.vectorIndex.hnsw({
           quantizer: weaviate.configure.vectorIndex.quantizer.pq(),
         }),
@@ -207,12 +183,116 @@ describe('Testing of the collection.config namespace', () => {
     expect(config.vectorizers.default.vectorizer.name).toEqual('none');
   });
 
+  requireAtLeast(1, 32, 0).it('should be able to get the config of a collection with hnsw-rq', async () => {
+    const collectionName = 'TestCollectionConfigGetHNSWPlusRQ';
+    const collection = await client.collections.create({
+      name: collectionName,
+      vectorizers: weaviate.configure.vectorizer.none({
+        vectorIndexConfig: weaviate.configure.vectorIndex.hnsw({
+          quantizer: weaviate.configure.vectorIndex.quantizer.rq(),
+        }),
+      }),
+    });
+    const config = await collection.config.get();
+
+    const vectorIndexConfig = config.vectorizers.default.indexConfig as VectorIndexConfigHNSW;
+    expect(config.name).toEqual(collectionName);
+    expect(config.generative).toBeUndefined();
+    expect(config.reranker).toBeUndefined();
+    expect(vectorIndexConfig).toBeDefined();
+    expect(vectorIndexConfig.quantizer).toBeDefined();
+    expect(vectorIndexConfig.quantizer?.type).toEqual('rq');
+    expect(config.vectorizers.default.indexType).toEqual('hnsw');
+    expect(config.vectorizers.default.properties).toBeUndefined();
+    expect(config.vectorizers.default.vectorizer.name).toEqual('none');
+  });
+
+  requireAtLeast(1, 36, 0).it('should reconfigure dynamic index', async () => {
+    const asyncIndexing = await weaviate.connectToLocal({ port: 8078, grpcPort: 50049 }); // need async indexing for dynamic vectorizer
+    const collectionName = 'TestCollectionConfigReconfigureDynamic';
+    await asyncIndexing.collections.delete(collectionName);
+    const collection = await asyncIndexing.collections.create({
+      name: collectionName,
+      vectorizers: weaviate.configure.vectorizer.none({
+        vectorIndexConfig: weaviate.configure.vectorIndex.dynamic({
+          distanceMetric: 'dot',
+          threshold: 1,
+          flat: {
+            distanceMetric: 'dot',
+            vectorCacheMaxObjects: 2,
+            quantizer: weaviate.configure.vectorIndex.quantizer.bq(),
+          },
+          hnsw: {
+            dynamicEfMin: 1,
+            dynamicEfMax: 2,
+            dynamicEfFactor: 3,
+          },
+        }),
+      }),
+    });
+
+    await asyncIndexing.collections.use(collectionName).config.update({
+      vectorizers: weaviate.reconfigure.vectorizer.update({
+        vectorIndexConfig: weaviate.reconfigure.vectorIndex.dynamic({
+          threshold: 10,
+          hnsw: {
+            dynamicEfMin: 4,
+            dynamicEfMax: 5,
+            dynamicEfFactor: 6,
+          },
+        }),
+      }),
+    });
+
+    const config = await collection.config.get();
+
+    const vectorIndexConfig = config.vectorizers.default.indexConfig as VectorIndexConfigDynamic;
+    expect(vectorIndexConfig).toBeDefined();
+    expect(vectorIndexConfig.threshold).toEqual(10);
+    expect(config.vectorizers.default.indexType).toEqual('dynamic');
+    expect(config.vectorizers.default.vectorizer.name).toEqual('none');
+
+    expect(vectorIndexConfig.flat).toBeDefined();
+    expect(vectorIndexConfig.flat.distance).toEqual('dot');
+    expect(vectorIndexConfig.flat.vectorCacheMaxObjects).toEqual(2);
+    expect(vectorIndexConfig.flat.quantizer).toBeDefined();
+    expect(vectorIndexConfig.flat.quantizer?.type).toEqual('bq');
+
+    expect(vectorIndexConfig.hnsw).toBeDefined();
+    expect(vectorIndexConfig.hnsw.dynamicEfMin).toEqual(4);
+    expect(vectorIndexConfig.hnsw.dynamicEfMax).toEqual(5);
+    expect(vectorIndexConfig.hnsw.dynamicEfFactor).toEqual(6);
+  });
+
+  requireAtLeast(1, 36, 0).it('should create a collection with hfresh index', async () => {
+    const collectionName = 'TestCollectionConfigGetHFresh';
+    await client.collections.delete(collectionName);
+    const collection = await client.collections.create({
+      name: collectionName,
+      vectorizers: weaviate.configure.vectorizer.none({
+        vectorIndexConfig: weaviate.configure.vectorIndex.hfresh(),
+      }),
+    });
+    const config = await collection.config.get();
+
+    const vectorIndexConfig = config.vectorizers.default.indexConfig as VectorIndexConfigHFresh;
+    expect(config.name).toEqual(collectionName);
+    expect(config.generative).toBeUndefined();
+    expect(config.reranker).toBeUndefined();
+    expect(vectorIndexConfig).toBeDefined();
+    expect(vectorIndexConfig.quantizer).toBeDefined();
+    expect(vectorIndexConfig.quantizer?.type).toEqual('rq');
+    expect(config.vectorizers.default.indexType).toEqual('hfresh');
+    expect(config.vectorizers.default.properties).toBeUndefined();
+    expect(config.vectorizers.default.vectorizer.name).toEqual('none');
+  });
+
   it('should be able to get the config of a collection with hnsw-bq', async () => {
     const collectionName = 'TestCollectionConfigGetHNSWPlusBQ';
     const query = () =>
       client.collections.create({
         name: collectionName,
-        vectorizers: weaviate.configure.vectorizer.none({
+        vectorizers: weaviate.configure.vectors.none({
           vectorIndexConfig: weaviate.configure.vectorIndex.hnsw({
             quantizer: weaviate.configure.vectorIndex.quantizer.bq(),
           }),
@@ -240,7 +320,7 @@ describe('Testing of the collection.config namespace', () => {
     const collectionName = 'TestCollectionConfigGetHNSWPlusSQ';
     const collection = await client.collections.create({
       name: collectionName,
-      vectorizers: weaviate.configure.vectorizer.none({
+      vectorizers: weaviate.configure.vectors.none({
         vectorIndexConfig: weaviate.configure.vectorIndex.hnsw({
           quantizer: weaviate.configure.vectorIndex.quantizer.sq(),
         }),
@@ -264,7 +344,7 @@ describe('Testing of the collection.config namespace', () => {
     const collectionName = 'TestCollectionConfigGetFlatPlusBQ';
     const collection = await client.collections.create({
       name: collectionName,
-      vectorizers: weaviate.configure.vectorizer.none({
+      vectorizers: weaviate.configure.vectors.none({
         vectorIndexConfig: weaviate.configure.vectorIndex.flat({
           quantizer: weaviate.configure.vectorIndex.quantizer.bq(),
         }),
@@ -291,7 +371,7 @@ describe('Testing of the collection.config namespace', () => {
     const query = () =>
       asyncIndexing.collections.create({
         name: collectionName,
-        vectorizers: weaviate.configure.vectorizer.none({
+        vectorizers: weaviate.configure.vectors.none({
           vectorIndexConfig: weaviate.configure.vectorIndex.dynamic({
             hnsw: weaviate.configure.vectorIndex.hnsw({
               quantizer: weaviate.configure.vectorIndex.quantizer.pq(),
@@ -325,6 +405,46 @@ describe('Testing of the collection.config namespace', () => {
     expect(config.vectorizers.default.vectorizer.name).toEqual('none');
   });
 
+  requireAtLeast(1, 35, 0).it(
+    'should be able to get the config of a single-vector collection with dynamic hnsw-rq & flat-rq',
+    async () => {
+      const asyncIndexing = await weaviate.connectToLocal({ port: 8078, grpcPort: 50049 }); // need async indexing for dynamic vectorizer
+      const collectionName = 'TestCollectionConfigDynamicWithRQ';
+      await asyncIndexing.collections.delete(collectionName);
+      const query = () =>
+        asyncIndexing.collections.create({
+          name: collectionName,
+          vectorizers: weaviate.configure.vectors.none({
+            vectorIndexConfig: weaviate.configure.vectorIndex.dynamic({
+              hnsw: weaviate.configure.vectorIndex.hnsw({
+                quantizer: weaviate.configure.vectorIndex.quantizer.rq(),
+              }),
+              flat: weaviate.configure.vectorIndex.flat({
+                quantizer: weaviate.configure.vectorIndex.quantizer.rq(),
+              }),
+            }),
+          }),
+        });
+      const config = await query().then((collection) => collection.config.get());
+
+      const vectorIndexConfig = config.vectorizers.default.indexConfig as VectorIndexConfigDynamic;
+      expect(config.name).toEqual(collectionName);
+      expect(config.generative).toBeUndefined();
+      expect(config.reranker).toBeUndefined();
+      expect(vectorIndexConfig).toBeDefined();
+      expect((vectorIndexConfig as any).quantizer).toBeUndefined();
+      expect(vectorIndexConfig.hnsw).toBeDefined();
+      expect(vectorIndexConfig.hnsw.quantizer).toBeDefined();
+      expect(vectorIndexConfig.hnsw.quantizer?.type).toEqual('rq');
+      expect(vectorIndexConfig.flat).toBeDefined();
+      expect(vectorIndexConfig.flat.quantizer).toBeDefined();
+      expect(vectorIndexConfig.flat.quantizer?.type).toEqual('rq');
+      expect(config.vectorizers.default.indexType).toEqual('dynamic');
+      expect(config.vectorizers.default.properties).toBeUndefined();
+      expect(config.vectorizers.default.vectorizer.name).toEqual('none');
+    }
+  );
+
   it('should be able to get the config of a multi-vector collection with dynamic hnsw-pq & flat-bq', async () => {
     const asyncIndexing = await weaviate.connectToLocal({ port: 8078, grpcPort: 50049 }); // need async indexing for dynamic vectorizer
     const collectionName = 'TestMVCollectionConfigGetDynamicPlusBQ';
@@ -332,7 +452,7 @@ describe('Testing of the collection.config namespace', () => {
     const query = () =>
       asyncIndexing.collections.create({
         name: collectionName,
-        vectorizers: weaviate.configure.vectorizer.none({
+        vectorizers: weaviate.configure.vectors.none({
           vectorIndexConfig: weaviate.configure.vectorIndex.dynamic({
             hnsw: weaviate.configure.vectorIndex.hnsw({
               quantizer: weaviate.configure.vectorIndex.quantizer.pq(),
@@ -370,7 +490,7 @@ describe('Testing of the collection.config namespace', () => {
     const collectionName = 'TestCollectionConfigAddProperty';
     const collection = await client.collections.create({
       name: collectionName,
-      vectorizers: weaviate.configure.vectorizer.none(),
+      vectorizers: weaviate.configure.vectors.none(),
     });
     const config = await collection.config
       .addProperty({
@@ -398,7 +518,7 @@ describe('Testing of the collection.config namespace', () => {
     const collectionName = 'TestCollectionConfigAddReference' as const;
     const collection = await client.collections.create({
       name: collectionName,
-      vectorizers: weaviate.configure.vectorizer.none(),
+      vectorizers: weaviate.configure.vectors.none(),
     });
     const config = await collection.config
       .addReference({
@@ -420,20 +540,20 @@ describe('Testing of the collection.config namespace', () => {
       const collectionName = 'TestCollectionConfigAddVector' as const;
       const collection = await client.collections.create({
         name: collectionName,
-        vectorizers: weaviate.configure.vectorizer.none(),
+        vectorizers: weaviate.configure.vectors.none(),
       });
       // Add a single named vector
-      await collection.config.addVector(weaviate.configure.vectorizer.none({ name: 'vector-a' }));
+      await collection.config.addVector(weaviate.configure.vectors.none({ name: 'vector-a' }));
 
       // Add several named vectors
       await collection.config.addVector([
-        weaviate.configure.vectorizer.none({ name: 'vector-b' }),
-        weaviate.configure.vectorizer.none({ name: 'vector-c' }),
+        weaviate.configure.vectors.none({ name: 'vector-b' }),
+        weaviate.configure.vectors.none({ name: 'vector-c' }),
       ]);
 
       // Trying to update 'default' vector -- should be omitted from request.
       await collection.config.addVector(
-        weaviate.configure.vectorizer.none({
+        weaviate.configure.vectors.none({
           name: 'default',
           vectorIndexConfig: weaviate.configure.vectorIndex.flat(),
         })
@@ -444,7 +564,10 @@ describe('Testing of the collection.config namespace', () => {
       expect(config.vectorizers).toHaveProperty('vector-b');
       expect(config.vectorizers).toHaveProperty('vector-c');
 
-      expect(config.vectorizers.default).toHaveProperty('indexType', 'hnsw');
+      expect(config.vectorizers.default).toHaveProperty(
+        'indexType',
+        await client.getWeaviateVersion().then((ver) => (ver.isAtLeast(1, 37, 5) ? 'hfresh' : 'hnsw'))
+      );
     });
   });
 
@@ -522,7 +645,10 @@ describe('Testing of the collection.config namespace', () => {
           dataType: 'text',
         },
       ],
-      vectorizers: weaviate.configure.vectorizer.none(),
+      // Explicitly use hnsw to allow reconfiguration with hnsw options
+      vectorizers: weaviate.configure.vectors.none({
+        vectorIndexConfig: weaviate.configure.vectorIndex.hnsw(),
+      }),
     });
     const supportsUpdatingPropertyDescriptions = await client
       .getWeaviateVersion()
@@ -534,7 +660,7 @@ describe('Testing of the collection.config namespace', () => {
               testProp: 'This is a test property',
             }
           : undefined,
-        vectorizers: weaviate.reconfigure.vectorizer.update({
+        vectorizers: weaviate.reconfigure.vectors.update({
           vectorIndexConfig: weaviate.reconfigure.vectorIndex.hnsw({
             quantizer: weaviate.reconfigure.vectorIndex.quantizer.pq(),
             ef: 4,
@@ -582,9 +708,12 @@ describe('Testing of the collection.config namespace', () => {
       dynamicEfMax: 500,
       dynamicEfFactor: 8,
       vectorCacheMaxObjects: 1000000000000,
-      filterStrategy: 'sweeping',
+      filterStrategy: (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 34, 0)))
+        ? 'sweeping'
+        : 'acorn',
       flatSearchCutoff: 40000,
       distance: 'cosine',
+      multiVector: undefined,
       quantizer: {
         bitCompression: false,
         segments: 0,
@@ -664,12 +793,14 @@ describe('Testing of the collection.config namespace', () => {
       .withClass({
         class: collectionName,
         vectorizer: 'none',
+        // Explicitly use hnsw to allow reconfiguration with hnsw options
+        vectorIndexType: 'hnsw',
       })
       .do();
     const collection = client.collections.use(collectionName);
     const config = await collection.config
       .update({
-        vectorizers: weaviate.reconfigure.vectorizer.update({
+        vectorizers: weaviate.reconfigure.vectors.update({
           vectorIndexConfig: weaviate.reconfigure.vectorIndex.hnsw({
             quantizer: weaviate.reconfigure.vectorIndex.quantizer.pq(),
             ef: 4,
@@ -691,9 +822,12 @@ describe('Testing of the collection.config namespace', () => {
       dynamicEfMax: 500,
       dynamicEfFactor: 8,
       vectorCacheMaxObjects: 1000000000000,
-      filterStrategy: 'sweeping',
+      filterStrategy: (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 34, 0)))
+        ? 'sweeping'
+        : 'acorn',
       flatSearchCutoff: 40000,
       distance: 'cosine',
+      multiVector: undefined,
       type: 'hnsw',
       quantizer: {
         bitCompression: false,
@@ -720,7 +854,7 @@ describe('Testing of the collection.config namespace', () => {
     const collection = client.collections.use(collectionName);
     await client.collections.create({
       name: collectionName,
-      vectorizers: weaviate.configure.vectorizer.none(),
+      vectorizers: weaviate.configure.vectors.none(),
     });
     let config = await collection.config.get();
     expect(config.generative).toBeUndefined();
@@ -759,4 +893,284 @@ describe('Testing of the collection.config namespace', () => {
       },
     });
   });
+
+  requireAtLeast(1, 31, 0).it(
+    'should be able to create and get a multi-vector collection with encoding',
+    async () => {
+      const collectionName = 'TestCollectionConfigCreateWithMuveraEncoding';
+      const collection = await client.collections.create({
+        name: collectionName,
+        vectorizers: weaviate.configure.vectorizer.none({
+          vectorIndexConfig: weaviate.configure.vectorIndex.hnsw({
+            multiVector: weaviate.configure.vectorIndex.multiVector.multiVector({
+              aggregation: 'maxSim',
+              encoding: weaviate.configure.vectorIndex.multiVector.encoding.muvera(),
+            }),
+          }),
+        }),
+      });
+      const config = await collection.config.get();
+      expect(config.name).toEqual(collectionName);
+
+      const indexConfig = config.vectorizers.default.indexConfig as VectorIndexConfigHNSW;
+      expect(indexConfig.multiVector).toBeDefined();
+      expect(indexConfig.multiVector?.aggregation).toEqual('maxSim');
+      expect(indexConfig.multiVector?.encoding).toBeDefined();
+    }
+  );
+
+  requireAtLeast(1, 31, 0).it(
+    'should be able to create and get a multi-vector collection without encoding',
+    async () => {
+      const collectionName = 'TestCollectionConfigCreateWithoutMuveraEncoding';
+      const collection = await client.collections.create({
+        name: collectionName,
+        vectorizers: weaviate.configure.vectorizer.none({
+          vectorIndexConfig: weaviate.configure.vectorIndex.hnsw({
+            multiVector: weaviate.configure.vectorIndex.multiVector.multiVector(),
+          }),
+        }),
+      });
+      const config = await collection.config.get();
+      expect(config.name).toEqual(collectionName);
+
+      const indexConfig = config.vectorizers.default.indexConfig as VectorIndexConfigHNSW;
+      expect(indexConfig.multiVector).toBeDefined();
+      expect(indexConfig.multiVector?.aggregation).toEqual('maxSim');
+      expect(indexConfig.multiVector?.encoding).toBeUndefined();
+    }
+  );
+
+  requireAtLeast(1, 32, 4).describe('uncompressed quantizer', () => {
+    it('should be able to create a collection with an uncompressed quantizer', async () => {
+      const collectionName = 'TestCollectionUncompressedVector';
+      const collection = await client.collections.create({
+        name: collectionName,
+        vectorizers: weaviate.configure.vectors.selfProvided({
+          quantizer: weaviate.configure.vectorIndex.quantizer.none(),
+        }),
+      });
+      await collection.config
+        .get()
+        .then((config) =>
+          expect((config.vectorizers.default.indexConfig as VectorIndexConfigHNSW).quantizer).toBeUndefined()
+        );
+      await fetch(`http://localhost:8080/v1/schema/${collectionName}`)
+        .then((res) => res.json() as WeaviateClass)
+        .then((schema) =>
+          expect(schema.vectorConfig?.default.vectorIndexConfig?.skipDefaultQuantization).toBe(true)
+        );
+    });
+
+    it('should be able to create a collection with uncompressed named vector', async () => {
+      const collectionName = 'TestCollectionUncompressedVectorNamed';
+      const collection = await client.collections.create({
+        name: collectionName,
+        vectorizers: weaviate.configure.vectors.selfProvided({
+          name: 'custom',
+          quantizer: weaviate.configure.vectorIndex.quantizer.none(),
+        }),
+      });
+      await collection.config
+        .get()
+        .then((config) =>
+          expect((config.vectorizers.custom.indexConfig as VectorIndexConfigHNSW).quantizer).toBeUndefined()
+        );
+      await fetch(`http://localhost:8080/v1/schema/${collectionName}`)
+        .then((res) => res.json() as WeaviateClass)
+        .then((schema) =>
+          expect(schema.vectorConfig?.custom.vectorIndexConfig?.skipDefaultQuantization).toBe(true)
+        );
+    });
+  });
+
+  requireAtLeast(1, 32, 0).it(
+    'should be able to create a collection with RQ quantizer bits=8 option',
+    async () => {
+      const collectionName = 'TestCollectionRQQuantizer8Bits';
+      const collection = await client.collections.create({
+        name: collectionName,
+        vectorizers: weaviate.configure.vectors.selfProvided({
+          quantizer: weaviate.configure.vectorIndex.quantizer.rq({ bits: 8, rescoreLimit: 10 }),
+        }),
+      });
+      await collection.config.get().then((config) => {
+        const indexConfig = config.vectorizers.default.indexConfig as VectorIndexConfigHNSW;
+        expect(indexConfig.quantizer).toBeDefined();
+        expect(indexConfig.quantizer?.type).toEqual('rq');
+        expect((indexConfig.quantizer as RQConfig).bits).toEqual(8);
+        expect((indexConfig.quantizer as RQConfig).rescoreLimit).toEqual(10);
+      });
+    }
+  );
+
+  requireAtLeast(1, 33, 0).it(
+    'should be able to create a collection with RQ quantizer bits=1 option',
+    async () => {
+      const collectionName = 'TestCollectionRQQuantizer1Bits';
+      const collection = await client.collections.create({
+        name: collectionName,
+        vectorizers: weaviate.configure.vectors.selfProvided({
+          quantizer: weaviate.configure.vectorIndex.quantizer.rq({ bits: 1, rescoreLimit: 10 }),
+        }),
+      });
+      await collection.config.get().then((config) => {
+        const indexConfig = config.vectorizers.default.indexConfig as VectorIndexConfigHNSW;
+        expect(indexConfig.quantizer).toBeDefined();
+        expect(indexConfig.quantizer?.type).toEqual('rq');
+        expect((indexConfig.quantizer as RQConfig).bits).toEqual(1);
+        expect((indexConfig.quantizer as RQConfig).rescoreLimit).toEqual(10);
+      });
+    }
+  );
+
+  requireAtLeast(1, 36, 0).describe('dropInvertedIndex', () => {
+    it('should drop indices from a property', async () => {
+      const collectionName = 'TestDropInvertedIndices';
+      const collection = await client.collections.create({
+        name: collectionName,
+        properties: [
+          {
+            name: 'testProp',
+            dataType: 'text',
+          },
+        ],
+        vectorizers: weaviate.configure.vectors.none(),
+      });
+
+      let config = await collection.config.get();
+      const prop = config.properties.find((p) => p.name === 'testProp')!;
+      expect(prop.indexSearchable).toEqual(true);
+      expect(prop.indexFilterable).toEqual(true);
+
+      await collection.config.dropInvertedIndex('testProp', 'searchable');
+
+      config = await collection.config.get();
+      const updatedProp = config.properties.find((p) => p.name === 'testProp')!;
+      expect(updatedProp.indexSearchable).toEqual(false);
+      expect(updatedProp.indexFilterable).toEqual(true);
+
+      await collection.config.dropInvertedIndex('testProp', 'filterable');
+
+      config = await collection.config.get();
+      const updatedProp2 = config.properties.find((p) => p.name === 'testProp')!;
+      expect(updatedProp2.indexSearchable).toEqual(false);
+      expect(updatedProp2.indexFilterable).toEqual(false);
+    });
+  });
+
+  requireAtLeast(1, 35, 0).it('should create and update Object TTL configuration', async () => {
+    const collectionName = 'TestObjectTTL';
+    const collection = await client.collections.create({
+      name: collectionName,
+      objectTTL: weaviate.configure.objectTTL.deleteByCreationTime({ defaultTTLSeconds: 120 }),
+    });
+
+    const created = await collection.config.get();
+    expect(created.objectTTL).toBeDefined();
+    expect(created.objectTTL.enabled).toEqual(true);
+    expect(created.objectTTL.deleteOn).toEqual('creationTime');
+    expect(created.objectTTL.defaultTTLSeconds).toEqual(120);
+
+    await collection.config.update({
+      objectTTL: weaviate.reconfigure.objectTTL.deleteByUpdateTime({ defaultTTLSeconds: 400 }),
+    });
+
+    const updated = await collection.config.get();
+    expect(updated.objectTTL).toBeDefined();
+    expect(updated.objectTTL.enabled).toEqual(true);
+    expect(updated.objectTTL.deleteOn).toEqual('updateTime');
+    expect(updated.objectTTL.defaultTTLSeconds).toEqual(400);
+
+    await collection.config.update({
+      objectTTL: weaviate.reconfigure.objectTTL.disable(),
+    });
+
+    const disabled = await collection.config.get();
+    expect(disabled.objectTTL).toBeDefined();
+    expect(disabled.objectTTL.enabled).toEqual(false);
+  });
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Suite
+// ─────────────────────────────────────────────────────────────────────────────
+describe('defaultVectorIndexType', () => {
+  let client: WeaviateClient;
+  let expectedDefaultIndexType: 'hnsw' | 'hfresh';
+
+  beforeAll(async () => {
+    client = await weaviate.connectToLocal();
+    expectedDefaultIndexType = (await client.getWeaviateVersion()).isAtLeast(1, 37, 5) ? 'hfresh' : 'hnsw';
+  }, 60_000);
+
+  afterAll(async () => {
+    await client?.close();
+  });
+
+  // ── Scenario A: no explicit vectorIndexConfig ──────────────────────────────
+
+  it('Scenario A — selfProvided (default vector), no explicit index config', async () => {
+    const name = `DefaultVectorIndexType_A_Self_${Date.now()}`;
+    try {
+      await client.collections.create({
+        name,
+        vectorizers: weaviate.configure.vectors.selfProvided(),
+      });
+      const config = await client.collections.use(name).config.get();
+      expect(config.vectorizers.default.indexType).toEqual(expectedDefaultIndexType);
+    } finally {
+      await client.collections.delete(name).catch(() => undefined);
+    }
+  });
+
+  it('Scenario A — selfProvided (named vector "main"), no explicit index config', async () => {
+    const name = `DefaultVectorIndexType_A_Named_${Date.now()}`;
+    try {
+      await client.collections.create({
+        name,
+        vectorizers: weaviate.configure.vectors.selfProvided({ name: 'main' }),
+      });
+      const config = await client.collections.use(name).config.get();
+      expect(config.vectorizers.main.indexType).toEqual(expectedDefaultIndexType);
+    } finally {
+      await client.collections.delete(name).catch(() => undefined);
+    }
+  });
+
+  // ── Scenario B: explicit flat vectorIndexConfig ────────────────────────────
+  // Explicit choice must be preserved on every version.
+
+  it('Scenario B — selfProvided (default vector), explicit flat index config', async () => {
+    const name = `DefaultVectorIndexType_B_Self_${Date.now()}`;
+    try {
+      await client.collections.create({
+        name,
+        vectorizers: weaviate.configure.vectors.selfProvided({
+          vectorIndexConfig: weaviate.configure.vectorIndex.flat(),
+        }),
+      });
+      const config = await client.collections.use(name).config.get();
+      expect(config.vectorizers.default.indexType).toEqual('flat');
+    } finally {
+      await client.collections.delete(name).catch(() => undefined);
+    }
+  });
+
+  it('Scenario B — selfProvided (named vector "main"), explicit flat index config', async () => {
+    const name = `DefaultVectorIndexType_B_Named_${Date.now()}`;
+    try {
+      await client.collections.create({
+        name,
+        vectorizers: weaviate.configure.vectors.selfProvided({
+          name: 'main',
+          vectorIndexConfig: weaviate.configure.vectorIndex.flat(),
+        }),
+      });
+      const config = await client.collections.use(name).config.get();
+      expect(config.vectorizers.main.indexType).toEqual('flat');
+    } finally {
+      await client.collections.delete(name).catch(() => undefined);
+    }
+  });
+}, 120_000);

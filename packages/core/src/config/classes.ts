@@ -3,9 +3,12 @@ import { QuantizerGuards } from '../configure/parsing.js';
 import {
   InvertedIndexConfigUpdate,
   MultiTenancyConfigUpdate,
+  ObjectTTLConfigUpdate,
   ReplicationConfigUpdate,
   VectorConfigUpdate,
+  VectorIndexConfigDynamicUpdate,
   VectorIndexConfigFlatUpdate,
+  VectorIndexConfigHFreshUpdate,
   VectorIndexConfigHNSWUpdate,
 } from '../configure/types/index.js';
 import { WeaviateInvalidInputError } from '../errors.js';
@@ -14,6 +17,7 @@ import {
   WeaviateInvertedIndexConfig,
   WeaviateModuleConfig,
   WeaviateMultiTenancyConfig,
+  WeaviateObjectTTLConfig,
   WeaviateReplicationConfig,
   WeaviateVectorIndexConfig,
   WeaviateVectorsConfig,
@@ -26,15 +30,12 @@ import {
   PropertyDescriptionsUpdate,
   Reranker,
   RerankerConfig,
+  VectorIndexConfigDynamic,
   VectorIndexType,
 } from './types/index.js';
 
 export class MergeWithExisting {
-  static schema(
-    current: WeaviateClass,
-    supportsNamedVectors: boolean,
-    update?: CollectionConfigUpdate<any>
-  ): WeaviateClass {
+  static schema(current: WeaviateClass, update?: CollectionConfigUpdate<any>): WeaviateClass {
     if (update === undefined) return current;
     if (update.description !== undefined) current.description = update.description;
     if (update.propertyDescriptions !== undefined)
@@ -51,6 +52,9 @@ export class MergeWithExisting {
         current.multiTenancyConfig,
         update.multiTenancy
       );
+    if (update.objectTTL !== undefined) {
+      current.objectTtlConfig = MergeWithExisting.objectTTL(current.objectTtlConfig, update.objectTTL);
+    }
     if (update.replication !== undefined)
       current.replicationConfig = MergeWithExisting.replication(
         current.replicationConfig!,
@@ -61,17 +65,22 @@ export class MergeWithExisting {
     if (update.vectorizers !== undefined) {
       if (Array.isArray(update.vectorizers)) {
         current.vectorConfig = MergeWithExisting.vectors(current.vectorConfig, update.vectorizers);
-      } else if (supportsNamedVectors && current.vectorConfig !== undefined) {
+      } else if (current.vectorConfig !== undefined) {
         const updateVectorizers = {
           ...update.vectorizers,
           name: 'default',
         };
         current.vectorConfig = MergeWithExisting.vectors(current.vectorConfig, [updateVectorizers]);
       } else {
-        current.vectorIndexConfig =
-          update.vectorizers?.vectorIndex.name === 'hnsw'
+        current.vectorIndexConfig = update.vectorizers?.vectorIndex
+          ? update.vectorizers.vectorIndex.name === 'hnsw'
             ? MergeWithExisting.hnsw(current.vectorIndexConfig, update.vectorizers.vectorIndex.config)
-            : MergeWithExisting.flat(current.vectorIndexConfig, update.vectorizers.vectorIndex.config);
+            : update.vectorizers.vectorIndex.name === 'hfresh'
+            ? MergeWithExisting.hfresh(current.vectorIndexConfig, update.vectorizers.vectorIndex.config)
+            : update.vectorizers.vectorIndex.name === 'dynamic'
+            ? MergeWithExisting.dynamic(current.vectorIndexConfig, update.vectorizers.vectorIndex.config)
+            : MergeWithExisting.flat(current.vectorIndexConfig, update.vectorizers.vectorIndex.config)
+          : current.vectorIndexConfig;
       }
     }
     return current;
@@ -96,7 +105,11 @@ export class MergeWithExisting {
     if (current === undefined) throw Error('Module config is missing from the class schema.');
     if (update === undefined) return current;
     const generative = update.name === 'generative-azure-openai' ? 'generative-openai' : update.name;
-    const currentGenerative = current[generative] as Record<string, any>;
+    const old = Object.keys(current).find((key) => key.startsWith('generative-') && key !== update.name);
+    if (old !== undefined) {
+      delete current[old];
+    }
+    const currentGenerative = (current[generative] as Record<string, any>) || {};
     current[generative] = {
       ...currentGenerative,
       ...update.config,
@@ -111,6 +124,10 @@ export class MergeWithExisting {
     if (current === undefined) throw Error('Module config is missing from the class schema.');
     if (update === undefined) return current;
     const reranker = current[update.name] as Record<string, any>;
+    const old = Object.keys(current).find((key) => key.startsWith('reranker-') && key !== update.name);
+    if (old !== undefined) {
+      delete current[old];
+    }
     current[update.name] = {
       ...reranker,
       ...update.config,
@@ -131,6 +148,15 @@ export class MergeWithExisting {
     return merged;
   }
 
+  static objectTTL(current: WeaviateObjectTTLConfig, update: ObjectTTLConfigUpdate): WeaviateObjectTTLConfig {
+    if (current === undefined) return update;
+    return {
+      enabled: update.enabled ?? current.enabled,
+      deleteOn: update.deleteOn ?? current.deleteOn,
+      defaultTtl: update.defaultTTLSeconds ?? current.defaultTtl,
+      filterExpiredObjects: update.filterExpiredObjects ?? current.filterExpiredObjects,
+    };
+  }
   static multiTenancy(
     current: WeaviateMultiTenancyConfig,
     update: MultiTenancyConfigUpdate
@@ -155,10 +181,15 @@ export class MergeWithExisting {
     update.forEach((v) => {
       const existing = current[v.name];
       if (existing !== undefined) {
-        current[v.name].vectorIndexConfig =
-          v.vectorIndex.name === 'hnsw'
+        current[v.name].vectorIndexConfig = v.vectorIndex
+          ? v.vectorIndex.name === 'hnsw'
             ? MergeWithExisting.hnsw(existing.vectorIndexConfig, v.vectorIndex.config)
-            : MergeWithExisting.flat(existing.vectorIndexConfig, v.vectorIndex.config);
+            : v.vectorIndex.name === 'hfresh'
+            ? MergeWithExisting.hfresh(existing.vectorIndexConfig, v.vectorIndex.config)
+            : v.vectorIndex.name === 'dynamic'
+            ? MergeWithExisting.dynamic(existing.vectorIndexConfig, v.vectorIndex.config)
+            : MergeWithExisting.flat(existing.vectorIndexConfig, v.vectorIndex.config)
+          : existing.vectorIndexConfig;
       }
     });
     return current;
@@ -182,19 +213,48 @@ export class MergeWithExisting {
     return merged;
   }
 
+  static hfresh(
+    current: WeaviateVectorIndexConfig,
+    update: VectorIndexConfigHFreshUpdate
+  ): WeaviateVectorIndexConfig {
+    return { ...current, ...update };
+  }
+
+  static dynamic(
+    current: WeaviateVectorIndexConfig,
+    update: VectorIndexConfigDynamicUpdate
+  ): WeaviateVectorIndexConfig {
+    if (!current) {
+      return update;
+    }
+    current as VectorIndexConfigDynamic;
+    const { hnsw, flat, ...rest } = update;
+    const merged: WeaviateVectorIndexConfig = { ...current, ...rest };
+    if (hnsw) {
+      merged.hnsw = MergeWithExisting.hnsw((current as VectorIndexConfigDynamic).hnsw, hnsw);
+    }
+    if (flat) {
+      merged.flat = MergeWithExisting.flat((current as VectorIndexConfigDynamic).flat, flat);
+    }
+    return merged;
+  }
+
   static hnsw(
     current: WeaviateVectorIndexConfig,
     update: VectorIndexConfigHNSWUpdate
   ): WeaviateVectorIndexConfig {
+    const hasOtherQuantizerAlready = (quantizer: string) =>
+      ['pq', 'bq', 'sq', 'rq'].some(
+        (q) => q !== quantizer && (current?.[q as keyof WeaviateVectorIndexConfig] as any)?.enabled
+      );
     if (
-      (QuantizerGuards.isBQUpdate(update.quantizer) &&
-        (((current?.pq as any) || {}).enabled || ((current?.sq as any) || {}).enabled)) ||
-      (QuantizerGuards.isPQUpdate(update.quantizer) &&
-        (((current?.bq as any) || {}).enabled || ((current?.sq as any) || {}).enabled)) ||
-      (QuantizerGuards.isSQUpdate(update.quantizer) &&
-        (((current?.pq as any) || {}).enabled || ((current?.bq as any) || {}).enabled))
-    )
+      (QuantizerGuards.isBQUpdate(update.quantizer) && hasOtherQuantizerAlready('bq')) ||
+      (QuantizerGuards.isPQUpdate(update.quantizer) && hasOtherQuantizerAlready('pq')) ||
+      (QuantizerGuards.isSQUpdate(update.quantizer) && hasOtherQuantizerAlready('sq')) ||
+      (QuantizerGuards.isRQUpdate(update.quantizer) && hasOtherQuantizerAlready('rq'))
+    ) {
       throw new WeaviateInvalidInputError(`Cannot update the quantizer type of an enabled vector index.`);
+    }
     const { quantizer, ...rest } = update;
     const merged: WeaviateVectorIndexConfig = { ...current, ...rest };
     if (QuantizerGuards.isBQUpdate(quantizer)) {
@@ -208,6 +268,10 @@ export class MergeWithExisting {
     if (QuantizerGuards.isSQUpdate(quantizer)) {
       const { type, ...quant } = quantizer;
       merged.sq = { ...current!.sq!, ...quant, enabled: true };
+    }
+    if (QuantizerGuards.isRQUpdate(quantizer)) {
+      const { type, ...quant } = quantizer;
+      merged.rq = { ...current!.rq!, ...quant, enabled: true };
     }
     return merged;
   }

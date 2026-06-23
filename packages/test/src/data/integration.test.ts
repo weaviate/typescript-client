@@ -1,12 +1,15 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
-import { v4 } from 'uuid';
+/* eslint-disable no-await-in-loop */
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+
 import { WeaviateUnsupportedFeatureError } from '@weaviate/core/errors';
-import weaviate, { WeaviateClient, weaviateV2, Collection } from '@weaviate/node';
 import { GeoCoordinate, PhoneNumber } from '@weaviate/core/proto/v1/properties';
 import { CrossReference, CrossReferences, Reference } from '@weaviate/core/references';
 import { DataObject, WeaviateObject } from '@weaviate/core/types';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import weaviate, { Collection, WeaviateClient, weaviateV2 } from '@weaviate/node';
+import { v4 } from 'uuid';
+import { requireAtLeast } from '../../version.js';
 
 type TestCollectionData = {
   testProp: string;
@@ -30,16 +33,15 @@ describe('Testing of the collection.data methods with a single target reference'
   const toBeUpdatedID = v4();
   const toBeDeletedID = v4();
   const nonExistingID = v4();
-
-  afterAll(() => {
-    return client.collections.delete(collectionName).catch((err) => {
-      console.error(err);
-      throw err;
-    });
-  });
+  const deleteManyFirstID = v4();
+  const deleteManySecondID = v4();
+  const deleteManyThirdID = v4();
 
   beforeAll(async () => {
     client = await weaviate.connectToLocal();
+
+    await client.collections.delete(collectionName);
+
     collection = client.collections.use(collectionName);
     await client.collections
       .create<TestCollectionData>({
@@ -82,9 +84,9 @@ describe('Testing of the collection.data methods with a single target reference'
           id: toBeDeletedID,
         });
         return collection.data.insertMany([
-          { properties: { testProp: 'DELETE ME' } },
-          { properties: { testProp: 'DELETE ME' } },
-          { properties: { testProp: 'DELETE ME' } },
+          { properties: { testProp: 'DELETE ME' }, id: deleteManyFirstID },
+          { properties: { testProp: 'DELETE ME' }, id: deleteManySecondID },
+          { properties: { testProp: 'DELETE ME' }, id: deleteManyThirdID },
           {
             properties: {
               testProp: 'EXISTING',
@@ -151,6 +153,22 @@ describe('Testing of the collection.data methods with a single target reference'
     expect(result).toBeTruthy();
     const obj = await collection.query.fetchObjectById(toBeDeletedID);
     expect(obj).toBeNull();
+  });
+
+  it('should be able to dryRun delete many objects with a filter', async () => {
+    const result = await collection.data.deleteMany(
+      collection.filter.byProperty('testProp').equal('DELETE ME'),
+      {
+        dryRun: true,
+        verbose: true,
+      }
+    );
+    expect(result.failed).toEqual(0);
+    expect(result.matches).toEqual(3);
+    expect(result.successful).toEqual(3);
+    expect(result.objects.map((obj) => obj.id).sort()).toEqual(
+      [deleteManyFirstID, deleteManySecondID, deleteManyThirdID].sort()
+    );
   });
 
   it('should be able to delete many objects with a filter', async () => {
@@ -328,7 +346,7 @@ describe('Testing of the collection.data methods with a single target reference'
       collection.query.fetchObjectById(toBeReplacedID, {
         returnReferences: [{ linkOn: 'ref' }],
       });
-    const assert = (obj: WeaviateObject<TestCollectionData> | null, id: string) => {
+    const assert = (obj: WeaviateObject<TestCollectionData, undefined> | null, id: string) => {
       expect(obj).not.toBeNull();
       expect(obj?.references?.ref?.objects[0].uuid).toEqual(id);
     };
@@ -344,32 +362,58 @@ describe('Testing of the collection.data methods with a single target reference'
   });
 
   it('should be able to delete a reference between two objects', () => {
-    return Promise.all([
-      collection.data.referenceDelete({
-        fromProperty: 'ref',
-        fromUuid: toBeUpdatedID,
-        to: Reference.to(existingID),
-      }),
-      collection.data.referenceDelete({
-        fromProperty: 'ref',
-        fromUuid: toBeUpdatedID,
-        to: toBeUpdatedID,
-      }),
-      collection.data.referenceDelete({
-        fromProperty: 'ref',
-        fromUuid: toBeUpdatedID,
-        to: [toBeReplacedID],
-      }),
-    ])
-      .then(() =>
-        collection.query.fetchObjectById(toBeUpdatedID, {
-          returnReferences: [{ linkOn: 'ref' }],
+    // Insert 2 objects
+    return (
+      collection.data
+        .insertMany([{ testProp: 'refLeft' }, { testProp: 'refRight' }])
+        // Create a reference between them
+        .then((inserted) =>
+          collection.data
+            .referenceAdd({
+              fromProperty: 'ref',
+              fromUuid: inserted.allResponses[0] as string,
+              to: inserted.allResponses[1] as string,
+            })
+            .then(() => inserted)
+        )
+
+        // Assert that the reference exists
+        .then((inserted) =>
+          collection.query
+            .fetchObjectById(inserted.allResponses[0] as string, {
+              returnReferences: [{ linkOn: 'ref' }],
+            })
+            .then((obj) => {
+              expect(obj).not.toBeNull();
+              expect(obj?.references?.ref?.objects).toHaveLength(1);
+
+              // Propagate the list of inserted IDs
+              return Promise.resolve(inserted);
+            })
+        )
+
+        // Delete reference between them
+        .then((inserted) =>
+          collection.data
+            .referenceDelete({
+              fromProperty: 'ref',
+              fromUuid: inserted.allResponses[0] as string,
+              to: inserted.allResponses[1] as string,
+            })
+            .then(() => inserted)
+        )
+
+        // Assert the reference does not exist
+        .then((inserted) =>
+          collection.query.fetchObjectById(inserted.allResponses[0] as string, {
+            returnReferences: [{ linkOn: 'ref' }],
+          })
+        )
+        .then((obj) => {
+          expect(obj).not.toBeNull();
+          expect(obj?.references?.ref?.objects).toEqual([]);
         })
-      )
-      .then((obj) => {
-        expect(obj).not.toBeNull();
-        expect(obj?.references?.ref?.objects).toEqual([]);
-      });
+    );
   });
 
   it('should be able to add many references in batch', () => {
@@ -798,8 +842,8 @@ describe('Testing of the collection.data methods with bring your own multi vecto
           },
         ],
         vectorizers: [
-          weaviate.configure.vectorizer.none({ name: 'one' }),
-          weaviate.configure.vectorizer.none({ name: 'two' }),
+          weaviate.configure.vectors.none({ name: 'one' }),
+          weaviate.configure.vectors.none({ name: 'two' }),
         ],
       });
     if (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 24, 0))) {
@@ -929,7 +973,7 @@ describe('Testing of the collection.data methods with a vector index', () => {
           dataType: 'text',
         },
       ],
-      vectorizers: weaviate.configure.vectorizer.none(),
+      vectorizers: weaviate.configure.vectors.none(),
     });
   });
 
@@ -1039,5 +1083,82 @@ describe('Testing of BYOV insertion with legacy vectorizer', () => {
     const id = await collection.data.insert({ vectors: [7, 8, 9] });
     const object = await collection.query.fetchObjectById(id, { includeVector: true });
     expect(object?.vectors.default).toEqual([7, 8, 9]);
+  });
+});
+
+requireAtLeast(1, 36, 0).describe('Testing of the collection.data.{import, ingest} methods', () => {
+  let client: WeaviateClient;
+  let collection: Collection;
+  const collectionName = 'TestCollectionDataIngest';
+
+  beforeAll(async () => {
+    client = await weaviate.connectToLocal();
+  });
+
+  beforeEach(async () => {
+    collection = await client.collections.create({
+      name: collectionName,
+      properties: [
+        {
+          name: 'text',
+          dataType: 'text',
+        },
+      ],
+      references: [
+        {
+          name: 'self',
+          targetCollection: collectionName,
+        },
+      ],
+      vectorizers: weaviate.configure.vectors.selfProvided(),
+    });
+  });
+
+  afterEach(() => client.collections.delete(collectionName));
+
+  it('should be able to ingest 2000 objects with vectors from the collection object', async () => {
+    const objects: DataObject<any>[] = [];
+    for (let i = 0; i < 2000; i++) {
+      objects.push({
+        properties: {
+          text: `object ${i}`,
+        },
+        vectors: Array.from({ length: 128 }, () => Math.random()),
+      });
+    }
+    const insert = await collection.data.ingest(objects);
+    expect(insert.hasErrors).toBeFalsy();
+    expect(insert.allResponses.length).toEqual(2000);
+    expect(Object.values(insert.errors).length).toEqual(0);
+    expect(Object.values(insert.uuids).length).toEqual(2000);
+    expect(await collection.length()).toEqual(2000);
+  });
+
+  it('should be able to ingest 2000 self-referencing objects with vectors from the client object', async () => {
+    const batching = await client.batch.stream();
+
+    for (let i = 0; i < 2000; i++) {
+      const obj = {
+        collection: collectionName,
+        properties: {
+          text: `object ${i}`,
+        },
+        vectors: Array.from({ length: 128 }, () => Math.random()),
+      };
+      const id = await batching.addObject(obj);
+      await batching.addReference({
+        fromObjectCollection: collectionName,
+        fromObjectUuid: id,
+        fromPropertyName: 'self',
+        toObjectUuid: id,
+      });
+    }
+
+    await batching.stop();
+
+    expect(batching.hasErrors()).toBeFalsy();
+    expect(Object.values(batching.objErrors()).length).toEqual(0);
+    expect(Object.values(batching.uuids()).length).toEqual(2000);
+    expect(await collection.length()).toEqual(2000);
   });
 });

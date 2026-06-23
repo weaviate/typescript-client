@@ -74,59 +74,10 @@ export class DbVersionSupport {
     this.dbVersionProvider.getVersion().then((version) => {
       return {
         version: version,
-        supports: version.isAtLeast(1, 23, 7),
-        message: this.errorMessage('The gRPC API', version.show(), '1.23.7'),
+        supports: version.isAtLeast(1, 27, 0),
+        message: this.errorMessage('The gRPC API', version.show(), '1.27.0'),
       };
     });
-
-  supportsHNSWAndBQ = () =>
-    this.dbVersionProvider.getVersion().then((version) => {
-      return {
-        version: version,
-        supports: version.isAtLeast(1, 24, 0),
-        message: this.errorMessage('HNSW index and BQ quantizer', version.show(), '1.24.0'),
-      };
-    });
-
-  supportsBm25AndHybridGroupByQueries = () =>
-    this.dbVersionProvider.getVersion().then((version) => {
-      return {
-        version: version,
-        supports: version.isAtLeast(1, 25, 0),
-        message: (query: 'Bm25' | 'Hybrid') =>
-          this.errorMessage(`GroupBy with ${query}`, version.show(), '1.25.0'),
-      };
-    });
-
-  supportsHybridNearTextAndNearVectorSubsearchQueries = () => {
-    return this.dbVersionProvider.getVersion().then((version) => {
-      return {
-        version: version,
-        supports: version.isAtLeast(1, 25, 0),
-        message: this.errorMessage('Hybrid nearText/nearVector subsearching', version.show(), '1.25.0'),
-      };
-    });
-  };
-
-  supports125ListValue = () => {
-    return this.dbVersionProvider.getVersion().then((version) => {
-      return {
-        version: version,
-        supports: version.isAtLeast(1, 25, 0),
-        message: undefined,
-      };
-    });
-  };
-
-  supportsNamedVectors = () => {
-    return this.dbVersionProvider.getVersion().then((version) => {
-      return {
-        version: version,
-        supports: version.isAtLeast(1, 24, 0),
-        message: this.errorMessage('Named vectors', version.show(), '1.24.0'),
-      };
-    });
-  };
 
   requiresNamedVectorsInsertFix = () => {
     return this.dbVersionProvider.getVersion().then((version) => {
@@ -146,16 +97,6 @@ export class DbVersionSupport {
     });
   };
 
-  supportsTenantsGetGRPCMethod = () => {
-    return this.dbVersionProvider.getVersion().then((version) => {
-      return {
-        version: version,
-        supports: version.isAtLeast(1, 25, 0),
-        message: this.errorMessage('Tenants get method over gRPC', version.show(), '1.25.0'),
-      };
-    });
-  };
-
   supportsTenantGetRESTMethod = () =>
     this.dbVersionProvider.getVersion().then((version) => ({
       version: version,
@@ -163,66 +104,22 @@ export class DbVersionSupport {
       message: this.errorMessage('Tenant get method over REST', version.show(), '1.28.0'),
     }));
 
-  supportsDynamicVectorIndex = () => {
-    return this.dbVersionProvider.getVersion().then((version) => {
-      return {
-        version: version,
-        supports: version.isAtLeast(1, 25, 0),
-        message: this.errorMessage('Dynamic vector index', version.show(), '1.25.0'),
-      };
-    });
-  };
-
-  supportsMultiTargetVectorSearch = () => {
-    return this.dbVersionProvider.getVersion().then((version) => {
-      return {
-        version: version,
-        supports: version.isAtLeast(1, 26, 0),
-        message: this.errorMessage('Multi-target vector search', version.show(), '1.26.0'),
-      };
-    });
-  };
-
-  supportsMultiVectorSearch = () => {
-    return this.dbVersionProvider.getVersion().then((version) => {
-      return {
-        version: version,
-        supports: version.isAtLeast(1, 26, 0),
-        message: this.errorMessage('Multi-vector search', version.show(), '1.26.0'),
-      };
-    });
-  };
-
-  supportsMultiVectorPerTargetSearch = () => {
-    return this.dbVersionProvider.getVersion().then((version) => {
-      return {
-        version: version,
-        supports: version.isAtLeast(1, 27, 0),
-        message: this.errorMessage('Multi-vector-per-target search', version.show(), '1.27.0'),
-      };
-    });
-  };
-
-  supportsMultiWeightsPerTargetSearch = () => {
-    return this.dbVersionProvider.getVersion().then((version) => {
-      return {
-        version: version,
-        supports: version.isAtLeast(1, 27, 0),
-        message: this.errorMessage(
-          'Multi-target vector search with multiple weights',
-          version.show(),
-          '1.27.0'
-        ),
-      };
-    });
-  };
-
   supportsAggregateGRPC = () => {
     return this.dbVersionProvider.getVersion().then((version) => {
       return {
         version: version,
         supports: version.isAtLeast(1, 29, 0),
         message: this.errorMessage('Aggregate gRPC method', version.show(), '1.29.0'),
+      };
+    });
+  };
+
+  supportsVectorsFieldInGRPC = () => {
+    return this.dbVersionProvider.getVersion().then((version) => {
+      return {
+        version: version,
+        supports: version.isAtLeast(1, 29, 0),
+        message: undefined,
       };
     });
   };
@@ -243,6 +140,34 @@ export class DbVersionSupport {
       version,
       supports: version.isAtLeast(1, 30, 0),
       message: this.errorMessage('Generative config runtime', version.show(), '1.30.0'),
+    }));
+
+  supportsServerSideBatching = () =>
+    this.dbVersionProvider.getVersion().then((version) => ({
+      version,
+      supports: version.isAtLeast(1, 36, 0),
+      message: this.errorMessage('Server-side batching', version.show(), '1.36.0'),
+    }));
+
+  supportsTokenize = () =>
+    this.dbVersionProvider.getVersion().then((version) => ({
+      version,
+      supports: version.isAtLeast(1, 37, 0),
+      message: this.errorMessage('Tokenize endpoint', version.show(), '1.37.0'),
+    }));
+
+  supportsTokenizeStopwords = () =>
+    this.dbVersionProvider.getVersion().then((version) => ({
+      version,
+      supports: version.isAtLeast(1, 37, 2),
+      message: this.errorMessage('Tokenize endpoint stopwords / stopwordPresets', version.show(), '1.37.2'),
+    }));
+
+  supportsServerSideDefaultVectorIndexType = () =>
+    this.dbVersionProvider.getVersion().then((version) => ({
+      version,
+      supports: version.isAtLeast(1, 37, 5),
+      message: undefined,
     }));
 }
 
@@ -312,15 +237,19 @@ export class DbVersion {
   }
 
   static fromString = (version: string) => {
+    // CI image tags may append an architecture suffix (for example: 1.37.5.amd64).
+    // Strip that suffix before semver parsing.
+    const normalizedVersion = version.replace(/\.(amd64|arm64|x86_64)$/, '');
+
     let regex = /^v?(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?$/;
-    let match = version.match(regex);
+    let match = normalizedVersion.match(regex);
     if (match) {
       const [_, major, minor, patch] = match;
       return new DbVersion(parseInt(major, 10), parseInt(minor, 10), parseInt(patch, 10));
     }
 
     regex = /^v?(\d+)\.(\d+)$/;
-    match = version.match(regex);
+    match = normalizedVersion.match(regex);
     if (match) {
       const [_, major, minor] = match;
       return new DbVersion(parseInt(major, 10), parseInt(minor, 10));

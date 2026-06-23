@@ -3,7 +3,6 @@ import ConnectionGRPC from './grpc.js';
 import ConnectionREST from './http.js';
 
 export default ConnectionGQL;
-export { ConnectionGQL, ConnectionGRPC, ConnectionREST };
 
 export type { Transports, TransportsMaker, TransportsParams } from './grpc.js';
 export type {
@@ -13,4 +12,5 @@ export type {
   ConnectToWCSOptions,
   ConnectToWeaviateCloudOptions,
 } from './helpers.js';
-export type { InternalConnectionParams } from './http.js';
+export type { IConnection, InternalConnectionParams } from './http.js';
+export { ConnectionGQL, ConnectionGRPC, ConnectionREST };

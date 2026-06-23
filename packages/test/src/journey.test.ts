@@ -1,5 +1,5 @@
-import weaviate, { CollectionConfig, WeaviateClient } from '@weaviate/node';
 import { GeoCoordinate } from '@weaviate/core/proto/v1/properties';
+import weaviate, { CollectionConfig, WeaviateClient } from '@weaviate/node';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 describe('Journey testing of the client using a WCD cluster', () => {
@@ -47,7 +47,7 @@ describe('Journey testing of the client using a WCD cluster', () => {
       ],
       generative: weaviate.configure.generative.cohere(),
       reranker: weaviate.configure.reranker.cohere(),
-      vectorizers: weaviate.configure.vectorizer.text2VecCohere(),
+      vectorizers: weaviate.configure.vectors.text2VecCohere(),
     });
   });
 
@@ -58,6 +58,7 @@ describe('Journey testing of the client using a WCD cluster', () => {
       .then(async (config) => {
         expect(config).toEqual<CollectionConfig>({
           name: collectionName,
+          description: undefined,
           generative: {
             name: 'generative-cohere',
             config: {},
@@ -82,10 +83,13 @@ describe('Journey testing of the client using a WCD cluster', () => {
             autoTenantCreation: false,
             enabled: false,
           },
+          objectTTL: { enabled: false },
           properties: [
             {
               name: 'name',
               dataType: 'text',
+              description: undefined,
+              nestedProperties: undefined,
               indexFilterable: true,
               indexInverted: false,
               indexRangeFilters: false,
@@ -101,6 +105,8 @@ describe('Journey testing of the client using a WCD cluster', () => {
             {
               name: 'age',
               dataType: 'int',
+              description: undefined,
+              nestedProperties: undefined,
               indexFilterable: true,
               indexInverted: false,
               indexRangeFilters: false,
@@ -116,6 +122,8 @@ describe('Journey testing of the client using a WCD cluster', () => {
             {
               name: 'location',
               dataType: 'geoCoordinates',
+              description: undefined,
+              nestedProperties: undefined,
               indexFilterable: true,
               indexInverted: false,
               indexRangeFilters: false,
@@ -131,6 +139,8 @@ describe('Journey testing of the client using a WCD cluster', () => {
             {
               name: 'dateOfBirth',
               dataType: 'date',
+              description: undefined,
+              nestedProperties: undefined,
               indexFilterable: true,
               indexInverted: false,
               indexRangeFilters: false,
@@ -147,8 +157,8 @@ describe('Journey testing of the client using a WCD cluster', () => {
           references: [],
           replication: {
             asyncEnabled: false,
-            deletionStrategy: 'NoAutomatedResolution',
-            factor: 1,
+            deletionStrategy: 'TimeBasedResolution',
+            factor: 3,
           },
           reranker: {
             name: 'reranker-cohere',
@@ -156,16 +166,17 @@ describe('Journey testing of the client using a WCD cluster', () => {
           },
           sharding: {
             virtualPerPhysical: 128,
-            desiredCount: 1,
-            actualCount: 1,
-            desiredVirtualCount: 128,
-            actualVirtualCount: 128,
+            desiredCount: 3,
+            actualCount: 3,
+            desiredVirtualCount: 384,
+            actualVirtualCount: 384,
             key: '_id',
             strategy: 'hash',
             function: 'murmur3',
           },
           vectorizers: {
             default: {
+              properties: undefined,
               vectorizer: {
                 name: 'text2vec-cohere',
                 config: {
@@ -183,11 +194,12 @@ describe('Journey testing of the client using a WCD cluster', () => {
                 dynamicEfFactor: 8,
                 ef: -1,
                 efConstruction: 128,
-                filterStrategy: 'sweeping',
+                filterStrategy: 'acorn',
                 flatSearchCutoff: 40000,
                 maxConnections: (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 26, 0)))
                   ? 64
                   : 32,
+                multiVector: undefined,
                 skip: false,
                 vectorCacheMaxObjects: 1000000000000,
                 quantizer: undefined,

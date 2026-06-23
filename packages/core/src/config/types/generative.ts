@@ -12,6 +12,7 @@ export type GenerativeAWSConfig = {
   service: string;
   model?: string;
   endpoint?: string;
+  maxTokens?: number;
 };
 
 export type GenerativeAnthropicConfig = {
@@ -88,6 +89,8 @@ export type GenerativePaLMConfig = GenerativeGoogleConfig;
 export type GenerativeGoogleConfig = {
   apiEndpoint?: string;
   maxOutputTokens?: number;
+  model?: string;
+  /** @deprecated Use `model` instead. */
   modelId?: string;
   projectId?: string;
   temperature?: number;
@@ -103,12 +106,22 @@ export type GenerativeXAIConfig = {
   topP?: number;
 };
 
+export type GenerativeContextualAIConfig = {
+  model?: string;
+  temperature?: number;
+  topP?: number;
+  maxNewTokens?: number;
+  systemPrompt?: string;
+  avoidCommentary?: boolean;
+};
+
 export type GenerativeConfig =
   | GenerativeAnthropicConfig
   | GenerativeAnyscaleConfig
   | GenerativeAWSConfig
   | GenerativeAzureOpenAIConfig
   | GenerativeCohereConfig
+  | GenerativeContextualAIConfig
   | GenerativeDatabricksConfig
   | GenerativeGoogleConfig
   | GenerativeFriendliAIConfig
@@ -130,6 +143,8 @@ export type GenerativeConfigType<G> = G extends 'generative-anthropic'
   ? GenerativeAzureOpenAIConfig
   : G extends 'generative-cohere'
   ? GenerativeCohereConfig
+  : G extends 'generative-contextualai'
+  ? GenerativeContextualAIConfig
   : G extends 'generative-databricks'
   ? GenerativeDatabricksConfig
   : G extends 'generative-google'
@@ -159,6 +174,7 @@ export type GenerativeSearch =
   | 'generative-aws'
   | 'generative-azure-openai'
   | 'generative-cohere'
+  | 'generative-contextualai'
   | 'generative-databricks'
   | 'generative-google'
   | 'generative-friendliai'

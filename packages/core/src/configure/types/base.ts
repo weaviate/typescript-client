@@ -1,16 +1,20 @@
 import {
   InvertedIndexConfig,
   MultiTenancyConfig,
+  ObjectTTLConfig,
+  QuantizerConfig,
   ReplicationConfig,
-  ReplicationDeletionStrategy,
+  TextAnalyzerConfig,
 } from '../../config/types/index.js';
 import { WeaviateNestedProperty, WeaviateProperty } from '../../openapi/types.js';
-import { DataType } from '../../types/index.js';
+import { DataType, QuantizerRecursivePartial } from '../../types/index.js';
 import { NonRefKeys, RefKeys } from '../../types/internal.js';
 
 export type RecursivePartial<T> = T extends object
   ? {
-      [P in keyof T]?: RecursivePartial<T[P]>;
+      [P in keyof T]?: T[P] extends QuantizerConfig
+        ? QuantizerRecursivePartial<T[P]>
+        : RecursivePartial<T[P]>;
     }
   : T;
 
@@ -27,7 +31,12 @@ export type InvertedIndexConfigUpdate = {
     additions?: string[];
     removals?: string[];
   };
+  stopwordPresets?: { [presetName: string]: string[] };
 };
+
+export type ObjectTTLConfigCreate = RecursivePartial<ObjectTTLConfig>;
+
+export type ObjectTTLConfigUpdate = ObjectTTLConfigCreate;
 
 export type MultiTenancyConfigCreate = RecursivePartial<MultiTenancyConfig>;
 
@@ -92,6 +101,7 @@ export type PropertyConfigCreateBase = {
   tokenization?: WeaviateProperty['tokenization'];
   skipVectorization?: boolean;
   vectorizePropertyName?: boolean;
+  textAnalyzer?: TextAnalyzerConfig;
 };
 
 export type NestedPropertyConfigCreateBase = {
@@ -114,6 +124,7 @@ export type PropertyConfigCreate<T> = T extends undefined
       tokenization?: WeaviateProperty['tokenization'];
       skipVectorization?: boolean;
       vectorizePropertyName?: boolean;
+      textAnalyzer?: TextAnalyzerConfig;
     } & NestedDataTypeConfig<T>
   : {
       [K in NonRefKeys<T>]: RequiresNested<DataType<T[K]>> extends true
@@ -155,11 +166,7 @@ export type ReferenceConfigCreate<T> =
 
 export type ReplicationConfigCreate = RecursivePartial<ReplicationConfig>;
 
-export type ReplicationConfigUpdate = {
-  asyncEnabled?: boolean;
-  deletionStrategy?: ReplicationDeletionStrategy;
-  factor?: number;
-};
+export type ReplicationConfigUpdate = RecursivePartial<ReplicationConfig>;
 
 export type ShardingConfigCreate = {
   virtualPerPhysical?: number;

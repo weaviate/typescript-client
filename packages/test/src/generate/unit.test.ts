@@ -1,6 +1,6 @@
-import { GenerativeConfigRuntimeType, ModuleConfig } from '@weaviate/core/types';
 import { generativeParameters } from '@weaviate/core/generate/config';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { GenerativeConfigRuntimeType, ModuleConfig } from '@weaviate/core/types';
+import { describe, expect, it } from 'vitest';
 
 // only tests fields that must be mapped from some public name to a gRPC name, e.g. baseURL -> baseUrl and stop: string[] -> stop: TextArray
 describe('Unit testing of the generativeParameters factory methods', () => {
@@ -307,6 +307,49 @@ describe('Unit testing of the generativeParameters factory methods', () => {
           model: 'model',
           temperature: 0.5,
           topP: 0.9,
+        },
+      });
+    });
+  });
+
+  describe('contextualai', () => {
+    it('with defaults', () => {
+      const config = generativeParameters.contextualai();
+      expect(config).toEqual<
+        ModuleConfig<
+          'generative-contextualai',
+          GenerativeConfigRuntimeType<'generative-contextualai'> | undefined
+        >
+      >({
+        name: 'generative-contextualai',
+        config: undefined,
+      });
+    });
+    it('with values', () => {
+      const config = generativeParameters.contextualai({
+        model: 'v2',
+        maxNewTokens: 512,
+        temperature: 0.7,
+        topP: 0.9,
+        systemPrompt: 'sys',
+        avoidCommentary: false,
+        knowledge: ['knowledge1', 'knowledge2'],
+      });
+      expect(config).toEqual<
+        ModuleConfig<
+          'generative-contextualai',
+          GenerativeConfigRuntimeType<'generative-contextualai'> | undefined
+        >
+      >({
+        name: 'generative-contextualai',
+        config: {
+          model: 'v2',
+          temperature: 0.7,
+          topP: 0.9,
+          maxNewTokens: 512,
+          systemPrompt: 'sys',
+          avoidCommentary: false,
+          knowledge: { values: ['knowledge1', 'knowledge2'] },
         },
       });
     });

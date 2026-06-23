@@ -7,20 +7,7 @@
 /* eslint-disable */
 import Long from "long";
 import _m0 from "protobufjs/minimal.js";
-import { Struct } from "../google/protobuf/struct.js";
-import {
-  BooleanArrayProperties,
-  ConsistencyLevel,
-  consistencyLevelFromJSON,
-  consistencyLevelToJSON,
-  Filters,
-  IntArrayProperties,
-  NumberArrayProperties,
-  ObjectArrayProperties,
-  ObjectProperties,
-  TextArrayProperties,
-  Vectors,
-} from "./base.js";
+import { ConsistencyLevel, consistencyLevelFromJSON, consistencyLevelToJSON, Filters, Vectors } from "./base.js";
 import {
   BM25,
   Hybrid,
@@ -117,6 +104,11 @@ export interface MetadataRequest {
   explainScore: boolean;
   isConsistent: boolean;
   vectors: string[];
+  /**
+   * query_profile enables per-shard query profiling. When true, the response includes
+   * timing breakdowns for each shard and search type.
+   */
+  queryProfile: boolean;
 }
 
 export interface PropertiesRequest {
@@ -151,6 +143,41 @@ export interface SearchReply {
   generativeGroupedResult?: string | undefined;
   groupByResults: GroupByResult[];
   generativeGroupedResults?: GenerativeResult | undefined;
+  queryProfile?: QueryProfile | undefined;
+}
+
+/**
+ * QueryProfile contains per-shard profiling data for a search query.
+ * Only populated when MetadataRequest.profile is true.
+ */
+export interface QueryProfile {
+  shards: QueryProfile_ShardProfile[];
+}
+
+/** SearchProfile holds the profiling details for a single search type within a shard. */
+export interface QueryProfile_SearchProfile {
+  /** details contains human-readable profiling metrics keyed by metric name. */
+  details: { [key: string]: string };
+}
+
+export interface QueryProfile_SearchProfile_DetailsEntry {
+  key: string;
+  value: string;
+}
+
+/** ShardProfile holds profiling data for a single shard's contribution to a search query. */
+export interface QueryProfile_ShardProfile {
+  /** name is the identifier of the shard that was searched. */
+  name: string;
+  /** node is the name of the cluster node that executed this shard search. */
+  node: string;
+  /** searches maps search type (e.g., "vector", "keyword") to its profiling details. */
+  searches: { [key: string]: QueryProfile_SearchProfile };
+}
+
+export interface QueryProfile_ShardProfile_SearchesEntry {
+  key: string;
+  value: QueryProfile_SearchProfile | undefined;
 }
 
 export interface RerankReply {
@@ -213,25 +240,9 @@ export interface MetadataResult {
 }
 
 export interface PropertiesResult {
-  /** @deprecated */
-  nonRefProperties: { [key: string]: any } | undefined;
   refProps: RefPropertiesResult[];
   targetCollection: string;
-  metadata:
-    | MetadataResult
-    | undefined;
-  /** @deprecated */
-  numberArrayProperties: NumberArrayProperties[];
-  /** @deprecated */
-  intArrayProperties: IntArrayProperties[];
-  /** @deprecated */
-  textArrayProperties: TextArrayProperties[];
-  /** @deprecated */
-  booleanArrayProperties: BooleanArrayProperties[];
-  /** @deprecated */
-  objectProperties: ObjectProperties[];
-  /** @deprecated */
-  objectArrayProperties: ObjectArrayProperties[];
+  metadata: MetadataResult | undefined;
   nonRefProps: Properties | undefined;
   refPropsRequested: boolean;
 }
@@ -943,6 +954,7 @@ function createBaseMetadataRequest(): MetadataRequest {
     explainScore: false,
     isConsistent: false,
     vectors: [],
+    queryProfile: false,
   };
 }
 
@@ -977,6 +989,9 @@ export const MetadataRequest = {
     }
     for (const v of message.vectors) {
       writer.uint32(82).string(v!);
+    }
+    if (message.queryProfile !== false) {
+      writer.uint32(88).bool(message.queryProfile);
     }
     return writer;
   },
@@ -1058,6 +1073,13 @@ export const MetadataRequest = {
 
           message.vectors.push(reader.string());
           continue;
+        case 11:
+          if (tag !== 88) {
+            break;
+          }
+
+          message.queryProfile = reader.bool();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1079,6 +1101,7 @@ export const MetadataRequest = {
       explainScore: isSet(object.explainScore) ? globalThis.Boolean(object.explainScore) : false,
       isConsistent: isSet(object.isConsistent) ? globalThis.Boolean(object.isConsistent) : false,
       vectors: globalThis.Array.isArray(object?.vectors) ? object.vectors.map((e: any) => globalThis.String(e)) : [],
+      queryProfile: isSet(object.queryProfile) ? globalThis.Boolean(object.queryProfile) : false,
     };
   },
 
@@ -1114,6 +1137,9 @@ export const MetadataRequest = {
     if (message.vectors?.length) {
       obj.vectors = message.vectors;
     }
+    if (message.queryProfile !== false) {
+      obj.queryProfile = message.queryProfile;
+    }
     return obj;
   },
 
@@ -1132,6 +1158,7 @@ export const MetadataRequest = {
     message.explainScore = object.explainScore ?? false;
     message.isConsistent = object.isConsistent ?? false;
     message.vectors = object.vectors?.map((e) => e) || [];
+    message.queryProfile = object.queryProfile ?? false;
     return message;
   },
 };
@@ -1530,6 +1557,7 @@ function createBaseSearchReply(): SearchReply {
     generativeGroupedResult: undefined,
     groupByResults: [],
     generativeGroupedResults: undefined,
+    queryProfile: undefined,
   };
 }
 
@@ -1549,6 +1577,9 @@ export const SearchReply = {
     }
     if (message.generativeGroupedResults !== undefined) {
       GenerativeResult.encode(message.generativeGroupedResults, writer.uint32(42).fork()).ldelim();
+    }
+    if (message.queryProfile !== undefined) {
+      QueryProfile.encode(message.queryProfile, writer.uint32(50).fork()).ldelim();
     }
     return writer;
   },
@@ -1595,6 +1626,13 @@ export const SearchReply = {
 
           message.generativeGroupedResults = GenerativeResult.decode(reader, reader.uint32());
           continue;
+        case 6:
+          if (tag !== 50) {
+            break;
+          }
+
+          message.queryProfile = QueryProfile.decode(reader, reader.uint32());
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1619,6 +1657,7 @@ export const SearchReply = {
       generativeGroupedResults: isSet(object.generativeGroupedResults)
         ? GenerativeResult.fromJSON(object.generativeGroupedResults)
         : undefined,
+      queryProfile: isSet(object.queryProfile) ? QueryProfile.fromJSON(object.queryProfile) : undefined,
     };
   },
 
@@ -1639,6 +1678,9 @@ export const SearchReply = {
     if (message.generativeGroupedResults !== undefined) {
       obj.generativeGroupedResults = GenerativeResult.toJSON(message.generativeGroupedResults);
     }
+    if (message.queryProfile !== undefined) {
+      obj.queryProfile = QueryProfile.toJSON(message.queryProfile);
+    }
     return obj;
   },
 
@@ -1655,6 +1697,409 @@ export const SearchReply = {
       (object.generativeGroupedResults !== undefined && object.generativeGroupedResults !== null)
         ? GenerativeResult.fromPartial(object.generativeGroupedResults)
         : undefined;
+    message.queryProfile = (object.queryProfile !== undefined && object.queryProfile !== null)
+      ? QueryProfile.fromPartial(object.queryProfile)
+      : undefined;
+    return message;
+  },
+};
+
+function createBaseQueryProfile(): QueryProfile {
+  return { shards: [] };
+}
+
+export const QueryProfile = {
+  encode(message: QueryProfile, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    for (const v of message.shards) {
+      QueryProfile_ShardProfile.encode(v!, writer.uint32(10).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): QueryProfile {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseQueryProfile();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.shards.push(QueryProfile_ShardProfile.decode(reader, reader.uint32()));
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): QueryProfile {
+    return {
+      shards: globalThis.Array.isArray(object?.shards)
+        ? object.shards.map((e: any) => QueryProfile_ShardProfile.fromJSON(e))
+        : [],
+    };
+  },
+
+  toJSON(message: QueryProfile): unknown {
+    const obj: any = {};
+    if (message.shards?.length) {
+      obj.shards = message.shards.map((e) => QueryProfile_ShardProfile.toJSON(e));
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<QueryProfile>): QueryProfile {
+    return QueryProfile.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<QueryProfile>): QueryProfile {
+    const message = createBaseQueryProfile();
+    message.shards = object.shards?.map((e) => QueryProfile_ShardProfile.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseQueryProfile_SearchProfile(): QueryProfile_SearchProfile {
+  return { details: {} };
+}
+
+export const QueryProfile_SearchProfile = {
+  encode(message: QueryProfile_SearchProfile, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    Object.entries(message.details).forEach(([key, value]) => {
+      QueryProfile_SearchProfile_DetailsEntry.encode({ key: key as any, value }, writer.uint32(10).fork()).ldelim();
+    });
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): QueryProfile_SearchProfile {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseQueryProfile_SearchProfile();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          const entry1 = QueryProfile_SearchProfile_DetailsEntry.decode(reader, reader.uint32());
+          if (entry1.value !== undefined) {
+            message.details[entry1.key] = entry1.value;
+          }
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): QueryProfile_SearchProfile {
+    return {
+      details: isObject(object.details)
+        ? Object.entries(object.details).reduce<{ [key: string]: string }>((acc, [key, value]) => {
+          acc[key] = String(value);
+          return acc;
+        }, {})
+        : {},
+    };
+  },
+
+  toJSON(message: QueryProfile_SearchProfile): unknown {
+    const obj: any = {};
+    if (message.details) {
+      const entries = Object.entries(message.details);
+      if (entries.length > 0) {
+        obj.details = {};
+        entries.forEach(([k, v]) => {
+          obj.details[k] = v;
+        });
+      }
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<QueryProfile_SearchProfile>): QueryProfile_SearchProfile {
+    return QueryProfile_SearchProfile.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<QueryProfile_SearchProfile>): QueryProfile_SearchProfile {
+    const message = createBaseQueryProfile_SearchProfile();
+    message.details = Object.entries(object.details ?? {}).reduce<{ [key: string]: string }>((acc, [key, value]) => {
+      if (value !== undefined) {
+        acc[key] = globalThis.String(value);
+      }
+      return acc;
+    }, {});
+    return message;
+  },
+};
+
+function createBaseQueryProfile_SearchProfile_DetailsEntry(): QueryProfile_SearchProfile_DetailsEntry {
+  return { key: "", value: "" };
+}
+
+export const QueryProfile_SearchProfile_DetailsEntry = {
+  encode(message: QueryProfile_SearchProfile_DetailsEntry, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.key !== "") {
+      writer.uint32(10).string(message.key);
+    }
+    if (message.value !== "") {
+      writer.uint32(18).string(message.value);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): QueryProfile_SearchProfile_DetailsEntry {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseQueryProfile_SearchProfile_DetailsEntry();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.key = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.value = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): QueryProfile_SearchProfile_DetailsEntry {
+    return {
+      key: isSet(object.key) ? globalThis.String(object.key) : "",
+      value: isSet(object.value) ? globalThis.String(object.value) : "",
+    };
+  },
+
+  toJSON(message: QueryProfile_SearchProfile_DetailsEntry): unknown {
+    const obj: any = {};
+    if (message.key !== "") {
+      obj.key = message.key;
+    }
+    if (message.value !== "") {
+      obj.value = message.value;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<QueryProfile_SearchProfile_DetailsEntry>): QueryProfile_SearchProfile_DetailsEntry {
+    return QueryProfile_SearchProfile_DetailsEntry.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<QueryProfile_SearchProfile_DetailsEntry>): QueryProfile_SearchProfile_DetailsEntry {
+    const message = createBaseQueryProfile_SearchProfile_DetailsEntry();
+    message.key = object.key ?? "";
+    message.value = object.value ?? "";
+    return message;
+  },
+};
+
+function createBaseQueryProfile_ShardProfile(): QueryProfile_ShardProfile {
+  return { name: "", node: "", searches: {} };
+}
+
+export const QueryProfile_ShardProfile = {
+  encode(message: QueryProfile_ShardProfile, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.name !== "") {
+      writer.uint32(10).string(message.name);
+    }
+    if (message.node !== "") {
+      writer.uint32(18).string(message.node);
+    }
+    Object.entries(message.searches).forEach(([key, value]) => {
+      QueryProfile_ShardProfile_SearchesEntry.encode({ key: key as any, value }, writer.uint32(26).fork()).ldelim();
+    });
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): QueryProfile_ShardProfile {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseQueryProfile_ShardProfile();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.name = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.node = reader.string();
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          const entry3 = QueryProfile_ShardProfile_SearchesEntry.decode(reader, reader.uint32());
+          if (entry3.value !== undefined) {
+            message.searches[entry3.key] = entry3.value;
+          }
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): QueryProfile_ShardProfile {
+    return {
+      name: isSet(object.name) ? globalThis.String(object.name) : "",
+      node: isSet(object.node) ? globalThis.String(object.node) : "",
+      searches: isObject(object.searches)
+        ? Object.entries(object.searches).reduce<{ [key: string]: QueryProfile_SearchProfile }>((acc, [key, value]) => {
+          acc[key] = QueryProfile_SearchProfile.fromJSON(value);
+          return acc;
+        }, {})
+        : {},
+    };
+  },
+
+  toJSON(message: QueryProfile_ShardProfile): unknown {
+    const obj: any = {};
+    if (message.name !== "") {
+      obj.name = message.name;
+    }
+    if (message.node !== "") {
+      obj.node = message.node;
+    }
+    if (message.searches) {
+      const entries = Object.entries(message.searches);
+      if (entries.length > 0) {
+        obj.searches = {};
+        entries.forEach(([k, v]) => {
+          obj.searches[k] = QueryProfile_SearchProfile.toJSON(v);
+        });
+      }
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<QueryProfile_ShardProfile>): QueryProfile_ShardProfile {
+    return QueryProfile_ShardProfile.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<QueryProfile_ShardProfile>): QueryProfile_ShardProfile {
+    const message = createBaseQueryProfile_ShardProfile();
+    message.name = object.name ?? "";
+    message.node = object.node ?? "";
+    message.searches = Object.entries(object.searches ?? {}).reduce<{ [key: string]: QueryProfile_SearchProfile }>(
+      (acc, [key, value]) => {
+        if (value !== undefined) {
+          acc[key] = QueryProfile_SearchProfile.fromPartial(value);
+        }
+        return acc;
+      },
+      {},
+    );
+    return message;
+  },
+};
+
+function createBaseQueryProfile_ShardProfile_SearchesEntry(): QueryProfile_ShardProfile_SearchesEntry {
+  return { key: "", value: undefined };
+}
+
+export const QueryProfile_ShardProfile_SearchesEntry = {
+  encode(message: QueryProfile_ShardProfile_SearchesEntry, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.key !== "") {
+      writer.uint32(10).string(message.key);
+    }
+    if (message.value !== undefined) {
+      QueryProfile_SearchProfile.encode(message.value, writer.uint32(18).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): QueryProfile_ShardProfile_SearchesEntry {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseQueryProfile_ShardProfile_SearchesEntry();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.key = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.value = QueryProfile_SearchProfile.decode(reader, reader.uint32());
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): QueryProfile_ShardProfile_SearchesEntry {
+    return {
+      key: isSet(object.key) ? globalThis.String(object.key) : "",
+      value: isSet(object.value) ? QueryProfile_SearchProfile.fromJSON(object.value) : undefined,
+    };
+  },
+
+  toJSON(message: QueryProfile_ShardProfile_SearchesEntry): unknown {
+    const obj: any = {};
+    if (message.key !== "") {
+      obj.key = message.key;
+    }
+    if (message.value !== undefined) {
+      obj.value = QueryProfile_SearchProfile.toJSON(message.value);
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<QueryProfile_ShardProfile_SearchesEntry>): QueryProfile_ShardProfile_SearchesEntry {
+    return QueryProfile_ShardProfile_SearchesEntry.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<QueryProfile_ShardProfile_SearchesEntry>): QueryProfile_ShardProfile_SearchesEntry {
+    const message = createBaseQueryProfile_ShardProfile_SearchesEntry();
+    message.key = object.key ?? "";
+    message.value = (object.value !== undefined && object.value !== null)
+      ? QueryProfile_SearchProfile.fromPartial(object.value)
+      : undefined;
     return message;
   },
 };
@@ -2422,27 +2867,11 @@ export const MetadataResult = {
 };
 
 function createBasePropertiesResult(): PropertiesResult {
-  return {
-    nonRefProperties: undefined,
-    refProps: [],
-    targetCollection: "",
-    metadata: undefined,
-    numberArrayProperties: [],
-    intArrayProperties: [],
-    textArrayProperties: [],
-    booleanArrayProperties: [],
-    objectProperties: [],
-    objectArrayProperties: [],
-    nonRefProps: undefined,
-    refPropsRequested: false,
-  };
+  return { refProps: [], targetCollection: "", metadata: undefined, nonRefProps: undefined, refPropsRequested: false };
 }
 
 export const PropertiesResult = {
   encode(message: PropertiesResult, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.nonRefProperties !== undefined) {
-      Struct.encode(Struct.wrap(message.nonRefProperties), writer.uint32(10).fork()).ldelim();
-    }
     for (const v of message.refProps) {
       RefPropertiesResult.encode(v!, writer.uint32(18).fork()).ldelim();
     }
@@ -2451,24 +2880,6 @@ export const PropertiesResult = {
     }
     if (message.metadata !== undefined) {
       MetadataResult.encode(message.metadata, writer.uint32(34).fork()).ldelim();
-    }
-    for (const v of message.numberArrayProperties) {
-      NumberArrayProperties.encode(v!, writer.uint32(42).fork()).ldelim();
-    }
-    for (const v of message.intArrayProperties) {
-      IntArrayProperties.encode(v!, writer.uint32(50).fork()).ldelim();
-    }
-    for (const v of message.textArrayProperties) {
-      TextArrayProperties.encode(v!, writer.uint32(58).fork()).ldelim();
-    }
-    for (const v of message.booleanArrayProperties) {
-      BooleanArrayProperties.encode(v!, writer.uint32(66).fork()).ldelim();
-    }
-    for (const v of message.objectProperties) {
-      ObjectProperties.encode(v!, writer.uint32(74).fork()).ldelim();
-    }
-    for (const v of message.objectArrayProperties) {
-      ObjectArrayProperties.encode(v!, writer.uint32(82).fork()).ldelim();
     }
     if (message.nonRefProps !== undefined) {
       Properties.encode(message.nonRefProps, writer.uint32(90).fork()).ldelim();
@@ -2486,13 +2897,6 @@ export const PropertiesResult = {
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
-        case 1:
-          if (tag !== 10) {
-            break;
-          }
-
-          message.nonRefProperties = Struct.unwrap(Struct.decode(reader, reader.uint32()));
-          continue;
         case 2:
           if (tag !== 18) {
             break;
@@ -2513,48 +2917,6 @@ export const PropertiesResult = {
           }
 
           message.metadata = MetadataResult.decode(reader, reader.uint32());
-          continue;
-        case 5:
-          if (tag !== 42) {
-            break;
-          }
-
-          message.numberArrayProperties.push(NumberArrayProperties.decode(reader, reader.uint32()));
-          continue;
-        case 6:
-          if (tag !== 50) {
-            break;
-          }
-
-          message.intArrayProperties.push(IntArrayProperties.decode(reader, reader.uint32()));
-          continue;
-        case 7:
-          if (tag !== 58) {
-            break;
-          }
-
-          message.textArrayProperties.push(TextArrayProperties.decode(reader, reader.uint32()));
-          continue;
-        case 8:
-          if (tag !== 66) {
-            break;
-          }
-
-          message.booleanArrayProperties.push(BooleanArrayProperties.decode(reader, reader.uint32()));
-          continue;
-        case 9:
-          if (tag !== 74) {
-            break;
-          }
-
-          message.objectProperties.push(ObjectProperties.decode(reader, reader.uint32()));
-          continue;
-        case 10:
-          if (tag !== 82) {
-            break;
-          }
-
-          message.objectArrayProperties.push(ObjectArrayProperties.decode(reader, reader.uint32()));
           continue;
         case 11:
           if (tag !== 90) {
@@ -2581,30 +2943,11 @@ export const PropertiesResult = {
 
   fromJSON(object: any): PropertiesResult {
     return {
-      nonRefProperties: isObject(object.nonRefProperties) ? object.nonRefProperties : undefined,
       refProps: globalThis.Array.isArray(object?.refProps)
         ? object.refProps.map((e: any) => RefPropertiesResult.fromJSON(e))
         : [],
       targetCollection: isSet(object.targetCollection) ? globalThis.String(object.targetCollection) : "",
       metadata: isSet(object.metadata) ? MetadataResult.fromJSON(object.metadata) : undefined,
-      numberArrayProperties: globalThis.Array.isArray(object?.numberArrayProperties)
-        ? object.numberArrayProperties.map((e: any) => NumberArrayProperties.fromJSON(e))
-        : [],
-      intArrayProperties: globalThis.Array.isArray(object?.intArrayProperties)
-        ? object.intArrayProperties.map((e: any) => IntArrayProperties.fromJSON(e))
-        : [],
-      textArrayProperties: globalThis.Array.isArray(object?.textArrayProperties)
-        ? object.textArrayProperties.map((e: any) => TextArrayProperties.fromJSON(e))
-        : [],
-      booleanArrayProperties: globalThis.Array.isArray(object?.booleanArrayProperties)
-        ? object.booleanArrayProperties.map((e: any) => BooleanArrayProperties.fromJSON(e))
-        : [],
-      objectProperties: globalThis.Array.isArray(object?.objectProperties)
-        ? object.objectProperties.map((e: any) => ObjectProperties.fromJSON(e))
-        : [],
-      objectArrayProperties: globalThis.Array.isArray(object?.objectArrayProperties)
-        ? object.objectArrayProperties.map((e: any) => ObjectArrayProperties.fromJSON(e))
-        : [],
       nonRefProps: isSet(object.nonRefProps) ? Properties.fromJSON(object.nonRefProps) : undefined,
       refPropsRequested: isSet(object.refPropsRequested) ? globalThis.Boolean(object.refPropsRequested) : false,
     };
@@ -2612,9 +2955,6 @@ export const PropertiesResult = {
 
   toJSON(message: PropertiesResult): unknown {
     const obj: any = {};
-    if (message.nonRefProperties !== undefined) {
-      obj.nonRefProperties = message.nonRefProperties;
-    }
     if (message.refProps?.length) {
       obj.refProps = message.refProps.map((e) => RefPropertiesResult.toJSON(e));
     }
@@ -2623,24 +2963,6 @@ export const PropertiesResult = {
     }
     if (message.metadata !== undefined) {
       obj.metadata = MetadataResult.toJSON(message.metadata);
-    }
-    if (message.numberArrayProperties?.length) {
-      obj.numberArrayProperties = message.numberArrayProperties.map((e) => NumberArrayProperties.toJSON(e));
-    }
-    if (message.intArrayProperties?.length) {
-      obj.intArrayProperties = message.intArrayProperties.map((e) => IntArrayProperties.toJSON(e));
-    }
-    if (message.textArrayProperties?.length) {
-      obj.textArrayProperties = message.textArrayProperties.map((e) => TextArrayProperties.toJSON(e));
-    }
-    if (message.booleanArrayProperties?.length) {
-      obj.booleanArrayProperties = message.booleanArrayProperties.map((e) => BooleanArrayProperties.toJSON(e));
-    }
-    if (message.objectProperties?.length) {
-      obj.objectProperties = message.objectProperties.map((e) => ObjectProperties.toJSON(e));
-    }
-    if (message.objectArrayProperties?.length) {
-      obj.objectArrayProperties = message.objectArrayProperties.map((e) => ObjectArrayProperties.toJSON(e));
     }
     if (message.nonRefProps !== undefined) {
       obj.nonRefProps = Properties.toJSON(message.nonRefProps);
@@ -2656,21 +2978,11 @@ export const PropertiesResult = {
   },
   fromPartial(object: DeepPartial<PropertiesResult>): PropertiesResult {
     const message = createBasePropertiesResult();
-    message.nonRefProperties = object.nonRefProperties ?? undefined;
     message.refProps = object.refProps?.map((e) => RefPropertiesResult.fromPartial(e)) || [];
     message.targetCollection = object.targetCollection ?? "";
     message.metadata = (object.metadata !== undefined && object.metadata !== null)
       ? MetadataResult.fromPartial(object.metadata)
       : undefined;
-    message.numberArrayProperties = object.numberArrayProperties?.map((e) => NumberArrayProperties.fromPartial(e)) ||
-      [];
-    message.intArrayProperties = object.intArrayProperties?.map((e) => IntArrayProperties.fromPartial(e)) || [];
-    message.textArrayProperties = object.textArrayProperties?.map((e) => TextArrayProperties.fromPartial(e)) || [];
-    message.booleanArrayProperties = object.booleanArrayProperties?.map((e) => BooleanArrayProperties.fromPartial(e)) ||
-      [];
-    message.objectProperties = object.objectProperties?.map((e) => ObjectProperties.fromPartial(e)) || [];
-    message.objectArrayProperties = object.objectArrayProperties?.map((e) => ObjectArrayProperties.fromPartial(e)) ||
-      [];
     message.nonRefProps = (object.nonRefProps !== undefined && object.nonRefProps !== null)
       ? Properties.fromPartial(object.nonRefProps)
       : undefined;

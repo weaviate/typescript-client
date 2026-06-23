@@ -22,4 +22,5 @@ services:
       ENABLE_MODULES: 'text2vec-openai,generative-openai'
       CLUSTER_HOSTNAME: 'node1'
       DISABLE_TELEMETRY: 'true'
+      DEFAULT_VECTOR_INDEX: 'hfresh'
 ...

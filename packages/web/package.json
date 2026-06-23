@@ -43,11 +43,11 @@
   "homepage": "https://github.com/weaviate/typescript-client#readme",
   "dependencies": {
     "@weaviate/core": "workspace:^1.0.0",
-    "nice-grpc-web": "^3.3.7",
-    "vitest": "^3.2.4"
+    "nice-grpc-web": "^3.3.10"
   },
   "devDependencies": {
     "@types/node": "^18.14.0",
-    "@types/uuid": "^9.0.1"
+    "@types/uuid": "^9.0.1",
+    "vitest": "^4.0.16"
   }
 }

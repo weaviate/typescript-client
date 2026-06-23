@@ -1,10 +1,10 @@
 {
-  "name": "@weaviate/client",
-  "version": "3.6.2",
+  "name": "weaviate-client",
+  "version": "3.13.1",
   "description": "JS/TS client for Weaviate",
   "type": "module",
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=22.0.0"
   },
   "private": true,
   "workspaces": [
@@ -41,7 +41,7 @@
     "weaviate"
   ],
   "author": "Weaviate",
-  "license": "BSD 3-Clause",
+  "license": "BSD-3-Clause",
   "bugs": {
     "url": "https://github.com/weaviate/typescript-client/issues"
   },
@@ -58,8 +58,8 @@
     "prettier": "^2.8.8",
     "prettier-plugin-organize-imports": "^3.2.4",
     "ts-proto": "^1.181.2",
-    "typedoc": "^0.26.11",
-    "typedoc-plugin-extras": "^3.1.0",
+    "typedoc": "^0.28.15",
+    "typedoc-plugin-extras": "^4.0.1",
     "typescript": "^5.8.3"
   }
 }

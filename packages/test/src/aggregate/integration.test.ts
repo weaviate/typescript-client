@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
 import { WeaviateQueryError, WeaviateUnsupportedFeatureError } from '@weaviate/core';
-import weaviate, { AggregateText, Collection, WeaviateClient } from '@weaviate/node';
 import { CrossReference } from '@weaviate/core/references';
 import { DataObject } from '@weaviate/core/types';
+import weaviate, { AggregateText, Bm25Operator, Collection, WeaviateClient } from '@weaviate/node';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { requireAtLeast } from '../version';
 
 describe('Testing of the collection.aggregate methods', () => {
   type TestCollectionAggregate = {
@@ -89,8 +90,7 @@ describe('Testing of the collection.aggregate methods', () => {
           //   dataType: [collectionName],
           // },
         ],
-        vectorizers: weaviate.configure.vectorizer.text2VecContextionary({
-          vectorizeCollectionName: false,
+        vectorizers: weaviate.configure.vectors.text2VecContextionary({
           vectorIndexConfig: weaviate.configure.vectorIndex.hnsw({ maxConnections: 64 }),
         }),
       })
@@ -318,7 +318,7 @@ describe('Testing of the collection.aggregate methods with named vectors', () =>
           },
         ],
         vectorizers: [
-          weaviate.configure.vectorizer.text2VecContextionary({
+          weaviate.configure.vectors.text2VecContextionary({
             name: 'text',
             sourceProperties: ['text'],
             vectorIndexConfig: weaviate.configure.vectorIndex.hnsw(),
@@ -417,7 +417,7 @@ describe('Testing of collection.aggregate search methods', () => {
             dataType: 'text',
           },
         ],
-        vectorizers: weaviate.configure.vectorizer.text2VecContextionary(),
+        vectorizers: weaviate.configure.vectors.text2VecContextionary(),
       })
       .then(() => {
         const data: Array<any> = [];
@@ -442,6 +442,16 @@ describe('Testing of collection.aggregate search methods', () => {
     }
     const result = await collection.aggregate.hybrid('test', {
       alpha: 0.5,
+      maxVectorDistance: 1,
+      queryProperties: ['text'],
+      returnMetrics: collection.metrics.aggregate('text').text(['count']),
+    });
+    expect(result.totalCount).toBeGreaterThan(0);
+  });
+
+  requireAtLeast(1, 31, 0).it('bm25 search operator with hybrid', async () => {
+    const result = await collection.aggregate.hybrid('test', {
+      bm25Operator: Bm25Operator.and(),
       maxVectorDistance: 1,
       queryProperties: ['text'],
       returnMetrics: collection.metrics.aggregate('text').text(['count']),
@@ -485,7 +495,7 @@ describe('Testing of collection.aggregate search methods', () => {
 
   it('should return an aggregation on a nearVector search', async () => {
     const obj = await collection.query.fetchObjectById(uuid, { includeVector: true });
-    const result = await collection.aggregate.nearVector(obj?.vectors.default!, {
+    const result = await collection.aggregate.nearVector(obj?.vectors.default as number[], {
       objectLimit: 1000,
       returnMetrics: collection.metrics.aggregate('text').text(['count']),
     });
@@ -494,7 +504,7 @@ describe('Testing of collection.aggregate search methods', () => {
 
   it('should return a grouped aggregation on a nearVector search', async () => {
     const obj = await collection.query.fetchObjectById(uuid, { includeVector: true });
-    const result = await collection.aggregate.groupBy.nearVector(obj?.vectors.default!, {
+    const result = await collection.aggregate.groupBy.nearVector(obj?.vectors.default as number[], {
       objectLimit: 1000,
       groupBy: 'text',
       returnMetrics: collection.metrics.aggregate('text').text(['count']),

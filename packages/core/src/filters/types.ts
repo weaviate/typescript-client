@@ -13,8 +13,10 @@ export type Operator =
   | 'WithinGeoRange'
   | 'ContainsAny'
   | 'ContainsAll'
+  | 'ContainsNone'
   | 'And'
-  | 'Or';
+  | 'Or'
+  | 'Not';
 
 export type FilterValue<V = any> = {
   filters?: FilterValue[];
@@ -133,6 +135,13 @@ export interface FilterByProperty<T> {
    * @returns {FilterValue<U[]>} The filter value.
    */
   containsAll: <U extends ContainsValue<T>>(value: U[]) => FilterValue<U[]>;
+  /**
+   * Filter on whether the property contains none of the given values.
+   *
+   * @param {U[]} value The values to filter on.
+   * @returns {FilterValue<U[]>} The filter value.
+   */
+  containsNone: <U extends ContainsValue<T>>(value: U[]) => FilterValue<U[]>;
   /**
    * Filter on whether the property is equal to the given value.
    *

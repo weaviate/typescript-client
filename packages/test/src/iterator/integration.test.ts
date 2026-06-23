@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
-import weaviate, { WeaviateClient, Collection } from '@weaviate/node';
+import weaviate, { Collection, WeaviateClient } from '@weaviate/node';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 describe('Testing of the collection.iterator method with a simple collection', () => {
@@ -33,9 +33,7 @@ describe('Testing of the collection.iterator method with a simple collection', (
             dataType: 'text',
           },
         ],
-        vectorizers: weaviate.configure.vectorizer.text2VecContextionary({
-          vectorizeCollectionName: false,
-        }),
+        vectorizers: weaviate.configure.vectors.text2VecContextionary({}),
       })
       .then(() => {
         return collection.data.insert({
@@ -45,7 +43,7 @@ describe('Testing of the collection.iterator method with a simple collection', (
         });
       });
     const res = await collection.query.fetchObjectById(id, { includeVector: true });
-    vector = res?.vectors.default!;
+    vector = res?.vectors.default as number[];
   });
 
   it('should iterate through the collection with no options returning the objects', async () => {

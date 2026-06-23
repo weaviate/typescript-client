@@ -1,12 +1,15 @@
 import {
   WeaviateAssignedUser,
   WeaviateDBUser,
+  WeaviateGroupAssignment,
   Permission as WeaviatePermission,
   Role as WeaviateRole,
   WeaviateUser,
 } from '../openapi/types.js';
 import { User, UserDB } from '../users/types.js';
 import {
+  AliasAction,
+  AliasPermission,
   BackupsAction,
   BackupsPermission,
   ClusterAction,
@@ -15,10 +18,17 @@ import {
   CollectionsPermission,
   DataAction,
   DataPermission,
+  GroupAssignment,
+  GroupsAction,
+  GroupsPermission,
+  McpAction,
+  McpPermission,
   NodesAction,
   NodesPermission,
   Permission,
   PermissionsInput,
+  ReplicateAction,
+  ReplicatePermission,
   Role,
   RolesAction,
   RolesPermission,
@@ -35,8 +45,18 @@ const ZERO_TIME = '0001-01-01T00:00:00.000Z';
 export class PermissionGuards {
   private static includes = <A extends string>(permission: Permission, ...actions: A[]): boolean =>
     actions.filter((a) => Array.from<string>(permission.actions).includes(a)).length > 0;
+  static isAlias = (permission: Permission): permission is AliasPermission =>
+    PermissionGuards.includes<AliasAction>(
+      permission,
+      'create_aliases',
+      'read_aliases',
+      'update_aliases',
+      'delete_aliases'
+    );
   static isBackups = (permission: Permission): permission is BackupsPermission =>
     PermissionGuards.includes<BackupsAction>(permission, 'manage_backups');
+  static isMcp = (permission: Permission): permission is McpPermission =>
+    PermissionGuards.includes<McpAction>(permission, 'create_mcp', 'read_mcp', 'update_mcp');
   static isCluster = (permission: Permission): permission is ClusterPermission =>
     PermissionGuards.includes<ClusterAction>(permission, 'read_cluster');
   static isCollections = (permission: Permission): permission is CollectionsPermission =>
@@ -55,8 +75,18 @@ export class PermissionGuards {
       'read_data',
       'update_data'
     );
+  static isGroups = (permission: Permission): permission is GroupsPermission =>
+    PermissionGuards.includes<GroupsAction>(permission, 'read_groups', 'assign_and_revoke_groups');
   static isNodes = (permission: Permission): permission is NodesPermission =>
     PermissionGuards.includes<NodesAction>(permission, 'read_nodes');
+  static isReplicate = (permission: Permission): permission is ReplicatePermission =>
+    PermissionGuards.includes<ReplicateAction>(
+      permission,
+      'create_replicate',
+      'read_replicate',
+      'update_replicate',
+      'delete_replicate'
+    );
   static isRoles = (permission: Permission): permission is RolesPermission =>
     PermissionGuards.includes<RolesAction>(
       permission,
@@ -94,11 +124,19 @@ export class Map {
     !Array.isArray(permissions) ? [permissions] : permissions.flat(2);
 
   static permissionToWeaviate = (permission: Permission): WeaviatePermission[] => {
+    if (PermissionGuards.isAlias(permission)) {
+      return Array.from(permission.actions).map((action) => ({
+        aliases: permission,
+        action,
+      }));
+    }
     if (PermissionGuards.isBackups(permission)) {
       return Array.from(permission.actions).map((action) => ({
         backups: permission,
         action,
       }));
+    } else if (PermissionGuards.isMcp(permission)) {
+      return Array.from(permission.actions).map((action) => ({ action }));
     } else if (PermissionGuards.isCluster(permission)) {
       return Array.from(permission.actions).map((action) => ({ action }));
     } else if (PermissionGuards.isCollections(permission)) {
@@ -111,9 +149,19 @@ export class Map {
         data: permission,
         action,
       }));
+    } else if (PermissionGuards.isGroups(permission)) {
+      return Array.from(permission.actions).map((action) => ({
+        groups: { group: permission.groupID, groupType: permission.groupType },
+        action,
+      }));
     } else if (PermissionGuards.isNodes(permission)) {
       return Array.from(permission.actions).map((action) => ({
         nodes: permission,
+        action,
+      }));
+    } else if (PermissionGuards.isReplicate(permission)) {
+      return Array.from(permission.actions).map((action) => ({
+        replicate: permission,
         action,
       }));
     } else if (PermissionGuards.isRoles(permission)) {
@@ -140,6 +188,12 @@ export class Map {
       }),
       {} as Record<string, Role>
     );
+
+  static groupsAssignments = (groups: WeaviateGroupAssignment[]): GroupAssignment[] =>
+    groups.map((g) => ({
+      groupID: g.groupId || '',
+      groupType: g.groupType,
+    }));
 
   static users = (users: string[]): Record<string, User> =>
     users.reduce(
@@ -178,11 +232,15 @@ class PermissionsMapping {
 
   private constructor(role: WeaviateRole) {
     this.mappings = {
+      aliases: {},
       backups: {},
       cluster: {},
       collections: {},
       data: {},
+      groups: {},
+      mcp: {},
       nodes: {},
+      replicate: {},
       roles: {},
       tenants: {},
       users: {},
@@ -200,15 +258,30 @@ class PermissionsMapping {
     }
     return {
       name: this.role.name,
+      aliasPermissions: Object.values(this.mappings.aliases),
       backupsPermissions: Object.values(this.mappings.backups),
       clusterPermissions: Object.values(this.mappings.cluster),
       collectionsPermissions: Object.values(this.mappings.collections),
       dataPermissions: Object.values(this.mappings.data),
+      groupsPermissions: Object.values(this.mappings.groups),
+      mcpPermissions: Object.values(this.mappings.mcp),
       nodesPermissions: Object.values(this.mappings.nodes),
+      replicatePermissions: Object.values(this.mappings.replicate),
       rolesPermissions: Object.values(this.mappings.roles),
       tenantsPermissions: Object.values(this.mappings.tenants),
       usersPermissions: Object.values(this.mappings.users),
     };
+  };
+
+  private aliases = (permission: WeaviatePermission) => {
+    if (permission.aliases !== undefined) {
+      const { alias, collection } = permission.aliases;
+      if (alias === undefined) throw new Error('Alias permission missing an alias');
+      if (this.mappings.aliases[alias] === undefined) {
+        this.mappings.aliases[alias] = { alias, collection: collection || '*', actions: [] };
+      }
+      this.mappings.aliases[alias].actions.push(permission.action as AliasAction);
+    }
   };
 
   private backups = (permission: WeaviatePermission) => {
@@ -218,6 +291,17 @@ class PermissionsMapping {
       if (this.mappings.backups[key] === undefined)
         this.mappings.backups[key] = { collection: key, actions: [] };
       this.mappings.backups[key].actions.push(permission.action as BackupsAction);
+    }
+  };
+
+  private mcp = (permission: WeaviatePermission) => {
+    if (
+      permission.action === 'create_mcp' ||
+      permission.action === 'read_mcp' ||
+      permission.action === 'update_mcp'
+    ) {
+      if (this.mappings.mcp[''] === undefined) this.mappings.mcp[''] = { actions: [] };
+      this.mappings.mcp[''].actions.push(permission.action as McpAction);
     }
   };
 
@@ -249,6 +333,18 @@ class PermissionsMapping {
     }
   };
 
+  private groups = (permission: WeaviatePermission) => {
+    if (permission.groups !== undefined) {
+      const { group, groupType } = permission.groups;
+      if (group === undefined) throw new Error('Group permission missing groupID');
+      if (groupType === undefined) throw new Error('Group permission missing groupType');
+      const key = `${groupType}#${group}`;
+      if (this.mappings.groups[key] === undefined)
+        this.mappings.groups[key] = { groupType, groupID: group, actions: [] };
+      this.mappings.groups[key].actions.push(permission.action as GroupsAction);
+    }
+  };
+
   private nodes = (permission: WeaviatePermission) => {
     if (permission.nodes !== undefined) {
       let { collection } = permission.nodes;
@@ -262,6 +358,18 @@ class PermissionsMapping {
       if (this.mappings.nodes[key] === undefined)
         this.mappings.nodes[key] = { collection, verbosity, actions: [] };
       this.mappings.nodes[key].actions.push(permission.action as NodesAction);
+    }
+  };
+
+  private replicate = (permission: WeaviatePermission) => {
+    if (permission.replicate !== undefined) {
+      const { collection, shard } = permission.replicate;
+      if (collection === undefined) throw new Error('Replicate permission missing collection');
+      if (shard === undefined) throw new Error('Replicate permission missing shard');
+      const key = `${collection}#${shard}`;
+      if (this.mappings.replicate[key] === undefined)
+        this.mappings.replicate[key] = { collection, shard, actions: [] };
+      this.mappings.replicate[key].actions.push(permission.action as ReplicateAction);
     }
   };
 
@@ -295,11 +403,15 @@ class PermissionsMapping {
   };
 
   private permissionFromWeaviate = (permission: WeaviatePermission) => {
+    this.aliases(permission);
     this.backups(permission);
     this.cluster(permission);
     this.collections(permission);
     this.data(permission);
+    this.groups(permission);
+    this.mcp(permission);
     this.nodes(permission);
+    this.replicate(permission);
     this.roles(permission);
     this.tenants(permission);
     this.users(permission);
@@ -307,11 +419,15 @@ class PermissionsMapping {
 }
 
 type PermissionMappings = {
+  aliases: Record<string, AliasPermission>;
   backups: Record<string, BackupsPermission>;
   cluster: Record<string, ClusterPermission>;
   collections: Record<string, CollectionsPermission>;
   data: Record<string, DataPermission>;
+  groups: Record<string, GroupsPermission>;
+  mcp: Record<string, McpPermission>;
   nodes: Record<string, NodesPermission>;
+  replicate: Record<string, ReplicatePermission>;
   roles: Record<string, RolesPermission>;
   tenants: Record<string, TenantsPermission>;
   users: Record<string, UsersPermission>;

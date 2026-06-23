@@ -14,11 +14,11 @@ import weaviate, {
   Context,
   filter,
   helpers,
+  ICollection,
+  ICollections,
+  IWeaviateClient,
   permissions,
   reconfigure,
-  IWeaviateClient,
-  ICollections,
-  ICollection,
 } from '@weaviate/core';
 import { toBase64FromMedia } from './base64.js';
 import { transportsMaker } from './transports.js';

@@ -1,16 +1,7 @@
 import collection, { ICollection } from './collection/index.js';
-import { configGuards } from './collections.js';
-import {
-  classToCollection,
-  makeVectorsConfig,
-  parseVectorIndex,
-  parseVectorizerConfig,
-  resolveProperty,
-  resolveReference,
-} from './config/utils.js';
+import { classToCollection, makeVectorsConfig, resolveProperty, resolveReference } from './config/utils.js';
 import Connection from './connection/grpc.js';
-import { WeaviateUnsupportedFeatureError } from './errors.js';
-import { WeaviateClass } from './openapi/types.js';
+import { WeaviateClass, WeaviateObjectTTLConfig } from './openapi/types.js';
 import {
   CollectionConfig,
   GenerativeConfig,
@@ -18,6 +9,7 @@ import {
   InvertedIndexConfigCreate,
   ModuleConfig,
   MultiTenancyConfigCreate,
+  ObjectTTLConfigCreate,
   Properties,
   PropertyConfigCreate,
   ReferenceConfigCreate,
@@ -25,11 +17,9 @@ import {
   Reranker,
   RerankerConfig,
   ShardingConfigCreate,
-  VectorConfigCreate,
-  Vectorizer,
   VectorizersConfigCreate,
+  Vectors,
 } from './types/index.js';
-import { PrimitiveKeys } from './types/internal.js';
 import { ToBase64FromMedia } from './utils/base64.js';
 import { DbVersionSupport } from './utils/dbVersion.js';
 import ClassExists from './v2/schema/classExists.js';
@@ -41,7 +31,7 @@ import { ClassCreator, ClassDeleter, ClassGetter, SchemaGetter } from './v2/sche
  * Inspect [the docs](https://weaviate.io/developers/weaviate/configuration) for more information on the
  * different configuration options and how they affect the behavior of your collection.
  */
-export type CollectionConfigCreate<TProperties = undefined, N = string> = {
+export type CollectionConfigCreate<TProperties = undefined, N = string, TVectors = undefined> = {
   /** The name of the collection. */
   name: N;
   /** The description of the collection. */
@@ -50,6 +40,8 @@ export type CollectionConfigCreate<TProperties = undefined, N = string> = {
   generative?: ModuleConfig<GenerativeSearch, GenerativeConfig>;
   /** The configuration for Weaviate's inverted index. */
   invertedIndex?: InvertedIndexConfigCreate;
+  /** The configuration for object TTL. */
+  objectTTL?: ObjectTTLConfigCreate;
   /** The configuration for Weaviate's multi-tenancy capabilities. */
   multiTenancy?: MultiTenancyConfigCreate;
   /** The properties of the objects in the collection. */
@@ -63,7 +55,7 @@ export type CollectionConfigCreate<TProperties = undefined, N = string> = {
   /** The configuration for Weaviate's sharding strategy. Is mutually exclusive with `replication`. */
   sharding?: ShardingConfigCreate;
   /** The configuration for Weaviate's vectorizer(s) capabilities. */
-  vectorizers?: VectorizersConfigCreate<TProperties>;
+  vectorizers?: VectorizersConfigCreate<TProperties, TVectors>;
 };
 
 const collections = <TMedia>(
@@ -77,14 +69,12 @@ const collections = <TMedia>(
       .then((schema) => (schema.classes ? schema.classes.map(classToCollection<any>) : []));
   const deleteCollection = (name: string) => new ClassDeleter(connection).withClassName(name).do();
   return {
-    create: async function <TProperties extends Properties | undefined = undefined, TName = string>(
-      config: CollectionConfigCreate<TProperties, TName>
-    ) {
-      const { name, invertedIndex, multiTenancy, replication, sharding, ...rest } = config;
-
-      const supportsDynamicVectorIndex = await dbVersionSupport.supportsDynamicVectorIndex();
-      const supportsNamedVectors = await dbVersionSupport.supportsNamedVectors();
-      const supportsHNSWAndBQ = await dbVersionSupport.supportsHNSWAndBQ();
+    create: async function <
+      TProperties extends Properties | undefined = undefined,
+      TName = string,
+      TVectors extends Vectors | undefined = undefined
+    >(config: CollectionConfigCreate<TProperties, TName, TVectors>) {
+      const { name, invertedIndex, multiTenancy, objectTTL, replication, sharding, ...rest } = config;
 
       const moduleConfig: any = {};
       if (config.generative) {
@@ -96,88 +86,39 @@ const collections = <TMedia>(
         moduleConfig[config.reranker.name] = config.reranker.config ? config.reranker.config : {};
       }
 
-      const makeLegacyVectorizer = (
-        configVectorizers: VectorConfigCreate<
-          PrimitiveKeys<TProperties>,
-          string | undefined,
-          string,
-          Vectorizer
-        >
-      ) => {
-        const vectorizer =
-          configVectorizers.vectorizer.name === 'text2vec-azure-openai'
-            ? 'text2vec-openai'
-            : configVectorizers.vectorizer.name;
-        const moduleConfig: any = {};
-        moduleConfig[vectorizer] = parseVectorizerConfig(configVectorizers.vectorizer.config);
-
-        const vectorIndexConfig = parseVectorIndex(configVectorizers.vectorIndex);
-        const vectorIndexType = configVectorizers.vectorIndex.name;
-
-        if (
-          vectorIndexType === 'hnsw' &&
-          configVectorizers.vectorIndex.config !== undefined &&
-          configGuards.quantizer.isBQ(configVectorizers.vectorIndex.config.quantizer as any)
-        ) {
-          if (!supportsHNSWAndBQ.supports) {
-            throw new WeaviateUnsupportedFeatureError(supportsHNSWAndBQ.message);
-          }
-        }
-
-        if (vectorIndexType === 'dynamic' && !supportsDynamicVectorIndex.supports) {
-          throw new WeaviateUnsupportedFeatureError(supportsDynamicVectorIndex.message);
-        }
-
-        return {
-          vectorizer,
-          moduleConfig,
-          vectorIndexConfig,
-          vectorIndexType,
+      let objectTtlConfig: WeaviateObjectTTLConfig | undefined;
+      if (objectTTL) {
+        objectTtlConfig = {
+          enabled: objectTTL.enabled,
+          deleteOn: objectTTL.deleteOn,
+          defaultTtl: objectTTL.defaultTTLSeconds,
+          filterExpiredObjects: objectTTL.filterExpiredObjects,
         };
-      };
+      }
 
-      let schema: any = {
+      const schema: any = {
         ...rest,
         class: name,
         invertedIndexConfig: invertedIndex,
         moduleConfig: moduleConfig,
         multiTenancyConfig: multiTenancy,
+        objectTtlConfig: objectTtlConfig,
         replicationConfig: replication,
         shardingConfig: sharding,
       };
-      let vectorizers: string[] = [];
-      if (supportsNamedVectors.supports) {
-        const { vectorsConfig, vectorizers: vecs } = config.vectorizers
-          ? makeVectorsConfig(config.vectorizers, supportsDynamicVectorIndex)
-          : { vectorsConfig: undefined, vectorizers: [] };
-        schema.vectorConfig = vectorsConfig;
-        vectorizers = [...vecs];
-      } else {
-        if (config.vectorizers !== undefined && Array.isArray(config.vectorizers)) {
-          throw new WeaviateUnsupportedFeatureError(supportsNamedVectors.message);
-        }
-        const configs = config.vectorizers
-          ? makeLegacyVectorizer({ ...config.vectorizers, name: undefined })
-          : {
-              vectorizer: undefined,
-              moduleConfig: undefined,
-              vectorIndexConfig: undefined,
-              vectorIndexType: undefined,
-            };
-        schema = {
-          ...schema,
-          moduleConfig: {
-            ...schema.moduleConfig,
-            ...configs.moduleConfig,
-          },
-          vectorizer: configs.vectorizer,
-          vectorIndexConfig: configs.vectorIndexConfig,
-          vectorIndexType: configs.vectorIndexType,
-        };
-        if (configs.vectorizer !== undefined) {
-          vectorizers = [configs.vectorizer];
+
+      const { vectorsConfig, vectorizers } = config.vectorizers
+        ? makeVectorsConfig(config.vectorizers)
+        : { vectorsConfig: undefined, vectorizers: [] };
+      const { supports: serverAppliesDevaultVIT } =
+        await dbVersionSupport.supportsServerSideDefaultVectorIndexType();
+      if (!serverAppliesDevaultVIT && vectorsConfig) {
+        for (const v of Object.values(vectorsConfig)) {
+          if (!(v as any).vectorIndexType) (v as any).vectorIndexType = 'hnsw';
         }
       }
+      schema.vectorConfig = vectorsConfig;
+
       const properties = config.properties
         ? config.properties.map((prop) => resolveProperty<TProperties>(prop as any, vectorizers))
         : [];
@@ -185,11 +126,25 @@ const collections = <TMedia>(
       schema.properties = [...properties, ...references];
 
       await new ClassCreator(connection).withClass(schema).do();
-      return collection<TProperties, TName, TMedia>(connection, name, dbVersionSupport, toBase64FromMedia);
+      return collection<TProperties, TName, TVectors, TMedia>(
+        connection,
+        name,
+        dbVersionSupport,
+        toBase64FromMedia
+      );
     },
     createFromSchema: async function (config: WeaviateClass) {
       const { class: name } = await new ClassCreator(connection).withClass(config).do();
-      return collection<Properties, string, TMedia>(
+      return collection<Properties, string, undefined, TMedia>(
+        connection,
+        name as string,
+        dbVersionSupport,
+        toBase64FromMedia
+      );
+    },
+    createFromJson: async (schemaJson: WeaviateClass) => {
+      const { class: name } = await connection.postReturn<any, WeaviateClass>('/schema', schemaJson);
+      return collection<Properties, string, undefined, TMedia>(
         connection,
         name as string,
         dbVersionSupport,
@@ -204,32 +159,57 @@ const collections = <TMedia>(
         .withClassName(name)
         .do()
         .then(classToCollection<TProperties>),
+    exportToJson: (name: string) => connection.get<WeaviateClass>(`/schema/${name}`, true),
     listAll: listAll,
-    get: <TProperties extends Properties | undefined = undefined, TName extends string = string>(
+    get: <
+      TProperties extends Properties | undefined = undefined,
+      TVectors extends Vectors | undefined = undefined,
+      TName extends string = string
+    >(
       name: TName
-    ) => collection<TProperties, TName, TMedia>(connection, name, dbVersionSupport, toBase64FromMedia),
-    use: <TProperties extends Properties | undefined = undefined, TName extends string = string>(
+    ) =>
+      collection<TProperties, TName, TVectors, TMedia>(connection, name, dbVersionSupport, toBase64FromMedia),
+    use: <
+      TProperties extends Properties | undefined = undefined,
+      TName extends string = string,
+      TVectors extends Vectors | undefined = undefined
+    >(
       name: TName
-    ) => collection<TProperties, TName, TMedia>(connection, name, dbVersionSupport, toBase64FromMedia),
+    ) =>
+      collection<TProperties, TName, TVectors, TMedia>(connection, name, dbVersionSupport, toBase64FromMedia),
   };
 };
 
 export interface ICollections<TMedia> {
-  create<TProperties extends Properties | undefined = undefined, TName = string>(
-    config: CollectionConfigCreate<TProperties, TName>
-  ): Promise<ICollection<TProperties, TName, TMedia>>;
-  createFromSchema(config: WeaviateClass): Promise<ICollection<Properties, string>>;
+  create<
+    TProperties extends Properties | undefined = undefined,
+    TName = string,
+    TVectors extends Vectors | undefined = undefined
+  >(
+    config: CollectionConfigCreate<TProperties, TName, TVectors>
+  ): Promise<ICollection<TProperties, TName, TVectors, TMedia>>;
+  createFromSchema(config: WeaviateClass): Promise<ICollection<Properties, string, undefined, TMedia>>;
+  createFromJson(schemaJson: WeaviateClass): Promise<ICollection<Properties, string, undefined, TMedia>>;
   delete(collection: string): Promise<void>;
   deleteAll(): Promise<void[]>;
   exists(name: string): Promise<boolean>;
   export(name: string): Promise<CollectionConfig>;
-  get<TProperties extends Properties | undefined = undefined, TName extends string = string>(
+  exportToJson(name: string): Promise<WeaviateClass>;
+  get<
+    TProperties extends Properties | undefined = undefined,
+    TName extends string = string,
+    TVectors extends Vectors | undefined = undefined
+  >(
     name: TName
-  ): ICollection<TProperties, TName, TMedia>;
+  ): ICollection<TProperties, TName, TVectors, TMedia>;
   listAll(): Promise<CollectionConfig[]>;
-  use<TProperties extends Properties | undefined = undefined, TName extends string = string>(
+  use<
+    TName extends string = string,
+    TProperties extends Properties | undefined = undefined,
+    TVectors extends Vectors | undefined = undefined
+  >(
     name: TName
-  ): ICollection<TProperties, TName, TMedia>;
+  ): ICollection<TProperties, TName, TVectors, TMedia>;
 }
 
 export default collections;
@@ -243,6 +223,7 @@ export * from './data/index.js';
 export * from './filters/index.js';
 export * from './generate/index.js';
 export * from './iterator/index.js';
+export { WeaviateClass } from './openapi/types.js';
 export * from './query/index.js';
 export * from './references/index.js';
 export * from './sort/index.js';

@@ -1,13 +1,19 @@
-import { Properties, ReferenceInput, ReferenceToMultiTarget, WeaviateObject } from '../types/index.js';
+import {
+  Properties,
+  ReferenceInput,
+  ReferenceToMultiTarget,
+  Vectors,
+  WeaviateObject,
+} from '../types/index.js';
 import { Beacon } from './types.js';
 import { uuidToBeacon } from './utils.js';
 
 export class ReferenceManager<T> {
-  public objects: WeaviateObject<T>[];
+  public objects: WeaviateObject<T, Vectors>[];
   public targetCollection: string;
   public uuids?: string[];
 
-  constructor(targetCollection: string, objects?: WeaviateObject<T>[], uuids?: string[]) {
+  constructor(targetCollection: string, objects?: WeaviateObject<T, Vectors>[], uuids?: string[]) {
     this.objects = objects ?? [];
     this.targetCollection = targetCollection;
     this.uuids = uuids;

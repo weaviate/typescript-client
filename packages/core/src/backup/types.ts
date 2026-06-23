@@ -1,7 +1,8 @@
+import { WeaviateBackupStatus } from '../openapi/types.js';
 import { Backend, BackupCompressionLevel } from '../v2/index.js';
 
 /** The status of a backup operation */
-export type BackupStatus = 'STARTED' | 'TRANSFERRING' | 'TRANSFERRED' | 'SUCCESS' | 'FAILED' | 'CANCELED';
+export type BackupStatus = NonNullable<WeaviateBackupStatus>;
 
 /** The status of a backup operation */
 export type BackupStatusReturn = {
@@ -13,6 +14,8 @@ export type BackupStatusReturn = {
   path: string;
   /** The status of the backup */
   status: BackupStatus;
+  /** Size of the backup in Gibs */
+  size?: number;
 };
 
 /** The return type of a backup creation or restoration operation */
@@ -21,11 +24,15 @@ export type BackupReturn = BackupStatusReturn & {
   backend: Backend;
   /** The collections that were included in the backup */
   collections: string[];
+  /** Timestamp when the backup process started  */
+  startedAt?: Date;
+  /** Timestamp when the backup process completed (successfully or with failure) */
+  completedAt?: Date;
 };
 
 /** Configuration options available when creating a backup */
 export type BackupConfigCreate = {
-  /** The size of the chunks to use for the backup. */
+  /** Deprecated: This parameter no longer has any effect. (The size of the chunks to use for the backup.) */
   chunkSize?: number;
   /** The standard of compression to use for the backup. */
   compressionLevel?: BackupCompressionLevel;
@@ -37,6 +44,8 @@ export type BackupConfigCreate = {
 export type BackupConfigRestore = {
   /** The percentage of CPU to use for the backuop restoration job. */
   cpuPercentage?: number;
+  /** Allows overwriting the collection alias if there is a conflict. */
+  overwriteAlias?: boolean;
 };
 
 /** The arguments required to create and restore backups. */
@@ -69,4 +78,11 @@ export type BackupCancelArgs = {
   backupId: string;
   /** The backend to use for the backup. */
   backend: Backend;
+  /** The type of operation to cancel (backup creation or restoration). Defaults to 'create'. */
+  operation?: 'create' | 'restore';
+};
+
+/** The options available when listing backups. */
+export type ListBackupOptions = {
+  startedAtAsc?: boolean;
 };

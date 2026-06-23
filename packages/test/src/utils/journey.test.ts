@@ -125,6 +125,10 @@ describe('db version support', () => {
         in: '1.25.0-raft',
         exp: '1.25.0',
       },
+      {
+        in: '1.37.5.amd64',
+        exp: '1.37.5',
+      },
     ];
     return supportedVersions.forEach(async (version) => {
       const dbVersionProvider = new DbVersionProvider(() => Promise.resolve(version.in));
