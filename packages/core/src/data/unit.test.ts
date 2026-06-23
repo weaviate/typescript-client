@@ -1,6 +1,6 @@
 /* eslint-disable no-await-in-loop */
 import { describe, expect, it } from 'vitest';
-import { Queue } from './batch';
+import { Queue } from './batch.js';
 
 describe('Unit testing of the Queue class', () => {
   it('should push and pull items in FIFO order', async () => {

@@ -60,6 +60,6 @@
     "ts-proto": "^1.181.2",
     "typedoc": "^0.28.15",
     "typedoc-plugin-extras": "^4.0.1",
-    "typescript": "^5.8.3"
+    "typescript": "^5.9.3"
   }
 }

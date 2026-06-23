@@ -22,7 +22,7 @@ import { DbVersionSupport } from '../utils/dbVersion.js';
 import { buildRefsPath } from '../v2/batch/path.js';
 import { Checker, ConsistencyLevel } from '../v2/data/index.js';
 import { ObjectsPath, ReferencesPath } from '../v2/data/path.js';
-// import batch from './batch.js';
+import batch from './batch.js';
 
 /** The available options to the `data.deleteMany` method.  */
 export type DeleteManyOptions<V> = {

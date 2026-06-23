@@ -27,12 +27,19 @@ const MAX_GRPC_MESSAGE_LENGTH = 104858000; // 10mb, needs to be synchronized wit
 // which are tightly coupled to ConnectionGQL
 export default class ConnectionGRPC extends ConnectionGQL {
   private grpc: GrpcClient;
-  // public grpcMaxMessageLength: number;
-  // private params: GrpcConnectionParams & { grpcMaxMessageLength: number };
+  public grpcMaxMessageLength: number;
+  private params: GrpcConnectionParams & { grpcMaxMessageLength: number };
+  private transports: Transports;
 
-  private constructor(transports: Transports, params: GrpcConnectionParams) {
+  private constructor(
+    transports: Transports,
+    params: GrpcConnectionParams & { grpcMaxMessageLength: number }
+  ) {
     super(params);
-    this.grpc = grpcClient(transports, params);
+    this.transports = transports;
+    this.grpc = grpcClient(this.transports, params);
+    this.grpcMaxMessageLength = params.grpcMaxMessageLength;
+    this.params = params;
   }
 
   static use = async (transportsMaker: TransportsMaker, params: GrpcConnectionParams) => {
@@ -60,7 +67,7 @@ export default class ConnectionGRPC extends ConnectionGQL {
         grpcSecure: params.grpcSecure,
         grpcMaxMessageLength,
       }),
-      params
+      { ...params, grpcMaxMessageLength }
     );
     if (!params.skipInitChecks) {
       const isHealthy = await connection.grpc.health();
@@ -71,6 +78,16 @@ export default class ConnectionGRPC extends ConnectionGQL {
     }
     return { connection, dbVersionProvider, dbVersionSupport };
   };
+
+  public async reconnect() {
+    // Only need to reconnect grpc by making a new channel as rest/gql are stateless
+    this.grpc.close();
+    this.grpc = grpcClient(this.transports, this.params);
+    const isHealthy = await this.grpc.health();
+    if (!isHealthy) {
+      throw new WeaviateGRPCUnavailableError(this.params.grpcAddress);
+    }
+  }
 
   batch = (collection: string, consistencyLevel?: ConsistencyLevel, tenant?: string) => {
     if (this.authEnabled) {

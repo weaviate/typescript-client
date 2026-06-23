@@ -1,14 +1,13 @@
 import { Deque } from '@datastructures-js/deque';
 import { v4 as uuidv4 } from 'uuid';
-import Connection from '../../connection/grpc.js';
-import { ConsistencyLevel } from '../../index.js';
+import Connection from '../connection/grpc.js';
 import {
   BatchObject as BatchObjectGRPC,
   BatchReference as BatchReferenceGRPC,
   BatchStreamRequest,
-} from '../../proto/v1/batch.js';
-import { DbVersionSupport } from '../../utils/dbVersion.js';
-import { BatchObject, BatchReference, ErrorObject, ErrorReference } from '../index.js';
+} from '../proto/v1/batch.js';
+import { DbVersionSupport } from '../utils/dbVersion.js';
+import { BatchObject, BatchReference, ConsistencyLevel, ErrorObject, ErrorReference } from '../index.js';
 import { Serialize } from '../serialize/index.js';
 
 const GCP_STREAM_TIMEOUT = 160 * 1000; // 160 seconds
