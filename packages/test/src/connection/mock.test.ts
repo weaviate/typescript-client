@@ -32,6 +32,9 @@ import weaviate, { Collection, WeaviateClient } from '@weaviate/node';
 
 describe('mock server auth tests', () => {
   const server = testServer();
+
+  afterAll(() => server.close());
+
   describe('OIDC auth flows', () => {
     it('should login with client_credentials grant', async () => {
       const conn = new Connection({

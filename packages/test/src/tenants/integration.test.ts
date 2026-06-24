@@ -8,12 +8,12 @@ describe('Testing of the collection.tenants methods', () => {
   let collection: Collection<any, 'TestCollectionTenants'>;
   const collectionName = 'TestCollectionTenants';
 
-  afterAll(() => {
-    return client.collections.delete(collectionName).catch((err) => {
+  afterAll(() =>
+    client.collections.delete(collectionName).catch((err) => {
       console.error(err);
       throw err;
-    });
-  });
+    })
+  );
 
   beforeAll(async () => {
     client = await weaviate.connectToLocal();

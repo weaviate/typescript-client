@@ -1,14 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { configure } from '../configure/index.js';
+import { configure } from '@weaviate/core/configure';
 import {
   WeaviateInvertedIndexConfig,
   WeaviateModuleConfig,
   WeaviateMultiTenancyConfig,
   WeaviateVectorsConfig,
-} from '../openapi/types';
-import { MergeWithExisting } from './classes';
-import { GenerativeCohereConfig, RerankerCohereConfig } from './types';
-import { makeVectorsConfig } from './utils.js';
+} from '@weaviate/core/openapi/types.js';
+import { MergeWithExisting } from '@weaviate/core/config/classes.js';
+import { GenerativeCohereConfig, RerankerCohereConfig } from '@weaviate/core/config/types';
+import { makeVectorsConfig } from '@weaviate/core/config/utils.js';
 
 describe('Unit testing of the MergeWithExisting class', () => {
   const deepCopy = (config: any) => JSON.parse(JSON.stringify(config));

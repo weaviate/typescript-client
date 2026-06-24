@@ -69,8 +69,8 @@ importers:
         specifier: ^5.3.2
         version: 5.3.2
       nice-grpc-common:
-        specifier: ^2.0.2
-        version: 2.0.2
+        specifier: ^2.0.3
+        version: 2.0.3
       uuid:
         specifier: ^14.0.0
         version: 14.0.1
@@ -100,10 +100,10 @@ importers:
         specifier: workspace:^1.0.0
         version: link:../core
       nice-grpc:
-        specifier: ^2.1.14
+        specifier: ^2.1.16
         version: 2.1.16
       nice-grpc-client-middleware-retry:
-        specifier: ^3.1.13
+        specifier: ^3.1.15
         version: 3.1.15
     devDependencies:
       '@types/node':
@@ -145,12 +145,18 @@ importers:
       '@weaviate/node':
         specifier: workspace:^1.0.0
         version: link:../node
+      abort-controller-x:
+        specifier: ^0.5.0
+        version: 0.5.0
       express:
         specifier: ^4.21.2
         version: 4.21.2
       nice-grpc:
         specifier: ^2.1.12
         version: 2.1.12
+      nice-grpc-common:
+        specifier: ^2.0.3
+        version: 2.0.3
       uuid:
         specifier: ^9.0.1
         version: 9.0.1
@@ -1836,9 +1842,6 @@ packages:
   nice-grpc-client-middleware-retry@3.1.15:
     resolution: {integrity: sha512-fXfNNdtjCQzc3O/w3WsK1AOU+xdE1V7FCm4FEQWS/UUVsV1616S2oryvWqsZAF8aOvuMir8lFtNmgH3DeP+PBg==}
 
-  nice-grpc-common@2.0.2:
-    resolution: {integrity: sha512-7RNWbls5kAL1QVUOXvBsv1uO0wPQK3lHv+cY1gwkTzirnG1Nop4cBJZubpgziNbaVc/bl9QJcyvsf/NQxa3rjQ==}
-
   nice-grpc-common@2.0.3:
     resolution: {integrity: sha512-MEhnD3JMah0mgyivpb9hpRDbOBuXBxI/TVO+OK1h6rC97WM42HsPMR+zzRNQ0C5BqYJTw1nyWiQRD0DucO+pjQ==}
 
@@ -2434,6 +2437,7 @@ packages:
 
   uuid@9.0.1:
     resolution: {integrity: sha512-b+1eJOlsR9K8HJpow9Ok3fiWOWSIcIzXodvv0rQjVoOVNpWMpxf1wZNpt4y9h10odCNrqnYp1OBzRktckBe3sA==}
+    deprecated: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
     hasBin: true
 
   vary@1.1.2:
@@ -4290,10 +4294,6 @@ snapshots:
       abort-controller-x: 0.5.0
       nice-grpc-common: 2.0.3
 
-  nice-grpc-common@2.0.2:
-    dependencies:
-      ts-error: 1.0.6
-
   nice-grpc-common@2.0.3:
     dependencies:
       ts-error: 1.0.6
@@ -4311,7 +4311,7 @@ snapshots:
     dependencies:
       '@grpc/grpc-js': 1.13.4
       abort-controller-x: 0.4.3
-      nice-grpc-common: 2.0.2
+      nice-grpc-common: 2.0.3
 
   nice-grpc@2.1.16:
     dependencies:
