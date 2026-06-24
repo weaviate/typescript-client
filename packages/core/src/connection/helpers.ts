@@ -74,6 +74,7 @@ export function connectToWeaviateCloud<C extends Context<TMedia>, TMedia>(
   clusterURL: string,
   clientMaker: (context: C, params: ClientParams) => Promise<IWeaviateClient<TMedia>>,
   context: C,
+  isGrpcWeb: boolean,
   options?: ConnectToWeaviateCloudOptions
 ): Promise<IWeaviateClient<TMedia>> {
   // check if the URL is set
@@ -85,7 +86,9 @@ export function connectToWeaviateCloud<C extends Context<TMedia>, TMedia>(
   const url = new URL(clusterURL);
 
   let grpcHost: string;
-  if (url.hostname.endsWith('.weaviate.network')) {
+  if (isGrpcWeb) {
+    grpcHost = url.hostname;
+  } else if (url.hostname.endsWith('.weaviate.network')) {
     const [ident, ...rest] = url.hostname.split('.');
     grpcHost = `${ident}.grpc.${rest.join('.')}`;
   } else {

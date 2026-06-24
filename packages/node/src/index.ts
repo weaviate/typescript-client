@@ -61,7 +61,7 @@ export function connectToWCD(clusterURL: string, options?: ConnectToWCDOptions):
   console.warn(
     'The `connectToWCD` method is deprecated. Please use `connectToWeaviateCloud` instead. This method will be removed in a future release.'
   );
-  return helpers.connectToWeaviateCloud(clusterURL, weaviate, context, options);
+  return helpers.connectToWeaviateCloud(clusterURL, weaviate, context, false, options);
 }
 
 /**
@@ -77,7 +77,7 @@ export function connectToWCS(clusterURL: string, options?: ConnectToWCSOptions):
   console.warn(
     'The `connectToWCS` method is deprecated. Please use `connectToWeaviateCloud` instead. This method will be removed in a future release.'
   );
-  return helpers.connectToWeaviateCloud(clusterURL, weaviate, context, options);
+  return helpers.connectToWeaviateCloud(clusterURL, weaviate, context, false, options);
 }
 
 /**
@@ -91,7 +91,7 @@ export function connectToWeaviateCloud(
   clusterURL: string,
   options?: ConnectToWeaviateCloudOptions
 ): Promise<WeaviateClient> {
-  return helpers.connectToWeaviateCloud(clusterURL, weaviate, context, options);
+  return helpers.connectToWeaviateCloud(clusterURL, weaviate, context, false, options);
 }
 
 const app = {

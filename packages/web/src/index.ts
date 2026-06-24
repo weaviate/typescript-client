@@ -6,10 +6,8 @@ import weaviate, {
   ClientParams,
   configGuards,
   configure,
-  ConnectToCustomOptions,
-  ConnectToLocalOptions,
-  ConnectToWCDOptions,
-  ConnectToWCSOptions,
+  ConnectToCustomOptions as ConnectToCustomOptionsCore,
+  ConnectToLocalOptions as ConnectToLocalOptionsCore,
   ConnectToWeaviateCloudOptions,
   Context,
   filter,
@@ -28,6 +26,9 @@ const context: Context<string | Blob> = {
   toBase64FromMedia,
 };
 
+export type ConnectToLocalOptions = Omit<ConnectToLocalOptionsCore, 'grpcPort'>;
+export type ConnectToCustomOptions = Omit<ConnectToCustomOptionsCore, 'grpcHost' | 'grpcPort' | 'grpcSecure'>;
+
 /**
  * Connect to a custom Weaviate deployment, e.g. your own self-hosted Kubernetes cluster.
  *
@@ -35,7 +36,12 @@ const context: Context<string | Blob> = {
  * @returns {Promise<WeaviateClient>} A Promise that resolves to a client connected to your custom Weaviate deployment.
  */
 export function connectToCustom(options: ConnectToCustomOptions): Promise<WeaviateClient> {
-  return helpers.connectToCustom(weaviate, context, options);
+  return helpers.connectToCustom(weaviate, context, {
+    ...options,
+    grpcHost: options.httpHost,
+    grpcPort: options.httpPort,
+    grpcSecure: options.httpSecure,
+  });
 }
 
 /**
@@ -45,39 +51,7 @@ export function connectToCustom(options: ConnectToCustomOptions): Promise<Weavia
  * @returns {Promise<WeaviateClient>} A Promise that resolves to a client connected to your local Weaviate instance.
  */
 export function connectToLocal(options?: ConnectToLocalOptions): Promise<WeaviateClient> {
-  return helpers.connectToLocal(weaviate, context, options);
-}
-
-/**
- * Connect to your own Weaviate Cloud (WCD) instance.
- *
- * @deprecated Use `connectToWeaviateCloud` instead.
- *
- * @param {string} clusterURL The URL of your WCD instance. E.g., `https://example.weaviate.network`.
- * @param {ConnectToWCDOptions} [options] Additional options for the connection.
- * @returns {Promise<WeaviateClient>} A Promise that resolves to a client connected to your WCD instance.
- */
-export function connectToWCD(clusterURL: string, options?: ConnectToWCDOptions): Promise<WeaviateClient> {
-  console.warn(
-    'The `connectToWCD` method is deprecated. Please use `connectToWeaviateCloud` instead. This method will be removed in a future release.'
-  );
-  return helpers.connectToWeaviateCloud(clusterURL, weaviate, context, options);
-}
-
-/**
- * Connect to your own Weaviate Cloud Service (WCS) instance.
- *
- * @deprecated Use `connectToWeaviateCloud` instead.
- *
- * @param {string} clusterURL The URL of your WCD instance. E.g., `https://example.weaviate.network`.
- * @param {ConnectToWCSOptions} [options] Additional options for the connection.
- * @returns {Promise<WeaviateClient>} A Promise that resolves to a client connected to your WCS instance.
- */
-export function connectToWCS(clusterURL: string, options?: ConnectToWCSOptions): Promise<WeaviateClient> {
-  console.warn(
-    'The `connectToWCS` method is deprecated. Please use `connectToWeaviateCloud` instead. This method will be removed in a future release.'
-  );
-  return helpers.connectToWeaviateCloud(clusterURL, weaviate, context, options);
+  return helpers.connectToLocal(weaviate, context, { ...options, grpcPort: options?.port });
 }
 
 /**
@@ -91,14 +65,12 @@ export function connectToWeaviateCloud(
   clusterURL: string,
   options?: ConnectToWeaviateCloudOptions
 ): Promise<WeaviateClient> {
-  return helpers.connectToWeaviateCloud(clusterURL, weaviate, context, options);
+  return helpers.connectToWeaviateCloud(clusterURL, weaviate, context, true, options);
 }
 
 const app = {
   connectToCustom,
   connectToLocal,
-  connectToWCD,
-  connectToWCS,
   connectToWeaviateCloud,
   client: (params: ClientParams) => weaviate(context, params),
   ApiKey,
