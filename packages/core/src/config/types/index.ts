@@ -7,7 +7,7 @@ import {
   WeaviateAsyncReplicationConfig,
   WeaviateDropPropertyIndexName,
   WeaviateTokenization,
-} from '../../../openapi/types.js';
+} from '../../openapi/types.js';
 import {
   InvertedIndexConfigUpdate,
   MultiTenancyConfigUpdate,

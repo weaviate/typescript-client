@@ -2,24 +2,24 @@
   "name": "@weaviate/core",
   "version": "1.0.0",
   "description": "JS/TS client for Weaviate",
-  "main": "dist/core/src/index.js",
+  "main": "dist/src/index.js",
   "type": "module",
   "exports": {
     ".": {
-      "types": "./dist/core/src/index.d.ts",
-      "default": "./dist/cjs/src/index.js"
+      "types": "./dist/src/index.d.ts",
+      "default": "./dist/src/index.js"
     },
     "./proto": {
-      "types": "./dist/core/src/proto/index.d.ts",
-      "default": "./dist/core/src/proto/index.js"
+      "types": "./dist/src/proto/index.d.ts",
+      "default": "./dist/src/proto/index.js"
     },
     "./errors": {
-      "types": "./dist/core/src/errors.d.ts",
-      "default": "./dist/core/src/errors.js"
+      "types": "./dist/src/errors.d.ts",
+      "default": "./dist/src/errors.js"
     }
   },
   "files": [
-    "dist/core"
+    "dist/"
   ],
   "engines": {
     "node": ">=20.0.0"

@@ -37,7 +37,7 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "esModuleInterop": true,
-    "outDir": "./dist/core",
+    "outDir": "./dist",
     "declaration": true,
     "rootDir": ".",
     "types": ["node", "uuid"]
