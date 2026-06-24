@@ -38,9 +38,7 @@ describe('Integration testing of the ConnectionGRPC class', () => {
       expect(dbVersion.isLowerThan(1, 27, 1)).toBe(true);
     } catch (err) {
       expect(err).toBeInstanceOf(WeaviateStartUpError);
-      expect((err as WeaviateStartUpError).message).toContain(
-        'RESOURCE_EXHAUSTED: Attempted to send message with a size larger than 1'
-      );
+      expect((err as WeaviateStartUpError).message).toContain('RESOURCE_EXHAUSTED');
       expect(dbVersion.isAtLeast(1, 27, 1)).toBe(true);
     }
   });

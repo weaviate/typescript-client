@@ -155,7 +155,7 @@ requireAtLeast(1, 37, 2).describe('tokenize stopwords / stopwordPresets', () => 
   });
 });
 
-describe('collection tokenization: schema config round-trip', () => {
+requireAtLeast(1, 37, 0).describe('collection tokenization: schema config round-trip', () => {
   let client: WeaviateClient;
 
   beforeAll(async () => {
