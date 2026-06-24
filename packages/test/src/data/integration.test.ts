@@ -25,8 +25,8 @@ type TestCollectionData = {
 
 describe('Testing of the collection.data methods with a single target reference', () => {
   let client: WeaviateClient;
-  let collection: Collection<TestCollectionData, 'TestCollectionData'>;
-  const collectionName = 'TestCollectionData';
+  let collection: Collection<TestCollectionData, 'TestCollectionDataSTRef'>;
+  const collectionName = 'TestCollectionDataSTRef';
 
   const existingID = v4();
   const toBeReplacedID = v4();
@@ -614,8 +614,8 @@ describe('Testing of the collection.data methods with a multi target reference',
 
 describe('Testing of the collection.data.insertMany method with all possible types', () => {
   let client: WeaviateClient;
-  let collection: Collection<TestCollectionData, 'TestCollectionData'>;
-  const collectionName = 'TestCollectionData';
+  let collection: Collection<TestCollectionData, 'TestCollectionDataAll'>;
+  const collectionName = 'TestCollectionDataAll';
   let id: string;
 
   type Primitives = {
