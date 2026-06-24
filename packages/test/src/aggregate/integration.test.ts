@@ -31,8 +31,8 @@ describe('Testing of the collection.aggregate methods', () => {
   const date2 = '2023-01-02T00:00:00Z';
   const dateMid = '2023-01-01T12:00:00Z';
 
-  afterAll(async () => {
-    return (await client).collections.delete(collectionName).catch((err) => {
+  afterAll(() => {
+    return client.collections.delete(collectionName).catch((err) => {
       console.error(err);
       throw err;
     });
@@ -94,7 +94,7 @@ describe('Testing of the collection.aggregate methods', () => {
           vectorIndexConfig: weaviate.configure.vectorIndex.hnsw({ maxConnections: 64 }),
         }),
       })
-      .then(async () => {
+      .then(() => {
         const data: DataObject<TestCollectionAggregate>[] = [];
         for (let i = 0; i < 100; i++) {
           data.push({
@@ -112,8 +112,7 @@ describe('Testing of the collection.aggregate methods', () => {
             },
           });
         }
-        const res = (await collection).data.insertMany(data);
-        return res;
+        return collection.data.insertMany(data);
       });
     // .then(async (res) => {
     //   const uuid1 = res.uuids[0];

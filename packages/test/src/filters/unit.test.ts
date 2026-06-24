@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { WhereFilter } from '@weaviate/core/src/openapi/types.js';
-import { CrossReference } from '@weaviate/core/src/references/index.js';
-import { Serialize } from '@weaviate/core/src/serialize/index.js';
-import maker, { FilterValue, Filters } from '@weaviate/core/src/filters/index.js';
-import { GeoRangeFilter } from '@weaviate/core/src/filters/types.js';
+import { WhereFilter } from '@weaviate/core/openapi/types.js';
+import { CrossReference } from '@weaviate/core/references';
+import { Serialize } from '@weaviate/core/serialize';
+import maker, { FilterValue, Filters } from '@weaviate/core/filters';
+import { GeoRangeFilter } from '@weaviate/core/filters/types.js';
 
 describe('Unit testing of filters', () => {
   type Person = {
