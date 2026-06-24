@@ -21,7 +21,7 @@
     "dist/esm"
   ],
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=22.0.0"
   },
   "scripts": {
     "build:cjs": "tsc --module commonjs --moduleResolution node10 --outDir dist/cjs && touch dist/cjs/package.json && echo '{\"type\": \"commonjs\"}' > dist/cjs/package.json",

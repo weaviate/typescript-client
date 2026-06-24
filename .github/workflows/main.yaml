@@ -131,7 +131,7 @@ jobs:
           node-version: 24
           cache: 'pnpm'
           registry-url: "https://registry.npmjs.org"
-      - run: npm ci
+      - run: npm run ci:publish
       - run: npm run build
       - run: npm publish
       - run: npm run docs

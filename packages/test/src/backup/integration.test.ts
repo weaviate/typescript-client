@@ -3,7 +3,7 @@
 /* eslint-disable no-await-in-loop */
 import { WeaviateBackupFailed } from '@weaviate/core/errors';
 import { Backend } from '@weaviate/core/v2/backup';
-import weaviate, { Collection, WeaviateClient } from '@weaviate/node/src';
+import weaviate, { Collection, WeaviateClient } from '@weaviate/node';
 import { afterAll, beforeAll, describe, expect, it, test } from 'vitest';
 import { requireAtLeast } from '../version';
 

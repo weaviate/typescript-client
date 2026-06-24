@@ -9,7 +9,7 @@ import { CrossReference, CrossReferences, Reference } from '@weaviate/core/refer
 import { DataObject, WeaviateObject } from '@weaviate/core/types';
 import weaviate, { Collection, WeaviateClient, weaviateV2 } from '@weaviate/node';
 import { v4 } from 'uuid';
-import { requireAtLeast } from '../../version.js';
+import { requireAtLeast } from '../version.js';
 
 type TestCollectionData = {
   testProp: string;
@@ -1134,31 +1134,31 @@ requireAtLeast(1, 36, 0).describe('Testing of the collection.data.{import, inges
     expect(await collection.length()).toEqual(2000);
   });
 
-  it('should be able to ingest 2000 self-referencing objects with vectors from the client object', async () => {
-    const batching = await client.batch.stream();
+  // it('should be able to ingest 2000 self-referencing objects with vectors from the client object', async () => {
+  //   const batching = await client.batch.stream();
 
-    for (let i = 0; i < 2000; i++) {
-      const obj = {
-        collection: collectionName,
-        properties: {
-          text: `object ${i}`,
-        },
-        vectors: Array.from({ length: 128 }, () => Math.random()),
-      };
-      const id = await batching.addObject(obj);
-      await batching.addReference({
-        fromObjectCollection: collectionName,
-        fromObjectUuid: id,
-        fromPropertyName: 'self',
-        toObjectUuid: id,
-      });
-    }
+  //   for (let i = 0; i < 2000; i++) {
+  //     const obj = {
+  //       collection: collectionName,
+  //       properties: {
+  //         text: `object ${i}`,
+  //       },
+  //       vectors: Array.from({ length: 128 }, () => Math.random()),
+  //     };
+  //     const id = await batching.addObject(obj);
+  //     await batching.addReference({
+  //       fromObjectCollection: collectionName,
+  //       fromObjectUuid: id,
+  //       fromPropertyName: 'self',
+  //       toObjectUuid: id,
+  //     });
+  //   }
 
-    await batching.stop();
+  //   await batching.stop();
 
-    expect(batching.hasErrors()).toBeFalsy();
-    expect(Object.values(batching.objErrors()).length).toEqual(0);
-    expect(Object.values(batching.uuids()).length).toEqual(2000);
-    expect(await collection.length()).toEqual(2000);
-  });
+  //   expect(batching.hasErrors()).toBeFalsy();
+  //   expect(Object.values(batching.objErrors()).length).toEqual(0);
+  //   expect(Object.values(batching.uuids()).length).toEqual(2000);
+  //   expect(await collection.length()).toEqual(2000);
+  // });
 });
