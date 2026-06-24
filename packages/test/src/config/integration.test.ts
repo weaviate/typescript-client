@@ -22,10 +22,13 @@ describe('Testing of the collection.config namespace', () => {
     client = await weaviate.connectToLocal();
   });
 
-  afterAll(() => client.collections.deleteAll());
+  const afters: (() => Promise<void>)[] = [];
+
+  afterAll(() => Promise.all(afters));
 
   it('should be able to get the config of a collection without generics', async () => {
     const collectionName = 'TestCollectionConfigGetWithGenerics';
+    afters.push(() => client.collections.delete(collectionName));
     type TestCollectionConfigGet = {
       testProp: string;
     };
@@ -67,6 +70,7 @@ describe('Testing of the collection.config namespace', () => {
 
   it('should be able get the config of a collection with generics', async () => {
     const collectionName = 'TestCollectionConfigGetWithoutGenerics';
+    afters.push(() => client.collections.delete(collectionName));
     type TestCollectionConfigGet = {
       testProp: string;
     };
@@ -108,6 +112,7 @@ describe('Testing of the collection.config namespace', () => {
 
   it('should be able to get a collection with named vectors', async () => {
     const collectionName = 'TestCollectionConfigGetVectors';
+    afters.push(() => client.collections.delete(collectionName));
     const query = () =>
       client.collections.create({
         name: collectionName,
@@ -161,6 +166,7 @@ describe('Testing of the collection.config namespace', () => {
 
   it('should be able to get the config of a collection with hnsw-pq', async () => {
     const collectionName = 'TestCollectionConfigGetHNSWPlusPQ';
+    afters.push(() => client.collections.delete(collectionName));
     const collection = await client.collections.create({
       name: collectionName,
       vectorizers: weaviate.configure.vectors.none({
@@ -185,6 +191,7 @@ describe('Testing of the collection.config namespace', () => {
 
   requireAtLeast(1, 32, 0).it('should be able to get the config of a collection with hnsw-rq', async () => {
     const collectionName = 'TestCollectionConfigGetHNSWPlusRQ';
+    afters.push(() => client.collections.delete(collectionName));
     const collection = await client.collections.create({
       name: collectionName,
       vectorizers: weaviate.configure.vectorizer.none({
@@ -267,6 +274,7 @@ describe('Testing of the collection.config namespace', () => {
   requireAtLeast(1, 36, 0).it('should create a collection with hfresh index', async () => {
     const collectionName = 'TestCollectionConfigGetHFresh';
     await client.collections.delete(collectionName);
+    afters.push(() => client.collections.delete(collectionName));
     const collection = await client.collections.create({
       name: collectionName,
       vectorizers: weaviate.configure.vectorizer.none({
@@ -318,6 +326,7 @@ describe('Testing of the collection.config namespace', () => {
 
   requireAtLeast(1, 26, 0).it('should be able to get the config of a collection with hnsw-sq', async () => {
     const collectionName = 'TestCollectionConfigGetHNSWPlusSQ';
+    afters.push(() => client.collections.delete(collectionName));
     const collection = await client.collections.create({
       name: collectionName,
       vectorizers: weaviate.configure.vectors.none({
@@ -342,6 +351,7 @@ describe('Testing of the collection.config namespace', () => {
 
   it('should be able to get the config of a collection with flat-bq', async () => {
     const collectionName = 'TestCollectionConfigGetFlatPlusBQ';
+    afters.push(() => client.collections.delete(collectionName));
     const collection = await client.collections.create({
       name: collectionName,
       vectorizers: weaviate.configure.vectors.none({
@@ -488,6 +498,7 @@ describe('Testing of the collection.config namespace', () => {
 
   it('should be able to add a property to a collection', async () => {
     const collectionName = 'TestCollectionConfigAddProperty';
+    afters.push(() => client.collections.delete(collectionName));
     const collection = await client.collections.create({
       name: collectionName,
       vectorizers: weaviate.configure.vectors.none(),
@@ -516,6 +527,7 @@ describe('Testing of the collection.config namespace', () => {
 
   it('should be able to add a reference to a collection', async () => {
     const collectionName = 'TestCollectionConfigAddReference' as const;
+    afters.push(() => client.collections.delete(collectionName));
     const collection = await client.collections.create({
       name: collectionName,
       vectorizers: weaviate.configure.vectors.none(),
@@ -538,6 +550,7 @@ describe('Testing of the collection.config namespace', () => {
   requireAtLeast(1, 31, 0).describe('Mutable named vectors', () => {
     it('should be able to add named vectors to a collection', async () => {
       const collectionName = 'TestCollectionConfigAddVector' as const;
+      afters.push(() => client.collections.delete(collectionName));
       const collection = await client.collections.create({
         name: collectionName,
         vectorizers: weaviate.configure.vectors.none(),
@@ -633,6 +646,7 @@ describe('Testing of the collection.config namespace', () => {
 
   it('should be able update the config of a collection', async () => {
     const collectionName = 'TestCollectionConfigUpdate';
+    afters.push(() => client.collections.delete(collectionName));
     const collection = await client.collections.create({
       name: collectionName,
       properties: [
@@ -733,6 +747,7 @@ describe('Testing of the collection.config namespace', () => {
 
   it('should be able to create and get a collection with multi-tenancy enabled', async () => {
     const collectionName = 'TestCollectionConfigCreateGetMultiTenancy';
+    afters.push(() => client.collections.delete(collectionName));
     const collection = await client.collections.create({
       name: collectionName,
       multiTenancy: weaviate.configure.multiTenancy({
@@ -754,6 +769,7 @@ describe('Testing of the collection.config namespace', () => {
 
   it('should be able to create and update a collection with multi-tenancy enabled', async () => {
     const collectionName = 'TestCollectionConfigCreateUpdateMultiTenancy';
+    afters.push(() => client.collections.delete(collectionName));
     const collection = await client.collections.create({
       name: collectionName,
       multiTenancy: weaviate.configure.multiTenancy(),
@@ -898,6 +914,7 @@ describe('Testing of the collection.config namespace', () => {
     'should be able to create and get a multi-vector collection with encoding',
     async () => {
       const collectionName = 'TestCollectionConfigCreateWithMuveraEncoding';
+      afters.push(() => client.collections.delete(collectionName));
       const collection = await client.collections.create({
         name: collectionName,
         vectorizers: weaviate.configure.vectorizer.none({
@@ -923,6 +940,7 @@ describe('Testing of the collection.config namespace', () => {
     'should be able to create and get a multi-vector collection without encoding',
     async () => {
       const collectionName = 'TestCollectionConfigCreateWithoutMuveraEncoding';
+      afters.push(() => client.collections.delete(collectionName));
       const collection = await client.collections.create({
         name: collectionName,
         vectorizers: weaviate.configure.vectorizer.none({
@@ -944,6 +962,7 @@ describe('Testing of the collection.config namespace', () => {
   requireAtLeast(1, 32, 4).describe('uncompressed quantizer', () => {
     it('should be able to create a collection with an uncompressed quantizer', async () => {
       const collectionName = 'TestCollectionUncompressedVector';
+      afters.push(() => client.collections.delete(collectionName));
       const collection = await client.collections.create({
         name: collectionName,
         vectorizers: weaviate.configure.vectors.selfProvided({
@@ -964,6 +983,7 @@ describe('Testing of the collection.config namespace', () => {
 
     it('should be able to create a collection with uncompressed named vector', async () => {
       const collectionName = 'TestCollectionUncompressedVectorNamed';
+      afters.push(() => client.collections.delete(collectionName));
       const collection = await client.collections.create({
         name: collectionName,
         vectorizers: weaviate.configure.vectors.selfProvided({
@@ -988,6 +1008,7 @@ describe('Testing of the collection.config namespace', () => {
     'should be able to create a collection with RQ quantizer bits=8 option',
     async () => {
       const collectionName = 'TestCollectionRQQuantizer8Bits';
+      afters.push(() => client.collections.delete(collectionName));
       const collection = await client.collections.create({
         name: collectionName,
         vectorizers: weaviate.configure.vectors.selfProvided({
@@ -1008,6 +1029,7 @@ describe('Testing of the collection.config namespace', () => {
     'should be able to create a collection with RQ quantizer bits=1 option',
     async () => {
       const collectionName = 'TestCollectionRQQuantizer1Bits';
+      afters.push(() => client.collections.delete(collectionName));
       const collection = await client.collections.create({
         name: collectionName,
         vectorizers: weaviate.configure.vectors.selfProvided({
@@ -1027,6 +1049,7 @@ describe('Testing of the collection.config namespace', () => {
   requireAtLeast(1, 36, 0).describe('dropInvertedIndex', () => {
     it('should drop indices from a property', async () => {
       const collectionName = 'TestDropInvertedIndices';
+      afters.push(() => client.collections.delete(collectionName));
       const collection = await client.collections.create({
         name: collectionName,
         properties: [
@@ -1061,6 +1084,7 @@ describe('Testing of the collection.config namespace', () => {
 
   requireAtLeast(1, 35, 0).it('should create and update Object TTL configuration', async () => {
     const collectionName = 'TestObjectTTL';
+    afters.push(() => client.collections.delete(collectionName));
     const collection = await client.collections.create({
       name: collectionName,
       objectTTL: weaviate.configure.objectTTL.deleteByCreationTime({ defaultTTLSeconds: 120 }),

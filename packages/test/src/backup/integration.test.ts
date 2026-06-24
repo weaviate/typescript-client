@@ -25,7 +25,14 @@ describe('Integration testing of backups', () => {
     )
   );
 
-  afterAll(() => clientPromise.then((client) => client.collections.deleteAll()));
+  afterAll(() =>
+    clientPromise.then((client) =>
+      Promise.all([
+        client.collections.delete('TestBackupClient'),
+        client.collections.delete('TestBackupCollection'),
+      ])
+    )
+  );
 
   const testClientWaitForCompletion = async (client: WeaviateClient) => {
     const res = await client.backup.create({

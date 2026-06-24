@@ -37,16 +37,13 @@ describe('Testing of the collections.create method', () => {
       : 'hnsw';
   });
 
-  afterAll(() =>
-    Promise.all([
-      cluster.collections.deleteAll(),
-      contextionary.collections.deleteAll(),
-      openai.collections.deleteAll(),
-    ])
-  );
+  const afters: (() => Promise<void>)[] = [];
+
+  afterAll(() => Promise.all(afters));
 
   it('should be able to create a simple collection with a generic', async () => {
     const collectionName = 'TestCollectionSimpleGeneric';
+    afters.push(() => contextionary.collections.delete(collectionName));
     type TestCollectionSimple = {
       testProp: string;
     };
@@ -72,6 +69,7 @@ describe('Testing of the collections.create method', () => {
 
   it('should be able to create a simple collection without a generic', async () => {
     const collectionName = 'TestCollectionSimpleNonGeneric';
+    afters.push(() => contextionary.collections.delete(collectionName));
     const response = await contextionary.collections
       .create({
         name: collectionName,
@@ -130,9 +128,11 @@ describe('Testing of the collections.create method', () => {
   });
 
   it('should be able to create a collection with one fully customised int property', () => {
+    const collectionName = 'TestCollectionIntProperty';
+    afters.push(() => contextionary.collections.delete(collectionName));
     return contextionary.collections
       .create({
-        name: 'TestCollectionIntProperty',
+        name: collectionName,
         properties: [
           {
             name: 'int',
@@ -167,6 +167,7 @@ describe('Testing of the collections.create method', () => {
 
   it('should be able to create a simple collection without a generic and no properties', async () => {
     const collectionName = 'TestCollectionSimpleNonGenericNoProperties';
+    afters.push(() => contextionary.collections.delete(collectionName));
     const response = await contextionary.collections
       .create({
         name: collectionName,
@@ -195,6 +196,7 @@ describe('Testing of the collections.create method', () => {
 
   it('should be able to create a simple collection without a generic using a schema var', async () => {
     const collectionName = 'TestCollectionSimpleNonGenericVar';
+    afters.push(() => contextionary.collections.delete(collectionName));
     const schema = {
       name: collectionName,
       properties: [
@@ -219,6 +221,7 @@ describe('Testing of the collections.create method', () => {
 
   it('should be able to create a simple collection with a generic using a schema var with const', async () => {
     const collectionName = 'TestCollectionSimpleGenericVarConst';
+    afters.push(() => contextionary.collections.delete(collectionName));
     type TestCollectionSimple = {
       testProp: string;
     };
@@ -246,6 +249,7 @@ describe('Testing of the collections.create method', () => {
 
   it('should be able to create a simple collection with a generic using a schema var with type', async () => {
     const collectionName = 'TestCollectionSimpleGenericVarType';
+    afters.push(() => contextionary.collections.delete(collectionName));
     type TestCollectionSimple = {
       testProp: string;
     };
@@ -273,6 +277,7 @@ describe('Testing of the collections.create method', () => {
 
   it('should be able to create a nested collection', async () => {
     const collectionName = 'TestCollectionNested';
+    afters.push(() => contextionary.collections.delete(collectionName));
     type TestCollectionNested = {
       testProp: {
         nestedProp: string;
@@ -309,7 +314,7 @@ describe('Testing of the collections.create method', () => {
 
   it('should be able to create a collection with generic properties', () => {
     const collectionName = 'TestCollectionGenericProperties';
-
+    afters.push(() => cluster.collections.delete(collectionName));
     type TestCollectionGenericProperties = {
       text: string;
       texts: string[];
@@ -413,6 +418,7 @@ describe('Testing of the collections.create method', () => {
 
   it('should be able to create a complex collection', async () => {
     const collectionName = 'TestCollectionSimple';
+    afters.push(() => cluster.collections.delete(collectionName));
     const response = await cluster.collections
       .create({
         name: collectionName,
@@ -633,6 +639,7 @@ describe('Testing of the collections.create method', () => {
 
   it('should be able to create a collection with the contextionary vectorizer using configure.vectors', async () => {
     const collectionName = 'ThisOneIsATest'; // must include words in contextionary's vocabulary to pass since vectorizeCollectionName will be true
+    afters.push(() => contextionary.collections.delete(collectionName));
     const response = await contextionary.collections
       .create({
         name: collectionName,
@@ -667,6 +674,7 @@ describe('Testing of the collections.create method', () => {
 
   it('should be able to create a collection with an openai vectorizer with configure.vectors', async () => {
     const collectionName = 'TestCollectionOpenAIVectorizerWithConfigureVectorizer';
+    afters.push(() => openai.collections.delete(collectionName));
     const response = await openai.collections
       .create({
         name: collectionName,
@@ -701,6 +709,7 @@ describe('Testing of the collections.create method', () => {
 
   it('should be able to create a collection with the openai generative with configure.Generative', async () => {
     const collectionName = 'TestCollectionOpenAIGenerativeWithConfigureGenerative';
+    afters.push(() => openai.collections.delete(collectionName));
     const response = await openai.collections
       .create({
         name: collectionName,

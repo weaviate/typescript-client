@@ -578,7 +578,9 @@ describe('Testing of the collection.data methods with a multi target reference',
       .then(() => collectionTwo.data.insert({ two: 'two' }));
   });
 
-  afterAll(() => client.collections.deleteAll());
+  afterAll(() =>
+    Promise.all([client.collections.delete(classNameOne), client.collections.delete(classNameTwo)])
+  );
 
   it('should be able to insert an object with a multi target reference', async () => {
     const id = await collectionTwo.data.insert({

@@ -113,6 +113,10 @@ describe('Testing of the collection.aggregate methods', () => {
           });
         }
         return collection.data.insertMany(data);
+      })
+      .then((res) => {
+        Object.values(res.errors).map((e) => console.error(e.message));
+        expect(res.hasErrors).toBe(false);
       });
     // .then(async (res) => {
     //   const uuid1 = res.uuids[0];
