@@ -43,8 +43,8 @@
   "homepage": "https://github.com/weaviate/typescript-client#readme",
   "dependencies": {
     "@weaviate/core": "workspace:^1.0.0",
-    "nice-grpc": "^2.1.14",
-    "nice-grpc-client-middleware-retry": "^3.1.13"
+    "nice-grpc": "^2.1.16",
+    "nice-grpc-client-middleware-retry": "^3.1.15"
   },
   "devDependencies": {
     "@types/node": "^18.14.0",
