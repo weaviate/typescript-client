@@ -10,7 +10,7 @@
       "@weaviate/node": ["../node/src"]
     }
   },
-  "include": ["src"],
+  "include": ["node", "web"],
   "references": [{ "path": "../core" }, { "path": "../node" }]
   
 }

@@ -30,7 +30,7 @@
     "build:web": "pnpm --filter @weaviate/web... run build",
     "build": "npm run build:core && npm run build:node && npm run build:web",
     "ci:checks": "npm run install:core && npm run build:core && npm run install:node && npm run install:web",
-    "ci:test": "npm run ci:checks && npm run build:core && npm run build:node && npm run install:test",
+    "ci:test": "npm run ci:checks && npm run build:core && npm run build:node && npm run build:web && npm run install:test",
     "ci:publish": "npm run ci:checks"
   },
   "repository": {

@@ -29,6 +29,19 @@ const context: Context<string | Blob> = {
 export type ConnectToLocalOptions = Omit<ConnectToLocalOptionsCore, 'grpcPort'>;
 export type ConnectToCustomOptions = Omit<ConnectToCustomOptionsCore, 'grpcHost' | 'grpcPort' | 'grpcSecure'>;
 
+const webify = (
+  context: Context<string | Blob>,
+  params: ClientParams
+): Promise<IWeaviateClient<string | Blob>> => {
+  params.connectionParams.grpc = {
+    host: params.connectionParams.http.host,
+    port: params.connectionParams.http.port,
+    secure: params.connectionParams.http.secure,
+    path: '/grpc-web',
+  };
+  return weaviate(context, params, true);
+};
+
 /**
  * Connect to a custom Weaviate deployment, e.g. your own self-hosted Kubernetes cluster.
  *
@@ -36,12 +49,7 @@ export type ConnectToCustomOptions = Omit<ConnectToCustomOptionsCore, 'grpcHost'
  * @returns {Promise<WeaviateClient>} A Promise that resolves to a client connected to your custom Weaviate deployment.
  */
 export function connectToCustom(options: ConnectToCustomOptions): Promise<WeaviateClient> {
-  return helpers.connectToCustom(weaviate, context, {
-    ...options,
-    grpcHost: options.httpHost,
-    grpcPort: options.httpPort,
-    grpcSecure: options.httpSecure,
-  });
+  return helpers.connectToCustom(webify, context, options);
 }
 
 /**
@@ -51,7 +59,7 @@ export function connectToCustom(options: ConnectToCustomOptions): Promise<Weavia
  * @returns {Promise<WeaviateClient>} A Promise that resolves to a client connected to your local Weaviate instance.
  */
 export function connectToLocal(options?: ConnectToLocalOptions): Promise<WeaviateClient> {
-  return helpers.connectToLocal(weaviate, context, { ...options, grpcPort: options?.port });
+  return helpers.connectToLocal(webify, context, options);
 }
 
 /**
@@ -65,7 +73,7 @@ export function connectToWeaviateCloud(
   clusterURL: string,
   options?: ConnectToWeaviateCloudOptions
 ): Promise<WeaviateClient> {
-  return helpers.connectToWeaviateCloud(clusterURL, weaviate, context, true, options);
+  return helpers.connectToWeaviateCloud(clusterURL, webify, context, options);
 }
 
 const app = {

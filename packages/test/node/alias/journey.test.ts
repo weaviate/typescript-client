@@ -10,7 +10,6 @@ requireAtLeast(1, 32, 0).describe('manages collection aliases', () => {
   beforeAll(async () => {
     client = await weaviate.connectToLocal();
     await Promise.all(collectionsWithAliases.map(client.collections.delete));
-    await Promise.all(collectionsWithAliases.map((name) => client.collections.create({ name })));
   });
 
   it('should create alias', () => {

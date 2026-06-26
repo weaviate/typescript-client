@@ -137,12 +137,13 @@ export type Context<TMedia> = {
 
 const client = async <TMedia>(
   context: Context<TMedia>,
-  params: ClientParams
+  params: ClientParams,
+  isGrpcWeb: boolean = false
 ): Promise<IWeaviateClient<TMedia>> => {
   let { host: httpHost } = params.connectionParams.http;
   let { host: grpcHost } = params.connectionParams.grpc;
   const { port: httpPort, secure: httpSecure, path: httpPath } = params.connectionParams.http;
-  const { port: grpcPort, secure: grpcSecure } = params.connectionParams.grpc;
+  const { port: grpcPort, secure: grpcSecure, path: grpcPath } = params.connectionParams.grpc;
   httpHost = cleanHost(httpHost, 'rest');
   grpcHost = cleanHost(grpcHost, 'grpc');
 
@@ -158,7 +159,9 @@ const client = async <TMedia>(
       host: `${scheme}://${httpHost}:${httpPort}${httpPath || ''}`,
       scheme: scheme,
       headers: params.headers,
-      grpcAddress: `${grpcHost}:${grpcPort}`,
+      grpcAddress: `${isGrpcWeb ? (grpcSecure ? 'https' : 'http') : ''}://${grpcHost}:${grpcPort}${
+        grpcPath || ''
+      }`,
       grpcSecure: grpcSecure,
       grpcProxyUrl: params.proxies?.grpc,
       apiKey: isApiKey(params.auth) ? mapApiKey(params.auth) : undefined,

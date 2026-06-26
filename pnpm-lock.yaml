@@ -145,6 +145,9 @@ importers:
       '@weaviate/node':
         specifier: workspace:^1.0.0
         version: link:../node
+      '@weaviate/web':
+        specifier: workspace:^1.0.0
+        version: link:../web
       abort-controller-x:
         specifier: ^0.5.0
         version: 0.5.0

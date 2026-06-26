@@ -9,9 +9,11 @@ on:
 env:
   WEAVIATE_133: 1.33.18
   WEAVIATE_134: 1.34.20
-  WEAVIATE_135: 1.35.16
-  WEAVIATE_136: 1.36.10
-  WEAVIATE_137: 1.37.5
+  WEAVIATE_135: 1.35.23
+  WEAVIATE_136: 1.36.19
+  WEAVIATE_137: 1.37.10
+  WEAVIATE_138: 1.38.2
+  WEAVIATE_139: 1.39.0-dev-45692cd.amd64
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -49,8 +51,10 @@ jobs:
             { node: "24.x", weaviate: $WEAVIATE_134 },
             { node: "24.x", weaviate: $WEAVIATE_135 },
             { node: "24.x", weaviate: $WEAVIATE_136 },
-            { node: "22.x", weaviate: $WEAVIATE_137 },
             { node: "24.x", weaviate: $WEAVIATE_137 },
+            { node: "22.x", weaviate: $WEAVIATE_138 },
+            { node: "24.x", weaviate: $WEAVIATE_138 },
+            { node: "24.x", weaviate: $WEAVIATE_139 },
           ]
     steps:
     - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
@@ -82,7 +86,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        versions: [{ node: "24.x", weaviate: $WEAVIATE_137 }]
+        versions: [{ node: "24.x", weaviate: $WEAVIATE_138 }]
     steps:
     - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
     - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
