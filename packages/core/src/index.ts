@@ -159,7 +159,7 @@ const client = async <TMedia>(
       host: `${scheme}://${httpHost}:${httpPort}${httpPath || ''}`,
       scheme: scheme,
       headers: params.headers,
-      grpcAddress: `${isGrpcWeb ? (grpcSecure ? 'https' : 'http') : ''}://${grpcHost}:${grpcPort}${
+      grpcAddress: `${isGrpcWeb ? (grpcSecure ? 'https://' : 'http://') : ''}${grpcHost}:${grpcPort}${
         grpcPath || ''
       }`,
       grpcSecure: grpcSecure,
