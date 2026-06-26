@@ -605,7 +605,9 @@ describe('Testing of the collections.create method', () => {
 
     expect(response.multiTenancy.enabled).toEqual(true);
 
-    expect(response.replication.asyncEnabled).toEqual(false);
+    expect(response.replication.asyncEnabled).toEqual(
+      await cluster.getWeaviateVersion().then((ver) => ver.isAtLeast(1, 38, 0))
+    );
     expect(response.replication.deletionStrategy).toBeDefined();
     expect(response.replication.factor).toEqual(2);
 
