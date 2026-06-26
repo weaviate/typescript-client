@@ -1,4 +1,4 @@
-import { WeaviateField } from '../index.js';
+import { FilterValue, WeaviateField } from '../index.js';
 import { PrimitiveVectorType } from '../query/types.js';
 import { CrossReferenceDefault } from '../references/index.js';
 import {
@@ -188,4 +188,42 @@ export type RefPropertyDefault = {
 export type SortBy = {
   property: string;
   ascending?: boolean;
+};
+
+export type BoostOptions = {
+  conditions: {
+    func: TimeDecay | NumericDecay | PropertyValue | (FilterValue & { type: 'filter' });
+    weight?: number;
+  }[];
+  weight?: number;
+  depth?: number;
+};
+
+export type Curve = 'exponential' | 'gaussian' | 'linear';
+export type Modifier = 'log1p' | 'sqrt';
+
+export type TimeDecay = {
+  property: string;
+  scale: string;
+  origin?: string;
+  offset?: string;
+  curve?: Curve;
+  decay?: number;
+  type: 'timeDecay';
+};
+
+export type NumericDecay = {
+  property: string;
+  scale: number;
+  origin: number;
+  offset?: number;
+  curve?: Curve;
+  decay?: number;
+  type: 'numericDecay';
+};
+
+export type PropertyValue = {
+  property: string;
+  modifier?: Modifier;
+  type: 'propertyValue';
 };

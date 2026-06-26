@@ -1,5 +1,5 @@
 import { FilterValue } from '../filters/index.js';
-import { CallOptions, MultiTargetVectorJoin, ReturnVectors } from '../index.js';
+import { BoostOptions, CallOptions, MultiTargetVectorJoin, ReturnVectors } from '../index.js';
 import { Sorting } from '../sort/classes.js';
 import {
   GroupByOptions,
@@ -61,6 +61,8 @@ export type SearchOptions<T, I> = {
   autoLimit?: number;
   /** The filters to be applied to the query. Use `weaviate.filter.*` to create filters */
   filters?: FilterValue;
+  /** Promote search results based on a boosting function. */
+  boost?: BoostOptions;
   /** How to rerank the query results. Requires a configured [reranking](https://weaviate.io/developers/weaviate/concepts/reranking) module. */
   rerank?: RerankOptions<T>;
   /** Whether to include the vector of the object in the response. If using named vectors, pass an array of strings to include only specific vectors. */

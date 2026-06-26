@@ -1,4 +1,13 @@
-import { MultiTargetVectorJoin, Vectors } from '../index.js';
+import { WeaviateInvalidInputError } from '../../errors.js';
+import {
+  BoostOptions,
+  FilterValue,
+  MultiTargetVectorJoin,
+  NumericDecay,
+  PropertyValue,
+  TimeDecay,
+  Vectors,
+} from '../index.js';
 import {
   Bm25OperatorOptions,
   Bm25OperatorOr,
@@ -64,6 +73,93 @@ export class TargetVectorInputGuards {
   public static isMultiJoin(input: TargetVectorInputType<Vectors>): input is MultiTargetVectorJoin<Vectors> {
     const i = input as MultiTargetVectorJoin<Vectors>;
     return i.combination !== undefined && i.targetVectors !== undefined;
+  }
+}
+
+export class Boost {
+  static filter(filter: FilterValue, args?: Pick<BoostOptions, 'weight' | 'depth'>): BoostOptions {
+    return {
+      ...args,
+      conditions: [
+        {
+          weight: args?.weight,
+          func: {
+            ...filter,
+            type: 'filter',
+          },
+        },
+      ],
+    };
+  }
+  static timeDecay(args: Omit<TimeDecay, 'type'> & Pick<BoostOptions, 'weight' | 'depth'>): BoostOptions {
+    const { weight, depth, ...func } = args;
+    return {
+      conditions: [
+        {
+          weight,
+          func: {
+            ...func,
+            type: 'timeDecay',
+          },
+        },
+      ],
+      weight,
+      depth,
+    };
+  }
+  static numericDecay(
+    args: Omit<NumericDecay, 'type'> & Pick<BoostOptions, 'weight' | 'depth'>
+  ): BoostOptions {
+    const { weight, depth, ...func } = args;
+    return {
+      conditions: [
+        {
+          weight,
+          func: {
+            ...func,
+            type: 'numericDecay',
+          },
+        },
+      ],
+      weight,
+      depth,
+    };
+  }
+  static numericProperty(
+    args: Omit<PropertyValue, 'type'> & Pick<BoostOptions, 'weight' | 'depth'>
+  ): BoostOptions {
+    const { weight, depth, ...func } = args;
+    return {
+      conditions: [
+        {
+          weight,
+          func: {
+            ...func,
+            type: 'propertyValue',
+          },
+        },
+      ],
+      weight,
+      depth,
+    };
+  }
+  static blend(boosts: BoostOptions[], options: Pick<BoostOptions, 'weight' | 'depth'>): BoostOptions {
+    const out: BoostOptions = { ...options, conditions: [] };
+    for (const boost of boosts) {
+      if (boost.depth) {
+        throw new WeaviateInvalidInputError('A boost passed to Boost.blend() cannot set its own depth.');
+      }
+      for (let cond of boost.conditions) {
+        if (!cond.weight && boost.weight) {
+          cond = {
+            ...cond,
+            weight: boost.weight,
+          };
+        }
+        out.conditions.push({ ...cond });
+      }
+    }
+    return out;
   }
 }
 
