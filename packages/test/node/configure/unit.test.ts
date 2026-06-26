@@ -31,7 +31,7 @@ import {
   VectorIndexConfigHNSWCreate,
 } from '@weaviate/core/types';
 import { describe, expect, it } from 'vitest';
-import { requireAtLeast } from '../../version.js';
+import { requireAtLeast } from '../../version';
 
 describe('Unit testing of the configure & reconfigure factory classes', () => {
   it('should create the correct InvertedIndexConfig type with defaults', () => {

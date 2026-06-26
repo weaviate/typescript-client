@@ -9,7 +9,7 @@ import { CrossReference, CrossReferences, Reference } from '@weaviate/core/refer
 import { DataObject, WeaviateObject } from '@weaviate/core/types';
 import weaviate, { Collection, WeaviateClient, weaviateV2 } from '@weaviate/node';
 import { v4 } from 'uuid';
-import { requireAtLeast } from '../../version.js';
+import { requireAtLeast } from '../../version';
 
 type TestCollectionData = {
   testProp: string;

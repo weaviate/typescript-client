@@ -1,6 +1,6 @@
 import weaviate, { ApiKey, GroupAssignment } from '@weaviate/node';
 import { expect, it } from 'vitest';
-import { requireAtLeast } from '../../version.js';
+import { requireAtLeast } from '../../version';
 
 requireAtLeast(1, 32, 5).describe('Integration testing of the OIDC groups', () => {
   const makeClient = (key: string = 'admin-key') =>

@@ -5,7 +5,7 @@ import { CrossReference, Reference } from '@weaviate/core/references';
 import { GeoCoordinate } from '@weaviate/core/types';
 import weaviate, { Collection, WeaviateClient } from '@weaviate/node';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { requireAtLeast } from '../../version.js';
+import { requireAtLeast } from '../../version';
 
 describe('Testing of the filter class with a simple collection', () => {
   let client: WeaviateClient;

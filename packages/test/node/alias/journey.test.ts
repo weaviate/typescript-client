@@ -1,7 +1,7 @@
 import { Alias } from '@weaviate/core/alias';
 import weaviate, { WeaviateClient } from '@weaviate/node';
 import { beforeAll, expect, it } from 'vitest';
-import { requireAtLeast } from '../../version.js';
+import { requireAtLeast } from '../../version';
 
 requireAtLeast(1, 32, 0).describe('manages collection aliases', () => {
   let client: WeaviateClient;
@@ -10,6 +10,7 @@ requireAtLeast(1, 32, 0).describe('manages collection aliases', () => {
   beforeAll(async () => {
     client = await weaviate.connectToLocal();
     await Promise.all(collectionsWithAliases.map(client.collections.delete));
+    await Promise.all(collectionsWithAliases.map((name) => client.collections.create({ name })));
   });
 
   it('should create alias', () => {

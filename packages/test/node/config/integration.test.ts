@@ -13,7 +13,7 @@ import {
 import { WeaviateUnsupportedFeatureError } from '@weaviate/core/errors';
 import weaviate, { WeaviateClass, WeaviateClient, weaviateV2 } from '@weaviate/node';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { requireAtLeast } from '../../version.js';
+import { requireAtLeast } from '../../version';
 
 describe('Testing of the collection.config namespace', () => {
   let client: WeaviateClient;
