@@ -8,7 +8,7 @@ import weaviate, {
   WeaviateClient,
 } from '@weaviate/node';
 import { afterAll, beforeAll, expect, it } from 'vitest';
-import { requireAtLeast } from '../version.js';
+import { requireAtLeast } from '../../version.js';
 
 requireAtLeast(1, 29, 0).describe(
   'Testing of the collection.query methods with a collection with multvectors',

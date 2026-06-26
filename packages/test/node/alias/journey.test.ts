@@ -1,7 +1,7 @@
 import { Alias } from '@weaviate/core/alias';
 import weaviate, { WeaviateClient } from '@weaviate/node';
 import { beforeAll, expect, it } from 'vitest';
-import { requireAtLeast } from '../version.js';
+import { requireAtLeast } from '../../version.js';
 
 requireAtLeast(1, 32, 0).describe('manages collection aliases', () => {
   let client: WeaviateClient;

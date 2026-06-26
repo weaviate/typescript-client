@@ -7,7 +7,7 @@ import { GroupByOptions } from '@weaviate/core/types';
 import weaviate, { Collection, WeaviateClient } from '@weaviate/node';
 import { AbortError } from 'abort-controller-x';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { requireAtLeast } from '../version.js';
+import { requireAtLeast } from '../../version.js';
 
 describe('Testing of the collection.query methods with a simple collection', () => {
   let client: WeaviateClient;

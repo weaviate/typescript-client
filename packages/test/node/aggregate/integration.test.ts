@@ -5,7 +5,7 @@ import { CrossReference } from '@weaviate/core/references';
 import { DataObject } from '@weaviate/core/types';
 import weaviate, { AggregateText, Bm25Operator, Collection, WeaviateClient } from '@weaviate/node';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { requireAtLeast } from '../version';
+import { requireAtLeast } from '../../version';
 
 describe('Testing of the collection.aggregate methods', () => {
   type TestCollectionAggregate = {

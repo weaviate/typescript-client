@@ -11,7 +11,7 @@ import weaviate, {
   WeaviateClient,
 } from '@weaviate/node';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { requireAtLeast } from '../version';
+import { requireAtLeast } from '../../version';
 
 type TestCase = {
   roleName: string;

@@ -5,7 +5,7 @@ import { WeaviateBackupFailed } from '@weaviate/core/errors';
 import { Backend } from '@weaviate/core/v2/backup';
 import weaviate, { Collection, WeaviateClient } from '@weaviate/node';
 import { afterAll, beforeAll, describe, expect, it, test } from 'vitest';
-import { requireAtLeast } from '../version';
+import { requireAtLeast } from '../../version';
 
 // These must run sequentially because Weaviate is not capable of running multiple backups at the same time
 describe('Integration testing of backups', () => {
