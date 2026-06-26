@@ -61,8 +61,9 @@ export interface SearchRequest {
   nearThermal?: NearThermalSearch | undefined;
   nearImu?: NearIMUSearch | undefined;
   generative?: GenerativeSearch | undefined;
-  rerank?:
-    | Rerank
+  rerank?: Rerank | undefined;
+  boost?:
+    | Boost
     | undefined;
   /** @deprecated */
   uses123Api: boolean;
@@ -252,6 +253,127 @@ export interface RefPropertiesResult {
   propName: string;
 }
 
+export interface Boost {
+  conditions: Boost_Condition[];
+  weight?: number | undefined;
+  depth?: number | undefined;
+}
+
+export enum Boost_PropertyValueModifier {
+  PROPERTY_VALUE_MODIFIER_UNSPECIFIED = 0,
+  PROPERTY_VALUE_MODIFIER_LOG1P = 1,
+  PROPERTY_VALUE_MODIFIER_SQRT = 2,
+  UNRECOGNIZED = -1,
+}
+
+export function boost_PropertyValueModifierFromJSON(object: any): Boost_PropertyValueModifier {
+  switch (object) {
+    case 0:
+    case "PROPERTY_VALUE_MODIFIER_UNSPECIFIED":
+      return Boost_PropertyValueModifier.PROPERTY_VALUE_MODIFIER_UNSPECIFIED;
+    case 1:
+    case "PROPERTY_VALUE_MODIFIER_LOG1P":
+      return Boost_PropertyValueModifier.PROPERTY_VALUE_MODIFIER_LOG1P;
+    case 2:
+    case "PROPERTY_VALUE_MODIFIER_SQRT":
+      return Boost_PropertyValueModifier.PROPERTY_VALUE_MODIFIER_SQRT;
+    case -1:
+    case "UNRECOGNIZED":
+    default:
+      return Boost_PropertyValueModifier.UNRECOGNIZED;
+  }
+}
+
+export function boost_PropertyValueModifierToJSON(object: Boost_PropertyValueModifier): string {
+  switch (object) {
+    case Boost_PropertyValueModifier.PROPERTY_VALUE_MODIFIER_UNSPECIFIED:
+      return "PROPERTY_VALUE_MODIFIER_UNSPECIFIED";
+    case Boost_PropertyValueModifier.PROPERTY_VALUE_MODIFIER_LOG1P:
+      return "PROPERTY_VALUE_MODIFIER_LOG1P";
+    case Boost_PropertyValueModifier.PROPERTY_VALUE_MODIFIER_SQRT:
+      return "PROPERTY_VALUE_MODIFIER_SQRT";
+    case Boost_PropertyValueModifier.UNRECOGNIZED:
+    default:
+      return "UNRECOGNIZED";
+  }
+}
+
+export enum Boost_DecayCurve {
+  DECAY_CURVE_UNSPECIFIED = 0,
+  DECAY_CURVE_GAUSS = 1,
+  DECAY_CURVE_LINEAR = 2,
+  DECAY_CURVE_EXPONENTIAL = 3,
+  UNRECOGNIZED = -1,
+}
+
+export function boost_DecayCurveFromJSON(object: any): Boost_DecayCurve {
+  switch (object) {
+    case 0:
+    case "DECAY_CURVE_UNSPECIFIED":
+      return Boost_DecayCurve.DECAY_CURVE_UNSPECIFIED;
+    case 1:
+    case "DECAY_CURVE_GAUSS":
+      return Boost_DecayCurve.DECAY_CURVE_GAUSS;
+    case 2:
+    case "DECAY_CURVE_LINEAR":
+      return Boost_DecayCurve.DECAY_CURVE_LINEAR;
+    case 3:
+    case "DECAY_CURVE_EXPONENTIAL":
+      return Boost_DecayCurve.DECAY_CURVE_EXPONENTIAL;
+    case -1:
+    case "UNRECOGNIZED":
+    default:
+      return Boost_DecayCurve.UNRECOGNIZED;
+  }
+}
+
+export function boost_DecayCurveToJSON(object: Boost_DecayCurve): string {
+  switch (object) {
+    case Boost_DecayCurve.DECAY_CURVE_UNSPECIFIED:
+      return "DECAY_CURVE_UNSPECIFIED";
+    case Boost_DecayCurve.DECAY_CURVE_GAUSS:
+      return "DECAY_CURVE_GAUSS";
+    case Boost_DecayCurve.DECAY_CURVE_LINEAR:
+      return "DECAY_CURVE_LINEAR";
+    case Boost_DecayCurve.DECAY_CURVE_EXPONENTIAL:
+      return "DECAY_CURVE_EXPONENTIAL";
+    case Boost_DecayCurve.UNRECOGNIZED:
+    default:
+      return "UNRECOGNIZED";
+  }
+}
+
+export interface Boost_PropertyValueFunction {
+  property: string;
+  modifier?: Boost_PropertyValueModifier | undefined;
+}
+
+export interface Boost_TimeDecayFunction {
+  property: string;
+  origin: string;
+  scale: string;
+  offset?: string | undefined;
+  curve?: Boost_DecayCurve | undefined;
+  decayValue?: number | undefined;
+}
+
+export interface Boost_NumericDecayFunction {
+  property: string;
+  origin: number;
+  scale: number;
+  offset?: number | undefined;
+  curve?: Boost_DecayCurve | undefined;
+  decayValue?: number | undefined;
+}
+
+export interface Boost_Condition {
+  filter?: Filters | undefined;
+  timeDecay?: Boost_TimeDecayFunction | undefined;
+  propertyValue?: Boost_PropertyValueFunction | undefined;
+  numericDecay?: Boost_NumericDecayFunction | undefined;
+  weight?: number | undefined;
+}
+
 function createBaseSearchRequest(): SearchRequest {
   return {
     collection: "",
@@ -279,6 +401,7 @@ function createBaseSearchRequest(): SearchRequest {
     nearImu: undefined,
     generative: undefined,
     rerank: undefined,
+    boost: undefined,
     uses123Api: false,
     uses125Api: false,
     uses127Api: false,
@@ -361,6 +484,9 @@ export const SearchRequest = {
     }
     if (message.rerank !== undefined) {
       Rerank.encode(message.rerank, writer.uint32(490).fork()).ldelim();
+    }
+    if (message.boost !== undefined) {
+      Boost.encode(message.boost, writer.uint32(498).fork()).ldelim();
     }
     if (message.uses123Api !== false) {
       writer.uint32(800).bool(message.uses123Api);
@@ -556,6 +682,13 @@ export const SearchRequest = {
 
           message.rerank = Rerank.decode(reader, reader.uint32());
           continue;
+        case 62:
+          if (tag !== 498) {
+            break;
+          }
+
+          message.boost = Boost.decode(reader, reader.uint32());
+          continue;
         case 100:
           if (tag !== 800) {
             break;
@@ -613,6 +746,7 @@ export const SearchRequest = {
       nearImu: isSet(object.nearImu) ? NearIMUSearch.fromJSON(object.nearImu) : undefined,
       generative: isSet(object.generative) ? GenerativeSearch.fromJSON(object.generative) : undefined,
       rerank: isSet(object.rerank) ? Rerank.fromJSON(object.rerank) : undefined,
+      boost: isSet(object.boost) ? Boost.fromJSON(object.boost) : undefined,
       uses123Api: isSet(object.uses123Api) ? globalThis.Boolean(object.uses123Api) : false,
       uses125Api: isSet(object.uses125Api) ? globalThis.Boolean(object.uses125Api) : false,
       uses127Api: isSet(object.uses127Api) ? globalThis.Boolean(object.uses127Api) : false,
@@ -696,6 +830,9 @@ export const SearchRequest = {
     if (message.rerank !== undefined) {
       obj.rerank = Rerank.toJSON(message.rerank);
     }
+    if (message.boost !== undefined) {
+      obj.boost = Boost.toJSON(message.boost);
+    }
     if (message.uses123Api !== false) {
       obj.uses123Api = message.uses123Api;
     }
@@ -772,6 +909,7 @@ export const SearchRequest = {
     message.rerank = (object.rerank !== undefined && object.rerank !== null)
       ? Rerank.fromPartial(object.rerank)
       : undefined;
+    message.boost = (object.boost !== undefined && object.boost !== null) ? Boost.fromPartial(object.boost) : undefined;
     message.uses123Api = object.uses123Api ?? false;
     message.uses125Api = object.uses125Api ?? false;
     message.uses127Api = object.uses127Api ?? false;
@@ -3063,6 +3201,574 @@ export const RefPropertiesResult = {
     const message = createBaseRefPropertiesResult();
     message.properties = object.properties?.map((e) => PropertiesResult.fromPartial(e)) || [];
     message.propName = object.propName ?? "";
+    return message;
+  },
+};
+
+function createBaseBoost(): Boost {
+  return { conditions: [], weight: undefined, depth: undefined };
+}
+
+export const Boost = {
+  encode(message: Boost, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    for (const v of message.conditions) {
+      Boost_Condition.encode(v!, writer.uint32(10).fork()).ldelim();
+    }
+    if (message.weight !== undefined) {
+      writer.uint32(21).float(message.weight);
+    }
+    if (message.depth !== undefined) {
+      writer.uint32(24).uint32(message.depth);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): Boost {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseBoost();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.conditions.push(Boost_Condition.decode(reader, reader.uint32()));
+          continue;
+        case 2:
+          if (tag !== 21) {
+            break;
+          }
+
+          message.weight = reader.float();
+          continue;
+        case 3:
+          if (tag !== 24) {
+            break;
+          }
+
+          message.depth = reader.uint32();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): Boost {
+    return {
+      conditions: globalThis.Array.isArray(object?.conditions)
+        ? object.conditions.map((e: any) => Boost_Condition.fromJSON(e))
+        : [],
+      weight: isSet(object.weight) ? globalThis.Number(object.weight) : undefined,
+      depth: isSet(object.depth) ? globalThis.Number(object.depth) : undefined,
+    };
+  },
+
+  toJSON(message: Boost): unknown {
+    const obj: any = {};
+    if (message.conditions?.length) {
+      obj.conditions = message.conditions.map((e) => Boost_Condition.toJSON(e));
+    }
+    if (message.weight !== undefined) {
+      obj.weight = message.weight;
+    }
+    if (message.depth !== undefined) {
+      obj.depth = Math.round(message.depth);
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<Boost>): Boost {
+    return Boost.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<Boost>): Boost {
+    const message = createBaseBoost();
+    message.conditions = object.conditions?.map((e) => Boost_Condition.fromPartial(e)) || [];
+    message.weight = object.weight ?? undefined;
+    message.depth = object.depth ?? undefined;
+    return message;
+  },
+};
+
+function createBaseBoost_PropertyValueFunction(): Boost_PropertyValueFunction {
+  return { property: "", modifier: undefined };
+}
+
+export const Boost_PropertyValueFunction = {
+  encode(message: Boost_PropertyValueFunction, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.property !== "") {
+      writer.uint32(10).string(message.property);
+    }
+    if (message.modifier !== undefined) {
+      writer.uint32(16).int32(message.modifier);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): Boost_PropertyValueFunction {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseBoost_PropertyValueFunction();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.property = reader.string();
+          continue;
+        case 2:
+          if (tag !== 16) {
+            break;
+          }
+
+          message.modifier = reader.int32() as any;
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): Boost_PropertyValueFunction {
+    return {
+      property: isSet(object.property) ? globalThis.String(object.property) : "",
+      modifier: isSet(object.modifier) ? boost_PropertyValueModifierFromJSON(object.modifier) : undefined,
+    };
+  },
+
+  toJSON(message: Boost_PropertyValueFunction): unknown {
+    const obj: any = {};
+    if (message.property !== "") {
+      obj.property = message.property;
+    }
+    if (message.modifier !== undefined) {
+      obj.modifier = boost_PropertyValueModifierToJSON(message.modifier);
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<Boost_PropertyValueFunction>): Boost_PropertyValueFunction {
+    return Boost_PropertyValueFunction.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<Boost_PropertyValueFunction>): Boost_PropertyValueFunction {
+    const message = createBaseBoost_PropertyValueFunction();
+    message.property = object.property ?? "";
+    message.modifier = object.modifier ?? undefined;
+    return message;
+  },
+};
+
+function createBaseBoost_TimeDecayFunction(): Boost_TimeDecayFunction {
+  return { property: "", origin: "", scale: "", offset: undefined, curve: undefined, decayValue: undefined };
+}
+
+export const Boost_TimeDecayFunction = {
+  encode(message: Boost_TimeDecayFunction, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.property !== "") {
+      writer.uint32(10).string(message.property);
+    }
+    if (message.origin !== "") {
+      writer.uint32(18).string(message.origin);
+    }
+    if (message.scale !== "") {
+      writer.uint32(26).string(message.scale);
+    }
+    if (message.offset !== undefined) {
+      writer.uint32(34).string(message.offset);
+    }
+    if (message.curve !== undefined) {
+      writer.uint32(40).int32(message.curve);
+    }
+    if (message.decayValue !== undefined) {
+      writer.uint32(53).float(message.decayValue);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): Boost_TimeDecayFunction {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseBoost_TimeDecayFunction();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.property = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.origin = reader.string();
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.scale = reader.string();
+          continue;
+        case 4:
+          if (tag !== 34) {
+            break;
+          }
+
+          message.offset = reader.string();
+          continue;
+        case 5:
+          if (tag !== 40) {
+            break;
+          }
+
+          message.curve = reader.int32() as any;
+          continue;
+        case 6:
+          if (tag !== 53) {
+            break;
+          }
+
+          message.decayValue = reader.float();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): Boost_TimeDecayFunction {
+    return {
+      property: isSet(object.property) ? globalThis.String(object.property) : "",
+      origin: isSet(object.origin) ? globalThis.String(object.origin) : "",
+      scale: isSet(object.scale) ? globalThis.String(object.scale) : "",
+      offset: isSet(object.offset) ? globalThis.String(object.offset) : undefined,
+      curve: isSet(object.curve) ? boost_DecayCurveFromJSON(object.curve) : undefined,
+      decayValue: isSet(object.decayValue) ? globalThis.Number(object.decayValue) : undefined,
+    };
+  },
+
+  toJSON(message: Boost_TimeDecayFunction): unknown {
+    const obj: any = {};
+    if (message.property !== "") {
+      obj.property = message.property;
+    }
+    if (message.origin !== "") {
+      obj.origin = message.origin;
+    }
+    if (message.scale !== "") {
+      obj.scale = message.scale;
+    }
+    if (message.offset !== undefined) {
+      obj.offset = message.offset;
+    }
+    if (message.curve !== undefined) {
+      obj.curve = boost_DecayCurveToJSON(message.curve);
+    }
+    if (message.decayValue !== undefined) {
+      obj.decayValue = message.decayValue;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<Boost_TimeDecayFunction>): Boost_TimeDecayFunction {
+    return Boost_TimeDecayFunction.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<Boost_TimeDecayFunction>): Boost_TimeDecayFunction {
+    const message = createBaseBoost_TimeDecayFunction();
+    message.property = object.property ?? "";
+    message.origin = object.origin ?? "";
+    message.scale = object.scale ?? "";
+    message.offset = object.offset ?? undefined;
+    message.curve = object.curve ?? undefined;
+    message.decayValue = object.decayValue ?? undefined;
+    return message;
+  },
+};
+
+function createBaseBoost_NumericDecayFunction(): Boost_NumericDecayFunction {
+  return { property: "", origin: 0, scale: 0, offset: undefined, curve: undefined, decayValue: undefined };
+}
+
+export const Boost_NumericDecayFunction = {
+  encode(message: Boost_NumericDecayFunction, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.property !== "") {
+      writer.uint32(10).string(message.property);
+    }
+    if (message.origin !== 0) {
+      writer.uint32(17).double(message.origin);
+    }
+    if (message.scale !== 0) {
+      writer.uint32(25).double(message.scale);
+    }
+    if (message.offset !== undefined) {
+      writer.uint32(33).double(message.offset);
+    }
+    if (message.curve !== undefined) {
+      writer.uint32(40).int32(message.curve);
+    }
+    if (message.decayValue !== undefined) {
+      writer.uint32(53).float(message.decayValue);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): Boost_NumericDecayFunction {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseBoost_NumericDecayFunction();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.property = reader.string();
+          continue;
+        case 2:
+          if (tag !== 17) {
+            break;
+          }
+
+          message.origin = reader.double();
+          continue;
+        case 3:
+          if (tag !== 25) {
+            break;
+          }
+
+          message.scale = reader.double();
+          continue;
+        case 4:
+          if (tag !== 33) {
+            break;
+          }
+
+          message.offset = reader.double();
+          continue;
+        case 5:
+          if (tag !== 40) {
+            break;
+          }
+
+          message.curve = reader.int32() as any;
+          continue;
+        case 6:
+          if (tag !== 53) {
+            break;
+          }
+
+          message.decayValue = reader.float();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): Boost_NumericDecayFunction {
+    return {
+      property: isSet(object.property) ? globalThis.String(object.property) : "",
+      origin: isSet(object.origin) ? globalThis.Number(object.origin) : 0,
+      scale: isSet(object.scale) ? globalThis.Number(object.scale) : 0,
+      offset: isSet(object.offset) ? globalThis.Number(object.offset) : undefined,
+      curve: isSet(object.curve) ? boost_DecayCurveFromJSON(object.curve) : undefined,
+      decayValue: isSet(object.decayValue) ? globalThis.Number(object.decayValue) : undefined,
+    };
+  },
+
+  toJSON(message: Boost_NumericDecayFunction): unknown {
+    const obj: any = {};
+    if (message.property !== "") {
+      obj.property = message.property;
+    }
+    if (message.origin !== 0) {
+      obj.origin = message.origin;
+    }
+    if (message.scale !== 0) {
+      obj.scale = message.scale;
+    }
+    if (message.offset !== undefined) {
+      obj.offset = message.offset;
+    }
+    if (message.curve !== undefined) {
+      obj.curve = boost_DecayCurveToJSON(message.curve);
+    }
+    if (message.decayValue !== undefined) {
+      obj.decayValue = message.decayValue;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<Boost_NumericDecayFunction>): Boost_NumericDecayFunction {
+    return Boost_NumericDecayFunction.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<Boost_NumericDecayFunction>): Boost_NumericDecayFunction {
+    const message = createBaseBoost_NumericDecayFunction();
+    message.property = object.property ?? "";
+    message.origin = object.origin ?? 0;
+    message.scale = object.scale ?? 0;
+    message.offset = object.offset ?? undefined;
+    message.curve = object.curve ?? undefined;
+    message.decayValue = object.decayValue ?? undefined;
+    return message;
+  },
+};
+
+function createBaseBoost_Condition(): Boost_Condition {
+  return {
+    filter: undefined,
+    timeDecay: undefined,
+    propertyValue: undefined,
+    numericDecay: undefined,
+    weight: undefined,
+  };
+}
+
+export const Boost_Condition = {
+  encode(message: Boost_Condition, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.filter !== undefined) {
+      Filters.encode(message.filter, writer.uint32(10).fork()).ldelim();
+    }
+    if (message.timeDecay !== undefined) {
+      Boost_TimeDecayFunction.encode(message.timeDecay, writer.uint32(18).fork()).ldelim();
+    }
+    if (message.propertyValue !== undefined) {
+      Boost_PropertyValueFunction.encode(message.propertyValue, writer.uint32(26).fork()).ldelim();
+    }
+    if (message.numericDecay !== undefined) {
+      Boost_NumericDecayFunction.encode(message.numericDecay, writer.uint32(34).fork()).ldelim();
+    }
+    if (message.weight !== undefined) {
+      writer.uint32(45).float(message.weight);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): Boost_Condition {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseBoost_Condition();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.filter = Filters.decode(reader, reader.uint32());
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.timeDecay = Boost_TimeDecayFunction.decode(reader, reader.uint32());
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.propertyValue = Boost_PropertyValueFunction.decode(reader, reader.uint32());
+          continue;
+        case 4:
+          if (tag !== 34) {
+            break;
+          }
+
+          message.numericDecay = Boost_NumericDecayFunction.decode(reader, reader.uint32());
+          continue;
+        case 5:
+          if (tag !== 45) {
+            break;
+          }
+
+          message.weight = reader.float();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): Boost_Condition {
+    return {
+      filter: isSet(object.filter) ? Filters.fromJSON(object.filter) : undefined,
+      timeDecay: isSet(object.timeDecay) ? Boost_TimeDecayFunction.fromJSON(object.timeDecay) : undefined,
+      propertyValue: isSet(object.propertyValue)
+        ? Boost_PropertyValueFunction.fromJSON(object.propertyValue)
+        : undefined,
+      numericDecay: isSet(object.numericDecay) ? Boost_NumericDecayFunction.fromJSON(object.numericDecay) : undefined,
+      weight: isSet(object.weight) ? globalThis.Number(object.weight) : undefined,
+    };
+  },
+
+  toJSON(message: Boost_Condition): unknown {
+    const obj: any = {};
+    if (message.filter !== undefined) {
+      obj.filter = Filters.toJSON(message.filter);
+    }
+    if (message.timeDecay !== undefined) {
+      obj.timeDecay = Boost_TimeDecayFunction.toJSON(message.timeDecay);
+    }
+    if (message.propertyValue !== undefined) {
+      obj.propertyValue = Boost_PropertyValueFunction.toJSON(message.propertyValue);
+    }
+    if (message.numericDecay !== undefined) {
+      obj.numericDecay = Boost_NumericDecayFunction.toJSON(message.numericDecay);
+    }
+    if (message.weight !== undefined) {
+      obj.weight = message.weight;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<Boost_Condition>): Boost_Condition {
+    return Boost_Condition.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<Boost_Condition>): Boost_Condition {
+    const message = createBaseBoost_Condition();
+    message.filter = (object.filter !== undefined && object.filter !== null)
+      ? Filters.fromPartial(object.filter)
+      : undefined;
+    message.timeDecay = (object.timeDecay !== undefined && object.timeDecay !== null)
+      ? Boost_TimeDecayFunction.fromPartial(object.timeDecay)
+      : undefined;
+    message.propertyValue = (object.propertyValue !== undefined && object.propertyValue !== null)
+      ? Boost_PropertyValueFunction.fromPartial(object.propertyValue)
+      : undefined;
+    message.numericDecay = (object.numericDecay !== undefined && object.numericDecay !== null)
+      ? Boost_NumericDecayFunction.fromPartial(object.numericDecay)
+      : undefined;
+    message.weight = object.weight ?? undefined;
     return message;
   },
 };

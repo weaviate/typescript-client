@@ -55,6 +55,7 @@ export interface GenerativeProvider {
   nvidia?: GenerativeNvidia | undefined;
   xai?: GenerativeXAI | undefined;
   contextualai?: GenerativeContextualAI | undefined;
+  deepseek?: GenerativeDeepseek | undefined;
 }
 
 export interface GenerativeAnthropic {
@@ -253,6 +254,7 @@ export interface GenerativeGoogle {
   region?: string | undefined;
   images?: TextArray | undefined;
   imageProperties?: TextArray | undefined;
+  location?: string | undefined;
 }
 
 export interface GenerativeDatabricks {
@@ -304,6 +306,17 @@ export interface GenerativeContextualAI {
   systemPrompt?: string | undefined;
   avoidCommentary?: boolean | undefined;
   knowledge?: TextArray | undefined;
+}
+
+export interface GenerativeDeepseek {
+  baseUrl?: string | undefined;
+  model?: string | undefined;
+  temperature?: number | undefined;
+  maxTokens?: number | undefined;
+  frequencyPenalty?: number | undefined;
+  presencePenalty?: number | undefined;
+  topP?: number | undefined;
+  stop?: TextArray | undefined;
 }
 
 export interface GenerativeAnthropicMetadata {
@@ -437,6 +450,16 @@ export interface GenerativeXAIMetadata_Usage {
   totalTokens?: number | undefined;
 }
 
+export interface GenerativeDeepseekMetadata {
+  usage?: GenerativeDeepseekMetadata_Usage | undefined;
+}
+
+export interface GenerativeDeepseekMetadata_Usage {
+  promptTokens?: number | undefined;
+  completionTokens?: number | undefined;
+  totalTokens?: number | undefined;
+}
+
 export interface GenerativeMetadata {
   anthropic?: GenerativeAnthropicMetadata | undefined;
   anyscale?: GenerativeAnyscaleMetadata | undefined;
@@ -451,6 +474,7 @@ export interface GenerativeMetadata {
   friendliai?: GenerativeFriendliAIMetadata | undefined;
   nvidia?: GenerativeNvidiaMetadata | undefined;
   xai?: GenerativeXAIMetadata | undefined;
+  deepseek?: GenerativeDeepseekMetadata | undefined;
 }
 
 export interface GenerativeReply {
@@ -814,6 +838,7 @@ function createBaseGenerativeProvider(): GenerativeProvider {
     nvidia: undefined,
     xai: undefined,
     contextualai: undefined,
+    deepseek: undefined,
   };
 }
 
@@ -863,6 +888,9 @@ export const GenerativeProvider = {
     }
     if (message.contextualai !== undefined) {
       GenerativeContextualAI.encode(message.contextualai, writer.uint32(122).fork()).ldelim();
+    }
+    if (message.deepseek !== undefined) {
+      GenerativeDeepseek.encode(message.deepseek, writer.uint32(130).fork()).ldelim();
     }
     return writer;
   },
@@ -979,6 +1007,13 @@ export const GenerativeProvider = {
 
           message.contextualai = GenerativeContextualAI.decode(reader, reader.uint32());
           continue;
+        case 16:
+          if (tag !== 130) {
+            break;
+          }
+
+          message.deepseek = GenerativeDeepseek.decode(reader, reader.uint32());
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1005,6 +1040,7 @@ export const GenerativeProvider = {
       nvidia: isSet(object.nvidia) ? GenerativeNvidia.fromJSON(object.nvidia) : undefined,
       xai: isSet(object.xai) ? GenerativeXAI.fromJSON(object.xai) : undefined,
       contextualai: isSet(object.contextualai) ? GenerativeContextualAI.fromJSON(object.contextualai) : undefined,
+      deepseek: isSet(object.deepseek) ? GenerativeDeepseek.fromJSON(object.deepseek) : undefined,
     };
   },
 
@@ -1055,6 +1091,9 @@ export const GenerativeProvider = {
     if (message.contextualai !== undefined) {
       obj.contextualai = GenerativeContextualAI.toJSON(message.contextualai);
     }
+    if (message.deepseek !== undefined) {
+      obj.deepseek = GenerativeDeepseek.toJSON(message.deepseek);
+    }
     return obj;
   },
 
@@ -1101,6 +1140,9 @@ export const GenerativeProvider = {
     message.xai = (object.xai !== undefined && object.xai !== null) ? GenerativeXAI.fromPartial(object.xai) : undefined;
     message.contextualai = (object.contextualai !== undefined && object.contextualai !== null)
       ? GenerativeContextualAI.fromPartial(object.contextualai)
+      : undefined;
+    message.deepseek = (object.deepseek !== undefined && object.deepseek !== null)
+      ? GenerativeDeepseek.fromPartial(object.deepseek)
       : undefined;
     return message;
   },
@@ -2474,6 +2516,7 @@ function createBaseGenerativeGoogle(): GenerativeGoogle {
     region: undefined,
     images: undefined,
     imageProperties: undefined,
+    location: undefined,
   };
 }
 
@@ -2520,6 +2563,9 @@ export const GenerativeGoogle = {
     }
     if (message.imageProperties !== undefined) {
       TextArray.encode(message.imageProperties, writer.uint32(114).fork()).ldelim();
+    }
+    if (message.location !== undefined) {
+      writer.uint32(122).string(message.location);
     }
     return writer;
   },
@@ -2629,6 +2675,13 @@ export const GenerativeGoogle = {
 
           message.imageProperties = TextArray.decode(reader, reader.uint32());
           continue;
+        case 15:
+          if (tag !== 122) {
+            break;
+          }
+
+          message.location = reader.string();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -2654,6 +2707,7 @@ export const GenerativeGoogle = {
       region: isSet(object.region) ? globalThis.String(object.region) : undefined,
       images: isSet(object.images) ? TextArray.fromJSON(object.images) : undefined,
       imageProperties: isSet(object.imageProperties) ? TextArray.fromJSON(object.imageProperties) : undefined,
+      location: isSet(object.location) ? globalThis.String(object.location) : undefined,
     };
   },
 
@@ -2701,6 +2755,9 @@ export const GenerativeGoogle = {
     if (message.imageProperties !== undefined) {
       obj.imageProperties = TextArray.toJSON(message.imageProperties);
     }
+    if (message.location !== undefined) {
+      obj.location = message.location;
+    }
     return obj;
   },
 
@@ -2729,6 +2786,7 @@ export const GenerativeGoogle = {
     message.imageProperties = (object.imageProperties !== undefined && object.imageProperties !== null)
       ? TextArray.fromPartial(object.imageProperties)
       : undefined;
+    message.location = object.location ?? undefined;
     return message;
   },
 };
@@ -3530,6 +3588,179 @@ export const GenerativeContextualAI = {
     message.knowledge = (object.knowledge !== undefined && object.knowledge !== null)
       ? TextArray.fromPartial(object.knowledge)
       : undefined;
+    return message;
+  },
+};
+
+function createBaseGenerativeDeepseek(): GenerativeDeepseek {
+  return {
+    baseUrl: undefined,
+    model: undefined,
+    temperature: undefined,
+    maxTokens: undefined,
+    frequencyPenalty: undefined,
+    presencePenalty: undefined,
+    topP: undefined,
+    stop: undefined,
+  };
+}
+
+export const GenerativeDeepseek = {
+  encode(message: GenerativeDeepseek, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.baseUrl !== undefined) {
+      writer.uint32(10).string(message.baseUrl);
+    }
+    if (message.model !== undefined) {
+      writer.uint32(18).string(message.model);
+    }
+    if (message.temperature !== undefined) {
+      writer.uint32(25).double(message.temperature);
+    }
+    if (message.maxTokens !== undefined) {
+      writer.uint32(32).int64(message.maxTokens);
+    }
+    if (message.frequencyPenalty !== undefined) {
+      writer.uint32(41).double(message.frequencyPenalty);
+    }
+    if (message.presencePenalty !== undefined) {
+      writer.uint32(49).double(message.presencePenalty);
+    }
+    if (message.topP !== undefined) {
+      writer.uint32(57).double(message.topP);
+    }
+    if (message.stop !== undefined) {
+      TextArray.encode(message.stop, writer.uint32(66).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): GenerativeDeepseek {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGenerativeDeepseek();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.baseUrl = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.model = reader.string();
+          continue;
+        case 3:
+          if (tag !== 25) {
+            break;
+          }
+
+          message.temperature = reader.double();
+          continue;
+        case 4:
+          if (tag !== 32) {
+            break;
+          }
+
+          message.maxTokens = longToNumber(reader.int64() as Long);
+          continue;
+        case 5:
+          if (tag !== 41) {
+            break;
+          }
+
+          message.frequencyPenalty = reader.double();
+          continue;
+        case 6:
+          if (tag !== 49) {
+            break;
+          }
+
+          message.presencePenalty = reader.double();
+          continue;
+        case 7:
+          if (tag !== 57) {
+            break;
+          }
+
+          message.topP = reader.double();
+          continue;
+        case 8:
+          if (tag !== 66) {
+            break;
+          }
+
+          message.stop = TextArray.decode(reader, reader.uint32());
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GenerativeDeepseek {
+    return {
+      baseUrl: isSet(object.baseUrl) ? globalThis.String(object.baseUrl) : undefined,
+      model: isSet(object.model) ? globalThis.String(object.model) : undefined,
+      temperature: isSet(object.temperature) ? globalThis.Number(object.temperature) : undefined,
+      maxTokens: isSet(object.maxTokens) ? globalThis.Number(object.maxTokens) : undefined,
+      frequencyPenalty: isSet(object.frequencyPenalty) ? globalThis.Number(object.frequencyPenalty) : undefined,
+      presencePenalty: isSet(object.presencePenalty) ? globalThis.Number(object.presencePenalty) : undefined,
+      topP: isSet(object.topP) ? globalThis.Number(object.topP) : undefined,
+      stop: isSet(object.stop) ? TextArray.fromJSON(object.stop) : undefined,
+    };
+  },
+
+  toJSON(message: GenerativeDeepseek): unknown {
+    const obj: any = {};
+    if (message.baseUrl !== undefined) {
+      obj.baseUrl = message.baseUrl;
+    }
+    if (message.model !== undefined) {
+      obj.model = message.model;
+    }
+    if (message.temperature !== undefined) {
+      obj.temperature = message.temperature;
+    }
+    if (message.maxTokens !== undefined) {
+      obj.maxTokens = Math.round(message.maxTokens);
+    }
+    if (message.frequencyPenalty !== undefined) {
+      obj.frequencyPenalty = message.frequencyPenalty;
+    }
+    if (message.presencePenalty !== undefined) {
+      obj.presencePenalty = message.presencePenalty;
+    }
+    if (message.topP !== undefined) {
+      obj.topP = message.topP;
+    }
+    if (message.stop !== undefined) {
+      obj.stop = TextArray.toJSON(message.stop);
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<GenerativeDeepseek>): GenerativeDeepseek {
+    return GenerativeDeepseek.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<GenerativeDeepseek>): GenerativeDeepseek {
+    const message = createBaseGenerativeDeepseek();
+    message.baseUrl = object.baseUrl ?? undefined;
+    message.model = object.model ?? undefined;
+    message.temperature = object.temperature ?? undefined;
+    message.maxTokens = object.maxTokens ?? undefined;
+    message.frequencyPenalty = object.frequencyPenalty ?? undefined;
+    message.presencePenalty = object.presencePenalty ?? undefined;
+    message.topP = object.topP ?? undefined;
+    message.stop = (object.stop !== undefined && object.stop !== null) ? TextArray.fromPartial(object.stop) : undefined;
     return message;
   },
 };
@@ -5502,6 +5733,154 @@ export const GenerativeXAIMetadata_Usage = {
   },
 };
 
+function createBaseGenerativeDeepseekMetadata(): GenerativeDeepseekMetadata {
+  return { usage: undefined };
+}
+
+export const GenerativeDeepseekMetadata = {
+  encode(message: GenerativeDeepseekMetadata, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.usage !== undefined) {
+      GenerativeDeepseekMetadata_Usage.encode(message.usage, writer.uint32(10).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): GenerativeDeepseekMetadata {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGenerativeDeepseekMetadata();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.usage = GenerativeDeepseekMetadata_Usage.decode(reader, reader.uint32());
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GenerativeDeepseekMetadata {
+    return { usage: isSet(object.usage) ? GenerativeDeepseekMetadata_Usage.fromJSON(object.usage) : undefined };
+  },
+
+  toJSON(message: GenerativeDeepseekMetadata): unknown {
+    const obj: any = {};
+    if (message.usage !== undefined) {
+      obj.usage = GenerativeDeepseekMetadata_Usage.toJSON(message.usage);
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<GenerativeDeepseekMetadata>): GenerativeDeepseekMetadata {
+    return GenerativeDeepseekMetadata.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<GenerativeDeepseekMetadata>): GenerativeDeepseekMetadata {
+    const message = createBaseGenerativeDeepseekMetadata();
+    message.usage = (object.usage !== undefined && object.usage !== null)
+      ? GenerativeDeepseekMetadata_Usage.fromPartial(object.usage)
+      : undefined;
+    return message;
+  },
+};
+
+function createBaseGenerativeDeepseekMetadata_Usage(): GenerativeDeepseekMetadata_Usage {
+  return { promptTokens: undefined, completionTokens: undefined, totalTokens: undefined };
+}
+
+export const GenerativeDeepseekMetadata_Usage = {
+  encode(message: GenerativeDeepseekMetadata_Usage, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.promptTokens !== undefined) {
+      writer.uint32(8).int64(message.promptTokens);
+    }
+    if (message.completionTokens !== undefined) {
+      writer.uint32(16).int64(message.completionTokens);
+    }
+    if (message.totalTokens !== undefined) {
+      writer.uint32(24).int64(message.totalTokens);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): GenerativeDeepseekMetadata_Usage {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGenerativeDeepseekMetadata_Usage();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 8) {
+            break;
+          }
+
+          message.promptTokens = longToNumber(reader.int64() as Long);
+          continue;
+        case 2:
+          if (tag !== 16) {
+            break;
+          }
+
+          message.completionTokens = longToNumber(reader.int64() as Long);
+          continue;
+        case 3:
+          if (tag !== 24) {
+            break;
+          }
+
+          message.totalTokens = longToNumber(reader.int64() as Long);
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GenerativeDeepseekMetadata_Usage {
+    return {
+      promptTokens: isSet(object.promptTokens) ? globalThis.Number(object.promptTokens) : undefined,
+      completionTokens: isSet(object.completionTokens) ? globalThis.Number(object.completionTokens) : undefined,
+      totalTokens: isSet(object.totalTokens) ? globalThis.Number(object.totalTokens) : undefined,
+    };
+  },
+
+  toJSON(message: GenerativeDeepseekMetadata_Usage): unknown {
+    const obj: any = {};
+    if (message.promptTokens !== undefined) {
+      obj.promptTokens = Math.round(message.promptTokens);
+    }
+    if (message.completionTokens !== undefined) {
+      obj.completionTokens = Math.round(message.completionTokens);
+    }
+    if (message.totalTokens !== undefined) {
+      obj.totalTokens = Math.round(message.totalTokens);
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<GenerativeDeepseekMetadata_Usage>): GenerativeDeepseekMetadata_Usage {
+    return GenerativeDeepseekMetadata_Usage.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<GenerativeDeepseekMetadata_Usage>): GenerativeDeepseekMetadata_Usage {
+    const message = createBaseGenerativeDeepseekMetadata_Usage();
+    message.promptTokens = object.promptTokens ?? undefined;
+    message.completionTokens = object.completionTokens ?? undefined;
+    message.totalTokens = object.totalTokens ?? undefined;
+    return message;
+  },
+};
+
 function createBaseGenerativeMetadata(): GenerativeMetadata {
   return {
     anthropic: undefined,
@@ -5517,6 +5896,7 @@ function createBaseGenerativeMetadata(): GenerativeMetadata {
     friendliai: undefined,
     nvidia: undefined,
     xai: undefined,
+    deepseek: undefined,
   };
 }
 
@@ -5560,6 +5940,9 @@ export const GenerativeMetadata = {
     }
     if (message.xai !== undefined) {
       GenerativeXAIMetadata.encode(message.xai, writer.uint32(106).fork()).ldelim();
+    }
+    if (message.deepseek !== undefined) {
+      GenerativeDeepseekMetadata.encode(message.deepseek, writer.uint32(114).fork()).ldelim();
     }
     return writer;
   },
@@ -5662,6 +6045,13 @@ export const GenerativeMetadata = {
 
           message.xai = GenerativeXAIMetadata.decode(reader, reader.uint32());
           continue;
+        case 14:
+          if (tag !== 114) {
+            break;
+          }
+
+          message.deepseek = GenerativeDeepseekMetadata.decode(reader, reader.uint32());
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -5686,6 +6076,7 @@ export const GenerativeMetadata = {
       friendliai: isSet(object.friendliai) ? GenerativeFriendliAIMetadata.fromJSON(object.friendliai) : undefined,
       nvidia: isSet(object.nvidia) ? GenerativeNvidiaMetadata.fromJSON(object.nvidia) : undefined,
       xai: isSet(object.xai) ? GenerativeXAIMetadata.fromJSON(object.xai) : undefined,
+      deepseek: isSet(object.deepseek) ? GenerativeDeepseekMetadata.fromJSON(object.deepseek) : undefined,
     };
   },
 
@@ -5729,6 +6120,9 @@ export const GenerativeMetadata = {
     }
     if (message.xai !== undefined) {
       obj.xai = GenerativeXAIMetadata.toJSON(message.xai);
+    }
+    if (message.deepseek !== undefined) {
+      obj.deepseek = GenerativeDeepseekMetadata.toJSON(message.deepseek);
     }
     return obj;
   },
@@ -5776,6 +6170,9 @@ export const GenerativeMetadata = {
       : undefined;
     message.xai = (object.xai !== undefined && object.xai !== null)
       ? GenerativeXAIMetadata.fromPartial(object.xai)
+      : undefined;
+    message.deepseek = (object.deepseek !== undefined && object.deepseek !== null)
+      ? GenerativeDeepseekMetadata.fromPartial(object.deepseek)
       : undefined;
     return message;
   },

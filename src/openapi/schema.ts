@@ -264,6 +264,14 @@ export interface paths {
     /** Adds a new property definition to an existing collection (`className`) definition. */
     post: operations['schema.objects.properties.add'];
   };
+  '/schema/{className}/indexes': {
+    /** Returns per-property index state including active reindex progress. This powers the UI to show live migration status. */
+    get: operations['schema.objects.indexes.get'];
+  };
+  '/schema/{className}/indexes/{propertyName}': {
+    /** Declaratively sets the desired index state for a property. The system computes the diff from the current state and triggers the appropriate reindex task. */
+    put: operations['schema.objects.indexes.update'];
+  };
   '/schema/{className}/properties/{propertyName}/index/{indexName}': {
     /** Deletes an inverted index of a specific property within a collection (`className`). The index to delete is identified by `indexName` and must be one of `filterable`, `searchable`, or `rangeFilters`. */
     delete: operations['schema.objects.properties.delete'];
@@ -313,6 +321,20 @@ export interface paths {
     put: operations['aliases.update'];
     /** Remove an existing alias from the system. This will delete the alias mapping but will not affect the underlying collection (class). */
     delete: operations['aliases.delete'];
+  };
+  '/namespaces': {
+    /** Retrieve the list of all namespaces the caller has permission to see. Callers without any applicable `manage_namespaces` permission receive an empty list (never 403). */
+    get: operations['listNamespaces'];
+  };
+  '/namespaces/{namespace_id}': {
+    /** Retrieve details about a specific namespace by its name. */
+    get: operations['getNamespace'];
+    /** Update a namespace's `home_node`. The new value applies to future placement decisions only (new collection create, new tenant create, tenant reactivation). Existing live shards are not moved. */
+    put: operations['updateNamespace'];
+    /** Create a new cluster-level namespace with the given name. Names must contain only lowercase letters, digits, and hyphens, must start and end with a letter or digit, must be 3-36 characters long, and must not be a reserved name. */
+    post: operations['createNamespace'];
+    /** Mark a namespace for deletion. The endpoint is asynchronous: the namespace is flipped to the "deleting" state and its dynamic users are removed synchronously; classes and aliases are torn down by the leader on a periodic cleanup tick. Repeated calls while the namespace is still in the "deleting" state are idempotent and return 202. */
+    delete: operations['deleteNamespace'];
   };
   '/backups/{backend}': {
     /** List all created backups IDs, Status */
@@ -424,6 +446,8 @@ export interface definitions {
      * @description Date and time in ISO 8601 format: YYYY-MM-DDTHH:MM:SSZ.
      */
     lastUsedAt?: unknown;
+    /** @description The namespace this user is bound to. Only populated for callers with global-operator privileges; omitted otherwise. */
+    namespace?: string;
   };
   UserApiKey: {
     /** @description The API key associated with the user. */
@@ -554,6 +578,14 @@ export interface definitions {
        */
       alias?: string;
     };
+    /** @description Resources applicable for namespace actions. */
+    namespaces?: {
+      /**
+       * @description A string that specifies which namespaces this permission applies to. Can be an exact namespace name or a regex pattern. The default value `*` applies the permission to all namespaces.
+       * @default *
+       */
+      namespace?: string;
+    };
     /**
      * @description Allowed actions in weaviate.
      * @enum {string}
@@ -595,7 +627,8 @@ export interface definitions {
       | 'read_groups'
       | 'create_mcp'
       | 'read_mcp'
-      | 'update_mcp';
+      | 'update_mcp'
+      | 'manage_namespaces';
   };
   /** @description List of roles. */
   RolesListResponse: definitions['Role'][];
@@ -614,6 +647,10 @@ export interface definitions {
     username?: string;
     groups?: string[];
     userType?: definitions['UserTypeInput'];
+    /** @description The namespace this principal is bound to. Empty for global principals (e.g. static API keys). */
+    namespace?: string;
+    /** @description True for principals that operate across all namespaces (e.g. static API keys). Authoritative marker for operator-level principals; do not infer from an empty namespace. */
+    isGlobalOperator?: boolean;
   };
   /** @description An array of available words and contexts. */
   C11yWordsResponse: {
@@ -696,6 +733,116 @@ export interface definitions {
     error?: {
       message?: string;
     }[];
+  };
+  IndexStatusResponse: {
+    collection?: string;
+    properties?: definitions['PropertyIndexStatus'][];
+  };
+  PropertyIndexStatus: {
+    name?: string;
+    dataType?: string;
+    description?: string;
+    indexes?: definitions['IndexStatus'][];
+  };
+  IndexStatus: {
+    /** @enum {string} */
+    type?: 'filterable' | 'searchable' | 'rangeable';
+    /** @enum {string} */
+    status?: 'ready' | 'indexing' | 'pending' | 'failed' | 'cancelled';
+    /** Format: float */
+    progress?: number;
+    tokenization?: string;
+    targetTokenization?: string;
+    /**
+     * @description BM25 algorithm currently backing this searchable index. 'wand' is the legacy map-based bucket strategy; 'blockmax' is the Block Max WAND inverted strategy. Only populated for `type=searchable` entries. Not populated for filterable or rangeable indexes.
+     * @enum {string}
+     */
+    algorithm?: 'wand' | 'blockmax';
+    /**
+     * @description BM25 algorithm this searchable index is being rebuilt onto. Populated only while an in-flight rebuild is changing the algorithm; mirrors `targetTokenization` for the change-tokenization verb. Today the only supported transition is wand -> blockmax.
+     * @enum {string}
+     */
+    targetAlgorithm?: 'wand' | 'blockmax';
+  };
+  IndexUpdateRequest: {
+    searchable?: definitions['IndexUpdateSearchable'];
+    filterable?: definitions['IndexUpdateFilterable'];
+    rangeable?: definitions['IndexUpdateRangeable'];
+  };
+  IndexUpdateSearchable: {
+    tokenization?: string;
+    /** @description When true, rebuilds the searchable index for this property from the stored objects. Preserves the current tokenization and BM25 algorithm. Only valid when the property's current algorithm is `blockmax`; on a WAND property the request is rejected with guidance to use `algorithm:"blockmax"` first. */
+    rebuild?: boolean;
+    /**
+     * @description Switch the BM25 algorithm for this property's searchable index. Currently only `blockmax` is accepted. From WAND this triggers the Map → BlockMax migration; on an already-`blockmax` property the request is rejected. WAND is deprecated; downgrade is intentionally not supported.
+     * @enum {string}
+     */
+    algorithm?: 'blockmax';
+    enabled?: boolean;
+    /** @description When true, cancels the in-flight reindex task targeting this property's searchable index. The task transitions to CANCELLED; partial state is left on disk for the next-restart finalize. */
+    cancel?: boolean;
+  };
+  IndexUpdateFilterable: {
+    rebuild?: boolean;
+    enabled?: boolean;
+    /** @description Change the tokenization used by the filterable index on this text/text[] property. Only valid when the property already has a filterable index. Use this for filterable-only properties; for properties that ALSO have a searchable index, prefer searchable.tokenization since it retokenizes both buckets in a single coordinated migration. */
+    tokenization?: string;
+    /** @description When true, cancels the in-flight reindex task targeting this property's filterable index. */
+    cancel?: boolean;
+  };
+  IndexUpdateRangeable: {
+    enabled?: boolean;
+    /** @description When true, rebuilds the rangeable index from the existing filterable bucket (same source-of-truth as enable-rangeable). */
+    rebuild?: boolean;
+    /** @description When true, cancels the in-flight reindex task targeting this property's rangeable index. */
+    cancel?: boolean;
+  };
+  IndexUpdateResponse: {
+    taskId?: string;
+    status?: string;
+  };
+  /** @description Returned with HTTP 429 when a configured Weaviate usage limit (objects/collections/tenants/shards) is exceeded. The structured fields (`errorCode`, `limit`, `value`) are stable contract; the `message` text is operator-overridable via the `USAGE_LIMITS_ERROR_MESSAGE` template. */
+  UsageLimitExceededResponse: {
+    /**
+     * @description Machine-stable identifier. Always `USAGE_LIMIT_EXCEEDED` for this response.
+     * @enum {string}
+     */
+    errorCode?: 'USAGE_LIMIT_EXCEEDED';
+    /**
+     * @description Which limit was hit.
+     * @enum {string}
+     */
+    limit?: 'objects' | 'collections' | 'tenants' | 'shards';
+    /**
+     * Format: int64
+     * @description The configured threshold value (the cap, not the current count).
+     */
+    value?: number;
+    /** @description Human-readable message rendered from the `USAGE_LIMITS_ERROR_MESSAGE` template with `{limit}` and `{value}` placeholders substituted. */
+    message?: string;
+  };
+  /** @description Returned with HTTP 422 from class create/update endpoints. For restriction violations (operator-disallowed config via ALLOWED_VECTOR_INDEX_TYPES or ALLOWED_COMPRESSION_TYPES) the structured fields (`errorCode`, `restriction`, `value`, `allowed`, `message`) are populated; the `message` text is rendered from the operator-overridable `RESTRICTIONS_ERROR_MESSAGE` template. For unrelated 422 errors the `error` array is populated (matching the legacy ErrorResponse shape) and the structured fields are omitted. */
+  RestrictionViolationResponse: {
+    /** @description Legacy ErrorResponse-style error list, populated for non-restriction 422 errors. */
+    error?: {
+      message?: string;
+    }[];
+    /**
+     * @description Machine-stable identifier. Set to `CONFIG_NOT_ALLOWED` for restriction violations; omitted otherwise.
+     * @enum {string}
+     */
+    errorCode?: 'CONFIG_NOT_ALLOWED';
+    /**
+     * @description Which restriction was violated.
+     * @enum {string}
+     */
+    restriction?: 'vector_index_type' | 'compression';
+    /** @description The disallowed value the client submitted. */
+    value?: string;
+    /** @description The operator-configured allow-list. */
+    allowed?: string[];
+    /** @description Human-readable message rendered from the `RESTRICTIONS_ERROR_MESSAGE` template with `{restriction}`, `{value}`, `{allowed}` placeholders substituted. */
+    message?: string;
   };
   /** @description Request to create a new export operation */
   ExportCreateRequest: {
@@ -843,8 +990,6 @@ export interface definitions {
   ReplicationConfig: {
     /** @description Number of times a collection (class) is replicated (default: 1). */
     factor?: number;
-    /** @description Enable asynchronous replication (default: `false`). */
-    asyncEnabled?: boolean;
     /** @description Configuration parameters for asynchronous replication. */
     asyncConfig?: definitions['ReplicationAsyncConfig'];
     /**
@@ -1049,7 +1194,7 @@ export interface definitions {
      * @description The current operational state of the replica during the replication process.
      * @enum {string}
      */
-    state?: 'REGISTERED' | 'HYDRATING' | 'FINALIZING' | 'DEHYDRATING' | 'READY' | 'CANCELLED';
+    state?: 'REGISTERED' | 'HYDRATING' | 'FINALIZING' | 'INTEGRATING' | 'DEHYDRATING' | 'READY' | 'CANCELLED';
     /**
      * Format: int64
      * @description The UNIX timestamp in ms when this state was first entered. This is an approximate time and so should not be used for precise timing.
@@ -1188,6 +1333,11 @@ export interface definitions {
     name?: string;
     /** @description (Deprecated). Whether to include this property in the inverted index. If `false`, this property cannot be used in `where` filters, `bm25` or `hybrid` search. <br/><br/>Unrelated to vectorization behavior (deprecated as of v1.19; use indexFilterable or/and indexSearchable instead) */
     indexInverted?: boolean;
+    /**
+     * Format: int64
+     * @description Internal RAFT-replicated counter bumped by semantic runtime-reindex migrations (e.g. change-tokenization, enable-filterable, enable-searchable). Used by the data path to resolve the property's inverted-index bucket name; a single RAFT commit flipping the schema flag AND bumping this counter atomically cuts the cluster from the old bucket to the new one. Defaults to 0. Internal use; clients should not set this.
+     */
+    bucketGeneration?: number;
     /** @description Whether to include this property in the filterable, Roaring Bitmap index. If `false`, this property cannot be used in `where` filters. <br/><br/>Note: Unrelated to vectorization behavior. */
     indexFilterable?: boolean;
     /** @description Optional. Should this property be indexed in the inverted index. Defaults to true. Applicable only to properties of data type text and text[]. If you choose false, you will not be able to use this property in bm25 or hybrid search. This property has no affect on vectorization decisions done by modules */
@@ -1217,11 +1367,11 @@ export interface definitions {
     disableDuplicatedReferences?: boolean;
     textAnalyzer?: definitions['TextAnalyzerConfig'];
   };
-  /** @description Text analysis options for a property. The asciiFold setting is immutable after creation, while the asciiFoldIgnore list can be updated later; changes to asciiFoldIgnore only affect newly indexed data and do not retroactively re-index existing data. Applies only to text and text[] data types that use an inverted index (searchable or filterable). */
+  /** @description Text analysis options for a property. These settings are immutable after the property is created. Applies only to text and text[] data types that use an inverted index (searchable or filterable). */
   TextAnalyzerConfig: {
     /** @description If true, accent/diacritic marks are folded to their base characters during indexing and search. For example, 'école' matches 'ecole'. Defaults to false. */
     asciiFold?: boolean;
-    /** @description If provided, specifies a list of characters that should be excluded from ascii folding. For example, if ['é'] is provided, then 'é' will not be folded to 'e' during indexing and search. This list can be updated after the property is created, but updates only affect documents indexed after the change. */
+    /** @description If provided, specifies a list of characters that should be excluded from ascii folding. For example, if ['é'] is provided, then 'é' will not be folded to 'e' during indexing and search. This list is immutable after the property is created. */
     asciiFoldIgnore?: string[];
     /** @description Stopword preset name. Overrides the collection-level invertedIndexConfig.stopwords for this property. Only applies to properties using 'word' tokenization. Can be a built-in preset ('en', 'none') or a user-defined preset from invertedIndexConfig.stopwordPresets. */
     stopwordPreset?: string;
@@ -1311,6 +1461,8 @@ export interface definitions {
      * @description Size of the backup in Gibs
      */
     size?: number;
+    /** @description The ID of the base backup this incremental backup was built on; empty if the backup is not incremental. */
+    incremental_base_backup_id?: string;
   };
   /** @description The definition of a backup restore metadata. */
   BackupRestoreStatusResponse: {
@@ -1471,6 +1623,8 @@ export interface definitions {
      * @description Size of the backup in Gibs
      */
     size?: number;
+    /** @description The ID of the base backup this incremental backup was built on; empty if the backup is not incremental. */
+    incremental_base_backup_id?: string;
   }[];
   /** @description Request body for restoring a backup for a set of collections (classes). */
   BackupRestoreRequest: {
@@ -2306,6 +2460,30 @@ export interface definitions {
     /** @description Array of alias objects, each containing an alias-to-collection mapping. */
     aliases?: definitions['Alias'][];
   };
+  /** @description A cluster-level namespace used to group resources under a common administrative unit. Namespace names must contain only lowercase letters, digits, and hyphens, must start and end with a letter or digit, must be 3-36 characters long, and must not be a reserved name. */
+  Namespace: {
+    /** @description The unique name of the namespace. */
+    name?: string;
+    /** @description The cluster node where this namespace's shards are placed. Set at create time and updatable later. Updating it only affects future placement decisions; existing live shards are not moved. */
+    home_node?: string;
+    /**
+     * @description Lifecycle state. "active" namespaces accept all operations. "deleting" namespaces are being removed: new classes, aliases, and users can no longer be created in the namespace, and the namespace itself disappears once removal completes.
+     * @enum {string}
+     */
+    state?: 'active' | 'deleting';
+  };
+  /** @description Optional body for namespace creation. When `home_node` is omitted, the cluster picks one automatically. */
+  NamespaceCreateRequest: {
+    /** @description Optional. Cluster node to place this namespace's shards on. Must be a current storage candidate. When omitted, the cluster picks one. */
+    home_node?: string;
+  };
+  /** @description Update payload for an existing namespace. */
+  NamespaceUpdateRequest: {
+    /** @description Cluster node to use for future placements in this namespace. Must be a current storage candidate. Existing live shards are not moved. */
+    home_node: string;
+  };
+  /** @description Response object containing a list of namespaces. */
+  NamespaceListResponse: definitions['Namespace'][];
 }
 
 export interface parameters {
@@ -3273,6 +3451,10 @@ export interface operations {
       };
       /** No role found. */
       404: unknown;
+      /** Endpoint not available in the current cluster configuration. */
+      410: {
+        schema: definitions['ErrorResponse'];
+      };
       /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
       500: {
         schema: definitions['ErrorResponse'];
@@ -3376,6 +3558,10 @@ export interface operations {
       };
       /** No roles found for specified user. */
       404: unknown;
+      /** Endpoint not available in the current cluster configuration. */
+      410: {
+        schema: definitions['ErrorResponse'];
+      };
       /** The request syntax is correct, but the server couldn't process it due to semantic issues. Please check the values in your request. */
       422: {
         schema: definitions['ErrorResponse'];
@@ -3688,6 +3874,10 @@ export interface operations {
       };
       /** Successful query result but no matching objects were found. */
       404: unknown;
+      /** Endpoint not available in the current cluster configuration. */
+      410: {
+        schema: definitions['ErrorResponse'];
+      };
       /** The request syntax is correct, but the server couldn't process it due to semantic issues. Please check the values in your request. Ensure the specified collection exists. */
       422: {
         schema: definitions['ErrorResponse'];
@@ -3729,6 +3919,10 @@ export interface operations {
       422: {
         schema: definitions['ErrorResponse'];
       };
+      /** The configured object-count usage limit was exceeded. See `UsageLimitExceededResponse` for the limit value. */
+      429: {
+        schema: definitions['UsageLimitExceededResponse'];
+      };
       /** An error occurred while trying to fulfill the request. Check the ErrorResponse for details. */
       500: {
         schema: definitions['ErrorResponse'];
@@ -3764,6 +3958,10 @@ export interface operations {
       };
       /** Object not found. */
       404: unknown;
+      /** Endpoint not available in the current cluster configuration. */
+      410: {
+        schema: definitions['ErrorResponse'];
+      };
       /** An error occurred while trying to fulfill the request. Check the ErrorResponse for details. */
       500: {
         schema: definitions['ErrorResponse'];
@@ -3799,6 +3997,10 @@ export interface operations {
       };
       /** Object not found. */
       404: unknown;
+      /** Endpoint not available in the current cluster configuration. */
+      410: {
+        schema: definitions['ErrorResponse'];
+      };
       /** The request syntax is correct, but the server couldn't process it due to semantic issues. Please check the values in your request. Ensure the collection exists and the object properties are valid. */
       422: {
         schema: definitions['ErrorResponse'];
@@ -3834,6 +4036,10 @@ export interface operations {
       };
       /** Object not found. */
       404: unknown;
+      /** Endpoint not available in the current cluster configuration. */
+      410: {
+        schema: definitions['ErrorResponse'];
+      };
       /** An error occurred while trying to fulfill the request. Check the ErrorResponse for details. */
       500: {
         schema: definitions['ErrorResponse'];
@@ -3859,6 +4065,10 @@ export interface operations {
       };
       /** Object does not exist. */
       404: unknown;
+      /** Endpoint not available in the current cluster configuration. */
+      410: {
+        schema: definitions['ErrorResponse'];
+      };
       /** An error occurred while trying to fulfill the request. Check the ErrorResponse for details. */
       500: {
         schema: definitions['ErrorResponse'];
@@ -3894,6 +4104,10 @@ export interface operations {
       };
       /** Object not found. */
       404: unknown;
+      /** Endpoint not available in the current cluster configuration. */
+      410: {
+        schema: definitions['ErrorResponse'];
+      };
       /** The patch object is valid JSON but is unprocessable for other reasons (e.g., invalid schema). */
       422: {
         schema: definitions['ErrorResponse'];
@@ -3985,6 +4199,10 @@ export interface operations {
       /** The request syntax is correct, but the server couldn't process it due to semantic issues. Please check the values in your request. Ensure the collection exists and the object properties are valid. */
       422: {
         schema: definitions['ErrorResponse'];
+      };
+      /** The configured object-count usage limit was exceeded. See `UsageLimitExceededResponse` for the limit value. */
+      429: {
+        schema: definitions['UsageLimitExceededResponse'];
       };
       /** An error occurred while trying to fulfill the request. Check the ErrorResponse for details. */
       500: {
@@ -4140,6 +4358,10 @@ export interface operations {
       403: {
         schema: definitions['ErrorResponse'];
       };
+      /** Endpoint not available in the current cluster configuration. */
+      410: {
+        schema: definitions['ErrorResponse'];
+      };
       /** The request syntax is correct, but the server couldn't process it due to semantic issues. Please check the values in your request. Ensure the property exists and is a reference type. */
       422: {
         schema: definitions['ErrorResponse'];
@@ -4175,6 +4397,10 @@ export interface operations {
       401: unknown;
       /** Forbidden */
       403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Endpoint not available in the current cluster configuration. */
+      410: {
         schema: definitions['ErrorResponse'];
       };
       /** The request syntax is correct, but the server couldn't process it due to semantic issues. Please check the values in your request. Ensure the property exists and is a reference type. */
@@ -4216,6 +4442,10 @@ export interface operations {
       };
       /** Object or reference not found. */
       404: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Endpoint not available in the current cluster configuration. */
+      410: {
         schema: definitions['ErrorResponse'];
       };
       /** An error occurred while trying to fulfill the request. Check the ErrorResponse for details. */
@@ -4261,6 +4491,10 @@ export interface operations {
       };
       /** Source object not found. */
       404: unknown;
+      /** Endpoint not available in the current cluster configuration. */
+      410: {
+        schema: definitions['ErrorResponse'];
+      };
       /** The request syntax is correct, but the server couldn't process it due to semantic issues. Please check the values in your request. Ensure the property exists and is a reference type. */
       422: {
         schema: definitions['ErrorResponse'];
@@ -4308,6 +4542,10 @@ export interface operations {
       };
       /** Source object not found. */
       404: unknown;
+      /** Endpoint not available in the current cluster configuration. */
+      410: {
+        schema: definitions['ErrorResponse'];
+      };
       /** The request syntax is correct, but the server couldn't process it due to semantic issues. Please check the values in your request. Ensure the property exists and is a reference type. */
       422: {
         schema: definitions['ErrorResponse'];
@@ -4355,6 +4593,10 @@ export interface operations {
       };
       /** Object or reference not found. */
       404: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Endpoint not available in the current cluster configuration. */
+      410: {
         schema: definitions['ErrorResponse'];
       };
       /** The request syntax is correct, but the server couldn't process it due to semantic issues. Please check the values in your request. Ensure the property exists and is a reference type. */
@@ -4429,6 +4671,10 @@ export interface operations {
       /** The request syntax is correct, but the server couldn't process it due to semantic issues. Please check the values in your request. Ensure the collection exists and the object properties are valid. */
       422: {
         schema: definitions['ErrorResponse'];
+      };
+      /** The configured object-count usage limit was exceeded. The whole batch is rejected (no partial fill); the client decides what to retry. See `UsageLimitExceededResponse` for the limit value. */
+      429: {
+        schema: definitions['UsageLimitExceededResponse'];
       };
       /** An error occurred while trying to fulfill the request. Check the ErrorResponse for details. */
       500: {
@@ -4531,6 +4777,10 @@ export interface operations {
       403: {
         schema: definitions['ErrorResponse'];
       };
+      /** Endpoint not available in the current cluster configuration. */
+      410: {
+        schema: definitions['ErrorResponse'];
+      };
       /** The request syntax is correct, but the server couldn't process it due to semantic issues. Please check the values in your request. */
       422: {
         schema: definitions['ErrorResponse'];
@@ -4558,6 +4808,10 @@ export interface operations {
       401: unknown;
       /** Forbidden */
       403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Endpoint not available in the current cluster configuration. */
+      410: {
         schema: definitions['ErrorResponse'];
       };
       /** The request syntax is correct, but the server couldn't process it due to semantic issues. Please check the values in your request. */
@@ -4665,7 +4919,11 @@ export interface operations {
       };
       /** Invalid collection definition provided. Check the definition structure and properties. */
       422: {
-        schema: definitions['ErrorResponse'];
+        schema: definitions['RestrictionViolationResponse'];
+      };
+      /** A configured usage limit (collections/shards) was exceeded. See the `UsageLimitExceededResponse` body for which limit and the configured value. */
+      429: {
+        schema: definitions['UsageLimitExceededResponse'];
       };
       /** An error occurred during collection creation. Check the ErrorResponse for details. */
       500: {
@@ -4698,6 +4956,10 @@ export interface operations {
       };
       /** Collection not found. */
       404: unknown;
+      /** Invalid collection name provided (e.g. malformed namespace prefix). Check the ErrorResponse for details. */
+      422: {
+        schema: definitions['ErrorResponse'];
+      };
       /** An error occurred while retrieving the collection definition. Check the ErrorResponse for details. */
       500: {
         schema: definitions['ErrorResponse'];
@@ -4733,7 +4995,7 @@ export interface operations {
       };
       /** Invalid update attempt. */
       422: {
-        schema: definitions['ErrorResponse'];
+        schema: definitions['RestrictionViolationResponse'];
       };
       /** An error occurred while updating the collection. Check the ErrorResponse for details. */
       500: {
@@ -4793,10 +5055,84 @@ export interface operations {
       };
       /** Invalid property definition provided. */
       422: {
-        schema: definitions['ErrorResponse'];
+        schema: definitions['RestrictionViolationResponse'];
       };
       /** An error occurred while adding the property. Check the ErrorResponse for details. */
       500: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
+  /** Returns per-property index state including active reindex progress. This powers the UI to show live migration status. */
+  'schema.objects.indexes.get': {
+    parameters: {
+      path: {
+        className: string;
+      };
+    };
+    responses: {
+      /** Index status for all properties. */
+      200: {
+        schema: definitions['IndexStatusResponse'];
+      };
+      /** Unauthorized or invalid credentials. */
+      401: unknown;
+      /** Forbidden */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Collection not found. */
+      404: unknown;
+      /** An error occurred. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
+  /** Declaratively sets the desired index state for a property. The system computes the diff from the current state and triggers the appropriate reindex task. */
+  'schema.objects.indexes.update': {
+    parameters: {
+      path: {
+        className: string;
+        propertyName: string;
+      };
+      query: {
+        /** Tenant names to target. Only for non-semantic operations on multi-tenant collections. Omit to target all tenants. */
+        tenants?: string[];
+      };
+      body: {
+        body: definitions['IndexUpdateRequest'];
+      };
+    };
+    responses: {
+      /** Reindex task submitted. */
+      202: {
+        schema: definitions['IndexUpdateResponse'];
+      };
+      /** Invalid request. */
+      400: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Unauthorized or invalid credentials. */
+      401: unknown;
+      /** Forbidden */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Collection or property not found. cancel:true with nothing to cancel returns 202 with Status: NO_OP instead — 404 is reserved for missing collection/property. */
+      404: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Conflicting reindex task already running. */
+      409: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** An error occurred. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Distributed tasks not enabled. */
+      503: {
         schema: definitions['ErrorResponse'];
       };
     };
@@ -5064,6 +5400,10 @@ export interface operations {
       422: {
         schema: definitions['ErrorResponse'];
       };
+      /** The configured tenant-per-collection usage limit was exceeded. See `UsageLimitExceededResponse` for the limit value. */
+      429: {
+        schema: definitions['UsageLimitExceededResponse'];
+      };
       /** An error occurred while creating tenants. Check the ErrorResponse for details. */
       500: {
         schema: definitions['ErrorResponse'];
@@ -5321,6 +5661,175 @@ export interface operations {
         schema: definitions['ErrorResponse'];
       };
       /** Invalid delete alias request. */
+      422: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
+  /** Retrieve the list of all namespaces the caller has permission to see. Callers without any applicable `manage_namespaces` permission receive an empty list (never 403). */
+  listNamespaces: {
+    responses: {
+      /** Successfully retrieved the list of namespaces (possibly empty). */
+      200: {
+        schema: definitions['NamespaceListResponse'];
+      };
+      /** Unauthorized or invalid credentials. */
+      401: unknown;
+      /** Not Found - The namespaces feature is not enabled on this cluster. */
+      404: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** The request syntax is correct, but the server couldn't process it. */
+      422: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
+  /** Retrieve details about a specific namespace by its name. */
+  getNamespace: {
+    parameters: {
+      path: {
+        /** The name of the namespace. */
+        namespace_id: string;
+      };
+    };
+    responses: {
+      /** Successfully retrieved the namespace. */
+      200: {
+        schema: definitions['Namespace'];
+      };
+      /** Unauthorized or invalid credentials. */
+      401: unknown;
+      /** Forbidden */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Not Found - Namespace does not exist, or the namespaces feature is not enabled on this cluster. */
+      404: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** The request syntax is correct, but the server couldn't process it due to semantic issues (e.g. invalid name format or reserved name). */
+      422: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
+  /** Update a namespace's `home_node`. The new value applies to future placement decisions only (new collection create, new tenant create, tenant reactivation). Existing live shards are not moved. */
+  updateNamespace: {
+    parameters: {
+      path: {
+        /** The name of the namespace. */
+        namespace_id: string;
+      };
+      body: {
+        /** Required body. `home_node` is the new placement target. */
+        body: definitions['NamespaceUpdateRequest'];
+      };
+    };
+    responses: {
+      /** Namespace updated successfully. */
+      200: {
+        schema: definitions['Namespace'];
+      };
+      /** Unauthorized or invalid credentials. */
+      401: unknown;
+      /** Forbidden */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Not Found - Namespace does not exist, or the namespaces feature is not enabled on this cluster. */
+      404: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** The namespace is being deleted; `home_node` cannot be updated while the namespace is in the `deleting` state. */
+      409: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** The request syntax is correct, but the server couldn't process it due to semantic issues (e.g. invalid name format, reserved name, or unknown home_node). */
+      422: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
+  /** Create a new cluster-level namespace with the given name. Names must contain only lowercase letters, digits, and hyphens, must start and end with a letter or digit, must be 3-36 characters long, and must not be a reserved name. */
+  createNamespace: {
+    parameters: {
+      path: {
+        /** The name of the namespace. Must start with a lowercase letter, contain only lowercase letters and digits, length 3-36, and not be a reserved name. */
+        namespace_id: string;
+      };
+      body: {
+        /** Optional body. When omitted, `home_node` is picked automatically. */
+        body?: definitions['NamespaceCreateRequest'];
+      };
+    };
+    responses: {
+      /** Namespace created successfully. */
+      201: {
+        schema: definitions['Namespace'];
+      };
+      /** Unauthorized or invalid credentials. */
+      401: unknown;
+      /** Forbidden */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Not Found - The namespaces feature is not enabled on this cluster. */
+      404: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** A namespace with the specified name already exists, or a namespace with the same name is currently being deleted. Differentiate by reading the human-readable message in the error payload. */
+      409: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** The request syntax is correct, but the server couldn't process it due to semantic issues (e.g. invalid name format or reserved name). */
+      422: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
+  /** Mark a namespace for deletion. The endpoint is asynchronous: the namespace is flipped to the "deleting" state and its dynamic users are removed synchronously; classes and aliases are torn down by the leader on a periodic cleanup tick. Repeated calls while the namespace is still in the "deleting" state are idempotent and return 202. */
+  deleteNamespace: {
+    parameters: {
+      path: {
+        /** The name of the namespace. */
+        namespace_id: string;
+      };
+    };
+    responses: {
+      /** The namespace has been marked for deletion. Cleanup of its classes, aliases, and users completes asynchronously. */
+      202: unknown;
+      /** Unauthorized or invalid credentials. */
+      401: unknown;
+      /** Forbidden */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Not Found - Namespace does not exist, or the namespaces feature is not enabled on this cluster. */
+      404: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** The request syntax is correct, but the server couldn't process it due to semantic issues (e.g. invalid name format or reserved name). */
       422: {
         schema: definitions['ErrorResponse'];
       };
@@ -5824,6 +6333,10 @@ export interface operations {
       403: {
         schema: definitions['ErrorResponse'];
       };
+      /** Endpoint not available in the current cluster configuration. */
+      410: {
+        schema: definitions['ErrorResponse'];
+      };
       /** An internal server error occurred while starting the classification task. Check the ErrorResponse for details. */
       500: {
         schema: definitions['ErrorResponse'];
@@ -5851,6 +6364,10 @@ export interface operations {
       };
       /** Classification with the given ID not found. */
       404: unknown;
+      /** Endpoint not available in the current cluster configuration. */
+      410: {
+        schema: definitions['ErrorResponse'];
+      };
       /** An internal server error occurred while retrieving the classification status. Check the ErrorResponse for details. */
       500: {
         schema: definitions['ErrorResponse'];
