@@ -54,7 +54,10 @@ export type WeaviateBM25Config = definitions['BM25Config'];
 export type WeaviateStopwordConfig = definitions['StopwordConfig'];
 export type WeaviateMultiTenancyConfig = WeaviateClass['multiTenancyConfig'];
 export type WeaviateObjectTTLConfig = WeaviateClass['objectTtlConfig'];
-export type WeaviateReplicationConfig = WeaviateClass['replicationConfig'];
+// This PR upstream https://github.com/weaviate/weaviate/pull/11214 removes asyncEnabled parameter,
+// but the server continues to emit it for backwards compatibility.
+// We can't change the auto-generated schema.js file, so we'll just extend it here.
+export type WeaviateReplicationConfig = WeaviateClass['replicationConfig'] & { asyncEnabled: boolean };
 export type WeaviateShardingConfig = WeaviateClass['shardingConfig'];
 export type WeaviateShardStatus = definitions['ShardStatusGetResponse'];
 export type WeaviateVectorIndexConfig = WeaviateClass['vectorIndexConfig'];
