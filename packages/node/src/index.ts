@@ -28,8 +28,7 @@ import { transportsMaker } from './transports.js';
 const context: Context<string | Buffer> = {
   transportsMaker,
   toBase64FromMedia,
-  agentMaker: (secure) =>
-    secure ? new HttpsAgent({ keepAlive: true }) : new HttpAgent({ keepAlive: true }),
+  agentMaker: (secure) => (secure ? new HttpsAgent({ keepAlive: true }) : new HttpAgent({ keepAlive: true })),
 };
 
 /**
