@@ -24,6 +24,8 @@ import { transportsMaker } from './transports.js';
 const context: Context<string | Blob> = {
   transportsMaker,
   toBase64FromMedia,
+  // No `agentMaker` on purpose: the browser uses fetch-based gRPC-Web (and fetch for REST), so no Node
+  // `http`/`https` Agent is needed. Omitting it keeps those Node builtins out of the browser bundle.
 };
 
 export type ConnectToLocalOptions = Omit<ConnectToLocalOptionsCore, 'grpcPort'>;

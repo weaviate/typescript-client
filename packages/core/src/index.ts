@@ -23,8 +23,7 @@ import { DbVersion } from './utils/dbVersion.js';
 import { Backend, BackupCompressionLevel, BackupStatus } from './v2/backup/index.js';
 import MetaGetter from './v2/misc/metaGetter.js';
 
-import { Agent as HttpAgent } from 'http';
-import { Agent as HttpsAgent } from 'https';
+import type { Agent } from 'http';
 import { LiveChecker, OpenidConfigurationGetter, ReadyChecker } from './v2/misc/index.js';
 
 import weaviateV2 from './v2/index.js';
@@ -133,6 +132,12 @@ export const cleanHost = (host: string, protocol: 'rest' | 'grpc') => {
 export type Context<TMedia> = {
   transportsMaker: TransportsMaker;
   toBase64FromMedia: ToBase64FromMedia<TMedia>;
+  /**
+   * Creates the HTTP(S) keep-alive agent for the REST/GraphQL connection. Supplied by the Node shim
+   * (`@weaviate/node`); omitted by the browser shim (`@weaviate/web`) so no Node `http`/`https`
+   * builtins are pulled into the browser bundle. When undefined, `fetch` runs without a custom agent.
+   */
+  agentMaker?: (secure: boolean) => Agent | undefined;
 };
 
 const client = async <TMedia>(
@@ -151,7 +156,7 @@ const client = async <TMedia>(
   if (!params.headers) params.headers = {};
 
   const scheme = httpSecure ? 'https' : 'http';
-  const agent = httpSecure ? new HttpsAgent({ keepAlive: true }) : new HttpAgent({ keepAlive: true });
+  const agent = context.agentMaker?.(httpSecure);
 
   const { connection, dbVersionProvider, dbVersionSupport } = await ConnectionGRPC.use(
     context.transportsMaker,

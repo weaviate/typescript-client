@@ -20,12 +20,15 @@ import weaviate, {
   permissions,
   reconfigure,
 } from '@weaviate/core';
+import { Agent as HttpAgent } from 'http';
+import { Agent as HttpsAgent } from 'https';
 import { toBase64FromMedia } from './base64.js';
 import { transportsMaker } from './transports.js';
 
 const context: Context<string | Buffer> = {
   transportsMaker,
   toBase64FromMedia,
+  agentMaker: (secure) => (secure ? new HttpsAgent({ keepAlive: true }) : new HttpAgent({ keepAlive: true })),
 };
 
 /**

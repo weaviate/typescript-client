@@ -1,7 +1,7 @@
 import OpenidConfigurationGetter from '../v2/misc/openidConfigurationGetter.js';
 
 import { isAbortError } from 'abort-controller-x';
-import { Agent } from 'http';
+import type { Agent } from 'http';
 import {
   WeaviateInsufficientPermissionsError,
   WeaviateInvalidInputError,
