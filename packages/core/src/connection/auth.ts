@@ -183,6 +183,7 @@ class UserPasswordAuthenticator implements OidcAuthFlow {
   }
 
   refresh = () => {
+    this.openidConfig.scopes.push('offline_access');
     return this.requestAccessToken()
       .then((tokenResp: RequestAccessTokenResponse) => {
         return {
