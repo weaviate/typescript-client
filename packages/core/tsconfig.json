@@ -1,0 +1,47 @@
+// {
+//   "compilerOptions": {
+//     "target": "ES6",
+//     "strict": true,
+//     "preserveConstEnums": true,
+//     "alwaysStrict": true,
+//     "noImplicitAny": true,
+//     "noImplicitThis": true,
+//     "strictFunctionTypes": true,
+//     "module": "NodeNext",
+//     "moduleResolution": "NodeNext",
+//     "skipLibCheck": true,
+//     "forceConsistentCasingInFileNames": true,
+//     "esModuleInterop": true,
+//     "outDir": "./dist/core",
+//     "declaration": true,
+//     "rootDir": ".",
+//     "types": ["node", "uuid", "jest"]
+//   },
+//   "include": ["./**/*"],
+//   "exclude": ["./**/*.test.ts", "./dist/**/*"]
+// }
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "composite": true,
+    "target": "es2022",
+    "lib": ["esnext"],
+    "strict": true,
+    "preserveConstEnums": true,
+    "alwaysStrict": true,
+    "noImplicitAny": true,
+    "noImplicitThis": true,
+    "strictFunctionTypes": true,
+    "module": "node16",
+    "moduleResolution": "node16",
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "esModuleInterop": true,
+    "outDir": "./dist",
+    "declaration": true,
+    "rootDir": ".",
+    "types": ["node", "uuid"]
+  },
+  "include": ["src"],
+  "exclude": ["src/**/*.test.ts", "dist/**/*"],
+}

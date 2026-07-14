@@ -9,9 +9,11 @@ on:
 env:
   WEAVIATE_133: 1.33.18
   WEAVIATE_134: 1.34.20
-  WEAVIATE_135: 1.35.16
-  WEAVIATE_136: 1.36.10
-  WEAVIATE_137: 1.37.5
+  WEAVIATE_135: 1.35.23
+  WEAVIATE_136: 1.36.19
+  WEAVIATE_137: 1.37.10
+  WEAVIATE_138: 1.38.2
+  WEAVIATE_139: 1.39.0-dev-45692cd.amd64
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -22,15 +24,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+        with:
+          version: 10
       - uses: actions/setup-node@3235b876344d2a9aa001b8d1453c930bba69e610 # v3
         with:
-          node-version: "24.x"
+          node-version: 24
+          cache: 'pnpm'
       - name: "Run checks"
         run: |
-          npm ci
+          npm run ci:checks
           npm run lint
           npm run format:check
           npm run docs
+          npm run build
 
   tests-without-auth:
     needs: checks
@@ -44,30 +51,34 @@ jobs:
             { node: "24.x", weaviate: $WEAVIATE_134 },
             { node: "24.x", weaviate: $WEAVIATE_135 },
             { node: "24.x", weaviate: $WEAVIATE_136 },
-            { node: "22.x", weaviate: $WEAVIATE_137 },
             { node: "24.x", weaviate: $WEAVIATE_137 },
+            { node: "22.x", weaviate: $WEAVIATE_138 },
+            { node: "24.x", weaviate: $WEAVIATE_138 },
+            { node: "24.x", weaviate: $WEAVIATE_139 },
           ]
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-      - uses: actions/setup-node@3235b876344d2a9aa001b8d1453c930bba69e610 # v3
-        with:
-          node-version: ${{ matrix.versions.node }}
-      - name: Login to Docker Hub
-        if: ${{ !github.event.pull_request.head.repo.fork && github.triggering_actor != 'dependabot[bot]' }}
-        uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # v4
-        with:
-          username: ${{secrets.DOCKER_USERNAME}}
-          password: ${{secrets.DOCKER_PASSWORD}}
-      - name: "Install dependencies"
-        run: |
-          npm ci
-          ci/run_dependencies.sh ${{ matrix.versions.weaviate }}
-      - name: "Run tests without authentication tests"
-        run: WEAVIATE_VERSION=${{ matrix.versions.weaviate }} npm test
-      - name: "Transpile the package"
-        run: npm run build
-      - name: "Stop Weaviate"
-        run: ci/stop_dependencies.sh ${{ matrix.versions.weaviate }}
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+    - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+      with:
+        version: 10
+    - uses: actions/setup-node@3235b876344d2a9aa001b8d1453c930bba69e610 # v3
+      with:
+        node-version: ${{ matrix.versions.node }}
+        cache: 'pnpm'
+    - name: Login to Docker Hub
+      if: ${{ !github.event.pull_request.head.repo.fork && github.triggering_actor != 'dependabot[bot]' }}
+      uses: docker/login-action@v3
+      with:
+        username: ${{secrets.DOCKER_USERNAME}}
+        password: ${{secrets.DOCKER_PASSWORD}}
+    - name: "Install dependencies"
+      run: |
+        npm run ci:test
+        ci/run_dependencies.sh ${{ matrix.versions.weaviate }}
+    - name: "Run tests without authentication tests"
+      run: WEAVIATE_VERSION=${{ matrix.versions.weaviate }} npm run test
+    - name: "Stop Weaviate"
+      run: ci/stop_dependencies.sh ${{ matrix.versions.weaviate }}
 
   tests-with-auth:
     needs: checks
@@ -75,32 +86,35 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        versions: [{ node: "24.x", weaviate: $WEAVIATE_137 }]
+        versions: [{ node: "24.x", weaviate: $WEAVIATE_138 }]
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-      - uses: actions/setup-node@3235b876344d2a9aa001b8d1453c930bba69e610 # v3
-        with:
-          node-version: ${{ matrix.versions.node }}
-      - name: Login to Docker Hub
-        if: ${{ !github.event.pull_request.head.repo.fork && github.triggering_actor != 'dependabot[bot]' }}
-        uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # v4
-        with:
-          username: ${{secrets.DOCKER_USERNAME}}
-          password: ${{secrets.DOCKER_PASSWORD}}
-      - name: "Install dependencies"
-        run: |
-          npm ci
-          ci/run_dependencies.sh ${{ matrix.versions.weaviate }}
-      - name: "Run tests with authentication tests"
-        if: ${{ !github.event.pull_request.head.repo.fork }}
-        env:
-          OKTA_DUMMY_CI_PW: ${{ secrets.OKTA_DUMMY_CI_PW }}
-          WCS_DUMMY_CI_PW: ${{ secrets.WCS_DUMMY_CI_PW }}
-          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
-          OKTA_CLIENT_SECRET: ${{ secrets.OKTA_CLIENT_SECRET }}
-        run: WEAVIATE_VERSION=${{ matrix.versions.weaviate }} npm test
-      - name: "Stop Weaviate"
-        run: ci/stop_dependencies.sh ${{ matrix.versions.weaviate }}
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+    - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+      with:
+        version: 10
+    - uses: actions/setup-node@3235b876344d2a9aa001b8d1453c930bba69e610 # v3
+      with:
+        node-version: ${{ matrix.versions.node }}
+    - name: Login to Docker Hub
+      if: ${{ !github.event.pull_request.head.repo.fork && github.triggering_actor != 'dependabot[bot]' }}
+      uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # v4
+      with:
+        username: ${{secrets.DOCKER_USERNAME}}
+        password: ${{secrets.DOCKER_PASSWORD}}
+    - name: "Install dependencies"
+      run: |
+        npm run ci:test
+        ci/run_dependencies.sh ${{ matrix.versions.weaviate }}
+    - name: "Run tests with authentication tests"
+      if: ${{ !github.event.pull_request.head.repo.fork }}
+      env:
+        OKTA_DUMMY_CI_PW: ${{ secrets.OKTA_DUMMY_CI_PW }}
+        WCS_DUMMY_CI_PW: ${{ secrets.WCS_DUMMY_CI_PW }}
+        AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+        OKTA_CLIENT_SECRET: ${{ secrets.OKTA_CLIENT_SECRET }}
+      run: WEAVIATE_VERSION=${{ matrix.versions.weaviate }} npm run test
+    - name: "Stop Weaviate"
+      run: ci/stop_dependencies.sh ${{ matrix.versions.weaviate }}
 
   publish:
     needs: [tests-with-auth, tests-without-auth]
@@ -113,11 +127,15 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
       # Setup .npmrc file to publish to npm
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+        with:
+          version: 10
       - uses: actions/setup-node@3235b876344d2a9aa001b8d1453c930bba69e610 # v3
         with:
-          node-version: "24.x"
+          node-version: 24
+          cache: 'pnpm'
           registry-url: "https://registry.npmjs.org"
-      - run: npm ci
+      - run: npm run ci:publish
       - run: npm run build
       - run: npm publish
       - run: npm run docs

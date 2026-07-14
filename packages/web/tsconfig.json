@@ -1,0 +1,30 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "composite": true,
+    "target": "es2017",
+    "strict": true,
+    "preserveConstEnums": true,
+    "alwaysStrict": true,
+    "noImplicitAny": true,
+    "noImplicitThis": true,
+    "strictFunctionTypes": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "lib": ["es2017", "dom"],
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "esModuleInterop": true,
+    "outDir": "./dist",
+    "declaration": true,
+    "rootDir": ".",
+    "types": ["node", "uuid"],
+    "moduleDetection": "force",
+    "paths": {
+      "@weaviate/core": ["../core/src"],
+      "@weaviate/core/proto": ["../core/src/proto"]
+    }
+  },
+  "include": ["src"],
+  "references": [{ "path": "../core" }]
+}
