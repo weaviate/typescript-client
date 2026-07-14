@@ -26,7 +26,8 @@
   "scripts": {
     "build:cjs": "tsc --module commonjs --moduleResolution node10 --outDir dist/cjs && touch dist/cjs/package.json && echo '{\"type\": \"commonjs\"}' > dist/cjs/package.json",
     "build:esm": "tsc --outDir dist/esm && touch dist/esm/package.json && echo '{\"type\": \"module\"}' > dist/esm/package.json",
-    "build": "npm run build:cjs && npm run build:esm"
+    "build": "npm run build:cjs && npm run build:esm",
+    "check": "node scripts/check.mjs"
   },
   "repository": {
     "type": "git",
@@ -48,7 +49,8 @@
   "devDependencies": {
     "@types/node": "^18.14.0",
     "@types/uuid": "^9.0.1",
-    "vitest": "^4.0.16",
-    "typescript": "^5.9.3"
+    "esbuild": "^0.28.1",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.16"
   }
 }
