@@ -1,4 +1,4 @@
-import { MultiTargetVectorJoin, Vectors } from '../index.js';
+import { DiversityConfig, MMR, MultiTargetVectorJoin, Vectors } from '../index.js';
 import {
   Bm25OperatorOptions,
   Bm25OperatorOr,
@@ -74,5 +74,15 @@ export class Bm25Operator {
 
   static or(opts: Omit<Bm25OperatorOr, 'operator'>): Bm25OperatorOptions {
     return { ...opts, operator: 'Or' };
+  }
+}
+
+export class Diversity {
+  /** Use Maximal Marginal Relevance diversity selection. */
+  static mmr(args?: Omit<MMR, 'type'>): DiversityConfig {
+    return {
+      ...args,
+      type: 'mmr',
+    };
   }
 }

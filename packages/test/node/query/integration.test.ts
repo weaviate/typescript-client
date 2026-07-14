@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
 import { WeaviateUnsupportedFeatureError } from '@weaviate/core/errors';
-import { Bm25Operator } from '@weaviate/core/query/utils';
+import { Bm25Operator, Diversity } from '@weaviate/core/query';
 import { CrossReference, Reference } from '@weaviate/core/references';
 import { GroupByOptions } from '@weaviate/core/types';
 import weaviate, { Collection, WeaviateClient } from '@weaviate/node';
@@ -175,6 +175,21 @@ describe('Testing of the collection.query methods with a simple collection', () 
       expect(ret.objects.length).toEqual(1);
       expect(ret.objects[0].properties.testProp).toEqual('carrot');
       expect(ret.objects[0].uuid).toEqual(id);
+    });
+  });
+
+  requireAtLeast(1, 37, 8).describe('near text query with diversity selection', () => {
+    it('using Diversity factory', async () => {
+      const ret = await collection.query.nearText(['carrot'], {
+        diversity: Diversity.mmr({ limit: 1 }),
+      });
+      expect(ret.objects).toHaveLength(1);
+    });
+    it('using manual object construction', async () => {
+      const ret = await collection.query.nearText(['carrot'], {
+        diversity: { type: 'mmr', limit: 1 },
+      });
+      expect(ret.objects).toHaveLength(1);
     });
   });
 

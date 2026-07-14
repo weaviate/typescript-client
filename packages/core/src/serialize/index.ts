@@ -17,6 +17,8 @@ import {
   NearVideoSearch,
   SearchOperatorOptions,
   SearchOperatorOptions_Operator,
+  Selection,
+  Selection_MMR,
   Targets,
   VectorForTarget,
   WeightsForTarget,
@@ -48,6 +50,8 @@ import {
   AggregateHybridOptions,
   AggregateNearOptions,
   GenerativeConfigRuntime,
+  DiversityConfig,
+  DiversityGuards,
   GroupByAggregate,
   GroupedTask,
   MultiTargetVectorJoin,
@@ -630,6 +634,18 @@ class Search {
     });
   };
 
+  public static selection = (diversity?: DiversityConfig): Selection | undefined => {
+    if (DiversityGuards.isMMR(diversity)) {
+      return {
+        mmr: Selection_MMR.fromPartial({
+          balance: diversity.balance,
+          limit: diversity.limit,
+        }),
+      };
+    }
+    return undefined;
+  };
+
   public static groupBy = <T>(groupBy?: GroupByOptions<T>): GroupBy => {
     return GroupBy.fromPartial({
       path: groupBy?.property ? [groupBy.property as string] : undefined,
@@ -1174,6 +1190,7 @@ export class Serialize {
       audio: args.audio,
       certainty: args.certainty,
       distance: args.distance,
+      selection: Search.selection(args.diversity),
       targetVectors,
       targets,
     });
@@ -1187,6 +1204,7 @@ export class Serialize {
       depth: args.depth,
       certainty: args.certainty,
       distance: args.distance,
+      selection: Search.selection(args.diversity),
       targetVectors,
       targets,
     });
@@ -1200,6 +1218,7 @@ export class Serialize {
       image: args.image,
       certainty: args.certainty,
       distance: args.distance,
+      selection: Search.selection(args.diversity),
       targetVectors,
       targets,
     });
@@ -1211,6 +1230,7 @@ export class Serialize {
       imu: args.imu,
       certainty: args.certainty,
       distance: args.distance,
+      selection: Search.selection(args.diversity),
       targetVectors,
       targets,
     });
@@ -1222,6 +1242,7 @@ export class Serialize {
       id: args.id,
       certainty: args.certainty,
       distance: args.distance,
+      selection: Search.selection(args.diversity),
       targetVectors,
       targets,
     });
@@ -1232,6 +1253,7 @@ export class Serialize {
     targetVector?: TargetVectorInputType<V>;
     certainty?: number;
     distance?: number;
+    diversity?: DiversityConfig;
     moveAway?: { concepts?: string[]; force?: number; objects?: string[] };
     moveTo?: { concepts?: string[]; force?: number; objects?: string[] };
   }) => {
@@ -1240,6 +1262,7 @@ export class Serialize {
       query: typeof args.query === 'string' ? [args.query] : args.query,
       certainty: args.certainty,
       distance: args.distance,
+      selection: Search.selection(args.diversity),
       targets,
       targetVectors,
       moveAway: args.moveAway
@@ -1267,13 +1290,10 @@ export class Serialize {
       thermal: args.thermal,
       certainty: args.certainty,
       distance: args.distance,
+      selection: Search.selection(args.diversity),
       targetVectors,
       targets,
     });
-  };
-
-  private static vectorToBuffer = (vector: number[]): ArrayBufferLike => {
-    return new Float32Array(vector).buffer;
   };
 
   private static vectorToBytes = (vector: number[]): Uint8Array => {
@@ -1319,11 +1339,13 @@ export class Serialize {
     supportsVectors: boolean;
     certainty?: number;
     distance?: number;
+    diversity?: DiversityConfig;
     targetVector?: TargetVectorInputType<V>;
   }): Promise<NearVector> =>
     NearVector.fromPartial({
       certainty: args.certainty,
       distance: args.distance,
+      selection: Search.selection(args.diversity),
       ...(await Serialize.vectors({
         ...args,
         argumentName: 'nearVector',
@@ -1551,6 +1573,7 @@ export class Serialize {
       video: args.video,
       certainty: args.certainty,
       distance: args.distance,
+      selection: Search.selection(args.diversity),
       targetVectors,
       targets,
     });

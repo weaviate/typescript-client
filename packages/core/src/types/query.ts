@@ -189,3 +189,17 @@ export type SortBy = {
   property: string;
   ascending?: boolean;
 };
+
+export type DiversityConfig = MMR;
+
+export type MMR = {
+  type: 'mmr';
+  limit?: number;
+  balance?: number;
+};
+
+export class DiversityGuards {
+  static isMMR(diversity?: DiversityConfig): diversity is MMR {
+    return (diversity as MMR)?.type === 'mmr';
+  }
+}

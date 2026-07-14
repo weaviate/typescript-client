@@ -359,4 +359,4 @@ export {
   SingleVectorType,
 } from './types.js';
 
-export { Bm25Operator } from './utils.js';
+export { Bm25Operator, Diversity } from './utils.js';

@@ -236,7 +236,7 @@ export interface HttpClient {
 }
 
 const fetchWithTimeout = (
-  input: RequestInfo | URL,
+  input: string | URL | Request,
   timeout: number,
   init?: RequestInit | undefined
 ): Promise<Response> => {
