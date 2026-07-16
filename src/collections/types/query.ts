@@ -227,3 +227,17 @@ export type PropertyValue = {
   modifier?: Modifier;
   type: 'propertyValue';
 };
+
+export type DiversityConfig = MMR;
+
+export type MMR = {
+  type: 'mmr';
+  limit?: number;
+  balance?: number;
+};
+
+export class DiversityGuards {
+  static isMMR(diversity?: DiversityConfig): diversity is MMR {
+    return (diversity as MMR)?.type === 'mmr';
+  }
+}

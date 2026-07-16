@@ -1,5 +1,5 @@
 import { GraphQLClient as Client, Variables } from 'graphql-request';
-import ConnectionREST, { InternalConnectionParams } from './http.js';
+import ConnectionREST, { Headers, InternalConnectionParams } from './http.js';
 
 export default class ConnectionGQL extends ConnectionREST {
   private gql: GraphQLClient;
@@ -26,11 +26,7 @@ export * from './auth.js';
 
 export type TQuery = any;
 export interface GraphQLClient {
-  query: <V extends Variables, T>(
-    query: TQuery,
-    variables?: V,
-    headers?: HeadersInit
-  ) => Promise<{ data: T }>;
+  query: <V extends Variables, T>(query: TQuery, variables?: V, headers?: Headers) => Promise<{ data: T }>;
 }
 
 export const gqlClient = (config: InternalConnectionParams): GraphQLClient => {
@@ -40,7 +36,7 @@ export const gqlClient = (config: InternalConnectionParams): GraphQLClient => {
   return {
     // for backward compatibility with replaced graphql-client lib,
     // results are wrapped into { data: data }
-    query: <V extends Variables, T>(query: TQuery, variables?: V, headers?: HeadersInit) => {
+    query: <V extends Variables, T>(query: TQuery, variables?: V, headers?: Headers) => {
       return new Client(baseUri, {
         headers: {
           ...defaultHeaders,

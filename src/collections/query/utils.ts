@@ -1,7 +1,9 @@
 import { WeaviateInvalidInputError } from '../../errors.js';
 import {
   BoostOptions,
+  DiversityConfig,
   FilterValue,
+  MMR,
   MultiTargetVectorJoin,
   NumericDecay,
   PropertyValue,
@@ -170,5 +172,15 @@ export class Bm25Operator {
 
   static or(opts: Omit<Bm25OperatorOr, 'operator'>): Bm25OperatorOptions {
     return { ...opts, operator: 'Or' };
+  }
+}
+
+export class Diversity {
+  /** Use Maximal Marginal Relevance diversity selection. */
+  static mmr(args?: Omit<MMR, 'type'>): DiversityConfig {
+    return {
+      ...args,
+      type: 'mmr',
+    };
   }
 }

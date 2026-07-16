@@ -1,5 +1,5 @@
 import { FilterValue } from '../filters/index.js';
-import { BoostOptions, CallOptions, MultiTargetVectorJoin, ReturnVectors } from '../index.js';
+import { BoostOptions, CallOptions, DiversityConfig, MultiTargetVectorJoin, ReturnVectors } from '../index.js';
 import { Sorting } from '../sort/classes.js';
 import {
   GroupByOptions,
@@ -160,6 +160,8 @@ export type NearSearchOptions<V> = {
   distance?: number;
   /** Specify which vector to search on if using named vectors. */
   targetVector?: TargetVectorInputType<V>;
+  /** Specify diversity selection algorithm. */
+  diversity?: DiversityConfig;
 };
 
 /** Base options for the near search queries. */
