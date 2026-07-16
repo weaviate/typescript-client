@@ -1,5 +1,11 @@
 import { FilterValue } from '../filters/index.js';
-import { BoostOptions, CallOptions, DiversityConfig, MultiTargetVectorJoin, ReturnVectors } from '../index.js';
+import {
+  BoostOptions,
+  CallOptions,
+  DiversityConfig,
+  MultiTargetVectorJoin,
+  ReturnVectors,
+} from '../index.js';
 import { Sorting } from '../sort/classes.js';
 import {
   GroupByOptions,
