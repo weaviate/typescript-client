@@ -37,6 +37,13 @@ import {
   GenerativeSearch_Single,
 } from '../../proto/v1/generative.js';
 import {
+  Boost as BoostGRPC,
+  Boost_Condition,
+  Boost_DecayCurve,
+  Boost_NumericDecayFunction,
+  Boost_PropertyValueFunction,
+  Boost_PropertyValueModifier,
+  Boost_TimeDecayFunction,
   GroupBy,
   MetadataRequest,
   ObjectPropertiesRequest,
@@ -113,15 +120,21 @@ import {
   AggregateHybridOptions,
   AggregateNearOptions,
   BatchReference,
+  BoostOptions,
+  Curve,
   DiversityConfig,
   DiversityGuards,
   GenerativeConfigRuntime,
   GroupByAggregate,
   GroupedTask,
+  Modifier,
   MultiTargetVectorJoin,
+  NumericDecay,
   PrimitiveKeys,
   PropertiesMetrics,
+  PropertyValue,
   SinglePrompt,
+  TimeDecay,
 } from '../index.js';
 import {
   BaseHybridOptions,
@@ -665,6 +678,7 @@ class Search {
       limit: args?.limit,
       offset: args?.offset,
       filters: args?.filters ? Serialize.filtersGRPC(args.filters) : undefined,
+      boost: args?.boost ? Serialize.boostGRPC(args.boost) : undefined,
       properties:
         args?.returnProperties || args?.returnReferences
           ? Search.queryProperties(args.returnProperties, args.returnReferences)
@@ -1565,6 +1579,84 @@ export class Serialize {
       targetVectors,
       targets,
     });
+  };
+
+  private static boostCurve(curve?: Curve): Boost_DecayCurve {
+    switch (curve) {
+      case 'exponential':
+        return Boost_DecayCurve.DECAY_CURVE_EXPONENTIAL;
+      case 'gaussian':
+        return Boost_DecayCurve.DECAY_CURVE_GAUSS;
+      case 'linear':
+        return Boost_DecayCurve.DECAY_CURVE_LINEAR;
+      default:
+        return Boost_DecayCurve.DECAY_CURVE_UNSPECIFIED;
+    }
+  }
+
+  private static boostModifier(modifier?: Modifier): Boost_PropertyValueModifier {
+    switch (modifier) {
+      case 'log1p':
+        return Boost_PropertyValueModifier.PROPERTY_VALUE_MODIFIER_LOG1P;
+      case 'sqrt':
+        return Boost_PropertyValueModifier.PROPERTY_VALUE_MODIFIER_LOG1P;
+      default:
+        return Boost_PropertyValueModifier.PROPERTY_VALUE_MODIFIER_UNSPECIFIED;
+    }
+  }
+
+  public static boostGRPC = (boost: BoostOptions): BoostGRPC => {
+    const out: BoostGRPC = { weight: boost.weight, depth: boost.depth, conditions: [] };
+    for (const cond of boost.conditions) {
+      let condProto: Boost_Condition = { weight: cond.weight };
+      const { type, ...func } = cond.func;
+
+      switch (type) {
+        case 'filter':
+          condProto = {
+            ...condProto,
+            filter: this.filtersGRPC(func as FilterValue),
+          };
+          break;
+        case 'timeDecay': {
+          const { curve, ...timeDecay } = func as TimeDecay;
+          condProto = {
+            ...condProto,
+            timeDecay: Boost_TimeDecayFunction.fromPartial({
+              ...timeDecay,
+              curve: this.boostCurve(curve),
+            }),
+          };
+          break;
+        }
+        case 'numericDecay': {
+          const { curve, ...numericDecay } = func as NumericDecay;
+          condProto = {
+            ...condProto,
+            numericDecay: Boost_NumericDecayFunction.fromPartial({
+              ...numericDecay,
+              curve: this.boostCurve(curve),
+            }),
+          };
+          break;
+        }
+        case 'propertyValue': {
+          const { modifier, ...propertyValue } = func as PropertyValue;
+          condProto = {
+            ...condProto,
+            propertyValue: Boost_PropertyValueFunction.fromPartial({
+              ...propertyValue,
+              modifier: this.boostModifier(modifier),
+            }),
+          };
+          break;
+        }
+      }
+      out.conditions.push(condProto);
+    }
+
+    console.error(JSON.stringify(out));
+    return out;
   };
 
   public static filtersGRPC = (filters: FilterValue): FiltersGRPC => {

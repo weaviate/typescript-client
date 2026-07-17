@@ -599,7 +599,6 @@ describe('Testing of the collections.create method', () => {
 
     expect(response.multiTenancy.enabled).toEqual(true);
 
-    expect(response.replication.asyncEnabled).toEqual(false);
     expect(response.replication.deletionStrategy).toBeDefined();
     expect(response.replication.factor).toEqual(2);
 

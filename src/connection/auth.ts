@@ -182,7 +182,7 @@ class UserPasswordAuthenticator implements OidcAuthFlow {
   }
 
   refresh = () => {
-    this.validateOpenidConfig();
+    this.openidConfig.scopes.push('offline_access');
     return this.requestAccessToken()
       .then((tokenResp: RequestAccessTokenResponse) => {
         return {
@@ -194,22 +194,6 @@ class UserPasswordAuthenticator implements OidcAuthFlow {
       .catch((err: any) => {
         return Promise.reject(new Error(`failed to refresh access token: ${err}`));
       });
-  };
-
-  validateOpenidConfig = () => {
-    if (
-      this.openidConfig.provider.grant_types_supported !== undefined &&
-      !this.openidConfig.provider.grant_types_supported.includes('password')
-    ) {
-      throw new Error('grant_type password not supported');
-    }
-    if (this.openidConfig.provider.token_endpoint.includes('https://login.microsoftonline.com')) {
-      throw new Error(
-        'microsoft/azure recommends to avoid authentication using ' +
-          'username and password, so this method is not supported by this client'
-      );
-    }
-    this.openidConfig.scopes.push('offline_access');
   };
 
   requestAccessToken = () => {
