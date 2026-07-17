@@ -273,7 +273,7 @@ class AccessTokenAuthenticator implements OidcAuthFlow {
       });
   };
 
-  validateOpenidConfig = () => { };
+  validateOpenidConfig = () => {};
 
   requestAccessToken = () => {
     const url = this.openidConfig.provider.token_endpoint;
