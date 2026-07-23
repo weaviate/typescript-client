@@ -39,7 +39,7 @@ const webify = (
     host: params.connectionParams.http.host,
     port: params.connectionParams.http.port,
     secure: params.connectionParams.http.secure,
-    path: '/grpc-web',
+    path: '/v1/grpc-web',
   };
   return weaviate(context, params, true);
 };
