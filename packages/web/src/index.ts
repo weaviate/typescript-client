@@ -96,7 +96,8 @@ const app = {
 
 export interface WeaviateClient extends IWeaviateClient<string | Blob> {}
 export interface Collections extends ICollections<string | Blob> {}
-export interface Collection<T, N> extends ICollection<T, N, string | Blob> {}
+export interface Collection<T = undefined, N = string, V = undefined>
+  extends ICollection<T, N, V, string | Blob> {}
 
 export default app;
 
