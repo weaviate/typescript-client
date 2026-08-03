@@ -45,3 +45,18 @@ export function validateBackupId(backupId?: string) {
   }
   return [];
 }
+
+export function validateIncrementalBaseBackupId(incrementalBaseBackupId?: string, backupId?: string) {
+  if (incrementalBaseBackupId === undefined || incrementalBaseBackupId === null) {
+    return [];
+  }
+  if (!isValidStringProperty(incrementalBaseBackupId)) {
+    return [
+      'string incrementalBaseBackupId must be a non-empty string - set with .withIncrementalBaseBackupId(backupId)',
+    ];
+  }
+  if (incrementalBaseBackupId === backupId) {
+    return ['incrementalBaseBackupId must be different from the ID of the backup being created'];
+  }
+  return [];
+}
