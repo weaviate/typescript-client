@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
 /* eslint-disable no-await-in-loop */
 import { afterAll, beforeAll, describe, expect, it, test } from 'vitest';
-import { WeaviateBackupFailed } from '../../../src/errors.js';
+import { WeaviateBackupFailed, WeaviateInvalidInputError } from '../../../src/errors.js';
 import weaviate, { Backend, Collection, WeaviateClient } from '../../../src/index.js';
 import { requireAtLeast } from '../../../test/version.js';
 
@@ -255,6 +255,65 @@ describe('Integration testing of backups', () => {
       expect(
         gotBackups.every((value, idx, a) => idx === 0 || a[idx - 1].startedAt! <= value.startedAt!)
       ).toBe(sortAscending);
+    });
+  });
+
+  requireAtLeast(1, 37, 0).describe('incremental backups', () => {
+    it('creates an incremental backup on top of a base backup', async () => {
+      const client = await clientPromise;
+      const collection = await client.collections
+        .create({ name: 'TestIncrementalBackup' })
+        .then((col) => col.data.insert().then(() => col));
+
+      const base = await client.backup.create({
+        backupId: randomBackupId(),
+        backend: 'filesystem',
+        includeCollections: [collection.name],
+        waitForCompletion: true,
+      });
+      expect(base.status).toBe('SUCCESS');
+
+      // Add data so that the incremental backup has something to pick up
+      await collection.data.insert();
+
+      const incremental = await client.backup.create({
+        backupId: randomBackupId(),
+        backend: 'filesystem',
+        includeCollections: [collection.name],
+        incrementalBaseBackupId: base.id,
+        waitForCompletion: true,
+      });
+      expect(incremental.status).toBe('SUCCESS');
+
+      // Weaviate only reports the base backup ID to root users, so treat it as optional
+      if (incremental.incrementalBaseBackupId !== undefined) {
+        expect(incremental.incrementalBaseBackupId).toBe(base.id);
+      }
+
+      // The incremental backup must be restorable
+      await client.collections.delete(collection.name);
+      const restored = await client.backup.restore({
+        backupId: incremental.id,
+        backend: 'filesystem',
+        includeCollections: [collection.name],
+        waitForCompletion: true,
+      });
+      expect(restored.status).toBe('SUCCESS');
+      await expect(collection.length()).resolves.toBe(2);
+
+      await client.collections.delete(collection.name);
+    });
+
+    it('rejects an incremental backup based on itself', async () => {
+      const client = await clientPromise;
+      const backupId = randomBackupId();
+      await expect(
+        client.backup.create({
+          backupId,
+          backend: 'filesystem',
+          incrementalBaseBackupId: backupId,
+        })
+      ).rejects.toThrow(WeaviateInvalidInputError);
     });
   });
 
