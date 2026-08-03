@@ -3,7 +3,11 @@ import { Server as HttpServer } from 'http';
 import { Server as GrpcServer, createServer } from 'nice-grpc';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { BackupStatus } from '../../../src/collections/backup/types.js';
-import { WeaviateBackupCanceled } from '../../../src/errors.js';
+import {
+  WeaviateBackupCanceled,
+  WeaviateInvalidInputError,
+  WeaviateUnsupportedFeatureError,
+} from '../../../src/errors.js';
 import weaviate, { WeaviateClient } from '../../../src/index.js';
 import {
   HealthCheckRequest,
@@ -13,8 +17,10 @@ import {
   HealthServiceImplementation,
 } from '../../../src/proto/google/health/v1/health.js';
 import {
+  BackupCreateRequest,
   BackupCreateResponse,
   BackupCreateStatusResponse,
+  BackupListResponse,
   BackupRestoreResponse,
 } from '../../../src/v2/index.js';
 
@@ -185,4 +191,159 @@ describe('Mock testing of backup cancellation', () => {
   });
 
   afterAll(() => mock.close());
+});
+
+const BASE_BACKUP_ID = 'test-backup-base';
+
+/** Mocks the backup endpoints, recording the payload sent by the client on creation. */
+class IncrementalMock {
+  private grpc: GrpcServer;
+  private http: HttpServer;
+  static lastCreateRequest: BackupCreateRequest;
+
+  constructor(grpc: GrpcServer, http: HttpServer) {
+    this.grpc = grpc;
+    this.http = http;
+  }
+
+  public static use = async (version: string, httpPort: number, grpcPort: number) => {
+    const httpApp = express();
+    httpApp.use(express.json());
+    httpApp.get('/v1/meta', (req, res) => res.send({ version }));
+
+    httpApp.post(`/v1/backups/${BACKEND}`, (req, res: Response<BackupCreateResponse, any>) => {
+      IncrementalMock.lastCreateRequest = req.body;
+      res.send({
+        id: req.body.id,
+        backend: BACKEND,
+        classes: ['Article'],
+        path: 'path/to/backup',
+        status: 'STARTED',
+      });
+    });
+    httpApp.get(`/v1/backups/${BACKEND}/:id`, (req, res: Response<BackupCreateStatusResponse, any>) =>
+      res.send({
+        id: req.params.id,
+        backend: BACKEND,
+        path: 'path/to/backup',
+        status: 'SUCCESS',
+        incremental_base_backup_id: IncrementalMock.lastCreateRequest?.incremental_base_backup_id,
+      })
+    );
+    httpApp.get(`/v1/backups/${BACKEND}`, (req, res: Response<BackupListResponse, any>) =>
+      res.send([
+        { id: BASE_BACKUP_ID, classes: ['Article'], status: 'SUCCESS', incremental_base_backup_id: '' },
+        {
+          id: BACKUP_ID,
+          classes: ['Article'],
+          status: 'SUCCESS',
+          incremental_base_backup_id: BASE_BACKUP_ID,
+        },
+      ])
+    );
+
+    const healthMockImpl: HealthServiceImplementation = {
+      check: (request: HealthCheckRequest): Promise<HealthCheckResponse> =>
+        Promise.resolve(HealthCheckResponse.create({ status: HealthCheckResponse_ServingStatus.SERVING })),
+      watch: vi.fn(),
+    };
+
+    const grpc = createServer();
+    grpc.add(HealthDefinition, healthMockImpl);
+
+    httpApp.on('error', (error) => console.error('HTTP Server Error:', error));
+
+    await grpc.listen(`localhost:${grpcPort}`);
+    const http = await httpApp.listen(httpPort);
+    return new IncrementalMock(grpc, http);
+  };
+
+  public close = () => Promise.all([this.http.close(), this.grpc.shutdown()]);
+}
+
+describe('Mock testing of incremental backups', () => {
+  describe('with a supported Weaviate version', () => {
+    let client: WeaviateClient;
+    let mock: IncrementalMock;
+
+    beforeAll(async () => {
+      mock = await IncrementalMock.use('1.37.0', 8914, 8915);
+      client = await weaviate.connectToLocal({ port: 8914, grpcPort: 8915 });
+    });
+
+    it('should send the base backup ID when creating an incremental backup', async () => {
+      const res = await client.backup.create({
+        backupId: BACKUP_ID,
+        backend: BACKEND,
+        incrementalBaseBackupId: BASE_BACKUP_ID,
+        waitForCompletion: true,
+      });
+      expect(IncrementalMock.lastCreateRequest.incremental_base_backup_id).toBe(BASE_BACKUP_ID);
+      expect(res.status).toBe('SUCCESS');
+      expect(res.incrementalBaseBackupId).toBe(BASE_BACKUP_ID);
+    });
+
+    it('should lowercase the base backup ID', async () => {
+      await client.backup.create({
+        backupId: BACKUP_ID,
+        backend: BACKEND,
+        incrementalBaseBackupId: 'Test-Backup-BASE',
+        waitForCompletion: true,
+      });
+      expect(IncrementalMock.lastCreateRequest.incremental_base_backup_id).toBe(BASE_BACKUP_ID);
+    });
+
+    it('should not send the field for a regular backup', async () => {
+      await client.backup.create({ backupId: BACKUP_ID, backend: BACKEND });
+      expect(IncrementalMock.lastCreateRequest.incremental_base_backup_id).toBeUndefined();
+    });
+
+    it('should throw if the base backup is the backup being created', async () => {
+      const promise = client.backup.create({
+        backupId: BACKUP_ID,
+        backend: BACKEND,
+        incrementalBaseBackupId: BACKUP_ID,
+      });
+      await expect(promise).rejects.toThrow(WeaviateInvalidInputError);
+    });
+
+    it('should surface the base backup ID when listing backups', async () => {
+      const backups = await client.backup.list(BACKEND);
+      expect(backups[0].incrementalBaseBackupId).toBeUndefined();
+      expect(backups[1].incrementalBaseBackupId).toBe(BASE_BACKUP_ID);
+    });
+
+    it('should surface the base backup ID when getting the creation status', async () => {
+      const status = await client.backup.getCreateStatus({ backupId: BACKUP_ID, backend: BACKEND });
+      expect(status.incrementalBaseBackupId).toBeUndefined(); // last create was a regular backup
+    });
+
+    afterAll(() => mock.close());
+  });
+
+  describe('with an unsupported Weaviate version', () => {
+    let client: WeaviateClient;
+    let mock: IncrementalMock;
+
+    beforeAll(async () => {
+      mock = await IncrementalMock.use('1.36.0', 8916, 8917);
+      client = await weaviate.connectToLocal({ port: 8916, grpcPort: 8917 });
+    });
+
+    it('should throw when requesting an incremental backup', async () => {
+      const promise = client.backup.create({
+        backupId: BACKUP_ID,
+        backend: BACKEND,
+        incrementalBaseBackupId: BASE_BACKUP_ID,
+      });
+      await expect(promise).rejects.toThrow(WeaviateUnsupportedFeatureError);
+    });
+
+    it('should still allow regular backups', async () => {
+      const res = await client.backup.create({ backupId: BACKUP_ID, backend: BACKEND });
+      expect(res.status).toBe('STARTED');
+    });
+
+    afterAll(() => mock.close());
+  });
 });
