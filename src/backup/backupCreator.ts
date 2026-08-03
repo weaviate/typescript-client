@@ -14,6 +14,7 @@ import {
   validateBackupId,
   validateExcludeClassNames,
   validateIncludeClassNames,
+  validateIncrementalBaseBackupId,
 } from './validation.js';
 
 const WAIT_INTERVAL = 1000;
@@ -26,6 +27,7 @@ export default class BackupCreator extends CommandBase {
   private statusGetter: BackupCreateStatusGetter;
   private waitForCompletion!: boolean;
   private config?: BackupConfig;
+  private incrementalBaseBackupId?: string;
 
   constructor(client: Connection, statusGetter: BackupCreateStatusGetter) {
     super(client);
@@ -70,12 +72,27 @@ export default class BackupCreator extends CommandBase {
     return this;
   }
 
+  /**
+   * The ID of an existing backup to use as the base for a file-based incremental backup.
+   * Only the files that changed since the base backup are included in the new backup.
+   *
+   * `backupId` is a plain backup ID string: either a literal, e.g. `'my-base-backup'`, or the
+   * `id` returned by a previous backup creation.
+   *
+   * Requires Weaviate v1.37.0 or higher.
+   */
+  withIncrementalBaseBackupId(backupId: string) {
+    this.incrementalBaseBackupId = backupId;
+    return this;
+  }
+
   validate = (): void => {
     this.addErrors([
       ...validateIncludeClassNames(this.includeClassNames),
       ...validateExcludeClassNames(this.excludeClassNames),
       ...validateBackend(this.backend),
       ...validateBackupId(this.backupId),
+      ...validateIncrementalBaseBackupId(this.incrementalBaseBackupId, this.backupId),
     ]);
   };
 
@@ -90,6 +107,7 @@ export default class BackupCreator extends CommandBase {
       config: this.config,
       include: this.includeClassNames,
       exclude: this.excludeClassNames,
+      incremental_base_backup_id: this.incrementalBaseBackupId,
     } as BackupCreateRequest;
 
     if (this.waitForCompletion) {
