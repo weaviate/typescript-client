@@ -29,6 +29,7 @@ import {
   NearThermalSearch,
   NearVector,
   NearVideoSearch,
+  SearchOperatorOptions_Operator,
   Targets,
 } from '../../proto/v1/base_search.js';
 import { GenerativeSearch } from '../../proto/v1/generative.js';
@@ -36,7 +37,7 @@ import { GroupBy, MetadataRequest, PropertiesRequest } from '../../proto/v1/sear
 import { Filters as FiltersFactory } from '../filters/classes.js';
 import filter from '../filters/index.js';
 import { TargetVectorInputType } from '../query/types.js';
-import { Diversity } from '../query/utils.js';
+import { Bm25Operator, Diversity } from '../query/utils.js';
 import { Reference } from '../references/index.js';
 import sort from '../sort/index.js';
 import { WeaviateField } from '../types/index.js';
@@ -153,11 +154,13 @@ describe('Unit testing of Serialize', () => {
     const args = Serialize.search.bm25('test', {
       queryProperties: ['name'],
       autoLimit: 1,
+      operator: Bm25Operator.and({ crossProperty: true }),
     });
     expect(args).toEqual<SearchBm25Args>({
       bm25Search: BM25.fromPartial({
         query: 'test',
         properties: ['name'],
+        searchOperator: { operator: SearchOperatorOptions_Operator.OPERATOR_AND_CROSS },
       }),
       autocut: 1,
       metadata: MetadataRequest.fromPartial({ uuid: true }),

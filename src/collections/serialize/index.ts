@@ -1046,7 +1046,9 @@ export class Serialize {
     if (searchOperator) {
       return SearchOperatorOptions.fromPartial(
         searchOperator.operator === ('And' as const)
-          ? { operator: SearchOperatorOptions_Operator.OPERATOR_AND }
+          ? searchOperator.crossProperty
+            ? { operator: SearchOperatorOptions_Operator.OPERATOR_AND_CROSS }
+            : { operator: SearchOperatorOptions_Operator.OPERATOR_AND }
           : {
               operator: SearchOperatorOptions_Operator.OPERATOR_OR,
               minimumOrTokensMatch: searchOperator.minimumMatch,

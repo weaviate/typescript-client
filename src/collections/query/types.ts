@@ -93,7 +93,7 @@ export type Bm25QueryProperty<T> = {
 };
 
 export type Bm25OperatorOr = { operator: 'Or'; minimumMatch: number };
-export type Bm25OperatorAnd = { operator: 'And' };
+export type Bm25OperatorAnd = { operator: 'And'; crossProperty?: boolean };
 
 export type Bm25OperatorOptions = Bm25OperatorOr | Bm25OperatorAnd;
 
