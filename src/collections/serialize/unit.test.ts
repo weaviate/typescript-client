@@ -36,6 +36,7 @@ import { GroupBy, MetadataRequest, PropertiesRequest } from '../../proto/v1/sear
 import { Filters as FiltersFactory } from '../filters/classes.js';
 import filter from '../filters/index.js';
 import { TargetVectorInputType } from '../query/types.js';
+import { Diversity } from '../query/utils.js';
 import { Reference } from '../references/index.js';
 import sort from '../sort/index.js';
 import { WeaviateField } from '../types/index.js';
@@ -207,6 +208,10 @@ describe('Unit testing of Serialize', () => {
         targetVector: 'title',
         fusionType: 'Ranked',
         maxVectorDistance: 0.4,
+        diversity: Diversity.mmr({
+          balance: 1,
+          limit: 2,
+        }),
       }
     );
     expect(args).toEqual<SearchHybridArgs>({
@@ -225,6 +230,12 @@ describe('Unit testing of Serialize', () => {
         },
         fusionType: Hybrid_FusionType.FUSION_TYPE_RANKED,
         vectorDistance: 0.4,
+        selection: {
+          mmr: {
+            balance: 1,
+            limit: 2,
+          },
+        },
       }),
       metadata: MetadataRequest.fromPartial({ uuid: true }),
     });

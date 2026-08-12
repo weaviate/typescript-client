@@ -183,4 +183,8 @@ export class Diversity {
       type: 'mmr',
     };
   }
+
+  static isMMR(args: DiversityConfig): args is MMR {
+    return args.type === 'mmr';
+  }
 }
