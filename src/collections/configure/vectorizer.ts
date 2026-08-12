@@ -292,6 +292,40 @@ const legacyVectors = {
   },
 
   /**
+   * Create a `VectorConfigCreate` object with the vectorizer set to `'multi2vec-twelvelabs'`.
+   *
+   * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/twelvelabs/embeddings-multimodal) for detailed usage.
+   *
+   * @param {ConfigureNonTextVectorizerOptions<N, I, 'multi2vec-twelvelabs'>} [opts] The configuration options for the `multi2vec-twelvelabs` vectorizer.
+   * @returns {VectorConfigCreate<PrimitiveKeys<T>[], N, I, 'multi2vec-twelvelabs'>} The configuration object.
+   */
+  multi2VecTwelveLabs: <N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
+    opts?: ConfigureNonTextVectorizerOptions<N, I, 'multi2vec-twelvelabs'>
+  ): VectorConfigCreate<never, N, I, 'multi2vec-twelvelabs'> => {
+    const { name, quantizer, vectorIndexConfig, ...config } = opts || {};
+    const imageFields = config.imageFields?.map(mapMulti2VecField);
+    const textFields = config.textFields?.map(mapMulti2VecField);
+    let weights: Multi2VecBindConfig['weights'] = {};
+    weights = formatMulti2VecFields(weights, 'imageFields', imageFields);
+    weights = formatMulti2VecFields(weights, 'textFields', textFields);
+    return makeVectorizer(name, {
+      quantizer,
+      vectorIndexConfig,
+      vectorizerConfig: {
+        name: 'multi2vec-twelvelabs',
+        config:
+          Object.keys(config).length === 0
+            ? undefined
+            : {
+                ...config,
+                imageFields: imageFields?.map((f) => f.name),
+                textFields: textFields?.map((f) => f.name),
+                weights: Object.keys(weights).length === 0 ? undefined : weights,
+              },
+      },
+    });
+  },
+  /**
    * Create a `VectorConfigCreate` object with the vectorizer set to `'multi2vec-jinaai'`.
    *
    * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/jinaai/embeddings-multimodal) for detailed usage.
@@ -951,6 +985,9 @@ const __vectors_shaded = {
   multi2VecJinaAI: <N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
     opts?: Omit<ConfigureNonTextVectorizerOptions<N, I, 'multi2vec-jinaai'>, 'vectorizeCollectionName'>
   ) => legacyVectors.multi2VecJinaAI(opts),
+  multi2VecTwelveLabs: <N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
+    opts?: Omit<ConfigureNonTextVectorizerOptions<N, I, 'multi2vec-twelvelabs'>, 'vectorizeCollectionName'>
+  ) => legacyVectors.multi2VecTwelveLabs(opts),
   multi2VecGoogle: <N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
     opts: Omit<ConfigureNonTextVectorizerOptions<N, I, 'multi2vec-google'>, 'vectorizeCollectionName'> & {
       model?: string;
