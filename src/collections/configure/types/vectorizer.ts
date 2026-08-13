@@ -12,6 +12,7 @@ import {
   Multi2VecGoogleGeminiConfig,
   Multi2VecJinaAIConfig,
   Multi2VecNvidiaConfig,
+  Multi2VecTwelveLabsConfig,
   Multi2VecVoyageAIConfig,
   Ref2VecCentroidConfig,
   Text2MultiVecJinaAIConfig,
@@ -217,6 +218,13 @@ export type Multi2VecJinaAIConfigCreate = Omit<Multi2VecJinaAIConfig, Multi2VecO
   textFields?: string[] | Multi2VecField[];
 };
 
+export type Multi2VecTwelveLabsConfigCreate = Omit<Multi2VecTwelveLabsConfig, Multi2VecOmissions> & {
+  /** The image fields to use in vectorization. Can be string of `Multi2VecField` type. If string, weight 0 will be assumed. */
+  imageFields?: string[] | Multi2VecField[];
+  /** The text fields to use in vectorization. Can be string of `Multi2VecField` type. If string, weight 0 will be assumed. */
+  textFields?: string[] | Multi2VecField[];
+};
+
 /** @deprecated Use `Multi2VecGoogleConfigCreate` instead.*/
 export type Multi2VecPalmConfigCreate = Multi2VecGoogleConfigCreate;
 
@@ -311,6 +319,8 @@ export type VectorizerConfigCreateType<V> = V extends 'img2vec-neural'
   ? Multi2VecBindConfigCreate | undefined
   : V extends 'multi2vec-jinaai'
   ? Multi2VecJinaAIConfigCreate | undefined
+  : V extends 'multi2vec-twelvelabs'
+  ? Multi2VecTwelveLabsConfigCreate | undefined
   : V extends 'multi2multivec-jinaai'
   ? Multi2MultivecJinaAIConfigCreate | undefined
   : V extends 'multi2multivec-weaviate'
