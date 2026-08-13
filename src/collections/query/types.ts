@@ -130,6 +130,8 @@ export type HybridSearchOptions<T, V> = {
   /** The specific vector to search for or a specific vector subsearch. If not specified, the query is vectorized and used in the similarity search. */
   vector?: NearVectorInputType | HybridNearTextSubSearch | HybridNearVectorSubSearch;
   bm25Operator?: Bm25OperatorOptions;
+  /** Specify diversity selection algorithm. */
+  diversity?: DiversityConfig;
 };
 
 /** Base options available in the `query.hybrid` method */

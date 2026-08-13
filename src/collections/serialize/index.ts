@@ -162,7 +162,12 @@ import {
   SingleVectorType,
   TargetVectorInputType,
 } from '../query/types.js';
-import { ArrayInputGuards, NearVectorInputGuards, TargetVectorInputGuards } from '../query/utils.js';
+import {
+  ArrayInputGuards,
+  Diversity,
+  NearVectorInputGuards,
+  TargetVectorInputGuards,
+} from '../query/utils.js';
 import { ReferenceGuards } from '../references/classes.js';
 import { Beacon } from '../references/index.js';
 import { uuidToBeacon } from '../references/utils.js';
@@ -1058,6 +1063,18 @@ export class Serialize {
     });
   };
 
+  private static diversitySelection(diversity: DiversityConfig | undefined): Selection | undefined {
+    if (diversity === undefined || !Diversity.isMMR(diversity)) {
+      return;
+    }
+    return {
+      mmr: {
+        balance: diversity.balance,
+        limit: diversity.limit,
+      },
+    };
+  }
+
   public static isHybridVectorSearch = <T, V, I>(
     vector: BaseHybridOptions<T, V, I>['vector']
   ): vector is
@@ -1176,6 +1193,7 @@ export class Serialize {
       vectorDistance: args.maxVectorDistance,
       fusionType: fusionType(args.fusionType),
       bm25SearchOperator: this.bm25SearchOperator(args.bm25Operator),
+      selection: this.diversitySelection(args.diversity),
       targetVectors,
       targets,
       nearText,
