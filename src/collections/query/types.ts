@@ -93,9 +93,10 @@ export type Bm25QueryProperty<T> = {
 };
 
 export type Bm25OperatorOr = { operator: 'Or'; minimumMatch: number };
-export type Bm25OperatorAnd = { operator: 'And'; crossProperty?: boolean };
+export type Bm25OperatorAnd = { operator: 'And' };
+export type Bm25OperatorAndCross = { operator: 'AndCross' };
 
-export type Bm25OperatorOptions = Bm25OperatorOr | Bm25OperatorAnd;
+export type Bm25OperatorOptions = Bm25OperatorOr | Bm25OperatorAnd | Bm25OperatorAndCross;
 
 export type Bm25SearchOptions<T> = {
   /** Which properties of the collection to perform the keyword search on. */

@@ -1043,17 +1043,20 @@ export class Serialize {
   private static bm25SearchOperator = (
     searchOperator?: Bm25OperatorOptions
   ): SearchOperatorOptions | undefined => {
-    if (searchOperator) {
-      return SearchOperatorOptions.fromPartial(
-        searchOperator.operator === ('And' as const)
-          ? searchOperator.crossProperty
-            ? { operator: SearchOperatorOptions_Operator.OPERATOR_AND_CROSS }
-            : { operator: SearchOperatorOptions_Operator.OPERATOR_AND }
-          : {
-              operator: SearchOperatorOptions_Operator.OPERATOR_OR,
-              minimumOrTokensMatch: searchOperator.minimumMatch,
-            }
-      );
+    switch (searchOperator?.operator) {
+      case undefined:
+        break;
+      case 'And' as const:
+        return SearchOperatorOptions.fromPartial({ operator: SearchOperatorOptions_Operator.OPERATOR_AND });
+      case 'AndCross' as const:
+        return SearchOperatorOptions.fromPartial({
+          operator: SearchOperatorOptions_Operator.OPERATOR_AND_CROSS,
+        });
+      case 'Or' as const:
+        return SearchOperatorOptions.fromPartial({
+          operator: SearchOperatorOptions_Operator.OPERATOR_OR,
+          minimumOrTokensMatch: searchOperator.minimumMatch,
+        });
     }
   };
 
