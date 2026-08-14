@@ -55,7 +55,8 @@ export function validateIncrementalBaseBackupId(incrementalBaseBackupId?: string
       'string incrementalBaseBackupId must be a non-empty string - set with .withIncrementalBaseBackupId(backupId)',
     ];
   }
-  if (incrementalBaseBackupId === backupId) {
+  // Weaviate treats backup IDs as case-insensitive, so 'B1' and 'b1' name the same backup.
+  if (incrementalBaseBackupId.toLowerCase() === backupId?.toLowerCase()) {
     return ['incrementalBaseBackupId must be different from the ID of the backup being created'];
   }
   return [];
