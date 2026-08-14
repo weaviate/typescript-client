@@ -11,6 +11,8 @@ import {
   Vectors,
 } from '../index.js';
 import {
+  Bm25OperatorAnd,
+  Bm25OperatorAndCross,
   Bm25OperatorOptions,
   Bm25OperatorOr,
   ListOfVectors,
@@ -166,8 +168,12 @@ export class Boost {
 }
 
 export class Bm25Operator {
-  static and(): Bm25OperatorOptions {
-    return { operator: 'And' };
+  static and(opts?: Omit<Bm25OperatorAnd, 'operator'>): Bm25OperatorOptions {
+    return { ...opts, operator: 'And' };
+  }
+
+  static andCross(opts?: Omit<Bm25OperatorAndCross, 'operator'>): Bm25OperatorOptions {
+    return { ...opts, operator: 'AndCross' };
   }
 
   static or(opts: Omit<Bm25OperatorOr, 'operator'>): Bm25OperatorOptions {
