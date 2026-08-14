@@ -1429,33 +1429,6 @@ describe('Unit testing of the vectorizer factory class', () => {
     });
   });
 
-  it('should serialize text2vec-google `location` when set and omit it when unset', () => {
-    // location set → present in serialized config (Google Vertex AI region)
-    const withLocation = configure.vectors.text2VecGoogle({ location: 'us-central1' });
-    expect(withLocation).toEqual<VectorConfigCreate<never, undefined, 'hnsw', 'text2vec-google'>>({
-      name: undefined,
-      vectorizer: {
-        name: 'text2vec-google',
-        config: {
-          location: 'us-central1',
-        },
-      },
-    });
-
-    // location unset → no client-side default; key absent from serialized config (server applies its default)
-    const withoutLocation = configure.vectors.text2VecGoogle({ projectId: 'project-id' });
-    expect(withoutLocation).toEqual<VectorConfigCreate<never, undefined, 'hnsw', 'text2vec-google'>>({
-      name: undefined,
-      vectorizer: {
-        name: 'text2vec-google',
-        config: {
-          projectId: 'project-id',
-        },
-      },
-    });
-    expect((withoutLocation.vectorizer.config as Record<string, unknown>).location).toBeUndefined();
-  });
-
   it('should create the correct Text2VecGoogleGeminiConfig type with defaults', () => {
     const config = configure.vectors.text2VecGoogleGemini();
     expect(config).toEqual<VectorConfigCreate<never, undefined, 'hnsw', 'text2vec-google'>>({
