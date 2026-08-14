@@ -3,7 +3,7 @@
 /* eslint-disable no-await-in-loop */
 import { afterAll, beforeAll, describe, expect, it, test } from 'vitest';
 import { WeaviateBackupFailed, WeaviateInvalidInputError } from '../../../src/errors.js';
-import weaviate, { Backend, Collection, WeaviateClient } from '../../../src/index.js';
+import weaviate, { ApiKey, Backend, Collection, WeaviateClient } from '../../../src/index.js';
 import { requireAtLeast } from '../../../test/version.js';
 
 // These must run sequentially because Weaviate is not capable of running multiple backups at the same time
@@ -285,10 +285,9 @@ describe('Integration testing of backups', () => {
       });
       expect(incremental.status).toBe('SUCCESS');
 
-      // Weaviate only reports the base backup ID to root users, so treat it as optional
-      if (incremental.incrementalBaseBackupId !== undefined) {
-        expect(incremental.incrementalBaseBackupId).toBe(base.id);
-      }
+      // This instance is anonymous, so the caller is never a root user and Weaviate withholds the
+      // base backup ID. The root-user round-trip is covered by the RBAC suite below.
+      expect(incremental.incrementalBaseBackupId).toBeUndefined();
 
       // The incremental backup must be restorable
       await client.collections.delete(collection.name);
@@ -320,4 +319,58 @@ describe('Integration testing of backups', () => {
   function randomBackupId() {
     return 'backup-id-' + Math.floor(Math.random() * Number.MAX_SAFE_INTEGER);
   }
+});
+
+// Weaviate only returns incremental_base_backup_id to root users, and only from v1.37.6 onwards.
+// ci/docker-compose-rbac.yml is the only instance with a root user (AUTHORIZATION_ADMIN_USERS
+// populates the RBAC root user list), so the read-back can only be asserted there.
+requireAtLeast(1, 37, 6).describe('Integration testing of incremental backups as a root user', () => {
+  const clientPromise = weaviate.connectToLocal({
+    port: 8091,
+    grpcPort: 50062,
+    authCredentials: new ApiKey('admin-key'),
+  });
+
+  const collectionName = 'TestIncrementalBackupRoot';
+  const randomBackupId = () => 'backup-id-' + Math.floor(Math.random() * Number.MAX_SAFE_INTEGER);
+
+  afterAll(() => clientPromise.then((client) => client.collections.delete(collectionName)));
+
+  it('reports the base backup ID on create, status and list', async () => {
+    const client = await clientPromise;
+    const collection = await client.collections
+      .create({ name: collectionName })
+      .then((col) => col.data.insert().then(() => col));
+
+    const base = await client.backup.create({
+      backupId: randomBackupId(),
+      backend: 'filesystem',
+      includeCollections: [collection.name],
+      waitForCompletion: true,
+    });
+    expect(base.status).toBe('SUCCESS');
+    expect(base.incrementalBaseBackupId).toBeUndefined();
+
+    await collection.data.insert();
+
+    const incremental = await client.backup.create({
+      backupId: randomBackupId(),
+      backend: 'filesystem',
+      includeCollections: [collection.name],
+      incrementalBaseBackupId: base.id,
+      waitForCompletion: true,
+    });
+    expect(incremental.status).toBe('SUCCESS');
+    expect(incremental.incrementalBaseBackupId).toBe(base.id);
+
+    const status = await client.backup.getCreateStatus({
+      backupId: incremental.id,
+      backend: 'filesystem',
+    });
+    expect(status.incrementalBaseBackupId).toBe(base.id);
+
+    const listed = await client.backup.list('filesystem');
+    expect(listed.find((b) => b.id === incremental.id)?.incrementalBaseBackupId).toBe(base.id);
+    expect(listed.find((b) => b.id === base.id)?.incrementalBaseBackupId).toBeUndefined();
+  });
 });

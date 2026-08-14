@@ -54,7 +54,9 @@ export const backup = (connection: Connection, dbVersionSupport: DbVersionSuppor
       error: res.error,
       path: res.path,
       status: res.status,
-      // Only returned by Weaviate >=1.37, for incremental backups, and only to root users
+      // Restore responses carry neither of these fields; see BackupStatusReturn for when Weaviate
+      // omits `incremental_base_backup_id` from a create status.
+      size: 'size' in res ? res.size : undefined,
       incrementalBaseBackupId:
         'incremental_base_backup_id' in res ? res.incremental_base_backup_id || undefined : undefined,
     };
@@ -124,8 +126,7 @@ export const backup = (connection: Connection, dbVersionSupport: DbVersionSuppor
         .withBackupId(args.backupId)
         .withBackend(args.backend);
       if (args.incrementalBaseBackupId !== undefined) {
-        const baseBackupId = args.incrementalBaseBackupId.toLowerCase();
-        const errors = validateIncrementalBaseBackupId(baseBackupId, args.backupId.toLowerCase());
+        const errors = validateIncrementalBaseBackupId(args.incrementalBaseBackupId, args.backupId);
         if (errors.length > 0) {
           throw new WeaviateInvalidInputError(errors.join(', '));
         }
@@ -133,7 +134,8 @@ export const backup = (connection: Connection, dbVersionSupport: DbVersionSuppor
         if (!check.supports) {
           throw new WeaviateUnsupportedFeatureError(check.message);
         }
-        builder = builder.withIncrementalBaseBackupId(baseBackupId);
+        // The builder lowercases the ID to match how Weaviate stores it.
+        builder = builder.withIncrementalBaseBackupId(args.incrementalBaseBackupId);
       }
       if (args.includeCollections) {
         builder = builder.withIncludeClassNames(...args.includeCollections);
@@ -258,8 +260,7 @@ export interface Backup {
   /**
    * Create a backup of the database.
    *
-   * Pass `incrementalBaseBackupId` to create a file-based incremental backup, which only
-   * contains the files that changed since the given base backup. Requires Weaviate `v1.37.0` or higher.
+   * Set `incrementalBaseBackupId` for a file-based incremental backup (Weaviate `v1.37.0` or higher).
    *
    * @param {BackupCreateArgs} args The arguments for the request.
    * @returns {Promise<BackupReturn>} The response from Weaviate.

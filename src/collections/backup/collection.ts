@@ -2,7 +2,7 @@ import { Backend } from '../../backup/index.js';
 import Connection from '../../connection/index.js';
 import { DbVersionSupport } from '../../utils/dbVersion.js';
 import { backup } from './client.js';
-import { BackupReturn, BackupStatusArgs, BackupStatusReturn } from './types.js';
+import { BackupCreateArgs, BackupReturn, BackupStatusArgs, BackupStatusReturn } from './types.js';
 
 /** The arguments required to create and restore backups. */
 export type BackupCollectionArgs = {
@@ -15,18 +15,8 @@ export type BackupCollectionArgs = {
 };
 
 /** The arguments required to create a backup of a collection. */
-export type BackupCollectionCreateArgs = BackupCollectionArgs & {
-  /**
-   * The ID of an existing backup to use as the base for a file-based incremental backup.
-   * If set, only the files that have changed since the base backup are included in the new backup.
-   *
-   * This is a plain backup ID string: either a literal, e.g. `'my-base-backup'`, or the `id`
-   * returned by a previous backup creation.
-   *
-   * Requires Weaviate `v1.37.0` or higher.
-   */
-  incrementalBaseBackupId?: string;
-};
+export type BackupCollectionCreateArgs = BackupCollectionArgs &
+  Pick<BackupCreateArgs, 'incrementalBaseBackupId'>;
 
 export const backupCollection = (
   connection: Connection,
@@ -54,8 +44,7 @@ export interface BackupCollection {
   /**
    * Create a backup of this collection.
    *
-   * Pass `incrementalBaseBackupId` to create a file-based incremental backup, which only
-   * contains the files that changed since the given base backup. Requires Weaviate `v1.37.0` or higher.
+   * Set `incrementalBaseBackupId` for a file-based incremental backup (Weaviate `v1.37.0` or higher).
    *
    * @param {BackupCollectionCreateArgs} args The arguments for the request.
    * @returns {Promise<BackupReturn>} The response from Weaviate.
