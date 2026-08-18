@@ -1430,6 +1430,7 @@ describe('Unit testing of the vectorizer factory class', () => {
     const config = configure.vectors.text2VecGoogle({
       name: 'test',
       apiEndpoint: 'api-endpoint',
+      location: 'us-central1',
       model: 'model-id',
       projectId: 'project-id',
     });
@@ -1439,6 +1440,7 @@ describe('Unit testing of the vectorizer factory class', () => {
         name: 'text2vec-google',
         config: {
           apiEndpoint: 'api-endpoint',
+          location: 'us-central1',
           model: 'model-id',
           modelId: 'model-id',
           projectId: 'project-id',

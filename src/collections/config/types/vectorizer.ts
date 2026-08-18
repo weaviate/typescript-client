@@ -610,6 +610,8 @@ export type Text2VecGoogleConfig = {
   apiEndpoint?: string;
   /** The dimensionality of the vector once embedded. */
   dimensions?: number;
+  /** The location where the model runs, i.e. the Google Vertex AI region. Must match `apiEndpoint`. */
+  location?: string;
   /** The model ID to use. */
   model?: string;
   /** The model ID to use.
