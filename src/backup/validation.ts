@@ -45,3 +45,19 @@ export function validateBackupId(backupId?: string) {
   }
   return [];
 }
+
+export function validateIncrementalBaseBackupId(incrementalBaseBackupId?: string, backupId?: string) {
+  if (incrementalBaseBackupId === undefined || incrementalBaseBackupId === null) {
+    return [];
+  }
+  if (!isValidStringProperty(incrementalBaseBackupId)) {
+    return [
+      'string incrementalBaseBackupId must be a non-empty string - set with .withIncrementalBaseBackupId(backupId)',
+    ];
+  }
+  // Weaviate treats backup IDs as case-insensitive, so 'B1' and 'b1' name the same backup.
+  if (incrementalBaseBackupId.toLowerCase() === backupId?.toLowerCase()) {
+    return ['incrementalBaseBackupId must be different from the ID of the backup being created'];
+  }
+  return [];
+}

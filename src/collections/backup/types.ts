@@ -16,6 +16,14 @@ export type BackupStatusReturn = {
   status: BackupStatus;
   /** Size of the backup in Gibs */
   size?: number;
+  /**
+   * The ID of the base backup an incremental backup was built on.
+   *
+   * Undefined when the backup is not incremental. Also undefined for an incremental backup when the
+   * caller is not a root user, when the server is older than `v1.37.6`, and on the return of
+   * `create()` without `waitForCompletion` — the create response carries no such field.
+   */
+  incrementalBaseBackupId?: string;
 };
 
 /** The return type of a backup creation or restoration operation */
@@ -62,6 +70,12 @@ export type BackupArgs<C extends BackupConfigCreate | BackupConfigRestore> = {
   waitForCompletion?: boolean;
   /** The configuration options for the backup. */
   config?: C;
+};
+
+/** The arguments required to create a backup. */
+export type BackupCreateArgs = BackupArgs<BackupConfigCreate> & {
+  /** The ID of an existing backup to build a file-based incremental backup on. Files identical to the base are not copied and are restored from the base instead, so deleting a base backup breaks every incremental built on it. Requires Weaviate `v1.37.0` or higher. */
+  incrementalBaseBackupId?: string;
 };
 
 /** The arguments required to get the status of a backup. */

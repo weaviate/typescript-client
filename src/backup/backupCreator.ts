@@ -1,11 +1,12 @@
 import Connection from '../connection/index.js';
-import { WeaviateInvalidInputError } from '../errors.js';
+import { WeaviateInvalidInputError, WeaviateUnsupportedFeatureError } from '../errors.js';
 import {
   BackupConfig,
   BackupCreateRequest,
   BackupCreateResponse,
   BackupCreateStatusResponse,
 } from '../openapi/types.js';
+import { DbVersionSupport } from '../utils/dbVersion.js';
 import { CommandBase } from '../validation/commandBase.js';
 import BackupCreateStatusGetter from './backupCreateStatusGetter.js';
 import { Backend } from './index.js';
@@ -14,6 +15,7 @@ import {
   validateBackupId,
   validateExcludeClassNames,
   validateIncludeClassNames,
+  validateIncrementalBaseBackupId,
 } from './validation.js';
 
 const WAIT_INTERVAL = 1000;
@@ -26,10 +28,17 @@ export default class BackupCreator extends CommandBase {
   private statusGetter: BackupCreateStatusGetter;
   private waitForCompletion!: boolean;
   private config?: BackupConfig;
+  private incrementalBaseBackupId?: string;
+  private dbVersionSupport?: DbVersionSupport;
 
-  constructor(client: Connection, statusGetter: BackupCreateStatusGetter) {
+  constructor(
+    client: Connection,
+    statusGetter: BackupCreateStatusGetter,
+    dbVersionSupport?: DbVersionSupport
+  ) {
     super(client);
     this.statusGetter = statusGetter;
+    this.dbVersionSupport = dbVersionSupport;
   }
 
   withIncludeClassNames(...classNames: string[]) {
@@ -70,12 +79,27 @@ export default class BackupCreator extends CommandBase {
     return this;
   }
 
+  /**
+   * The ID of an existing backup to use as the base for a file-based incremental backup. Files
+   * that are identical to the base backup are not copied and are restored from the base instead,
+   * so deleting a base backup breaks every incremental backup built on it.
+   *
+   * Requires Weaviate v1.37.0 or higher.
+   */
+  withIncrementalBaseBackupId(backupId: string) {
+    // Weaviate lowercases backup IDs, so normalize here: the payload matches what the server
+    // stores, and validate() compares like for like.
+    this.incrementalBaseBackupId = typeof backupId === 'string' ? backupId.toLowerCase() : backupId;
+    return this;
+  }
+
   validate = (): void => {
     this.addErrors([
       ...validateIncludeClassNames(this.includeClassNames),
       ...validateExcludeClassNames(this.excludeClassNames),
       ...validateBackend(this.backend),
       ...validateBackupId(this.backupId),
+      ...validateIncrementalBaseBackupId(this.incrementalBaseBackupId, this.backupId),
     ]);
   };
 
@@ -90,12 +114,29 @@ export default class BackupCreator extends CommandBase {
       config: this.config,
       include: this.includeClassNames,
       exclude: this.excludeClassNames,
+      incremental_base_backup_id: this.incrementalBaseBackupId,
     } as BackupCreateRequest;
 
-    if (this.waitForCompletion) {
-      return this._createAndWaitForCompletion(payload);
+    return this.checkIncrementalSupport().then(() =>
+      this.waitForCompletion ? this._createAndWaitForCompletion(payload) : this._create(payload)
+    );
+  };
+
+  /**
+   * Weaviate below v1.37.0 ignores `incremental_base_backup_id` and silently writes a full backup,
+   * so fail loudly rather than hand back something other than what was asked for.
+   *
+   * No-op when the creator was built without a version provider, or for non-incremental backups.
+   */
+  private checkIncrementalSupport = (): Promise<void> => {
+    if (this.incrementalBaseBackupId === undefined || this.dbVersionSupport === undefined) {
+      return Promise.resolve();
     }
-    return this._create(payload);
+    return this.dbVersionSupport.supportsIncrementalBackups().then((check) => {
+      if (!check.supports) {
+        throw new WeaviateUnsupportedFeatureError(check.message);
+      }
+    });
   };
 
   _create = (payload: BackupCreateRequest): Promise<BackupCreateResponse> => {
