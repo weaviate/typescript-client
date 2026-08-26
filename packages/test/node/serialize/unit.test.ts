@@ -30,11 +30,14 @@ import {
   NearThermalSearch,
   NearVector,
   NearVideoSearch,
+  SearchOperatorOptions,
+  SearchOperatorOptions_Operator,
   Targets,
 } from '@weaviate/core/proto/v1/base_search';
 import { GenerativeSearch } from '@weaviate/core/proto/v1/generative';
 import { GroupBy, MetadataRequest, PropertiesRequest } from '@weaviate/core/proto/v1/search_get';
-import { TargetVectorInputType } from '@weaviate/core/query/types';
+import { Bm25OperatorOptions, TargetVectorInputType } from '@weaviate/core/query/types';
+import { Bm25Operator, Diversity } from '@weaviate/core/query/utils.js';
 import { Reference } from '@weaviate/core/references';
 import { DataGuards, Serialize } from '@weaviate/core/serialize';
 import sort from '@weaviate/core/sort';
@@ -148,15 +151,28 @@ describe('Unit testing of Serialize', () => {
     });
   });
 
-  it('should parse args for bm25', () => {
+  type Bm25EachOptions = { operator: Bm25OperatorOptions; want: SearchOperatorOptions };
+  it.each<Bm25EachOptions>([
+    { operator: Bm25Operator.and(), want: { operator: SearchOperatorOptions_Operator.OPERATOR_AND } },
+    {
+      operator: Bm25Operator.andCross(),
+      want: { operator: SearchOperatorOptions_Operator.OPERATOR_AND_CROSS },
+    },
+    {
+      operator: Bm25Operator.or({ minimumMatch: 4 }),
+      want: { operator: SearchOperatorOptions_Operator.OPERATOR_OR, minimumOrTokensMatch: 4 },
+    },
+  ])('should parse args for bm25', ({ operator, want }: Bm25EachOptions) => {
     const args = Serialize.search.bm25('test', {
       queryProperties: ['name'],
       autoLimit: 1,
+      operator: operator,
     });
     expect(args).toEqual<SearchBm25Args>({
       bm25Search: BM25.fromPartial({
         query: 'test',
         properties: ['name'],
+        searchOperator: want,
       }),
       autocut: 1,
       metadata: MetadataRequest.fromPartial({ uuid: true }),
@@ -207,6 +223,10 @@ describe('Unit testing of Serialize', () => {
         targetVector: 'title',
         fusionType: 'Ranked',
         maxVectorDistance: 0.4,
+        diversity: Diversity.mmr({
+          balance: 1,
+          limit: 2,
+        }),
       }
     );
     expect(args).toEqual<SearchHybridArgs>({
@@ -225,6 +245,12 @@ describe('Unit testing of Serialize', () => {
         },
         fusionType: Hybrid_FusionType.FUSION_TYPE_RANKED,
         vectorDistance: 0.4,
+        selection: {
+          mmr: {
+            balance: 1,
+            limit: 2,
+          },
+        },
       }),
       metadata: MetadataRequest.fromPartial({ uuid: true }),
     });

@@ -74,6 +74,8 @@ export type ReplicationDeletionStrategy =
 export type AsyncReplicationConfig = WeaviateAsyncReplicationConfig;
 
 export type ReplicationConfig = {
+  /** @deprecated From v1.38 onwards this setting is determined server-side
+   * and should be considered read-only.*/
   asyncEnabled: boolean;
   asyncConfig?: AsyncReplicationConfig;
   deletionStrategy: ReplicationDeletionStrategy;

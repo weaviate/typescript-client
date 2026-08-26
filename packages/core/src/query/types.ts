@@ -1,5 +1,11 @@
 import { FilterValue } from '../filters/index.js';
-import { CallOptions, DiversityConfig, MultiTargetVectorJoin, ReturnVectors } from '../index.js';
+import {
+  BoostOptions,
+  CallOptions,
+  DiversityConfig,
+  MultiTargetVectorJoin,
+  ReturnVectors,
+} from '../index.js';
 import { Sorting } from '../sort/classes.js';
 import {
   GroupByOptions,
@@ -61,6 +67,8 @@ export type SearchOptions<T, I> = {
   autoLimit?: number;
   /** The filters to be applied to the query. Use `weaviate.filter.*` to create filters */
   filters?: FilterValue;
+  /** Promote search results based on a boosting function. */
+  boost?: BoostOptions;
   /** How to rerank the query results. Requires a configured [reranking](https://weaviate.io/developers/weaviate/concepts/reranking) module. */
   rerank?: RerankOptions<T>;
   /** Whether to include the vector of the object in the response. If using named vectors, pass an array of strings to include only specific vectors. */
@@ -86,8 +94,9 @@ export type Bm25QueryProperty<T> = {
 
 export type Bm25OperatorOr = { operator: 'Or'; minimumMatch: number };
 export type Bm25OperatorAnd = { operator: 'And' };
+export type Bm25OperatorAndCross = { operator: 'AndCross' };
 
-export type Bm25OperatorOptions = Bm25OperatorOr | Bm25OperatorAnd;
+export type Bm25OperatorOptions = Bm25OperatorOr | Bm25OperatorAnd | Bm25OperatorAndCross;
 
 export type Bm25SearchOptions<T> = {
   /** Which properties of the collection to perform the keyword search on. */
@@ -122,6 +131,8 @@ export type HybridSearchOptions<T, V> = {
   /** The specific vector to search for or a specific vector subsearch. If not specified, the query is vectorized and used in the similarity search. */
   vector?: NearVectorInputType | HybridNearTextSubSearch | HybridNearVectorSubSearch;
   bm25Operator?: Bm25OperatorOptions;
+  /** Specify diversity selection algorithm. */
+  diversity?: DiversityConfig;
 };
 
 /** Base options available in the `query.hybrid` method */

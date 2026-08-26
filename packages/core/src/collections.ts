@@ -66,7 +66,9 @@ const collections = <TMedia>(
   const listAll = () =>
     new SchemaGetter(connection)
       .do()
-      .then((schema) => (schema.classes ? schema.classes.map(classToCollection<any>) : []));
+      .then((schema) =>
+        schema.classes ? (schema.classes as WeaviateClass[]).map(classToCollection<any>) : []
+      );
   const deleteCollection = (name: string) => new ClassDeleter(connection).withClassName(name).do();
   return {
     create: async function <

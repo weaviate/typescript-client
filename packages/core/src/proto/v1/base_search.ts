@@ -107,6 +107,8 @@ export enum SearchOperatorOptions_Operator {
   OPERATOR_UNSPECIFIED = 0,
   OPERATOR_OR = 1,
   OPERATOR_AND = 2,
+  /** OPERATOR_AND_CROSS - Fails unless every searched property shares the same tokenization and analyzer settings. */
+  OPERATOR_AND_CROSS = 3,
   UNRECOGNIZED = -1,
 }
 
@@ -121,6 +123,9 @@ export function searchOperatorOptions_OperatorFromJSON(object: any): SearchOpera
     case 2:
     case "OPERATOR_AND":
       return SearchOperatorOptions_Operator.OPERATOR_AND;
+    case 3:
+    case "OPERATOR_AND_CROSS":
+      return SearchOperatorOptions_Operator.OPERATOR_AND_CROSS;
     case -1:
     case "UNRECOGNIZED":
     default:
@@ -136,6 +141,8 @@ export function searchOperatorOptions_OperatorToJSON(object: SearchOperatorOptio
       return "OPERATOR_OR";
     case SearchOperatorOptions_Operator.OPERATOR_AND:
       return "OPERATOR_AND";
+    case SearchOperatorOptions_Operator.OPERATOR_AND_CROSS:
+      return "OPERATOR_AND_CROSS";
     case SearchOperatorOptions_Operator.UNRECOGNIZED:
     default:
       return "UNRECOGNIZED";

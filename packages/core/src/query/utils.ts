@@ -1,5 +1,18 @@
-import { DiversityConfig, MMR, MultiTargetVectorJoin, Vectors } from '../index.js';
+import { WeaviateInvalidInputError } from '../errors.js';
 import {
+  BoostOptions,
+  DiversityConfig,
+  FilterValue,
+  MMR,
+  MultiTargetVectorJoin,
+  NumericDecay,
+  PropertyValue,
+  TimeDecay,
+  Vectors,
+} from '../index.js';
+import {
+  Bm25OperatorAnd,
+  Bm25OperatorAndCross,
   Bm25OperatorOptions,
   Bm25OperatorOr,
   ListOfVectors,
@@ -67,9 +80,100 @@ export class TargetVectorInputGuards {
   }
 }
 
+export class Boost {
+  static filter(filter: FilterValue, args?: Pick<BoostOptions, 'weight' | 'depth'>): BoostOptions {
+    return {
+      ...args,
+      conditions: [
+        {
+          weight: args?.weight,
+          func: {
+            ...filter,
+            type: 'filter',
+          },
+        },
+      ],
+    };
+  }
+  static timeDecay(args: Omit<TimeDecay, 'type'> & Pick<BoostOptions, 'weight' | 'depth'>): BoostOptions {
+    const { weight, depth, ...func } = args;
+    return {
+      conditions: [
+        {
+          weight,
+          func: {
+            ...func,
+            type: 'timeDecay',
+          },
+        },
+      ],
+      weight,
+      depth,
+    };
+  }
+  static numericDecay(
+    args: Omit<NumericDecay, 'type'> & Pick<BoostOptions, 'weight' | 'depth'>
+  ): BoostOptions {
+    const { weight, depth, ...func } = args;
+    return {
+      conditions: [
+        {
+          weight,
+          func: {
+            ...func,
+            type: 'numericDecay',
+          },
+        },
+      ],
+      weight,
+      depth,
+    };
+  }
+  static numericProperty(
+    args: Omit<PropertyValue, 'type'> & Pick<BoostOptions, 'weight' | 'depth'>
+  ): BoostOptions {
+    const { weight, depth, ...func } = args;
+    return {
+      conditions: [
+        {
+          weight,
+          func: {
+            ...func,
+            type: 'propertyValue',
+          },
+        },
+      ],
+      weight,
+      depth,
+    };
+  }
+  static blend(boosts: BoostOptions[], options: Pick<BoostOptions, 'weight' | 'depth'>): BoostOptions {
+    const out: BoostOptions = { ...options, conditions: [] };
+    for (const boost of boosts) {
+      if (boost.depth) {
+        throw new WeaviateInvalidInputError('A boost passed to Boost.blend() cannot set its own depth.');
+      }
+      for (let cond of boost.conditions) {
+        if (!cond.weight && boost.weight) {
+          cond = {
+            ...cond,
+            weight: boost.weight,
+          };
+        }
+        out.conditions.push({ ...cond });
+      }
+    }
+    return out;
+  }
+}
+
 export class Bm25Operator {
-  static and(): Bm25OperatorOptions {
-    return { operator: 'And' };
+  static and(opts?: Omit<Bm25OperatorAnd, 'operator'>): Bm25OperatorOptions {
+    return { ...opts, operator: 'And' };
+  }
+
+  static andCross(opts?: Omit<Bm25OperatorAndCross, 'operator'>): Bm25OperatorOptions {
+    return { ...opts, operator: 'AndCross' };
   }
 
   static or(opts: Omit<Bm25OperatorOr, 'operator'>): Bm25OperatorOptions {
@@ -84,5 +188,9 @@ export class Diversity {
       ...args,
       type: 'mmr',
     };
+  }
+
+  static isMMR(args: DiversityConfig): args is MMR {
+    return args.type === 'mmr';
   }
 }

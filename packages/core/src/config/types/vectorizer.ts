@@ -27,6 +27,7 @@ export type Vectorizer =
   | 'multi2vec-google'
   | 'multi2vec-google-gemini'
   | 'multi2vec-jinaai'
+  | 'multi2vec-twelvelabs'
   | 'multi2multivec-jinaai'
   | 'multi2multivec-weaviate'
   | 'multi2vec-voyageai'
@@ -293,6 +294,27 @@ export type Multi2MultivecWeaviateConfig = {
   imageFields?: string[];
 };
 
+/** The configuration for multi-media vectorization using the TwelveLabs module.
+ *
+ * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/twelvelabs/embeddings-multimodal) for detailed usage.
+ */
+export type Multi2VecTwelveLabsConfig = {
+  /** The base URL to use where API requests should go. */
+  baseURL?: string;
+  /** The model to use. */
+  model?: string;
+  /** The image fields used when vectorizing. */
+  imageFields?: string[];
+  /** The text fields used when vectorizing. */
+  textFields?: string[];
+  /** The weights of the fields used for vectorization. */
+  weights?: {
+    /** The weights of the image fields. */
+    imageFields?: number[];
+    /** The weights of the text fields. */
+    textFields?: number[];
+  };
+};
 /** The configuration for multi-media vectorization using the Jina module.
  *
  * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/jinaai/embeddings-multimodal) for detailed usage.
@@ -381,6 +403,8 @@ export type Text2VecAWSConfig = {
   region: string;
   /** The AWS service to use. */
   service: 'sagemaker' | 'bedrock' | string;
+  /** The number of dimensions for the generated embeddings. ONLY for service `bedrock` with `amazon.*` models. */
+  dimensions?: number;
   /** Whether the collection name is vectorized. */
   vectorizeCollectionName?: boolean;
 };
@@ -586,6 +610,8 @@ export type Text2VecGoogleConfig = {
   apiEndpoint?: string;
   /** The dimensionality of the vector once embedded. */
   dimensions?: number;
+  /** The location where the model runs, i.e. the Google Vertex AI region. Must match `apiEndpoint`. */
+  location?: string;
   /** The model ID to use. */
   model?: string;
   /** The model ID to use.
@@ -728,6 +754,8 @@ export type VectorizerConfigType<V> = V extends 'img2vec-neural'
   ? Multi2VecGoogleGeminiConfig
   : V extends 'multi2vec-jinaai'
   ? Multi2VecJinaAIConfig | undefined
+  : V extends 'multi2vec-twelvelabs'
+  ? Multi2VecTwelveLabsConfig | undefined
   : V extends 'multi2multivec-jinaai'
   ? Multi2MultivecJinaAIConfig | undefined
   : V extends 'multi2multivec-weaviate'

@@ -710,6 +710,49 @@ describe('Unit testing of the vectorizer factory class', () => {
     });
   });
 
+  it('should create the correct Multi2VecTwelveLabsConfig type with defaults', () => {
+    const config = configure.vectors.multi2VecTwelveLabs();
+    expect(config).toEqual<VectorConfigCreate<never, undefined, 'hnsw', 'multi2vec-twelvelabs'>>({
+      name: undefined,
+      vectorizer: {
+        name: 'multi2vec-twelvelabs',
+        config: undefined,
+      },
+    });
+  });
+
+  it('should create the correct Multi2VecTwelveLabsConfig type with all values and weights', () => {
+    const config = configure.vectors.multi2VecTwelveLabs({
+      name: 'test',
+      baseURL: 'example.com',
+      model: 'marengo3.0',
+      imageFields: [
+        { name: 'field1', weight: 0.1 },
+        { name: 'field2', weight: 0.2 },
+      ],
+      textFields: [
+        { name: 'field3', weight: 0.3 },
+        { name: 'field4', weight: 0.4 },
+      ],
+    });
+    expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'multi2vec-twelvelabs'>>({
+      name: 'test',
+      vectorizer: {
+        name: 'multi2vec-twelvelabs',
+        config: {
+          baseURL: 'example.com',
+          model: 'marengo3.0',
+          imageFields: ['field1', 'field2'],
+          textFields: ['field3', 'field4'],
+          weights: {
+            imageFields: [0.1, 0.2],
+            textFields: [0.3, 0.4],
+          },
+        },
+      },
+    });
+  });
+
   it('should create the correct Multi2VecJinaAIConfig type with defaults', () => {
     const config = configure.vectors.multi2VecJinaAI();
     expect(config).toEqual<VectorConfigCreate<never, undefined, 'hnsw', 'multi2vec-jinaai'>>({
@@ -952,23 +995,43 @@ describe('Unit testing of the vectorizer factory class', () => {
     });
   });
 
-  it('should create the correct Text2VecAWSConfig type with all values', () => {
+  it('should create the correct Text2VecAWSConfig type for the bedrock service', () => {
     const config = configure.vectors.text2VecAWS({
       name: 'test',
-      endpoint: 'endpoint',
-      model: 'model',
-      region: 'region',
-      service: 'service',
+      model: 'amazon.titan-embed-text-v2:0',
+      region: 'us-east-1',
+      service: 'bedrock',
+      dimensions: 512,
     });
     expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'text2vec-aws'>>({
       name: 'test',
       vectorizer: {
         name: 'text2vec-aws',
         config: {
-          endpoint: 'endpoint',
-          model: 'model',
-          region: 'region',
-          service: 'service',
+          model: 'amazon.titan-embed-text-v2:0',
+          region: 'us-east-1',
+          service: 'bedrock',
+          dimensions: 512,
+        },
+      },
+    });
+  });
+
+  it('should create the correct Text2VecAWSConfig type for the sagemaker service', () => {
+    const config = configure.vectors.text2VecAWS({
+      name: 'test',
+      endpoint: 'my-tei-embeddings-endpoint',
+      region: 'us-east-1',
+      service: 'sagemaker',
+    });
+    expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'text2vec-aws'>>({
+      name: 'test',
+      vectorizer: {
+        name: 'text2vec-aws',
+        config: {
+          endpoint: 'my-tei-embeddings-endpoint',
+          region: 'us-east-1',
+          service: 'sagemaker',
         },
       },
     });
@@ -1365,6 +1428,7 @@ describe('Unit testing of the vectorizer factory class', () => {
     const config = configure.vectors.text2VecGoogle({
       name: 'test',
       apiEndpoint: 'api-endpoint',
+      location: 'us-central1',
       model: 'model-id',
       projectId: 'project-id',
     });
@@ -1374,6 +1438,7 @@ describe('Unit testing of the vectorizer factory class', () => {
         name: 'text2vec-google',
         config: {
           apiEndpoint: 'api-endpoint',
+          location: 'us-central1',
           model: 'model-id',
           modelId: 'model-id',
           projectId: 'project-id',

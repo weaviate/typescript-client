@@ -1,10 +1,17 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
 import { WeaviateUnsupportedFeatureError } from '@weaviate/core/errors';
-import { Bm25Operator, Diversity } from '@weaviate/core/query';
-import { CrossReference, Reference } from '@weaviate/core/references';
-import { GroupByOptions } from '@weaviate/core/types';
-import weaviate, { Collection, WeaviateClient } from '@weaviate/node';
+import weaviate, {
+  Bm25Operator,
+  Boost,
+  Collection,
+  CrossReference,
+  Diversity,
+  GroupByOptions,
+  Reference,
+  WeaviateClient,
+  WeaviateReturn,
+} from '@weaviate/node';
 import { AbortError } from 'abort-controller-x';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { requireAtLeast } from '../../version';
@@ -317,6 +324,126 @@ describe('Testing of the collection.query methods with a simple collection', () 
     expect(ret.queryProfile?.shards[0].searches.vector).toBeDefined();
     expect(ret.queryProfile?.shards[0].searches.keyword).toBeDefined();
     expect(ret.queryProfile?.shards[0].searches.object).toBeUndefined();
+  });
+});
+
+requireAtLeast(1, 38, 0).describe('Testing of collection.query methods with boost parameter', () => {
+  const collectionName = 'TestCollectionQueryBoost';
+  let client: WeaviateClient;
+  let collection: Collection<
+    { category: string; createdAt: Date; position: number },
+    'TestCollectionQueryBoost'
+  >;
+
+  afterAll(() => {
+    return client.collections.delete(collectionName).catch((err) => {
+      console.error(err);
+      throw err;
+    });
+  });
+
+  beforeAll(async () => {
+    client = await weaviate.connectToLocal();
+    collection = await client.collections.create({
+      name: collectionName,
+      properties: [
+        {
+          name: 'category',
+          dataType: 'text',
+        },
+        {
+          name: 'createdAt',
+          dataType: 'date',
+        },
+        {
+          name: 'position',
+          dataType: 'int',
+        },
+      ],
+      vectorizers: weaviate.configure.vectors.selfProvided(),
+    });
+    return collection.data
+      .insertMany([
+        {
+          properties: {
+            category: 'red',
+            createdAt: new Date(Date.now()),
+            position: 12523,
+          },
+          vectors: [4, 5, 6],
+        },
+        {
+          properties: {
+            category: 'blue',
+            createdAt: new Date(Date.now()),
+            position: 3242,
+          },
+          vectors: [1, 2, 3],
+        },
+        {
+          properties: {
+            category: 'green',
+            createdAt: new Date(Date.now()),
+            position: 1205048489,
+          },
+          vectors: [1, 2, 3],
+        },
+      ])
+      .catch((err) => console.error(err));
+  });
+
+  const ids = (ret: WeaviateReturn<any, any>): string[] => {
+    const out: string[] = [];
+    for (const obj of ret.objects) {
+      out.push(obj.uuid);
+    }
+    return out;
+  };
+
+  it.each([
+    {
+      name: 'filter',
+      boost: Boost.filter(
+        { target: { property: 'category' }, operator: 'Equal', value: 'red' },
+        { weight: 1 }
+      ),
+    },
+    {
+      name: 'timeDecay',
+      boost: Boost.timeDecay({
+        property: 'createdAt',
+        origin: '2024-01-01T00:00:00Z',
+        scale: '35d',
+        curve: 'exponential',
+        decay: 0.2,
+        weight: 1,
+      }),
+    },
+    {
+      name: 'numericDecay',
+      boost: Boost.numericDecay({
+        property: 'position',
+        origin: 10,
+        scale: 3234,
+        curve: 'gaussian',
+        decay: 0.1,
+        weight: 1,
+      }),
+    },
+    {
+      name: 'numericProperty',
+      boost: Boost.numericProperty({
+        property: 'position',
+        modifier: 'log1p',
+        weight: 1,
+      }),
+    },
+  ])('$name', async ({ boost }) => {
+    const baseline = ids(await collection.query.nearVector([1, 2, 3]));
+    expect(baseline).toHaveLength(3);
+
+    const boosted = ids(await collection.query.nearVector([1, 2, 3], { boost }));
+    expect(boosted).not.toEqual(baseline);
   });
 });
 

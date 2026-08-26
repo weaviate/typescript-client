@@ -16,6 +16,7 @@ import {
   NearVideoSearch,
 } from '../proto/v1/base_search.js';
 import {
+  Boost,
   GroupBy,
   MetadataRequest,
   PropertiesRequest,
@@ -49,6 +50,7 @@ export type BaseSearchArgs = {
   offset?: number;
   autocut?: number;
   filters?: Filters;
+  boost?: Boost;
   rerank?: Rerank;
   metadata?: MetadataRequest;
   properties?: PropertiesRequest;
