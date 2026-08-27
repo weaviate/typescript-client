@@ -137,7 +137,7 @@ jobs:
           registry-url: "https://registry.npmjs.org"
       - run: npm run ci:publish
       - run: npm run build:client
-      - run: npm publish ./stage/weaviate-client
+      - run: npm publish ./stage/weaviate-client --tag "$(node -p "require('./stage/weaviate-client/package.json').publishConfig.tag")"
       - run: npm run docs
       - name: "Upload docs as pages artifact"
         uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3
