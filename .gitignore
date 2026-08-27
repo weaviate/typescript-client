@@ -13,3 +13,5 @@ test.sh
 scratch/
 docs/
 dist/
+stage/
+**/dist
