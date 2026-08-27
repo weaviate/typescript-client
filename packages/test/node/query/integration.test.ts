@@ -367,7 +367,7 @@ requireAtLeast(1, 38, 0).describe('Testing of collection.query methods with boos
         {
           properties: {
             category: 'red',
-            createdAt: new Date(Date.now()),
+            createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 14), // 14 days ago
             position: 12523,
           },
           vectors: [4, 5, 6],
@@ -375,7 +375,7 @@ requireAtLeast(1, 38, 0).describe('Testing of collection.query methods with boos
         {
           properties: {
             category: 'blue',
-            createdAt: new Date(Date.now()),
+            createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7), // 7 days ago
             position: 3242,
           },
           vectors: [1, 2, 3],
