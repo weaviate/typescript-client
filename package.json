@@ -1,6 +1,6 @@
 {
   "name": "weaviate-client",
-  "version": "3.14.0",
+  "version": "3.15.0-alpha.0",
   "description": "JS/TS client for Weaviate",
   "type": "module",
   "engines": {
@@ -30,6 +30,9 @@
     "build:web": "pnpm --filter @weaviate/web... run build",
     "check:web": "pnpm --filter @weaviate/web... run check",
     "build": "npm run build:core && npm run build:node && npm run build:web && npm run check:web",
+    "generate:version": "node ./scripts/gen-version.mjs",
+    "stage:client": "node ./scripts/stage-client.mjs",
+    "build:client": "npm run generate:version && npm run build:core && npm run build:node && npm run stage:client",
     "ci:checks": "npm run install:core && npm run build:core && npm run install:node && npm run install:web",
     "ci:test": "npm run ci:checks && npm run build:core && npm run build:node && npm run build:web && npm run install:test",
     "ci:publish": "npm run ci:checks"
