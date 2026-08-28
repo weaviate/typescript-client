@@ -16,11 +16,7 @@ services:
       - 50062:50051
     restart: on-failure:0
     environment:
-      # backup-filesystem is enabled here so that backup behaviour which Weaviate only exposes to
-      # root users (e.g. incremental_base_backup_id) can be tested; ci/docker-compose-backup.yml
-      # is anonymous and therefore never has a root caller.
-      ENABLE_MODULES: "generative-dummy,reranker-dummy,backup-filesystem"
-      BACKUP_FILESYSTEM_PATH: "/tmp/backups"
+      ENABLE_MODULES: "generative-dummy,reranker-dummy"
       PERSISTENCE_DATA_PATH: "./data-weaviate-0"
       CLUSTER_IN_LOCALHOST: "true"
       CLUSTER_GOSSIP_BIND_PORT: "7100"
