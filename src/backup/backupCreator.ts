@@ -15,7 +15,6 @@ import {
   validateBackupId,
   validateExcludeClassNames,
   validateIncludeClassNames,
-  validateIncrementalBaseBackupId,
 } from './validation.js';
 
 const WAIT_INTERVAL = 1000;
@@ -80,16 +79,12 @@ export default class BackupCreator extends CommandBase {
   }
 
   /**
-   * The ID of an existing backup to use as the base for a file-based incremental backup. Files
-   * that are identical to the base backup are not copied and are restored from the base instead,
-   * so deleting a base backup breaks every incremental backup built on it.
-   *
-   * Requires Weaviate v1.37.0 or higher.
+   * The ID of an existing backup to build a file-based incremental backup on. Unchanged files are
+   * restored from the base, so deleting a base backup breaks every incremental built on it.
+   * Requires Weaviate `v1.37.0` or higher.
    */
   withIncrementalBaseBackupId(backupId: string) {
-    // Weaviate lowercases backup IDs, so normalize here: the payload matches what the server
-    // stores, and validate() compares like for like.
-    this.incrementalBaseBackupId = typeof backupId === 'string' ? backupId.toLowerCase() : backupId;
+    this.incrementalBaseBackupId = backupId;
     return this;
   }
 
@@ -99,7 +94,6 @@ export default class BackupCreator extends CommandBase {
       ...validateExcludeClassNames(this.excludeClassNames),
       ...validateBackend(this.backend),
       ...validateBackupId(this.backupId),
-      ...validateIncrementalBaseBackupId(this.incrementalBaseBackupId, this.backupId),
     ]);
   };
 
@@ -124,9 +118,7 @@ export default class BackupCreator extends CommandBase {
 
   /**
    * Weaviate below v1.37.0 ignores `incremental_base_backup_id` and silently writes a full backup,
-   * so fail loudly rather than hand back something other than what was asked for.
-   *
-   * No-op when the creator was built without a version provider, or for non-incremental backups.
+   * so fail loudly instead. No-op without a version provider, or for non-incremental backups.
    */
   private checkIncrementalSupport = (): Promise<void> => {
     if (this.incrementalBaseBackupId === undefined || this.dbVersionSupport === undefined) {

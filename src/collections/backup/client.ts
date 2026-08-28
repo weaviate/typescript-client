@@ -5,11 +5,7 @@ import {
   BackupRestoreStatusGetter,
   BackupRestorer,
 } from '../../backup/index.js';
-import {
-  validateBackend,
-  validateBackupId,
-  validateIncrementalBaseBackupId,
-} from '../../backup/validation.js';
+import { validateBackend, validateBackupId } from '../../backup/validation.js';
 import Connection from '../../connection/index.js';
 import {
   WeaviateBackupCanceled,
@@ -30,8 +26,8 @@ import { DbVersionSupport } from '../../utils/dbVersion.js';
 import {
   BackupArgs,
   BackupCancelArgs,
+  BackupConfigCreate,
   BackupConfigRestore,
-  BackupCreateArgs,
   BackupReturn,
   BackupStatusArgs,
   BackupStatusReturn,
@@ -39,7 +35,7 @@ import {
 } from './types.js';
 
 export const backup = (connection: Connection, dbVersionSupport: DbVersionSupport): Backup => {
-  const parseStatus = (res: BackupCreateStatusResponse | BackupRestoreResponse): BackupStatusReturn => {
+  const parseStatus = (res: BackupCreateStatusResponse & BackupRestoreResponse): BackupStatusReturn => {
     if (res.id === undefined) {
       throw new WeaviateUnexpectedResponseError('Backup ID is undefined in response');
     }
@@ -54,11 +50,8 @@ export const backup = (connection: Connection, dbVersionSupport: DbVersionSuppor
       error: res.error,
       path: res.path,
       status: res.status,
-      // Restore responses carry neither of these fields; see BackupStatusReturn for when Weaviate
-      // omits `incremental_base_backup_id` from a create status.
-      size: 'size' in res ? res.size : undefined,
-      incrementalBaseBackupId:
-        'incremental_base_backup_id' in res ? res.incremental_base_backup_id || undefined : undefined,
+      size: res.size,
+      incrementalBaseBackupId: res.incremental_base_backup_id || undefined,
     };
   };
   const parseResponse = (res: BackupCreateResponse | BackupRestoreResponse): BackupReturn => {
@@ -121,21 +114,12 @@ export const backup = (connection: Connection, dbVersionSupport: DbVersionSuppor
 
       return true;
     },
-    create: async (args: BackupCreateArgs): Promise<BackupReturn> => {
-      let builder = new BackupCreator(connection, new BackupCreateStatusGetter(connection))
+    create: async (args: BackupArgs<BackupConfigCreate>): Promise<BackupReturn> => {
+      let builder = new BackupCreator(connection, new BackupCreateStatusGetter(connection), dbVersionSupport)
         .withBackupId(args.backupId)
         .withBackend(args.backend);
-      if (args.incrementalBaseBackupId !== undefined) {
-        const errors = validateIncrementalBaseBackupId(args.incrementalBaseBackupId, args.backupId);
-        if (errors.length > 0) {
-          throw new WeaviateInvalidInputError(errors.join(', '));
-        }
-        const check = await dbVersionSupport.supportsIncrementalBackups();
-        if (!check.supports) {
-          throw new WeaviateUnsupportedFeatureError(check.message);
-        }
-        // The builder lowercases the ID to match how Weaviate stores it.
-        builder = builder.withIncrementalBaseBackupId(args.incrementalBaseBackupId);
+      if (args.config?.incrementalBaseBackupId !== undefined) {
+        builder = builder.withIncrementalBaseBackupId(args.config.incrementalBaseBackupId);
       }
       if (args.includeCollections) {
         builder = builder.withIncludeClassNames(...args.includeCollections);
@@ -153,6 +137,8 @@ export const backup = (connection: Connection, dbVersionSupport: DbVersionSuppor
       try {
         res = await builder.do();
       } catch (err) {
+        // The version gate rejects before anything is sent, so it is not a backup failure.
+        if (err instanceof WeaviateUnsupportedFeatureError) throw err;
         throw new WeaviateBackupFailed(`Backup creation failed: ${err}`, 'creation');
       }
       if (res.status === 'FAILED') {
@@ -260,16 +246,13 @@ export interface Backup {
   /**
    * Create a backup of the database.
    *
-   * Set `incrementalBaseBackupId` for a file-based incremental backup (Weaviate `v1.37.0` or higher).
-   *
-   * @param {BackupCreateArgs} args The arguments for the request.
+   * @param {BackupArgs} args The arguments for the request.
    * @returns {Promise<BackupReturn>} The response from Weaviate.
    * @throws {WeaviateInvalidInputError} If the input is invalid.
-   * @throws {WeaviateUnsupportedFeatureError} If `incrementalBaseBackupId` is used with Weaviate <1.37.0.
    * @throws {WeaviateBackupFailed} If the backup creation fails.
    * @throws {WeaviateBackupCanceled} If the backup creation is canceled.
    */
-  create(args: BackupCreateArgs): Promise<BackupReturn>;
+  create(args: BackupArgs<BackupConfigCreate>): Promise<BackupReturn>;
   /**
    * Get the status of a backup creation.
    *
