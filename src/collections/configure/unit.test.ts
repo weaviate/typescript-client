@@ -8,6 +8,7 @@ import {
   GenerativeCohereConfig,
   GenerativeContextualAIConfig,
   GenerativeDatabricksConfig,
+  GenerativeDeepseekConfig,
   GenerativeFriendliAIConfig,
   GenerativeGoogleConfig,
   GenerativeMistralConfig,
@@ -2043,6 +2044,40 @@ describe('Unit testing of the generative factory class', () => {
         maxTokens: 100,
         temperature: 0.5,
         topK: 10,
+        topP: 0.8,
+      },
+    });
+  });
+
+  it('should create the correct GenerativeDeepseekConfig type with required & default values', () => {
+    const config = configure.generative.deepseek();
+    expect(config).toEqual<ModuleConfig<'generative-deepseek', GenerativeDeepseekConfig | undefined>>({
+      name: 'generative-deepseek',
+      config: undefined,
+    });
+  });
+
+  it('should create the correct GenerativeDeepseekConfig type with all values', () => {
+    const config = configure.generative.deepseek({
+      baseURL: 'base-url',
+      frequencyPenalty: 0.2,
+      maxTokens: 100,
+      model: 'model',
+      presencePenalty: 0.3,
+      stop: ['stop'],
+      temperature: 0.5,
+      topP: 0.8,
+    });
+    expect(config).toEqual<ModuleConfig<'generative-deepseek', GenerativeDeepseekConfig | undefined>>({
+      name: 'generative-deepseek',
+      config: {
+        baseURL: 'base-url',
+        frequencyPenalty: 0.2,
+        maxTokens: 100,
+        model: 'model',
+        presencePenalty: 0.3,
+        stop: ['stop'],
+        temperature: 0.5,
         topP: 0.8,
       },
     });
