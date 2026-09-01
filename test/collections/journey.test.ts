@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import weaviate, { CollectionConfig, WeaviateClient } from '../../src/index.js';
+import weaviate, { CollectionConfig, VectorIndexConfigHNSW, WeaviateClient } from '../../src/index.js';
 import { GeoCoordinate } from '../../src/proto/v1/properties.js';
 
 describe('Journey testing of the client using a WCD cluster', () => {
@@ -56,6 +56,9 @@ describe('Journey testing of the client using a WCD cluster', () => {
       .get(collectionName)
       .config.get()
       .then(async (config) => {
+        // Defaults on the shared WCD cluster change over time; keep assertions here tolerant.
+        const { quantizer } = config.vectorizers.default.indexConfig as VectorIndexConfigHNSW;
+        expect(['rq', undefined]).toContain(quantizer?.type);
         expect(config).toEqual<CollectionConfig>({
           name: collectionName,
           description: undefined,
@@ -202,7 +205,7 @@ describe('Journey testing of the client using a WCD cluster', () => {
                 multiVector: undefined,
                 skip: false,
                 vectorCacheMaxObjects: 1000000000000,
-                quantizer: undefined,
+                quantizer,
                 type: 'hnsw',
               },
               indexType: 'hnsw',
