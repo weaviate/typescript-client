@@ -286,6 +286,36 @@ describe('Unit testing of the configure & reconfigure factory classes', () => {
     });
   });
 
+  it('should create the correct RQConfigCreate type with all values including centering', () => {
+    const quantizer = configure.vectorIndex.quantizer.rq({
+      bits: 4,
+      centering: true,
+      rescoreLimit: 500,
+      trainingLimit: 1000,
+    });
+    expect(quantizer).toEqual({
+      bits: 4,
+      centering: true,
+      rescoreLimit: 500,
+      trainingLimit: 1000,
+      type: 'rq',
+    });
+  });
+
+  it('should create the correct RQConfigUpdate type with all values including centering', () => {
+    const quantizer = reconfigure.vectorIndex.quantizer.rq({
+      centering: false,
+      rescoreLimit: 750,
+      trainingLimit: 2000,
+    });
+    expect(quantizer).toEqual({
+      centering: false,
+      rescoreLimit: 750,
+      trainingLimit: 2000,
+      type: 'rq',
+    });
+  });
+
   it('should create the correct hfresh VectorIndexConfig type with defaults', () => {
     const config = configure.vectorIndex.hfresh({ quantizer: configure.vectorIndex.quantizer.rq() });
     expect(config).toEqual<ModuleConfig<'hfresh', VectorIndexConfigHFreshCreate | undefined>>({
