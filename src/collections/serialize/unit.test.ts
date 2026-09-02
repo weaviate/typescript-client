@@ -34,7 +34,7 @@ import {
   Targets,
 } from '../../proto/v1/base_search.js';
 import { GenerativeSearch } from '../../proto/v1/generative.js';
-import { GroupBy, MetadataRequest, PropertiesRequest } from '../../proto/v1/search_get.js';
+import { Boost_DecayCurve, GroupBy, MetadataRequest, PropertiesRequest } from '../../proto/v1/search_get.js';
 import { Filters as FiltersFactory } from '../filters/classes.js';
 import filter from '../filters/index.js';
 import { Bm25OperatorOptions, TargetVectorInputType } from '../query/types.js';
@@ -1034,9 +1034,6 @@ describe('Unit testing of Serialize', () => {
   });
 
   describe('.boostGRPC', () => {
-    // Regression coverage: `decay` was being spread into `fromPartial({...})` unchanged,
-    // but the generated proto type only recognizes `decayValue`, so `fromPartial` silently
-    // dropped it and the value never reached the wire. See weaviate/typescript-client#470.
     it('should map TimeDecay.decay onto the proto decayValue field', () => {
       const out = Serialize.boostGRPC({
         conditions: [
@@ -1052,7 +1049,23 @@ describe('Unit testing of Serialize', () => {
           },
         ],
       });
-      expect(out.conditions[0].timeDecay?.decayValue).toEqual(0.2);
+      expect(out).toEqual({
+        weight: undefined,
+        depth: undefined,
+        conditions: [
+          {
+            weight: undefined,
+            timeDecay: {
+              property: 'createdAt',
+              origin: '2024-01-01T00:00:00Z',
+              scale: '35d',
+              offset: undefined,
+              curve: Boost_DecayCurve.DECAY_CURVE_EXPONENTIAL,
+              decayValue: 0.2,
+            },
+          },
+        ],
+      });
     });
 
     it('should map NumericDecay.decay onto the proto decayValue field', () => {
