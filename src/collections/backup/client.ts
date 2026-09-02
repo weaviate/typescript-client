@@ -23,8 +23,8 @@ import {
 import {
   BackupArgs,
   BackupCancelArgs,
-  BackupConfigCreate,
   BackupConfigRestore,
+  BackupCreateArgs,
   BackupReturn,
   BackupStatusArgs,
   BackupStatusReturn,
@@ -47,6 +47,7 @@ export const backup = (connection: Connection): Backup => {
       error: res.error,
       path: res.path,
       status: res.status,
+      baseBackupId: 'incremental_base_backup_id' in res ? res.incremental_base_backup_id : undefined,
     };
   };
   const parseResponse = (res: BackupCreateResponse | BackupRestoreResponse): BackupReturn => {
@@ -109,10 +110,11 @@ export const backup = (connection: Connection): Backup => {
 
       return true;
     },
-    create: async (args: BackupArgs<BackupConfigCreate>): Promise<BackupReturn> => {
+    create: async (args: BackupCreateArgs): Promise<BackupReturn> => {
       let builder = new BackupCreator(connection, new BackupCreateStatusGetter(connection))
         .withBackupId(args.backupId)
-        .withBackend(args.backend);
+        .withBackend(args.backend)
+        .withBaseBackupId(args.baseBackupId);
       if (args.includeCollections) {
         builder = builder.withIncludeClassNames(...args.includeCollections);
       }
@@ -208,12 +210,15 @@ export const backup = (connection: Connection): Backup => {
           }
         : parseResponse(res);
     },
-    list: (backend: Backend, opts?: ListBackupOptions): Promise<BackupReturn[]> => {
+    list: async (backend: Backend, opts?: ListBackupOptions): Promise<BackupReturn[]> => {
       let url = `/backups/${backend}`;
       if (opts?.startedAtAsc) {
         url += '?order=asc';
       }
-      return connection.get<BackupReturn[]>(url);
+      const res = await connection.get<(BackupReturn & { incremental_base_backup_id?: string })[]>(url);
+      return res.map(({ incremental_base_backup_id: baseBackupId, ...rest }) =>
+        baseBackupId !== undefined ? { ...rest, baseBackupId } : rest
+      );
     },
   };
 };
@@ -231,13 +236,16 @@ export interface Backup {
   /**
    * Create a backup of the database.
    *
-   * @param {BackupArgs} args The arguments for the request.
+   * Pass `baseBackupId` to create an incremental backup on top of an existing one;
+   * only files that changed since the base backup are written.
+   *
+   * @param {BackupCreateArgs} args The arguments for the request.
    * @returns {Promise<BackupReturn>} The response from Weaviate.
    * @throws {WeaviateInvalidInputError} If the input is invalid.
    * @throws {WeaviateBackupFailed} If the backup creation fails.
    * @throws {WeaviateBackupCanceled} If the backup creation is canceled.
    */
-  create(args: BackupArgs<BackupConfigCreate>): Promise<BackupReturn>;
+  create(args: BackupCreateArgs): Promise<BackupReturn>;
   /**
    * Get the status of a backup creation.
    *

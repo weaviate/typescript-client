@@ -16,6 +16,13 @@ export type BackupStatusReturn = {
   status: BackupStatus;
   /** Size of the backup in Gibs */
   size?: number;
+  /**
+   * The ID of the backup this incremental backup was built on.
+   * Empty if the backup is not incremental.
+   *
+   * Only populated for callers that Weaviate has confirmed as root users.
+   */
+  baseBackupId?: string;
 };
 
 /** The return type of a backup creation or restoration operation */
@@ -62,6 +69,17 @@ export type BackupArgs<C extends BackupConfigCreate | BackupConfigRestore> = {
   waitForCompletion?: boolean;
   /** The configuration options for the backup. */
   config?: C;
+};
+
+/** The arguments required to create a backup. */
+export type BackupCreateArgs = BackupArgs<BackupConfigCreate> & {
+  /**
+   * The ID of an existing backup to use as the base for a file-based incremental backup.
+   * If set, only files that have changed since the base backup are included in the new backup.
+   *
+   * Requires Weaviate `1.34.18`/`1.35.13`/`1.36.3` or higher.
+   */
+  baseBackupId?: string;
 };
 
 /** The arguments required to get the status of a backup. */

@@ -186,3 +186,120 @@ describe('Mock testing of backup cancellation', () => {
 
   afterAll(() => mock.close());
 });
+
+const BASE_BACKUP_ID = 'test-base-backup-456';
+
+class IncrementalMock {
+  private grpc: GrpcServer;
+  private http: HttpServer;
+  /** Body of the most recent backup creation request. */
+  static createRequest: Record<string, any>;
+
+  constructor(grpc: GrpcServer, http: HttpServer) {
+    this.grpc = grpc;
+    this.http = http;
+  }
+
+  public static use = async (version: string, httpPort: number, grpcPort: number) => {
+    const httpApp = express();
+    httpApp.use(express.json());
+    httpApp.get('/v1/meta', (req, res) => res.send({ version }));
+
+    httpApp.post(`/v1/backups/${BACKEND}`, (req, res: Response<BackupCreateResponse, any>) => {
+      IncrementalMock.createRequest = req.body;
+      res.send({
+        id: BACKUP_ID,
+        backend: BACKEND,
+        path: 'path/to/backup',
+        status: 'STARTED',
+      });
+    });
+
+    // Weaviate only returns incremental_base_backup_id to root users.
+    httpApp.get(`/v1/backups/${BACKEND}/${BACKUP_ID}`, (req, res) =>
+      res.send({
+        id: BACKUP_ID,
+        backend: BACKEND,
+        path: 'path/to/backup',
+        status: 'SUCCESS',
+        incremental_base_backup_id: BASE_BACKUP_ID,
+      })
+    );
+
+    httpApp.get(`/v1/backups/${BACKEND}`, (req, res) =>
+      res.send([
+        {
+          id: BASE_BACKUP_ID,
+          backend: BACKEND,
+          path: 'path/to/base',
+          status: 'SUCCESS',
+        },
+        {
+          id: BACKUP_ID,
+          backend: BACKEND,
+          path: 'path/to/backup',
+          status: 'SUCCESS',
+          incremental_base_backup_id: BASE_BACKUP_ID,
+        },
+      ])
+    );
+
+    const healthMockImpl: HealthServiceImplementation = {
+      check: (request: HealthCheckRequest): Promise<HealthCheckResponse> =>
+        Promise.resolve(HealthCheckResponse.create({ status: HealthCheckResponse_ServingStatus.SERVING })),
+      watch: vi.fn(),
+    };
+
+    const grpc = createServer();
+    grpc.add(HealthDefinition, healthMockImpl);
+
+    httpApp.on('error', (error) => console.error('HTTP Server Error:', error));
+
+    await grpc.listen(`localhost:${grpcPort}`);
+    const http = await httpApp.listen(httpPort);
+    return new IncrementalMock(grpc, http);
+  };
+
+  public close = () => Promise.all([this.http.close(), this.grpc.shutdown()]);
+}
+
+describe('Mock testing of incremental backups', () => {
+  let client: WeaviateClient;
+  let mock: IncrementalMock;
+
+  beforeAll(async () => {
+    mock = await IncrementalMock.use('1.36.3', 8914, 8915);
+    client = await weaviate.connectToLocal({ port: 8914, grpcPort: 8915 });
+  });
+
+  it('should send the base backup ID when creating an incremental backup', async () => {
+    await client.backup.create({
+      backupId: BACKUP_ID,
+      backend: BACKEND,
+      baseBackupId: BASE_BACKUP_ID,
+    });
+    expect(IncrementalMock.createRequest.incremental_base_backup_id).toBe(BASE_BACKUP_ID);
+  });
+
+  it('should not send a base backup ID for a full backup', async () => {
+    await client.backup.create({
+      backupId: BACKUP_ID,
+      backend: BACKEND,
+    });
+    expect(IncrementalMock.createRequest.incremental_base_backup_id).toBeUndefined();
+  });
+
+  it('should return the base backup ID from the creation status', async () => {
+    const status = await client.backup.getCreateStatus({ backupId: BACKUP_ID, backend: BACKEND });
+    expect(status.baseBackupId).toBe(BASE_BACKUP_ID);
+  });
+
+  it('should return the base backup ID when listing backups', async () => {
+    const backups = await client.backup.list(BACKEND);
+    expect(backups.find((b) => b.id === BASE_BACKUP_ID)?.baseBackupId).toBeUndefined();
+    expect(backups.find((b) => b.id === BACKUP_ID)?.baseBackupId).toBe(BASE_BACKUP_ID);
+    expect(backups.every((b) => !('incremental_base_backup_id' in b))).toBe(true);
+  });
+
+  afterAll(() => mock.close());
+});

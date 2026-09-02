@@ -13,10 +13,21 @@ export type BackupCollectionArgs = {
   waitForCompletion?: boolean;
 };
 
+/** The arguments required to create a backup of a single collection. */
+export type BackupCollectionCreateArgs = BackupCollectionArgs & {
+  /**
+   * The ID of an existing backup to use as the base for a file-based incremental backup.
+   * If set, only files that have changed since the base backup are included in the new backup.
+   *
+   * Requires Weaviate `1.34.18`/`1.35.13`/`1.36.3` or higher.
+   */
+  baseBackupId?: string;
+};
+
 export const backupCollection = (connection: Connection, name: string) => {
   const handler = backup(connection);
   return {
-    create: (args: BackupCollectionArgs) =>
+    create: (args: BackupCollectionCreateArgs) =>
       handler.create({
         ...args,
         includeCollections: [name],
@@ -35,13 +46,16 @@ export interface BackupCollection {
   /**
    * Create a backup of this collection.
    *
-   * @param {BackupArgs} args The arguments for the request.
+   * Pass `baseBackupId` to create an incremental backup on top of an existing one;
+   * only files that changed since the base backup are written.
+   *
+   * @param {BackupCollectionCreateArgs} args The arguments for the request.
    * @returns {Promise<BackupReturn>} The response from Weaviate.
    * @throws {WeaviateInvalidInputError} If the input is invalid.
    * @throws {WeaviateBackupFailed} If the backup creation fails.
    * @throws {WeaviateBackupCanceled} If the backup creation is canceled.
    */
-  create(args: BackupCollectionArgs): Promise<BackupReturn>;
+  create(args: BackupCollectionCreateArgs): Promise<BackupReturn>;
   /**
    * Get the status of a backup.
    *

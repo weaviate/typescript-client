@@ -258,6 +258,66 @@ describe('Integration testing of backups', () => {
     });
   });
 
+  // Incremental backups landed in 1.34.18 / 1.35.13 / 1.36.3 / 1.37.0. The patch-level
+  // gate below is only exact for the 1.34 line; the CI matrix pins later patches of the
+  // other minors, so the intermediate versions that lack the feature are never exercised.
+  requireAtLeast(1, 34, 18).describe('incremental backups', () => {
+    const collectionName = 'TestIncrementalBackup';
+
+    it('creates an incremental backup on top of a base and restores it', async () => {
+      const client = await clientPromise;
+      const collection = await client.collections.create({ name: collectionName });
+      await collection.data.insert();
+
+      const base = await client.backup.create({
+        backupId: randomBackupId(),
+        backend: 'filesystem',
+        includeCollections: [collectionName],
+        waitForCompletion: true,
+      });
+      expect(base.status).toBe('SUCCESS');
+
+      await collection.data.insert();
+
+      const incremental = await client.backup.create({
+        backupId: randomBackupId(),
+        backend: 'filesystem',
+        includeCollections: [collectionName],
+        baseBackupId: base.id,
+        waitForCompletion: true,
+      });
+      expect(incremental.status).toBe('SUCCESS');
+
+      await client.collections.delete(collectionName);
+
+      const restored = await client.backup.restore({
+        backupId: incremental.id,
+        backend: 'filesystem',
+        includeCollections: [collectionName],
+        waitForCompletion: true,
+      });
+      expect(restored.status).toBe('SUCCESS');
+
+      // Both objects are present: the one from the base and the one added afterwards.
+      const { totalCount } = await client.collections.use(collectionName).aggregate.overAll();
+      expect(totalCount).toBe(2);
+    });
+
+    it('rejects an unknown base backup', async () => {
+      const client = await clientPromise;
+      const created = client.backup.create({
+        backupId: randomBackupId(),
+        backend: 'filesystem',
+        includeCollections: [collectionName],
+        baseBackupId: 'this-base-backup-does-not-exist',
+        waitForCompletion: true,
+      });
+      await expect(created).rejects.toThrowError(WeaviateBackupFailed);
+    });
+
+    it('cleanup', () => clientPromise.then((c) => c.collections.delete(collectionName).catch(() => {})));
+  });
+
   function randomBackupId() {
     return 'backup-id-' + Math.floor(Math.random() * Number.MAX_SAFE_INTEGER);
   }

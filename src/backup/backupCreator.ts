@@ -12,6 +12,7 @@ import { Backend } from './index.js';
 import {
   validateBackend,
   validateBackupId,
+  validateBaseBackupId,
   validateExcludeClassNames,
   validateIncludeClassNames,
 } from './validation.js';
@@ -21,6 +22,7 @@ const WAIT_INTERVAL = 1000;
 export default class BackupCreator extends CommandBase {
   private backend!: Backend;
   private backupId!: string;
+  private baseBackupId?: string;
   private excludeClassNames?: string[];
   private includeClassNames?: string[];
   private statusGetter: BackupCreateStatusGetter;
@@ -60,6 +62,11 @@ export default class BackupCreator extends CommandBase {
     return this;
   }
 
+  withBaseBackupId(baseBackupId?: string) {
+    this.baseBackupId = baseBackupId;
+    return this;
+  }
+
   withWaitForCompletion(waitForCompletion: boolean) {
     this.waitForCompletion = waitForCompletion;
     return this;
@@ -76,6 +83,7 @@ export default class BackupCreator extends CommandBase {
       ...validateExcludeClassNames(this.excludeClassNames),
       ...validateBackend(this.backend),
       ...validateBackupId(this.backupId),
+      ...validateBaseBackupId(this.baseBackupId),
     ]);
   };
 
@@ -90,6 +98,7 @@ export default class BackupCreator extends CommandBase {
       config: this.config,
       include: this.includeClassNames,
       exclude: this.excludeClassNames,
+      incremental_base_backup_id: this.baseBackupId,
     } as BackupCreateRequest;
 
     if (this.waitForCompletion) {

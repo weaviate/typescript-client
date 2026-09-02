@@ -45,3 +45,13 @@ export function validateBackupId(backupId?: string) {
   }
   return [];
 }
+
+export function validateBaseBackupId(baseBackupId?: string) {
+  if (baseBackupId === undefined) {
+    return [];
+  }
+  if (!isValidStringProperty(baseBackupId)) {
+    return ['string baseBackupId invalid - set with .withBaseBackupId(baseBackupId)'];
+  }
+  return [];
+}
