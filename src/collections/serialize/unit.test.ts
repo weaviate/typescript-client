@@ -1032,6 +1032,62 @@ describe('Unit testing of Serialize', () => {
       });
     });
   });
+
+  describe('.boostGRPC', () => {
+    // Regression coverage: `decay` was being spread into `fromPartial({...})` unchanged,
+    // but the generated proto type only recognizes `decayValue`, so `fromPartial` silently
+    // dropped it and the value never reached the wire. See weaviate/typescript-client#470.
+    it('should map TimeDecay.decay onto the proto decayValue field', () => {
+      const out = Serialize.boostGRPC({
+        conditions: [
+          {
+            func: {
+              type: 'timeDecay',
+              property: 'createdAt',
+              scale: '35d',
+              origin: '2024-01-01T00:00:00Z',
+              curve: 'exponential',
+              decay: 0.2,
+            },
+          },
+        ],
+      });
+      expect(out.conditions[0].timeDecay?.decayValue).toEqual(0.2);
+    });
+
+    it('should map NumericDecay.decay onto the proto decayValue field', () => {
+      const out = Serialize.boostGRPC({
+        conditions: [
+          {
+            func: {
+              type: 'numericDecay',
+              property: 'rating',
+              scale: 10,
+              origin: 0,
+              curve: 'linear',
+              decay: 0.5,
+            },
+          },
+        ],
+      });
+      expect(out.conditions[0].numericDecay?.decayValue).toEqual(0.5);
+    });
+
+    it('should omit decayValue when decay is not provided', () => {
+      const out = Serialize.boostGRPC({
+        conditions: [
+          {
+            func: {
+              type: 'timeDecay',
+              property: 'createdAt',
+              scale: '35d',
+            },
+          },
+        ],
+      });
+      expect(out.conditions[0].timeDecay?.decayValue).toBeUndefined();
+    });
+  });
 });
 
 describe('Unit testing of DataGuards', () => {

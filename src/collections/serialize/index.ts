@@ -1642,23 +1642,25 @@ export class Serialize {
           };
           break;
         case 'timeDecay': {
-          const { curve, ...timeDecay } = func as TimeDecay;
+          const { curve, decay, ...timeDecay } = func as TimeDecay;
           condProto = {
             ...condProto,
             timeDecay: Boost_TimeDecayFunction.fromPartial({
               ...timeDecay,
               curve: this.boostCurve(curve),
+              decayValue: decay,
             }),
           };
           break;
         }
         case 'numericDecay': {
-          const { curve, ...numericDecay } = func as NumericDecay;
+          const { curve, decay, ...numericDecay } = func as NumericDecay;
           condProto = {
             ...condProto,
             numericDecay: Boost_NumericDecayFunction.fromPartial({
               ...numericDecay,
               curve: this.boostCurve(curve),
+              decayValue: decay,
             }),
           };
           break;
@@ -1678,7 +1680,6 @@ export class Serialize {
       out.conditions.push(condProto);
     }
 
-    console.error(JSON.stringify(out));
     return out;
   };
 
