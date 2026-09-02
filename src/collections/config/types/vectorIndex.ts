@@ -63,6 +63,7 @@ export type BQConfig = {
 };
 
 export type SQConfig = {
+  cache: boolean;
   rescoreLimit: number;
   trainingLimit: number;
   type: 'sq';
