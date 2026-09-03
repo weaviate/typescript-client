@@ -13,7 +13,7 @@ describe('Journey testing of the client using a WCD cluster', () => {
     dateOfBirth: Date;
   };
 
-  afterAll(() => client.collections.delete(collectionName));
+  afterAll(() => client?.collections.delete(collectionName));
 
   beforeAll(async () => {
     client = await weaviate.connectToWeaviateCloud(
