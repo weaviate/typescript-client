@@ -48,6 +48,17 @@ export type GenerativeDatabricksConfig = {
   topP?: number;
 };
 
+export type GenerativeDeepseekConfig = {
+  baseURL?: string;
+  frequencyPenalty?: number;
+  maxTokens?: number;
+  model?: string;
+  presencePenalty?: number;
+  stop?: string[];
+  temperature?: number;
+  topP?: number;
+};
+
 export type GenerativeFriendliAIConfig = {
   baseURL?: string;
   maxTokens?: number;
@@ -123,6 +134,7 @@ export type GenerativeConfig =
   | GenerativeCohereConfig
   | GenerativeContextualAIConfig
   | GenerativeDatabricksConfig
+  | GenerativeDeepseekConfig
   | GenerativeGoogleConfig
   | GenerativeFriendliAIConfig
   | GenerativeMistralConfig
@@ -147,6 +159,8 @@ export type GenerativeConfigType<G> = G extends 'generative-anthropic'
   ? GenerativeContextualAIConfig
   : G extends 'generative-databricks'
   ? GenerativeDatabricksConfig
+  : G extends 'generative-deepseek'
+  ? GenerativeDeepseekConfig
   : G extends 'generative-google'
   ? GenerativeGoogleConfig
   : G extends 'generative-friendliai'
@@ -176,6 +190,7 @@ export type GenerativeSearch =
   | 'generative-cohere'
   | 'generative-contextualai'
   | 'generative-databricks'
+  | 'generative-deepseek'
   | 'generative-google'
   | 'generative-friendliai'
   | 'generative-mistral'

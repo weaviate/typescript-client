@@ -6,6 +6,7 @@ import {
   GenerativeCohereConfig,
   GenerativeContextualAIConfig,
   GenerativeDatabricksConfig,
+  GenerativeDeepseekConfig,
   GenerativeFriendliAIConfig,
   GenerativeGoogleConfig,
   GenerativeMistralConfig,
@@ -24,6 +25,7 @@ import {
   GenerativeCohereConfigCreate,
   GenerativeContextualAIConfigCreate,
   GenerativeDatabricksConfigCreate,
+  GenerativeDeepseekConfigCreate,
   GenerativeFriendliAIConfigCreate,
   GenerativeMistralConfigCreate,
   GenerativeNvidiaConfigCreate,
@@ -168,6 +170,22 @@ export default {
   ): ModuleConfig<'generative-databricks', GenerativeDatabricksConfig> => {
     return {
       name: 'generative-databricks',
+      config,
+    };
+  },
+  /**
+   * Create a `ModuleConfig<'generative-deepseek', GenerativeDeepseekConfig | undefined>` object for use when performing AI generation using the `generative-deepseek` module.
+   *
+   * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/deepseek/generative) for detailed usage.
+   *
+   * @param {GenerativeDeepseekConfigCreate} [config] The configuration for the `generative-deepseek` module.
+   * @returns {ModuleConfig<'generative-deepseek', GenerativeDeepseekConfig | undefined>} The configuration object.
+   */
+  deepseek(
+    config?: GenerativeDeepseekConfigCreate
+  ): ModuleConfig<'generative-deepseek', GenerativeDeepseekConfig | undefined> {
+    return {
+      name: 'generative-deepseek',
       config,
     };
   },
