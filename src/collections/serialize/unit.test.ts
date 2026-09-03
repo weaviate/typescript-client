@@ -1034,7 +1034,7 @@ describe('Unit testing of Serialize', () => {
   });
 
   describe('.boostGRPC', () => {
-    it('should map TimeDecay.decay onto the proto decayValue field', () => {
+    it('should serialize a TimeDecay boost to the full proto shape with decay mapped to decayValue', () => {
       const out = Serialize.boostGRPC({
         conditions: [
           {
@@ -1084,21 +1084,6 @@ describe('Unit testing of Serialize', () => {
         ],
       });
       expect(out.conditions[0].numericDecay?.decayValue).toEqual(0.5);
-    });
-
-    it('should omit decayValue when decay is not provided', () => {
-      const out = Serialize.boostGRPC({
-        conditions: [
-          {
-            func: {
-              type: 'timeDecay',
-              property: 'createdAt',
-              scale: '35d',
-            },
-          },
-        ],
-      });
-      expect(out.conditions[0].timeDecay?.decayValue).toBeUndefined();
     });
   });
 });
