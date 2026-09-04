@@ -258,6 +258,58 @@ describe('Integration testing of backups', () => {
     });
   });
 
+  requireAtLeast(1, 37, 0).describe('incremental backups', () => {
+    it('creates and restores an incremental backup on top of a base backup', async () => {
+      const client = await clientPromise;
+      const collection = await client.collections
+        .create({ name: 'TestIncrementalBackup' })
+        .then((col) => col.data.insert().then(() => col));
+
+      const base = await client.backup.create({
+        backupId: randomBackupId(),
+        backend: 'filesystem',
+        includeCollections: [collection.name],
+        waitForCompletion: true,
+      });
+      expect(base.status).toBe('SUCCESS');
+
+      await collection.data.insert();
+
+      const incremental = await client.backup.create({
+        backupId: randomBackupId(),
+        backend: 'filesystem',
+        includeCollections: [collection.name],
+        config: { incrementalBaseBackupId: base.id },
+        waitForCompletion: true,
+      });
+      expect(incremental.status).toBe('SUCCESS');
+
+      await client.collections.delete(collection.name);
+      const restored = await client.backup.restore({
+        backupId: incremental.id,
+        backend: 'filesystem',
+        includeCollections: [collection.name],
+        waitForCompletion: true,
+      });
+      expect(restored.status).toBe('SUCCESS');
+      await expect(collection.length()).resolves.toBe(2);
+
+      await client.collections.delete(collection.name);
+    });
+
+    it('sends the base backup ID to the server', async () => {
+      const client = await clientPromise;
+      await expect(
+        client.backup.create({
+          backupId: randomBackupId(),
+          backend: 'filesystem',
+          includeCollections: ['TestBackupCollection'],
+          config: { incrementalBaseBackupId: 'does-not-exist' },
+        })
+      ).rejects.toThrow(/could not fetch base backup/);
+    });
+  });
+
   function randomBackupId() {
     return 'backup-id-' + Math.floor(Math.random() * Number.MAX_SAFE_INTEGER);
   }
