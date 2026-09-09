@@ -6,6 +6,7 @@ import {
   GenerativeCohereConfig,
   GenerativeContextualAIConfig,
   GenerativeDatabricksConfig,
+  GenerativeDigitalOceanConfig,
   GenerativeFriendliAIConfig,
   GenerativeGoogleConfig,
   GenerativeMistralConfig,
@@ -24,6 +25,7 @@ import {
   GenerativeCohereConfigCreate,
   GenerativeContextualAIConfigCreate,
   GenerativeDatabricksConfigCreate,
+  GenerativeDigitalOceanConfigCreate,
   GenerativeFriendliAIConfigCreate,
   GenerativeMistralConfigCreate,
   GenerativeNvidiaConfigCreate,
@@ -168,6 +170,22 @@ export default {
   ): ModuleConfig<'generative-databricks', GenerativeDatabricksConfig> => {
     return {
       name: 'generative-databricks',
+      config,
+    };
+  },
+  /**
+   * Create a `ModuleConfig<'generative-digitalocean', GenerativeDigitalOceanConfig | undefined>` object for use when performing AI generation using the `generative-digitalocean` module.
+   *
+   * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/digitalocean/generative) for detailed usage.
+   *
+   * @param {GenerativeDigitalOceanConfigCreate} [config] The configuration for the `generative-digitalocean` module.
+   * @returns {ModuleConfig<'generative-digitalocean', GenerativeDigitalOceanConfig | undefined>} The configuration object.
+   */
+  digitalOcean(
+    config?: GenerativeDigitalOceanConfigCreate
+  ): ModuleConfig<'generative-digitalocean', GenerativeDigitalOceanConfig | undefined> {
+    return {
+      name: 'generative-digitalocean',
       config,
     };
   },

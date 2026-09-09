@@ -8,6 +8,7 @@ import {
   GenerativeCohereConfig,
   GenerativeContextualAIConfig,
   GenerativeDatabricksConfig,
+  GenerativeDigitalOceanConfig,
   GenerativeFriendliAIConfig,
   GenerativeGoogleConfig,
   GenerativeMistralConfig,
@@ -2046,6 +2047,44 @@ describe('Unit testing of the generative factory class', () => {
         topP: 0.8,
       },
     });
+  });
+
+  it('should create the correct GenerativeDigitalOceanConfig type with required & default values', () => {
+    const config = configure.generative.digitalOcean();
+    expect(config).toEqual<ModuleConfig<'generative-digitalocean', GenerativeDigitalOceanConfig | undefined>>(
+      {
+        name: 'generative-digitalocean',
+        config: undefined,
+      }
+    );
+  });
+
+  it('should create the correct GenerativeDigitalOceanConfig type with all values', () => {
+    const config = configure.generative.digitalOcean({
+      baseURL: 'base-url',
+      frequencyPenalty: 0.2,
+      maxTokens: 100,
+      model: 'model',
+      presencePenalty: 0.3,
+      stop: ['stop'],
+      temperature: 0.5,
+      topP: 0.8,
+    });
+    expect(config).toEqual<ModuleConfig<'generative-digitalocean', GenerativeDigitalOceanConfig | undefined>>(
+      {
+        name: 'generative-digitalocean',
+        config: {
+          baseURL: 'base-url',
+          frequencyPenalty: 0.2,
+          maxTokens: 100,
+          model: 'model',
+          presencePenalty: 0.3,
+          stop: ['stop'],
+          temperature: 0.5,
+          topP: 0.8,
+        },
+      }
+    );
   });
 
   it('should create the correct GenerativeFriendliAIConfig type with required & default values', () => {
