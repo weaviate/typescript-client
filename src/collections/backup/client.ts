@@ -14,12 +14,15 @@ import {
   WeaviateInvalidInputError,
   WeaviateUnexpectedResponseError,
   WeaviateUnexpectedStatusCodeError,
+  WeaviateUnsupportedFeatureError,
 } from '../../errors.js';
 import {
   BackupCreateResponse,
   BackupCreateStatusResponse,
+  BackupListResponse,
   BackupRestoreResponse,
 } from '../../openapi/types.js';
+import { DbVersionSupport } from '../../utils/dbVersion.js';
 import {
   BackupArgs,
   BackupCancelArgs,
@@ -31,8 +34,8 @@ import {
   ListBackupOptions,
 } from './types.js';
 
-export const backup = (connection: Connection): Backup => {
-  const parseStatus = (res: BackupCreateStatusResponse | BackupRestoreResponse): BackupStatusReturn => {
+export const backup = (connection: Connection, dbVersionSupport: DbVersionSupport): Backup => {
+  const parseStatus = (res: BackupCreateStatusResponse & BackupRestoreResponse): BackupStatusReturn => {
     if (res.id === undefined) {
       throw new WeaviateUnexpectedResponseError('Backup ID is undefined in response');
     }
@@ -47,6 +50,8 @@ export const backup = (connection: Connection): Backup => {
       error: res.error,
       path: res.path,
       status: res.status,
+      size: res.size,
+      incrementalBaseBackupId: res.incremental_base_backup_id || undefined,
     };
   };
   const parseResponse = (res: BackupCreateResponse | BackupRestoreResponse): BackupReturn => {
@@ -110,9 +115,12 @@ export const backup = (connection: Connection): Backup => {
       return true;
     },
     create: async (args: BackupArgs<BackupConfigCreate>): Promise<BackupReturn> => {
-      let builder = new BackupCreator(connection, new BackupCreateStatusGetter(connection))
+      let builder = new BackupCreator(connection, new BackupCreateStatusGetter(connection), dbVersionSupport)
         .withBackupId(args.backupId)
         .withBackend(args.backend);
+      if (args.config?.incrementalBaseBackupId !== undefined) {
+        builder = builder.withIncrementalBaseBackupId(args.config.incrementalBaseBackupId);
+      }
       if (args.includeCollections) {
         builder = builder.withIncludeClassNames(...args.includeCollections);
       }
@@ -129,6 +137,8 @@ export const backup = (connection: Connection): Backup => {
       try {
         res = await builder.do();
       } catch (err) {
+        // The version gate rejects before anything is sent, so it is not a backup failure.
+        if (err instanceof WeaviateUnsupportedFeatureError) throw err;
         throw new WeaviateBackupFailed(`Backup creation failed: ${err}`, 'creation');
       }
       if (res.status === 'FAILED') {
@@ -213,7 +223,12 @@ export const backup = (connection: Connection): Backup => {
       if (opts?.startedAtAsc) {
         url += '?order=asc';
       }
-      return connection.get<BackupReturn[]>(url);
+      return connection.get<BackupListResponse>(url).then((res) =>
+        res.map(({ incremental_base_backup_id: baseBackupId, ...rest }) => ({
+          ...rest,
+          incrementalBaseBackupId: baseBackupId || undefined,
+        }))
+      ) as Promise<BackupReturn[]>;
     },
   };
 };
