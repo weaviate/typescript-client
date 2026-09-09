@@ -254,12 +254,14 @@ const configure = {
     /**
      * Create an object of type `SQConfigCreate` to be used when defining the quantizer configuration of a vector index.
      *
+     * @param {boolean} [options.cache] Whether to cache the quantizer. Default is false.
      * @param {number} [options.rescoreLimit] The rescore limit.
      * @param {number} [options.trainingLimit] The training limit.
      * @returns {SQConfigCreate} The object of type `SQConfigCreate`.
      */
-    sq: (options?: { rescoreLimit?: number; trainingLimit?: number }): SQConfigCreate => {
+    sq: (options?: { cache?: boolean; rescoreLimit?: number; trainingLimit?: number }): SQConfigCreate => {
       return {
+        cache: options?.cache,
         rescoreLimit: options?.rescoreLimit,
         trainingLimit: options?.trainingLimit,
         type: 'sq',

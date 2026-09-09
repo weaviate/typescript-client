@@ -669,7 +669,9 @@ class ConfigMapping {
     if (v.enabled === false) return undefined;
     const rescoreLimit = v.rescoreLimit === undefined ? 1000 : (v.rescoreLimit as number);
     const trainingLimit = v.trainingLimit === undefined ? 100000 : (v.trainingLimit as number);
+    const cache = v.cache === undefined ? false : (v.cache as boolean);
     return {
+      cache,
       rescoreLimit,
       trainingLimit,
       type: 'sq',
