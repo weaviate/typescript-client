@@ -2226,6 +2226,7 @@ describe('Unit testing of the generative factory class', () => {
   it('should create the correct GenerativeGoogleConfig type with all values', () => {
     const config = configure.generative.google({
       apiEndpoint: 'api-endpoint',
+      location: 'europe-west4',
       maxOutputTokens: 100,
       model: 'model-id',
       projectId: 'project-id',
@@ -2237,6 +2238,7 @@ describe('Unit testing of the generative factory class', () => {
       name: 'generative-google',
       config: {
         apiEndpoint: 'api-endpoint',
+        location: 'europe-west4',
         maxOutputTokens: 100,
         model: 'model-id',
         modelId: 'model-id',
