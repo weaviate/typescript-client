@@ -180,6 +180,14 @@ type ParseObject<T> = {
   vectors?: number[] | Vectors;
 };
 
+/**
+ * Normalizes an object passed to `data.ingest` / `data.insertMany` into the wrapped
+ * `DataObject` shape. Without this, an unwrapped `NonReferenceInputs` value (e.g. `{ title: 'x' }`)
+ * has no `properties` key and is silently stored as an empty object.
+ */
+export const normalizeBatchInput = <T>(obj: DataObject<T> | NonReferenceInputs<T>): DataObject<T> =>
+  DataGuards.isDataObject(obj) ? obj : ({ properties: obj } as DataObject<T>);
+
 const data = <T>(
   connection: Connection,
   name: string,
@@ -252,7 +260,7 @@ const data = <T>(
         // eslint-disable-next-line no-await-in-loop
         await batching.addObject({
           collection: name,
-          ...obj,
+          ...normalizeBatchInput(obj),
           tenant,
         });
       }
