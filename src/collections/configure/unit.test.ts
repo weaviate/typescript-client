@@ -1396,6 +1396,7 @@ describe('Unit testing of the vectorizer factory class', () => {
       name: 'test',
       baseURL: 'base-url',
       dimensions: 256,
+      endpoint: '/v1/embeddings',
       model: 'model',
       modelVersion: 'model-version',
       type: 'type',
@@ -1407,6 +1408,7 @@ describe('Unit testing of the vectorizer factory class', () => {
         config: {
           baseURL: 'base-url',
           dimensions: 256,
+          endpoint: '/v1/embeddings',
           model: 'model',
           modelVersion: 'model-version',
           type: 'type',
@@ -1705,6 +1707,7 @@ describe('Unit testing of the vectorizer factory class', () => {
     const config = configure.vectors.text2VecMorph({
       name: 'test',
       baseURL: 'base-url',
+      endpoint: '/v1/embeddings',
       model: 'model',
     });
     expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'text2vec-morph'>>({
@@ -1713,6 +1716,7 @@ describe('Unit testing of the vectorizer factory class', () => {
         name: 'text2vec-morph',
         config: {
           baseURL: 'base-url',
+          endpoint: '/v1/embeddings',
           model: 'model',
         },
       },
