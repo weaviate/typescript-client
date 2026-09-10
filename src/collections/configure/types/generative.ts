@@ -3,6 +3,7 @@ import {
   GenerativeAnthropicConfig,
   GenerativeAnyscaleConfig,
   GenerativeDatabricksConfig,
+  GenerativeDeepseekConfig,
   GenerativeFriendliAIConfig,
   GenerativeMistralConfig,
   GenerativeNvidiaConfig,
@@ -42,6 +43,8 @@ export type GenerativeCohereConfigCreate = {
 
 export type GenerativeDatabricksConfigCreate = GenerativeDatabricksConfig;
 
+export type GenerativeDeepseekConfigCreate = GenerativeDeepseekConfig;
+
 export type GenerativeFriendliAIConfigCreate = GenerativeFriendliAIConfig;
 
 export type GenerativeMistralConfigCreate = GenerativeMistralConfig;
@@ -75,6 +78,7 @@ export type GenerativeConfigCreate =
   | GenerativeCohereConfigCreate
   | GenerativeContextualAIConfigCreate
   | GenerativeDatabricksConfigCreate
+  | GenerativeDeepseekConfigCreate
   | GenerativeFriendliAIConfigCreate
   | GenerativeMistralConfigCreate
   | GenerativeNvidiaConfigCreate
@@ -97,6 +101,8 @@ export type GenerativeConfigCreateType<G> = G extends 'generative-anthropic'
   ? GenerativeContextualAIConfigCreate
   : G extends 'generative-databricks'
   ? GenerativeDatabricksConfigCreate
+  : G extends 'generative-deepseek'
+  ? GenerativeDeepseekConfigCreate
   : G extends 'generative-friendliai'
   ? GenerativeFriendliAIConfigCreate
   : G extends 'generative-mistral'
