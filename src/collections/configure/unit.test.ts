@@ -434,6 +434,69 @@ describe('Unit testing of the vectorizer factory class', () => {
     });
   });
 
+  it('should create the correct Multi2VecAWSConfig type with defaults', () => {
+    const config = configure.vectors.multi2VecAWS();
+    expect(config).toEqual<VectorConfigCreate<never, undefined, 'hnsw', 'multi2vec-aws'>>({
+      name: undefined,
+      vectorizer: {
+        name: 'multi2vec-aws',
+        config: undefined,
+      },
+    });
+  });
+
+  it('should create the correct Multi2VecAWSConfig type with all values', () => {
+    const config = configure.vectors.multi2VecAWS({
+      name: 'test',
+      model: 'amazon.titan-embed-image-v1',
+      region: 'us-east-1',
+    });
+    expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'multi2vec-aws'>>({
+      name: 'test',
+      vectorizer: {
+        name: 'multi2vec-aws',
+        config: {
+          model: 'amazon.titan-embed-image-v1',
+          region: 'us-east-1',
+        },
+      },
+    });
+  });
+
+  it('should create the correct Multi2VecAWSConfig type with all values and weights', () => {
+    const config = configure.vectors.multi2VecAWS({
+      name: 'test',
+      model: 'amazon.titan-embed-image-v1',
+      region: 'us-east-1',
+      dimensions: 1024,
+      imageFields: [
+        { name: 'field1', weight: 0.1 },
+        { name: 'field2', weight: 0.2 },
+      ],
+      textFields: [
+        { name: 'field3', weight: 0.3 },
+        { name: 'field4', weight: 0.4 },
+      ],
+    });
+    expect(config).toEqual<VectorConfigCreate<never, 'test', 'hnsw', 'multi2vec-aws'>>({
+      name: 'test',
+      vectorizer: {
+        name: 'multi2vec-aws',
+        config: {
+          model: 'amazon.titan-embed-image-v1',
+          region: 'us-east-1',
+          dimensions: 1024,
+          imageFields: ['field1', 'field2'],
+          textFields: ['field3', 'field4'],
+          weights: {
+            imageFields: [0.1, 0.2],
+            textFields: [0.3, 0.4],
+          },
+        },
+      },
+    });
+  });
+
   it('should create the correct Multi2VecClipConfig type with defaults', () => {
     const config = configure.vectors.multi2VecClip();
     expect(config).toEqual<VectorConfigCreate<never, undefined, 'hnsw', 'multi2vec-clip'>>({

@@ -1,6 +1,7 @@
 import { WeaviateInvalidInputError } from '../../errors.js';
 import {
   ModuleConfig,
+  Multi2VecAWSConfig,
   Multi2VecBindConfig,
   Multi2VecClipConfig,
   Multi2VecField,
@@ -1010,6 +1011,41 @@ export const vectorizer = legacyVectors;
 export const vectors = (({ text2VecPalm, multi2VecPalm, ...rest }) => ({
   ...rest,
   ...__vectors_shaded,
+
+  /**
+   * Create a `VectorConfigCreate` object with the vectorizer set to `'multi2vec-aws'`.
+   *
+   * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/aws/embeddings-multimodal) for detailed usage.
+   *
+   * @param {ConfigureNonTextVectorizerOptions<N, I, 'multi2vec-aws'>} [opts] The configuration options for the `multi2vec-aws` vectorizer.
+   * @returns {VectorConfigCreate<PrimitiveKeys<T>[], N, I, 'multi2vec-aws'>} The configuration object.
+   */
+  multi2VecAWS: <N extends string | undefined = undefined, I extends VectorIndexType = 'hnsw'>(
+    opts?: ConfigureNonTextVectorizerOptions<N, I, 'multi2vec-aws'>
+  ): VectorConfigCreate<never, N, I, 'multi2vec-aws'> => {
+    const { name, quantizer, vectorIndexConfig, ...config } = opts || {};
+    const imageFields = config.imageFields?.map(mapMulti2VecField);
+    const textFields = config.textFields?.map(mapMulti2VecField);
+    let weights: Multi2VecAWSConfig['weights'] = {};
+    weights = formatMulti2VecFields(weights, 'imageFields', imageFields);
+    weights = formatMulti2VecFields(weights, 'textFields', textFields);
+    return makeVectorizer(name, {
+      quantizer,
+      vectorIndexConfig,
+      vectorizerConfig: {
+        name: 'multi2vec-aws',
+        config:
+          Object.keys(config).length === 0
+            ? undefined
+            : {
+                ...config,
+                imageFields: imageFields?.map((f) => f.name),
+                textFields: textFields?.map((f) => f.name),
+                weights: Object.keys(weights).length === 0 ? undefined : weights,
+              },
+      },
+    });
+  },
 
   /**
    * Create a `VectorConfigCreate` object with the vectorizer set to `'multi2vec-nvidia'`.

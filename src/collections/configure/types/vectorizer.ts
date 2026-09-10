@@ -163,6 +163,7 @@ export type Multi2VecNvidiaConfigCreate = Omit<Multi2VecNvidiaConfig, Multi2VecO
   textFields?: string[] | Multi2VecField[];
 };
 
+/** The configuration for the `multi2vec-aws` vectorizer. */
 export type Multi2VecAWSConfigCreate = Omit<Multi2VecAWSConfig, Multi2VecOmissions> & {
   /** The image fields to use in vectorization. Can be string of `Multi2VecField` type. If string, weight 0 will be assumed. */
   imageFields?: string[] | Multi2VecField[];
@@ -309,6 +310,8 @@ export type Text2MultiVecJinaAIConfigCreate = Text2MultiVecJinaAIConfig;
 
 export type VectorizerConfigCreateType<V> = V extends 'img2vec-neural'
   ? Img2VecNeuralConfigCreate | undefined
+  : V extends 'multi2vec-aws'
+  ? Multi2VecAWSConfigCreate | undefined
   : V extends 'multi2vec-nvidia'
   ? Multi2VecNvidiaConfigCreate | undefined
   : V extends 'multi2vec-clip'
