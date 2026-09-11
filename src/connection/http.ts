@@ -32,11 +32,11 @@ export type ProxiesParams = {
 };
 
 export type TimeoutParams = {
-  /** Define the configured timeout when querying data from Weaviate */
+  /** Define the configured timeout, in seconds, when querying data from Weaviate */
   query?: number;
-  /** Define the configured timeout when mutating data to Weaviate */
+  /** Define the configured timeout, in seconds, when mutating data to Weaviate */
   insert?: number;
-  /** Define the configured timeout when initially connecting to Weaviate */
+  /** Define the configured timeout, in seconds, when initially connecting to Weaviate */
   init?: number;
 };
 
@@ -249,7 +249,7 @@ const fetchWithTimeout = (
   return fetch(input, { ...init, signal: controller.signal })
     .catch((error) => {
       if (isAbortError(error)) {
-        throw new WeaviateRequestTimeoutError(`Request timed out after ${timeout}ms`);
+        throw new WeaviateRequestTimeoutError(`Request timed out after ${timeout * 1000}ms`);
       }
       throw error; // For other errors, rethrow them
     })
