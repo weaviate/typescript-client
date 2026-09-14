@@ -9,7 +9,8 @@ export type DataObject<T> = {
 };
 
 export type DeleteManyObject = {
-  id: string;
+  /** Undefined when the server returned no uuid for this object. */
+  id?: string;
   successful: boolean;
   error?: string;
 };

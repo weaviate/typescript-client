@@ -533,7 +533,10 @@ export class Deserialize {
       objects: verbose
         ? reply.objects.map((obj) => {
             return {
-              id: stringify(obj.uuid),
+              // stringify() throws on anything but a 16-byte uuid; the server
+              // can omit the uuid on a BatchDeleteObject, so guard it here
+              // instead of letting an opaque TypeError escape.
+              id: obj.uuid.length === 16 ? stringify(obj.uuid) : undefined,
               successful: obj.successful,
               error: obj.error,
             };
