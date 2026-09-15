@@ -115,6 +115,17 @@ export type GenerativeContextualAIConfig = {
   avoidCommentary?: boolean;
 };
 
+export type GenerativeMetaConfig = {
+  baseURL?: string;
+  model?: string;
+  temperature?: number;
+  topP?: number;
+  maxTokens?: number;
+  frequencyPenalty?: number;
+  presencePenalty?: number;
+  reasoningEffort?: 'none' | 'minimal' | 'low' | 'medium' | 'high' | 'xhigh';
+};
+
 export type GenerativeConfig =
   | GenerativeAnthropicConfig
   | GenerativeAnyscaleConfig
@@ -125,6 +136,7 @@ export type GenerativeConfig =
   | GenerativeDatabricksConfig
   | GenerativeGoogleConfig
   | GenerativeFriendliAIConfig
+  | GenerativeMetaConfig
   | GenerativeMistralConfig
   | GenerativeOllamaConfig
   | GenerativeOpenAIConfig
@@ -151,6 +163,8 @@ export type GenerativeConfigType<G> = G extends 'generative-anthropic'
   ? GenerativeGoogleConfig
   : G extends 'generative-friendliai'
   ? GenerativeFriendliAIConfig
+  : G extends 'generative-meta'
+  ? GenerativeMetaConfig
   : G extends 'generative-mistral'
   ? GenerativeMistralConfig
   : G extends 'generative-ollama'
@@ -178,6 +192,7 @@ export type GenerativeSearch =
   | 'generative-databricks'
   | 'generative-google'
   | 'generative-friendliai'
+  | 'generative-meta'
   | 'generative-mistral'
   | 'generative-ollama'
   | 'generative-openai'
