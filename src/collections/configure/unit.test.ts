@@ -10,6 +10,7 @@ import {
   GenerativeDatabricksConfig,
   GenerativeFriendliAIConfig,
   GenerativeGoogleConfig,
+  GenerativeMetaConfig,
   GenerativeMistralConfig,
   GenerativeOllamaConfig,
   GenerativeOpenAIConfig,
@@ -2070,6 +2071,40 @@ describe('Unit testing of the generative factory class', () => {
         maxTokens: 100,
         model: 'model',
         temperature: 0.5,
+      },
+    });
+  });
+
+  it('should create the correct GenerativeMetaConfig type with required & default values', () => {
+    const config = configure.generative.meta();
+    expect(config).toEqual<ModuleConfig<'generative-meta', GenerativeMetaConfig | undefined>>({
+      name: 'generative-meta',
+      config: undefined,
+    });
+  });
+
+  it('should create the correct GenerativeMetaConfig type with all values', () => {
+    const config = configure.generative.meta({
+      baseURL: 'base-url',
+      model: 'muse-spark-1.2',
+      temperature: 0.5,
+      topP: 0.9,
+      maxTokens: 100,
+      frequencyPenalty: 0.1,
+      presencePenalty: 0.2,
+      reasoningEffort: 'medium',
+    });
+    expect(config).toEqual<ModuleConfig<'generative-meta', GenerativeMetaConfig | undefined>>({
+      name: 'generative-meta',
+      config: {
+        baseURL: 'base-url',
+        model: 'muse-spark-1.2',
+        temperature: 0.5,
+        topP: 0.9,
+        maxTokens: 100,
+        frequencyPenalty: 0.1,
+        presencePenalty: 0.2,
+        reasoningEffort: 'medium',
       },
     });
   });
