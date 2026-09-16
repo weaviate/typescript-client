@@ -97,7 +97,7 @@ importers:
   packages/node:
     dependencies:
       '@weaviate/core':
-        specifier: workspace:^1.0.0
+        specifier: workspace:*
         version: link:../core
       nice-grpc:
         specifier: ^2.1.16
@@ -140,13 +140,13 @@ importers:
         specifier: ^9.0.8
         version: 9.0.8
       '@weaviate/core':
-        specifier: workspace:^1.0.0
+        specifier: workspace:*
         version: link:../core
       '@weaviate/node':
-        specifier: workspace:^1.0.0
+        specifier: workspace:*
         version: link:../node
       '@weaviate/web':
-        specifier: workspace:^1.0.0
+        specifier: workspace:*
         version: link:../web
       abort-controller-x:
         specifier: ^0.5.0
@@ -173,7 +173,7 @@ importers:
   packages/web:
     dependencies:
       '@weaviate/core':
-        specifier: workspace:^1.0.0
+        specifier: workspace:*
         version: link:../core
       nice-grpc-web:
         specifier: ^3.3.10

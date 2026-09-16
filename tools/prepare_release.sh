@@ -3,7 +3,7 @@
 set -euo pipefail
 
 VERSION=${1-}
-REQUIRED_TOOLS="jq git"
+REQUIRED_TOOLS="npm git"
 
 if test -z "$VERSION"; then
   echo "Missing version parameter. Usage: $0 VERSION"
@@ -26,8 +26,10 @@ if git rev-parse "$VERSION" >/dev/null 2>&1; then
   exit 1
 fi
 
-npm run generate:version $VERSION
+npm version "${VERSION#v}" --no-git-tag-version --no-workspaces-update \
+  --include-workspace-root --workspace @weaviate/core --workspace @weaviate/node --workspace @weaviate/web
+npm run generate:version
 git add .
 git commit -m "chore: prepare release $VERSION"
 git push
-npm version "${VERSION/v}"
+git tag -a "$VERSION" -m "$VERSION"
