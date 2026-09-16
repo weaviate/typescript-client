@@ -1,6 +1,6 @@
 {
   "name": "@weaviate/web",
-  "version": "3.15.0-alpha.1",
+  "version": "3.15.0-alpha.2",
   "description": "JS/TS web client for Weaviate",
   "main": "dist/cjs/src/index.js",
   "type": "module",
