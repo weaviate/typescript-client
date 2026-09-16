@@ -1,6 +1,6 @@
 {
   "name": "weaviate-client",
-  "version": "3.15.0-alpha.0",
+  "version": "3.15.0-alpha.1",
   "description": "JS/TS client for Weaviate",
   "type": "module",
   "engines": {
@@ -35,7 +35,11 @@
     "build:client": "npm run generate:version && npm run build:core && npm run build:node && npm run stage:client",
     "ci:checks": "npm run install:core && npm run build:core && npm run install:node && npm run install:web",
     "ci:test": "npm run ci:checks && npm run build:core && npm run build:node && npm run build:web && npm run install:test",
-    "ci:publish": "npm run ci:checks"
+    "ci:publish": "npm run ci:checks",
+    "release:check": "node ./scripts/check-release.mjs",
+    "release:pack": "mkdir -p stage/tarballs && pnpm --dir packages/core pack --pack-destination ../../stage/tarballs && pnpm --dir packages/node pack --pack-destination ../../stage/tarballs && pnpm --dir packages/web pack --pack-destination ../../stage/tarballs && npm pack ./stage/weaviate-client --pack-destination ./stage/tarballs",
+    "release:publish:dry-run": "set -eu; for package in weaviate-core weaviate-node weaviate-web weaviate-client; do npm publish \"./stage/tarballs/$package-$RELEASE_VERSION.tgz\" --tag alpha --dry-run; done",
+    "release:publish": "set -eu; for package in weaviate-core weaviate-node weaviate-web weaviate-client; do npm publish \"./stage/tarballs/$package-$RELEASE_VERSION.tgz\" --tag alpha; done"
   },
   "repository": {
     "type": "git",

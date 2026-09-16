@@ -1,6 +1,6 @@
 {
   "name": "@weaviate/node",
-  "version": "1.0.0",
+  "version": "3.15.0-alpha.1",
   "description": "JS/TS node client for Weaviate",
   "main": "dist/cjs/src/index.js",
   "type": "module",
@@ -42,7 +42,7 @@
   },
   "homepage": "https://github.com/weaviate/typescript-client#readme",
   "dependencies": {
-    "@weaviate/core": "workspace:^1.0.0",
+    "@weaviate/core": "workspace:*",
     "nice-grpc": "^2.1.16",
     "nice-grpc-client-middleware-retry": "^3.1.15"
   },
