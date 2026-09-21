@@ -51,7 +51,7 @@ export const backup = (connection: Connection, dbVersionSupport: DbVersionSuppor
       path: res.path,
       status: res.status,
       size: res.size,
-      incrementalBaseBackupId: res.incremental_base_backup_id || undefined,
+      incrementalBaseBackupId: res.incremental_base_backup_id,
     };
   };
   const parseResponse = (res: BackupCreateResponse | BackupRestoreResponse): BackupReturn => {
@@ -137,7 +137,6 @@ export const backup = (connection: Connection, dbVersionSupport: DbVersionSuppor
       try {
         res = await builder.do();
       } catch (err) {
-        // The version gate rejects before anything is sent, so it is not a backup failure.
         if (err instanceof WeaviateUnsupportedFeatureError) throw err;
         throw new WeaviateBackupFailed(`Backup creation failed: ${err}`, 'creation');
       }
@@ -226,7 +225,7 @@ export const backup = (connection: Connection, dbVersionSupport: DbVersionSuppor
       return connection.get<BackupListResponse>(url).then((res) =>
         res.map(({ incremental_base_backup_id: baseBackupId, ...rest }) => ({
           ...rest,
-          incrementalBaseBackupId: baseBackupId || undefined,
+          incrementalBaseBackupId: baseBackupId,
         }))
       ) as Promise<BackupReturn[]>;
     },

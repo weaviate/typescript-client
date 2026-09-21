@@ -116,10 +116,7 @@ export default class BackupCreator extends CommandBase {
     );
   };
 
-  /**
-   * Weaviate below v1.37.0 ignores `incremental_base_backup_id` and silently writes a full backup,
-   * so fail loudly instead. No-op without a version provider, or for non-incremental backups.
-   */
+  /** Weaviate below v1.37.0 ignores the field and silently writes a full backup, so fail loudly instead. */
   private checkIncrementalSupport = (): Promise<void> => {
     if (this.incrementalBaseBackupId === undefined || this.dbVersionSupport === undefined) {
       return Promise.resolve();
