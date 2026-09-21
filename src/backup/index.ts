@@ -1,4 +1,5 @@
 import Connection from '../connection/index.js';
+import { DbVersionSupport } from '../utils/dbVersion.js';
 import BackupCreateStatusGetter from './backupCreateStatusGetter.js';
 import BackupCreator from './backupCreator.js';
 import BackupRestoreStatusGetter from './backupRestoreStatusGetter.js';
@@ -22,9 +23,9 @@ export interface Backup {
   restoreStatusGetter: () => BackupRestoreStatusGetter;
 }
 
-const backup = (client: Connection): Backup => {
+const backup = (client: Connection, dbVersionSupport: DbVersionSupport): Backup => {
   return {
-    creator: () => new BackupCreator(client, new BackupCreateStatusGetter(client)),
+    creator: () => new BackupCreator(client, new BackupCreateStatusGetter(client), dbVersionSupport),
     createStatusGetter: () => new BackupCreateStatusGetter(client),
     restorer: () => new BackupRestorer(client, new BackupRestoreStatusGetter(client)),
     restoreStatusGetter: () => new BackupRestoreStatusGetter(client),
