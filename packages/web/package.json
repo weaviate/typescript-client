@@ -2,31 +2,24 @@
   "name": "@weaviate/web",
   "version": "3.15.0-alpha.2",
   "description": "JS/TS web client for Weaviate",
-  "main": "dist/cjs/src/index.js",
   "type": "module",
+  "main": "./dist/src/index.js",
+  "types": "./dist/src/index.d.ts",
   "exports": {
     ".": {
-      "types": {
-        "require": "./dist/cjs/src/index.d.ts",
-        "default": "./dist/esm/src/index.d.ts"
-      },
-      "default": {
-        "require": "./dist/cjs/src/index.js",
-        "default": "./dist/esm/src/index.js"
-      }
+      "types": "./dist/src/index.d.ts",
+      "import": "./dist/src/index.js",
+      "default": "./dist/src/index.js"
     }
   },
   "engines": {
     "node": ">=22.0.0"
   },
   "files": [
-    "dist/cjs",
-    "dist/esm"
+    "dist"
   ],
   "scripts": {
-    "build:cjs": "tsc --module commonjs --moduleResolution node10 --outDir dist/cjs && touch dist/cjs/package.json && echo '{\"type\": \"commonjs\"}' > dist/cjs/package.json",
-    "build:esm": "tsc --outDir dist/esm && touch dist/esm/package.json && echo '{\"type\": \"module\"}' > dist/esm/package.json",
-    "build": "npm run build:cjs && npm run build:esm",
+    "build": "tsc --outDir dist",
     "check": "node scripts/check.mjs"
   },
   "repository": {
