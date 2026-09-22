@@ -156,7 +156,7 @@ describe('Journey testing of the client using a WCD cluster', () => {
           ],
           references: [],
           replication: {
-            asyncEnabled: false,
+            asyncEnabled: true,
             deletionStrategy: 'TimeBasedResolution',
             factor: 3,
           },
@@ -166,10 +166,10 @@ describe('Journey testing of the client using a WCD cluster', () => {
           },
           sharding: {
             virtualPerPhysical: 128,
-            desiredCount: 3,
-            actualCount: 3,
-            desiredVirtualCount: 384,
-            actualVirtualCount: 384,
+            desiredCount: 2,
+            actualCount: 2,
+            desiredVirtualCount: 256,
+            actualVirtualCount: 256,
             key: '_id',
             strategy: 'hash',
             function: 'murmur3',
