@@ -1,6 +1,6 @@
 {
   "name": "@weaviate/node",
-  "version": "3.15.0-alpha.3",
+  "version": "3.15.0-alpha.4",
   "description": "JS/TS node client for Weaviate",
   "main": "dist/cjs/src/index.js",
   "type": "module",
