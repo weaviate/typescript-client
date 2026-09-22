@@ -1,1 +1,1 @@
-export const WEAVIATE_CLIENT_VERSION = '3.15.0-alpha.2';
+export const WEAVIATE_CLIENT_VERSION = '3.15.0-alpha.3';
