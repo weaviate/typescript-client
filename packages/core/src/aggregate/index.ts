@@ -348,9 +348,9 @@ export type AggregateGroupByResult<
   };
 };
 
-class AggregateManager<T, V, M> implements Aggregate<T, V, M> {
+class AggregateManager<T, V, M> implements IAggregate<T, V, M> {
   connection: Connection;
-  groupBy: AggregateGroupBy<T, V, M>;
+  groupBy: IAggregateGroupBy<T, V, M>;
   name: string;
   private dbVersionSupport: DbVersionSupport;
   private toBase64FromMedia: ToBase64FromMedia<M>;
@@ -786,9 +786,9 @@ class AggregateManager<T, V, M> implements Aggregate<T, V, M> {
   };
 }
 
-export interface Aggregate<T, V, M> {
+export interface IAggregate<T, V, M> {
   /** This namespace contains methods perform a group by search while aggregating metrics. */
-  groupBy: AggregateGroupBy<T, V, M>;
+  groupBy: IAggregateGroupBy<T, V, M>;
   /**
    * Aggregate metrics over the objects returned by a hybrid search on this collection.
    *
@@ -871,7 +871,7 @@ export interface Aggregate<T, V, M> {
   overAll<P extends PropertiesMetrics<T>>(opts?: AggregateOverAllOptions<P>): Promise<AggregateResult<T, P>>;
 }
 
-export interface AggregateGroupBy<T, V, M> {
+export interface IAggregateGroupBy<T, V, M> {
   /**
    * Aggregate metrics over the objects grouped by a specified property and returned by a hybrid search on this collection.
    *

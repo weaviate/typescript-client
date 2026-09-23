@@ -29,15 +29,15 @@ export default class ConnectionGRPC extends ConnectionGQL {
   private grpc: GrpcClient;
   public grpcMaxMessageLength: number;
   private params: GrpcConnectionParams & { grpcMaxMessageLength: number };
-  private transports: Transports;
+  private transportsMaker: () => Transports;
 
   private constructor(
-    transports: Transports,
+    transportsMaker: () => Transports,
     params: GrpcConnectionParams & { grpcMaxMessageLength: number }
   ) {
     super(params);
-    this.transports = transports;
-    this.grpc = grpcClient(this.transports, params);
+    this.transportsMaker = transportsMaker;
+    this.grpc = grpcClient(this.transportsMaker(), params);
     this.grpcMaxMessageLength = params.grpcMaxMessageLength;
     this.params = params;
   }
@@ -62,11 +62,13 @@ export default class ConnectionGRPC extends ConnectionGQL {
       ]).then(([grpcMaxMessageLength]) => grpcMaxMessageLength);
     }
     const connection = new ConnectionGRPC(
-      transportsMaker({
-        grpcAddress: params.grpcAddress,
-        grpcSecure: params.grpcSecure,
-        grpcMaxMessageLength,
-      }),
+      () =>
+        transportsMaker({
+          grpcAddress: params.grpcAddress,
+          grpcSecure: params.grpcSecure,
+          grpcMaxMessageLength,
+          grpcProxyUrl: params.grpcProxyUrl,
+        }),
       { ...params, grpcMaxMessageLength }
     );
     if (!params.skipInitChecks) {
@@ -82,7 +84,7 @@ export default class ConnectionGRPC extends ConnectionGQL {
   public async reconnect() {
     // Only need to reconnect grpc by making a new channel as rest/gql are stateless
     this.grpc.close();
-    this.grpc = grpcClient(this.transports, this.params);
+    this.grpc = grpcClient(this.transportsMaker(), this.params);
     const isHealthy = await this.grpc.health();
     if (!isHealthy) {
       throw new WeaviateGRPCUnavailableError(this.params.grpcAddress);
@@ -166,12 +168,14 @@ export interface GrpcClient {
 export type Transports = {
   weaviate: WeaviateClient<any>;
   health: HealthClient<any>;
+  close: () => void;
 };
 
 export type TransportsParams = {
   grpcAddress: string;
   grpcSecure: boolean;
   grpcMaxMessageLength: number;
+  grpcProxyUrl?: string;
 };
 
 export type TransportsMaker = (params: TransportsParams) => Transports;
@@ -201,7 +205,7 @@ const grpcClient = (transports: Transports, config: GrpcConnectionParams) => {
         consistencyLevel,
         tenant
       ),
-    close: () => {},
+    close: () => transports.close(),
     health: () => {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), (config.timeout?.init || 2) * 1000);

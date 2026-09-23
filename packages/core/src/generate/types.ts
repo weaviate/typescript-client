@@ -476,7 +476,7 @@ interface NearVector<T, V> {
   ): GenerateReturn<T, RV, C>;
 }
 
-export interface Generate<T, V, TMedia>
+export interface IGenerate<T, V, TMedia>
   extends Bm25<T, V>,
     Hybrid<T, V>,
     NearMedia<T, V, TMedia>,

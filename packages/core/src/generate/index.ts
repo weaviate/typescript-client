@@ -37,9 +37,9 @@ import {
 } from '../types/index.js';
 import { IncludeVector } from '../types/internal.js';
 import { ToBase64FromMedia } from '../utils/base64.js';
-import { Generate } from './types.js';
+import { IGenerate } from './types.js';
 
-class GenerateManager<T, V, TMedia> implements Generate<T, V, TMedia> {
+class GenerateManager<T, V, TMedia> implements IGenerate<T, V, TMedia> {
   private check: Check<T, V>;
   private toBase64FromMedia: ToBase64FromMedia<TMedia>;
 
@@ -504,4 +504,4 @@ class GenerateManager<T, V, TMedia> implements Generate<T, V, TMedia> {
 export default GenerateManager.use;
 
 export { generativeParameters } from './config.js';
-export { Generate } from './types.js';
+export { IGenerate } from './types.js';

@@ -4,14 +4,14 @@ import { ConsistencyLevel } from '../replication.js';
 import { DbVersionSupport } from '../utils/dbVersion.js';
 import ClassExists from '../v2/schema/classExists.js';
 
-import aggregate, { Aggregate, Metrics, metrics } from '../aggregate/index.js';
+import aggregate, { IAggregate, Metrics, metrics } from '../aggregate/index.js';
 import { BackupCollection, backupCollection } from '../backup/collection.js';
 import config, { Config } from '../config/index.js';
 import data, { Data } from '../data/index.js';
 import filter, { Filter } from '../filters/index.js';
-import generate, { Generate } from '../generate/index.js';
+import generate, { IGenerate } from '../generate/index.js';
 import { Iterator } from '../iterator/index.js';
-import query, { Query } from '../query/index.js';
+import query, { IQuery } from '../query/index.js';
 import sort, { Sort } from '../sort/index.js';
 import tenants, { TenantBase, Tenants } from '../tenants/index.js';
 import { QueryMetadata, QueryProperty, QueryReference, ReturnVectors } from '../types/index.js';
@@ -21,7 +21,7 @@ import multiTargetVector, { MultiTargetVector } from '../vectors/multiTargetVect
 
 export interface ICollection<T = undefined, N = string, V = undefined, M = any> {
   /** This namespace includes all the querying methods available to you when using Weaviate's standard aggregation capabilities. */
-  aggregate: Aggregate<T, V, M>;
+  aggregate: IAggregate<T, V, M>;
   /** This namespace includes all the backup methods available to you when backing up a collection in Weaviate. */
   backup: BackupCollection;
   /** This namespace includes all the CRUD methods available to you when modifying the configuration of the collection in Weaviate. */
@@ -31,13 +31,13 @@ export interface ICollection<T = undefined, N = string, V = undefined, M = any> 
   /** This namespace includes the methods by which you can create the `FilterValue<V>` values for use when filtering queries over your collection. */
   filter: Filter<T extends undefined ? any : T>;
   /** This namespace includes all the querying methods available to you when using Weaviate's generative capabilities. */
-  generate: Generate<T, V, M>;
+  generate: IGenerate<T, V, M>;
   /** This namespace includes the methods by which you can create the `MetricsX` values for use when aggregating over your collection. */
   metrics: Metrics<T>;
   /** The name of the collection. */
   name: N;
   /** This namespace includes all the querying methods available to you when using Weaviate's standard query capabilities. */
-  query: Query<T, V, M>;
+  query: IQuery<T, V, M>;
   /** This namespaces includes the methods by which you can create the `Sorting<T>` values for use when sorting queries over your collection. */
   sort: Sort<T>;
   /** This namespace includes all the CRUD methods available to you when modifying the tenants of a multi-tenancy-enabled collection in Weaviate. */
@@ -116,6 +116,7 @@ const collection = <T, N, V, M>(
   connection: Connection,
   name: N,
   dbVersionSupport: DbVersionSupport,
+  isGrpcWeb: boolean,
   toBase64FromMedia: ToBase64FromMedia<M>,
   consistencyLevel?: ConsistencyLevel,
   tenant?: string
@@ -144,7 +145,7 @@ const collection = <T, N, V, M>(
     aggregate: aggregateCollection,
     backup: backupCollection(connection, capitalizedName),
     config: config<T>(connection, capitalizedName, dbVersionSupport, tenant),
-    data: data<T>(connection, capitalizedName, dbVersionSupport, consistencyLevel, tenant),
+    data: data<T>(connection, capitalizedName, dbVersionSupport, isGrpcWeb, consistencyLevel, tenant),
     filter: filter<T extends undefined ? any : T>(),
     generate: generate<T, V, M>(
       connection,
@@ -180,6 +181,7 @@ const collection = <T, N, V, M>(
         connection,
         capitalizedName,
         dbVersionSupport,
+        isGrpcWeb,
         toBase64FromMedia,
         consistencyLevel,
         tenant
@@ -189,6 +191,7 @@ const collection = <T, N, V, M>(
         connection,
         capitalizedName,
         dbVersionSupport,
+        isGrpcWeb,
         toBase64FromMedia,
         consistencyLevel,
         typeof tenant === 'string' ? tenant : tenant.name

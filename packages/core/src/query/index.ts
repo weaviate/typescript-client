@@ -35,12 +35,12 @@ import {
   NearOptions,
   NearTextOptions,
   NearVectorInputType,
-  Query,
+  IQuery,
   QueryReturn,
   SearchOptions,
 } from './types.js';
 
-class QueryManager<T, V, M> implements Query<T, V, M> {
+class QueryManager<T, V, M> implements IQuery<T, V, M> {
   private check: Check<T, V>;
   private toBase64FromMedia: ToBase64FromMedia<M>;
 
@@ -331,32 +331,6 @@ export type CallOptions = {
 
 export default QueryManager.use;
 export { queryFactory } from './factories.js';
-export {
-  BaseBm25Options,
-  BaseHybridOptions,
-  BaseNearOptions,
-  BaseNearTextOptions,
-  Bm25OperatorOptions,
-  Bm25Options,
-  FetchObjectByIdOptions,
-  FetchObjectsOptions,
-  GroupByBm25Options,
-  GroupByHybridOptions,
-  GroupByNearOptions,
-  GroupByNearTextOptions,
-  HybridNearTextSubSearch,
-  HybridNearVectorSubSearch,
-  HybridOptions,
-  HybridSubSearchBase,
-  MoveOptions,
-  MultiVectorType,
-  NearMediaType,
-  NearOptions,
-  NearTextOptions,
-  Query,
-  QueryReturn,
-  SearchOptions,
-  SingleVectorType,
-} from './types.js';
+export * from './types.js';
 
 export { Bm25Operator, Boost, Diversity } from './utils.js';

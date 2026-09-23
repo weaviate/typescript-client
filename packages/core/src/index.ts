@@ -26,11 +26,9 @@ import MetaGetter from './v2/misc/metaGetter.js';
 import type { Agent } from 'http';
 import { LiveChecker, OpenidConfigurationGetter, ReadyChecker } from './v2/misc/index.js';
 
-import weaviateV2 from './v2/index.js';
-
 import alias, { Aliases } from './alias/index.js';
 import { TransportsMaker } from './connection/grpc.js';
-// import batch, { Batch } from './data/batch.js';
+import batch, { Batch } from './data/batch.js';
 import filter from './filters/index.js';
 import groups, { Groups } from './groups/index.js';
 import { ConsistencyLevel } from './replication.js';
@@ -100,7 +98,7 @@ export type ClientParams = {
 export interface IWeaviateClient<TMedia = any> {
   alias: Aliases;
   backup: Backup;
-  // batch: Batch;
+  batch: Batch;
   cluster: Cluster;
   collections: ICollections<TMedia>;
   oidcAuth?: OidcAuthenticator;
@@ -180,9 +178,9 @@ const client = async <TMedia>(
   const ifc: IWeaviateClient<TMedia> = {
     alias: alias(connection),
     backup: backup(connection),
-    // batch: batch(connection, dbVersionSupport),
+    batch: batch(connection, dbVersionSupport, isGrpcWeb),
     cluster: cluster(connection),
-    collections: collections(connection, dbVersionSupport, context.toBase64FromMedia),
+    collections: collections(connection, dbVersionSupport, isGrpcWeb, context.toBase64FromMedia),
     groups: groups(connection),
     roles: roles(connection),
     tokenize: tokenize(connection, dbVersionSupport),
@@ -205,7 +203,6 @@ export * from './collections.js';
 export * from './connection/index.js';
 export * from './errors.js';
 export * from './roles/types.js';
-// export * from './utils/base64.js';
 export * from './utils/uuid.js';
 export {
   AccessTokenCredentialsInput,
@@ -225,5 +222,4 @@ export {
   filter,
   helpers,
   permissions,
-  weaviateV2,
 };

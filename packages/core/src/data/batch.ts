@@ -62,9 +62,16 @@ export interface Batch {
   stream: (consistencyLevel?: ConsistencyLevel) => Promise<Batching>;
 }
 
-export default function (connection: Connection, dbVersionSupport: DbVersionSupport): Batch {
+export default function (
+  connection: Connection,
+  dbVersionSupport: DbVersionSupport,
+  isGrpcWeb: boolean
+): Batch {
   return {
     stream: async (consistencyLevel) => {
+      if (isGrpcWeb) {
+        throw new Error('Server-side batching is not supported in gRPC-Web mode');
+      }
       const { supports, message } = await dbVersionSupport.supportsServerSideBatching();
       if (!supports) {
         throw new Error(message);

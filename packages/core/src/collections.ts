@@ -61,6 +61,7 @@ export type CollectionConfigCreate<TProperties = undefined, N = string, TVectors
 const collections = <TMedia>(
   connection: Connection,
   dbVersionSupport: DbVersionSupport,
+  isGrpcWeb: boolean,
   toBase64FromMedia: ToBase64FromMedia<TMedia>
 ) => {
   const listAll = () =>
@@ -132,6 +133,7 @@ const collections = <TMedia>(
         connection,
         name,
         dbVersionSupport,
+        isGrpcWeb,
         toBase64FromMedia
       );
     },
@@ -141,6 +143,7 @@ const collections = <TMedia>(
         connection,
         name as string,
         dbVersionSupport,
+        isGrpcWeb,
         toBase64FromMedia
       );
     },
@@ -150,6 +153,7 @@ const collections = <TMedia>(
         connection,
         name as string,
         dbVersionSupport,
+        isGrpcWeb,
         toBase64FromMedia
       );
     },
@@ -170,7 +174,13 @@ const collections = <TMedia>(
     >(
       name: TName
     ) =>
-      collection<TProperties, TName, TVectors, TMedia>(connection, name, dbVersionSupport, toBase64FromMedia),
+      collection<TProperties, TName, TVectors, TMedia>(
+        connection,
+        name,
+        dbVersionSupport,
+        isGrpcWeb,
+        toBase64FromMedia
+      ),
     use: <
       TProperties extends Properties | undefined = undefined,
       TName extends string = string,
@@ -178,7 +188,13 @@ const collections = <TMedia>(
     >(
       name: TName
     ) =>
-      collection<TProperties, TName, TVectors, TMedia>(connection, name, dbVersionSupport, toBase64FromMedia),
+      collection<TProperties, TName, TVectors, TMedia>(
+        connection,
+        name,
+        dbVersionSupport,
+        isGrpcWeb,
+        toBase64FromMedia
+      ),
   };
 };
 

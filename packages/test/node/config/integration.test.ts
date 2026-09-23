@@ -11,7 +11,8 @@ import {
   VectorIndexConfigHNSW,
 } from '@weaviate/core/config/types';
 import { WeaviateUnsupportedFeatureError } from '@weaviate/core/errors';
-import weaviate, { WeaviateClass, WeaviateClient, weaviateV2 } from '@weaviate/node';
+import weaviateV2 from '@weaviate/core/v2';
+import weaviate, { WeaviateClass, WeaviateClient } from '@weaviate/node';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { requireAtLeast } from '../../version';
 

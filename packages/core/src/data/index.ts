@@ -184,6 +184,7 @@ const data = <T>(
   connection: Connection,
   name: string,
   dbVersionSupport: DbVersionSupport,
+  isGrpcWeb: boolean,
   consistencyLevel?: ConsistencyLevel,
   tenant?: string
 ): Data<T> => {
@@ -245,7 +246,7 @@ const data = <T>(
     ingest: async (objs) => {
       const allResponses: (string | ErrorObject<T>)[] = [];
 
-      const batching = await batch(connection, dbVersionSupport).stream(consistencyLevel);
+      const batching = await batch(connection, dbVersionSupport, isGrpcWeb).stream(consistencyLevel);
       const start = Date.now();
 
       for (const obj of objs) {

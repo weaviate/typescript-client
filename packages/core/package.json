@@ -16,6 +16,10 @@
     "./errors": {
       "types": "./dist/src/errors.d.ts",
       "default": "./dist/src/errors.js"
+    },
+    "./v2": {
+      "types": "./dist/src/v2/index.d.ts",
+      "default": "./dist/src/v2/index.js"
     }
   },
   "files": [

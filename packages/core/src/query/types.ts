@@ -649,7 +649,7 @@ interface NearVector<T, V> {
 }
 
 /** All the available methods on the `.query` namespace. */
-export interface Query<T, V, M>
+export interface IQuery<T, V, M>
   extends Bm25<T, V>,
     Hybrid<T, V>,
     NearImage<T, V, M>,

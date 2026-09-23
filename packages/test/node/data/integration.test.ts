@@ -7,7 +7,8 @@ import { WeaviateUnsupportedFeatureError } from '@weaviate/core/errors';
 import { GeoCoordinate, PhoneNumber } from '@weaviate/core/proto/v1/properties';
 import { CrossReference, CrossReferences, Reference } from '@weaviate/core/references';
 import { DataObject, WeaviateObject } from '@weaviate/core/types';
-import weaviate, { Collection, WeaviateClient, weaviateV2 } from '@weaviate/node';
+import weaviateV2 from '@weaviate/core/v2';
+import weaviate, { Collection, WeaviateClient } from '@weaviate/node';
 import { v4 } from 'uuid';
 import { requireAtLeast } from '../../version';
 
