@@ -66,6 +66,10 @@ export type ConnectionParams = {
    * The connection paramaters for the gRPC API (http/2).
    */
   grpc: ProtocolParams;
+  /**
+   * The maximum message length for gRPC requests. If not specified, the server-specified default will be used.
+   */
+  grpcMaxMessageLength?: number;
 };
 
 export type ClientParams = {
@@ -172,6 +176,7 @@ const client = async <TMedia>(
       agent,
       timeout: params.timeout,
       skipInitChecks: params.skipInitChecks,
+      grpcMaxMessageLength: params.connectionParams.grpcMaxMessageLength,
     }
   );
 

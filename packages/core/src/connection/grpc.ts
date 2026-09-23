@@ -19,6 +19,7 @@ import { WeaviateClient } from '../proto/v1/weaviate.js';
 export type GrpcConnectionParams = InternalConnectionParams & {
   grpcAddress: string;
   grpcSecure: boolean;
+  grpcMaxMessageLength?: number;
 };
 
 type ResolvedGrpcConnectionParams = GrpcConnectionParams & {
@@ -47,7 +48,7 @@ export default class ConnectionGRPC extends ConnectionGQL {
     const rest = new ConnectionGQL(params);
     const dbVersionProvider = initDbVersionProvider(rest);
     const dbVersionSupport = new DbVersionSupport(dbVersionProvider);
-    let grpcMaxMessageLength = MAX_GRPC_MESSAGE_LENGTH;
+    let grpcMaxMessageLength = params.grpcMaxMessageLength ?? MAX_GRPC_MESSAGE_LENGTH;
     if (!params.skipInitChecks) {
       grpcMaxMessageLength = await Promise.all([
         (rest.get('/meta', true) as Promise<Meta>).then(
