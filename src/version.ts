@@ -1,1 +1,0 @@
-export const WEAVIATE_CLIENT_VERSION = '3.14.0';

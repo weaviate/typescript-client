@@ -1,5 +1,9 @@
 import fs from 'fs';
-import pkg from '../package.json' with { type: 'json' };
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
+const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
 
 let version;
 const args = process.argv.slice(2);
@@ -10,7 +14,8 @@ else {
   process.exit(1);
 }
 
+// WEAVIATE_CLIENT_VERSION is read by core's HTTP connection for the X-Weaviate-Client header.
 fs.writeFileSync(
-  'src/version.ts',
+  path.join(root, 'packages/core/src/version.ts'),
   `export const WEAVIATE_CLIENT_VERSION = '${version.replace('v', '')}';\n`
 );
