@@ -16,10 +16,14 @@ import { Meta } from '../openapi/types.js';
 import { HealthCheckResponse_ServingStatus, HealthClient } from '../proto/google/health/v1/health.js';
 import { WeaviateClient } from '../proto/v1/weaviate.js';
 
-export interface GrpcConnectionParams extends InternalConnectionParams {
+export type GrpcConnectionParams = InternalConnectionParams & {
   grpcAddress: string;
   grpcSecure: boolean;
-}
+};
+
+type ResolvedGrpcConnectionParams = GrpcConnectionParams & {
+  grpcMaxMessageLength: number;
+};
 
 const MAX_GRPC_MESSAGE_LENGTH = 104858000; // 10mb, needs to be synchronized with GRPC server
 
@@ -28,18 +32,15 @@ const MAX_GRPC_MESSAGE_LENGTH = 104858000; // 10mb, needs to be synchronized wit
 export default class ConnectionGRPC extends ConnectionGQL {
   private grpc: GrpcClient;
   public grpcMaxMessageLength: number;
-  private params: GrpcConnectionParams & { grpcMaxMessageLength: number };
-  private transportsMaker: () => Transports;
+  private readonly params: ResolvedGrpcConnectionParams;
+  private readonly transportsMaker: TransportsMaker;
 
-  private constructor(
-    transportsMaker: () => Transports,
-    params: GrpcConnectionParams & { grpcMaxMessageLength: number }
-  ) {
+  private constructor(params: ResolvedGrpcConnectionParams, transportsMaker: TransportsMaker) {
     super(params);
-    this.transportsMaker = transportsMaker;
-    this.grpc = grpcClient(this.transportsMaker(), params);
-    this.grpcMaxMessageLength = params.grpcMaxMessageLength;
     this.params = params;
+    this.transportsMaker = transportsMaker;
+    this.grpcMaxMessageLength = params.grpcMaxMessageLength;
+    this.grpc = this.createGrpcClient();
   }
 
   static use = async (transportsMaker: TransportsMaker, params: GrpcConnectionParams) => {
@@ -61,30 +62,37 @@ export default class ConnectionGRPC extends ConnectionGQL {
         }),
       ]).then(([grpcMaxMessageLength]) => grpcMaxMessageLength);
     }
-    const connection = new ConnectionGRPC(
-      () =>
-        transportsMaker({
-          grpcAddress: params.grpcAddress,
-          grpcSecure: params.grpcSecure,
-          grpcMaxMessageLength,
-          grpcProxyUrl: params.grpcProxyUrl,
-        }),
-      { ...params, grpcMaxMessageLength }
-    );
+    const resolvedParams: ResolvedGrpcConnectionParams = { ...params, grpcMaxMessageLength };
+    const connection = new ConnectionGRPC(resolvedParams, transportsMaker);
     if (!params.skipInitChecks) {
-      const isHealthy = await connection.grpc.health();
-      if (!isHealthy) {
+      try {
+        await connection.checkGrpcHealth();
+      } catch (error) {
         await connection.close();
-        throw new WeaviateGRPCUnavailableError(params.grpcAddress);
+        throw error;
       }
     }
     return { connection, dbVersionProvider, dbVersionSupport };
   };
 
   public async reconnect() {
-    // Only need to reconnect grpc by making a new channel as rest/gql are stateless
     this.grpc.close();
-    this.grpc = grpcClient(this.transportsMaker(), this.params);
+    this.grpc = this.createGrpcClient();
+    await this.checkGrpcHealth();
+  }
+
+  private createGrpcClient(): GrpcClient {
+    const { grpcAddress, grpcSecure, grpcMaxMessageLength, grpcProxyUrl } = this.params;
+    const transports = this.transportsMaker({
+      grpcAddress,
+      grpcSecure,
+      grpcMaxMessageLength,
+      grpcProxyUrl,
+    });
+    return grpcClient(transports, this.params);
+  }
+
+  private async checkGrpcHealth(): Promise<void> {
     const isHealthy = await this.grpc.health();
     if (!isHealthy) {
       throw new WeaviateGRPCUnavailableError(this.params.grpcAddress);
