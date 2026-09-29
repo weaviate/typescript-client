@@ -16,7 +16,7 @@ export type BackupStatusReturn = {
   status: BackupStatus;
   /** Size of the backup in Gibs */
   size?: number;
-  /** The ID of the base backup an incremental backup was built on. Only returned to root users, from Weaviate `v1.37.6`, and never by `create()` without `waitForCompletion`. */
+  /** The ID of the base backup an incremental backup was built on. */
   incrementalBaseBackupId?: string;
 };
 
@@ -40,7 +40,7 @@ export type BackupConfigCreate = {
   compressionLevel?: BackupCompressionLevel;
   /** The percentage of CPU to use for the backup creation job. */
   cpuPercentage?: number;
-  /** The ID of an existing backup to build a file-based incremental backup on. Unchanged files are restored from the base, so deleting a base backup breaks every incremental built on it. Requires Weaviate `v1.37.0` or higher. */
+  /** The ID of an existing backup to build a file-based incremental backup on. */
   incrementalBaseBackupId?: string;
 };
 

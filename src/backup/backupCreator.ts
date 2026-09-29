@@ -79,9 +79,7 @@ export default class BackupCreator extends CommandBase {
   }
 
   /**
-   * The ID of an existing backup to build a file-based incremental backup on. Unchanged files are
-   * restored from the base, so deleting a base backup breaks every incremental built on it.
-   * Requires Weaviate `v1.37.0` or higher.
+   * The ID of an existing backup to build a file-based incremental backup on.
    */
   withIncrementalBaseBackupId(backupId: string) {
     this.incrementalBaseBackupId = backupId;
@@ -116,7 +114,6 @@ export default class BackupCreator extends CommandBase {
     );
   };
 
-  /** Weaviate below v1.37.0 ignores the field and silently writes a full backup, so fail loudly instead. */
   private checkIncrementalSupport = (): Promise<void> => {
     if (this.incrementalBaseBackupId === undefined || this.dbVersionSupport === undefined) {
       return Promise.resolve();
