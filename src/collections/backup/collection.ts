@@ -1,22 +1,35 @@
 import { Backend } from '../../backup/index.js';
 import Connection from '../../connection/index.js';
+import { DbVersionSupport } from '../../utils/dbVersion.js';
 import { backup } from './client.js';
-import { BackupReturn, BackupStatusArgs, BackupStatusReturn } from './types.js';
+import {
+  BackupConfigCreate,
+  BackupConfigRestore,
+  BackupReturn,
+  BackupStatusArgs,
+  BackupStatusReturn,
+} from './types.js';
 
 /** The arguments required to create and restore backups. */
-export type BackupCollectionArgs = {
+export type BackupCollectionArgs<C extends BackupConfigCreate | BackupConfigRestore = never> = {
   /** The ID of the backup. */
   backupId: string;
   /** The backend to use for the backup. */
   backend: Backend;
   /** The collections to include in the backup. */
   waitForCompletion?: boolean;
+  /** The configuration options for the backup. */
+  config?: C;
 };
 
-export const backupCollection = (connection: Connection, name: string) => {
-  const handler = backup(connection);
+export const backupCollection = (
+  connection: Connection,
+  name: string,
+  dbVersionSupport: DbVersionSupport
+) => {
+  const handler = backup(connection, dbVersionSupport);
   return {
-    create: (args: BackupCollectionArgs) =>
+    create: (args: BackupCollectionArgs<BackupConfigCreate>) =>
       handler.create({
         ...args,
         includeCollections: [name],
@@ -41,7 +54,7 @@ export interface BackupCollection {
    * @throws {WeaviateBackupFailed} If the backup creation fails.
    * @throws {WeaviateBackupCanceled} If the backup creation is canceled.
    */
-  create(args: BackupCollectionArgs): Promise<BackupReturn>;
+  create(args: BackupCollectionArgs<BackupConfigCreate>): Promise<BackupReturn>;
   /**
    * Get the status of a backup.
    *

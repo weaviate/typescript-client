@@ -16,6 +16,8 @@ export type BackupStatusReturn = {
   status: BackupStatus;
   /** Size of the backup in Gibs */
   size?: number;
+  /** The ID of the base backup an incremental backup was built on. */
+  incrementalBaseBackupId?: string;
 };
 
 /** The return type of a backup creation or restoration operation */
@@ -38,6 +40,8 @@ export type BackupConfigCreate = {
   compressionLevel?: BackupCompressionLevel;
   /** The percentage of CPU to use for the backup creation job. */
   cpuPercentage?: number;
+  /** The ID of an existing backup to build a file-based incremental backup on. */
+  incrementalBaseBackupId?: string;
 };
 
 /** Configuration options available when restoring a backup */
