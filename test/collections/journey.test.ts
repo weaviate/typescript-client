@@ -156,7 +156,8 @@ describe('Journey testing of the client using a WCD cluster', () => {
           ],
           references: [],
           replication: {
-            asyncEnabled: false,
+            // set by the WCD cluster's defaults, which can change on upgrade
+            asyncEnabled: expect.any(Boolean),
             deletionStrategy: 'TimeBasedResolution',
             factor: 3,
           },
