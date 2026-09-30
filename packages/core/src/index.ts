@@ -23,7 +23,7 @@ import { DbVersion } from './utils/dbVersion.js';
 import { Backend, BackupCompressionLevel, BackupStatus } from './v2/backup/index.js';
 import MetaGetter from './v2/misc/metaGetter.js';
 
-import type { Agent } from 'http';
+import type { Agent as HttpAgent } from 'http';
 import { LiveChecker, OpenidConfigurationGetter, ReadyChecker } from './v2/misc/index.js';
 
 import alias, { Aliases } from './alias/index.js';
@@ -139,7 +139,7 @@ export type Context<TMedia> = {
    * (`@weaviate/node`); omitted by the browser shim (`@weaviate/web`) so no Node `http`/`https`
    * builtins are pulled into the browser bundle. When undefined, `fetch` runs without a custom agent.
    */
-  agentMaker?: (secure: boolean) => Agent | undefined;
+  agentMaker?: (secure: boolean) => HttpAgent | undefined;
 };
 
 const client = async <TMedia>(
@@ -158,6 +158,7 @@ const client = async <TMedia>(
   if (!params.headers) params.headers = {};
 
   const scheme = httpSecure ? 'https' : 'http';
+  const grpcScheme = `${grpcSecure ? 'https' : 'http'}://`;
   const agent = context.agentMaker?.(httpSecure);
 
   const { connection, dbVersionProvider, dbVersionSupport } = await ConnectionGRPC.use(
@@ -166,9 +167,7 @@ const client = async <TMedia>(
       host: `${scheme}://${httpHost}:${httpPort}${httpPath || ''}`,
       scheme: scheme,
       headers: params.headers,
-      grpcAddress: `${isGrpcWeb ? (grpcSecure ? 'https://' : 'http://') : ''}${grpcHost}:${grpcPort}${
-        grpcPath || ''
-      }`,
+      grpcAddress: `${isGrpcWeb ? grpcScheme : ''}${grpcHost}:${grpcPort}${grpcPath || ''}`,
       grpcSecure: grpcSecure,
       grpcProxyUrl: params.proxies?.grpc,
       apiKey: isApiKey(params.auth) ? mapApiKey(params.auth) : undefined,
