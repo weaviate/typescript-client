@@ -4,14 +4,14 @@ import { ConsistencyLevel } from '../replication.js';
 import { DbVersionSupport } from '../utils/dbVersion.js';
 import ClassExists from '../v2/schema/classExists.js';
 
-import aggregate, { IAggregate, Metrics, metrics } from '../aggregate/index.js';
+import aggregate, { Aggregate, Metrics, metrics } from '../aggregate/index.js';
 import { BackupCollection, backupCollection } from '../backup/collection.js';
 import config, { Config } from '../config/index.js';
 import data, { Data } from '../data/index.js';
 import filter, { Filter } from '../filters/index.js';
-import generate, { IGenerate } from '../generate/index.js';
+import generate, { Generate } from '../generate/index.js';
 import { Iterator } from '../iterator/index.js';
-import query, { IQuery } from '../query/index.js';
+import query, { Query } from '../query/index.js';
 import sort, { Sort } from '../sort/index.js';
 import tenants, { TenantBase, Tenants } from '../tenants/index.js';
 import { QueryMetadata, QueryProperty, QueryReference, ReturnVectors } from '../types/index.js';
@@ -19,9 +19,9 @@ import { IncludeVector } from '../types/internal.js';
 import { ToBase64FromMedia } from '../utils/base64.js';
 import multiTargetVector, { MultiTargetVector } from '../vectors/multiTargetVector.js';
 
-export interface ICollection<T = undefined, N = string, V = undefined, M = any> {
+export interface Collection<T = undefined, N = string, V = undefined> {
   /** This namespace includes all the querying methods available to you when using Weaviate's standard aggregation capabilities. */
-  aggregate: IAggregate<T, V, M>;
+  aggregate: Aggregate<T, V>;
   /** This namespace includes all the backup methods available to you when backing up a collection in Weaviate. */
   backup: BackupCollection;
   /** This namespace includes all the CRUD methods available to you when modifying the configuration of the collection in Weaviate. */
@@ -31,13 +31,13 @@ export interface ICollection<T = undefined, N = string, V = undefined, M = any> 
   /** This namespace includes the methods by which you can create the `FilterValue<V>` values for use when filtering queries over your collection. */
   filter: Filter<T extends undefined ? any : T>;
   /** This namespace includes all the querying methods available to you when using Weaviate's generative capabilities. */
-  generate: IGenerate<T, V, M>;
+  generate: Generate<T, V>;
   /** This namespace includes the methods by which you can create the `MetricsX` values for use when aggregating over your collection. */
   metrics: Metrics<T>;
   /** The name of the collection. */
   name: N;
   /** This namespace includes all the querying methods available to you when using Weaviate's standard query capabilities. */
-  query: IQuery<T, V, M>;
+  query: Query<T, V>;
   /** This namespaces includes the methods by which you can create the `Sorting<T>` values for use when sorting queries over your collection. */
   sort: Sort<T>;
   /** This namespace includes all the CRUD methods available to you when modifying the tenants of a multi-tenancy-enabled collection in Weaviate. */
@@ -83,9 +83,9 @@ export interface ICollection<T = undefined, N = string, V = undefined, M = any> 
    * This method does not send a request to Weaviate. It only returns a new collection object that is specific to the consistency level you specify.
    *
    * @param {ConsistencyLevel} consistencyLevel The consistency level to use.
-   * @returns {ICollection<T, N, V, M>} A new collection object specific to the consistency level you specified.
+   * @returns {Collection<T, N, V>} A new collection object specific to the consistency level you specified.
    */
-  withConsistency: (consistencyLevel: ConsistencyLevel) => ICollection<T, N, V, M>;
+  withConsistency: (consistencyLevel: ConsistencyLevel) => Collection<T, N, V>;
   /**
    * Use this method to return a collection object specific to a single tenant.
    *
@@ -95,9 +95,9 @@ export interface ICollection<T = undefined, N = string, V = undefined, M = any> 
    *
    * @typedef {TenantBase} TT A type that extends TenantBase.
    * @param {string | TT} tenant The tenant name or tenant object to use.
-   * @returns {ICollection<T, N, V, M>} A new collection object specific to the tenant you specified.
+   * @returns {Collection<T, N, V>} A new collection object specific to the tenant you specified.
    */
-  withTenant: <TT extends TenantBase>(tenant: string | TT) => ICollection<T, N, V, M>;
+  withTenant: <TT extends TenantBase>(tenant: string | TT) => Collection<T, N, V>;
 }
 
 export type IteratorOptions<T, I> = {
@@ -112,20 +112,20 @@ const isString = (value: any): value is string => typeof value === 'string';
 const capitalizeCollectionName = <N extends string>(name: N): N =>
   (name.charAt(0).toUpperCase() + name.slice(1)) as N;
 
-const collection = <T, N, V, M>(
+const collection = <T, N, V>(
   connection: Connection,
   name: N,
   dbVersionSupport: DbVersionSupport,
   isGrpcWeb: boolean,
-  toBase64FromMedia: ToBase64FromMedia<M>,
+  toBase64FromMedia: ToBase64FromMedia,
   consistencyLevel?: ConsistencyLevel,
   tenant?: string
-): ICollection<T, N, V, M> => {
+): Collection<T, N, V> => {
   if (!isString(name)) {
     throw new WeaviateInvalidInputError(`The collection name must be a string, got: ${typeof name}`);
   }
   const capitalizedName = capitalizeCollectionName(name);
-  const aggregateCollection = aggregate<T, V, M>(
+  const aggregateCollection = aggregate<T, V>(
     connection,
     capitalizedName,
     dbVersionSupport,
@@ -133,7 +133,7 @@ const collection = <T, N, V, M>(
     consistencyLevel,
     tenant
   );
-  const queryCollection = query<T, V, M>(
+  const queryCollection = query<T, V>(
     connection,
     capitalizedName,
     dbVersionSupport,
@@ -147,7 +147,7 @@ const collection = <T, N, V, M>(
     config: config<T>(connection, capitalizedName, dbVersionSupport, tenant),
     data: data<T>(connection, capitalizedName, dbVersionSupport, isGrpcWeb, consistencyLevel, tenant),
     filter: filter<T extends undefined ? any : T>(),
-    generate: generate<T, V, M>(
+    generate: generate<T, V>(
       connection,
       capitalizedName,
       dbVersionSupport,
@@ -177,7 +177,7 @@ const collection = <T, N, V, M>(
       ),
     length: () => aggregateCollection.overAll().then(({ totalCount }) => totalCount),
     withConsistency: (consistencyLevel: ConsistencyLevel) =>
-      collection<T, N, V, M>(
+      collection<T, N, V>(
         connection,
         capitalizedName,
         dbVersionSupport,
@@ -187,7 +187,7 @@ const collection = <T, N, V, M>(
         tenant
       ),
     withTenant: <TT extends TenantBase>(tenant: string | TT) =>
-      collection<T, N, V, M>(
+      collection<T, N, V>(
         connection,
         capitalizedName,
         dbVersionSupport,

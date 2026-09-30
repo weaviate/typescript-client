@@ -25,6 +25,7 @@ import {
   ReturnVectors,
 } from '../types/index.js';
 import { IncludeVector } from '../types/internal.js';
+import { Media } from '../utils/base64.js';
 
 interface Bm25<T, V> {
   /**
@@ -170,7 +171,7 @@ interface Hybrid<T, V> {
   ): GenerateReturn<T, RV, C>;
 }
 
-interface NearMedia<T, V, TMedia> {
+interface NearMedia<T, V> {
   /**
    * Perform retrieval-augmented generation (RaG) on the results of a by-audio object search in this collection using an audio-capable vectorization module and vector-based similarity search.
    *
@@ -180,7 +181,7 @@ interface NearMedia<T, V, TMedia> {
    *
    * This overload is for performing a search without the `groupBy` param.
    *
-   * @param {TMedia} media - The media file to search on. This can be a base64 string, a file path string, or a buffer.
+   * @param {Media} media - The media file to search on. This can be a base64 string, a file path string, or raw bytes.
    * @param {NearMediaType} type - The type of media to search on.
    * @param {GenerateOptions<T, C>} generate - The available options for performing the generation.
    * @param {BaseNearOptions<T, V>} [opts] - The available options for performing the near-media search.
@@ -192,7 +193,7 @@ interface NearMedia<T, V, TMedia> {
     RV extends ReturnVectors<V, I>,
     C extends GenerativeConfigRuntime | undefined = undefined
   >(
-    media: TMedia,
+    media: Media,
     type: NearMediaType,
     generate: GenerateOptions<T, C>,
     opts?: BaseNearOptions<T, V, I>,
@@ -207,7 +208,7 @@ interface NearMedia<T, V, TMedia> {
    *
    * This overload is for performing a search with the `groupBy` param.
    *
-   * @param {TMedia} media - The media file to search on. This can be a base64 string, a file path string, or a buffer.
+   * @param {Media} media - The media file to search on. This can be a base64 string, a file path string, or raw bytes.
    * @param {NearMediaType} type - The type of media to search on.
    * @param {GenerateOptions<T, C>} generate - The available options for performing the generation.
    * @param {GroupByNearOptions<T, V>} opts - The available options for performing the near-media search.
@@ -219,7 +220,7 @@ interface NearMedia<T, V, TMedia> {
     RV extends ReturnVectors<V, I>,
     C extends GenerativeConfigRuntime | undefined = undefined
   >(
-    media: TMedia,
+    media: Media,
     type: NearMediaType,
     generate: GenerateOptions<T, C>,
     opts: GroupByNearOptions<T, V, I>,
@@ -234,7 +235,7 @@ interface NearMedia<T, V, TMedia> {
    *
    * This overload is for performing a search with a programmatically defined `opts` param.
    *
-   * @param {TMedia} media - The media to search on. This can be a base64 string, a file path string, or a buffer.
+   * @param {Media} media - The media to search on. This can be a base64 string, a file path string, or raw bytes.
    * @param {NearMediaType} type - The type of media to search on.
    * @param {GenerateOptions<T, C>} generate - The available options for performing the generation.
    * @param {NearOptions<T, V>} [opts] - The available options for performing the near-media search.
@@ -246,7 +247,7 @@ interface NearMedia<T, V, TMedia> {
     RV extends ReturnVectors<V, I>,
     C extends GenerativeConfigRuntime | undefined = undefined
   >(
-    media: TMedia,
+    media: Media,
     type: NearMediaType,
     generate: GenerateOptions<T, C>,
     opts?: NearOptions<T, V, I>,
@@ -476,10 +477,10 @@ interface NearVector<T, V> {
   ): GenerateReturn<T, RV, C>;
 }
 
-export interface IGenerate<T, V, TMedia>
+export interface Generate<T, V>
   extends Bm25<T, V>,
     Hybrid<T, V>,
-    NearMedia<T, V, TMedia>,
+    NearMedia<T, V>,
     NearObject<T, V>,
     NearText<T, V>,
     NearVector<T, V> {

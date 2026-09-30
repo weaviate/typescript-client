@@ -887,7 +887,7 @@ export class Serialize {
 
   private static withImages = async <T extends Record<string, any>>(
     config: T,
-    toBase64FromMedia: ToBase64FromMedia<any>,
+    toBase64FromMedia: ToBase64FromMedia,
     imgs?: (string | Buffer)[],
     imgProps?: string[]
   ): Promise<T> => {
@@ -905,7 +905,7 @@ export class Serialize {
 
   private static generativeQuery = async (
     generative: GenerativeConfigRuntime,
-    toBase64FromMedia: ToBase64FromMedia<any>,
+    toBase64FromMedia: ToBase64FromMedia,
     opts?: { metadata?: boolean; images?: (string | Buffer)[]; imageProperties?: string[] }
   ): Promise<GenerativeProvider> => {
     const provider = GenerativeProvider.fromPartial({ returnMetadata: opts?.metadata });
@@ -982,7 +982,7 @@ export class Serialize {
 
   public static generative = async <T>(
     args: { supportsSingleGrouped: boolean },
-    toBase64FromMedia: ToBase64FromMedia<any>,
+    toBase64FromMedia: ToBase64FromMedia,
     opts?: GenerateOptions<T, GenerativeConfigRuntime | undefined>
   ): Promise<GenerativeSearch> => {
     const singlePrompt = Serialize.isSinglePrompt(opts?.singlePrompt)

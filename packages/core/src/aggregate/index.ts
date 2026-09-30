@@ -11,7 +11,7 @@ import { PrimitiveKeys } from '../index.js';
 import { Bm25OperatorOptions, Bm25QueryProperty, NearVectorInputType, TargetVector } from '../query/types.js';
 import { NearVectorInputGuards } from '../query/utils.js';
 import { Serialize } from '../serialize/index.js';
-import { ToBase64FromMedia } from '../utils/base64.js';
+import { Media, ToBase64FromMedia } from '../utils/base64.js';
 import { Aggregator } from '../v2/graphql/index.js';
 
 export type AggregateBaseOptions<P> = {
@@ -348,12 +348,12 @@ export type AggregateGroupByResult<
   };
 };
 
-class AggregateManager<T, V, M> implements IAggregate<T, V, M> {
+class AggregateManager<T, V> implements Aggregate<T, V> {
   connection: Connection;
-  groupBy: IAggregateGroupBy<T, V, M>;
+  groupBy: AggregateGroupBy<T, V>;
   name: string;
   private dbVersionSupport: DbVersionSupport;
-  private toBase64FromMedia: ToBase64FromMedia<M>;
+  private toBase64FromMedia: ToBase64FromMedia;
   consistencyLevel?: ConsistencyLevel;
   tenant?: string;
   grpcChecker: Promise<boolean>;
@@ -362,7 +362,7 @@ class AggregateManager<T, V, M> implements IAggregate<T, V, M> {
     connection: Connection,
     name: string,
     dbVersionSupport: DbVersionSupport,
-    toBase64FromMedia: ToBase64FromMedia<M>,
+    toBase64FromMedia: ToBase64FromMedia,
     consistencyLevel?: ConsistencyLevel,
     tenant?: string
   ) {
@@ -406,7 +406,7 @@ class AggregateManager<T, V, M> implements IAggregate<T, V, M> {
         return this.doGroupBy(builder);
       },
       nearImage: async <P extends PropertiesMetrics<T>>(
-        image: M,
+        image: Media,
         opts: AggregateGroupByNearOptions<T, P, V>
       ): Promise<AggregateGroupByResult<T, P>[]> => {
         const [b64, usesGrpc] = await Promise.all([
@@ -601,15 +601,15 @@ class AggregateManager<T, V, M> implements IAggregate<T, V, M> {
     return `${propertyName} { ${body} }`;
   }
 
-  static use<T, V, M>(
+  static use<T, V>(
     connection: Connection,
     name: string,
     dbVersionSupport: DbVersionSupport,
-    toBase64FromMedia: ToBase64FromMedia<M>,
+    toBase64FromMedia: ToBase64FromMedia,
     consistencyLevel?: ConsistencyLevel,
     tenant?: string
-  ): AggregateManager<T, V, M> {
-    return new AggregateManager<T, V, M>(
+  ): AggregateManager<T, V> {
+    return new AggregateManager<T, V>(
       connection,
       name,
       dbVersionSupport,
@@ -643,7 +643,7 @@ class AggregateManager<T, V, M> implements IAggregate<T, V, M> {
   }
 
   async nearImage<P extends PropertiesMetrics<T>>(
-    image: M,
+    image: Media,
     opts?: AggregateNearOptions<P, V>
   ): Promise<AggregateResult<T, P>> {
     const [b64, usesGrpc] = await Promise.all([await this.toBase64FromMedia(image), await this.grpcChecker]);
@@ -786,9 +786,9 @@ class AggregateManager<T, V, M> implements IAggregate<T, V, M> {
   };
 }
 
-export interface IAggregate<T, V, M> {
+export interface Aggregate<T, V> {
   /** This namespace contains methods perform a group by search while aggregating metrics. */
-  groupBy: IAggregateGroupBy<T, V, M>;
+  groupBy: AggregateGroupBy<T, V>;
   /**
    * Aggregate metrics over the objects returned by a hybrid search on this collection.
    *
@@ -809,12 +809,12 @@ export interface IAggregate<T, V, M> {
    *
    * This method requires a vectorizer capable of handling base64-encoded images, e.g. `img2vec-neural`, `multi2vec-clip`, and `multi2vec-bind`.
    *
-   * @param {M} image The image to search on. This can be a base64 string, a file path string, or a buffer.
+   * @param {Media} image The image to search on. This can be a base64 string, a file path string, or raw bytes.
    * @param {AggregateNearOptions<P, V>} [opts] The options for the request.
    * @returns {Promise<AggregateResult<T, P>[]>} The aggregated metrics for the objects returned by the vector search.
    */
   nearImage<P extends PropertiesMetrics<T>>(
-    image: M,
+    image: Media,
     opts?: AggregateNearOptions<P, V>
   ): Promise<AggregateResult<T, P>>;
   /**
@@ -871,7 +871,7 @@ export interface IAggregate<T, V, M> {
   overAll<P extends PropertiesMetrics<T>>(opts?: AggregateOverAllOptions<P>): Promise<AggregateResult<T, P>>;
 }
 
-export interface IAggregateGroupBy<T, V, M> {
+export interface AggregateGroupBy<T, V> {
   /**
    * Aggregate metrics over the objects grouped by a specified property and returned by a hybrid search on this collection.
    *
@@ -892,12 +892,12 @@ export interface IAggregateGroupBy<T, V, M> {
    *
    * This method requires a vectorizer capable of handling base64-encoded images, e.g. `img2vec-neural`, `multi2vec-clip`, and `multi2vec-bind`.
    *
-   * @param {M} image The image to search on. This can be a base64 string, a file path string, or a buffer.
+   * @param {Media} image The image to search on. This can be a base64 string, a file path string, or raw bytes.
    * @param {AggregateGroupByNearOptions<T, P, V>} opts The options for the request.
    * @returns {Promise<AggregateGroupByResult<T, P>[]>} The aggregated metrics for the objects returned by the vector search.
    */
   nearImage<P extends PropertiesMetrics<T>>(
-    image: M,
+    image: Media,
     opts: AggregateGroupByNearOptions<T, P, V>
   ): Promise<AggregateGroupByResult<T, P>[]>;
   /**

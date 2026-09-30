@@ -14,25 +14,17 @@ import weaviate, {
   Context,
   filter,
   helpers,
-  IAggregate,
-  IAggregateGroupBy,
-  ICollection,
-  ICollections,
-  IGenerate,
-  IQuery,
-  IWeaviateClient,
   permissions,
   queryFactory,
   reconfigure,
+  WeaviateClient,
 } from '@weaviate/core';
 import { Agent as HttpAgent } from 'http';
 import { Agent as HttpsAgent } from 'https';
 import { toBase64FromMedia } from './base64.js';
 import { transportsMaker } from './transports.js';
 
-export type Media = string | Buffer;
-
-const context: Context<Media> = {
+const context: Context = {
   transportsMaker,
   toBase64FromMedia,
   agentMaker: (secure) => (secure ? new HttpsAgent({ keepAlive: true }) : new HttpAgent({ keepAlive: true })),
@@ -122,14 +114,6 @@ const app = {
   permissions,
   query: queryFactory,
 };
-
-export interface WeaviateClient extends IWeaviateClient<Media> {}
-export interface Collections extends ICollections<Media> {}
-export interface Collection<T = undefined, N = string, V = undefined> extends ICollection<T, N, V, Media> {}
-export interface Aggregate<T, V> extends IAggregate<T, V, Media> {}
-export interface AggregateGroupBy<T, V> extends IAggregateGroupBy<T, V, Media> {}
-export interface Query<T, V> extends IQuery<T, V, Media> {}
-export interface Generate<T, V> extends IGenerate<T, V, Media> {}
 
 export default app;
 

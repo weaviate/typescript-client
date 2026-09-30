@@ -1,6 +1,6 @@
 import { Backup, backup } from './backup/client.js';
 import cluster, { Cluster } from './cluster/index.js';
-import collections, { ICollections } from './collections.js';
+import collections, { Collections } from './collections.js';
 import {
   AccessTokenCredentialsInput,
   ApiKey,
@@ -34,7 +34,7 @@ import groups, { Groups } from './groups/index.js';
 import { ConsistencyLevel } from './replication.js';
 import tokenize, { Tokenize } from './tokenize/index.js';
 import users, { Users } from './users/index.js';
-import { ToBase64FromMedia } from './utils/base64.js';
+import { Media, ToBase64FromMedia } from './utils/base64.js';
 
 export type ProtocolParams = {
   /**
@@ -99,12 +99,12 @@ export type ClientParams = {
   skipInitChecks?: boolean;
 };
 
-export interface IWeaviateClient<TMedia = any> {
+export interface WeaviateClient {
   alias: Aliases;
   backup: Backup;
   batch: Batch;
   cluster: Cluster;
-  collections: ICollections<TMedia>;
+  collections: Collections;
   oidcAuth?: OidcAuthenticator;
   groups: Groups;
   roles: Roles;
@@ -131,9 +131,9 @@ export const cleanHost = (host: string, protocol: 'rest' | 'grpc') => {
   return host;
 };
 
-export type Context<TMedia> = {
+export type Context = {
   transportsMaker: TransportsMaker;
-  toBase64FromMedia: ToBase64FromMedia<TMedia>;
+  toBase64FromMedia: ToBase64FromMedia;
   /**
    * Creates the HTTP(S) keep-alive agent for the REST/GraphQL connection. Supplied by the Node shim
    * (`@weaviate/node`); omitted by the browser shim (`@weaviate/web`) so no Node `http`/`https`
@@ -142,11 +142,11 @@ export type Context<TMedia> = {
   agentMaker?: (secure: boolean) => HttpAgent | undefined;
 };
 
-const client = async <TMedia>(
-  context: Context<TMedia>,
+const client = async (
+  context: Context,
   params: ClientParams,
   isGrpcWeb: boolean = false
-): Promise<IWeaviateClient<TMedia>> => {
+): Promise<WeaviateClient> => {
   let { host: httpHost } = params.connectionParams.http;
   let { host: grpcHost } = params.connectionParams.grpc;
   const { port: httpPort, secure: httpSecure, path: httpPath } = params.connectionParams.http;
@@ -179,7 +179,7 @@ const client = async <TMedia>(
     }
   );
 
-  const ifc: IWeaviateClient<TMedia> = {
+  const ifc: WeaviateClient = {
     alias: alias(connection),
     backup: backup(connection),
     batch: batch(connection, dbVersionSupport, isGrpcWeb),
@@ -220,6 +220,7 @@ export {
   BackupStatus,
   ClientCredentialsInput,
   ConsistencyLevel,
+  Media,
   ProxiesParams,
   TimeoutParams,
   UserPasswordCredentialsInput,

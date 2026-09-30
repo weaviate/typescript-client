@@ -12,22 +12,14 @@ import weaviate, {
   Context,
   filter,
   helpers,
-  IAggregate,
-  IAggregateGroupBy,
-  ICollection,
-  ICollections,
-  IGenerate,
-  IQuery,
-  IWeaviateClient,
   permissions,
   reconfigure,
+  WeaviateClient,
 } from '@weaviate/core';
 import { toBase64FromMedia } from './base64.js';
 import { transportsMaker } from './transports.js';
 
-export type Media = string | Blob;
-
-const context: Context<Media> = {
+const context: Context = {
   transportsMaker,
   toBase64FromMedia,
   // No `agentMaker` on purpose: the browser uses fetch-based gRPC-Web (and fetch for REST), so no Node
@@ -37,7 +29,7 @@ const context: Context<Media> = {
 export type ConnectToLocalOptions = Omit<ConnectToLocalOptionsCore, 'grpcPort'>;
 export type ConnectToCustomOptions = Omit<ConnectToCustomOptionsCore, 'grpcHost' | 'grpcPort' | 'grpcSecure'>;
 
-const webify = (context: Context<Media>, params: ClientParams): Promise<IWeaviateClient<Media>> => {
+const webify = (context: Context, params: ClientParams): Promise<WeaviateClient> => {
   params.connectionParams.grpc = {
     host: params.connectionParams.http.host,
     port: params.connectionParams.http.port,
@@ -96,14 +88,6 @@ const app = {
   reconfigure,
   permissions,
 };
-
-export interface WeaviateClient extends IWeaviateClient<Media> {}
-export interface Collections extends ICollections<Media> {}
-export interface Collection<T = undefined, N = string, V = undefined> extends ICollection<T, N, V, Media> {}
-export interface Aggregate<T, V> extends IAggregate<T, V, Media> {}
-export interface AggregateGroupBy<T, V> extends IAggregateGroupBy<T, V, Media> {}
-export interface Query<T, V> extends IQuery<T, V, Media> {}
-export interface Generate<T, V> extends IGenerate<T, V, Media> {}
 
 export default app;
 

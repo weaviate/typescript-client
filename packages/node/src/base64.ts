@@ -1,3 +1,4 @@
+import { Media } from '@weaviate/core';
 import fs from 'fs';
 
 const isFilePromise = (file: string | Buffer): Promise<boolean> =>
@@ -73,10 +74,14 @@ const fileToBase64 = (file: string | Buffer): Promise<string> =>
   );
 
 /**
- * This function converts a file buffer into a base64 string so that it can be
- * sent to Weaviate and stored as a media field.
+ * Converts media into a base64 string so that it can be sent to Weaviate.
  *
- * @param {string | Buffer} file The media to convert either as a base64 string, a file path string, an url, or as a buffer. If you passed a base64 string, the function does nothing and returns the string as is.
- * @returns {string} The base64 string
+ * @param {Media} media The media as a base64 string, a file path, a URL, a `Uint8Array` (including `Buffer`), or a `Blob`. A base64 string is returned as is.
+ * @returns {Promise<string>} The base64 string.
  */
-export const toBase64FromMedia = (media: string | Buffer): Promise<string> => fileToBase64(media);
+export const toBase64FromMedia = async (media: Media): Promise<string> => {
+  if (media instanceof Blob) return Buffer.from(await media.arrayBuffer()).toString('base64');
+  if (media instanceof Uint8Array)
+    return Buffer.from(media.buffer, media.byteOffset, media.byteLength).toString('base64');
+  return fileToBase64(media);
+};

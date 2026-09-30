@@ -18,6 +18,7 @@ import {
   WeaviateReturn,
 } from '../types/index.js';
 import { IncludeVector, PrimitiveKeys } from '../types/internal.js';
+import { Media } from '../utils/base64.js';
 
 /** Options available in the `query.fetchObjectById` method */
 export type FetchObjectByIdOptions<T, I> = {
@@ -357,7 +358,7 @@ interface Hybrid<T, V> {
   ): QueryReturn<T, RV>;
 }
 
-interface NearImage<T, V, M> {
+interface NearImage<T, V> {
   /**
    * Search for objects by image in this collection using an image-capable vectorization module and vector-based similarity search.
    * You must have an image-capable vectorization module installed in order to use this method,
@@ -367,13 +368,13 @@ interface NearImage<T, V, M> {
    *
    * This overload is for performing a search without the `groupBy` param.
    *
-   * @param {M} image - The image to search on. This can be a base64 string, a file path string, or a buffer.
+   * @param {Media} image - The image to search on. This can be a base64 string, a file path string, or raw bytes.
    * @param {BaseNearOptions<T, V>} [opts] - The available options for the search excluding the `groupBy` param.
    * @param {CallOptions} [callOpts] - The available options for the API call.
    * @returns {Promise<WeaviateReturn<T, V>>} - The result of the search within the fetched collection.
    */
   nearImage<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
-    image: M,
+    image: Media,
     opts?: BaseNearOptions<T, V, I>,
     callOpts?: CallOptions
   ): Promise<WeaviateReturn<T, RV>>;
@@ -386,13 +387,13 @@ interface NearImage<T, V, M> {
    *
    * This overload is for performing a search with the `groupBy` param.
    *
-   * @param {M} image - The image to search on. This can be a base64 string, a file path string, or a buffer.
+   * @param {Media} image - The image to search on. This can be a base64 string, a file path string, or raw bytes.
    * @param {GroupByNearOptions<T, V>} opts - The available options for the search including the `groupBy` param.
    * @param {CallOptions} [callOpts] - The available options for the API call.
    * @returns {Promise<GroupByReturn<T, V>>} - The group by result of the search within the fetched collection.
    */
   nearImage<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
-    image: M,
+    image: Media,
     opts: GroupByNearOptions<T, V, I>,
     callOpts?: CallOptions
   ): Promise<GroupByReturn<T, RV>>;
@@ -405,19 +406,19 @@ interface NearImage<T, V, M> {
    *
    * This overload is for performing a search with a programmatically defined `opts` param.
    *
-   * @param {M} image - The image to search on. This can be a base64 string, a file path string, or a buffer.
+   * @param {Media} image - The image to search on. This can be a base64 string, a file path string, or raw bytes.
    * @param {NearOptions<T, V>} [opts] - The available options for the search.
    * @param {CallOptions} [callOpts] - The available options for the API call.
    * @returns {QueryReturn<T, V>} - The result of the search within the fetched collection.
    */
   nearImage<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
-    image: M,
+    image: Media,
     opts?: NearOptions<T, V, I>,
     callOpts?: CallOptions
   ): QueryReturn<T, RV>;
 }
 
-interface NearMedia<T, V, M> {
+interface NearMedia<T, V> {
   /**
    * Search for objects by image in this collection using an image-capable vectorization module and vector-based similarity search.
    * You must have a multi-media-capable vectorization module installed in order to use this method, e.g. `multi2vec-bind` or `multi2vec-palm`.
@@ -426,14 +427,14 @@ interface NearMedia<T, V, M> {
    *
    * This overload is for performing a search without the `groupBy` param.
    *
-   * @param {M} media - The media to search on. This can be a base64 string, a file path string, or a buffer.
+   * @param {Media} media - The media to search on. This can be a base64 string, a file path string, or raw bytes.
    * @param {NearMediaType} type - The type of media to search for, e.g. 'audio'.
    * @param {BaseNearOptions<T, V>} [opts] - The available options for the search excluding the `groupBy` param.
    * @param {CallOptions} [callOpts] - The available options for the API call.
    * @returns {Promise<WeaviateReturn<T, V>>} - The result of the search within the fetched collection.
    */
   nearMedia<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
-    media: M,
+    media: Media,
     type: NearMediaType,
     opts?: BaseNearOptions<T, V, I>,
     callOpts?: CallOptions
@@ -446,14 +447,14 @@ interface NearMedia<T, V, M> {
    *
    * This overload is for performing a search with the `groupBy` param.
    *
-   * @param {M} media - The media to search on. This can be a base64 string, a file path string, or a buffer.
+   * @param {Media} media - The media to search on. This can be a base64 string, a file path string, or raw bytes.
    * @param {NearMediaType} type - The type of media to search for, e.g. 'audio'.
    * @param {GroupByNearOptions<T, V>} opts - The available options for the search including the `groupBy` param.
    * @param {CallOptions} [callOpts] - The available options for the API call.
    * @returns {Promise<GroupByReturn<T, V>>} - The group by result of the search within the fetched collection.
    */
   nearMedia<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
-    media: M,
+    media: Media,
     type: NearMediaType,
     opts: GroupByNearOptions<T, V, I>,
     callOpts?: CallOptions
@@ -466,14 +467,14 @@ interface NearMedia<T, V, M> {
    *
    * This overload is for performing a search with a programmatically defined `opts` param.
    *
-   * @param {M} media - The media to search on. This can be a base64 string, a file path string, or a buffer.
+   * @param {Media} media - The media to search on. This can be a base64 string, a file path string, or raw bytes.
    * @param {NearMediaType} type - The type of media to search for, e.g. 'audio'.
    * @param {NearOptions<T, V>} [opts] - The available options for the search.
    * @param {CallOptions} [callOpts] - The available options for the API call.
    * @returns {QueryReturn<T, V>} - The result of the search within the fetched collection.
    */
   nearMedia<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
-    media: M,
+    media: Media,
     type: NearMediaType,
     opts?: NearOptions<T, V, I>,
     callOpts?: CallOptions
@@ -649,11 +650,11 @@ interface NearVector<T, V> {
 }
 
 /** All the available methods on the `.query` namespace. */
-export interface IQuery<T, V, M>
+export interface Query<T, V>
   extends Bm25<T, V>,
     Hybrid<T, V>,
-    NearImage<T, V, M>,
-    NearMedia<T, V, M>,
+    NearImage<T, V>,
+    NearMedia<T, V>,
     NearObject<T, V>,
     NearText<T, V>,
     NearVector<T, V> {

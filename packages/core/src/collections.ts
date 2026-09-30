@@ -1,4 +1,4 @@
-import collection, { ICollection } from './collection/index.js';
+import collection, { Collection } from './collection/index.js';
 import { classToCollection, makeVectorsConfig, resolveProperty, resolveReference } from './config/utils.js';
 import Connection from './connection/grpc.js';
 import { WeaviateClass, WeaviateObjectTTLConfig } from './openapi/types.js';
@@ -58,11 +58,11 @@ export type CollectionConfigCreate<TProperties = undefined, N = string, TVectors
   vectorizers?: VectorizersConfigCreate<TProperties, TVectors>;
 };
 
-const collections = <TMedia>(
+const collections = (
   connection: Connection,
   dbVersionSupport: DbVersionSupport,
   isGrpcWeb: boolean,
-  toBase64FromMedia: ToBase64FromMedia<TMedia>
+  toBase64FromMedia: ToBase64FromMedia
 ) => {
   const listAll = () =>
     new SchemaGetter(connection)
@@ -129,7 +129,7 @@ const collections = <TMedia>(
       schema.properties = [...properties, ...references];
 
       await new ClassCreator(connection).withClass(schema).do();
-      return collection<TProperties, TName, TVectors, TMedia>(
+      return collection<TProperties, TName, TVectors>(
         connection,
         name,
         dbVersionSupport,
@@ -139,7 +139,7 @@ const collections = <TMedia>(
     },
     createFromSchema: async function (config: WeaviateClass) {
       const { class: name } = await new ClassCreator(connection).withClass(config).do();
-      return collection<Properties, string, undefined, TMedia>(
+      return collection<Properties, string, undefined>(
         connection,
         name as string,
         dbVersionSupport,
@@ -149,7 +149,7 @@ const collections = <TMedia>(
     },
     createFromJson: async (schemaJson: WeaviateClass) => {
       const { class: name } = await connection.postReturn<any, WeaviateClass>('/schema', schemaJson);
-      return collection<Properties, string, undefined, TMedia>(
+      return collection<Properties, string, undefined>(
         connection,
         name as string,
         dbVersionSupport,
@@ -174,7 +174,7 @@ const collections = <TMedia>(
     >(
       name: TName
     ) =>
-      collection<TProperties, TName, TVectors, TMedia>(
+      collection<TProperties, TName, TVectors>(
         connection,
         name,
         dbVersionSupport,
@@ -188,7 +188,7 @@ const collections = <TMedia>(
     >(
       name: TName
     ) =>
-      collection<TProperties, TName, TVectors, TMedia>(
+      collection<TProperties, TName, TVectors>(
         connection,
         name,
         dbVersionSupport,
@@ -198,16 +198,16 @@ const collections = <TMedia>(
   };
 };
 
-export interface ICollections<TMedia> {
+export interface Collections {
   create<
     TProperties extends Properties | undefined = undefined,
     TName = string,
     TVectors extends Vectors | undefined = undefined
   >(
     config: CollectionConfigCreate<TProperties, TName, TVectors>
-  ): Promise<ICollection<TProperties, TName, TVectors, TMedia>>;
-  createFromSchema(config: WeaviateClass): Promise<ICollection<Properties, string, undefined, TMedia>>;
-  createFromJson(schemaJson: WeaviateClass): Promise<ICollection<Properties, string, undefined, TMedia>>;
+  ): Promise<Collection<TProperties, TName, TVectors>>;
+  createFromSchema(config: WeaviateClass): Promise<Collection<Properties, string, undefined>>;
+  createFromJson(schemaJson: WeaviateClass): Promise<Collection<Properties, string, undefined>>;
   delete(collection: string): Promise<void>;
   deleteAll(): Promise<void[]>;
   exists(name: string): Promise<boolean>;
@@ -219,7 +219,7 @@ export interface ICollections<TMedia> {
     TVectors extends Vectors | undefined = undefined
   >(
     name: TName
-  ): ICollection<TProperties, TName, TVectors, TMedia>;
+  ): Collection<TProperties, TName, TVectors>;
   listAll(): Promise<CollectionConfig[]>;
   use<
     TName extends string = string,
@@ -227,7 +227,7 @@ export interface ICollections<TMedia> {
     TVectors extends Vectors | undefined = undefined
   >(
     name: TName
-  ): ICollection<TProperties, TName, TVectors, TMedia>;
+  ): Collection<TProperties, TName, TVectors>;
 }
 
 export default collections;

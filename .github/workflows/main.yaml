@@ -39,6 +39,7 @@ jobs:
           npm run format:check
           npm run docs
           npm run build
+          npm run stage:client
           npm run release:pack
       - name: "Upload tested release tarballs"
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')

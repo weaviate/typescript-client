@@ -36,27 +36,27 @@ import {
   ReturnVectors,
 } from '../types/index.js';
 import { IncludeVector } from '../types/internal.js';
-import { ToBase64FromMedia } from '../utils/base64.js';
-import { IGenerate } from './types.js';
+import { Media, ToBase64FromMedia } from '../utils/base64.js';
+import { Generate } from './types.js';
 
-class GenerateManager<T, V, TMedia> implements IGenerate<T, V, TMedia> {
+class GenerateManager<T, V> implements Generate<T, V> {
   private check: Check<T, V>;
-  private toBase64FromMedia: ToBase64FromMedia<TMedia>;
+  private toBase64FromMedia: ToBase64FromMedia;
 
-  private constructor(check: Check<T, V>, toBase64FromMedia: ToBase64FromMedia<TMedia>) {
+  private constructor(check: Check<T, V>, toBase64FromMedia: ToBase64FromMedia) {
     this.check = check;
     this.toBase64FromMedia = toBase64FromMedia;
   }
 
-  public static use<T, V, TMedia>(
+  public static use<T, V>(
     connection: Connection,
     name: string,
     dbVersionSupport: DbVersionSupport,
-    toBase64FromMedia: ToBase64FromMedia<TMedia>,
+    toBase64FromMedia: ToBase64FromMedia,
     consistencyLevel?: ConsistencyLevel,
     tenant?: string
-  ): GenerateManager<T, V, TMedia> {
-    return new GenerateManager<T, V, TMedia>(
+  ): GenerateManager<T, V> {
+    return new GenerateManager<T, V>(
       new Check<T, V>(connection, name, dbVersionSupport, consistencyLevel, tenant),
       toBase64FromMedia
     );
@@ -201,7 +201,7 @@ class GenerateManager<T, V, TMedia> implements IGenerate<T, V, TMedia> {
     RV extends ReturnVectors<V, I>,
     C extends GenerativeConfigRuntime | undefined = undefined
   >(
-    image: TMedia,
+    image: Media,
     generate: GenerateOptions<T, C>,
     opts?: BaseNearOptions<T, V, I>,
     callOpts?: CallOptions
@@ -211,7 +211,7 @@ class GenerateManager<T, V, TMedia> implements IGenerate<T, V, TMedia> {
     RV extends ReturnVectors<V, I>,
     C extends GenerativeConfigRuntime | undefined = undefined
   >(
-    image: TMedia,
+    image: Media,
     generate: GenerateOptions<T, C>,
     opts: GroupByNearOptions<T, V, I>,
     callOpts?: CallOptions
@@ -221,7 +221,7 @@ class GenerateManager<T, V, TMedia> implements IGenerate<T, V, TMedia> {
     RV extends ReturnVectors<V, I>,
     C extends GenerativeConfigRuntime | undefined = undefined
   >(
-    image: TMedia,
+    image: Media,
     generate: GenerateOptions<T, C>,
     opts?: NearOptions<T, V, I>,
     callOpts?: CallOptions
@@ -411,7 +411,7 @@ class GenerateManager<T, V, TMedia> implements IGenerate<T, V, TMedia> {
     RV extends ReturnVectors<V, I>,
     C extends GenerativeConfigRuntime | undefined = undefined
   >(
-    media: TMedia,
+    media: Media,
     type: NearMediaType,
     generate: GenerateOptions<T, C>,
     opts?: BaseNearOptions<T, V, I>,
@@ -422,7 +422,7 @@ class GenerateManager<T, V, TMedia> implements IGenerate<T, V, TMedia> {
     RV extends ReturnVectors<V, I>,
     C extends GenerativeConfigRuntime | undefined = undefined
   >(
-    media: TMedia,
+    media: Media,
     type: NearMediaType,
     generate: GenerateOptions<T, C>,
     opts: GroupByNearOptions<T, V, I>,
@@ -433,7 +433,7 @@ class GenerateManager<T, V, TMedia> implements IGenerate<T, V, TMedia> {
     RV extends ReturnVectors<V, I>,
     C extends GenerativeConfigRuntime | undefined = undefined
   >(
-    media: TMedia,
+    media: Media,
     type: NearMediaType,
     generate: GenerateOptions<T, C>,
     opts?: NearOptions<T, V, I>,
@@ -504,4 +504,4 @@ class GenerateManager<T, V, TMedia> implements IGenerate<T, V, TMedia> {
 export default GenerateManager.use;
 
 export { generativeParameters } from './config.js';
-export { IGenerate } from './types.js';
+export { Generate } from './types.js';

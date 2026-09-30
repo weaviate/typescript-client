@@ -1,3 +1,5 @@
+import { Media } from '@weaviate/core';
+
 const isUrl = (input: string): boolean => {
   try {
     new URL(input); // eslint-disable-line no-new
@@ -43,8 +45,9 @@ export const downloadImageFromURLAsBase64 = async (url: string): Promise<string>
  * - A base64 string (returns it unchanged)
  * - A URL (fetches the image and converts to base64)
  * - A `Blob` or `File` (uses FileReader)
+ * - A `Uint8Array` (copied into a `Blob`, which rejects `SharedArrayBuffer`-backed views)
  */
-export const toBase64FromMedia = (media: string | Blob): Promise<string> => {
+export const toBase64FromMedia = (media: Media): Promise<string> => {
   if (typeof media === 'string') {
     if (media.startsWith('data:') || /^[A-Za-z0-9+/=]+$/.test(media)) {
       // Already base64 string
@@ -56,6 +59,8 @@ export const toBase64FromMedia = (media: string | Blob): Promise<string> => {
     }
   } else if (media instanceof Blob) {
     return blobToBase64(media);
+  } else if (media instanceof Uint8Array) {
+    return blobToBase64(new Blob([new Uint8Array(media)]));
   } else {
     throw new Error('Unsupported media type');
   }

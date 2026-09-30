@@ -16,7 +16,7 @@ import {
 
 import { WeaviateInvalidInputError } from '../errors.js';
 import { IncludeVector } from '../types/internal.js';
-import { ToBase64FromMedia } from '../utils/base64.js';
+import { Media, ToBase64FromMedia } from '../utils/base64.js';
 import { Check } from './check.js';
 import {
   BaseBm25Options,
@@ -35,29 +35,29 @@ import {
   NearOptions,
   NearTextOptions,
   NearVectorInputType,
-  IQuery,
+  Query,
   QueryReturn,
   SearchOptions,
 } from './types.js';
 
-class QueryManager<T, V, M> implements IQuery<T, V, M> {
+class QueryManager<T, V> implements Query<T, V> {
   private check: Check<T, V>;
-  private toBase64FromMedia: ToBase64FromMedia<M>;
+  private toBase64FromMedia: ToBase64FromMedia;
 
-  private constructor(check: Check<T, V>, toBase64FromMedia: ToBase64FromMedia<M>) {
+  private constructor(check: Check<T, V>, toBase64FromMedia: ToBase64FromMedia) {
     this.check = check;
     this.toBase64FromMedia = toBase64FromMedia;
   }
 
-  public static use<T, V, M>(
+  public static use<T, V>(
     connection: Connection,
     name: string,
     dbVersionSupport: DbVersionSupport,
-    toBase64FromMedia: ToBase64FromMedia<M>,
+    toBase64FromMedia: ToBase64FromMedia,
     consistencyLevel?: ConsistencyLevel,
     tenant?: string
-  ): QueryManager<T, V, M> {
-    return new QueryManager<T, V, M>(
+  ): QueryManager<T, V> {
+    return new QueryManager<T, V>(
       new Check<T, V>(connection, name, dbVersionSupport, consistencyLevel, tenant),
       toBase64FromMedia
     );
@@ -153,17 +153,17 @@ class QueryManager<T, V, M> implements IQuery<T, V, M> {
   }
 
   public nearImage<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
-    image: M,
+    image: Media,
     opts?: BaseNearOptions<T, V, I>,
     callOpts?: CallOptions
   ): Promise<WeaviateReturn<T, RV>>;
   public nearImage<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
-    image: M,
+    image: Media,
     opts: GroupByNearOptions<T, V, I>,
     callOpts?: CallOptions
   ): Promise<GroupByReturn<T, RV>>;
   public nearImage<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
-    image: M,
+    image: Media,
     opts?: NearOptions<T, V, I>,
     callOpts?: CallOptions
   ): QueryReturn<T, RV> {
@@ -185,19 +185,19 @@ class QueryManager<T, V, M> implements IQuery<T, V, M> {
   }
 
   public nearMedia<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
-    media: M,
+    media: Media,
     type: NearMediaType,
     opts?: BaseNearOptions<T, V, I>,
     callOpts?: CallOptions
   ): Promise<WeaviateReturn<T, RV>>;
   public nearMedia<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
-    media: M,
+    media: Media,
     type: NearMediaType,
     opts: GroupByNearOptions<T, V, I>,
     callOpts?: CallOptions
   ): Promise<GroupByReturn<T, RV>>;
   public nearMedia<I extends IncludeVector<V>, RV extends ReturnVectors<V, I>>(
-    media: M,
+    media: Media,
     type: NearMediaType,
     opts?: NearOptions<T, V, I>,
     callOpts?: CallOptions

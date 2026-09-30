@@ -1,5 +1,5 @@
 import { WeaviateStartUpError } from '../errors.js';
-import { ClientParams, Context, IWeaviateClient } from '../index.js';
+import { ClientParams, Context, WeaviateClient } from '../index.js';
 import {
   AuthAccessTokenCredentials,
   AuthClientCredentials,
@@ -70,12 +70,12 @@ export type ConnectToCustomOptions = {
   skipInitChecks?: boolean;
 };
 
-export function connectToWeaviateCloud<C extends Context<TMedia>, TMedia>(
+export function connectToWeaviateCloud<C extends Context>(
   clusterURL: string,
-  clientMaker: (context: C, params: ClientParams) => Promise<IWeaviateClient<TMedia>>,
+  clientMaker: (context: C, params: ClientParams) => Promise<WeaviateClient>,
   context: C,
   options?: ConnectToWeaviateCloudOptions
-): Promise<IWeaviateClient<TMedia>> {
+): Promise<WeaviateClient> {
   // check if the URL is set
   if (!clusterURL) throw new Error('Missing `clusterURL` parameter');
 
@@ -125,11 +125,11 @@ export function connectToWeaviateCloud<C extends Context<TMedia>, TMedia>(
   });
 }
 
-export function connectToLocal<C extends Context<TMedia>, TMedia>(
-  clientMaker: (context: C, params: ClientParams) => Promise<IWeaviateClient<TMedia>>,
+export function connectToLocal<C extends Context>(
+  clientMaker: (context: C, params: ClientParams) => Promise<WeaviateClient>,
   context: C,
   options?: ConnectToLocalOptions
-): Promise<IWeaviateClient<TMedia>> {
+): Promise<WeaviateClient> {
   const { host, port, grpcPort, authCredentials: auth, ...rest } = options || {};
   return clientMaker(context, {
     connectionParams: {
@@ -151,11 +151,11 @@ export function connectToLocal<C extends Context<TMedia>, TMedia>(
   });
 }
 
-export function connectToCustom<C extends Context<TMedia>, TMedia>(
-  clientMaker: (context: C, params: ClientParams) => Promise<IWeaviateClient<TMedia>>,
+export function connectToCustom<C extends Context>(
+  clientMaker: (context: C, params: ClientParams) => Promise<WeaviateClient>,
   context: C,
   options?: ConnectToCustomOptions
-): Promise<IWeaviateClient<TMedia>> {
+): Promise<WeaviateClient> {
   const {
     httpHost,
     httpPath,
