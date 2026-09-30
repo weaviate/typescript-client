@@ -13,19 +13,20 @@ export class Iterator<T, V> {
   [Symbol.asyncIterator]() {
     return {
       next: async (): Promise<IteratorResult<WeaviateObject<T, V>>> => {
-        const objects = await this.query(ITERATOR_CACHE_SIZE, this.last);
-        this.cache = objects;
         if (this.cache.length == 0) {
-          return {
-            done: true,
-            value: undefined,
-          };
+          this.cache = await this.query(ITERATOR_CACHE_SIZE, this.last);
+          if (this.cache.length == 0) {
+            return {
+              done: true,
+              value: undefined,
+            };
+          }
         }
         const obj = this.cache.shift();
         if (obj === undefined) {
           throw new WeaviateDeserializationError('Object iterator returned an object that is undefined');
         }
-        this.last = obj?.uuid;
+        this.last = obj.uuid;
         if (this.last === undefined) {
           throw new WeaviateDeserializationError('Object iterator returned an object without a UUID');
         }
