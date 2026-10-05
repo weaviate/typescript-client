@@ -15,12 +15,12 @@ export class Iterator<T, V> {
       next: async (): Promise<IteratorResult<WeaviateObject<T, V>>> => {
         if (this.cache.length == 0) {
           this.cache = await this.query(ITERATOR_CACHE_SIZE, this.last);
-          if (this.cache.length == 0) {
-            return {
-              done: true,
-              value: undefined,
-            };
-          }
+        }
+        if (this.cache.length == 0) {
+          return {
+            done: true,
+            value: undefined,
+          };
         }
         const obj = this.cache.shift();
         if (obj === undefined) {
