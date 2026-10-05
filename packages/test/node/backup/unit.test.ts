@@ -1,4 +1,4 @@
-import { BackupStatus } from '@weaviate/core/backup/types';
+import { BackupStatus } from '@weaviate/core';
 import { WeaviateBackupCanceled } from '@weaviate/core/errors';
 import {
   HealthCheckRequest,

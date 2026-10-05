@@ -22,6 +22,19 @@
       "default": "./dist/src/v2/index.js"
     }
   },
+  "typesVersions": {
+    "*": {
+      "proto": [
+        "dist/src/proto/index.d.ts"
+      ],
+      "errors": [
+        "dist/src/errors.d.ts"
+      ],
+      "v2": [
+        "dist/src/v2/index.d.ts"
+      ]
+    }
+  },
   "files": [
     "dist/"
   ],

@@ -20,7 +20,7 @@ import { ConnectionGRPC } from './connection/index.js';
 import { Meta } from './openapi/types.js';
 import roles, { Roles, permissions } from './roles/index.js';
 import { DbVersion } from './utils/dbVersion.js';
-import { Backend, BackupCompressionLevel, BackupStatus } from './v2/backup/index.js';
+import { Backend, BackupCompressionLevel } from './v2/backup/index.js';
 import MetaGetter from './v2/misc/metaGetter.js';
 
 import type { Agent as HttpAgent } from 'http';
@@ -208,6 +208,88 @@ export * from './connection/index.js';
 export * from './errors.js';
 export * from './roles/types.js';
 export * from './utils/uuid.js';
+export * from './alias/index.js';
+export * from './groups/index.js';
+export * from './roles/index.js';
+export * from './tokenize/index.js';
+export * from './users/index.js';
+export type { Batch, Batching } from './data/batch.js';
+export type { DbVersion } from './utils/dbVersion.js';
+export type {
+  Action,
+  BackupCreateStatusResponse,
+  BackupRestoreStatusResponse,
+  BatchStats,
+  Meta,
+  NodeShardStatus,
+  NodeStats,
+  WeaviateAsyncReplicationConfig,
+  WeaviateBackupStatus,
+  WeaviateDropPropertyIndexName,
+  WeaviateGroupType,
+  WeaviateNestedProperty,
+  WeaviateProperty,
+  WeaviateReplicationConfig,
+  WeaviateReplicationResponse,
+  WeaviateReplicationType,
+  WeaviateShardStatus,
+  WeaviateShardingState,
+  WeaviateTokenization,
+  WeaviateUserType,
+  WeaviateUserTypeDB,
+} from './openapi/types.js';
+export type {
+  FilterReferenceCount,
+  FilterReferenceMultiTarget,
+  FilterReferenceSingleTarget,
+  FilterTarget,
+  TextArray,
+} from './proto/v1/base.js';
+export { GenerativeOpenAI_ReasoningEffort, GenerativeOpenAI_Verbosity } from './proto/v1/generative.js';
+export type {
+  GenerativeAWS,
+  GenerativeAWSMetadata,
+  GenerativeAnthropic,
+  GenerativeAnthropicMetadata,
+  GenerativeAnthropicMetadata_Usage,
+  GenerativeAnyscale,
+  GenerativeAnyscaleMetadata,
+  GenerativeCohere,
+  GenerativeCohereMetadata,
+  GenerativeCohereMetadata_ApiVersion,
+  GenerativeCohereMetadata_BilledUnits,
+  GenerativeCohereMetadata_Tokens,
+  GenerativeContextualAI,
+  GenerativeDatabricks,
+  GenerativeDatabricksMetadata,
+  GenerativeDatabricksMetadata_Usage,
+  GenerativeDebug,
+  GenerativeDummy,
+  GenerativeDummyMetadata,
+  GenerativeFriendliAI,
+  GenerativeFriendliAIMetadata,
+  GenerativeFriendliAIMetadata_Usage,
+  GenerativeGoogle,
+  GenerativeGoogleMetadata,
+  GenerativeGoogleMetadata_Metadata,
+  GenerativeGoogleMetadata_TokenCount,
+  GenerativeGoogleMetadata_TokenMetadata,
+  GenerativeGoogleMetadata_UsageMetadata,
+  GenerativeMistral,
+  GenerativeMistralMetadata,
+  GenerativeMistralMetadata_Usage,
+  GenerativeNvidia,
+  GenerativeNvidiaMetadata,
+  GenerativeNvidiaMetadata_Usage,
+  GenerativeOllama,
+  GenerativeOllamaMetadata,
+  GenerativeOpenAI,
+  GenerativeOpenAIMetadata,
+  GenerativeOpenAIMetadata_Usage,
+  GenerativeXAI,
+  GenerativeXAIMetadata,
+  GenerativeXAIMetadata_Usage,
+} from './proto/v1/generative.js';
 export {
   AccessTokenCredentialsInput,
   ApiKey,
@@ -217,7 +299,6 @@ export {
   AuthUserPasswordCredentials,
   Backend,
   BackupCompressionLevel,
-  BackupStatus,
   ClientCredentialsInput,
   ConsistencyLevel,
   Media,

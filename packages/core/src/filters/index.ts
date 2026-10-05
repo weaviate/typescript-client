@@ -1,5 +1,6 @@
 export { Filters } from './classes.js';
 export type {
+  ContainsValue,
   Filter,
   FilterByCount,
   FilterById,

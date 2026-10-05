@@ -95,7 +95,7 @@ const tenants = (
 
 export default tenants;
 
-export { Tenant, TenantBase, TenantCreate, TenantUpdate };
+export { Tenant, TenantBC, TenantBase, TenantCreate, TenantUpdate };
 
 /**
  * Represents all the CRUD methods available on a collection's multi-tenancy specification within Weaviate.

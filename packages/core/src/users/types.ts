@@ -1,4 +1,4 @@
-import { WeaviateUserTypeDB as UserTypeDB, WeaviateUserTypeInternal } from '../openapi/types.js';
+import { WeaviateUserTypeDB as UserTypeDB } from '../openapi/types.js';
 import { Role } from '../roles/types.js';
 
 export type User = {
@@ -21,9 +21,6 @@ export type UserDB = {
 export type GetAssignedRolesOptions = {
   includePermissions?: boolean;
 };
-
-/** Optional arguments to /assign and /revoke endpoints. */
-export type AssignRevokeOptions = { userType?: WeaviateUserTypeInternal };
 
 /** Optional arguments to /deactivate endpoint. */
 export type DeactivateOptions = { revokeKey?: boolean };

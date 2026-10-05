@@ -4,6 +4,7 @@ export * from './batch.js';
 export * from './data.js';
 export * from './generate.js';
 export type {
+  IncludeVector,
   IsEmptyType,
   IsNestedField,
   IsPrimitiveField,

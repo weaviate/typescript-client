@@ -8,20 +8,16 @@ import {
 } from '../openapi/types.js';
 import { Role } from '../roles/types.js';
 import { Map } from '../roles/util.js';
-import {
-  AssignRevokeOptions,
-  DeactivateOptions,
-  GetAssignedRolesOptions,
-  GetUserOptions,
-  User,
-  UserDB,
-} from './types.js';
+import { DeactivateOptions, GetAssignedRolesOptions, GetUserOptions, User, UserDB } from './types.js';
+
+/** Optional arguments to /assign and /revoke endpoints. */
+type AssignRevokeOptions = { userType?: UserTypeInternal };
 
 /**
  * Operations supported for 'db', 'oidc', and legacy (non-namespaced) users.
  * Use respective implementations in `users.db` and `users.oidc`, and `users`.
  */
-interface UsersBase {
+export interface UsersBase {
   /**
    * Assign roles to a user.
    *
@@ -278,3 +274,4 @@ const namespacedUsers = (connection: ConnectionREST): NamespacedUsers => {
 };
 
 export default users;
+export * from './types.js';

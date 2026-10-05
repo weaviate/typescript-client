@@ -41,7 +41,7 @@ export interface GroupsOIDC {
   getKnownGroupNames(): Promise<string[]>;
 }
 
-export const groups = (connection: ConnectionREST): Groups => ({
+const groups = (connection: ConnectionREST): Groups => ({
   oidc: {
     getAssignedRoles: (groupID, includePermissions) =>
       connection

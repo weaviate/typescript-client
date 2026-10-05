@@ -1,4 +1,4 @@
-class WeaviateError extends Error {
+export class WeaviateError extends Error {
   public message: string;
   constructor(message: string) {
     super(message);

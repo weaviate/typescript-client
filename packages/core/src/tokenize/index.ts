@@ -6,9 +6,9 @@ import {
   WeaviateTokenizeRequest,
   WeaviateTokenizeResponse,
 } from '../openapi/types.js';
-import { Stopwords, Tokenization } from '../types/index.js';
+import { Stopwords, TextAnalyzerConfig, Tokenization } from '../types/index.js';
 import { DbVersionSupport } from '../utils/dbVersion.js';
-import { TextAnalyzerConfig, TokenizeResult } from './types.js';
+import { TokenizeResult } from './types.js';
 import { parseResult } from './util.js';
 
 const tokenize = (connection: ConnectionGRPC, dbVersionSupport: DbVersionSupport): Tokenize => {
@@ -86,3 +86,4 @@ export interface Tokenize {
 }
 
 export default tokenize;
+export * from './types.js';

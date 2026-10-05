@@ -12,5 +12,5 @@ export type {
   ConnectToWCSOptions,
   ConnectToWeaviateCloudOptions,
 } from './helpers.js';
-export type { IConnection, InternalConnectionParams } from './http.js';
+export type { ConnectionDetails, Headers, IConnection, InternalConnectionParams } from './http.js';
 export { ConnectionGQL, ConnectionGRPC, ConnectionREST };
