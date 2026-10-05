@@ -14,3 +14,15 @@ export const requireAtLeast = (...semver: [...Parameters<DbVersion['isAtLeast']>
         describe: describe.skip,
         it: it.skip,
       };
+
+/** Run the suite / test only for Weaviate version below this. */
+export const requireLowerThan = (...semver: [...Parameters<DbVersion['isLowerThan']>]) =>
+  version.isLowerThan(...semver)
+    ? {
+        describe,
+        it,
+      }
+    : {
+        describe: describe.skip,
+        it: it.skip,
+      };

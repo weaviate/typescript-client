@@ -367,7 +367,7 @@ requireAtLeast(1, 38, 0).describe('Testing of collection.query methods with boos
         {
           properties: {
             category: 'red',
-            createdAt: new Date(Date.now()),
+            createdAt: new Date('2024-01-01T00:00:00Z'),
             position: 12523,
           },
           vectors: [4, 5, 6],
@@ -375,7 +375,7 @@ requireAtLeast(1, 38, 0).describe('Testing of collection.query methods with boos
         {
           properties: {
             category: 'blue',
-            createdAt: new Date(Date.now()),
+            createdAt: new Date('2024-01-31T00:00:00Z'),
             position: 3242,
           },
           vectors: [1, 2, 3],
@@ -383,7 +383,7 @@ requireAtLeast(1, 38, 0).describe('Testing of collection.query methods with boos
         {
           properties: {
             category: 'green',
-            createdAt: new Date(Date.now()),
+            createdAt: new Date('2025-01-01T00:00:00Z'),
             position: 1205048489,
           },
           vectors: [1, 2, 3],
