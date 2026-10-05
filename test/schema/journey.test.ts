@@ -780,6 +780,7 @@ async function newClassObject(className: string, client: WeaviateClient): Promis
             enabled: false,
             bits: 8,
             rescoreLimit: 20,
+            ...((await isVer(client, 39, 3)) ? { centering: false, trainingLimit: 10000 } : {}),
           }
         : undefined,
       skip: false,
