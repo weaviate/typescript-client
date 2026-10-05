@@ -1,9 +1,12 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { describe, expect, it } from 'vitest';
+import { expect, it } from 'vitest';
 import weaviate from '../../src/v2/index.js';
 import { C11yExtension, C11yWordsResponse } from '../openapi/types.js';
+import { requireLowerThan } from '../version.js';
 
-describe('c11y endpoints', () => {
+// The contextionary concept/extension REST endpoints were removed in 1.38.16 and
+// 1.39.6 (weaviate/weaviate#13083).
+requireLowerThan(1, 38, 16).describe('c11y endpoints', () => {
   const client = weaviate.client({
     scheme: 'http',
     host: 'localhost:8080',
