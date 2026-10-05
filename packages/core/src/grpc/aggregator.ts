@@ -1,6 +1,7 @@
 import { ConsistencyLevel } from '../replication.js';
 
 import { Metadata } from 'nice-grpc-common';
+import { RetryOptions } from 'nice-grpc-client-middleware-retry';
 import {
   AggregateReply,
   AggregateRequest,
@@ -92,7 +93,7 @@ export interface Aggregate {
 
 export default class Aggregator extends Base implements Aggregate {
   public static use(
-    connection: WeaviateClient<any>,
+    connection: WeaviateClient<RetryOptions>,
     collection: string,
     metadata: Metadata,
     timeout: number,

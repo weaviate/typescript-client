@@ -27,7 +27,7 @@ import type { Agent as HttpAgent } from 'http';
 import { LiveChecker, OpenidConfigurationGetter, ReadyChecker } from './v2/misc/index.js';
 
 import alias, { Aliases } from './alias/index.js';
-import { TransportsMaker } from './connection/grpc.js';
+import { TransportsFactory } from './connection/grpc.js';
 import batch, { Batch } from './data/batch.js';
 import filter from './filters/index.js';
 import groups, { Groups } from './groups/index.js';
@@ -132,7 +132,7 @@ export const cleanHost = (host: string, protocol: 'rest' | 'grpc') => {
 };
 
 export type Context = {
-  transportsMaker: TransportsMaker;
+  transportsFactory: TransportsFactory;
   toBase64FromMedia: ToBase64FromMedia;
   /**
    * Creates the HTTP(S) keep-alive agent for the REST/GraphQL connection. Supplied by the Node shim
@@ -162,12 +162,15 @@ const client = async (
   const agent = context.agentMaker?.(httpSecure);
 
   const { connection, dbVersionProvider, dbVersionSupport } = await ConnectionGRPC.use(
-    context.transportsMaker,
+    context.transportsFactory,
     {
       host: `${scheme}://${httpHost}:${httpPort}${httpPath || ''}`,
       scheme: scheme,
       headers: params.headers,
-      grpcAddress: `${isGrpcWeb ? grpcScheme : ''}${grpcHost}:${grpcPort}${grpcPath || ''}`,
+      // Native gRPC targets are host:port only; a path breaks name resolution.
+      grpcAddress: isGrpcWeb
+        ? `${grpcScheme}${grpcHost}:${grpcPort}${grpcPath || ''}`
+        : `${grpcHost}:${grpcPort}`,
       grpcSecure: grpcSecure,
       grpcProxyUrl: params.proxies?.grpc,
       apiKey: isApiKey(params.auth) ? mapApiKey(params.auth) : undefined,

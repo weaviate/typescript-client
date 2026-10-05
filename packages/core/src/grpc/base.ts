@@ -2,13 +2,13 @@ import { ConsistencyLevel } from '../replication.js';
 
 import { isAbortError } from 'abort-controller-x';
 import { Metadata, ServerError, Status } from 'nice-grpc-common';
-// import { RetryOptions } from 'nice-grpc-client-middleware-retry';
+import { RetryOptions } from 'nice-grpc-client-middleware-retry';
 import { WeaviateInsufficientPermissionsError, WeaviateRequestTimeoutError } from '../errors.js';
 import { ConsistencyLevel as ConsistencyLevelGRPC } from '../proto/v1/base.js';
 import { WeaviateClient } from '../proto/v1/weaviate.js';
 
 export default class Base {
-  protected connection: WeaviateClient<any>;
+  protected connection: WeaviateClient<RetryOptions>;
   protected collection: string;
   protected timeout: number;
   protected consistencyLevel?: ConsistencyLevelGRPC;
@@ -17,7 +17,7 @@ export default class Base {
   protected abortSignal?: AbortSignal;
 
   protected constructor(
-    connection: WeaviateClient<any>,
+    connection: WeaviateClient<RetryOptions>,
     collection: string,
     metadata: Metadata,
     timeout: number,

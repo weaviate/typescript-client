@@ -65,6 +65,7 @@
     "long": "^5.3.2",
     "protobufjs": "^7.5.5",
     "nice-grpc-common": "^2.0.3",
+    "nice-grpc-client-middleware-retry": "^3.1.15",
     "uuid": "^14.0.0"
   },
   "devDependencies": {

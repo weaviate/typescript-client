@@ -17,6 +17,7 @@ import { BatchDeleteReply, BatchDeleteRequest } from '../proto/v1/batch_delete.j
 import Base from './base.js';
 
 import { retryOptions } from './retry.js';
+import { RetryOptions } from 'nice-grpc-client-middleware-retry';
 
 export interface Batch {
   withDelete: (args: BatchDeleteArgs) => Promise<BatchDeleteReply>;
@@ -36,7 +37,7 @@ export interface BatchDeleteArgs {
 
 export default class Batcher extends Base implements Batch {
   public static use(
-    connection: WeaviateClient<any>,
+    connection: WeaviateClient<RetryOptions>,
     collection: string,
     metadata: Metadata,
     timeout: number,

@@ -15,6 +15,7 @@ import TenantsManager, { Tenants } from '../grpc/tenantsManager.js';
 import { Meta } from '../openapi/types.js';
 import { HealthCheckResponse_ServingStatus, HealthClient } from '../proto/google/health/v1/health.js';
 import { WeaviateClient } from '../proto/v1/weaviate.js';
+import { RetryOptions } from 'nice-grpc-client-middleware-retry';
 
 export type GrpcConnectionParams = InternalConnectionParams & {
   grpcAddress: string;
@@ -34,42 +35,42 @@ export default class ConnectionGRPC extends ConnectionGQL {
   private grpc: GrpcClient;
   public grpcMaxMessageLength: number;
   private readonly params: ResolvedGrpcConnectionParams;
-  private readonly transportsMaker: TransportsMaker;
+  private readonly transportsFactory: TransportsFactory;
 
-  private constructor(params: ResolvedGrpcConnectionParams, transportsMaker: TransportsMaker) {
+  private constructor(params: ResolvedGrpcConnectionParams, transportsFactory: TransportsFactory) {
     super(params);
     this.params = params;
-    this.transportsMaker = transportsMaker;
+    this.transportsFactory = transportsFactory;
     this.grpcMaxMessageLength = params.grpcMaxMessageLength;
     this.grpc = this.createGrpcClient();
   }
 
-  static use = async (transportsMaker: TransportsMaker, params: GrpcConnectionParams) => {
+  static use = async (transportsFactory: TransportsFactory, params: GrpcConnectionParams) => {
     const rest = new ConnectionGQL(params);
     const dbVersionProvider = initDbVersionProvider(rest);
     const dbVersionSupport = new DbVersionSupport(dbVersionProvider);
-    let grpcMaxMessageLength = params.grpcMaxMessageLength ?? MAX_GRPC_MESSAGE_LENGTH;
-    if (!params.skipInitChecks) {
-      grpcMaxMessageLength = await Promise.all([
-        (rest.get('/meta', true) as Promise<Meta>).then(
-          (res: Meta) => res.grpcMaxMessageSize || MAX_GRPC_MESSAGE_LENGTH
-        ),
-        dbVersionSupport.supportsCompatibleGrpcService().then((check) => {
-          if (!check.supports) {
-            throw new WeaviateUnsupportedFeatureError(
-              `Checking for gRPC compatibility failed with message: ${check.message}`
-            );
-          }
-        }),
-      ]).then(([grpcMaxMessageLength]) => grpcMaxMessageLength);
-    }
+    const grpcMaxMessageLength = params.skipInitChecks
+      ? params.grpcMaxMessageLength ?? MAX_GRPC_MESSAGE_LENGTH
+      : await Promise.all([
+          (rest.get('/meta', true) as Promise<Meta>).then(
+            (res: Meta) => res.grpcMaxMessageSize || MAX_GRPC_MESSAGE_LENGTH
+          ),
+          dbVersionSupport.supportsCompatibleGrpcService().then((check) => {
+            if (!check.supports) {
+              throw new WeaviateUnsupportedFeatureError(
+                `Checking for gRPC compatibility failed with message: ${check.message}`
+              );
+            }
+          }),
+        ]).then(([grpcMaxMessageLength]) => params.grpcMaxMessageLength ?? grpcMaxMessageLength);
+
     const resolvedParams: ResolvedGrpcConnectionParams = { ...params, grpcMaxMessageLength };
-    const connection = new ConnectionGRPC(resolvedParams, transportsMaker);
+    const connection = new ConnectionGRPC(resolvedParams, transportsFactory);
     if (!params.skipInitChecks) {
       try {
         await connection.checkGrpcHealth();
       } catch (error) {
-        await connection.close();
+        connection.close();
         throw error;
       }
     }
@@ -79,16 +80,21 @@ export default class ConnectionGRPC extends ConnectionGQL {
   public async reconnect() {
     this.grpc.close();
     this.grpc = this.createGrpcClient();
-    await this.checkGrpcHealth();
+    try {
+      await this.checkGrpcHealth();
+    } catch (error) {
+      this.close();
+      throw error;
+    }
   }
 
   private createGrpcClient(): GrpcClient {
     const { grpcAddress, grpcSecure, grpcMaxMessageLength, grpcProxyUrl } = this.params;
-    const transports = this.transportsMaker({
-      grpcAddress,
-      grpcSecure,
-      grpcMaxMessageLength,
-      grpcProxyUrl,
+    const transports = this.transportsFactory({
+      address: grpcAddress,
+      secure: grpcSecure,
+      maxMessageLength: grpcMaxMessageLength,
+      proxyUrl: grpcProxyUrl,
     });
     return grpcClient(transports, this.params);
   }
@@ -175,19 +181,19 @@ export interface GrpcClient {
 }
 
 export type Transports = {
-  weaviate: WeaviateClient<any>;
-  health: HealthClient<any>;
+  weaviate: WeaviateClient<RetryOptions>;
+  health: HealthClient<RetryOptions>;
   close: () => void;
 };
 
 export type TransportsParams = {
-  grpcAddress: string;
-  grpcSecure: boolean;
-  grpcMaxMessageLength: number;
-  grpcProxyUrl?: string;
+  address: string;
+  secure: boolean;
+  maxMessageLength: number;
+  proxyUrl?: string;
 };
 
-export type TransportsMaker = (params: TransportsParams) => Transports;
+export type TransportsFactory = (params: TransportsParams) => Transports;
 
 const grpcClient = (transports: Transports, config: GrpcConnectionParams) => {
   return {

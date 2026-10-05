@@ -1,5 +1,8 @@
 packages:
-  - "packages/*"
+  - packages/*
+
+ignoredBuiltDependencies:
+  - protobufjs
 
 onlyBuiltDependencies:
   - grpc-tools

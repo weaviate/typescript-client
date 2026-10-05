@@ -4,7 +4,7 @@ import ConnectionREST from './http.js';
 
 export default ConnectionGQL;
 
-export type { Transports, TransportsMaker, TransportsParams } from './grpc.js';
+export type { Transports, TransportsFactory, TransportsParams } from './grpc.js';
 export type {
   ConnectToCustomOptions,
   ConnectToLocalOptions,

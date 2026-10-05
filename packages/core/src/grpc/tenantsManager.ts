@@ -4,6 +4,7 @@ import { TenantsGetReply, TenantsGetRequest } from '../proto/v1/tenants.js';
 import { WeaviateClient } from '../proto/v1/weaviate.js';
 import Base from './base.js';
 import { retryOptions } from './retry.js';
+import { RetryOptions } from 'nice-grpc-client-middleware-retry';
 
 export type TenantsGetArgs = {
   names?: string[];
@@ -15,7 +16,7 @@ export interface Tenants {
 
 export default class TenantsManager extends Base implements Tenants {
   public static use(
-    connection: WeaviateClient<any>,
+    connection: WeaviateClient<RetryOptions>,
     collection: string,
     metadata: Metadata,
     timeout: number

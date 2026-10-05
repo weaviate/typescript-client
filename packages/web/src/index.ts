@@ -17,10 +17,10 @@ import weaviate, {
   WeaviateClient,
 } from '@weaviate/core';
 import { toBase64FromMedia } from './base64.js';
-import { transportsMaker } from './transports.js';
+import { transportsFactory } from './transports.js';
 
 const context: Context = {
-  transportsMaker,
+  transportsFactory,
   toBase64FromMedia,
   // No `agentMaker` on purpose: the browser uses fetch-based gRPC-Web (and fetch for REST), so no Node
   // `http`/`https` Agent is needed. Omitting it keeps those Node builtins out of the browser bundle.

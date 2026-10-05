@@ -5,20 +5,20 @@ import { Transports, TransportsParams } from '@weaviate/core';
 
 const clientFactory = createClientFactory().use(retryMiddleware);
 
-export const transportsMaker = (params: TransportsParams): Transports => {
+export const transportsFactory = (params: TransportsParams): Transports => {
   const channelOptions: ChannelOptions = {
-    'grpc.max_send_message_length': params.grpcMaxMessageLength,
-    'grpc.max_receive_message_length': params.grpcMaxMessageLength,
+    'grpc.max_send_message_length': params.maxMessageLength,
+    'grpc.max_receive_message_length': params.maxMessageLength,
   };
-  if (params.grpcProxyUrl) {
-    // grpc.http_proxy is not used by grpc.js under-the-hood
-    // only uses the env var and whether http_proxy is enabled
-    process.env.grpc_proxy = params.grpcProxyUrl;
+  if (params.proxyUrl) {
+    // grpc.js does not use the value of grpc.http_proxy,
+    // only checks if it is set and uses the env var instead.
+    process.env.grpc_proxy = params.proxyUrl;
     channelOptions['grpc.enabled_http_proxy'] = true;
   }
   const channel = createChannel(
-    params.grpcAddress,
-    params.grpcSecure ? ChannelCredentials.createSsl() : ChannelCredentials.createInsecure(),
+    params.address,
+    params.secure ? ChannelCredentials.createSsl() : ChannelCredentials.createInsecure(),
     channelOptions
   );
   return {

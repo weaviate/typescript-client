@@ -32,6 +32,7 @@ import { NearMediaType } from '../index.js';
 import { GenerativeSearch } from '../proto/v1/generative.js';
 import Base from './base.js';
 import { retryOptions } from './retry.js';
+import { RetryOptions } from 'nice-grpc-client-middleware-retry';
 
 export type SearchFetchArgs = {
   limit?: number;
@@ -133,7 +134,7 @@ export interface Search {
 
 export default class Searcher extends Base implements Search {
   public static use(
-    connection: WeaviateClient<any>,
+    connection: WeaviateClient<RetryOptions>,
     collection: string,
     metadata: Metadata,
     timeout: number,

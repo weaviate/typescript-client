@@ -5,8 +5,8 @@ import { HealthDefinition, WeaviateDefinition } from '@weaviate/core/proto';
 
 const clientFactory = createClientFactory().use(retryMiddleware);
 
-export const transportsMaker = (params: TransportsParams): Transports => {
-  const channel = createChannel(params.grpcAddress);
+export const transportsFactory = (params: TransportsParams): Transports => {
+  const channel = createChannel(params.address);
   return {
     weaviate: clientFactory.create(WeaviateDefinition, channel),
     health: clientFactory.create(HealthDefinition, channel),
