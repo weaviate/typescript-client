@@ -159,7 +159,7 @@ describe('Journey testing of the client using a WCD cluster', () => {
           ],
           references: [],
           replication: {
-            asyncEnabled: false,
+            asyncEnabled: true,
             deletionStrategy: 'TimeBasedResolution',
             factor: 3,
           },
