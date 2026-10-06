@@ -3,7 +3,7 @@ import { appendFile, readFile } from 'node:fs/promises';
 
 const tag = process.env.GITHUB_REF_NAME ?? '';
 
-if (/^v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)-alpha\.(0|[1-9]\d*)$/.test(tag)) {
+if (/^v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/.test(tag)) {
   const { version } = JSON.parse(await readFile('package.json', 'utf8'));
   assert.equal(tag.slice(1), version, 'Release tag must match the root package version');
   await Promise.all(
@@ -17,5 +17,5 @@ if (/^v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)-alpha\.(0|[1-9]\d*)$/.test(tag))
   }
   console.log(`Ready to release ${version}`);
 } else {
-  console.log(`Skipping non-alpha release tag: ${tag}`);
+  console.log(`Skipping non-release tag: ${tag}`);
 }

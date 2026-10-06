@@ -140,7 +140,7 @@ jobs:
       - uses: actions/setup-node@3235b876344d2a9aa001b8d1453c930bba69e610 # v3
         with:
           node-version: 24
-      - name: "Validate alpha release tag"
+      - name: "Validate release tag"
         id: validate
         run: npm run release:check
 
@@ -178,4 +178,3 @@ jobs:
         with:
           generate_release_notes: true
           draft: true
-          prerelease: true

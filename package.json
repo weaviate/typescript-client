@@ -36,8 +36,8 @@
     "ci:publish": "npm run ci:checks",
     "release:check": "node ./scripts/check-release.mjs",
     "release:pack": "mkdir -p stage/tarballs && pnpm --dir packages/core pack --pack-destination ../../stage/tarballs && pnpm --dir packages/node pack --pack-destination ../../stage/tarballs && pnpm --dir packages/web pack --pack-destination ../../stage/tarballs",
-    "release:publish:dry-run": "set -eu; for package in weaviate-core weaviate-node weaviate-web; do npm publish \"./stage/tarballs/$package-$RELEASE_VERSION.tgz\" --tag alpha --dry-run; done",
-    "release:publish": "set -eu; for package in weaviate-core weaviate-node weaviate-web; do npm publish \"./stage/tarballs/$package-$RELEASE_VERSION.tgz\" --tag alpha; done"
+    "release:publish:dry-run": "set -eu; for package in weaviate-core weaviate-node weaviate-web; do npm publish \"./stage/tarballs/$package-$RELEASE_VERSION.tgz\" --tag latest --dry-run; done",
+    "release:publish": "set -eu; for package in weaviate-core weaviate-node weaviate-web; do npm publish \"./stage/tarballs/$package-$RELEASE_VERSION.tgz\" --tag latest; done"
   },
   "repository": {
     "type": "git",
