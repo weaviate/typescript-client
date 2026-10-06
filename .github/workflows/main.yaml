@@ -10,10 +10,10 @@ env:
   WEAVIATE_133: 1.33.18
   WEAVIATE_134: 1.34.20
   WEAVIATE_135: 1.35.23
-  WEAVIATE_136: 1.36.19
-  WEAVIATE_137: 1.37.10
-  WEAVIATE_138: 1.38.2
-  WEAVIATE_139: 1.39.0-rc.0
+  WEAVIATE_136: 1.36.23
+  WEAVIATE_137: 1.37.17
+  WEAVIATE_138: 1.38.10
+  WEAVIATE_139: 1.39.9
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
