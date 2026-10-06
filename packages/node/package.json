@@ -24,8 +24,8 @@
     "node": ">=22.0.0"
   },
   "scripts": {
-    "build:cjs": "tsc --module commonjs --moduleResolution node10 --outDir dist/cjs && touch dist/cjs/package.json && echo '{\"type\": \"commonjs\"}' > dist/cjs/package.json",
-    "build:esm": "tsc --outDir dist/esm && touch dist/esm/package.json && echo '{\"type\": \"module\"}' > dist/esm/package.json",
+    "build:cjs": "tsc --module commonjs --moduleResolution node10 --outDir dist/cjs && rm -f dist/cjs/tsconfig.tsbuildinfo && touch dist/cjs/package.json && echo '{\"type\": \"commonjs\"}' > dist/cjs/package.json",
+    "build:esm": "tsc --outDir dist/esm && rm -f dist/esm/tsconfig.tsbuildinfo && touch dist/esm/package.json && echo '{\"type\": \"module\"}' > dist/esm/package.json",
     "build": "npm run build:cjs && npm run build:esm"
   },
   "repository": {
@@ -36,7 +36,7 @@
     "weaviate"
   ],
   "author": "Weaviate",
-  "license": "BSD 3-Clause",
+  "license": "BSD-3-Clause",
   "bugs": {
     "url": "https://github.com/weaviate/typescript-client/issues"
   },

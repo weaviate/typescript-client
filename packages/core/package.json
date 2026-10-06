@@ -35,7 +35,7 @@
     "node": ">=22.0.0"
   },
   "scripts": {
-    "build": "tsc"
+    "build": "tsc && rm -f dist/tsconfig.tsbuildinfo"
   },
   "repository": {
     "type": "git",
@@ -45,7 +45,7 @@
     "weaviate"
   ],
   "author": "Weaviate",
-  "license": "BSD 3-Clause",
+  "license": "BSD-3-Clause",
   "bugs": {
     "url": "https://github.com/weaviate/typescript-client/issues"
   },
