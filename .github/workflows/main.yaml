@@ -2,6 +2,7 @@ on:
   push:
     branches:
       - main
+      - weaviate-client
     tags:
       - "**"
   pull_request:
@@ -106,11 +107,11 @@ jobs:
 
   publish:
     needs: [tests-with-auth, tests-without-auth]
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
+    # wc-vM.m.p tags release weaviate-client from this branch; main's v* tags release the @weaviate/* packages.
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/wc-v')
     runs-on: ubuntu-latest
     permissions:
       contents: write # to upload the release
-      pages: write # to deploy to Pages
       id-token: write # to authenticate with OIDC when publishing to npm
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
@@ -119,16 +120,20 @@ jobs:
         with:
           node-version: "24.x"
           registry-url: "https://registry.npmjs.org"
+      - name: "Validate release tag"
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          if ! [[ "$TAG" =~ ^wc-v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
+            echo "Tag $TAG is not of the form wc-vM.m.p"; exit 1
+          fi
+          version=$(node -p "require('./package.json').version")
+          if [ "${TAG#wc-v}" != "$version" ]; then
+            echo "Tag $TAG does not match package.json version $version"; exit 1
+          fi
       - run: npm ci
       - run: npm run build
       - run: npm publish
-      - run: npm run docs
-      - name: "Upload docs as pages artifact"
-        uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3
-        with:
-          path: ./docs
-      - name: "Deploy the uploaded pages artifact"
-        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4
       - name: "Create a GitHub release"
         uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844 # v1
         with:
