@@ -5,6 +5,7 @@ import { backup } from './client.js';
 import {
   BackupConfigCreate,
   BackupConfigRestore,
+  BackupCreateArgs,
   BackupReturn,
   BackupStatusArgs,
   BackupStatusReturn,
@@ -22,6 +23,10 @@ export type BackupCollectionArgs<C extends BackupConfigCreate | BackupConfigRest
   config?: C;
 };
 
+/** The arguments required to create a backup of a collection. */
+export type BackupCollectionCreateArgs = BackupCollectionArgs<BackupConfigCreate> &
+  Pick<BackupCreateArgs, 'incrementalBaseBackupId'>;
+
 export const backupCollection = (
   connection: Connection,
   name: string,
@@ -29,7 +34,7 @@ export const backupCollection = (
 ) => {
   const handler = backup(connection, dbVersionSupport);
   return {
-    create: (args: BackupCollectionArgs<BackupConfigCreate>) =>
+    create: (args: BackupCollectionCreateArgs) =>
       handler.create({
         ...args,
         includeCollections: [name],
@@ -54,7 +59,7 @@ export interface BackupCollection {
    * @throws {WeaviateBackupFailed} If the backup creation fails.
    * @throws {WeaviateBackupCanceled} If the backup creation is canceled.
    */
-  create(args: BackupCollectionArgs<BackupConfigCreate>): Promise<BackupReturn>;
+  create(args: BackupCollectionCreateArgs): Promise<BackupReturn>;
   /**
    * Get the status of a backup.
    *

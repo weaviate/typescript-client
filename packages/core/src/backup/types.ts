@@ -40,8 +40,6 @@ export type BackupConfigCreate = {
   compressionLevel?: BackupCompressionLevel;
   /** The percentage of CPU to use for the backup creation job. */
   cpuPercentage?: number;
-  /** The ID of an existing backup to build a file-based incremental backup on. */
-  incrementalBaseBackupId?: string;
 };
 
 /** Configuration options available when restoring a backup */
@@ -66,6 +64,12 @@ export type BackupArgs<C extends BackupConfigCreate | BackupConfigRestore> = {
   waitForCompletion?: boolean;
   /** The configuration options for the backup. */
   config?: C;
+};
+
+/** The arguments required to create a backup. */
+export type BackupCreateArgs = BackupArgs<BackupConfigCreate> & {
+  /** The ID of an existing backup to build a file-based incremental backup on. */
+  incrementalBaseBackupId?: string;
 };
 
 /** The arguments required to get the status of a backup. */

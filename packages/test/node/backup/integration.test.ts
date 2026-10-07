@@ -287,7 +287,7 @@ describe('Integration testing of backups', () => {
         backupId: randomBackupId(),
         backend: 'filesystem',
         includeCollections: [collection.name],
-        config: { incrementalBaseBackupId: base.id },
+        incrementalBaseBackupId: base.id,
         waitForCompletion: true,
       });
       expect(incremental.status).toBe('SUCCESS');
@@ -312,7 +312,7 @@ describe('Integration testing of backups', () => {
           backupId: randomBackupId(),
           backend: 'filesystem',
           includeCollections: ['TestBackupCollection'],
-          config: { incrementalBaseBackupId: 'does-not-exist' },
+          incrementalBaseBackupId: 'does-not-exist',
         })
       ).rejects.toThrow(/could not fetch base backup/);
     });

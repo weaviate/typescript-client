@@ -26,7 +26,7 @@ import { validateBackend, validateBackupId } from '../v2/backup/validation.js';
 import {
   BackupArgs,
   BackupCancelArgs,
-  BackupConfigCreate,
+  BackupCreateArgs,
   BackupConfigRestore,
   BackupReturn,
   BackupStatusArgs,
@@ -114,12 +114,12 @@ export const backup = (connection: Connection, dbVersionSupport: DbVersionSuppor
 
       return true;
     },
-    create: async (args: BackupArgs<BackupConfigCreate>): Promise<BackupReturn> => {
+    create: async (args: BackupCreateArgs): Promise<BackupReturn> => {
       let builder = new BackupCreator(connection, new BackupCreateStatusGetter(connection), dbVersionSupport)
         .withBackupId(args.backupId)
         .withBackend(args.backend);
-      if (args.config?.incrementalBaseBackupId !== undefined) {
-        builder = builder.withIncrementalBaseBackupId(args.config.incrementalBaseBackupId);
+      if (args.incrementalBaseBackupId !== undefined) {
+        builder = builder.withIncrementalBaseBackupId(args.incrementalBaseBackupId);
       }
       if (args.includeCollections) {
         builder = builder.withIncludeClassNames(...args.includeCollections);
@@ -245,13 +245,13 @@ export interface Backup {
   /**
    * Create a backup of the database.
    *
-   * @param {BackupArgs} args The arguments for the request.
+   * @param {BackupCreateArgs} args The arguments for the request.
    * @returns {Promise<BackupReturn>} The response from Weaviate.
    * @throws {WeaviateInvalidInputError} If the input is invalid.
    * @throws {WeaviateBackupFailed} If the backup creation fails.
    * @throws {WeaviateBackupCanceled} If the backup creation is canceled.
    */
-  create(args: BackupArgs<BackupConfigCreate>): Promise<BackupReturn>;
+  create(args: BackupCreateArgs): Promise<BackupReturn>;
   /**
    * Get the status of a backup creation.
    *
