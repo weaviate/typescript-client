@@ -7,6 +7,7 @@ import {
   GenerativeContextualAIConfigCreate,
   GenerativeDatabricksConfigCreate,
   GenerativeFriendliAIConfigCreate,
+  GenerativeMetaConfigCreate,
   GenerativeMistralConfigCreate,
   GenerativeNvidiaConfigCreate,
   GenerativeOllamaConfigCreate,
@@ -24,6 +25,7 @@ import {
   GenerativeDatabricksConfig,
   GenerativeFriendliAIConfig,
   GenerativeGoogleConfig,
+  GenerativeMetaConfig,
   GenerativeMistralConfig,
   GenerativeNvidiaConfig,
   GenerativeOllamaConfig,
@@ -181,6 +183,22 @@ export default {
   ): ModuleConfig<'generative-friendliai', GenerativeFriendliAIConfig | undefined> {
     return {
       name: 'generative-friendliai',
+      config,
+    };
+  },
+  /**
+   * Create a `ModuleConfig<'generative-meta', GenerativeMetaConfig | undefined>` object for use when performing AI generation using the `generative-meta` module.
+   *
+   * See the [documentation](https://weaviate.io/developers/weaviate/model-providers/meta/generative) for detailed usage.
+   *
+   * @param {GenerativeMetaConfigCreate} [config] The configuration for the `generative-meta` module.
+   * @returns {ModuleConfig<'generative-meta', GenerativeMetaConfig | undefined>} The configuration object.
+   */
+  meta(
+    config?: GenerativeMetaConfigCreate
+  ): ModuleConfig<'generative-meta', GenerativeMetaConfig | undefined> {
+    return {
+      name: 'generative-meta',
       config,
     };
   },
