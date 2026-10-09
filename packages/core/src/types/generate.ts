@@ -300,6 +300,7 @@ export type GenerativeGoogleConfigRuntime = {
   projectId?: string | undefined;
   endpointId?: string | undefined;
   region?: string | undefined;
+  location?: string | undefined;
 };
 
 export type GenerativeMistralConfigRuntime = {
