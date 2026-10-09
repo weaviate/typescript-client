@@ -6,8 +6,15 @@ import {
   WeaviateInvalidInputError,
   WeaviateUnexpectedResponseError,
   WeaviateUnexpectedStatusCodeError,
+  WeaviateUnsupportedFeatureError,
 } from '../errors.js';
-import { BackupCreateResponse, BackupCreateStatusResponse, BackupRestoreResponse } from '../openapi/types.js';
+import {
+  BackupCreateResponse,
+  BackupCreateStatusResponse,
+  BackupListResponse,
+  BackupRestoreResponse,
+} from '../openapi/types.js';
+import { DbVersionSupport } from '../utils/dbVersion.js';
 import {
   Backend,
   BackupCreateStatusGetter,
@@ -19,7 +26,7 @@ import { validateBackend, validateBackupId } from '../v2/backup/validation.js';
 import {
   BackupArgs,
   BackupCancelArgs,
-  BackupConfigCreate,
+  BackupCreateArgs,
   BackupConfigRestore,
   BackupReturn,
   BackupStatusArgs,
@@ -27,8 +34,8 @@ import {
   ListBackupOptions,
 } from './types.js';
 
-export const backup = (connection: Connection): Backup => {
-  const parseStatus = (res: BackupCreateStatusResponse | BackupRestoreResponse): BackupStatusReturn => {
+export const backup = (connection: Connection, dbVersionSupport: DbVersionSupport): Backup => {
+  const parseStatus = (res: BackupCreateStatusResponse & BackupRestoreResponse): BackupStatusReturn => {
     if (res.id === undefined) {
       throw new WeaviateUnexpectedResponseError('Backup ID is undefined in response');
     }
@@ -43,6 +50,8 @@ export const backup = (connection: Connection): Backup => {
       error: res.error,
       path: res.path,
       status: res.status,
+      size: res.size,
+      incrementalBaseBackupId: res.incremental_base_backup_id,
     };
   };
   const parseResponse = (res: BackupCreateResponse | BackupRestoreResponse): BackupReturn => {
@@ -105,10 +114,13 @@ export const backup = (connection: Connection): Backup => {
 
       return true;
     },
-    create: async (args: BackupArgs<BackupConfigCreate>): Promise<BackupReturn> => {
-      let builder = new BackupCreator(connection, new BackupCreateStatusGetter(connection))
+    create: async (args: BackupCreateArgs): Promise<BackupReturn> => {
+      let builder = new BackupCreator(connection, new BackupCreateStatusGetter(connection), dbVersionSupport)
         .withBackupId(args.backupId)
         .withBackend(args.backend);
+      if (args.incrementalBaseBackupId !== undefined) {
+        builder = builder.withIncrementalBaseBackupId(args.incrementalBaseBackupId);
+      }
       if (args.includeCollections) {
         builder = builder.withIncludeClassNames(...args.includeCollections);
       }
@@ -125,6 +137,7 @@ export const backup = (connection: Connection): Backup => {
       try {
         res = await builder.do();
       } catch (err) {
+        if (err instanceof WeaviateUnsupportedFeatureError) throw err;
         throw new WeaviateBackupFailed(`Backup creation failed: ${err}`, 'creation');
       }
       if (res.status === 'FAILED') {
@@ -209,7 +222,12 @@ export const backup = (connection: Connection): Backup => {
       if (opts?.startedAtAsc) {
         url += '?order=asc';
       }
-      return connection.get<BackupReturn[]>(url);
+      return connection.get<BackupListResponse>(url).then((res) =>
+        res.map(({ incremental_base_backup_id: baseBackupId, ...rest }) => ({
+          ...rest,
+          incrementalBaseBackupId: baseBackupId,
+        }))
+      ) as Promise<BackupReturn[]>;
     },
   };
 };
@@ -227,13 +245,13 @@ export interface Backup {
   /**
    * Create a backup of the database.
    *
-   * @param {BackupArgs} args The arguments for the request.
+   * @param {BackupCreateArgs} args The arguments for the request.
    * @returns {Promise<BackupReturn>} The response from Weaviate.
    * @throws {WeaviateInvalidInputError} If the input is invalid.
    * @throws {WeaviateBackupFailed} If the backup creation fails.
    * @throws {WeaviateBackupCanceled} If the backup creation is canceled.
    */
-  create(args: BackupArgs<BackupConfigCreate>): Promise<BackupReturn>;
+  create(args: BackupCreateArgs): Promise<BackupReturn>;
   /**
    * Get the status of a backup creation.
    *
