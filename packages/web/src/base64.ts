@@ -25,6 +25,8 @@ const blobToBase64 = (blob: Blob): Promise<string> =>
     reader.readAsDataURL(blob);
   });
 
+const base64DataUriPrefix = /^data:[^,]*;base64,/;
+
 export const downloadImageFromURLAsBase64 = async (url: string): Promise<string> => {
   if (!isUrl(url)) {
     throw new Error('Invalid URL');
@@ -43,13 +45,17 @@ export const downloadImageFromURLAsBase64 = async (url: string): Promise<string>
  * Converts media input into a base64 string.
  * Accepts:
  * - A base64 string (returns it unchanged)
+ * - A base64 data URI (returns it without the `data:<mime>;base64,` prefix)
  * - A URL (fetches the image and converts to base64)
  * - A `Blob` or `File` (uses FileReader)
  * - A `Uint8Array` (copied into a `Blob`, which rejects `SharedArrayBuffer`-backed views)
  */
 export const toBase64FromMedia = (media: Media): Promise<string> => {
   if (typeof media === 'string') {
-    if (media.startsWith('data:') || /^[A-Za-z0-9+/=]+$/.test(media)) {
+    if (base64DataUriPrefix.test(media)) {
+      // Base64 data URI, strip the data:mime/type;base64, prefix
+      return Promise.resolve(media.replace(base64DataUriPrefix, ''));
+    } else if (media.startsWith('data:') || /^[A-Za-z0-9+/=]+$/.test(media)) {
       // Already base64 string
       return Promise.resolve(media);
     } else if (isUrl(media)) {
