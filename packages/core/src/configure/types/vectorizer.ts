@@ -230,6 +230,8 @@ export type Multi2VecPalmConfigCreate = Multi2VecGoogleConfigCreate;
 
 /** The configuration for the `multi2vec-google` vectorizer. */
 export type Multi2VecGoogleConfigCreate = Omit<Multi2VecGoogleConfig, Multi2VecOmissions> & {
+  /** The audio fields to use in vectorization. Can be string of `Multi2VecField` type. If string, weight 0 will be assumed. */
+  audioFields?: string[] | Multi2VecField[];
   /** The image fields to use in vectorization. Can be string of `Multi2VecField` type. If string, weight 0 will be assumed. */
   imageFields?: string[] | Multi2VecField[];
   /** The text fields to use in vectorization. Can be string of `Multi2VecField` type. If string, weight 0 will be assumed. */
@@ -240,6 +242,8 @@ export type Multi2VecGoogleConfigCreate = Omit<Multi2VecGoogleConfig, Multi2VecO
 
 /** The configuration for the `multi2vec-google` vectorizer. */
 export type Multi2VecGoogleGeminiConfigCreate = Omit<Multi2VecGoogleGeminiConfig, Multi2VecOmissions> & {
+  /** The audio fields to use in vectorization. Can be string of `Multi2VecField` type. If string, weight 0 will be assumed. */
+  audioFields?: string[] | Multi2VecField[];
   /** The image fields to use in vectorization. Can be string of `Multi2VecField` type. If string, weight 0 will be assumed. */
   imageFields?: string[] | Multi2VecField[];
   /** The text fields to use in vectorization. Can be string of `Multi2VecField` type. If string, weight 0 will be assumed. */
