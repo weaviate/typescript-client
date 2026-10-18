@@ -257,6 +257,7 @@ export const httpClient = (config: InternalConnectionParams): HttpClient => {
   const version = '/v1';
   const baseUri = `${config.host}${version}`;
   const url = makeUrl(baseUri);
+  const authTimeout = 5;
 
   return {
     close: () => config.agent?.destroy(),
@@ -376,7 +377,7 @@ export const httpClient = (config: InternalConnectionParams): HttpClient => {
       return fetchWithTimeout(url(path), config.timeout?.query || 30, request);
     },
     externalGet: (externalUrl: string) => {
-      return fetch(externalUrl, {
+      return fetchWithTimeout(externalUrl, authTimeout, {
         method: 'GET',
         headers: {
           ...config.headers,
@@ -398,7 +399,7 @@ export const httpClient = (config: InternalConnectionParams): HttpClient => {
       if (body != null) {
         request.body = body;
       }
-      return fetch(externalUrl, request).then(checkStatus<any>(true));
+      return fetchWithTimeout(externalUrl, authTimeout, request).then(checkStatus<any>(true));
     },
   };
 };
