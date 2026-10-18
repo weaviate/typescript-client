@@ -235,15 +235,29 @@ export interface HttpClient {
   externalGet: (externalUrl: string) => Promise<any>;
 }
 
-const fetchWithTimeout = (
+function fetchWithTimeout(
   input: string | URL | Request,
   timeout: number,
   init?: RequestInit | undefined
-): Promise<Response> => {
+): Promise<Response>;
+function fetchWithTimeout<T>(
+  input: string | URL | Request,
+  timeout: number,
+  init: RequestInit | undefined,
+  consumeResponse: (response: Response) => Promise<T>
+): Promise<T>;
+function fetchWithTimeout(
+  input: string | URL | Request,
+  timeout: number,
+  init?: RequestInit | undefined,
+  consumeResponse?: (response: Response) => Promise<unknown>
+): Promise<unknown> {
   const controller = new AbortController();
   // Set a timeout to abort the request
   const timeoutId = setTimeout(() => controller.abort(), timeout * 1000);
+  // Auth consumers include response bodies; other callers retain the header deadline.
   return fetch(input, { ...init, signal: controller.signal })
+    .then((response) => (consumeResponse ? consumeResponse(response) : response))
     .catch((error) => {
       if (isAbortError(error)) {
         throw new WeaviateRequestTimeoutError(`Request timed out after ${timeout}ms`);
@@ -251,7 +265,7 @@ const fetchWithTimeout = (
       throw error; // For other errors, rethrow them
     })
     .finally(() => clearTimeout(timeoutId));
-};
+}
 
 export const httpClient = (config: InternalConnectionParams): HttpClient => {
   const version = '/v1';
@@ -377,12 +391,17 @@ export const httpClient = (config: InternalConnectionParams): HttpClient => {
       return fetchWithTimeout(url(path), config.timeout?.query || 30, request);
     },
     externalGet: (externalUrl: string) => {
-      return fetchWithTimeout(externalUrl, authTimeout, {
-        method: 'GET',
-        headers: {
-          ...config.headers,
+      return fetchWithTimeout(
+        externalUrl,
+        authTimeout,
+        {
+          method: 'GET',
+          headers: {
+            ...config.headers,
+          },
         },
-      }).then(checkStatus<any>(true));
+        checkStatus<any>(true)
+      );
     },
     externalPost: (externalUrl: string, body: any, contentType: any) => {
       if (contentType == undefined || contentType == '') {
@@ -399,7 +418,7 @@ export const httpClient = (config: InternalConnectionParams): HttpClient => {
       if (body != null) {
         request.body = body;
       }
-      return fetchWithTimeout(externalUrl, authTimeout, request).then(checkStatus<any>(true));
+      return fetchWithTimeout(externalUrl, authTimeout, request, checkStatus<any>(true));
     },
   };
 };
