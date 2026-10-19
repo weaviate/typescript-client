@@ -482,28 +482,71 @@ describe('makeVectorsConfig', () => {
 });
 
 describe('classToCollection', () => {
-  it('should parse a vectorless class with no vector fields into empty vectorizers', () => {
-    const cls: WeaviateClass = {
-      class: 'Vectorless',
-      properties: [{ name: 'title', dataType: ['text'], tokenization: 'word' }],
-      invertedIndexConfig: {
-        bm25: { b: 0.75, k1: 1.2 },
-        cleanupIntervalSeconds: 60,
-        stopwords: { preset: 'en' },
+  const vectorlessClass: WeaviateClass = {
+    class: 'Vectorless',
+    properties: [{ name: 'title', dataType: ['text'], tokenization: 'word' }],
+    invertedIndexConfig: {
+      bm25: { b: 0.75, k1: 1.2 },
+      cleanupIntervalSeconds: 60,
+      stopwords: { preset: 'en' },
+    },
+    multiTenancyConfig: { enabled: false, autoTenantActivation: false, autoTenantCreation: false },
+    replicationConfig: { factor: 1, asyncEnabled: false, deletionStrategy: 'NoAutomatedResolution' },
+    shardingConfig: {
+      virtualPerPhysical: 128,
+      desiredCount: 1,
+      actualCount: 1,
+      desiredVirtualCount: 128,
+      actualVirtualCount: 128,
+      key: '_id',
+      strategy: 'hash',
+      function: 'murmur3',
+    },
+  };
+
+  const hnswIndexConfig = {
+    skip: false,
+    cleanupIntervalSeconds: 300,
+    maxConnections: 64,
+    efConstruction: 128,
+    ef: -1,
+    dynamicEfMin: 100,
+    dynamicEfMax: 500,
+    dynamicEfFactor: 8,
+    vectorCacheMaxObjects: 1000000000000,
+    flatSearchCutoff: 40000,
+    distance: 'cosine',
+  };
+
+  type VectorFieldsEachOptions = {
+    name: string;
+    fields: Partial<WeaviateClass>;
+    want?: unknown;
+    error?: string;
+  };
+  it.each<VectorFieldsEachOptions>([
+    { name: 'no vector fields', fields: {}, want: {} },
+    {
+      name: "the legacy vectorizer 'none' fields",
+      fields: { vectorizer: 'none', vectorIndexType: 'hnsw', vectorIndexConfig: hnswIndexConfig },
+      want: {
+        default: expect.objectContaining({
+          vectorizer: { name: 'none', config: undefined },
+          indexType: 'hnsw',
+        }),
       },
-      multiTenancyConfig: { enabled: false, autoTenantActivation: false, autoTenantCreation: false },
-      replicationConfig: { factor: 1, asyncEnabled: false, deletionStrategy: 'NoAutomatedResolution' },
-      shardingConfig: {
-        virtualPerPhysical: 128,
-        desiredCount: 1,
-        actualCount: 1,
-        desiredVirtualCount: 128,
-        actualVirtualCount: 128,
-        key: '_id',
-        strategy: 'hash',
-        function: 'murmur3',
-      },
-    };
-    expect(classToCollection(cls).vectorizers).toEqual({});
+    },
+    {
+      name: 'a vector index but no vectorizer',
+      fields: { vectorIndexType: 'hnsw', vectorIndexConfig: hnswIndexConfig },
+      error: 'Vectorizer was not returned by Weaviate',
+    },
+  ])('should parse the vectorizers of a class with $name', ({ fields, want, error }) => {
+    const cls: WeaviateClass = { ...vectorlessClass, ...fields };
+    if (error) {
+      expect(() => classToCollection(cls)).toThrow(error);
+    } else {
+      expect(classToCollection(cls).vectorizers).toEqual(want);
+    }
   });
 });
