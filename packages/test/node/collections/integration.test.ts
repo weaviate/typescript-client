@@ -50,6 +50,7 @@ describe('Testing of the collections.create method', () => {
     const response = await contextionary.collections
       .create<TestCollectionSimple>({
         name: collectionName,
+        vectorizers: weaviate.configure.vectors.text2VecModel2Vec(),
         properties: [
           {
             name: 'testProp',
@@ -64,7 +65,7 @@ describe('Testing of the collections.create method', () => {
     expect(response.properties[0].dataType).toEqual('text');
     expect(response.vectorizers.default.indexConfig).toBeDefined();
     expect(response.vectorizers.default.indexType).toEqual(expectedDefaultIndexType);
-    expect(response.vectorizers.default.vectorizer.name).toEqual('text2vec-contextionary');
+    expect(response.vectorizers.default.vectorizer.name).toEqual('text2vec-model2vec');
   });
 
   it('should be able to create a simple collection without a generic', async () => {
@@ -73,6 +74,7 @@ describe('Testing of the collections.create method', () => {
     const response = await contextionary.collections
       .create({
         name: collectionName,
+        vectorizers: weaviate.configure.vectors.text2VecModel2Vec(),
         properties: [
           {
             name: 'testProp',
@@ -87,7 +89,7 @@ describe('Testing of the collections.create method', () => {
     expect(response.properties[0].dataType).toEqual('text');
     expect(response.vectorizers.default.indexConfig).toBeDefined();
     expect(response.vectorizers.default.indexType).toEqual(expectedDefaultIndexType);
-    expect(response.vectorizers.default.vectorizer.name).toEqual('text2vec-contextionary');
+    expect(response.vectorizers.default.vectorizer.name).toEqual('text2vec-model2vec');
   });
 
   it('should be able to create a collection with one fully customised text property', () => {
@@ -171,13 +173,14 @@ describe('Testing of the collections.create method', () => {
     const response = await contextionary.collections
       .create({
         name: collectionName,
+        vectorizers: weaviate.configure.vectors.text2VecModel2Vec({ vectorizeCollectionName: true }),
       })
       .then(() => contextionary.collections.use(collectionName).config.get());
     expect(response.name).toEqual(collectionName);
     expect(response.properties?.length).toEqual(0);
     expect(response.vectorizers.default.indexConfig).toBeDefined();
     expect(response.vectorizers.default.indexType).toEqual(expectedDefaultIndexType);
-    expect(response.vectorizers.default.vectorizer.name).toEqual('text2vec-contextionary');
+    expect(response.vectorizers.default.vectorizer.name).toEqual('text2vec-model2vec');
   });
 
   it('should be able to create a collection with 1 custom named vector', async () => {
@@ -199,6 +202,7 @@ describe('Testing of the collections.create method', () => {
     afters.push(() => contextionary.collections.delete(collectionName));
     const schema = {
       name: collectionName,
+      vectorizers: weaviate.configure.vectors.text2VecModel2Vec(),
       properties: [
         {
           name: 'testProp',
@@ -216,7 +220,7 @@ describe('Testing of the collections.create method', () => {
     expect(response.properties[0].dataType).toEqual('text');
     expect(response.vectorizers.default.indexConfig).toBeDefined();
     expect(response.vectorizers.default.indexType).toEqual(expectedDefaultIndexType);
-    expect(response.vectorizers.default.vectorizer.name).toEqual('text2vec-contextionary');
+    expect(response.vectorizers.default.vectorizer.name).toEqual('text2vec-model2vec');
   });
 
   it('should be able to create a simple collection with a generic using a schema var with const', async () => {
@@ -227,6 +231,7 @@ describe('Testing of the collections.create method', () => {
     };
     const schema = {
       name: collectionName,
+      vectorizers: weaviate.configure.vectors.text2VecModel2Vec(),
       properties: [
         {
           name: 'testProp' as const,
@@ -244,7 +249,7 @@ describe('Testing of the collections.create method', () => {
     expect(response.properties[0].dataType).toEqual('text');
     expect(response.vectorizers.default.indexConfig).toBeDefined();
     expect(response.vectorizers.default.indexType).toEqual(expectedDefaultIndexType);
-    expect(response.vectorizers.default.vectorizer.name).toEqual('text2vec-contextionary');
+    expect(response.vectorizers.default.vectorizer.name).toEqual('text2vec-model2vec');
   });
 
   it('should be able to create a simple collection with a generic using a schema var with type', async () => {
@@ -255,6 +260,7 @@ describe('Testing of the collections.create method', () => {
     };
     const schema: CollectionConfigCreate<TestCollectionSimple> = {
       name: collectionName,
+      vectorizers: weaviate.configure.vectors.text2VecModel2Vec(),
       properties: [
         {
           name: 'testProp',
@@ -272,7 +278,7 @@ describe('Testing of the collections.create method', () => {
     expect(response.properties[0].dataType).toEqual('text');
     expect(response.vectorizers.default.indexConfig).toBeDefined();
     expect(response.vectorizers.default.indexType).toEqual(expectedDefaultIndexType);
-    expect(response.vectorizers.default.vectorizer.name).toEqual('text2vec-contextionary');
+    expect(response.vectorizers.default.vectorizer.name).toEqual('text2vec-model2vec');
   });
 
   it('should be able to create a nested collection', async () => {
@@ -286,6 +292,7 @@ describe('Testing of the collections.create method', () => {
     const response = await contextionary.collections
       .create<TestCollectionNested>({
         name: collectionName,
+        vectorizers: weaviate.configure.vectors.text2VecModel2Vec({ vectorizeCollectionName: true }),
         properties: [
           {
             name: 'testProp',
@@ -309,7 +316,7 @@ describe('Testing of the collections.create method', () => {
     expect(response.properties[0].nestedProperties?.[0].name).toEqual('nestedProp');
     expect(response.vectorizers.default.indexConfig).toBeDefined();
     expect(response.vectorizers.default.indexType).toEqual(expectedDefaultIndexType);
-    expect(response.vectorizers.default.vectorizer.name).toEqual('text2vec-contextionary');
+    expect(response.vectorizers.default.vectorizer.name).toEqual('text2vec-model2vec');
   });
 
   it('should be able to create a collection with generic properties', () => {
