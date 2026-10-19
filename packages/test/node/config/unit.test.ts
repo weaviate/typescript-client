@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { configure } from '@weaviate/core/configure';
 import {
+  WeaviateClass,
   WeaviateInvertedIndexConfig,
   WeaviateModuleConfig,
   WeaviateMultiTenancyConfig,
@@ -8,7 +9,7 @@ import {
 } from '@weaviate/core/openapi/types.js';
 import { MergeWithExisting } from '@weaviate/core/config/classes.js';
 import { GenerativeCohereConfig, RerankerCohereConfig } from '@weaviate/core/config/types';
-import { makeVectorsConfig } from '@weaviate/core/config/utils.js';
+import { classToCollection, makeVectorsConfig } from '@weaviate/core/config/utils.js';
 
 describe('Unit testing of the MergeWithExisting class', () => {
   const deepCopy = (config: any) => JSON.parse(JSON.stringify(config));
@@ -477,5 +478,32 @@ describe('makeVectorsConfig', () => {
     const entry = vectorsConfig!.default;
     expect(entry.vectorIndexType).toBe('hnsw');
     expect(entry.vectorIndexConfig).toBeDefined();
+  });
+});
+
+describe('classToCollection', () => {
+  it('should parse a vectorless class with no vector fields into empty vectorizers', () => {
+    const cls: WeaviateClass = {
+      class: 'Vectorless',
+      properties: [{ name: 'title', dataType: ['text'], tokenization: 'word' }],
+      invertedIndexConfig: {
+        bm25: { b: 0.75, k1: 1.2 },
+        cleanupIntervalSeconds: 60,
+        stopwords: { preset: 'en' },
+      },
+      multiTenancyConfig: { enabled: false, autoTenantActivation: false, autoTenantCreation: false },
+      replicationConfig: { factor: 1, asyncEnabled: false, deletionStrategy: 'NoAutomatedResolution' },
+      shardingConfig: {
+        virtualPerPhysical: 128,
+        desiredCount: 1,
+        actualCount: 1,
+        desiredVirtualCount: 128,
+        actualVirtualCount: 128,
+        key: '_id',
+        strategy: 'hash',
+        function: 'murmur3',
+      },
+    };
+    expect(classToCollection(cls).vectorizers).toEqual({});
   });
 });
