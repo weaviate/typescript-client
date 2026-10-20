@@ -8,7 +8,7 @@ import {
   Tenant,
   WeaviateClass,
   WeaviateObject,
-} from '../openapi/types.js';
+} from '../../src/openapi/types.js';
 
 const thingClassName = 'BatchJourneyTestThing';
 const otherThingClassName = 'BatchJourneyTestOtherThing';
