@@ -1,18 +1,18 @@
 import { describe, expect, it } from 'vitest';
 import { Backend } from '../../src/backup/index.js';
 import {
+  BackupCreateResponse,
+  BackupCreateStatusResponse,
+  BackupRestoreResponse,
+  BackupRestoreStatusResponse,
+} from '../../src/openapi/types.js';
+import {
   cleanupTestFood,
   createTestFoodSchemaAndData,
   PIZZA_CLASS_NAME,
   SOUP_CLASS_NAME,
 } from '../../src/utils/testData';
 import weaviate, { WeaviateClient } from '../../src/v2/index.js';
-import {
-  BackupCreateResponse,
-  BackupCreateStatusResponse,
-  BackupRestoreResponse,
-  BackupRestoreStatusResponse,
-} from '../../src/openapi/types.js';
 
 const DOCKER_COMPOSE_BACKUPS_DIR = '/tmp/backups';
 

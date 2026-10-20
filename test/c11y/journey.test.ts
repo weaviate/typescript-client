@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { describe, expect, it } from 'vitest';
-import weaviate from '../../src/v2/index.js';
 import { C11yExtension, C11yWordsResponse } from '../../src/openapi/types.js';
+import weaviate from '../../src/v2/index.js';
 
 describe.skip('c11y endpoints', () => {
   const client = weaviate.client({
