@@ -111,6 +111,21 @@ describe('Testing of the collection.config namespace', () => {
     expect(config.vectorizers.default.vectorizer.name).toEqual('none');
   });
 
+  requireAtLeast(1, 40, 0).it('should be able to get the config of a vectorless collection', async () => {
+    const collectionName = 'TestCollectionConfigGetVectorless';
+    await client.collections.create({ name: collectionName });
+    try {
+      const config = await client.collections.get(collectionName).config.get();
+      expect(config.name).toEqual(collectionName);
+      expect(config.vectorizers).toEqual({});
+
+      const all = await client.collections.listAll();
+      expect(all.map((c) => c.name)).toContain(collectionName);
+    } finally {
+      await client.collections.delete(collectionName);
+    }
+  });
+
   it('should be able to get a collection with named vectors', async () => {
     const collectionName = 'TestCollectionConfigGetVectors';
     afters.push(() => client.collections.delete(collectionName));
