@@ -649,6 +649,10 @@ describe('Unit testing of the vectorizer factory class', () => {
         { name: 'field5', weight: 0.5 },
         { name: 'field6', weight: 0.6 },
       ],
+      audioFields: [
+        { name: 'field7', weight: 0.7 },
+        { name: 'field8', weight: 0.8 },
+      ],
       location: 'location',
       model: 'model-id',
       dimensions: 256,
@@ -662,6 +666,7 @@ describe('Unit testing of the vectorizer factory class', () => {
           imageFields: ['field1', 'field2'],
           textFields: ['field3', 'field4'],
           videoFields: ['field5', 'field6'],
+          audioFields: ['field7', 'field8'],
           location: 'location',
           model: 'model-id',
           modelId: 'model-id',
@@ -670,6 +675,7 @@ describe('Unit testing of the vectorizer factory class', () => {
             imageFields: [0.1, 0.2],
             textFields: [0.3, 0.4],
             videoFields: [0.5, 0.6],
+            audioFields: [0.7, 0.8],
           },
         },
       },
@@ -1510,6 +1516,30 @@ describe('Unit testing of the vectorizer factory class', () => {
           textFields: ['text'],
           videoFields: ['video'],
           dimensions: 768,
+        },
+      },
+    });
+  });
+
+  it('should create the correct Multi2VecGoogleGeminiConfig type with audio fields and weights', () => {
+    const config = configure.vectors.multi2VecGoogleGemini({
+      audioFields: [
+        { name: 'audio1', weight: 0.4 },
+        { name: 'audio2', weight: 0.6 },
+      ],
+      textFields: ['text'],
+    });
+    expect(config).toEqual<VectorConfigCreate<never, undefined, 'hnsw', 'multi2vec-google'>>({
+      name: undefined,
+      vectorizer: {
+        name: 'multi2vec-google',
+        config: {
+          apiEndpoint: 'generativelanguage.googleapis.com',
+          audioFields: ['audio1', 'audio2'],
+          textFields: ['text'],
+          weights: {
+            audioFields: [0.4, 0.6],
+          },
         },
       },
     });
