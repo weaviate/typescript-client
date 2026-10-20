@@ -12,7 +12,7 @@ import {
   BackupCreateStatusResponse,
   BackupRestoreResponse,
   BackupRestoreStatusResponse,
-} from '../openapi/types.js';
+} from '../../src/openapi/types.js';
 
 const DOCKER_COMPOSE_BACKUPS_DIR = '/tmp/backups';
 
