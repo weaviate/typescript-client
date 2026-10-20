@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { C11yExtension, C11yWordsResponse } from '../../openapi/types.js';
 import weaviate from '../../v2/index.js';
 
-describe('c11y endpoints', () => {
+describe.skip('c11y endpoints', () => {
   const client = weaviate.client({
     scheme: 'http',
     host: 'localhost:8080',

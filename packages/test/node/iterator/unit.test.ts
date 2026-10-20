@@ -1,6 +1,6 @@
-import { describe, expect, it, vi } from 'vitest';
-import { WeaviateObject } from '@weaviate/core/types/index.js';
 import { Iterator } from '@weaviate/core/iterator/index.js';
+import { WeaviateObject } from '@weaviate/core/types/index.js';
+import { describe, expect, it, vi } from 'vitest';
 
 type Obj = WeaviateObject<{ n: number }, undefined>;
 

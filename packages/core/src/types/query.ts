@@ -1,7 +1,7 @@
 import { FilterValue } from '../filters/types.js';
-import { WeaviateField } from '../types/index.js';
 import { PrimitiveVectorType } from '../query/types.js';
 import { CrossReferenceDefault } from '../references/index.js';
+import { WeaviateField } from '../types/index.js';
 import {
   ExtractCrossReferenceType,
   NonRefKeys,

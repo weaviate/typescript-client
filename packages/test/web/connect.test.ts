@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
 import weaviate from '@weaviate/web';
+import { expect, it } from 'vitest';
 import { requireAtLeast } from '../version';
 
 requireAtLeast(1, 39, 0).describe('connectToLocal', () => {
