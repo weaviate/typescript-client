@@ -1,7 +1,7 @@
+import { Transports, TransportsParams } from '@weaviate/core';
+import { HealthDefinition, WeaviateDefinition } from '@weaviate/core/proto';
 import { ChannelCredentials, ChannelOptions, createChannel, createClientFactory } from 'nice-grpc';
 import { retryMiddleware } from 'nice-grpc-client-middleware-retry';
-import { HealthDefinition, WeaviateDefinition } from '@weaviate/core/proto';
-import { Transports, TransportsParams } from '@weaviate/core';
 
 const clientFactory = createClientFactory().use(retryMiddleware);
 

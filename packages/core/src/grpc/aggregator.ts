@@ -1,7 +1,7 @@
 import { ConsistencyLevel } from '../replication.js';
 
-import { Metadata } from 'nice-grpc-common';
 import { RetryOptions } from 'nice-grpc-client-middleware-retry';
+import { Metadata } from 'nice-grpc-common';
 import {
   AggregateReply,
   AggregateRequest,
