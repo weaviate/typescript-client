@@ -587,6 +587,8 @@ export type Text2VecOpenAIConfig = {
   baseURL?: string;
   /** The dimensionality of the vector once embedded. */
   dimensions?: number;
+  /** The endpoint path to use for embedding requests. Defaults to `/v1/embeddings` in Weaviate. */
+  endpoint?: string;
   /** The model to use. */
   model?: 'text-embedding-3-small' | 'text-embedding-3-large' | 'text-embedding-ada-002' | string;
   /** The model version to use. */
@@ -702,6 +704,8 @@ export type Text2VecModel2Vec = {
 export type Text2VecMorphConfig = {
   /** The base URL to use where API requests should go. */
   baseURL?: string;
+  /** The endpoint path to use for embedding requests. Defaults to `/v1/embeddings` in Weaviate. */
+  endpoint?: string;
   /** The model to use. */
   model?: string;
 };
