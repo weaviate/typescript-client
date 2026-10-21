@@ -6,6 +6,7 @@ import { ConsistencyLevel } from '../replication.js';
 import { DbVersionSupport, initDbVersionProvider } from '../utils/dbVersion.js';
 
 import { isAbortError } from 'abort-controller-x';
+import { RetryOptions } from 'nice-grpc-client-middleware-retry';
 import { Metadata, Status } from 'nice-grpc-common';
 import { WeaviateGRPCUnavailableError, WeaviateUnsupportedFeatureError } from '../errors.js';
 import Aggregator, { Aggregate } from '../grpc/aggregator.js';
@@ -15,7 +16,6 @@ import TenantsManager, { Tenants } from '../grpc/tenantsManager.js';
 import { Meta } from '../openapi/types.js';
 import { HealthCheckResponse_ServingStatus, HealthClient } from '../proto/google/health/v1/health.js';
 import { WeaviateClient } from '../proto/v1/weaviate.js';
-import { RetryOptions } from 'nice-grpc-client-middleware-retry';
 
 export type GrpcConnectionParams = InternalConnectionParams & {
   grpcAddress: string;

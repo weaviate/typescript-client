@@ -1,7 +1,7 @@
 /* eslint-disable no-await-in-loop */
-import { describe, expect, it } from 'vitest';
 import { Queue } from '@weaviate/core/data/batch.js';
 import { normalizeBatchInput } from '@weaviate/core/data/index.js';
+import { describe, expect, it } from 'vitest';
 
 describe('Unit testing of the Queue class', () => {
   it('should push and pull items in FIFO order', async () => {
