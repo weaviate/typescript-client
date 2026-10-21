@@ -206,13 +206,22 @@ const configure = {
      * Create an object of type `RQConfigCreate` to be used when defining the quantizer configuration of a vector index.
      *
      * @param {number} [options.bits] Number of bits to user per vector element.
+     * @param {boolean} [options.centering] Whether to center vectors before rotation (centered RQ4). Requires Weaviate 1.39.2+.
      * @param {number} [options.rescoreLimit] The rescore limit. Default is 1000.
+     * @param {number} [options.trainingLimit] The training limit.
      * @returns {RQConfigCreate} The object of type `RQConfigCreate`.
      */
-    rq: (options?: { bits?: number; rescoreLimit?: number }): RQConfigCreate => {
+    rq: (options?: {
+      bits?: number;
+      centering?: boolean;
+      rescoreLimit?: number;
+      trainingLimit?: number;
+    }): RQConfigCreate => {
       return {
         bits: options?.bits,
+        centering: options?.centering,
         rescoreLimit: options?.rescoreLimit,
+        trainingLimit: options?.trainingLimit,
         type: 'rq',
       };
     },
@@ -374,10 +383,16 @@ const reconfigure = {
      * NOTE: If the vector index already has a quantizer configured, you cannot change its quantizer type; only its values.
      * So if you want to change the quantizer type, you must recreate the collection.
      *
+     * @param {boolean} [options.centering] Whether to center vectors before rotation (centered RQ4). Requires Weaviate 1.39.2+.
      * @param {number} [options.rescoreLimit] The new rescore limit.
+     * @param {number} [options.trainingLimit] The new training limit.
      * @returns {RQConfigUpdate} The configuration object.
      */
-    rq: (options?: { rescoreLimit?: number }): RQConfigUpdate => {
+    rq: (options?: {
+      centering?: boolean;
+      rescoreLimit?: number;
+      trainingLimit?: number;
+    }): RQConfigUpdate => {
       return {
         ...options,
         type: 'rq',

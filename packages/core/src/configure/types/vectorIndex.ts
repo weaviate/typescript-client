@@ -26,7 +26,10 @@ export type RQConfigCreate = QuantizerRecursivePartial<RQConfig>;
 
 export type RQConfigUpdate = {
   bit?: number;
+  /** Whether to center vectors before rotation (centered RQ4). Requires Weaviate 1.39.2+. */
+  centering?: boolean;
   rescoreLimit?: number;
+  trainingLimit?: number;
   type: 'rq';
 };
 
