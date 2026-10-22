@@ -15,6 +15,7 @@ export type DataObject = definitions['Object'];
 export type BackupCreateRequest = definitions['BackupCreateRequest'];
 export type BackupCreateResponse = definitions['BackupCreateResponse'];
 export type BackupCreateStatusResponse = definitions['BackupCreateStatusResponse'];
+export type BackupListResponse = definitions['BackupListResponse'];
 export type BackupRestoreRequest = definitions['BackupRestoreRequest'];
 export type BackupRestoreResponse = definitions['BackupRestoreResponse'];
 export type BackupRestoreStatusResponse = definitions['BackupRestoreStatusResponse'];
