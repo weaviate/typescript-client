@@ -206,18 +206,12 @@ const client = async (
 };
 
 export default client;
+export * from './alias/index.js';
 export * from './collections.js';
 export * from './connection/index.js';
-export * from './errors.js';
-export * from './roles/types.js';
-export * from './utils/uuid.js';
-export * from './alias/index.js';
-export * from './groups/index.js';
-export * from './roles/index.js';
-export * from './tokenize/index.js';
-export * from './users/index.js';
 export type { Batch, Batching } from './data/batch.js';
-export type { DbVersion } from './utils/dbVersion.js';
+export * from './errors.js';
+export * from './groups/index.js';
 export type {
   Action,
   BackupCreateStatusResponse,
@@ -293,6 +287,12 @@ export type {
   GenerativeXAIMetadata,
   GenerativeXAIMetadata_Usage,
 } from './proto/v1/generative.js';
+export * from './roles/index.js';
+export * from './roles/types.js';
+export * from './tokenize/index.js';
+export * from './users/index.js';
+export type { DbVersion } from './utils/dbVersion.js';
+export * from './utils/uuid.js';
 export {
   AccessTokenCredentialsInput,
   ApiKey,

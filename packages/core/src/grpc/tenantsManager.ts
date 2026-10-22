@@ -1,10 +1,10 @@
+import { RetryOptions } from 'nice-grpc-client-middleware-retry';
 import { Metadata } from 'nice-grpc-common';
 import { WeaviateTenantsGetError } from '../errors.js';
 import { TenantsGetReply, TenantsGetRequest } from '../proto/v1/tenants.js';
 import { WeaviateClient } from '../proto/v1/weaviate.js';
 import Base from './base.js';
 import { retryOptions } from './retry.js';
-import { RetryOptions } from 'nice-grpc-client-middleware-retry';
 
 export type TenantsGetArgs = {
   names?: string[];

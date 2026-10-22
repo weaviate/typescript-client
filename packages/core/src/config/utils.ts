@@ -406,6 +406,10 @@ class ConfigMapping {
     if (populated(v.vectorConfig)) {
       return ConfigMapping.namedVectors(v.vectorConfig);
     }
+    // A class with no vector fields at all is vectorless (Weaviate 1.40+, or every named vector dropped).
+    if (!populated(v.vectorizer) && !populated(v.vectorIndexType) && !populated(v.vectorIndexConfig)) {
+      return {};
+    }
     if (!populated(v.vectorizer))
       throw new WeaviateDeserializationError('Vectorizer was not returned by Weaviate');
     return {

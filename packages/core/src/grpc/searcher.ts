@@ -27,12 +27,12 @@ import {
 } from '../proto/v1/search_get.js';
 import { WeaviateClient } from '../proto/v1/weaviate.js';
 
+import { RetryOptions } from 'nice-grpc-client-middleware-retry';
 import { WeaviateQueryError } from '../errors.js';
 import { NearMediaType } from '../index.js';
 import { GenerativeSearch } from '../proto/v1/generative.js';
 import Base from './base.js';
 import { retryOptions } from './retry.js';
-import { RetryOptions } from 'nice-grpc-client-middleware-retry';
 
 export type SearchFetchArgs = {
   limit?: number;
