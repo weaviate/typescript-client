@@ -99,6 +99,7 @@ export type GenerativePaLMConfig = GenerativeGoogleConfig;
 
 export type GenerativeGoogleConfig = {
   apiEndpoint?: string;
+  location?: string;
   maxOutputTokens?: number;
   model?: string;
   /** @deprecated Use `model` instead. */
