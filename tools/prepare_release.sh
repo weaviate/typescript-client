@@ -31,4 +31,4 @@ git add .
 git commit -m "chore: prepare release $VERSION"
 git push
 # CI publishes weaviate-client from this branch only for wc-vM.m.p tags.
-npm version "${VERSION/v}" --tag-version-prefix=wc-v
+npm version "${VERSION/#wc-v}" --tag-version-prefix=wc-v
