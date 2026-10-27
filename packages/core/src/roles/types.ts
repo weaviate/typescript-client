@@ -4,7 +4,7 @@ export type AliasAction = Extract<
   Action,
   'create_aliases' | 'read_aliases' | 'update_aliases' | 'delete_aliases'
 >;
-export type BackupsAction = Extract<Action, 'manage_backups'>;
+export type BackupsAction = Extract<Action, 'manage_backups' | 'read_backups'>;
 export type McpAction = Extract<Action, 'create_mcp' | 'read_mcp' | 'update_mcp'>;
 export type ClusterAction = Extract<Action, 'read_cluster'>;
 export type CollectionsAction = Extract<
