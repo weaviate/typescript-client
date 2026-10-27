@@ -51,7 +51,7 @@ const app = {
       batch: batch(conn, dbVersionSupport),
       misc: misc(conn, dbVersionProvider),
       c11y: c11y(conn),
-      backup: backup(conn),
+      backup: backup(conn, dbVersionSupport),
       cluster: cluster(conn),
     };
 

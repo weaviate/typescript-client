@@ -16,6 +16,8 @@ export type BackupStatusReturn = {
   status: BackupStatus;
   /** Size of the backup in Gibs */
   size?: number;
+  /** The ID of the base backup an incremental backup was built on. */
+  incrementalBaseBackupId?: string;
 };
 
 /** The return type of a backup creation or restoration operation */
@@ -62,6 +64,12 @@ export type BackupArgs<C extends BackupConfigCreate | BackupConfigRestore> = {
   waitForCompletion?: boolean;
   /** The configuration options for the backup. */
   config?: C;
+};
+
+/** The arguments required to create a backup. */
+export type BackupCreateArgs = BackupArgs<BackupConfigCreate> & {
+  /** The ID of an existing backup to build a file-based incremental backup on. */
+  incrementalBaseBackupId?: string;
 };
 
 /** The arguments required to get the status of a backup. */

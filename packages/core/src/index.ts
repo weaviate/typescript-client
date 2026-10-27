@@ -184,7 +184,7 @@ const client = async (
 
   const ifc: WeaviateClient = {
     alias: alias(connection),
-    backup: backup(connection),
+    backup: backup(connection, dbVersionSupport),
     batch: batch(connection, dbVersionSupport, isGrpcWeb),
     cluster: cluster(connection),
     collections: collections(connection, dbVersionSupport, isGrpcWeb, context.toBase64FromMedia),
