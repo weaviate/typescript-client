@@ -21,8 +21,8 @@ for tool in $REQUIRED_TOOLS; do
   fi
 done
 
-if git rev-parse "wc-$VERSION" >/dev/null 2>&1; then
-  echo "Cannot prepare release, a release for wc-$VERSION already exists"
+if git rev-parse "$VERSION-wc" >/dev/null 2>&1; then
+  echo "Cannot prepare release, a release for $VERSION-wc already exists"
   exit 1
 fi
 
@@ -30,5 +30,8 @@ npm run generate:version $VERSION
 git add .
 git commit -m "chore: prepare release $VERSION"
 git push
-# CI publishes weaviate-client from this branch only for wc-vM.m.p tags.
-npm version "${VERSION#wc-v}" --tag-version-prefix=wc-v
+# CI publishes weaviate-client from this branch only for vM.m.p-wc tags.
+# npm version cannot suffix tags, so the bump, commit, and tag are manual.
+npm version "${VERSION#v}" --no-git-tag-version
+git commit -am "$VERSION-wc"
+git tag -a "$VERSION-wc" -m "$VERSION-wc"
