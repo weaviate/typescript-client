@@ -592,6 +592,7 @@ export interface definitions {
      */
     action:
       | 'manage_backups'
+      | 'read_backups'
       | 'read_cluster'
       | 'create_data'
       | 'read_data'
