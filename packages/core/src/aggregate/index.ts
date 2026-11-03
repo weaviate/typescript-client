@@ -8,6 +8,7 @@ import { FilterValue } from '../filters/index.js';
 import { Deserialize } from '../deserialize/index.js';
 import { WeaviateInvalidInputError, WeaviateQueryError } from '../errors.js';
 import { PrimitiveKeys } from '../index.js';
+import { CallOptions } from '../query/index.js';
 import { Bm25OperatorOptions, Bm25QueryProperty, NearVectorInputType, TargetVector } from '../query/types.js';
 import { NearVectorInputGuards } from '../query/utils.js';
 import { Serialize } from '../serialize/index.js';
@@ -796,11 +797,13 @@ export interface Aggregate<T, V> {
    *
    * @param {string} query The text query to search for.
    * @param {AggregateHybridOptions<T, P, V>} opts The options for the request.
+   * @param {CallOptions} [callOpts] - The available options for the API call.
    * @returns {Promise<AggregateResult<T, P>[]>} The aggregated metrics for the objects returned by the vector search.
    */
   hybrid<P extends PropertiesMetrics<T>>(
     query: string,
-    opts?: AggregateHybridOptions<T, P, V>
+    opts?: AggregateHybridOptions<T, P, V>,
+    callOpts?: CallOptions
   ): Promise<AggregateResult<T, P>>;
   /**
    * Aggregate metrics over the objects returned by a near image vector search on this collection.
@@ -811,11 +814,13 @@ export interface Aggregate<T, V> {
    *
    * @param {Media} image The image to search on. This can be a base64 string, a file path string, or raw bytes.
    * @param {AggregateNearOptions<P, V>} [opts] The options for the request.
+   * @param {CallOptions} [callOpts] - The available options for the API call.
    * @returns {Promise<AggregateResult<T, P>[]>} The aggregated metrics for the objects returned by the vector search.
    */
   nearImage<P extends PropertiesMetrics<T>>(
     image: Media,
-    opts?: AggregateNearOptions<P, V>
+    opts?: AggregateNearOptions<P, V>,
+    callOpts?: CallOptions
   ): Promise<AggregateResult<T, P>>;
   /**
    * Aggregate metrics over the objects returned by a near object search on this collection.
@@ -826,11 +831,13 @@ export interface Aggregate<T, V> {
    *
    * @param {string} id The ID of the object to search for.
    * @param {AggregateNearOptions<P, V>} [opts] The options for the request.
+   * @param {CallOptions} [callOpts] - The available options for the API call.
    * @returns {Promise<AggregateResult<T, P>[]>} The aggregated metrics for the objects returned by the vector search.
    */
   nearObject<P extends PropertiesMetrics<T>>(
     id: string,
-    opts?: AggregateNearOptions<P, V>
+    opts?: AggregateNearOptions<P, V>,
+    callOpts?: CallOptions
   ): Promise<AggregateResult<T, P>>;
   /**
    * Aggregate metrics over the objects returned by a near vector search on this collection.
@@ -841,11 +848,13 @@ export interface Aggregate<T, V> {
    *
    * @param {number[]} query The text query to search for.
    * @param {AggregateNearOptions<P, V>} [opts] The options for the request.
+   * @param {CallOptions} [callOpts] - The available options for the API call.
    * @returns {Promise<AggregateResult<T, P>[]>} The aggregated metrics for the objects returned by the vector search.
    */
   nearText<P extends PropertiesMetrics<T>>(
     query: string | string[],
-    opts?: AggregateNearOptions<P, V>
+    opts?: AggregateNearOptions<P, V>,
+    callOpts?: CallOptions
   ): Promise<AggregateResult<T, P>>;
   /**
    * Aggregate metrics over the objects returned by a near vector search on this collection.
@@ -856,19 +865,25 @@ export interface Aggregate<T, V> {
    *
    * @param {number[]} vector The vector to search for.
    * @param {AggregateNearOptions<P, V>} [opts] The options for the request.
+   * @param {CallOptions} [callOpts] - The available options for the API call.
    * @returns {Promise<AggregateResult<T, P>[]>} The aggregated metrics for the objects returned by the vector search.
    */
   nearVector<P extends PropertiesMetrics<T>>(
     vector: number[],
-    opts?: AggregateNearOptions<P, V>
+    opts?: AggregateNearOptions<P, V>,
+    callOpts?: CallOptions
   ): Promise<AggregateResult<T, P>>;
   /**
    * Aggregate metrics over all the objects in this collection without any vector search.
    *
    * @param {AggregateOverAllOptions<P>} [opts] The options for the request.
+   * @param {CallOptions} [callOpts] - The available options for the API call.
    * @returns {Promise<AggregateResult<T, P>[]>} The aggregated metrics for the objects in the collection.
    */
-  overAll<P extends PropertiesMetrics<T>>(opts?: AggregateOverAllOptions<P>): Promise<AggregateResult<T, P>>;
+  overAll<P extends PropertiesMetrics<T>>(
+    opts?: AggregateOverAllOptions<P>,
+    callOpts?: CallOptions
+  ): Promise<AggregateResult<T, P>>;
 }
 
 export interface AggregateGroupBy<T, V> {
@@ -879,11 +894,13 @@ export interface AggregateGroupBy<T, V> {
    *
    * @param {string} query The text query to search for.
    * @param {AggregateGroupByHybridOptions<T, P, V>} opts The options for the request.
+   * @param {CallOptions} [callOpts] - The available options for the API call.
    * @returns {Promise<AggregateGroupByResult<T, P>[]>} The aggregated metrics for the objects returned by the vector search.
    */
   hybrid<P extends PropertiesMetrics<T>>(
     query: string,
-    opts: AggregateGroupByHybridOptions<T, P, V>
+    opts: AggregateGroupByHybridOptions<T, P, V>,
+    callOpts?: CallOptions
   ): Promise<AggregateGroupByResult<T, P>[]>;
   /**
    * Aggregate metrics over the objects grouped by a specified property and returned by a near image vector search on this collection.
@@ -894,11 +911,13 @@ export interface AggregateGroupBy<T, V> {
    *
    * @param {Media} image The image to search on. This can be a base64 string, a file path string, or raw bytes.
    * @param {AggregateGroupByNearOptions<T, P, V>} opts The options for the request.
+   * @param {CallOptions} [callOpts] - The available options for the API call.
    * @returns {Promise<AggregateGroupByResult<T, P>[]>} The aggregated metrics for the objects returned by the vector search.
    */
   nearImage<P extends PropertiesMetrics<T>>(
     image: Media,
-    opts: AggregateGroupByNearOptions<T, P, V>
+    opts: AggregateGroupByNearOptions<T, P, V>,
+    callOpts?: CallOptions
   ): Promise<AggregateGroupByResult<T, P>[]>;
   /**
    * Aggregate metrics over the objects grouped by a specified property and returned by a near object search on this collection.
@@ -909,11 +928,13 @@ export interface AggregateGroupBy<T, V> {
    *
    * @param {string} id The ID of the object to search for.
    * @param {AggregateGroupByNearOptions<T, P, V>} opts The options for the request.
+   * @param {CallOptions} [callOpts] - The available options for the API call.
    * @returns {Promise<AggregateGroupByResult<T, P>[]>} The aggregated metrics for the objects returned by the vector search.
    */
   nearObject<P extends PropertiesMetrics<T>>(
     id: string,
-    opts: AggregateGroupByNearOptions<T, P, V>
+    opts: AggregateGroupByNearOptions<T, P, V>,
+    callOpts?: CallOptions
   ): Promise<AggregateGroupByResult<T, P>[]>;
   /**
    * Aggregate metrics over the objects grouped by a specified property and returned by a near text vector search on this collection.
@@ -924,11 +945,13 @@ export interface AggregateGroupBy<T, V> {
    *
    * @param {string | string[]} query The text to search for.
    * @param {AggregateGroupByNearOptions<T, P, V>} opts The options for the request.
+   * @param {CallOptions} [callOpts] - The available options for the API call.
    * @returns {Promise<AggregateGroupByResult<T, P>[]>} The aggregated metrics for the objects returned by the vector search.
    */
   nearText<P extends PropertiesMetrics<T>>(
     query: string | string[],
-    opts: AggregateGroupByNearOptions<T, P, V>
+    opts: AggregateGroupByNearOptions<T, P, V>,
+    callOpts?: CallOptions
   ): Promise<AggregateGroupByResult<T, P>[]>;
   /**
    * Aggregate metrics over the objects grouped by a specified property and returned by a near vector search on this collection.
@@ -939,20 +962,24 @@ export interface AggregateGroupBy<T, V> {
    *
    * @param {number[]} vector The vector to search for.
    * @param {AggregateGroupByNearOptions<T, P, V>} opts The options for the request.
+   * @param {CallOptions} [callOpts] - The available options for the API call.
    * @returns {Promise<AggregateGroupByResult<T, P>[]>} The aggregated metrics for the objects returned by the vector search.
    */
   nearVector<P extends PropertiesMetrics<T>>(
     vector: number[],
-    opts: AggregateGroupByNearOptions<T, P, V>
+    opts: AggregateGroupByNearOptions<T, P, V>,
+    callOpts?: CallOptions
   ): Promise<AggregateGroupByResult<T, P>[]>;
   /**
    * Aggregate metrics over all the objects in this collection grouped by a specified property without any vector search.
    *
    * @param {AggregateGroupByOptions<T, P>} [opts] The options for the request.
+   * @param {CallOptions} [callOpts] - The available options for the API call.
    * @returns {Promise<AggregateGroupByResult<T, P>[]>} The aggregated metrics for the objects in the collection.
    */
   overAll<P extends PropertiesMetrics<T>>(
-    opts?: AggregateGroupByOptions<T, P>
+    opts?: AggregateGroupByOptions<T, P>,
+    callOpts?: CallOptions
   ): Promise<AggregateGroupByResult<T, P>[]>;
 }
 
