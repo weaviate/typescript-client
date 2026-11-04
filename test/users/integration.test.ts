@@ -12,12 +12,11 @@ requireAtLeast(1, 29, 0).describe('Integration testing of the users namespace', 
       authCredentials: new ApiKey(key),
     });
 
-  beforeAll(() =>
-    makeClient('admin-key').then((c) => {
-      c.roles.delete('test');
-      c.roles.create('test', weaviate.permissions.data({ collection: 'Thing', read: true }));
-    })
-  );
+  beforeAll(async () => {
+    const c = await makeClient('admin-key');
+    await c.roles.delete('test');
+    await c.roles.create('test', weaviate.permissions.data({ collection: 'Thing', read: true }));
+  });
 
   it('should be able to retrieve own admin user with root roles', async () => {
     const user = await makeClient('admin-key').then((client) => client.users.getMyUser());

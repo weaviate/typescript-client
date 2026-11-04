@@ -13,6 +13,7 @@ import {
   SOUP_CLASS_NAME,
 } from '../../src/utils/testData';
 import weaviate, { WeaviateClient } from '../../src/v2/index.js';
+import { requireAtLeast } from '../version.js';
 
 const DOCKER_COMPOSE_BACKUPS_DIR = '/tmp/backups';
 
@@ -399,7 +400,9 @@ describe('fail creating backup for not existing class', () => {
   it('cleans up', () => cleanupTestFood(client));
 });
 
-describe('fail restoring backup for existing class', () => {
+// Before 1.38.10 the server could briefly report a failed restore as FAILED with no
+// error (weaviate/weaviate 895cd4d409), so asserting on the error message was flaky.
+requireAtLeast(1, 38, 10).describe('fail restoring backup for existing class', () => {
   const BACKEND: Backend = 'filesystem';
   const BACKUP_ID = randomBackupId();
 
