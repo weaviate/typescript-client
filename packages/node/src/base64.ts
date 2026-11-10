@@ -55,6 +55,8 @@ export const downloadImageFromURLAsBase64 = async (url: string): Promise<string>
 
 const isBuffer = (file: string | Buffer): file is Buffer => file instanceof Buffer;
 
+const base64DataUriPrefix = /^data:[^,]*;base64,/;
+
 const fileToBase64 = (file: string | Buffer): Promise<string> =>
   isFilePromise(file).then((isFile) =>
     isFile
@@ -76,10 +78,12 @@ const fileToBase64 = (file: string | Buffer): Promise<string> =>
 /**
  * Converts media into a base64 string so that it can be sent to Weaviate.
  *
- * @param {Media} media The media as a base64 string, a file path, a URL, a `Uint8Array` (including `Buffer`), or a `Blob`. A base64 string is returned as is.
+ * @param {Media} media The media as a base64 string, a base64 data URI, a file path, a URL, a `Uint8Array` (including `Buffer`), or a `Blob`. A base64 string is returned as is and a data URI has its `data:<mime>;base64,` prefix removed.
  * @returns {Promise<string>} The base64 string.
  */
 export const toBase64FromMedia = async (media: Media): Promise<string> => {
+  if (typeof media === 'string' && base64DataUriPrefix.test(media))
+    return media.replace(base64DataUriPrefix, '');
   if (media instanceof Blob) return Buffer.from(await media.arrayBuffer()).toString('base64');
   if (media instanceof Uint8Array)
     return Buffer.from(media.buffer, media.byteOffset, media.byteLength).toString('base64');
