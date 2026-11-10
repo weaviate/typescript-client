@@ -379,11 +379,12 @@ class AggregateManager<T, V> implements Aggregate<T, V> {
     this.groupBy = {
       hybrid: async <P extends PropertiesMetrics<T>>(
         query: string,
-        opts: AggregateGroupByHybridOptions<T, P, V>
+        opts: AggregateGroupByHybridOptions<T, P, V>,
+        callOpts?: CallOptions
       ): Promise<AggregateGroupByResult<T, P>[]> => {
         if (await this.grpcChecker) {
           const group = typeof opts.groupBy === 'string' ? { property: opts.groupBy } : opts.groupBy;
-          return this.grpc()
+          return this.grpc(callOpts?.abortSignal)
             .then(async (aggregate) =>
               aggregate.withHybrid({
                 ...(await Serialize.aggregate.hybrid(query, opts)),
@@ -408,7 +409,8 @@ class AggregateManager<T, V> implements Aggregate<T, V> {
       },
       nearImage: async <P extends PropertiesMetrics<T>>(
         image: Media,
-        opts: AggregateGroupByNearOptions<T, P, V>
+        opts: AggregateGroupByNearOptions<T, P, V>,
+        callOpts?: CallOptions
       ): Promise<AggregateGroupByResult<T, P>[]> => {
         const [b64, usesGrpc] = await Promise.all([
           await this.toBase64FromMedia(image),
@@ -416,7 +418,7 @@ class AggregateManager<T, V> implements Aggregate<T, V> {
         ]);
         if (usesGrpc) {
           const group = typeof opts.groupBy === 'string' ? { property: opts.groupBy } : opts.groupBy;
-          return this.grpc()
+          return this.grpc(callOpts?.abortSignal)
             .then((aggregate) =>
               aggregate.withNearImage({
                 ...Serialize.aggregate.nearImage(b64, opts),
@@ -439,11 +441,12 @@ class AggregateManager<T, V> implements Aggregate<T, V> {
       },
       nearObject: async <P extends PropertiesMetrics<T>>(
         id: string,
-        opts: AggregateGroupByNearOptions<T, P, V>
+        opts: AggregateGroupByNearOptions<T, P, V>,
+        callOpts?: CallOptions
       ): Promise<AggregateGroupByResult<T, P>[]> => {
         if (await this.grpcChecker) {
           const group = typeof opts.groupBy === 'string' ? { property: opts.groupBy } : opts.groupBy;
-          return this.grpc()
+          return this.grpc(callOpts?.abortSignal)
             .then((aggregate) =>
               aggregate.withNearObject({
                 ...Serialize.aggregate.nearObject(id, opts),
@@ -466,11 +469,12 @@ class AggregateManager<T, V> implements Aggregate<T, V> {
       },
       nearText: async <P extends PropertiesMetrics<T>>(
         query: string | string[],
-        opts: AggregateGroupByNearOptions<T, P, V>
+        opts: AggregateGroupByNearOptions<T, P, V>,
+        callOpts?: CallOptions
       ): Promise<AggregateGroupByResult<T, P>[]> => {
         if (await this.grpcChecker) {
           const group = typeof opts.groupBy === 'string' ? { property: opts.groupBy } : opts.groupBy;
-          return this.grpc()
+          return this.grpc(callOpts?.abortSignal)
             .then((aggregate) =>
               aggregate.withNearText({
                 ...Serialize.aggregate.nearText(query, opts),
@@ -493,11 +497,12 @@ class AggregateManager<T, V> implements Aggregate<T, V> {
       },
       nearVector: async <P extends PropertiesMetrics<T>>(
         vector: number[],
-        opts: AggregateGroupByNearOptions<T, P, V>
+        opts: AggregateGroupByNearOptions<T, P, V>,
+        callOpts?: CallOptions
       ): Promise<AggregateGroupByResult<T, P>[]> => {
         if (await this.grpcChecker) {
           const group = typeof opts.groupBy === 'string' ? { property: opts.groupBy } : opts.groupBy;
-          return this.grpc()
+          return this.grpc(callOpts?.abortSignal)
             .then(async (aggregate) =>
               aggregate.withNearVector({
                 ...(await Serialize.aggregate.nearVector(vector, opts)),
@@ -519,11 +524,12 @@ class AggregateManager<T, V> implements Aggregate<T, V> {
         return this.doGroupBy(builder);
       },
       overAll: async <P extends PropertiesMetrics<T>>(
-        opts: AggregateGroupByOptions<T, P>
+        opts: AggregateGroupByOptions<T, P>,
+        callOpts?: CallOptions
       ): Promise<AggregateGroupByResult<T, P>[]> => {
         if (await this.grpcChecker) {
           const group = typeof opts.groupBy === 'string' ? { property: opts.groupBy } : opts.groupBy;
-          return this.grpc()
+          return this.grpc(callOpts?.abortSignal)
             .then((aggregate) =>
               aggregate.withFetch({
                 ...Serialize.aggregate.overAll(opts),
@@ -540,7 +546,8 @@ class AggregateManager<T, V> implements Aggregate<T, V> {
     };
   }
 
-  private grpc = () => this.connection.aggregate(this.name, this.consistencyLevel, this.tenant);
+  private grpc = (abortSignal?: AbortSignal) =>
+    this.connection.aggregate(this.name, this.consistencyLevel, this.tenant, abortSignal);
 
   private gql() {
     return new Aggregator(this.connection);
@@ -622,10 +629,11 @@ class AggregateManager<T, V> implements Aggregate<T, V> {
 
   async hybrid<P extends PropertiesMetrics<T>>(
     query: string,
-    opts?: AggregateHybridOptions<T, P, V>
+    opts?: AggregateHybridOptions<T, P, V>,
+    callOpts?: CallOptions
   ): Promise<AggregateResult<T, P>> {
     if (await this.grpcChecker) {
-      return this.grpc()
+      return this.grpc(callOpts?.abortSignal)
         .then(async (aggregate) => aggregate.withHybrid(await Serialize.aggregate.hybrid(query, opts)))
         .then((reply) => Deserialize.aggregate(reply));
     }
@@ -645,11 +653,12 @@ class AggregateManager<T, V> implements Aggregate<T, V> {
 
   async nearImage<P extends PropertiesMetrics<T>>(
     image: Media,
-    opts?: AggregateNearOptions<P, V>
+    opts?: AggregateNearOptions<P, V>,
+    callOpts?: CallOptions
   ): Promise<AggregateResult<T, P>> {
     const [b64, usesGrpc] = await Promise.all([await this.toBase64FromMedia(image), await this.grpcChecker]);
     if (usesGrpc) {
-      return this.grpc()
+      return this.grpc(callOpts?.abortSignal)
         .then((aggregate) => aggregate.withNearImage(Serialize.aggregate.nearImage(b64, opts)))
         .then((reply) => Deserialize.aggregate(reply));
     }
@@ -667,10 +676,11 @@ class AggregateManager<T, V> implements Aggregate<T, V> {
 
   async nearObject<P extends PropertiesMetrics<T>>(
     id: string,
-    opts?: AggregateNearOptions<P, V>
+    opts?: AggregateNearOptions<P, V>,
+    callOpts?: CallOptions
   ): Promise<AggregateResult<T, P>> {
     if (await this.grpcChecker) {
-      return this.grpc()
+      return this.grpc(callOpts?.abortSignal)
         .then((aggregate) => aggregate.withNearObject(Serialize.aggregate.nearObject(id, opts)))
         .then((reply) => Deserialize.aggregate(reply));
     }
@@ -688,10 +698,11 @@ class AggregateManager<T, V> implements Aggregate<T, V> {
 
   async nearText<P extends PropertiesMetrics<T>>(
     query: string | string[],
-    opts?: AggregateNearOptions<P, V>
+    opts?: AggregateNearOptions<P, V>,
+    callOpts?: CallOptions
   ): Promise<AggregateResult<T, P>> {
     if (await this.grpcChecker) {
-      return this.grpc()
+      return this.grpc(callOpts?.abortSignal)
         .then((aggregate) => aggregate.withNearText(Serialize.aggregate.nearText(query, opts)))
         .then((reply) => Deserialize.aggregate(reply));
     }
@@ -709,10 +720,11 @@ class AggregateManager<T, V> implements Aggregate<T, V> {
 
   async nearVector<P extends PropertiesMetrics<T>>(
     vector: NearVectorInputType,
-    opts?: AggregateNearOptions<P, V>
+    opts?: AggregateNearOptions<P, V>,
+    callOpts?: CallOptions
   ): Promise<AggregateResult<T, P>> {
     if (await this.grpcChecker) {
-      return this.grpc()
+      return this.grpc(callOpts?.abortSignal)
         .then(async (aggregate) =>
           aggregate.withNearVector(await Serialize.aggregate.nearVector(vector, opts))
         )
@@ -736,10 +748,11 @@ class AggregateManager<T, V> implements Aggregate<T, V> {
   }
 
   async overAll<P extends PropertiesMetrics<T>>(
-    opts?: AggregateOverAllOptions<P>
+    opts?: AggregateOverAllOptions<P>,
+    callOpts?: CallOptions
   ): Promise<AggregateResult<T, P>> {
     if (await this.grpcChecker) {
-      return this.grpc()
+      return this.grpc(callOpts?.abortSignal)
         .then((aggregate) => aggregate.withFetch(Serialize.aggregate.overAll(opts)))
         .then((reply) => Deserialize.aggregate(reply));
     }

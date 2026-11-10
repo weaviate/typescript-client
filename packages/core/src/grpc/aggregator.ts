@@ -98,9 +98,10 @@ export default class Aggregator extends Base implements Aggregate {
     metadata: Metadata,
     timeout: number,
     consistencyLevel?: ConsistencyLevel,
-    tenant?: string
+    tenant?: string,
+    abortSignal?: AbortSignal
   ): Aggregate {
-    return new Aggregator(connection, collection, metadata, timeout, consistencyLevel, tenant);
+    return new Aggregator(connection, collection, metadata, timeout, consistencyLevel, tenant, abortSignal);
   }
 
   public withFetch = (args: AggregateFetchArgs) => this.call(AggregateRequest.fromPartial(args));

@@ -115,14 +115,19 @@ export default class ConnectionGRPC extends ConnectionGQL {
     return new Promise<Batch>((resolve) => resolve(this.grpc.batch(collection, consistencyLevel, tenant)));
   };
 
-  aggregate = (collection: string, consistencyLevel?: ConsistencyLevel, tenant?: string) => {
+  aggregate = (
+    collection: string,
+    consistencyLevel?: ConsistencyLevel,
+    tenant?: string,
+    abortSignal?: AbortSignal
+  ) => {
     if (this.authEnabled) {
       return this.login().then((token) =>
-        this.grpc.aggregate(collection, consistencyLevel, tenant, `Bearer ${token}`)
+        this.grpc.aggregate(collection, consistencyLevel, tenant, `Bearer ${token}`, abortSignal)
       );
     }
     return new Promise<Aggregate>((resolve) =>
-      resolve(this.grpc.aggregate(collection, consistencyLevel, tenant))
+      resolve(this.grpc.aggregate(collection, consistencyLevel, tenant, undefined, abortSignal))
     );
   };
 
@@ -160,7 +165,8 @@ export interface GrpcClient {
     collection: string,
     consistencyLevel?: ConsistencyLevel,
     tenant?: string,
-    bearerToken?: string
+    bearerToken?: string,
+    abortSignal?: AbortSignal
   ) => Aggregate;
   batch: (
     collection: string,
@@ -201,7 +207,8 @@ const grpcClient = (transports: Transports, config: GrpcConnectionParams) => {
       collection: string,
       consistencyLevel?: ConsistencyLevel,
       tenant?: string,
-      bearerToken?: string
+      bearerToken?: string,
+      abortSignal?: AbortSignal
     ) =>
       Aggregator.use(
         transports.weaviate,
@@ -209,7 +216,8 @@ const grpcClient = (transports: Transports, config: GrpcConnectionParams) => {
         getMetadataWithEmbeddingServiceAuth(config, bearerToken),
         config.timeout?.query || 30,
         consistencyLevel,
-        tenant
+        tenant,
+        abortSignal
       ),
     batch: (collection: string, consistencyLevel?: ConsistencyLevel, tenant?: string, bearerToken?: string) =>
       Batcher.use(
