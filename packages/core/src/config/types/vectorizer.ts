@@ -228,6 +228,8 @@ export type Multi2VecGoogleConfig = {
   location?: string;
   /** The base URL for the vectorizer. */
   apiEndpoint?: string;
+  /** The audio fields used when vectorizing. */
+  audioFields?: string[];
   /** The image fields used when vectorizing. */
   imageFields?: string[];
   /** The text fields used when vectorizing. */
@@ -247,6 +249,8 @@ export type Multi2VecGoogleConfig = {
   vectorizeCollectionName?: boolean;
   /** The weights of the fields used for vectorization. */
   weights?: {
+    /** The weights of the audio fields. */
+    audioFields?: number[];
     /** The weights of the image fields. */
     imageFields?: number[];
     /** The weights of the text fields. */
