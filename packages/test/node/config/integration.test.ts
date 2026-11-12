@@ -952,6 +952,32 @@ describe('Testing of the collection.config namespace', () => {
     }
   );
 
+  requireAtLeast(1, 40, 6).it(
+    'should be able to create and get an HFresh multi-vector collection with encoding',
+    async () => {
+      const collectionName = 'TestCollectionConfigCreateHFreshWithMuveraEncoding';
+      afters.push(() => client.collections.delete(collectionName));
+      const collection = await client.collections.create({
+        name: collectionName,
+        vectorizers: weaviate.configure.vectorizer.none({
+          vectorIndexConfig: weaviate.configure.vectorIndex.hfresh({
+            multiVector: weaviate.configure.vectorIndex.multiVector.multiVector({
+              encoding: weaviate.configure.vectorIndex.multiVector.encoding.muvera(),
+            }),
+          }),
+        }),
+      });
+      const config = await collection.config.get();
+      expect(config.name).toEqual(collectionName);
+      expect(config.vectorizers.default.indexType).toEqual('hfresh');
+
+      const indexConfig = config.vectorizers.default.indexConfig as VectorIndexConfigHFresh;
+      expect(indexConfig.multiVector).toBeDefined();
+      expect(indexConfig.multiVector?.encoding?.type).toEqual('muvera');
+      expect(indexConfig.quantizer?.type).toEqual('rq');
+    }
+  );
+
   requireAtLeast(1, 31, 0).it(
     'should be able to create and get a multi-vector collection without encoding',
     async () => {

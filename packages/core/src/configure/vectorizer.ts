@@ -35,8 +35,10 @@ const makeVectorIndex = (opts?: {
 }) => {
   let conf = opts?.config?.config;
   if (opts?.encoding || opts?.multiVec) {
-    if (conf && !VectorIndexGuards.isHNSW(conf)) {
-      throw new WeaviateInvalidInputError('Cannot set multi-vector encoding on a non-HNSW index');
+    if (conf && !VectorIndexGuards.isHNSW(conf) && !VectorIndexGuards.isHFresh(conf)) {
+      throw new WeaviateInvalidInputError(
+        'Multi-vector encoding is only supported on HNSW and HFresh indexes'
+      );
     }
     conf = conf
       ? {
