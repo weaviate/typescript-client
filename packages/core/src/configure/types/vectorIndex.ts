@@ -229,6 +229,8 @@ export type VectorIndexConfigHFreshCreateOptions = {
   replicas?: number;
   /** The number of postings read during each search. Default is 64. */
   searchProbe?: number;
+  /** The multi-vector configuration to use. Use `vectorIndex.multiVector` to make one. HFresh requires MUVERA encoding. */
+  multiVector?: MultiVectorConfigCreate;
   /** The quantizer configuration to use. Default is `bq`. */
   quantizer?: QuantizerConfigCreate;
 };

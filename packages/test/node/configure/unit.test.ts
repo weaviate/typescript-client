@@ -2471,6 +2471,58 @@ describe('Unit testing of the reranker factory class', () => {
     });
   });
 
+  it('should create correct Multi2VecWeaviateConfig type with an HFresh index', () => {
+    const config = configure.multiVectors.multi2VecWeaviate({
+      name: 'test',
+      imageField: 'img',
+      vectorIndexConfig: configure.vectorIndex.hfresh({
+        quantizer: configure.vectorIndex.quantizer.rq({ bits: 1 }),
+      }),
+      encoding: configure.vectorIndex.multiVector.encoding.muvera(),
+    });
+    expect(config).toEqual<VectorConfigCreate<never, 'test', 'hfresh', 'multi2multivec-weaviate'>>({
+      name: 'test',
+      properties: undefined,
+      vectorIndex: {
+        name: 'hfresh',
+        config: {
+          distance: undefined,
+          type: 'hfresh',
+          multiVector: {
+            aggregation: undefined,
+            encoding: {
+              dprojections: undefined,
+              ksim: undefined,
+              repetitions: undefined,
+              type: 'muvera',
+            },
+          },
+          quantizer: {
+            bits: 1,
+            rescoreLimit: undefined,
+            type: 'rq',
+          },
+        },
+      },
+      vectorizer: {
+        name: 'multi2multivec-weaviate',
+        config: {
+          imageFields: ['img'],
+        },
+      },
+    });
+  });
+
+  it('should reject multi-vector encoding on a flat index', () => {
+    expect(() =>
+      configure.multiVectors.multi2VecWeaviate({
+        imageField: 'img',
+        vectorIndexConfig: configure.vectorIndex.flat(),
+        encoding: configure.vectorIndex.multiVector.encoding.muvera(),
+      })
+    ).toThrow('Multi-vector encoding is only supported on HNSW and HFresh indexes');
+  });
+
   describe('makeVectorizer vectorIndex gate', () => {
     it('should leave vectorIndex undefined when no index-related option is provided', () => {
       const config = configure.vectors.text2VecOpenAI();

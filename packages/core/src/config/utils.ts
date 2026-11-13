@@ -196,7 +196,10 @@ export const parseVectorIndex = (module: ModuleConfig<VectorIndexType, VectorInd
   }
 
   let multivector: any;
-  if (VectorIndexGuards.isHNSW(module.config) && module.config.multiVector !== undefined) {
+  if (
+    (VectorIndexGuards.isHNSW(module.config) || VectorIndexGuards.isHFresh(module.config)) &&
+    module.config.multiVector !== undefined
+  ) {
     multivector = {
       aggregation: module.config.multiVector.aggregation,
       enabled: true,
@@ -697,6 +700,9 @@ class ConfigMapping {
       maxPostingSizeKb: v.maxPostingSizeKB,
       searchProbe: v.searchProbe,
       replicas: v.replicas,
+      multiVector: exists<MultiVectorConfig>(v.multivector)
+        ? ConfigMapping.multiVector(v.multivector)
+        : undefined,
       quantizer: ConfigMapping.rq(v.rq),
       type: 'hfresh',
     };

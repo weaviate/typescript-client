@@ -479,6 +479,25 @@ describe('makeVectorsConfig', () => {
     expect(entry.vectorIndexType).toBe('hnsw');
     expect(entry.vectorIndexConfig).toBeDefined();
   });
+
+  it('should serialize a MUVERA multi-vector config on an HFresh index', () => {
+    const vec = configure.multiVectors.multi2VecWeaviate({
+      name: 'pages',
+      imageField: 'page',
+      vectorIndexConfig: configure.vectorIndex.hfresh({
+        quantizer: configure.vectorIndex.quantizer.rq({ bits: 1 }),
+      }),
+      encoding: configure.vectorIndex.multiVector.encoding.muvera(),
+    });
+
+    const { vectorsConfig } = makeVectorsConfig(vec);
+    const entry = vectorsConfig!.pages;
+    expect(entry.vectorIndexType).toBe('hfresh');
+    expect(entry.vectorIndexConfig).toMatchObject({
+      multivector: { enabled: true, muvera: { enabled: true } },
+      rq: { enabled: true, bits: 1 },
+    });
+  });
 });
 
 describe('classToCollection', () => {
@@ -533,6 +552,40 @@ describe('classToCollection', () => {
         default: expect.objectContaining({
           vectorizer: { name: 'none', config: undefined },
           indexType: 'hnsw',
+        }),
+      },
+    },
+    {
+      name: 'an HFresh multi-vector index',
+      fields: {
+        vectorConfig: {
+          pages: {
+            vectorizer: { none: {} },
+            vectorIndexType: 'hfresh',
+            vectorIndexConfig: {
+              distance: 'cosine',
+              maxPostingSizeKB: 48,
+              searchProbe: 64,
+              replicas: 4,
+              rq: { enabled: true, bits: 1, rescoreLimit: 350 },
+              multivector: {
+                enabled: true,
+                aggregation: '',
+                muvera: { enabled: true, ksim: 4, dprojections: 16, repetitions: 10 },
+              },
+            },
+          },
+        },
+      },
+      want: {
+        pages: expect.objectContaining({
+          indexType: 'hfresh',
+          indexConfig: expect.objectContaining({
+            multiVector: {
+              aggregation: '',
+              encoding: { type: 'muvera', enabled: true, ksim: 4, dprojections: 16, repetitions: 10 },
+            },
+          }),
         }),
       },
     },
