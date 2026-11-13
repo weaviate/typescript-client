@@ -19,6 +19,7 @@ type Text2VecPalmVectorizer = 'text2vec-palm';
 
 export type Vectorizer =
   | 'img2vec-neural'
+  | 'multi2vec-aws'
   | 'multi2vec-nvidia'
   | 'multi2vec-clip'
   | 'multi2vec-cohere'
@@ -740,6 +741,8 @@ export type VectorizerConfig =
 
 export type VectorizerConfigType<V> = V extends 'img2vec-neural'
   ? Img2VecNeuralConfig | undefined
+  : V extends 'multi2vec-aws'
+  ? Multi2VecAWSConfig | undefined
   : V extends 'multi2vec-nvidia'
   ? Multi2VecNvidiaConfig | undefined
   : V extends 'multi2vec-clip'
