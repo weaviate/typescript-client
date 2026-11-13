@@ -5,6 +5,7 @@ import {
   GenerativeDatabricksConfig,
   GenerativeDigitalOceanConfig,
   GenerativeFriendliAIConfig,
+  GenerativeMetaConfig,
   GenerativeMistralConfig,
   GenerativeNvidiaConfig,
   GenerativeOllamaConfig,
@@ -47,6 +48,8 @@ export type GenerativeDigitalOceanConfigCreate = GenerativeDigitalOceanConfig;
 
 export type GenerativeFriendliAIConfigCreate = GenerativeFriendliAIConfig;
 
+export type GenerativeMetaConfigCreate = GenerativeMetaConfig;
+
 export type GenerativeMistralConfigCreate = GenerativeMistralConfig;
 
 export type GenerativeNvidiaConfigCreate = GenerativeNvidiaConfig;
@@ -80,6 +83,7 @@ export type GenerativeConfigCreate =
   | GenerativeDatabricksConfigCreate
   | GenerativeDigitalOceanConfigCreate
   | GenerativeFriendliAIConfigCreate
+  | GenerativeMetaConfigCreate
   | GenerativeMistralConfigCreate
   | GenerativeNvidiaConfigCreate
   | GenerativeOllamaConfigCreate
@@ -105,6 +109,8 @@ export type GenerativeConfigCreateType<G> = G extends 'generative-anthropic'
   ? GenerativeDigitalOceanConfigCreate
   : G extends 'generative-friendliai'
   ? GenerativeFriendliAIConfigCreate
+  : G extends 'generative-meta'
+  ? GenerativeMetaConfigCreate
   : G extends 'generative-mistral'
   ? GenerativeMistralConfigCreate
   : G extends 'generative-nvidia'
