@@ -378,10 +378,12 @@ const legacyVectors = {
     const imageFields = config.imageFields?.map(mapMulti2VecField);
     const textFields = config.textFields?.map(mapMulti2VecField);
     const videoFields = config.videoFields?.map(mapMulti2VecField);
+    const audioFields = config.audioFields?.map(mapMulti2VecField);
     let weights: Multi2VecPalmConfig['weights'] = {};
     weights = formatMulti2VecFields(weights, 'imageFields', imageFields);
     weights = formatMulti2VecFields(weights, 'textFields', textFields);
     weights = formatMulti2VecFields(weights, 'videoFields', videoFields);
+    weights = formatMulti2VecFields(weights, 'audioFields', audioFields);
     return makeVectorizer(name, {
       quantizer,
       vectorIndexConfig,
@@ -392,6 +394,7 @@ const legacyVectors = {
           imageFields: imageFields?.map((f) => f.name),
           textFields: textFields?.map((f) => f.name),
           videoFields: videoFields?.map((f) => f.name),
+          audioFields: audioFields?.map((f) => f.name),
           weights: Object.keys(weights).length === 0 ? undefined : weights,
         },
       },
@@ -412,10 +415,12 @@ const legacyVectors = {
     const imageFields = config.imageFields?.map(mapMulti2VecField);
     const textFields = config.textFields?.map(mapMulti2VecField);
     const videoFields = config.videoFields?.map(mapMulti2VecField);
+    const audioFields = config.audioFields?.map(mapMulti2VecField);
     let weights: Multi2VecPalmConfig['weights'] = {};
     weights = formatMulti2VecFields(weights, 'imageFields', imageFields);
     weights = formatMulti2VecFields(weights, 'textFields', textFields);
     weights = formatMulti2VecFields(weights, 'videoFields', videoFields);
+    weights = formatMulti2VecFields(weights, 'audioFields', audioFields);
     return makeVectorizer(name, {
       quantizer,
       vectorIndexConfig,
@@ -426,6 +431,7 @@ const legacyVectors = {
           imageFields: imageFields?.map((f) => f.name),
           textFields: textFields?.map((f) => f.name),
           videoFields: videoFields?.map((f) => f.name),
+          audioFields: audioFields?.map((f) => f.name),
           weights: Object.keys(weights).length === 0 ? undefined : weights,
         },
       },
@@ -1112,10 +1118,12 @@ export const vectors = (({ text2VecPalm, multi2VecPalm, ...rest }) => ({
     const imageFields = config.imageFields?.map(mapMulti2VecField);
     const textFields = config.textFields?.map(mapMulti2VecField);
     const videoFields = config.videoFields?.map(mapMulti2VecField);
+    const audioFields = config.audioFields?.map(mapMulti2VecField);
     let weights: Multi2VecGoogleGeminiConfig['weights'] = {};
     weights = formatMulti2VecFields(weights, 'imageFields', imageFields);
     weights = formatMulti2VecFields(weights, 'textFields', textFields);
     weights = formatMulti2VecFields(weights, 'videoFields', videoFields);
+    weights = formatMulti2VecFields(weights, 'audioFields', audioFields);
     return makeVectorizer(name, {
       quantizer,
       vectorIndexConfig,
@@ -1127,6 +1135,7 @@ export const vectors = (({ text2VecPalm, multi2VecPalm, ...rest }) => ({
           imageFields: imageFields?.map((f) => f.name),
           textFields: textFields?.map((f) => f.name),
           videoFields: videoFields?.map((f) => f.name),
+          audioFields: audioFields?.map((f) => f.name),
           weights: Object.keys(weights).length === 0 ? undefined : weights,
         },
       },
