@@ -68,6 +68,7 @@ const mediaTypes = [
   ['audio', 'nearAudio'],
   ['depth', 'nearDepth'],
   ['image', 'nearImage'],
+  ['imu', 'nearImu'],
   ['thermal', 'nearThermal'],
   ['video', 'nearVideo'],
 ] as const;

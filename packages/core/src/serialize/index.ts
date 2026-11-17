@@ -787,7 +787,7 @@ class Search {
   ): SearchNearIMUArgs => {
     return {
       ...Search.common(opts),
-      nearIMU: Serialize.nearIMUSearch({ ...args, ...opts }),
+      nearImu: Serialize.nearIMUSearch({ ...args, ...opts }),
       groupBy: Search.isGroupBy<GroupByNearOptions<T, V, I>>(opts) ? Search.groupBy(opts.groupBy) : undefined,
     };
   };

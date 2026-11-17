@@ -80,7 +80,7 @@ export type SearchNearImageArgs = BaseSearchArgs & {
 };
 
 export type SearchNearIMUArgs = BaseSearchArgs & {
-  nearIMU: NearIMUSearch;
+  nearImu: NearIMUSearch;
 };
 
 export type SearchNearObjectArgs = BaseSearchArgs & {
