@@ -223,7 +223,7 @@ class QueryManager<T, V> implements Query<T, V> {
             send = (media) => search.withNearThermal(Serialize.search.nearThermal({ thermal: media }, opts));
             break;
           case 'video':
-            send = (media) => search.withNearVideo(Serialize.search.nearVideo({ video: media }));
+            send = (media) => search.withNearVideo(Serialize.search.nearVideo({ video: media }, opts));
             break;
           default:
             throw new WeaviateInvalidInputError(`Invalid media type: ${type}`);

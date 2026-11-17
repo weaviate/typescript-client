@@ -358,7 +358,7 @@ describe('Unit testing of Serialize', () => {
       imu: 'imu',
     });
     expect(args).toEqual<SearchNearIMUArgs>({
-      nearIMU: NearIMUSearch.fromPartial({
+      nearImu: NearIMUSearch.fromPartial({
         imu: 'imu',
       }),
       metadata: MetadataRequest.fromPartial({ uuid: true }),
