@@ -1634,7 +1634,7 @@ export class Serialize {
       case 'log1p':
         return Boost_PropertyValueModifier.PROPERTY_VALUE_MODIFIER_LOG1P;
       case 'sqrt':
-        return Boost_PropertyValueModifier.PROPERTY_VALUE_MODIFIER_LOG1P;
+        return Boost_PropertyValueModifier.PROPERTY_VALUE_MODIFIER_SQRT;
       default:
         return Boost_PropertyValueModifier.PROPERTY_VALUE_MODIFIER_UNSPECIFIED;
     }
