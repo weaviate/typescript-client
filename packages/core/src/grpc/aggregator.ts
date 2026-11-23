@@ -54,7 +54,7 @@ export type AggregateNearImageArgs = BaseAggregateArgs & {
 };
 
 export type AggregateNearIMUArgs = BaseAggregateArgs & {
-  nearIMU: NearIMUSearch;
+  nearImu: NearIMUSearch;
 };
 
 export type AggregateNearObjectArgs = BaseAggregateArgs & {
