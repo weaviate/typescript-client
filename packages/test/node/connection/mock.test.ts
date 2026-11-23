@@ -102,6 +102,82 @@ describe('mock server auth tests', () => {
       });
     });
 
+    it('should send each of multiple scopes separately with client_credentials grant', async () => {
+      const conn = new Connection({
+        scheme: 'http',
+        host: 'localhost:' + server.port,
+        authClientSecret: new AuthClientCredentials({
+          clientSecret: 'supersecret',
+          scopes: ['scope_a', 'scope_b'],
+          silentRefresh: false,
+        }),
+      });
+
+      await conn.login();
+
+      expect(server.lastRequest().body).toEqual({
+        client_id: 'client123',
+        client_secret: 'supersecret',
+        grant_type: 'client_credentials',
+        scope: 'scope_a scope_b',
+      });
+    });
+
+    it('should send each of multiple scopes separately with password grant', async () => {
+      const conn = new Connection({
+        scheme: 'http',
+        host: 'localhost:' + server.port,
+        authClientSecret: new AuthUserPasswordCredentials({
+          username: 'user123',
+          password: 'secure_password',
+          scopes: ['scope_a', 'scope_b'],
+        }),
+      });
+
+      try {
+        await conn.login();
+      } finally {
+        conn.oidcAuth?.stopTokenRefresh();
+      }
+
+      expect(server.lastRequest().body).toEqual({
+        username: 'user123',
+        password: 'secure_password',
+        grant_type: 'password',
+        client_id: 'client123',
+        scope: 'scope_a scope_b offline_access',
+      });
+    });
+
+    it('should not append offline_access again when the password grant is silently refreshed', async () => {
+      vitest.useFakeTimers({ toFake: ['setInterval', 'clearInterval', 'Date'] });
+      const conn = new Connection({
+        scheme: 'http',
+        host: 'localhost:' + server.port,
+        authClientSecret: new AuthUserPasswordCredentials({
+          username: 'user123',
+          password: 'secure_password',
+          scopes: ['custom_scope'],
+        }),
+      });
+
+      try {
+        await conn.login();
+        const first = server.lastRequest();
+        expect(first.body.scope).toEqual('custom_scope offline_access');
+
+        // move to within a minute of expiry so that the background refresh fires on its next tick
+        vitest.setSystemTime(Date.now() + 3_600_000 - 30_000);
+        await vitest.advanceTimersByTimeAsync(30_000);
+        await vitest.waitFor(() => expect(server.lastRequest()).not.toBe(first));
+
+        expect(server.lastRequest().body.scope).toEqual('custom_scope offline_access');
+      } finally {
+        conn.oidcAuth?.stopTokenRefresh();
+        vitest.useRealTimers();
+      }
+    });
+
     it('should login with refresh_token grant', async () => {
       const conn = new Connection({
         scheme: 'http',
