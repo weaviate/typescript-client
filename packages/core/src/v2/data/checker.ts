@@ -54,10 +54,11 @@ export default class Checker extends CommandBase {
   };
 
   do = (): Promise<boolean> => {
+    this.validate();
+
     if (this.errors.length > 0) {
       return Promise.reject(new Error('invalid usage: ' + this.errors.join(', ')));
     }
-    this.validate();
 
     return this.buildPath().then((path: string) => this.client.head(path, undefined));
   };

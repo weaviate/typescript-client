@@ -122,10 +122,11 @@ export default class ClassificationsScheduler extends CommandBase {
   };
 
   do = (): Promise<Classification> => {
+    this.validate();
+
     if (this.errors.length > 0) {
       return Promise.reject(new Error('invalid usage: ' + this.errors.join(', ')));
     }
-    this.validate();
 
     const path = `/classifications`;
     return this.client.postReturn(path, this.payload()).then((res: any) => {

@@ -50,10 +50,11 @@ export default class Deleter extends CommandBase {
   };
 
   do = () => {
+    this.validate();
+
     if (this.errors.length > 0) {
       return Promise.reject(new Error('invalid usage: ' + this.errors.join(', ')));
     }
-    this.validate();
 
     return this.objectsPath
       .buildDelete(this.id, this.className, this.consistencyLevel, this.tenant)
