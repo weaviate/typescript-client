@@ -7,6 +7,7 @@ import {
   GenerativeCohereConfig,
   GenerativeContextualAIConfig,
   GenerativeDatabricksConfig,
+  GenerativeDigitalOceanConfig,
   GenerativeFriendliAIConfig,
   GenerativeGoogleConfig,
   GenerativeMetaConfig,
@@ -2047,6 +2048,44 @@ describe('Unit testing of the generative factory class', () => {
     });
   });
 
+  it('should create the correct GenerativeDigitalOceanConfig type with required & default values', () => {
+    const config = configure.generative.digitalOcean();
+    expect(config).toEqual<ModuleConfig<'generative-digitalocean', GenerativeDigitalOceanConfig | undefined>>(
+      {
+        name: 'generative-digitalocean',
+        config: undefined,
+      }
+    );
+  });
+
+  it('should create the correct GenerativeDigitalOceanConfig type with all values', () => {
+    const config = configure.generative.digitalOcean({
+      baseURL: 'base-url',
+      frequencyPenalty: 0.2,
+      maxTokens: 100,
+      model: 'model',
+      presencePenalty: 0.3,
+      stop: ['stop'],
+      temperature: 0.5,
+      topP: 0.8,
+    });
+    expect(config).toEqual<ModuleConfig<'generative-digitalocean', GenerativeDigitalOceanConfig | undefined>>(
+      {
+        name: 'generative-digitalocean',
+        config: {
+          baseURL: 'base-url',
+          frequencyPenalty: 0.2,
+          maxTokens: 100,
+          model: 'model',
+          presencePenalty: 0.3,
+          stop: ['stop'],
+          temperature: 0.5,
+          topP: 0.8,
+        },
+      }
+    );
+  });
+
   it('should create the correct GenerativeFriendliAIConfig type with required & default values', () => {
     const config = configure.generative.friendliai();
     expect(config).toEqual<ModuleConfig<'generative-friendliai', GenerativeFriendliAIConfig | undefined>>({
@@ -2465,6 +2504,58 @@ describe('Unit testing of the reranker factory class', () => {
         },
       },
     });
+  });
+
+  it('should create correct Multi2VecWeaviateConfig type with an HFresh index', () => {
+    const config = configure.multiVectors.multi2VecWeaviate({
+      name: 'test',
+      imageField: 'img',
+      vectorIndexConfig: configure.vectorIndex.hfresh({
+        quantizer: configure.vectorIndex.quantizer.rq({ bits: 1 }),
+      }),
+      encoding: configure.vectorIndex.multiVector.encoding.muvera(),
+    });
+    expect(config).toEqual<VectorConfigCreate<never, 'test', 'hfresh', 'multi2multivec-weaviate'>>({
+      name: 'test',
+      properties: undefined,
+      vectorIndex: {
+        name: 'hfresh',
+        config: {
+          distance: undefined,
+          type: 'hfresh',
+          multiVector: {
+            aggregation: undefined,
+            encoding: {
+              dprojections: undefined,
+              ksim: undefined,
+              repetitions: undefined,
+              type: 'muvera',
+            },
+          },
+          quantizer: {
+            bits: 1,
+            rescoreLimit: undefined,
+            type: 'rq',
+          },
+        },
+      },
+      vectorizer: {
+        name: 'multi2multivec-weaviate',
+        config: {
+          imageFields: ['img'],
+        },
+      },
+    });
+  });
+
+  it('should reject multi-vector encoding on a flat index', () => {
+    expect(() =>
+      configure.multiVectors.multi2VecWeaviate({
+        imageField: 'img',
+        vectorIndexConfig: configure.vectorIndex.flat(),
+        encoding: configure.vectorIndex.multiVector.encoding.muvera(),
+      })
+    ).toThrow('Multi-vector encoding is only supported on HNSW and HFresh indexes');
   });
 
   describe('makeVectorizer vectorIndex gate', () => {

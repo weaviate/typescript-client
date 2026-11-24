@@ -16,8 +16,8 @@ import { Filters } from '../proto/v1/base.js';
 import { BatchDeleteReply, BatchDeleteRequest } from '../proto/v1/batch_delete.js';
 import Base from './base.js';
 
-import { retryOptions } from './retry.js';
 import { RetryOptions } from 'nice-grpc-client-middleware-retry';
+import { retryOptions } from './retry.js';
 
 export interface Batch {
   withDelete: (args: BatchDeleteArgs) => Promise<BatchDeleteReply>;

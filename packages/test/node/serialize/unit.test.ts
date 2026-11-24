@@ -37,6 +37,7 @@ import {
 import { GenerativeSearch } from '@weaviate/core/proto/v1/generative';
 import {
   Boost_DecayCurve,
+  Boost_PropertyValueModifier,
   GroupBy,
   MetadataRequest,
   PropertiesRequest,
@@ -358,7 +359,7 @@ describe('Unit testing of Serialize', () => {
       imu: 'imu',
     });
     expect(args).toEqual<SearchNearIMUArgs>({
-      nearIMU: NearIMUSearch.fromPartial({
+      nearImu: NearIMUSearch.fromPartial({
         imu: 'imu',
       }),
       metadata: MetadataRequest.fromPartial({ uuid: true }),
@@ -1103,6 +1104,22 @@ describe('Unit testing of Serialize', () => {
         ],
       });
     });
+
+    it.each([
+      ['log1p', Boost_PropertyValueModifier.PROPERTY_VALUE_MODIFIER_LOG1P],
+      ['sqrt', Boost_PropertyValueModifier.PROPERTY_VALUE_MODIFIER_SQRT],
+      [undefined, Boost_PropertyValueModifier.PROPERTY_VALUE_MODIFIER_UNSPECIFIED],
+    ] as const)(
+      'should map the PropertyValue modifier %s to its own proto enum value',
+      (modifier, expected) => {
+        const out = Serialize.boostGRPC({
+          conditions: [{ func: { type: 'propertyValue', property: 'popularity', modifier } }],
+        });
+        expect(out.conditions).toHaveLength(1);
+        expect(out.conditions[0].propertyValue?.property).toEqual('popularity');
+        expect(out.conditions[0].propertyValue?.modifier).toEqual(expected);
+      }
+    );
   });
 });
 

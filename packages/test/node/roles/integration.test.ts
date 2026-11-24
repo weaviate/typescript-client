@@ -65,6 +65,16 @@ const testCases: TestCase[] = [
     },
   },
   {
+    roleName: 'read-backups',
+    requireVersion: [1, 39, 10],
+    permissions: weaviate.permissions.backup({ collection: 'Some-collection', read: true }),
+    expected: {
+      name: 'read-backups',
+      ...emptyPermissions,
+      backupsPermissions: [{ collection: 'Some-collection', actions: ['read_backups'] }],
+    },
+  },
+  {
     roleName: 'mcp',
     requireVersion: [1, 37, 1],
     permissions: weaviate.permissions.mcp({ create: true, read: true, update: true }),

@@ -143,7 +143,7 @@ const collection = <T, N, V>(
   );
   return {
     aggregate: aggregateCollection,
-    backup: backupCollection(connection, capitalizedName),
+    backup: backupCollection(connection, capitalizedName, dbVersionSupport),
     config: config<T>(connection, capitalizedName, dbVersionSupport, tenant),
     data: data<T>(connection, capitalizedName, dbVersionSupport, isGrpcWeb, consistencyLevel, tenant),
     filter: filter<T extends undefined ? any : T>(),

@@ -54,7 +54,7 @@ export class PermissionGuards {
       'delete_aliases'
     );
   static isBackups = (permission: Permission): permission is BackupsPermission =>
-    PermissionGuards.includes<BackupsAction>(permission, 'manage_backups');
+    PermissionGuards.includes<BackupsAction>(permission, 'manage_backups', 'read_backups');
   static isMcp = (permission: Permission): permission is McpPermission =>
     PermissionGuards.includes<McpAction>(permission, 'create_mcp', 'read_mcp', 'update_mcp');
   static isCluster = (permission: Permission): permission is ClusterPermission =>

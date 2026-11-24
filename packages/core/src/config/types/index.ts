@@ -4,17 +4,17 @@ export * from './vectorIndex.js';
 export * from './vectorizer.js';
 
 import {
-  WeaviateAsyncReplicationConfig,
-  WeaviateDropPropertyIndexName,
-  WeaviateTokenization,
-} from '../../openapi/types.js';
-import {
   InvertedIndexConfigUpdate,
   MultiTenancyConfigUpdate,
   ObjectTTLConfigUpdate,
   ReplicationConfigUpdate,
   VectorConfigUpdate,
 } from '../../configure/types/index.js';
+import {
+  WeaviateAsyncReplicationConfig,
+  WeaviateDropPropertyIndexName,
+  WeaviateTokenization,
+} from '../../openapi/types.js';
 import { GenerativeConfig, GenerativeSearch } from './generative.js';
 import { Reranker, RerankerConfig } from './reranker.js';
 import { VectorIndexType } from './vectorIndex.js';

@@ -431,8 +431,7 @@ export class Deserialize {
    */
   private static vectorsFromBytes(bytes: Uint8Array): Promise<MultiVectorType> {
     const dimOffset = UINT16LEN;
-    const dimBytes = Buffer.from(bytes.slice(0, dimOffset));
-    const vectorDimension = dimBytes.readUInt16LE(0);
+    const vectorDimension = Deserialize.dataView(bytes).getUint16(0, true);
 
     const vecByteLength = UINT32LEN * vectorDimension;
     const howMany = (bytes.byteLength - dimOffset) / vecByteLength;
@@ -450,22 +449,28 @@ export class Deserialize {
     );
   }
 
+  /**
+   * A little-endian reader over `bytes`, without copying and without requiring the view to be aligned.
+   *
+   * This must not depend on Node's `Buffer`, since this module is shared with the browser-safe `@weaviate/web` package.
+   */
+  private static dataView(bytes: Uint8Array): DataView {
+    return new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  }
+
   private static vectorFromBytes(bytes: Uint8Array): SingleVectorType {
-    const buffer = Buffer.from(bytes);
-    const view = new Float32Array(buffer.buffer, buffer.byteOffset, buffer.byteLength / 4); // vector is float32 in weaviate
-    return Array.from(view);
+    const view = Deserialize.dataView(bytes);
+    return Array.from({ length: bytes.byteLength / 4 }, (_, i) => view.getFloat32(i * 4, true)); // vector is float32 in weaviate
   }
 
   private static intsFromBytes(bytes: Uint8Array) {
-    const buffer = Buffer.from(bytes);
-    const view = new BigInt64Array(buffer.buffer, buffer.byteOffset, buffer.byteLength / 8); // ints are float64 in weaviate
-    return Array.from(view).map(Number);
+    const view = Deserialize.dataView(bytes);
+    return Array.from({ length: bytes.byteLength / 8 }, (_, i) => Number(view.getBigInt64(i * 8, true))); // ints are int64 in weaviate
   }
 
   private static numbersFromBytes(bytes: Uint8Array) {
-    const buffer = Buffer.from(bytes);
-    const view = new Float64Array(buffer.buffer, buffer.byteOffset, buffer.byteLength / 8); // numbers are float64 in weaviate
-    return Array.from(view);
+    const view = Deserialize.dataView(bytes);
+    return Array.from({ length: bytes.byteLength / 8 }, (_, i) => view.getFloat64(i * 8, true)); // numbers are float64 in weaviate
   }
 
   private static async vectors(metadata?: MetadataResult): Promise<Vectors> {

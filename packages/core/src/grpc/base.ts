@@ -1,8 +1,8 @@
 import { ConsistencyLevel } from '../replication.js';
 
 import { isAbortError } from 'abort-controller-x';
-import { Metadata, ServerError, Status } from 'nice-grpc-common';
 import { RetryOptions } from 'nice-grpc-client-middleware-retry';
+import { Metadata, ServerError, Status } from 'nice-grpc-common';
 import { WeaviateInsufficientPermissionsError, WeaviateRequestTimeoutError } from '../errors.js';
 import { ConsistencyLevel as ConsistencyLevelGRPC } from '../proto/v1/base.js';
 import { WeaviateClient } from '../proto/v1/weaviate.js';

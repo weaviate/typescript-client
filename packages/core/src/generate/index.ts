@@ -485,7 +485,7 @@ class GenerateManager<T, V> implements Generate<T, V> {
           case 'video':
             send = (media, generative) =>
               search.withNearVideo({
-                ...Serialize.search.nearVideo({ video: media }),
+                ...Serialize.search.nearVideo({ video: media }, opts),
                 generative,
               });
             break;

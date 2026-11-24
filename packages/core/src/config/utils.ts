@@ -196,7 +196,10 @@ export const parseVectorIndex = (module: ModuleConfig<VectorIndexType, VectorInd
   }
 
   let multivector: any;
-  if (VectorIndexGuards.isHNSW(module.config) && module.config.multiVector !== undefined) {
+  if (
+    (VectorIndexGuards.isHNSW(module.config) || VectorIndexGuards.isHFresh(module.config)) &&
+    module.config.multiVector !== undefined
+  ) {
     multivector = {
       aggregation: module.config.multiVector.aggregation,
       enabled: true,
@@ -405,6 +408,10 @@ class ConfigMapping {
     if (!populated(v)) throw new WeaviateDeserializationError('Schema was not returned by Weaviate');
     if (populated(v.vectorConfig)) {
       return ConfigMapping.namedVectors(v.vectorConfig);
+    }
+    // A class with no vector fields at all is vectorless (Weaviate 1.40+, or every named vector dropped).
+    if (!populated(v.vectorizer) && !populated(v.vectorIndexType) && !populated(v.vectorIndexConfig)) {
+      return {};
     }
     if (!populated(v.vectorizer))
       throw new WeaviateDeserializationError('Vectorizer was not returned by Weaviate');
@@ -693,6 +700,9 @@ class ConfigMapping {
       maxPostingSizeKb: v.maxPostingSizeKB,
       searchProbe: v.searchProbe,
       replicas: v.replicas,
+      multiVector: exists<MultiVectorConfig>(v.multivector)
+        ? ConfigMapping.multiVector(v.multivector)
+        : undefined,
       quantizer: ConfigMapping.rq(v.rq),
       type: 'hfresh',
     };

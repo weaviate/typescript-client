@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import weaviate, { WeaviateClient, Collection } from '@weaviate/web';
+import weaviate, { Collection, WeaviateClient } from '@weaviate/web';
+import { afterAll, beforeAll, expect, it } from 'vitest';
 import { requireAtLeast } from '../version';
 
 requireAtLeast(1, 39, 0).describe('search', () => {

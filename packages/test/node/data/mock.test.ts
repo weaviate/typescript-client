@@ -1,7 +1,6 @@
 import { WeaviateBatchStreamError } from '@weaviate/core/errors.js';
-import weaviate from '@weaviate/node';
 import { ServerError, Status } from 'nice-grpc-common';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, it } from 'vitest';
 import { listen, makeGrpcApp, makeRestApp } from '../mocks.js';
 
 describe('Mock testing of batch streaming when the server errors', () => {
