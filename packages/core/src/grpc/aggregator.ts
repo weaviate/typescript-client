@@ -1,7 +1,7 @@
 import { ConsistencyLevel } from '../replication.js';
 
-import { Metadata } from 'nice-grpc-common';
 import { RetryOptions } from 'nice-grpc-client-middleware-retry';
+import { Metadata } from 'nice-grpc-common';
 import {
   AggregateReply,
   AggregateRequest,
@@ -54,7 +54,7 @@ export type AggregateNearImageArgs = BaseAggregateArgs & {
 };
 
 export type AggregateNearIMUArgs = BaseAggregateArgs & {
-  nearIMU: NearIMUSearch;
+  nearImu: NearIMUSearch;
 };
 
 export type AggregateNearObjectArgs = BaseAggregateArgs & {
@@ -98,9 +98,10 @@ export default class Aggregator extends Base implements Aggregate {
     metadata: Metadata,
     timeout: number,
     consistencyLevel?: ConsistencyLevel,
-    tenant?: string
+    tenant?: string,
+    abortSignal?: AbortSignal
   ): Aggregate {
-    return new Aggregator(connection, collection, metadata, timeout, consistencyLevel, tenant);
+    return new Aggregator(connection, collection, metadata, timeout, consistencyLevel, tenant, abortSignal);
   }
 
   public withFetch = (args: AggregateFetchArgs) => this.call(AggregateRequest.fromPartial(args));

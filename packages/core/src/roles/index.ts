@@ -202,13 +202,19 @@ export const permissions = {
    * For all collections, provide the `collection` argument as `'*'`.
    *
    * @param {string | string[]} args.collection The collection or collections to create permissions for.
+   * @param {boolean} [args.read] Whether to allow listing backups and reading their status. Requires Weaviate v1.39.10 or later. Defaults to `false`.
    * @param {boolean} [args.manage] Whether to allow managing backups. Defaults to `false`.
    * @returns {BackupsPermission[]} The permissions for the specified collections.
    */
-  backup: (args: { collection: string | string[]; manage?: boolean }): BackupsPermission[] => {
+  backup: (args: {
+    collection: string | string[];
+    read?: boolean;
+    manage?: boolean;
+  }): BackupsPermission[] => {
     const collections = Array.isArray(args.collection) ? args.collection : [args.collection];
     return collections.flatMap((collection) => {
       const out: BackupsPermission = { collection, actions: [] };
+      if (args.read) out.actions.push('read_backups');
       if (args.manage) out.actions.push('manage_backups');
       return out;
     });

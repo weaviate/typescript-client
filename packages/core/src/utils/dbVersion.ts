@@ -163,6 +163,13 @@ export class DbVersionSupport {
       message: this.errorMessage('Tokenize endpoint stopwords / stopwordPresets', version.show(), '1.37.2'),
     }));
 
+  supportsIncrementalBackups = () =>
+    this.dbVersionProvider.getVersion().then((version) => ({
+      version,
+      supports: version.isAtLeast(1, 37, 0),
+      message: this.errorMessage('Incremental backups', version.show(), '1.37.0'),
+    }));
+
   supportsServerSideDefaultVectorIndexType = () =>
     this.dbVersionProvider.getVersion().then((version) => ({
       version,

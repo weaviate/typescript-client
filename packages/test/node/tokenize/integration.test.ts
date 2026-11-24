@@ -1,7 +1,7 @@
 import { WeaviateInvalidInputError } from '@weaviate/core/errors.js';
 import { TokenizeResult } from '@weaviate/core/tokenize/types.js';
 import weaviate, { WeaviateClient } from '@weaviate/node';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, expect, it } from 'vitest';
 import { requireAtLeast } from '../../version';
 
 requireAtLeast(1, 37, 0).describe('client tokenize integration test', () => {

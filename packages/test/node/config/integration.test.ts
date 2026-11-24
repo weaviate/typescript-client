@@ -111,6 +111,21 @@ describe('Testing of the collection.config namespace', () => {
     expect(config.vectorizers.default.vectorizer.name).toEqual('none');
   });
 
+  requireAtLeast(1, 40, 0).it('should be able to get the config of a vectorless collection', async () => {
+    const collectionName = 'TestCollectionConfigGetVectorless';
+    await client.collections.create({ name: collectionName });
+    try {
+      const config = await client.collections.get(collectionName).config.get();
+      expect(config.name).toEqual(collectionName);
+      expect(config.vectorizers).toEqual({});
+
+      const all = await client.collections.listAll();
+      expect(all.map((c) => c.name)).toContain(collectionName);
+    } finally {
+      await client.collections.delete(collectionName);
+    }
+  });
+
   it('should be able to get a collection with named vectors', async () => {
     const collectionName = 'TestCollectionConfigGetVectors';
     afters.push(() => client.collections.delete(collectionName));
@@ -934,6 +949,32 @@ describe('Testing of the collection.config namespace', () => {
       expect(indexConfig.multiVector).toBeDefined();
       expect(indexConfig.multiVector?.aggregation).toEqual('maxSim');
       expect(indexConfig.multiVector?.encoding).toBeDefined();
+    }
+  );
+
+  requireAtLeast(1, 40, 6).it(
+    'should be able to create and get an HFresh multi-vector collection with encoding',
+    async () => {
+      const collectionName = 'TestCollectionConfigCreateHFreshWithMuveraEncoding';
+      afters.push(() => client.collections.delete(collectionName));
+      const collection = await client.collections.create({
+        name: collectionName,
+        vectorizers: weaviate.configure.vectorizer.none({
+          vectorIndexConfig: weaviate.configure.vectorIndex.hfresh({
+            multiVector: weaviate.configure.vectorIndex.multiVector.multiVector({
+              encoding: weaviate.configure.vectorIndex.multiVector.encoding.muvera(),
+            }),
+          }),
+        }),
+      });
+      const config = await collection.config.get();
+      expect(config.name).toEqual(collectionName);
+      expect(config.vectorizers.default.indexType).toEqual('hfresh');
+
+      const indexConfig = config.vectorizers.default.indexConfig as VectorIndexConfigHFresh;
+      expect(indexConfig.multiVector).toBeDefined();
+      expect(indexConfig.multiVector?.encoding?.type).toEqual('muvera');
+      expect(indexConfig.quantizer?.type).toEqual('rq');
     }
   );
 

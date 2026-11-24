@@ -56,9 +56,9 @@ import {
   AggregateBaseOptions,
   AggregateHybridOptions,
   AggregateNearOptions,
-  GenerativeConfigRuntime,
   DiversityConfig,
   DiversityGuards,
+  GenerativeConfigRuntime,
   GroupByAggregate,
   GroupedTask,
   MultiTargetVectorJoin,
@@ -167,14 +167,19 @@ import {
   BatchObject,
   BatchObjects,
   BatchReference,
+  BoostOptions,
+  Curve,
   DataObject,
   GenerateOptions,
   GeoCoordinate,
   GroupByOptions,
   MetadataKeys,
+  Modifier,
   NestedProperties,
   NonReferenceInputs,
+  NumericDecay,
   PhoneNumberInput,
+  PropertyValue,
   QueryMetadata,
   QueryNested,
   QueryProperty,
@@ -182,13 +187,8 @@ import {
   ReferenceInput,
   RerankOptions,
   SortBy,
-  WeaviateField,
-  BoostOptions,
-  Curve,
-  Modifier,
-  NumericDecay,
-  PropertyValue,
   TimeDecay,
+  WeaviateField,
 } from '../types/index.js';
 import { ToBase64FromMedia } from '../utils/base64.js';
 import { yieldToEventLoop } from '../utils/yield.js';
@@ -787,7 +787,7 @@ class Search {
   ): SearchNearIMUArgs => {
     return {
       ...Search.common(opts),
-      nearIMU: Serialize.nearIMUSearch({ ...args, ...opts }),
+      nearImu: Serialize.nearIMUSearch({ ...args, ...opts }),
       groupBy: Search.isGroupBy<GroupByNearOptions<T, V, I>>(opts) ? Search.groupBy(opts.groupBy) : undefined,
     };
   };
@@ -1634,7 +1634,7 @@ export class Serialize {
       case 'log1p':
         return Boost_PropertyValueModifier.PROPERTY_VALUE_MODIFIER_LOG1P;
       case 'sqrt':
-        return Boost_PropertyValueModifier.PROPERTY_VALUE_MODIFIER_LOG1P;
+        return Boost_PropertyValueModifier.PROPERTY_VALUE_MODIFIER_SQRT;
       default:
         return Boost_PropertyValueModifier.PROPERTY_VALUE_MODIFIER_UNSPECIFIED;
     }
