@@ -176,7 +176,7 @@ export class DbVersionSupport {
       supports: version.isAtLeast(1, 37, 5),
       message: undefined,
     }));
-  
+
   supportsUserExpiration = () =>
     this.dbVersionProvider.getVersion().then((version) => ({
       version,
