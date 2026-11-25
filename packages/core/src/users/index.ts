@@ -1,14 +1,24 @@
 import { ConnectionREST } from '../connection/index.js';
-import { WeaviateUnexpectedStatusCodeError } from '../errors.js';
+import { WeaviateUnexpectedStatusCodeError, WeaviateUnsupportedFeatureError } from '../errors.js';
 import {
   WeaviateUserTypeInternal as UserTypeInternal,
   WeaviateDBUser,
+  WeaviateDBUserCreateRequest,
+  WeaviateDBUserExpirationRequest,
   Role as WeaviateRole,
   WeaviateUser,
 } from '../openapi/types.js';
 import { Role } from '../roles/types.js';
 import { Map } from '../roles/util.js';
-import { DeactivateOptions, GetAssignedRolesOptions, GetUserOptions, User, UserDB } from './types.js';
+import { DbVersionSupport } from '../utils/dbVersion.js';
+import {
+  CreateUserOptions,
+  DeactivateOptions,
+  GetAssignedRolesOptions,
+  GetUserOptions,
+  User,
+  UserDB,
+} from './types.js';
 
 /** Optional arguments to /assign and /revoke endpoints. */
 type AssignRevokeOptions = { userType?: UserTypeInternal };
@@ -75,9 +85,20 @@ export interface DBUsers extends UsersBase {
   /** Create a new 'db_user' user.
    *
    * @param {string} userId The ID of the user to create. Must consist of valid URL characters only.
+   * @param {CreateUserOptions} [opts] Optional `expiresAt`, which requires Weaviate 1.41.0+ and a license key on the server.
    * @returns {Promise<string>} API key for the newly created user.
    */
-  create: (userId: string) => Promise<string>;
+  create: (userId: string, opts?: CreateUserOptions) => Promise<string>;
+
+  /**
+   * Set or clear the time at which a 'db_user' user's API key stops authenticating.
+   * Requires Weaviate 1.41.0+ and a Weaviate license key on the server, which otherwise answers 403.
+   *
+   * @param {string} userId The ID of the user.
+   * @param {Date | null} expiresAt Future time at which the key stops authenticating, or `null` for a key that never expires.
+   * @returns {Promise<void>} A promise that resolves when the expiration is updated.
+   */
+  updateUserExpiration: (userId: string, expiresAt: Date | null) => Promise<void>;
 
   /**
    * Delete a 'db_user' user. It is not possible to delete 'db_env_user' users programmatically.
@@ -89,6 +110,7 @@ export interface DBUsers extends UsersBase {
 
   /**
    * Rotate the API key of a 'db_user' user. The old API key becomes invalid.
+   * The user's expiration carries over to the new key.
    * API keys of 'db_env_user' users are defined in the server's environment
    * and cannot be modified programmatically.
    *
@@ -115,6 +137,7 @@ export interface DBUsers extends UsersBase {
 
   /**
    * Retrieve information about the 'db_user' / 'db_env_user' user.
+   * `active` stays `true` after the user expires, so compare `expiresAt` with the current time.
    *
    * @param {string} userId The ID of the user to get.
    * @returns {Promise<UserDB>} ID, status, and assigned roles of a 'db_*' user.
@@ -123,6 +146,7 @@ export interface DBUsers extends UsersBase {
 
   /**
    * List all 'db_user' / 'db_env_user' users.
+   * `active` stays `true` after a user expires, so compare `expiresAt` with the current time.
    *
    * @returns {Promise<UserDB[]>} ID, status, and assigned roles for each 'db_*' user.
    */
@@ -140,7 +164,7 @@ export interface OIDCUsers extends UsersBase {
   getAssignedRoles: (userId: string, opts?: GetAssignedRolesOptions) => Promise<Record<string, Role>>;
 }
 
-const users = (connection: ConnectionREST): Users => {
+const users = (connection: ConnectionREST, dbVersionSupport: DbVersionSupport): Users => {
   const base = baseUsers(connection);
 
   return {
@@ -149,13 +173,18 @@ const users = (connection: ConnectionREST): Users => {
       connection.get<WeaviateRole[]>(`/authz/users/${encodeURIComponent(userId)}/roles`).then(Map.roles),
     assignRoles: (roleNames: string | string[], userId: string) => base.assignRoles(roleNames, userId),
     revokeRoles: (roleNames: string | string[], userId: string) => base.revokeRoles(roleNames, userId),
-    db: db(connection),
+    db: db(connection, dbVersionSupport),
     oidc: oidc(connection),
   };
 };
 
-const db = (connection: ConnectionREST): DBUsers => {
+const db = (connection: ConnectionREST, dbVersionSupport: DbVersionSupport): DBUsers => {
   const ns = namespacedUsers(connection);
+
+  const requireUserExpiration = () =>
+    dbVersionSupport.supportsUserExpiration().then(({ supports, message }) => {
+      if (!supports) throw new WeaviateUnsupportedFeatureError(message);
+    });
 
   /** expectCode returns false if the contained WeaviateUnexpectedStatusCodeError
    * has an known error code and rethrows the error otherwise. */
@@ -177,10 +206,21 @@ const db = (connection: ConnectionREST): DBUsers => {
     revokeRoles: (roleNames: string | string[], userId: string) =>
       ns.revokeRoles(roleNames, userId, { userType: 'db' }),
 
-    create: (userId: string) =>
-      connection
-        .postReturn<null, APIKeyResponse>(`/users/db/${encodeURIComponent(userId)}`, null)
+    create: (userId: string, opts?: CreateUserOptions) =>
+      (opts?.expiresAt === undefined ? Promise.resolve() : requireUserExpiration())
+        .then(() =>
+          connection.postReturn<WeaviateDBUserCreateRequest | null, APIKeyResponse>(
+            `/users/db/${encodeURIComponent(userId)}`,
+            opts?.expiresAt === undefined ? null : { expiresAt: opts.expiresAt.toISOString() }
+          )
+        )
         .then((resp) => resp.apikey),
+    updateUserExpiration: (userId: string, expiresAt: Date | null) =>
+      requireUserExpiration().then(() => {
+        const body: WeaviateDBUserExpirationRequest =
+          expiresAt === null ? { neverExpires: true } : { expiresAt: expiresAt.toISOString() };
+        return connection.put(`/users/db/${encodeURIComponent(userId)}/expiration`, body, false);
+      }),
     delete: (userId: string) =>
       connection
         .delete(`/users/db/${encodeURIComponent(userId)}`, null)

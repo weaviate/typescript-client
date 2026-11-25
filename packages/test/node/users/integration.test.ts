@@ -1,3 +1,4 @@
+import { WeaviateUnexpectedStatusCodeError, WeaviateUnsupportedFeatureError } from '@weaviate/core/errors';
 import { WeaviateUserTypeDB } from '@weaviate/core/openapi/types';
 import { GetUserOptions, UserDB } from '@weaviate/core/users/types';
 import weaviate, { ApiKey, WeaviateClient } from '@weaviate/node';
@@ -222,6 +223,83 @@ requireAtLeast(1, 29, 0).describe('Integration testing of the users namespace', 
           )
         );
       });
+    });
+
+    requireAtLeast(1, 41, 0).describe('user expiration', () => {
+      // The server answers 403 without a license key, so these skip where it is unset, as on forks.
+      const licensed = it.skipIf(!process.env.WEAVIATE_LICENSE_KEY);
+      const inDays = (days: number) => new Date(Date.now() + days * 24 * 60 * 60 * 1000);
+
+      licensed('should set, update and clear the expiration of a user', async () => {
+        const admin = await makeClient('admin-key');
+        // admin-user is a static user, whose key never expires.
+        await expect(admin.users.getMyUser()).resolves.toHaveProperty('expiresAt', undefined);
+
+        const inOneDay = inDays(1);
+        const key = await admin.users.db.create('expiring-eve', { expiresAt: inOneDay });
+        await expect(admin.users.db.byName('expiring-eve')).resolves.toHaveProperty('expiresAt', inOneDay);
+        const listed = await admin.users.db.listAll().then((all) => all.find((u) => u.id === 'expiring-eve'));
+        expect(listed?.expiresAt).toEqual(inOneDay);
+        await expect(makeClient(key).then((c) => c.users.getMyUser())).resolves.toHaveProperty(
+          'expiresAt',
+          inOneDay
+        );
+
+        const inTwoDays = inDays(2);
+        await admin.users.db.updateUserExpiration('expiring-eve', inTwoDays);
+        await expect(admin.users.db.byName('expiring-eve')).resolves.toHaveProperty('expiresAt', inTwoDays);
+
+        await admin.users.db.updateUserExpiration('expiring-eve', null);
+        await expect(admin.users.db.byName('expiring-eve')).resolves.toHaveProperty('expiresAt', undefined);
+        const cleared = await admin.users.db
+          .listAll()
+          .then((all) => all.find((u) => u.id === 'expiring-eve'));
+        expect(cleared?.expiresAt).toBeUndefined();
+      });
+
+      licensed('should set the expiration of a never-expiring user and keep it on key rotation', async () => {
+        const admin = await makeClient('admin-key');
+        const key = await admin.users.db.create('never-ned');
+        await expect(admin.users.db.byName('never-ned')).resolves.toHaveProperty('expiresAt', undefined);
+        await expect(makeClient(key).then((c) => c.users.getMyUser())).resolves.toHaveProperty(
+          'expiresAt',
+          undefined
+        );
+
+        const inOneDay = inDays(1);
+        await admin.users.db.updateUserExpiration('never-ned', inOneDay);
+        await expect(admin.users.db.byName('never-ned')).resolves.toHaveProperty('expiresAt', inOneDay);
+        await expect(makeClient(key).then((c) => c.users.getMyUser())).resolves.toHaveProperty(
+          'expiresAt',
+          inOneDay
+        );
+
+        const newKey = await admin.users.db.rotateKey('never-ned');
+        await expect(makeClient(newKey).then((c) => c.users.getMyUser())).resolves.toHaveProperty(
+          'expiresAt',
+          inOneDay
+        );
+      });
+
+      licensed('should fail to update the expiration of a missing user', async () => {
+        const admin = await makeClient('admin-key');
+        const update = admin.users.db.updateUserExpiration('I-do-not-exist', inDays(1));
+        await expect(update).rejects.toThrow(WeaviateUnexpectedStatusCodeError);
+        await expect(update).rejects.toHaveProperty('code', 404);
+      });
+    });
+
+    it('should reject user expiration on Weaviate < 1.41', async (ctx) => {
+      const admin = await makeClient('admin-key');
+      if (await admin.getWeaviateVersion().then((ver) => !ver.isLowerThan(1, 41, 0))) ctx.skip();
+
+      const inOneDay = new Date(Date.now() + 24 * 60 * 60 * 1000);
+      await expect(admin.users.db.create('expiry-unsupported', { expiresAt: inOneDay })).rejects.toThrow(
+        WeaviateUnsupportedFeatureError
+      );
+      await expect(admin.users.db.updateUserExpiration('expiry-unsupported', inOneDay)).rejects.toThrow(
+        WeaviateUnsupportedFeatureError
+      );
     });
 
     afterAll(() => makeClient('admin-key').then(deleteAllUsers));
