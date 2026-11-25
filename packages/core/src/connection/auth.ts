@@ -110,10 +110,17 @@ export class OidcAuthenticator {
         // check every 30s if the token will expire in <= 1m,
         // if so, refresh
         if (this.expiresAt - Date.now() <= 60_000) {
-          const resp = await authenticator.refresh();
-          this.accessToken = resp.accessToken;
-          this.expiresAt = resp.expiresAt;
-          this.refreshToken = resp.refreshToken;
+          try {
+            const resp = await authenticator.refresh();
+            this.accessToken = resp.accessToken;
+            this.expiresAt = resp.expiresAt;
+            this.refreshToken = resp.refreshToken;
+          } catch (err) {
+            // This runs detached from any caller, so a rejection here would be unhandled and, on Node >= 15,
+            // terminate the process. Keep the current token and retry on the next tick; if it has expired by
+            // the time a request is made, `login()` re-authenticates and surfaces the error to that caller.
+            console.warn(`silent OIDC token refresh failed, will retry: ${err}`);
+          }
         }
       }, 30_000);
       this.refreshRunning = true;
