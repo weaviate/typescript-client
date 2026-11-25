@@ -76,7 +76,7 @@ export class OidcAuthenticator {
         authenticator = new UserPasswordAuthenticator(this.http, this.creds, config);
         break;
       case AuthAccessTokenCredentials:
-        authenticator = new AccessTokenAuthenticator(this.http, this.creds, config);
+        authenticator = new AccessTokenAuthenticator(this.http, this.creds, config, this.refreshToken);
         break;
       case AuthClientCredentials:
         authenticator = new ClientCredentialsAuthenticator(this.http, this.creds, config);
@@ -88,7 +88,7 @@ export class OidcAuthenticator {
     return authenticator.refresh().then((resp) => {
       this.accessToken = resp.accessToken;
       this.expiresAt = resp.expiresAt;
-      this.refreshToken = resp.refreshToken;
+      this.refreshToken = resp.refreshToken ?? this.refreshToken;
       this.startTokenRefresh(authenticator);
     });
   };
@@ -114,7 +114,7 @@ export class OidcAuthenticator {
             const resp = await authenticator.refresh();
             this.accessToken = resp.accessToken;
             this.expiresAt = resp.expiresAt;
-            this.refreshToken = resp.refreshToken;
+            this.refreshToken = resp.refreshToken ?? this.refreshToken;
           } catch (err) {
             // This runs detached from any caller, so a rejection here would be unhandled and, on Node >= 15,
             // terminate the process. Keep the current token and retry on the next tick; if it has expired by
@@ -254,14 +254,18 @@ class AccessTokenAuthenticator implements OidcAuthFlow {
   private creds: any;
   private http: any;
   private openidConfig: any;
-  constructor(http: any, creds: any, config: any) {
+  // The most recent refresh token. Providers that rotate refresh tokens invalidate the one that was just
+  // used, so every refresh must send the latest one rather than the token the user originally supplied.
+  private refreshToken?: string;
+  constructor(http: any, creds: any, config: any, refreshToken?: string) {
     this.http = http;
     this.creds = creds;
     this.openidConfig = config;
+    this.refreshToken = refreshToken || creds.refreshToken;
   }
 
   refresh = () => {
-    if (this.creds.refreshToken === undefined || this.creds.refreshToken == '') {
+    if (this.refreshToken === undefined || this.refreshToken == '') {
       console.warn('AuthAccessTokenCredentials not provided with refreshToken, cannot refresh');
       return Promise.resolve({
         accessToken: this.creds.accessToken,
@@ -271,10 +275,12 @@ class AccessTokenAuthenticator implements OidcAuthFlow {
     this.validateOpenidConfig();
     return this.requestAccessToken()
       .then((tokenResp: RequestAccessTokenResponse) => {
+        // Per RFC 6749 §6 the server may omit a new refresh token, in which case the old one stays valid.
+        this.refreshToken = tokenResp.refresh_token ?? this.refreshToken;
         return {
           accessToken: tokenResp.access_token,
           expiresAt: calcExpirationEpoch(tokenResp.expires_in),
-          refreshToken: tokenResp.refresh_token,
+          refreshToken: this.refreshToken,
         };
       })
       .catch((err: any) => {
@@ -289,7 +295,7 @@ class AccessTokenAuthenticator implements OidcAuthFlow {
     const params = new URLSearchParams({
       grant_type: 'refresh_token',
       client_id: this.openidConfig.clientId,
-      refresh_token: this.creds.refreshToken,
+      refresh_token: this.refreshToken!,
     });
     const contentType = 'application/x-www-form-urlencoded;charset=UTF-8';
     return this.http.externalPost(url, params, contentType);
