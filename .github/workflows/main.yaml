@@ -15,6 +15,7 @@ env:
   WEAVIATE_138: 1.38.21
   WEAVIATE_139: 1.39.12
   WEAVIATE_140: 1.40.1
+  WEAVIATE_141: 1.41.0
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -71,6 +72,7 @@ jobs:
             { node: "24.x", weaviate: $WEAVIATE_138 },
             { node: "24.x", weaviate: $WEAVIATE_139 },
             { node: "24.x", weaviate: $WEAVIATE_140 },
+            { node: "24.x", weaviate: $WEAVIATE_141 },
           ]
     steps:
     - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
@@ -88,10 +90,14 @@ jobs:
         username: ${{secrets.DOCKER_USERNAME}}
         password: ${{secrets.DOCKER_PASSWORD}}
     - name: "Install dependencies"
+      env:
+        WEAVIATE_LICENSE_KEY: ${{ secrets.WEAVIATE_LICENSE_KEY }}
       run: |
         npm run ci:test
         ci/run_dependencies.sh ${{ matrix.versions.weaviate }}
     - name: "Run tests without authentication tests"
+      env:
+        WEAVIATE_LICENSE_KEY: ${{ secrets.WEAVIATE_LICENSE_KEY }}
       run: WEAVIATE_VERSION=${{ matrix.versions.weaviate }} npm run test
     - name: "Stop Weaviate"
       run: ci/stop_dependencies.sh ${{ matrix.versions.weaviate }}

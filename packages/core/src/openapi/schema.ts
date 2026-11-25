@@ -74,6 +74,22 @@ export interface paths {
     /** Apply a replication scaling plan that specifies nodes to add or remove per shard for a given collection. */
     post: operations['applyReplicationScalePlan'];
   };
+  '/replication/rebalance': {
+    /** Returns the cluster's rebalance plan, including the node measurements and baseline balance taken by its planning run. */
+    get: operations['getRebalancePlan'];
+    /** Creates the cluster's rebalance plan in the `PLANNING` state and starts an asynchronous planning run. The run measures the listed source and target nodes and decides whether their shard replicas need rebalancing. GET /replication/rebalance reports the plan and its outcome. A new plan replaces a finished one; an unfinished plan blocks it. */
+    post: operations['createRebalancePlan'];
+    /** Removes the cluster's rebalance plan. Only a `PROPOSED` plan or a plan in an end state can be deleted; stop a `PLANNING` plan first. Succeeds when no plan exists. */
+    delete: operations['deleteRebalancePlan'];
+  };
+  '/replication/rebalance/stop': {
+    /** Stops the cluster's rebalance plan while it is `PLANNING`. The plan ends `STOPPED` and the result of its planning run is discarded. */
+    post: operations['stopRebalancePlan'];
+  };
+  '/replication/rebalance/approve': {
+    /** Approves a `PROPOSED` rebalance plan for execution. Approval is not implemented yet and always answers 501. */
+    post: operations['approveRebalancePlan'];
+  };
   '/users/own-info': {
     /** Get information about the currently authenticated user, including username and assigned roles. */
     get: operations['getOwnInfo'];
@@ -81,6 +97,14 @@ export interface paths {
   '/users/db': {
     /** Retrieves a list of all database (`db` user type) users with their roles and status information. */
     get: operations['listAllUsers'];
+  };
+  '/experimental/export-db-users': {
+    /** Experimental: this endpoint may change or be removed without notice. Export every database (`db` user type) user's API-key credential for migration to another cluster. Strong-key users carry their argon2id key hash; imported/weak and revoked users are reported with a null hash and a status naming why they cannot be migrated. Root users only. */
+    post: operations['exportUsers'];
+  };
+  '/experimental/import-db-users': {
+    /** Experimental: this endpoint may change or be removed without notice. Recreate exported database (`db` user type) user credentials on this cluster under a target namespace. Each user is created with its original key hash so the source key keeps working. Returns a per-user result. Only strong-key records are importable. Root users only. */
+    post: operations['importUsers'];
   };
   '/users/db/{user_id}': {
     /** Retrieve detailed information about a specific database user (`db` user type), including their roles, status, and type. */
@@ -101,6 +125,10 @@ export interface paths {
   '/users/db/{user_id}/deactivate': {
     /** Deactivate a database user (`db` user type). */
     post: operations['deactivateUser'];
+  };
+  '/users/db/{user_id}/expiration': {
+    /** Set or clear the time at which a database user's (`db` user type) API key stops authenticating. The body sets exactly one of `expiresAt`, which must be in the future, and `neverExpires`, which must be true and clears the expiry. Any other body answers 422, and so do the caller's own user, root users and static users. A node without a Weaviate license key answers 403, so an expired user can then only be deleted and re-created. */
+    put: operations['setUserExpiration'];
   };
   '/authz/roles': {
     /** Get all roles and their assigned permissions. */
@@ -171,7 +199,7 @@ export interface paths {
     get: operations['getGroups'];
   };
   '/objects': {
-    /** Retrieves a list of data objects. By default, objects are returned in reverse order of creation. Requires a collection name (`class`) parameter to specify which collection's objects to list, otherwise, returns an empty list. */
+    /** Retrieves a list of data objects from the collection named in the `class` parameter. By default, objects are returned in reverse order of creation. <br/><br/>**Note**: Calling this endpoint without `class` is deprecated and will be removed in a future version. Without `class`, it lists objects across all collections. Some cluster configurations do not support a request without `class`. */
     get: operations['objects.list'];
     /** Creates a new data object. The object's metadata and schema values are validated before creation.<br/><br/>**Note (batch import)**:<br/>If you plan on importing a large number of objects, using the `/batch/objects` endpoint is significantly more efficient than sending multiple single requests.<br/><br/>**Note (idempotence)**:<br/>This operation (POST) fails if an object with the provided ID already exists. To update an existing object, use the PUT or PATCH methods. */
     post: operations['objects.create'];
@@ -265,16 +293,22 @@ export interface paths {
     post: operations['schema.objects.properties.add'];
   };
   '/schema/{className}/indexes': {
-    /** Returns per-property index state including active reindex progress. This powers the UI to show live migration status. */
+    /** Returns per-property index state including active reindex progress. This powers the UI to show live migration status. The response reflects the state of the node that answered, which may briefly omit the entry for a just-submitted migration or still report its pre-migration state. */
     get: operations['schema.objects.indexes.get'];
   };
-  '/schema/{className}/indexes/{propertyName}': {
-    /** Declaratively sets the desired index state for a property. The system computes the diff from the current state and triggers the appropriate reindex task. */
-    put: operations['schema.objects.indexes.update'];
-  };
   '/schema/{className}/properties/{propertyName}/index/{indexName}': {
-    /** Deletes an inverted index of a specific property within a collection (`className`). The index to delete is identified by `indexName` and must be one of `filterable`, `searchable`, or `rangeFilters`. */
+    /** Upserts the inverted index of a property, identified by `indexName`. The body describes the desired index configuration; the server diffs it against the current state and either creates the index, migrates its configuration, or does nothing. Index-mutating work is asynchronous: a `202` with a task ID is returned when a reindex task is submitted, and `200` with `{"status":"NO_OP"}` is returned when the desired configuration is already in place. `indexName` accepts `rangeable` as an alias for `rangeFilters`. */
+    put: operations['schema.objects.index.upsert'];
+    /** Deletes an inverted index of a specific property within a collection (`className`). The index to delete is identified by `indexName` and must be one of `filterable`, `searchable`, or `rangeFilters` (with `rangeable` accepted as an alias for `rangeFilters`). */
     delete: operations['schema.objects.properties.delete'];
+  };
+  '/schema/{className}/properties/{propertyName}/index/{indexName}/rebuild': {
+    /** Rebuilds the inverted index from the stored objects with its current configuration (repair / format refresh). No request body. Index-mutating work is asynchronous: a `202` with a task ID is returned. `indexName` accepts `rangeable` as an alias for `rangeFilters`. */
+    post: operations['schema.objects.index.rebuild'];
+  };
+  '/schema/{className}/properties/{propertyName}/index/{indexName}/cancel': {
+    /** Cancels the in-flight reindex task targeting this property's index. No request body. Idempotent: succeeds whether or not a task was in flight (a `202` with `{"status":"NO_OP"}` is returned when there is nothing to cancel). A task that is in flight but no longer cancellable is refused with `409`. `indexName` accepts `rangeable` as an alias for `rangeFilters`. */
+    post: operations['schema.objects.index.cancel'];
   };
   '/schema/{className}/properties/{propertyName}/tokenize': {
     /** Tokenizes the provided text using the tokenization method configured for the specified property. This endpoint automatically applies the property's tokenization setting and the collection's stopword configuration, making it useful for understanding exactly how text will be processed for a given property during indexing and querying. */
@@ -323,18 +357,26 @@ export interface paths {
     delete: operations['aliases.delete'];
   };
   '/namespaces': {
-    /** Retrieve the list of all namespaces the caller has permission to see. Callers without any applicable `manage_namespaces` permission receive an empty list (never 403). */
+    /** Retrieve the list of all namespaces the caller has permission to see. Callers without any applicable `manage_namespaces` permission receive an empty list rather than 403. */
     get: operations['listNamespaces'];
   };
   '/namespaces/{namespace_id}': {
     /** Retrieve details about a specific namespace by its name. */
     get: operations['getNamespace'];
-    /** Update a namespace's `home_node`. The new value applies to future placement decisions only (new collection create, new tenant create, tenant reactivation). Existing live shards are not moved. */
+    /** Update a namespace's `home_nodes`. The new list replaces the namespace's list and applies to future placement decisions only (new collection create, new tenant create, offloaded-tenant reactivation). Existing live shards are not moved. */
     put: operations['updateNamespace'];
     /** Create a new cluster-level namespace with the given name. Names must contain only lowercase letters, digits, and hyphens, must start and end with a letter or digit, must be 3-36 characters long, and must not be a reserved name. */
     post: operations['createNamespace'];
-    /** Mark a namespace for deletion. The endpoint is asynchronous: the namespace is flipped to the "deleting" state and its dynamic users are removed synchronously; classes and aliases are torn down by the leader on a periodic cleanup tick. Repeated calls while the namespace is still in the "deleting" state are idempotent and return 202. */
+    /** Mark a namespace for deletion. The endpoint is asynchronous: the namespace is flipped to the "deleting" state, which stops its dynamic users from authenticating; their rows, along with classes and aliases, are reclaimed by the leader on a periodic cleanup tick. Repeated calls while the namespace is still in the "deleting" state are idempotent and return 202. */
     delete: operations['deleteNamespace'];
+  };
+  '/namespaces/{namespace_id}/suspend': {
+    /** Move a namespace to the "suspended" state. Suspending stops the namespace's users from authenticating and blocks the creation of new classes, aliases, users, roles, and role assignments, but retains the namespace and everything it owns. Repeated calls against an already-suspended namespace are idempotent and return 202. Use the resume endpoint to return it to "active". */
+    post: operations['suspendNamespace'];
+  };
+  '/namespaces/{namespace_id}/resume': {
+    /** Return a suspended namespace to the "active" state, so its dynamic users authenticate again and its resources accept writes. Repeated calls against an already-active namespace are idempotent and return 202. */
+    post: operations['resumeNamespace'];
   };
   '/backups/{backend}': {
     /** List all created backups IDs, Status */
@@ -390,12 +432,34 @@ export interface paths {
     get: operations['classifications.get'];
   };
   '/mcp': {
-    /** Opens an SSE stream for receiving MCP server-sent events. */
-    get: operations['mcp.get'];
-    /** MCP Streamable HTTP endpoint. Handles JSON-RPC requests for tool discovery and invocation. */
+    /** MCP Streamable HTTP endpoint. Handles JSON-RPC requests for tool discovery and invocation. Every request is authenticated on its own; no Mcp-Session-Id is issued or required. */
     post: operations['mcp.post'];
-    /** Terminates an MCP session. */
+    /** Accepted so clients that end their session explicitly keep working. The server keeps no session state, so there is nothing to terminate. */
     delete: operations['mcp.delete'];
+  };
+  '/aggregate/{collection}': {
+    /** Aggregates over the objects of a collection. Phase 1 supports counts: the number of matching objects, either in total (flat `count` response) or per group of a `groupBy` property (`groups` response). A `where` filter limits the objects that are aggregated; an empty body returns the collection's total object count. */
+    post: operations['aggregate'];
+  };
+  '/search/{collection}/bm25': {
+    /** Performs a keyword (BM25F) search over the objects of a collection. Objects are scored against the query with the BM25F ranking function over the searchable text properties (all of them, or the `queryProperties` subset) and the best-scoring objects are returned, each as an envelope of its `id`, the selected `properties`, the selected `references` and, when requested, its retrieval `metadata`. */
+    post: operations['search.bm25'];
+  };
+  '/search/{collection}/hybrid': {
+    /** Performs a hybrid search over the objects of a collection: the query is scored with the BM25F ranking function over the searchable text properties (all of them, or the `queryProperties` subset) and, in parallel, vectorized server-side and searched against the vector index; the two rankings are fused (per `fusionType`, weighted by `alpha`) and the best objects are returned, each as an envelope of its `id`, the selected `properties`, the selected `references` and, when requested, its retrieval `metadata`. */
+    post: operations['search.hybrid'];
+  };
+  '/search/{collection}/near-object': {
+    /** Performs a similarity search over the objects of a collection, anchored at an existing object: the stored vector of the source object (referenced by `id`) is searched against the vector index and the closest objects are returned — the source object itself included — each as an envelope of its `id`, the selected `properties`, the selected `references` and, when requested, its retrieval `metadata`. No query is vectorized, so collections without a vectorizer module are fully searchable. */
+    post: operations['search.nearObject'];
+  };
+  '/search/{collection}/near-text': {
+    /** Performs a semantic (near-text) search over the objects of a collection. The query text is vectorized server-side by the collection's vectorizer module and the closest objects are returned, each as an envelope of its `id`, the selected `properties`, the selected `references` and, when requested, its retrieval `metadata`. */
+    post: operations['search.nearText'];
+  };
+  '/search/{collection}/near-vector': {
+    /** Performs a similarity search over the objects of a collection, anchored at a vector supplied by the caller: the query `vector` is searched against the vector index and the closest objects are returned, each as an envelope of its `id`, the selected `properties`, the selected `references` and, when requested, its retrieval `metadata`. No query is vectorized, so collections without a vectorizer module are fully searchable. The query vector must have the dimensionality of the vector space it is searched against, that is of the collection's (target) vector. */
+    post: operations['search.nearVector'];
   };
 }
 
@@ -416,6 +480,11 @@ export interface definitions {
    */
   UserTypeOutput: 'db_user' | 'db_env_user' | 'oidc';
   UserOwnInfo: {
+    /**
+     * Format: date-time
+     * @description Date and time in ISO 8601 format, in UTC, at which the caller's API key stops authenticating. Absent means the key never expires, the caller is not a DB user, or DB user management is disabled.
+     */
+    expiresAt?: string;
     /** @description The groups associated with the user. */
     groups?: string[];
     roles?: definitions['Role'][];
@@ -446,12 +515,74 @@ export interface definitions {
      * @description Date and time in ISO 8601 format: YYYY-MM-DDTHH:MM:SSZ.
      */
     lastUsedAt?: unknown;
+    /**
+     * Format: date-time
+     * @description Date and time in ISO 8601 format, in UTC, at which the user's API key stops authenticating. Absent means the key never expires. Expiry does not change `active`.
+     */
+    expiresAt?: string;
     /** @description The namespace this user is bound to. Only populated for callers with global-operator privileges; omitted otherwise. */
     namespace?: string;
   };
   UserApiKey: {
     /** @description The API key associated with the user. */
     apikey: string;
+  };
+  /** @description A single database user's exportable API-key credential. Carries the argon2id key hash for strong-key users; for users whose key cannot be migrated (imported/weak, revoked, or missing a hash) secureHash is null and status names the reason. */
+  DBUserCredential: {
+    /** @description The name (ID) of the user, without any namespace prefix. */
+    userId: string;
+    /** @description The random identifier embedded in the user's API key, used to resolve the key hash. Exactly 16 characters for an importable record; empty when the export reports a user whose key is not carried. */
+    userIdentifier?: string;
+    /** @description The argon2id PHC hash of the user's API key. Null when the key cannot be migrated (see status). */
+    secureHash?: unknown;
+    /** @description First 3 letters of the associated API key. */
+    apiKeyFirstLetters?: string;
+    /** @description Whether the user is active. A deactivated (not revoked) user is carried with active=false and reproduced on import. */
+    active?: boolean;
+    /**
+     * Format: date-time
+     * @description Date and time in ISO 8601 format: YYYY-MM-DDTHH:MM:SSZ.
+     */
+    createdAt?: string;
+    /**
+     * Format: date-time
+     * @description Date and time in ISO 8601 format, in UTC, at which the user's API key stops authenticating. Absent or null means the key never expires, except that import never changes an existing user's expiry, so a record without one keeps the stored value. A new user takes the record's value, even one that has passed. A differing future value for an existing user gives that record an error result naming `PUT /v1/users/db/{user_id}/expiration`. A differing past value gives `skipped_exists` for a deactivated user. For an active one it gives an error result advising to deactivate the user, or delete it and re-import, because that PUT refuses a past time. A node without a Weaviate license key refuses the whole import with 403 when any record sets a non-null `expiresAt`.
+     */
+    expiresAt?: string;
+    /** @description The namespace the user was bound to on the source. Informational on export; import binds the user to the request's target namespace. */
+    namespace?: string;
+    /**
+     * @description Export classification. Only 'exported' carries a usable secureHash; the others report why the user was not carried.
+     * @enum {string}
+     */
+    status?: 'exported' | 'imported_key' | 'revoked';
+  };
+  /** @description The full set of database-user credential records on the source, one per user. */
+  UserExportResponse: {
+    users: definitions['DBUserCredential'][];
+  };
+  /** @description A batch of database-user credentials to recreate on the target, bound to a single target namespace. */
+  UserImportRequest: {
+    /** @description The target namespace every user in this request is created under. Required on namespace-enabled clusters. */
+    namespace?: string;
+    /** @description The credential records to import. Only records with a strong (argon2id) secureHash are importable. */
+    users: definitions['DBUserCredential'][];
+  };
+  /** @description The per-user outcome of an import batch. */
+  UserImportResponse: {
+    results: definitions['UserImportResult'][];
+  };
+  /** @description The outcome of importing a single database-user credential. */
+  UserImportResult: {
+    /** @description The name (ID) of the user, without any namespace prefix. */
+    userId: string;
+    /**
+     * @description The outcome for this user.
+     * @enum {string}
+     */
+    status: 'created' | 'reconciled' | 'skipped_exists' | 'error';
+    /** @description The reason, present only when status is 'error'. */
+    error?: string;
   };
   Role: {
     /** @description The name (ID) of the role. */
@@ -481,7 +612,7 @@ export interface definitions {
        */
       tenant?: string;
       /**
-       * @description A string that specifies which objects this permission applies to. Can be an exact object ID or a regex pattern. The default value `*` applies the permission to all objects.
+       * @description Deprecated: Object-level permissions are not supported. This field is ignored; the permission always applies to all objects. Kept for backward compatibility.
        * @default *
        */
       object?: string;
@@ -503,7 +634,7 @@ export interface definitions {
     /** @description Resources applicable for user actions. */
     users?: {
       /**
-       * @description A string that specifies which users this permission applies to. Can be an exact user name or a regex pattern. The default value `*` applies the permission to all users.
+       * @description A string that specifies which users this permission applies to. Can be an exact user name or a regex pattern. The default value `*` applies the permission to all users. Must be at most 256 bytes, must not contain '/', and must be a valid regex pattern. Creating a role or adding permissions also refuses ',', '"' and control characters.
        * @default *
        */
       users?: string;
@@ -511,7 +642,7 @@ export interface definitions {
     /** @description Resources applicable for group actions. */
     groups?: {
       /**
-       * @description A string that specifies which groups this permission applies to. Can be an exact group name or a regex pattern. The default value `*` applies the permission to all groups.
+       * @description A string that specifies which groups this permission applies to. Can be an exact group name or a regex pattern. The default value `*` applies the permission to all groups. Must be at most 256 bytes, must not contain '/', and must be a valid regex pattern. Creating a role or adding permissions also refuses ',', '"' and control characters.
        * @default *
        */
       group?: string;
@@ -533,7 +664,7 @@ export interface definitions {
     /** @description Resources applicable for role actions. */
     roles?: {
       /**
-       * @description A string that specifies which roles this permission applies to. Can be an exact role name or a regex pattern. The default value `*` applies the permission to all roles.
+       * @description A string that specifies which roles this permission applies to. Can be an exact role name or a regex pattern. The default value `*` applies the permission to all roles. Must be at most 256 bytes, must not contain '/', and must be a valid regex pattern. Creating a role or adding permissions also refuses ',', '"' and control characters.
        * @default *
        */
       role?: string;
@@ -560,7 +691,7 @@ export interface definitions {
        */
       collection?: string;
       /**
-       * @description string or regex. if a specific shard name, if left empty it will be ALL or *
+       * @description string or regex. if a specific shard name, if left empty it will be ALL or *. Must be at most 256 bytes, must not contain '/', and must be a valid regex pattern. Creating a role or adding permissions also refuses ',', '"' and control characters.
        * @default *
        */
       shard?: string;
@@ -573,7 +704,7 @@ export interface definitions {
        */
       collection?: string;
       /**
-       * @description A string that specifies which aliases this permission applies to. Can be an exact alias name or a regex pattern. The default value `*` applies the permission to all aliases.
+       * @description A string that specifies which aliases this permission applies to. Can be an exact alias name or a regex pattern. The default value `*` applies the permission to all aliases. Must be at most 256 bytes, must not contain '/', and must be a valid regex pattern. Creating a role or adding permissions also refuses ',', '"' and control characters.
        * @default *
        */
       alias?: string;
@@ -581,7 +712,7 @@ export interface definitions {
     /** @description Resources applicable for namespace actions. */
     namespaces?: {
       /**
-       * @description A string that specifies which namespaces this permission applies to. Can be an exact namespace name or a regex pattern. The default value `*` applies the permission to all namespaces.
+       * @description A string that specifies which namespaces this permission applies to. Can be an exact namespace name or a regex pattern. The default value `*` applies the permission to all namespaces. Must be at most 256 bytes, must not contain '/', and must be a valid regex pattern. Creating a role or adding permissions also refuses ',', '"' and control characters.
        * @default *
        */
       namespace?: string;
@@ -652,47 +783,9 @@ export interface definitions {
     namespace?: string;
     /** @description True for principals that operate across all namespaces (e.g. static API keys). Authoritative marker for operator-level principals; do not infer from an empty namespace. */
     isGlobalOperator?: boolean;
+    /** @description This is true when the API key resolved to a DB user record, which covers a dynamic DB user's own key and an imported static key. A login through the static API key list leaves it false, even when a DB user shares its name, though both carry userType db. */
+    isDynamicDbUser?: boolean;
   };
-  /** @description An array of available words and contexts. */
-  C11yWordsResponse: {
-    /** @description Weighted results for all words */
-    concatenatedWord?: {
-      concatenatedWord?: string;
-      singleWords?: unknown[];
-      concatenatedVector?: definitions['C11yVector'];
-      concatenatedNearestNeighbors?: definitions['C11yNearestNeighbors'];
-    };
-    /** @description Weighted results for per individual word */
-    individualWords?: {
-      word?: string;
-      present?: boolean;
-      info?: {
-        vector?: definitions['C11yVector'];
-        nearestNeighbors?: definitions['C11yNearestNeighbors'];
-      };
-    }[];
-  };
-  /** @description A resource describing an extension to the contextinoary, containing both the identifier and the definition of the extension */
-  C11yExtension: {
-    /**
-     * @description The new concept you want to extend. Must be an all-lowercase single word, or a space delimited compound word. Examples: 'foobarium', 'my custom concept'
-     * @example foobarium
-     */
-    concept?: string;
-    /** @description A list of space-delimited words or a sentence describing what the custom concept is about. Avoid using the custom concept itself. An Example definition for the custom concept 'foobarium': would be 'a naturally occurring element which can only be seen by programmers' */
-    definition?: string;
-    /**
-     * Format: float
-     * @description Weight of the definition of the new concept where 1='override existing definition entirely' and 0='ignore custom definition'. Note that if the custom concept is not present in the contextionary yet, the weight cannot be less than 1.
-     */
-    weight?: number;
-  };
-  /** @description C11y function to show the nearest neighbors to a word. */
-  C11yNearestNeighbors: {
-    word?: string;
-    /** Format: float */
-    distance?: number;
-  }[];
   /** @description A vector representation of the object in the Contextionary. If provided at object creation, this wil take precedence over any vectorizer setting. */
   C11yVector: number[];
   /** @description A vector representation of the object. If provided at object creation, this wil take precedence over any vectorizer setting. */
@@ -746,12 +839,30 @@ export interface definitions {
     indexes?: definitions['IndexStatus'][];
   };
   IndexStatus: {
-    /** @enum {string} */
-    type?: 'filterable' | 'searchable' | 'rangeable';
-    /** @enum {string} */
-    status?: 'ready' | 'indexing' | 'pending' | 'failed' | 'cancelled';
+    /**
+     * @description Canonical inverted-index type. Always one of `filterable`, `searchable`, `rangeFilters` — never the `rangeable` write-path alias.
+     * @enum {string}
+     */
+    type?: 'filterable' | 'searchable' | 'rangeFilters';
+    /**
+     * @description `partial`: the latest reindex task failed or was cancelled after some tenants had migrated; those tenants have the new index. After a tokenization change they answer queries with it; after enabling an index they answer with it only once the migration finishes. A replica that still owes a tenant's swap answers with the old index until its retry lands. See `migratedTenants` and `totalTenants`.
+     * @enum {string}
+     */
+    status?: 'ready' | 'indexing' | 'pending' | 'failed' | 'cancelled' | 'partial';
     /** Format: float */
     progress?: number;
+    /**
+     * Format: int64
+     * @description Number of tenants already migrated, counted over the failed or cancelled runs of this migration since the property last finished one; `taskId` names the latest run. Present only on a `partial` entry, and only to a caller who may read the collection's tenants.
+     */
+    migratedTenants?: number;
+    /**
+     * Format: int64
+     * @description Number of tenants those runs cover, counted the same way as `migratedTenants`. Present only on a `partial` entry, and only to a caller who may read the collection's tenants.
+     */
+    totalTenants?: number;
+    /** @description ID of the reindex task driving this index entry. Present on every task-driven entry (`pending`, `indexing`, `failed`, `cancelled`, `partial`); absent on a plain `ready` entry. A coupled searchable+filterable tokenization migration reports the same `taskId` on both affected entries. */
+    taskId?: string;
     tokenization?: string;
     targetTokenization?: string;
     /**
@@ -765,41 +876,16 @@ export interface definitions {
      */
     targetAlgorithm?: 'wand' | 'blockmax';
   };
-  IndexUpdateRequest: {
-    searchable?: definitions['IndexUpdateSearchable'];
-    filterable?: definitions['IndexUpdateFilterable'];
-    rangeable?: definitions['IndexUpdateRangeable'];
-  };
-  IndexUpdateSearchable: {
+  /** @description Desired index configuration for `PUT /v1/schema/{className}/properties/{propertyName}/index/{indexType}`. The server diffs the body against the current state and either creates the index, migrates its configuration, or returns a NO_OP. Only fields relevant to the target index type are honored: `tokenization` applies to `searchable`/`filterable`, `algorithm` applies to `searchable`. `rangeFilters` takes no config fields. An empty body `{}` is valid and means "ensure the index exists with its current/default config". At most one configuration change may be requested per call (a body implying both a tokenization and an algorithm change is rejected). */
+  IndexUpsertRequest: {
+    /** @description Target tokenization for a `searchable` or `filterable` index. Required when creating a `searchable` index; optional otherwise (omitted = keep the current value). On `filterable` creation it must be omitted or equal the property's current tokenization. */
     tokenization?: string;
-    /** @description When true, rebuilds the searchable index for this property from the stored objects. Preserves the current tokenization and BM25 algorithm. Only valid when the property's current algorithm is `blockmax`; on a WAND property the request is rejected with guidance to use `algorithm:"blockmax"` first. */
-    rebuild?: boolean;
-    /**
-     * @description Switch the BM25 algorithm for this property's searchable index. Currently only `blockmax` is accepted. From WAND this triggers the Map → BlockMax migration; on an already-`blockmax` property the request is rejected. WAND is deprecated; downgrade is intentionally not supported.
-     * @enum {string}
-     */
-    algorithm?: 'blockmax';
-    enabled?: boolean;
-    /** @description When true, cancels the in-flight reindex task targeting this property's searchable index. The task transitions to CANCELLED; partial state is left on disk for the next-restart finalize. */
-    cancel?: boolean;
-  };
-  IndexUpdateFilterable: {
-    rebuild?: boolean;
-    enabled?: boolean;
-    /** @description Change the tokenization used by the filterable index on this text/text[] property. Only valid when the property already has a filterable index. Use this for filterable-only properties; for properties that ALSO have a searchable index, prefer searchable.tokenization since it retokenizes both buckets in a single coordinated migration. */
-    tokenization?: string;
-    /** @description When true, cancels the in-flight reindex task targeting this property's filterable index. */
-    cancel?: boolean;
-  };
-  IndexUpdateRangeable: {
-    enabled?: boolean;
-    /** @description When true, rebuilds the rangeable index from the existing filterable bucket (same source-of-truth as enable-rangeable). */
-    rebuild?: boolean;
-    /** @description When true, cancels the in-flight reindex task targeting this property's rangeable index. */
-    cancel?: boolean;
+    /** @description Target BM25 algorithm for a `searchable` index. Only `blockmax` is a valid target (input aliases `block-max`, `block_max`, `blockmaxwand`, `bmw` are accepted case-insensitively). From WAND this triggers the Map → BlockMax migration; on an already-`blockmax` index it is a NO_OP. `wand` is rejected (deprecated); downgrade is intentionally not supported. */
+    algorithm?: string;
   };
   IndexUpdateResponse: {
     taskId?: string;
+    /** @description What the server did. `STARTED`: a reindex task was submitted and `taskId` names it. `CANCELLED`: a cancel stopped the in-flight task named by `taskId`. `NO_OP`: a cancel found nothing in flight, and `taskId` is absent. Not a closed set: a newer server may answer with a value this client does not know, so report an unrecognized status rather than rejecting the response. */
     status?: string;
   };
   /** @description Returned with HTTP 429 when a configured Weaviate usage limit (objects/collections/tenants/shards) is exceeded. The structured fields (`errorCode`, `limit`, `value`) are stable contract; the `message` text is operator-overridable via the `USAGE_LIMITS_ERROR_MESSAGE` template. */
@@ -1104,6 +1190,38 @@ export interface definitions {
     modules?: { [key: string]: unknown };
     /** @description Max message size for GRPC connection in bytes. */
     grpcMaxMessageSize?: number;
+    /** @description License state of this Weaviate instance. */
+    license?: definitions['MetaLicense'];
+  };
+  /** @description License state of the current Weaviate instance. */
+  MetaLicense: {
+    /** @description The product edition: community (no license key) or enterprise (license key configured). */
+    edition?: string;
+    /** @description Documentation page for the Weaviate Enterprise Edition. */
+    documentationHref?: string;
+    /** @description Current license status. Only present on Enterprise Edition; a Community Edition node has no license and therefore no license status. */
+    status?: string;
+    /** @description The non-secret id of the configured license, empty when unlicensed. */
+    licenseId?: string;
+    /**
+     * Format: date-time
+     * @description When the license expires, if known.
+     */
+    expiresAt?: string;
+    /**
+     * Format: date-time
+     * @description When the license was last verified with the license service, if ever.
+     */
+    lastCheckedAt?: string;
+    /**
+     * Format: date-time
+     * @description When the grace period ends, if the license is not currently valid.
+     */
+    gracePeriodEndsAt?: string;
+    /** @description Whether license enforcement is active. */
+    enforcing?: boolean;
+    /** @description Whether the license is used on a cluster other than the one it was issued for. */
+    clusterMismatch?: boolean;
   };
   /** @description Multiple instances of references to other objects. */
   MultipleRef: definitions['SingleRef'][];
@@ -1266,6 +1384,106 @@ export interface definitions {
     /** @description Indicates whether the operation was a dry run (true) or an actual deletion (false). */
     dryRun?: boolean;
   };
+  /** @description Specifies the nodes a rebalance plan moves shard replicas between. Replicas move from the source nodes to the target nodes. */
+  ReplicationRebalanceRequest: {
+    /** @description The names of the nodes that replicas move away from. The list must be non-empty, must not repeat a node, and must not share a node with `targetNodes`. */
+    sourceNodes?: string[];
+    /** @description The names of the nodes that replicas move to. The list must be non-empty, must not repeat a node, and must not share a node with `sourceNodes`. */
+    targetNodes?: string[];
+    /** @description The names of the collections the plan covers. The value is stored with the plan and does not yet affect planning. */
+    collections?: string[];
+  };
+  /** @description Contains the unique identifier of a newly created rebalance plan. GET /replication/rebalance reports the plan's progress. */
+  ReplicationRebalanceCreateResponse: {
+    /** @description The unique identifier (ID) of the rebalance plan. */
+    id?: string;
+  };
+  /** @description The cluster's rebalance plan: the request it was created from, its current state, the per-node drafting status while it is planning, and the node measurements and baseline balance taken by its planning run. */
+  ReplicationRebalancePlan: {
+    /** @description The unique identifier (ID) of the rebalance plan. */
+    id?: string;
+    /**
+     * @description The current state of the rebalance plan. A plan starts in `PLANNING`. A planning run ends it `NOT_NEEDED`, `PROPOSED`, `NO_ACCEPTABLE_PLAN` or `PLANNING_FAILED`, and a stop ends it `STOPPED`.
+     * @enum {string}
+     */
+    state?:
+      | 'PLANNING'
+      | 'PROPOSED'
+      | 'NOT_NEEDED'
+      | 'NO_ACCEPTABLE_PLAN'
+      | 'PLANNING_FAILED'
+      | 'RUNNING'
+      | 'STOPPING'
+      | 'STOPPED'
+      | 'COMPLETED'
+      | 'FAILED';
+    /**
+     * Format: int64
+     * @description The UNIX timestamp in ms when the plan was created.
+     */
+    createdAtUnixMs?: number;
+    /**
+     * Format: int64
+     * @description The UNIX timestamp in ms when the applied planning run started measuring the nodes. Zero until a planning run completes.
+     */
+    measuredAtUnixMs?: number;
+    /** @description A human-readable explanation of the planning outcome, e.g. why planning failed. */
+    reason?: string;
+    /** @description The names of the nodes that replicas move away from, as given in the create request. */
+    sourceNodes?: string[];
+    /** @description The names of the nodes that replicas move to, as given in the create request. */
+    targetNodes?: string[];
+    /** @description The names of the collections given in the create request. */
+    collections?: string[];
+    /** @description The resource measurement of each listed node, taken by the applied planning run. */
+    nodes?: {
+      /** @description The name of the node. */
+      node?: string;
+      /**
+       * Format: int64
+       * @description The total size in bytes of the disk holding the node's data.
+       */
+      diskTotalBytes?: number;
+      /**
+       * Format: int64
+       * @description The free bytes on the disk holding the node's data. The count includes blocks reserved for root.
+       */
+      diskAvailableBytes?: number;
+      /**
+       * Format: int64
+       * @description The node's disk usage warning threshold, as a percentage of the disk's total size.
+       */
+      diskWarningPercentage?: number;
+      /**
+       * Format: int64
+       * @description The node's Go runtime memory limit in bytes.
+       */
+      memoryLimitBytes?: number;
+      /** @description The number of replication engine workers configured on the node. */
+      replicationWorkers?: number;
+      /** @description Why the node could not be measured. Empty when the measurement succeeded. */
+      error?: string;
+    }[];
+    /** @description The measured load of each listed node before any move. */
+    baseline?: {
+      /** @description The name of the node. */
+      node?: string;
+      /** @description The node's used disk bytes divided by its disk usage warning threshold in bytes. */
+      diskUtilisation?: number;
+      /** @description The number of shard replicas the node hosts, not counting replicas of FROZEN tenants. */
+      replicaCount?: number;
+    }[];
+    /** @description The drafting status of each listed node, source nodes first, while the plan is `PLANNING`. The list is empty in every other state. It is also empty while the plan is `PLANNING` until the node serving the request holds the plan's drafting task. */
+    drafting?: {
+      /** @description The name of the node. */
+      node?: string;
+      /**
+       * @description `REPORTED` once the node has saved and reported its draft, `FAILED` if its drafting failed, and `DRAFTING` otherwise.
+       * @enum {string}
+       */
+      status?: 'REPORTED' | 'DRAFTING' | 'FAILED';
+    }[];
+  };
   /** @description A single peer in the network. */
   PeerUpdate: {
     /**
@@ -1314,7 +1532,7 @@ export interface definitions {
     invertedIndexConfig?: definitions['InvertedIndexConfig'];
     multiTenancyConfig?: definitions['MultiTenancyConfig'];
     objectTtlConfig?: definitions['ObjectTtlConfig'];
-    /** @description Specify how the vectors for this collection should be determined. The options are either `none` - this means you have to import a vector with each object yourself - or the name of a module that provides vectorization capabilities, such as `text2vec-weaviate`. If left empty, it will use the globally configured default ([`DEFAULT_VECTORIZER_MODULE`](https://docs.weaviate.io/deploy/configuration/env-vars)) which can itself either be `none` or a specific module. */
+    /** @description Specify how the vectors for this collection should be determined. The options are either `none` - this means you have to import a vector with each object yourself - or the name of a module that provides vectorization capabilities, such as `text2vec-weaviate`. If left empty, it defaults to `none`. */
     vectorizer?: string;
     /** @description Configuration specific to modules in a collection context. */
     moduleConfig?: { [key: string]: unknown };
@@ -1339,6 +1557,8 @@ export interface definitions {
      * @description Internal RAFT-replicated counter bumped by semantic runtime-reindex migrations (e.g. change-tokenization, enable-filterable, enable-searchable). Used by the data path to resolve the property's inverted-index bucket name; a single RAFT commit flipping the schema flag AND bumping this counter atomically cuts the cluster from the old bucket to the new one. Defaults to 0. Internal use; clients should not set this.
      */
     bucketGeneration?: number;
+    /** @description Internal RAFT-replicated per-property flag: true iff this property's searchable (BM25) bucket is on the blockmax (StrategyInverted) index. Stamped at migration cutover. Absent/null means "not stamped" and is resolved against the class-wide UsingBlockMaxWAND flag. Internal use; clients must not set this. */
+    searchableBlockmax?: boolean;
     /** @description Whether to include this property in the filterable, Roaring Bitmap index. If `false`, this property cannot be used in `where` filters. <br/><br/>Note: Unrelated to vectorization behavior. */
     indexFilterable?: boolean;
     /** @description Optional. Should this property be indexed in the inverted index. Defaults to true. Applicable only to properties of data type text and text[]. If you choose false, you will not be able to use this property in bm25 or hybrid search. This property has no affect on vectorization decisions done by modules */
@@ -1413,9 +1633,11 @@ export interface definitions {
   ShardStatusGetResponse: {
     /** @description Name of the shard */
     name?: string;
-    /** @description Status of the shard */
+    /** @description Deprecated: value is not consistent in replicated clusters. */
     status?: string;
-    /** @description Size of the vector queue of the shard */
+    /** @description Status of the shard on each of its replicas */
+    per_node_status?: { [key: string]: string };
+    /** @description Deprecated: value is not consistent in replicated clusters. */
     vectorQueueSize?: number;
   };
   /** @description The status of a single shard */
@@ -1518,6 +1740,16 @@ export interface definitions {
       | 'ZstdBestSpeed'
       | 'ZstdBestCompression'
       | 'NoCompression';
+    /**
+     * @description If true, shards of replicated collections proven in sync by async-replication checkpoints are archived by one replica instead of all, and restore copies them back to every replica; other shards are archived by every replica. Requires async replication, BACKUP_DEDUPE_ENABLED=true (else 422) and a Weaviate license key (else 403) on every node. Such backups restore only on versions that support this option; restoring needs no license.
+     * @default false
+     */
+    dedupeReplicas?: boolean;
+    /**
+     * @description How long the coordinator waits for replica convergence proof before shards fall back to being archived by every replica. Only used when dedupeReplicas is set. When omitted, BACKUP_DEDUPE_CONVERGENCE_TIMEOUT applies (15 seconds unless configured). The wait happens synchronously inside the backup creation request, which blocks for roughly 10 seconds plus up to this timeout; size client timeouts accordingly.
+     * @default 15
+     */
+    dedupeConvergenceTimeoutSeconds?: number;
   };
   /** @description Backup custom configuration */
   RestoreConfig: {
@@ -1545,16 +1777,20 @@ export interface definitions {
      */
     usersOptions?: 'noRestore' | 'all';
   };
-  /** @description Request body for creating a backup for a set of collections. */
+  /** @description Request body for creating a backup. The resolved selection must contain at least one collection, dynamic user, or RBAC role. */
   BackupCreateRequest: {
     /** @description The ID of the backup (required). Must be URL-safe and work as a filesystem path, only lowercase, numbers, underscore, minus characters allowed. */
     id?: string;
     /** @description Custom configuration for the backup creation process */
     config?: definitions['BackupConfig'];
-    /** @description List of collections to include in the backup creation process. If not set, all collections are included. Cannot be used together with `exclude`. */
+    /** @description List of collections to include in the backup creation process. If not set, all collections the caller may back up are included. Cannot be used together with `exclude`. Permits wildcards, e.g. `*` or `prefix*`, which match only collections the caller may back up. A list that matches no collection is allowed when users or roles are selected, including through omitted identity selectors. */
     include?: string[];
-    /** @description List of collections to exclude from the backup creation process. If not set, all collections are included. Cannot be used together with `include`. */
+    /** @description List of collections to exclude from the backup creation process. If not set, all collections the caller may back up are included. Cannot be used together with `include`. Permits wildcards, e.g. `*` or `prefix*`. Excluding every collection is allowed when users or roles are selected, including through omitted identity selectors. */
     exclude?: string[];
+    /** @description List of dynamic DB users to include in the backup. Permits `*` and `?` wildcards, e.g. `*` or `prefix*`. When omitted or null, the whole dynamic-user store is captured. An empty list or wildcards matching nothing omit the user snapshot; restoring it leaves existing users untouched. Otherwise, only matching users are captured. An exact user name that does not exist is rejected. Selected users, including those selected by omission, permit a backup with zero collections. No per-user permission check is applied. */
+    includeUsers?: string[];
+    /** @description List of RBAC roles to include in the backup. Permits `*` and `?` wildcards, e.g. `*` or `prefix*`. When omitted or null, the whole RBAC state is captured, including built-in roles and assignments. An empty list or wildcards matching nothing omit the RBAC snapshot; restoring it leaves existing roles untouched. Otherwise, only matching roles are captured. An exact role name that does not exist is rejected. Explicit selectors cannot select built-in roles: exact names are rejected and wildcards exclude them. Selected roles, including built-in roles selected by omission, permit a backup with zero collections. No per-role permission check is applied. */
+    includeRoles?: string[];
     /**
      * @description The ID of an existing backup to use as the base for a file-based incremental backup. If set, only files that have changed since the base backup will be included in the new backup.
      * @default null
@@ -1627,13 +1863,13 @@ export interface definitions {
     /** @description The ID of the base backup this incremental backup was built on; empty if the backup is not incremental. */
     incremental_base_backup_id?: string;
   }[];
-  /** @description Request body for restoring a backup for a set of collections (classes). */
+  /** @description Request body for restoring a backup. A backup with no collections can restore users or roles when the matching restore option is enabled. */
   BackupRestoreRequest: {
     /** @description Custom configuration for the backup restoration process. */
     config?: definitions['RestoreConfig'];
-    /** @description List of collections (classes) to include in the backup restoration process. */
+    /** @description List of collections (classes) to include in the backup restoration process. If not set, all collections in the backup the caller may restore are included. Permits wildcards, e.g. `*` or `prefix*`, which match only collections the caller may restore. A list that matches no collection is rejected. Any entry is rejected when the backup contains no collections. */
     include?: string[];
-    /** @description List of collections (classes) to exclude from the backup restoration process. */
+    /** @description List of collections (classes) to exclude from the backup restoration process. Any entry is rejected when the backup contains no collections. */
     exclude?: string[];
     /** @description Allows overriding the node names stored in the backup with different ones. Useful when restoring backups to a different environment. */
     node_mapping?: { [key: string]: string };
@@ -1851,7 +2087,7 @@ export interface definitions {
     startedAt?: string;
     /**
      * Format: date-time
-     * @description The time when the task was finished.
+     * @description The time when the task reached a terminal status. Absent while the task is still running.
      */
     finishedAt?: string;
     /** @description The nodes that finished the task. */
@@ -1880,12 +2116,12 @@ export interface definitions {
     error?: string;
     /**
      * Format: date-time
-     * @description The time when the unit was last updated.
+     * @description The time when the unit was last updated, including its transition to a terminal status. Absent for a unit that has not started yet.
      */
     updatedAt?: string;
     /**
      * Format: date-time
-     * @description The time when the unit finished.
+     * @description The time when the unit reached a terminal status. Absent while the unit is still running.
      */
     finishedAt?: string;
   };
@@ -2128,14 +2364,14 @@ export interface definitions {
     };
   };
   BatchDelete: {
-    /** @description Outlines how to find the objects to be deleted. */
+    /** @description Outlines how to find the objects to be deleted. Required. */
     match?: {
       /**
-       * @description The name of the collection (class) from which to delete objects.
+       * @description The name of the collection (class) from which to delete objects. Required.
        * @example City
        */
       class?: string;
-      /** @description Filter to limit the objects to be deleted. */
+      /** @description Filter to limit the objects to be deleted. Required. */
       where?: definitions['WhereFilter'];
     };
     /**
@@ -2149,7 +2385,7 @@ export interface definitions {
      */
     deletionTimeUnixMilli?: number;
     /**
-     * @description If true, the call will show which objects would be matched using the specified filter without deleting any objects. <br/><br/>Depending on the configured verbosity, you will either receive a count of affected objects, or a list of IDs.
+     * @description If true, the call reports what the filter matches and deletes nothing. <br/><br/>Depending on the configured verbosity, you will either receive a count of matched objects, or a list of IDs. With a positive [`QUERY_MAXIMUM_RESULTS`](https://docs.weaviate.io/deploy/configuration/env-vars#QUERY_MAXIMUM_RESULTS) the count stops one above it, and the list holds at most `QUERY_MAXIMUM_RESULTS` IDs. Repeating the dry run reports the same count; for an exact total use an aggregate count, which resolves no objects.
      * @default false
      */
     dryRun?: boolean;
@@ -2177,14 +2413,14 @@ export interface definitions {
      */
     deletionTimeUnixMilli?: number;
     /**
-     * @description If true, objects will not be deleted yet, but merely listed. Defaults to false.
+     * @description If true, the call reported what the filter matched and deleted nothing. The list holds at most [`QUERY_MAXIMUM_RESULTS`](https://docs.weaviate.io/deploy/configuration/env-vars#QUERY_MAXIMUM_RESULTS) IDs. Defaults to false.
      * @default false
      */
     dryRun?: boolean;
     results?: {
       /**
        * Format: int64
-       * @description How many objects were matched by the filter.
+       * @description How many objects matched the filter. With a positive `limit` the count stops one above `limit`: at or below `limit` this is the exact number of matching objects and every one of them was handled by this call, and above `limit` more objects match than one call deletes, so call again. With a `limit` of 0 or below this is the exact number of matching objects and the call deletes none of them.
        */
       matches?: number;
       /**
@@ -2465,26 +2701,332 @@ export interface definitions {
   Namespace: {
     /** @description The unique name of the namespace. */
     name?: string;
-    /** @description The cluster node where this namespace's shards are placed. Set at create time and updatable later. Updating it only affects future placement decisions; existing live shards are not moved. */
+    /** @description The cluster nodes where this namespace's shards are placed. The list is set at create time and can be updated later. An update applies to future placement decisions only, and existing live shards are not moved. A collection or tenant with replication factor N below the list length is placed on the first N entries that are storage nodes. */
+    home_nodes?: string[];
+    /** @description Deprecated: use home_nodes. Holds the first entry of `home_nodes`. */
     home_node?: string;
     /**
-     * @description Lifecycle state. "active" namespaces accept all operations. "deleting" namespaces are being removed: new classes, aliases, and users can no longer be created in the namespace, and the namespace itself disappears once removal completes.
+     * @description Lifecycle state. "active" namespaces accept all operations. "suspended" namespaces reject new classes, aliases, users, roles, role assignments, and replica movements, and their users can no longer authenticate; everything the namespace already owns is retained. "resuming" namespaces are on their way back to "active" and are still restricted the same way, replica movements included. "deleting" namespaces are being removed: new classes, aliases, users, and replica movements can no longer be created in the namespace, and the namespace itself disappears once removal completes.
      * @enum {string}
      */
-    state?: 'active' | 'deleting';
+    state?: 'active' | 'suspended' | 'resuming' | 'deleting';
   };
-  /** @description Optional body for namespace creation. When `home_node` is omitted, the cluster picks one automatically. */
+  /** @description Optional body for namespace creation. When neither `home_nodes` nor `home_node` is set, the cluster picks the home nodes. */
   NamespaceCreateRequest: {
-    /** @description Optional. Cluster node to place this namespace's shards on. Must be a current storage candidate. When omitted, the cluster picks one. */
+    /** @description Optional cluster nodes to place this namespace's shards on. Entries must be distinct current storage candidates, at least `REPLICATION_MINIMUM_FACTOR` of them. When this and `home_node` are both omitted or empty, the cluster picks `REPLICATION_MAXIMUM_FACTOR` nodes, or every storage node when there are fewer. It refuses that create when `REPLICATION_MAXIMUM_FACTOR` is unset or 0 or below, or when there are fewer storage nodes than `REPLICATION_MINIMUM_FACTOR`. List order decides placement. A collection or tenant with replication factor N goes on the first N entries that are storage nodes, so the first of those receives every factor-1 placement. Until every node runs this release, send only home_node: older nodes ignore home_nodes on create and pick a home node themselves. */
+    home_nodes?: string[];
+    /** @description Deprecated: use home_nodes. A value is taken as a one-entry `home_nodes`. Sending it with a non-empty `home_nodes` is a 422, even when it equals the first entry. */
     home_node?: string;
   };
   /** @description Update payload for an existing namespace. */
   NamespaceUpdateRequest: {
-    /** @description Cluster node to use for future placements in this namespace. Must be a current storage candidate. Existing live shards are not moved. */
-    home_node: string;
+    /** @description Cluster nodes to place this namespace's shards on. The list replaces the namespace's home nodes for placements made after the update, and existing shards stay on their nodes. Entries must be distinct current storage candidates, at least `REPLICATION_MINIMUM_FACTOR` of them, and at least the largest replication factor among the namespace's collections. Unlike on create, an empty list does not auto-pick, so a body with neither this nor `home_node` is a 422. List order decides placement. A collection or tenant with replication factor N goes on the first N entries that are storage nodes, so the first of those receives every factor-1 placement. Until every node runs this release, send only home_node: older nodes refuse an update without it. */
+    home_nodes?: string[];
+    /** @description Deprecated: use home_nodes. A value is taken as a one-entry `home_nodes`. Sending it with a non-empty `home_nodes` is a 422, even when it equals the first entry. */
+    home_node?: string;
   };
   /** @description Response object containing a list of namespaces. */
   NamespaceListResponse: definitions['Namespace'][];
+  /** @description Request body for the aggregate endpoint. Phase 1 supports counts: the number of matching objects, in total or per group. Unknown fields are ignored (platform parity with the other endpoints). Reserved fields are accepted by the schema but rejected by the server with 422 until the corresponding feature ships. An empty body `{}` returns the collection's total object count. */
+  AggregateRequest: {
+    /** @description The property to group by, as a bare property name. Each distinct value of the property forms one group (an object whose property holds several values counts toward each of them). Omitted or empty aggregates over all matching objects without grouping. */
+    groupBy?: string;
+    /** @description The aggregation metrics to return. Phase 1 supports only `count` (the number of matching objects, per group when `groupBy` is set); omitted or empty is equivalent to `["count"]`. The property-scoped `property:statistic` grammar (e.g. `price:mean`) is reserved and returns 422 (not yet supported). */
+    returnMetrics?: string[];
+    /** @description A conditional filter to limit the objects that are aggregated. */
+    where?: definitions['WhereFilter'];
+    /**
+     * Format: int64
+     * @description The maximum number of groups to return, largest first. Must be positive and requires `groupBy`; omitted falls back to the server default (100 groups).
+     */
+    limit?: number;
+    /** @description The tenant to aggregate in a multi-tenant collection. */
+    tenant?: string;
+    /** @description Reserved for aggregate-over-search (aggregating the results of a vector, keyword or hybrid search). Returns 422 (not yet supported). */
+    over?: { [key: string]: unknown };
+    /**
+     * Format: int64
+     * @description Reserved for aggregate-over-search (the maximum number of search results to aggregate). Returns 422 (not yet supported).
+     */
+    objectLimit?: number;
+  };
+  /** @description The result of an aggregation. An ungrouped aggregation returns the flat form (`count` plus `tookMs`); a grouped aggregation returns `groups` plus `tookMs`. Exactly one of `count`/`groups` is present, except that a grouped aggregation which produced no groups (nothing matched, or no matching object carries the property) omits `groups` entirely. */
+  AggregateResponse: {
+    /**
+     * Format: int64
+     * @description The number of matching objects. Present only for ungrouped aggregations.
+     */
+    count?: number;
+    /** @description The groups, ordered by descending count. Present only for grouped aggregations. */
+    groups?: definitions['AggregateGroup'][];
+    /**
+     * Format: int64
+     * @description Server-side processing time in milliseconds.
+     */
+    tookMs: number;
+  };
+  /** @description One group of a grouped aggregation: the group's identity under `groupedBy` and its aggregated metrics (phase 1: `count`). */
+  AggregateGroup: {
+    groupedBy: definitions['AggregateGroupedBy'];
+    /**
+     * Format: int64
+     * @description The number of objects in the group.
+     */
+    count: number;
+  };
+  /** @description The identity of one group: the `groupBy` property (as a one-element path) and the property value that formed the group. */
+  AggregateGroupedBy: {
+    /** @description The grouped property, as a one-element path. */
+    path: string[];
+    /** @description The property value that formed the group. Typed as the property is: text values are strings, numeric values numbers, boolean values booleans; grouping by a reference property yields the reference's beacon URI as a string. */
+    value: unknown;
+  };
+  /** @description Request body for the bm25 search endpoint. Performs a keyword (BM25F) search over the collection's searchable text properties and returns the best-scoring objects. Extends the shared search fields (`SearchCommon`) with the bm25-specific `query` and `queryProperties`. */
+  SearchBm25Request: definitions['SearchCommon'] & {
+    /** @description The keyword query to score objects against, as a plain string. Must not be empty. */
+    query: string;
+    /** @description The properties to keyword-search, each optionally weighted with a `^boost` suffix (e.g. `title^2`). Omitted or empty searches every searchable text property. A property without a searchable index is rejected with 422. */
+    queryProperties?: string[];
+  };
+  /** @description Fields shared by every REST search request (near-text, bm25, hybrid, near-object). Unknown fields are ignored (platform parity with the other endpoints). Reserved fields are accepted by the schema but rejected by the server with 422 until the corresponding feature ships. */
+  SearchCommon: {
+    /** @description A conditional filter to limit the objects that are searched. */
+    where?: definitions['WhereFilter'];
+    /**
+     * Format: int64
+     * @description The maximum number of objects to return. Omitted or `0` falls back to the server default (`QUERY_DEFAULTS_LIMIT`); a value above `QUERY_MAXIMUM_RESULTS` is rejected.
+     */
+    limit?: number;
+    /**
+     * Format: int64
+     * @description The number of objects to skip before returning results. Used with `limit` for pagination.
+     */
+    offset?: number;
+    /**
+     * Format: int64
+     * @description Cut results off at the first steep drop in score (autocut). The value is the number of score jumps to allow before cutting.
+     */
+    autoLimit?: number;
+    /** @description The non-reference properties to return. Omitted returns all non-reference, non-blob properties; an empty array returns no properties. References are selected with `returnReferences`. */
+    returnProperties?: string[];
+    /** @description The cross-references to return under each result's `references` key. Each entry selects one reference property and what to return from the referenced objects. Omitted or empty returns no references. */
+    returnReferences?: definitions['SearchReferenceSelector'][];
+    /** @description The retrieval metadata to return under each result's `metadata` key. The object `id` is always returned as each result's `id` field. Omitted or empty returns no `metadata` block. */
+    returnMetadata?: (
+      | 'distance'
+      | 'certainty'
+      | 'score'
+      | 'explainScore'
+      | 'creationTime'
+      | 'lastUpdateTime'
+    )[];
+    /** @description The tenant to search in a multi-tenant collection. */
+    tenant?: string;
+    /**
+     * @description The consistency level for the read.
+     * @enum {string}
+     */
+    consistencyLevel?: 'ONE' | 'QUORUM' | 'ALL';
+    /** @description Reserved for per-object retrieval-augmented generation. Returns 422 (not yet supported). */
+    singlePrompt?: string;
+    /** @description Reserved for grouped retrieval-augmented generation. Returns 422 (not yet supported). */
+    groupedTask?: string;
+    /** @description Reserved for grouped search. Returns 422 (not yet supported). */
+    groupBy?: string;
+    /**
+     * Format: int64
+     * @description Reserved for grouped search. Returns 422 (not yet supported).
+     */
+    numberOfGroups?: number;
+    /**
+     * Format: int64
+     * @description Reserved for grouped search. Returns 422 (not yet supported).
+     */
+    objectsPerGroup?: number;
+    /** @description Reserved for reranking. Returns 422 (not yet supported). */
+    rerank?: definitions['SearchRerank'];
+  };
+  /** @description Reserved for reranking. Returns 422 (not yet supported). */
+  SearchRerank: {
+    /** @description The property to rerank on. */
+    property: string;
+    /** @description The query to rerank with. Defaults to the search query. */
+    query?: string;
+  };
+  /** @description Selects one cross-reference to return, and what to return from each referenced object. */
+  SearchReferenceSelector: {
+    /** @description The reference property to follow. */
+    linkOn: string;
+    /** @description The referenced collection to select. Required when `linkOn` is a multi-target reference. */
+    targetCollection?: string;
+    /** @description The non-reference properties to return from each referenced object. Omitted returns all non-reference, non-blob properties of the referenced collection; an empty array returns no properties. */
+    returnProperties?: string[];
+    /** @description The metadata to return under each referenced object's `metadata` key. Omitted or empty returns no `metadata` block. */
+    returnMetadata?: ('id' | 'creationTime' | 'lastUpdateTime')[];
+    /** @description The cross-references to return from each referenced object. Nesting deeper than `QUERY_CROSS_REFERENCE_DEPTH_LIMIT` is rejected. */
+    returnReferences?: definitions['SearchReferenceSelector'][];
+  };
+  /** @description Request body for the hybrid search endpoint. Combines a keyword (BM25F) search and a vector search over the same query string, fusing both rankings into one result list. Extends the shared search fields (`SearchCommon`) with the hybrid-specific `query`, `alpha`, `fusionType`, `maxVectorDistance`, `queryProperties`, `targetVector` and `vector`. */
+  SearchHybridRequest: definitions['SearchCommon'] & {
+    /** @description The query, as a plain string. It is scored with BM25F for the keyword part of the search and vectorized server-side for the vector part, unless `vector` is supplied. Must not be empty. */
+    query: string;
+    /**
+     * Format: float64
+     * @description The weight of the vector part of the search, between 0 and 1. `0` is a pure keyword search, `1` a pure vector search. Omitted defaults to `0.75`. With `0`, or with `vector` supplied, the query is never vectorized, so a collection without a vectorizer module is searchable.
+     */
+    alpha?: number;
+    /**
+     * @description The algorithm that fuses the keyword and vector rankings: `ranked` (reciprocal-rank fusion) or `relativeScore` (normalized-score fusion). Omitted defaults to `relativeScore`.
+     * @enum {string}
+     */
+    fusionType?: 'ranked' | 'relativeScore';
+    /**
+     * Format: float64
+     * @description The maximum vector distance of a match: objects farther than this from the query vector are excluded, from the keyword ranking too.
+     */
+    maxVectorDistance?: number;
+    /** @description The properties the keyword part of the search scores against, each optionally weighted with a `^boost` suffix (e.g. `title^2`). Omitted or empty searches every searchable text property. A property without a searchable index is rejected with 422. */
+    queryProperties?: string[];
+    /** @description The named vector to search. Required when the collection has more than one named vector. */
+    targetVector?: string;
+    /** @description The query vector for the vector part of the search, used instead of vectorizing `query`. A non-empty array of numbers that fit a 32-bit float, e.g. `[0.12, -0.3, 0.98]`. It must have the dimensionality of the vector space it is searched against, that is of the collection's (target) vector. Requires `alpha` > 0. */
+    vector?: unknown;
+  };
+  /** @description Request body for the near-object search endpoint. The stored vector of an existing object (the source object, referenced by `id`) anchors the search and the closest objects are returned. No query is vectorized — collections without a vectorizer module are fully searchable. Extends the shared search fields (`SearchCommon`) with the near-object-specific `id`, `certainty`, `distance` and `targetVector`. */
+  SearchNearObjectRequest: definitions['SearchCommon'] & {
+    /**
+     * Format: uuid
+     * @description The UUID of the source object whose stored vector anchors the search. A structurally invalid UUID is rejected at request validation; a well-formed UUID that matches no object in the collection is rejected with 400.
+     */
+    id: string;
+    /**
+     * Format: float64
+     * @description Minimum normalized certainty of a match. Only for cosine-distance vector indexes. Mutually exclusive with `distance`.
+     */
+    certainty?: number;
+    /**
+     * Format: float64
+     * @description Maximum vector distance of a match. Mutually exclusive with `certainty`.
+     */
+    distance?: number;
+    /** @description The named vector to search (the source object's vector for this name anchors the search). Required when the collection has more than one named vector. */
+    targetVector?: string;
+  };
+  /** @description Request body for the near-text search endpoint. The query is vectorized server-side by the collection's vectorizer module and the closest objects are returned. Extends the shared search fields (`SearchCommon`) with the near-text-specific `query`, `certainty`, `distance` and `targetVector`. */
+  SearchNearTextRequest: definitions['SearchCommon'] & {
+    /** @description The concept(s) to search for, as an array of strings. Multiple entries perform a multi-concept search. A single concept is a one-element array, e.g. `["space opera"]`. */
+    query: string[];
+    /**
+     * Format: float64
+     * @description Minimum normalized certainty of a match. Only for cosine-distance vector indexes. Mutually exclusive with `distance`.
+     */
+    certainty?: number;
+    /**
+     * Format: float64
+     * @description Maximum vector distance of a match. Mutually exclusive with `certainty`.
+     */
+    distance?: number;
+    /** @description The named vector to search. Required when the collection has more than one named vector. */
+    targetVector?: string;
+  };
+  /** @description Request body for the near-vector search endpoint. The caller supplies the query vector and the closest objects are returned. No query is vectorized — collections without a vectorizer module are fully searchable. Extends the shared search fields (`SearchCommon`) with the near-vector-specific `vector`, `certainty`, `distance` and `targetVector`. */
+  SearchNearVectorRequest: definitions['SearchCommon'] & {
+    /** @description The query vector, as a non-empty array of numbers that fit a 32-bit float, e.g. `[0.12, -0.3, 0.98]`. It must have the dimensionality of the vector space it is searched against, that is of the collection's (target) vector. */
+    vector: unknown;
+    /**
+     * Format: float64
+     * @description Minimum normalized certainty of a match. Only for cosine-distance vector indexes. Mutually exclusive with `distance`.
+     */
+    certainty?: number;
+    /**
+     * Format: float64
+     * @description Maximum vector distance of a match. Mutually exclusive with `certainty`.
+     */
+    distance?: number;
+    /** @description The named vector to search (the query vector is compared against the vectors stored under this name, and must match their dimensionality). Required when the collection has more than one named vector. */
+    targetVector?: string;
+  };
+  /** @description The result of a REST search: the matched objects as `{id, properties, references, metadata}` envelopes, plus the server-side processing time. Shared by all REST search endpoints. */
+  SearchResponse: {
+    /** @description The matched objects, ordered by relevance. */
+    results: definitions['SearchResultObject'][];
+    /**
+     * Format: int64
+     * @description Server-side processing time in milliseconds.
+     */
+    tookMs: number;
+  };
+  /** @description The retrieval metadata of a single search hit, populated according to `returnMetadata`. Every field is optional and only present when it was requested and is computable for the search. */
+  SearchResultMetadata: {
+    /**
+     * Format: float
+     * @description The vector distance between the hit and the query.
+     */
+    distance?: number;
+    /**
+     * Format: double
+     * @description The normalized certainty of the hit. Only computable on cosine-distance vector indexes.
+     */
+    certainty?: number;
+    /**
+     * Format: float
+     * @description The relevance score of the hit.
+     */
+    score?: number;
+    /** @description An explanation of how the score was computed. */
+    explainScore?: string;
+    /**
+     * Format: int64
+     * @description The object's creation time, as epoch milliseconds.
+     */
+    creationTime?: number;
+    /**
+     * Format: int64
+     * @description The object's last-update time, as epoch milliseconds.
+     */
+    lastUpdateTime?: number;
+  };
+  /** @description The metadata of a referenced object, populated according to the selector's `returnMetadata`. Every field is optional and only present when it was requested. */
+  SearchResultReferenceMetadata: {
+    /**
+     * Format: uuid
+     * @description The referenced object's UUID.
+     */
+    id?: string;
+    /**
+     * Format: int64
+     * @description The referenced object's creation time, as epoch milliseconds.
+     */
+    creationTime?: number;
+    /**
+     * Format: int64
+     * @description The referenced object's last-update time, as epoch milliseconds.
+     */
+    lastUpdateTime?: number;
+  };
+  /** @description One referenced object: the selected non-reference properties under `properties`, deeper cross-references under `references`, and the requested metadata under `metadata`. */
+  SearchResultReference: {
+    /** @description The collection the referenced object belongs to. Returned for multi-target references. */
+    collection?: string;
+    /** @description The selected non-reference properties of the referenced object; nested (object / object[]) properties are pruned to the selected nested fields. Always present — `{}` when the selector selects no properties. */
+    properties: { [key: string]: definitions['JsonObject'] };
+    /** @description The cross-references selected one hop deeper. Omitted when the selector selects none, or when the referenced object has no entry for any of them. */
+    references?: { [key: string]: definitions['SearchResultReference'][] };
+    metadata?: definitions['SearchResultReferenceMetadata'];
+  };
+  /** @description A single search hit: the object's `id` (always returned), the selected non-reference properties under `properties`, the selected cross-references under `references`, and the requested retrieval metadata under `metadata`. */
+  SearchResultObject: {
+    /**
+     * Format: uuid
+     * @description The object's UUID. Always returned.
+     */
+    id: string;
+    /** @description The selected non-reference properties of the object; nested (object / object[]) properties are pruned to the selected nested fields. Always present — `{}` when the request selects no properties. */
+    properties: { [key: string]: definitions['JsonObject'] };
+    /** @description The selected cross-references: reference property name to the array of referenced objects. Omitted when the request selects no references, or when the hit has no entry for any of the selected references. */
+    references?: { [key: string]: definitions['SearchResultReference'][] };
+    metadata?: definitions['SearchResultMetadata'];
+  };
 }
 
 export interface parameters {
@@ -2513,7 +3055,7 @@ export interface parameters {
   CommonSortParameterQuery: string;
   /** @description Order parameter to tell how to order (asc or desc) data within given field. Should be used in conjunction with `sort` parameter. If providing multiple `sort` values, provide multiple `order` values in corresponding order, e.g.: `sort=author_name,title&order=desc,asc`. */
   CommonOrderParameterQuery: string;
-  /** @description The collection from which to query objects.  <br/><br/>Note that if the collection name (`class`) is not provided, the response will not include any objects. */
+  /** @description The collection from which to list objects. <br/><br/>**Note**: Omitting `class` is deprecated and will be removed in a future version. Without `class`, the endpoint lists objects across all collections and does not support the `after` cursor. Some cluster configurations do not support a request without `class`. */
   CommonClassParameterQuery: string;
   /**
    * @description Controls the verbosity of the output, possible values are: `minimal`, `verbose`. Defaults to `minimal`.
@@ -2570,6 +3112,10 @@ export interface operations {
       401: unknown;
       /** Forbidden */
       403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** The collection has a reindex or vector-index-drop task that has not reached a terminal state, and the two cannot run at the same time. GET /tasks reports the task and its status to callers who can read the collection. */
+      409: {
         schema: definitions['ErrorResponse'];
       };
       /** The request syntax is correct, but the server couldn't process it due to semantic issues. Please check the values in your request. */
@@ -2643,6 +3189,10 @@ export interface operations {
       };
       /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
       500: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Replica movement operations are disabled. */
+      501: {
         schema: definitions['ErrorResponse'];
       };
     };
@@ -2904,11 +3454,139 @@ export interface operations {
       404: {
         schema: definitions['ErrorResponse'];
       };
+      /** The collection has a reindex or vector-index-drop task that has not reached a terminal state, and the plan copies a replica, so the plan was stopped before that copy: the two cannot run at the same time. GET /tasks reports the task and its status to callers who can read the collection. None of the plan's replica removals or empty additions was applied. */
+      409: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** The plan copies a replica that cannot be copied: the collection has no such shard, the source node does not hold it, or the target node already holds it. The plan also gets this response when it copies a replica and the collection's namespace is suspended or being deleted. None of the plan's replica removals or empty additions was applied. */
+      422: {
+        schema: definitions['ErrorResponse'];
+      };
       /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
       500: {
         schema: definitions['ErrorResponse'];
       };
       /** Replica movement operations are disabled. */
+      501: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
+  /** Returns the cluster's rebalance plan, including the node measurements and baseline balance taken by its planning run. */
+  getRebalancePlan: {
+    parameters: {
+      header: {
+        /** If true, the read goes through the cluster leader for read-your-writes. If false, the node serving the request answers from its local state, which can lag the leader. Default is false. */
+        consistency?: boolean;
+      };
+    };
+    responses: {
+      /** The rebalance plan. */
+      200: {
+        schema: definitions['ReplicationRebalancePlan'];
+      };
+      /** Forbidden */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** No rebalance plan exists. */
+      404: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
+  /** Creates the cluster's rebalance plan in the `PLANNING` state and starts an asynchronous planning run. The run measures the listed source and target nodes and decides whether their shard replicas need rebalancing. GET /replication/rebalance reports the plan and its outcome. A new plan replaces a finished one; an unfinished plan blocks it. */
+  createRebalancePlan: {
+    parameters: {
+      body: {
+        body?: definitions['ReplicationRebalanceRequest'];
+      };
+    };
+    responses: {
+      /** Rebalance plan created and planning started. ID of the plan is returned. */
+      202: {
+        schema: definitions['ReplicationRebalanceCreateResponse'];
+      };
+      /** Malformed request: a node list is empty or repeats a node, or a node appears in both `sourceNodes` and `targetNodes`. */
+      400: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Forbidden */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** An unfinished rebalance plan exists. GET /replication/rebalance reports it. */
+      409: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** A listed node is not a live storage node. The ErrorResponse holds one entry per failing node. */
+      422: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Replica movement or replica rebalancing is disabled. */
+      501: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
+  /** Removes the cluster's rebalance plan. Only a `PROPOSED` plan or a plan in an end state can be deleted; stop a `PLANNING` plan first. Succeeds when no plan exists. */
+  deleteRebalancePlan: {
+    responses: {
+      /** Successfully deleted, or no plan existed. */
+      204: never;
+      /** Forbidden */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** The plan is not in a deletable state, e.g. it is `PLANNING`. */
+      409: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
+  /** Stops the cluster's rebalance plan while it is `PLANNING`. The plan ends `STOPPED` and the result of its planning run is discarded. */
+  stopRebalancePlan: {
+    responses: {
+      /** Rebalance plan stopped. */
+      202: unknown;
+      /** Forbidden */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** No rebalance plan exists. */
+      404: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** The plan is not in a stoppable state: only a `PLANNING` plan can be stopped. */
+      409: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
+  /** Approves a `PROPOSED` rebalance plan for execution. Approval is not implemented yet and always answers 501. */
+  approveRebalancePlan: {
+    responses: {
+      /** Forbidden */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Approving a rebalance plan is not implemented. */
       501: {
         schema: definitions['ErrorResponse'];
       };
@@ -2950,6 +3628,61 @@ export interface operations {
       401: unknown;
       /** Forbidden */
       403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
+  /** Experimental: this endpoint may change or be removed without notice. Export every database (`db` user type) user's API-key credential for migration to another cluster. Strong-key users carry their argon2id key hash; imported/weak and revoked users are reported with a null hash and a status naming why they cannot be migrated. Root users only. */
+  exportUsers: {
+    responses: {
+      /** The exported user credentials. */
+      200: {
+        schema: definitions['UserExportResponse'];
+      };
+      /** Unauthorized or invalid credentials. */
+      401: unknown;
+      /** Forbidden */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** The request syntax is correct, but the server couldn't process it due to semantic issues. Please check the values in your request. */
+      422: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
+  /** Experimental: this endpoint may change or be removed without notice. Recreate exported database (`db` user type) user credentials on this cluster under a target namespace. Each user is created with its original key hash so the source key keeps working. Returns a per-user result. Only strong-key records are importable. Root users only. */
+  importUsers: {
+    parameters: {
+      body: {
+        body: definitions['UserImportRequest'];
+      };
+    };
+    responses: {
+      /** The per-user import results. */
+      200: {
+        schema: definitions['UserImportResponse'];
+      };
+      /** Malformed request. */
+      400: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Unauthorized or invalid credentials. */
+      401: unknown;
+      /** Forbidden, or a record sets `expiresAt` and the node holds no Weaviate license key. */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** The request syntax is correct, but the server couldn't process it due to semantic issues. Please check the values in your request. */
+      422: {
         schema: definitions['ErrorResponse'];
       };
       /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
@@ -3012,6 +3745,11 @@ export interface operations {
            * @description EXPERIMENTAL, DONT USE. THIS WILL BE REMOVED AGAIN. - set the given time as creation time
            */
           createTime?: string;
+          /**
+           * Format: date-time
+           * @description Date and time in ISO 8601 format at which the user's API key stops authenticating, stored in UTC with millisecond precision. It must be in the future. Setting it needs a Weaviate license key on the node, else the request answers 403. On a node with a license key, a request that also sets `import` to true answers 422. Absent means the key never expires.
+           */
+          expiresAt?: string;
         };
       };
     };
@@ -3026,7 +3764,7 @@ export interface operations {
       };
       /** Unauthorized or invalid credentials. */
       401: unknown;
-      /** Forbidden */
+      /** Forbidden, or the body sets `expiresAt` and the node holds no Weaviate license key. */
       403: {
         schema: definitions['ErrorResponse'];
       };
@@ -3185,6 +3923,51 @@ export interface operations {
       404: unknown;
       /** User already deactivated. */
       409: unknown;
+      /** The request syntax is correct, but the server couldn't process it due to semantic issues. Please check the values in your request. */
+      422: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
+  /** Set or clear the time at which a database user's (`db` user type) API key stops authenticating. The body sets exactly one of `expiresAt`, which must be in the future, and `neverExpires`, which must be true and clears the expiry. Any other body answers 422, and so do the caller's own user, root users and static users. A node without a Weaviate license key answers 403, so an expired user can then only be deleted and re-created. */
+  setUserExpiration: {
+    parameters: {
+      path: {
+        /** The name of the user. */
+        user_id: string;
+      };
+      body: {
+        /** Set exactly one of `expiresAt` and `neverExpires`. */
+        body: {
+          /**
+           * Format: date-time
+           * @description Date and time in ISO 8601 format, stored in UTC with millisecond precision, at which the user's API key stops authenticating. It must be in the future.
+           */
+          expiresAt?: string;
+          /** @description True clears the user's expiry, so the API key never expires. False answers 422. */
+          neverExpires?: boolean;
+        };
+      };
+    };
+    responses: {
+      /** User expiration successfully set. */
+      200: unknown;
+      /** Malformed request. */
+      400: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Unauthorized or invalid credentials. */
+      401: unknown;
+      /** Forbidden, because the caller lacks the permission or the node has no Weaviate license key. */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** User not found. */
+      404: unknown;
       /** The request syntax is correct, but the server couldn't process it due to semantic issues. Please check the values in your request. */
       422: {
         schema: definitions['ErrorResponse'];
@@ -3417,6 +4200,8 @@ export interface operations {
       403: {
         schema: definitions['ErrorResponse'];
       };
+      /** No role found. */
+      404: unknown;
       /** The request syntax is correct, but the server couldn't process it due to semantic issues. Please check the values in your request. */
       422: {
         schema: definitions['ErrorResponse'];
@@ -3618,7 +4403,7 @@ export interface operations {
   assignRoleToUser: {
     parameters: {
       path: {
-        /** The name of the user. */
+        /** The name of the user. Must not contain ',', '"' or control characters, and must be at most 256 bytes. */
         id: string;
       };
       body: {
@@ -3694,7 +4479,7 @@ export interface operations {
   assignRoleToGroup: {
     parameters: {
       path: {
-        /** The name of the group. */
+        /** The name of the group. Must not contain ',', '"' or control characters, and must be at most 256 bytes. */
         id: string;
       };
       body: {
@@ -3836,7 +4621,7 @@ export interface operations {
       };
     };
   };
-  /** Retrieves a list of data objects. By default, objects are returned in reverse order of creation. Requires a collection name (`class`) parameter to specify which collection's objects to list, otherwise, returns an empty list. */
+  /** Retrieves a list of data objects from the collection named in the `class` parameter. By default, objects are returned in reverse order of creation. <br/><br/>**Note**: Calling this endpoint without `class` is deprecated and will be removed in a future version. Without `class`, it lists objects across all collections. Some cluster configurations do not support a request without `class`. */
   'objects.list': {
     parameters: {
       query: {
@@ -3852,14 +4637,14 @@ export interface operations {
         sort?: parameters['CommonSortParameterQuery'];
         /** Order parameter to tell how to order (asc or desc) data within given field. Should be used in conjunction with `sort` parameter. If providing multiple `sort` values, provide multiple `order` values in corresponding order, e.g.: `sort=author_name,title&order=desc,asc`. */
         order?: parameters['CommonOrderParameterQuery'];
-        /** The collection from which to query objects.  <br/><br/>Note that if the collection name (`class`) is not provided, the response will not include any objects. */
+        /** The collection from which to list objects. <br/><br/>**Note**: Omitting `class` is deprecated and will be removed in a future version. Without `class`, the endpoint lists objects across all collections and does not support the `after` cursor. Some cluster configurations do not support a request without `class`. */
         class?: parameters['CommonClassParameterQuery'];
         /** Specifies the tenant in a request targeting a multi-tenant collection (class). */
         tenant?: parameters['CommonTenantParameterQuery'];
       };
     };
     responses: {
-      /** Successful response containing the list of objects. If the collection name (`class`) is not provided, the response will not include any objects. */
+      /** Successful response containing the list of objects. */
       200: {
         schema: definitions['ObjectsListResponse'];
       };
@@ -3893,7 +4678,7 @@ export interface operations {
   'objects.create': {
     parameters: {
       body: {
-        /** The object to be created. */
+        /** The object to be created. `class` is required. */
         body: definitions['Object'];
       };
       query: {
@@ -4614,7 +5399,7 @@ export interface operations {
   'objects.validate': {
     parameters: {
       body: {
-        /** The object definition to validate. */
+        /** The object definition to validate. `class` is required. */
         body: definitions['Object'];
       };
     };
@@ -4645,7 +5430,7 @@ export interface operations {
         body: {
           /** @description Controls which fields are returned in the response for each object. Default is `ALL`. */
           fields?: ('ALL' | 'class' | 'schema' | 'id' | 'creationTimeUnix')[];
-          /** @description Array of objects to be created. */
+          /** @description Array of objects to be created. Each object needs a `class`; an object without one fails on its own and the rest of the batch is still imported. */
           objects?: definitions['Object'][];
         };
       };
@@ -5064,7 +5849,7 @@ export interface operations {
       };
     };
   };
-  /** Returns per-property index state including active reindex progress. This powers the UI to show live migration status. */
+  /** Returns per-property index state including active reindex progress. This powers the UI to show live migration status. The response reflects the state of the node that answered, which may briefly omit the entry for a just-submitted migration or still report its pre-migration state. */
   'schema.objects.indexes.get': {
     parameters: {
       path: {
@@ -5084,33 +5869,45 @@ export interface operations {
       };
       /** Collection not found. */
       404: unknown;
+      /** Invalid collection name provided (e.g. malformed namespace prefix). Check the ErrorResponse for details. */
+      422: {
+        schema: definitions['ErrorResponse'];
+      };
       /** An error occurred. */
       500: {
         schema: definitions['ErrorResponse'];
       };
     };
   };
-  /** Declaratively sets the desired index state for a property. The system computes the diff from the current state and triggers the appropriate reindex task. */
-  'schema.objects.indexes.update': {
+  /** Upserts the inverted index of a property, identified by `indexName`. The body describes the desired index configuration; the server diffs it against the current state and either creates the index, migrates its configuration, or does nothing. Index-mutating work is asynchronous: a `202` with a task ID is returned when a reindex task is submitted, and `200` with `{"status":"NO_OP"}` is returned when the desired configuration is already in place. `indexName` accepts `rangeable` as an alias for `rangeFilters`. */
+  'schema.objects.index.upsert': {
     parameters: {
       path: {
+        /** The name of the collection (class) containing the property. */
         className: string;
+        /** The name of the property whose inverted index should be upserted. */
         propertyName: string;
+        /** The inverted index type to upsert. `rangeable` is accepted as a write-path alias for `rangeFilters`. */
+        indexName: 'filterable' | 'searchable' | 'rangeFilters' | 'rangeable';
       };
       query: {
-        /** Tenant names to target. Only for non-semantic operations on multi-tenant collections. Omit to target all tenants. */
+        /** Tenant names to target. Never valid on PUT: every migration this endpoint can submit is semantic, and semantic migrations are always cluster-wide, so passing tenants is rejected with a `400`. Tenant scoping remains available on the `/rebuild` variant. */
         tenants?: string[];
       };
       body: {
-        body: definitions['IndexUpdateRequest'];
+        body: definitions['IndexUpsertRequest'];
       };
     };
     responses: {
-      /** Reindex task submitted. */
+      /** Desired configuration already in place AND no reindex task in flight; no task submitted. Body carries `{"status":"NO_OP"}`. */
+      200: {
+        schema: definitions['IndexUpdateResponse'];
+      };
+      /** A reindex task is running for the requested configuration; the body carries its `taskId` with `{"status":"STARTED"}`. A request converging on an already-running migration joins it and receives that task's ID. */
       202: {
         schema: definitions['IndexUpdateResponse'];
       };
-      /** Invalid request. */
+      /** Validation failure; the message carries an actionable hint. */
       400: {
         schema: definitions['ErrorResponse'];
       };
@@ -5120,25 +5917,33 @@ export interface operations {
       403: {
         schema: definitions['ErrorResponse'];
       };
-      /** Collection or property not found. cancel:true with nothing to cancel returns 202 with Status: NO_OP instead — 404 is reserved for missing collection/property. */
+      /** Unknown collection or property. */
       404: {
         schema: definitions['ErrorResponse'];
       };
-      /** Conflicting reindex task already running. */
+      /** Nothing was started: the collection has a conflicting in-flight reindex task, has a replica movement in flight, or had its shards or replicas change while the reindex was submitted; or an earlier run of a migration stopped after some tenants migrated an index of this property, which only a resubmit of that migration finishes. The message says which. */
       409: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Invalid `indexName` path value. */
+      422: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Per-collection cap of concurrent active reindex tasks reached. */
+      429: {
         schema: definitions['ErrorResponse'];
       };
       /** An error occurred. */
       500: {
         schema: definitions['ErrorResponse'];
       };
-      /** Distributed tasks not enabled. */
+      /** Cluster service unavailable; an in-flight task's payload cannot be parsed so conflict-freedom cannot be proven; or a local worker of an earlier task on this property did not exit within 10 seconds (typically right after a cancel), so retry shortly. */
       503: {
         schema: definitions['ErrorResponse'];
       };
     };
   };
-  /** Deletes an inverted index of a specific property within a collection (`className`). The index to delete is identified by `indexName` and must be one of `filterable`, `searchable`, or `rangeFilters`. */
+  /** Deletes an inverted index of a specific property within a collection (`className`). The index to delete is identified by `indexName` and must be one of `filterable`, `searchable`, or `rangeFilters` (with `rangeable` accepted as an alias for `rangeFilters`). */
   'schema.objects.properties.delete': {
     parameters: {
       path: {
@@ -5146,8 +5951,8 @@ export interface operations {
         className: string;
         /** The name of the property whose inverted index should be deleted. */
         propertyName: string;
-        /** The name of the inverted index to delete from the property. */
-        indexName: 'filterable' | 'searchable' | 'rangeFilters';
+        /** The name of the inverted index to delete from the property. `rangeable` is accepted as a write-path alias for `rangeFilters`. */
+        indexName: 'filterable' | 'searchable' | 'rangeFilters' | 'rangeable';
       };
     };
     responses: {
@@ -5159,12 +5964,114 @@ export interface operations {
       403: {
         schema: definitions['ErrorResponse'];
       };
-      /** Invalid index, property or collection provided. */
+      /** Invalid index, property or collection provided, or a reindex on this property is in flight or left partial; the message names the remedy. */
       422: {
         schema: definitions['ErrorResponse'];
       };
       /** An error occurred while deleting the index. Check the ErrorResponse for details. */
       500: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
+  /** Rebuilds the inverted index from the stored objects with its current configuration (repair / format refresh). No request body. Index-mutating work is asynchronous: a `202` with a task ID is returned. `indexName` accepts `rangeable` as an alias for `rangeFilters`. */
+  'schema.objects.index.rebuild': {
+    parameters: {
+      path: {
+        /** The name of the collection (class) containing the property. */
+        className: string;
+        /** The name of the property whose inverted index should be rebuilt. */
+        propertyName: string;
+        /** The inverted index type to rebuild. `rangeable` is accepted as a write-path alias for `rangeFilters`. */
+        indexName: 'filterable' | 'searchable' | 'rangeFilters' | 'rangeable';
+      };
+      query: {
+        /** Tenant names to target. Allowed for all index types on multi-tenant collections (rebuilds are format-only). Omit to target all tenants. */
+        tenants?: string[];
+      };
+    };
+    responses: {
+      /** Reindex task submitted. */
+      202: {
+        schema: definitions['IndexUpdateResponse'];
+      };
+      /** Validation failure; the message carries an actionable hint. */
+      400: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Unauthorized or invalid credentials. */
+      401: unknown;
+      /** Forbidden */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Unknown collection or property. */
+      404: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Nothing was started: the collection has a conflicting in-flight reindex task, has a replica movement in flight, or had its shards or replicas change while the reindex was submitted; or an earlier run of a migration stopped after some tenants migrated an index of this property, which only a resubmit of that migration finishes. The message says which. */
+      409: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Invalid `indexName` path value. */
+      422: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Per-collection cap of concurrent active reindex tasks reached. */
+      429: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** An error occurred. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Cluster service unavailable; an in-flight task's payload cannot be parsed so conflict-freedom cannot be proven; or a local worker of an earlier task on this property did not exit within 10 seconds (typically right after a cancel), so retry shortly. */
+      503: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
+  /** Cancels the in-flight reindex task targeting this property's index. No request body. Idempotent: succeeds whether or not a task was in flight (a `202` with `{"status":"NO_OP"}` is returned when there is nothing to cancel). A task that is in flight but no longer cancellable is refused with `409`. `indexName` accepts `rangeable` as an alias for `rangeFilters`. */
+  'schema.objects.index.cancel': {
+    parameters: {
+      path: {
+        /** The name of the collection (class) containing the property. */
+        className: string;
+        /** The name of the property whose reindex task should be cancelled. */
+        propertyName: string;
+        /** The inverted index type whose in-flight task should be cancelled. `rangeable` is accepted as a write-path alias for `rangeFilters`. */
+        indexName: 'filterable' | 'searchable' | 'rangeFilters' | 'rangeable';
+      };
+    };
+    responses: {
+      /** Cancellation processed. Body carries `{"status":"CANCELLED","taskId":...}` when a STARTED or PREPARING task was cancelled, or `{"status":"NO_OP"}` when there was nothing to cancel. */
+      202: {
+        schema: definitions['IndexUpdateResponse'];
+      };
+      /** Unauthorized or invalid credentials. */
+      401: unknown;
+      /** Forbidden */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Unknown collection or property. "Nothing to cancel" is NOT a 404 — it returns 202 with status NO_OP. */
+      404: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** The target task could not be cancelled, and this request cancelled nothing. This happens for one of three reasons. It has reached SWAPPING, so it can no longer be cancelled; it ends once every replica that owes a swap has swapped, and a node lost for good, or a swap that never succeeds, holds it. It carries a status this build does not recognize and has to terminate on the nodes that do. Or it stopped being cancellable between the read and the cancel, and it isn't possible to tell whether it reached such a status or a terminal one, possibly CANCELLED if a concurrent cancel won the race — re-read the index status to see where it landed. */
+      409: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Invalid `indexName` path value. */
+      422: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** An error occurred. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Cluster service unavailable. */
+      503: {
         schema: definitions['ErrorResponse'];
       };
     };
@@ -5261,6 +6168,10 @@ export interface operations {
       };
       /** Collection not found. */
       404: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Invalid collection name provided (e.g. malformed namespace prefix). Check the ErrorResponse for details. */
+      422: {
         schema: definitions['ErrorResponse'];
       };
       /** An error occurred while retrieving shard statuses. Check the ErrorResponse for details. */
@@ -5671,7 +6582,7 @@ export interface operations {
       };
     };
   };
-  /** Retrieve the list of all namespaces the caller has permission to see. Callers without any applicable `manage_namespaces` permission receive an empty list (never 403). */
+  /** Retrieve the list of all namespaces the caller has permission to see. Callers without any applicable `manage_namespaces` permission receive an empty list rather than 403. */
   listNamespaces: {
     responses: {
       /** Successfully retrieved the list of namespaces (possibly empty). */
@@ -5680,6 +6591,10 @@ export interface operations {
       };
       /** Unauthorized or invalid credentials. */
       401: unknown;
+      /** Forbidden: no well-formed Weaviate license key is configured on this node */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
       /** Not Found - The namespaces feature is not enabled on this cluster. */
       404: {
         schema: definitions['ErrorResponse'];
@@ -5709,7 +6624,7 @@ export interface operations {
       };
       /** Unauthorized or invalid credentials. */
       401: unknown;
-      /** Forbidden */
+      /** Forbidden: insufficient permissions, or no well-formed Weaviate license key is configured on this node */
       403: {
         schema: definitions['ErrorResponse'];
       };
@@ -5727,7 +6642,7 @@ export interface operations {
       };
     };
   };
-  /** Update a namespace's `home_node`. The new value applies to future placement decisions only (new collection create, new tenant create, tenant reactivation). Existing live shards are not moved. */
+  /** Update a namespace's `home_nodes`. The new list replaces the namespace's list and applies to future placement decisions only (new collection create, new tenant create, offloaded-tenant reactivation). Existing live shards are not moved. */
   updateNamespace: {
     parameters: {
       path: {
@@ -5735,7 +6650,7 @@ export interface operations {
         namespace_id: string;
       };
       body: {
-        /** Required body. `home_node` is the new placement target. */
+        /** Required body. `home_nodes` replaces the namespace's list. */
         body: definitions['NamespaceUpdateRequest'];
       };
     };
@@ -5746,7 +6661,7 @@ export interface operations {
       };
       /** Unauthorized or invalid credentials. */
       401: unknown;
-      /** Forbidden */
+      /** Forbidden: insufficient permissions, or no well-formed Weaviate license key is configured on this node */
       403: {
         schema: definitions['ErrorResponse'];
       };
@@ -5754,11 +6669,7 @@ export interface operations {
       404: {
         schema: definitions['ErrorResponse'];
       };
-      /** The namespace is being deleted; `home_node` cannot be updated while the namespace is in the `deleting` state. */
-      409: {
-        schema: definitions['ErrorResponse'];
-      };
-      /** The request syntax is correct, but the server couldn't process it due to semantic issues (e.g. invalid name format, reserved name, or unknown home_node). */
+      /** The request syntax is correct, but the server couldn't process it due to semantic issues (e.g. invalid name format, reserved name, or the namespace being in the `deleting` state). A `home_nodes` list the cluster refuses, a body that sets both `home_nodes` and `home_node`, or a body that sets neither also answers 422. */
       422: {
         schema: definitions['ErrorResponse'];
       };
@@ -5776,7 +6687,7 @@ export interface operations {
         namespace_id: string;
       };
       body: {
-        /** Optional body. When omitted, `home_node` is picked automatically. */
+        /** Optional body. When neither `home_nodes` nor `home_node` is set, the cluster picks the home nodes. */
         body?: definitions['NamespaceCreateRequest'];
       };
     };
@@ -5787,7 +6698,7 @@ export interface operations {
       };
       /** Unauthorized or invalid credentials. */
       401: unknown;
-      /** Forbidden */
+      /** Forbidden: insufficient permissions, or no well-formed Weaviate license key is configured on this node */
       403: {
         schema: definitions['ErrorResponse'];
       };
@@ -5799,7 +6710,7 @@ export interface operations {
       409: {
         schema: definitions['ErrorResponse'];
       };
-      /** The request syntax is correct, but the server couldn't process it due to semantic issues (e.g. invalid name format or reserved name). */
+      /** The request syntax is correct, but the server couldn't process it due to semantic issues (e.g. invalid name format or reserved name). A `home_nodes` list the cluster refuses, or a body that sets both `home_nodes` and `home_node`, also answers 422. */
       422: {
         schema: definitions['ErrorResponse'];
       };
@@ -5809,7 +6720,7 @@ export interface operations {
       };
     };
   };
-  /** Mark a namespace for deletion. The endpoint is asynchronous: the namespace is flipped to the "deleting" state and its dynamic users are removed synchronously; classes and aliases are torn down by the leader on a periodic cleanup tick. Repeated calls while the namespace is still in the "deleting" state are idempotent and return 202. */
+  /** Mark a namespace for deletion. The endpoint is asynchronous: the namespace is flipped to the "deleting" state, which stops its dynamic users from authenticating; their rows, along with classes and aliases, are reclaimed by the leader on a periodic cleanup tick. Repeated calls while the namespace is still in the "deleting" state are idempotent and return 202. */
   deleteNamespace: {
     parameters: {
       path: {
@@ -5822,7 +6733,7 @@ export interface operations {
       202: unknown;
       /** Unauthorized or invalid credentials. */
       401: unknown;
-      /** Forbidden */
+      /** Forbidden: insufficient permissions, or no well-formed Weaviate license key is configured on this node */
       403: {
         schema: definitions['ErrorResponse'];
       };
@@ -5836,6 +6747,84 @@ export interface operations {
       };
       /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
       500: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
+  /** Move a namespace to the "suspended" state. Suspending stops the namespace's users from authenticating and blocks the creation of new classes, aliases, users, roles, and role assignments, but retains the namespace and everything it owns. Repeated calls against an already-suspended namespace are idempotent and return 202. Use the resume endpoint to return it to "active". */
+  suspendNamespace: {
+    parameters: {
+      path: {
+        /** The name of the namespace. */
+        namespace_id: string;
+      };
+    };
+    responses: {
+      /** The state change is committed and the namespace is suspended. */
+      202: unknown;
+      /** Unauthorized or invalid credentials. */
+      401: unknown;
+      /** Forbidden: insufficient permissions, or no well-formed Weaviate license key is configured on this node */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Not Found - Namespace does not exist, or the namespaces feature is not enabled on this cluster. */
+      404: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Another state change was applied to this namespace while this request was in flight, so it was not applied. Re-read the namespace and retry if the change is still wanted. */
+      409: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** The request syntax is correct, but the server couldn't process it due to semantic issues (e.g. invalid name format, reserved name, or a namespace that is being deleted). */
+      422: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** No cluster leader was reachable. The state change may or may not have been applied; re-read the namespace before retrying. */
+      503: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
+  /** Return a suspended namespace to the "active" state, so its dynamic users authenticate again and its resources accept writes. Repeated calls against an already-active namespace are idempotent and return 202. */
+  resumeNamespace: {
+    parameters: {
+      path: {
+        /** The name of the namespace. */
+        namespace_id: string;
+      };
+    };
+    responses: {
+      /** The state change is committed and the namespace is active. */
+      202: unknown;
+      /** Unauthorized or invalid credentials. */
+      401: unknown;
+      /** Forbidden: insufficient permissions, or no well-formed Weaviate license key is configured on this node */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Not Found - Namespace does not exist, or the namespaces feature is not enabled on this cluster. */
+      404: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Another state change was applied to this namespace while this request was in flight, so it was not applied. Re-read the namespace and retry if the change is still wanted. */
+      409: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** The request syntax is correct, but the server couldn't process it due to semantic issues (e.g. invalid name format, reserved name, or a namespace that is being deleted). */
+      422: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** No cluster leader was reachable. The state change may or may not have been applied; re-read the namespace before retrying. */
+      503: {
         schema: definitions['ErrorResponse'];
       };
     };
@@ -5929,11 +6918,11 @@ export interface operations {
       };
       /** Unauthorized or invalid credentials. */
       401: unknown;
-      /** Forbidden */
+      /** The caller lacks read_backups on a collection in the backup. Callers without read_backups on all collections also get 403 when no backup with this ID exists at this location, so a 403 does not confirm the backup exists. */
       403: {
         schema: definitions['ErrorResponse'];
       };
-      /** Backup not found on the specified backend with the given ID. */
+      /** No backup with this ID exists at this backend, bucket and path. Only callers with read_backups on all collections get 404; others get 403. */
       404: {
         schema: definitions['ErrorResponse'];
       };
@@ -6005,11 +6994,11 @@ export interface operations {
       };
       /** Unauthorized or invalid credentials. */
       401: unknown;
-      /** Forbidden */
+      /** The caller lacks read_backups on a collection in the backup. Callers without read_backups on all collections also get 403 when no backup with this ID exists at this location, so a 403 does not confirm the backup exists. */
       403: {
         schema: definitions['ErrorResponse'];
       };
-      /** Backup not found on the specified backend with the given ID. */
+      /** No restore of this backup was started at this backend, bucket and path. */
       404: {
         schema: definitions['ErrorResponse'];
       };
@@ -6375,25 +7364,356 @@ export interface operations {
       };
     };
   };
-  /** Opens an SSE stream for receiving MCP server-sent events. */
-  'mcp.get': {
-    responses: {
-      /** SSE event stream */
-      200: unknown;
-    };
-  };
-  /** MCP Streamable HTTP endpoint. Handles JSON-RPC requests for tool discovery and invocation. */
+  /** MCP Streamable HTTP endpoint. Handles JSON-RPC requests for tool discovery and invocation. Every request is authenticated on its own; no Mcp-Session-Id is issued or required. */
   'mcp.post': {
     responses: {
       /** JSON-RPC response or SSE stream */
       200: unknown;
+      /** MCP server is disabled */
+      503: {
+        schema: {
+          error?: string;
+        };
+      };
     };
   };
-  /** Terminates an MCP session. */
+  /** Accepted so clients that end their session explicitly keep working. The server keeps no session state, so there is nothing to terminate. */
   'mcp.delete': {
     responses: {
-      /** Session terminated */
+      /** Accepted; there is no session state to terminate */
       200: unknown;
+      /** MCP server is disabled */
+      503: {
+        schema: {
+          error?: string;
+        };
+      };
+    };
+  };
+  /** Aggregates over the objects of a collection. Phase 1 supports counts: the number of matching objects, either in total (flat `count` response) or per group of a `groupBy` property (`groups` response). A `where` filter limits the objects that are aggregated; an empty body returns the collection's total object count. */
+  aggregate: {
+    parameters: {
+      path: {
+        /** The name (or alias) of the collection to aggregate over. A lowercase first letter is normalized to the canonical uppercase form. */
+        collection: string;
+      };
+      body: {
+        /** The aggregate request. */
+        body: definitions['AggregateRequest'];
+      };
+    };
+    responses: {
+      /** Aggregation performed successfully. */
+      200: {
+        schema: definitions['AggregateResponse'];
+      };
+      /** An invalid parameter value (e.g. an unknown groupBy property, a non-positive limit, limit without groupBy, an unknown filter property) or an unparseable request body. */
+      400: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Unauthorized or invalid credentials. */
+      401: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Forbidden */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Unknown collection or tenant. */
+      404: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** The request body exceeded the 4194304 byte (4 MiB) limit. */
+      413: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Either a request-schema violation (an invalid enum or field type in the where filter), or a well-formed request that cannot run: a reserved (not yet supported) parameter or returnMetrics entry is present, the tenant usage does not match the collection's multi-tenancy configuration, or a where filter targets a property whose inverted index is disabled. */
+      422: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** The server is in an operational mode that blocks aggregations (e.g. WRITE_ONLY); retry once the server returns to normal operation. */
+      503: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
+  /** Performs a keyword (BM25F) search over the objects of a collection. Objects are scored against the query with the BM25F ranking function over the searchable text properties (all of them, or the `queryProperties` subset) and the best-scoring objects are returned, each as an envelope of its `id`, the selected `properties`, the selected `references` and, when requested, its retrieval `metadata`. */
+  'search.bm25': {
+    parameters: {
+      path: {
+        /** The name (or alias) of the collection to search. A lowercase first letter is normalized to the canonical uppercase form. */
+        collection: string;
+      };
+      body: {
+        /** The bm25 search request. */
+        body: definitions['SearchBm25Request'];
+      };
+    };
+    responses: {
+      /** Search performed successfully. */
+      200: {
+        schema: definitions['SearchResponse'];
+      };
+      /** An invalid parameter value (e.g. empty query, negative paging, unknown property) or an unparseable request body. */
+      400: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Unauthorized or invalid credentials. */
+      401: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Forbidden */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Unknown collection or tenant. */
+      404: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** The request body exceeded the 4194304 byte (4 MiB) limit. */
+      413: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Either a request-schema violation (a missing or null required `query`, or an invalid enum value), or a well-formed request that cannot run: a queried property has no searchable index, a reserved (not yet supported) parameter is present, the tenant usage does not match the collection's multi-tenancy configuration, or a where filter targets a property whose inverted index is disabled. */
+      422: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** The server's query rate limit was reached; retry later. */
+      429: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** The server is in an operational mode that blocks searches (e.g. WRITE_ONLY); retry once the server returns to normal operation. */
+      503: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
+  /** Performs a hybrid search over the objects of a collection: the query is scored with the BM25F ranking function over the searchable text properties (all of them, or the `queryProperties` subset) and, in parallel, vectorized server-side and searched against the vector index; the two rankings are fused (per `fusionType`, weighted by `alpha`) and the best objects are returned, each as an envelope of its `id`, the selected `properties`, the selected `references` and, when requested, its retrieval `metadata`. */
+  'search.hybrid': {
+    parameters: {
+      path: {
+        /** The name (or alias) of the collection to search. A lowercase first letter is normalized to the canonical uppercase form. */
+        collection: string;
+      };
+      body: {
+        /** The hybrid search request. */
+        body: definitions['SearchHybridRequest'];
+      };
+    };
+    responses: {
+      /** Search performed successfully. */
+      200: {
+        schema: definitions['SearchResponse'];
+      };
+      /** An invalid parameter value (e.g. empty query, alpha outside [0, 1], a vector that is empty, holds a non-number or a number outside the 32-bit float range, a vector with alpha 0, negative paging, unknown property) or an unparseable request body. */
+      400: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Unauthorized or invalid credentials. */
+      401: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Forbidden */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Unknown collection or tenant. */
+      404: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** The request body exceeded the 4194304 byte (4 MiB) limit. */
+      413: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Either a request-schema violation (a missing or null required `query`, or an invalid enum value), or a well-formed request that cannot run: no vectorizer module is configured for the collection while `alpha` is above 0 and no `vector` is supplied, the vector is a multi-vector (an array of vectors), the (target) vector searched is a multi-vector index, the vector does not have the dimensionality of the index searched, targetVector is missing on a multi-named-vector collection, a queried property has no searchable index, a reserved (not yet supported) parameter is present, the tenant usage does not match the collection's multi-tenancy configuration, or a where filter targets a property whose inverted index is disabled. */
+      422: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** The server's query rate limit was reached; retry later. */
+      429: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** An error has occurred while trying to fulfill the request, including a failure of the embedding provider to vectorize the query for the vector part of the search. Most likely the ErrorResponse will contain more information about the error. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** The server is in an operational mode that blocks searches (e.g. WRITE_ONLY); retry once the server returns to normal operation. */
+      503: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
+  /** Performs a similarity search over the objects of a collection, anchored at an existing object: the stored vector of the source object (referenced by `id`) is searched against the vector index and the closest objects are returned — the source object itself included — each as an envelope of its `id`, the selected `properties`, the selected `references` and, when requested, its retrieval `metadata`. No query is vectorized, so collections without a vectorizer module are fully searchable. */
+  'search.nearObject': {
+    parameters: {
+      path: {
+        /** The name (or alias) of the collection to search. A lowercase first letter is normalized to the canonical uppercase form. */
+        collection: string;
+      };
+      body: {
+        /** The near-object search request. */
+        body: definitions['SearchNearObjectRequest'];
+      };
+    };
+    responses: {
+      /** Search performed successfully. */
+      200: {
+        schema: definitions['SearchResponse'];
+      };
+      /** An invalid parameter value (e.g. an id that matches no object in the collection, negative paging, unknown property) or an unparseable request body. */
+      400: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Unauthorized or invalid credentials. */
+      401: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Forbidden */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Unknown collection or tenant. */
+      404: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** The request body exceeded the 4194304 byte (4 MiB) limit. */
+      413: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Either a request-schema violation (a missing, null or structurally invalid required `id`, or an invalid enum value), or a well-formed request that cannot run: the source object has no stored vector for the (target) vector searched, targetVector is missing on a multi-named-vector collection, certainty is used on a non-cosine index, a reserved (not yet supported) parameter is present, the tenant usage does not match the collection's multi-tenancy configuration, or a where filter targets a property whose inverted index is disabled. */
+      422: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** The server's query rate limit was reached; retry later. */
+      429: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** The server is in an operational mode that blocks searches (e.g. WRITE_ONLY); retry once the server returns to normal operation. */
+      503: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
+  /** Performs a semantic (near-text) search over the objects of a collection. The query text is vectorized server-side by the collection's vectorizer module and the closest objects are returned, each as an envelope of its `id`, the selected `properties`, the selected `references` and, when requested, its retrieval `metadata`. */
+  'search.nearText': {
+    parameters: {
+      path: {
+        /** The name (or alias) of the collection to search. A lowercase first letter is normalized to the canonical uppercase form. */
+        collection: string;
+      };
+      body: {
+        /** The near-text search request. */
+        body: definitions['SearchNearTextRequest'];
+      };
+    };
+    responses: {
+      /** Search performed successfully. */
+      200: {
+        schema: definitions['SearchResponse'];
+      };
+      /** An invalid parameter value (e.g. empty query, negative paging, unknown property) or an unparseable request body. */
+      400: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Unauthorized or invalid credentials. */
+      401: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Forbidden */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Unknown collection or tenant. */
+      404: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** The request body exceeded the 4194304 byte (4 MiB) limit. */
+      413: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Either a request-schema violation (a missing required field such as `query`, or an invalid enum value), or a well-formed request that cannot run: no vectorizer module is configured for the collection, targetVector is missing on a multi-named-vector collection, certainty is used on a non-cosine index, a reserved (not yet supported) parameter is present, the tenant usage does not match the collection's multi-tenancy configuration, or a where filter targets a property whose inverted index is disabled. */
+      422: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** The server's query rate limit was reached; retry later. */
+      429: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** An error has occurred while trying to fulfill the request, including a failure of the embedding provider to vectorize the query. Most likely the ErrorResponse will contain more information about the error. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** The server is in an operational mode that blocks searches (e.g. WRITE_ONLY); retry once the server returns to normal operation. */
+      503: {
+        schema: definitions['ErrorResponse'];
+      };
+    };
+  };
+  /** Performs a similarity search over the objects of a collection, anchored at a vector supplied by the caller: the query `vector` is searched against the vector index and the closest objects are returned, each as an envelope of its `id`, the selected `properties`, the selected `references` and, when requested, its retrieval `metadata`. No query is vectorized, so collections without a vectorizer module are fully searchable. The query vector must have the dimensionality of the vector space it is searched against, that is of the collection's (target) vector. */
+  'search.nearVector': {
+    parameters: {
+      path: {
+        /** The name (or alias) of the collection to search. A lowercase first letter is normalized to the canonical uppercase form. */
+        collection: string;
+      };
+      body: {
+        /** The near-vector search request. */
+        body: definitions['SearchNearVectorRequest'];
+      };
+    };
+    responses: {
+      /** Search performed successfully. */
+      200: {
+        schema: definitions['SearchResponse'];
+      };
+      /** An invalid parameter value (e.g. a vector that is empty, holds a non-number or a number outside the 32-bit float range, negative paging, unknown property) or an unparseable request body. */
+      400: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Unauthorized or invalid credentials. */
+      401: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Forbidden */
+      403: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Unknown collection or tenant. */
+      404: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** The request body exceeded the 4194304 byte (4 MiB) limit. */
+      413: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** Either a request-schema violation (a missing or null required `vector`, or an invalid enum value), or a well-formed request that cannot run: the vector is a multi-vector (an array of vectors), the (target) vector searched is a multi-vector index, the vector does not have the dimensionality of the index searched, targetVector is missing on a multi-named-vector collection, certainty is used on a non-cosine index, a reserved (not yet supported) parameter is present, the tenant usage does not match the collection's multi-tenancy configuration, or a where filter targets a property whose inverted index is disabled. */
+      422: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** The server's query rate limit was reached; retry later. */
+      429: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** An error has occurred while trying to fulfill the request. Most likely the ErrorResponse will contain more information about the error. */
+      500: {
+        schema: definitions['ErrorResponse'];
+      };
+      /** The server is in an operational mode that blocks searches (e.g. WRITE_ONLY); retry once the server returns to normal operation. */
+      503: {
+        schema: definitions['ErrorResponse'];
+      };
     };
   };
 }
