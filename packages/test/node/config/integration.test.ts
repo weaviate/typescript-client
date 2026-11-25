@@ -365,6 +365,64 @@ describe('Testing of the collection.config namespace', () => {
     expect(config.vectorizers.default.vectorizer.name).toEqual('none');
   });
 
+  requireAtLeast(1, 41, 0).describe('quantizer rescoreFactor', () => {
+    it.each([
+      {
+        name: 'pq',
+        create: weaviate.configure.vectorIndex.quantizer.pq,
+        update: weaviate.reconfigure.vectorIndex.quantizer.pq,
+      },
+      {
+        name: 'bq',
+        create: weaviate.configure.vectorIndex.quantizer.bq,
+        update: weaviate.reconfigure.vectorIndex.quantizer.bq,
+      },
+      {
+        name: 'sq',
+        create: weaviate.configure.vectorIndex.quantizer.sq,
+        update: weaviate.reconfigure.vectorIndex.quantizer.sq,
+      },
+      {
+        name: 'rq',
+        create: weaviate.configure.vectorIndex.quantizer.rq,
+        update: weaviate.reconfigure.vectorIndex.quantizer.rq,
+      },
+    ])('should set and update rescoreFactor on an HNSW $name quantizer', async ({ name, create, update }) => {
+      const collectionName = `TestCollectionConfigRescoreFactor${name.toUpperCase()}`;
+      await client.collections.delete(collectionName);
+      afters.push(() => client.collections.delete(collectionName));
+      const collection = await client.collections.create({
+        name: collectionName,
+        vectorizers: weaviate.configure.vectors.none({
+          vectorIndexConfig: weaviate.configure.vectorIndex.hnsw({
+            quantizer: create({ rescoreLimit: 30, rescoreFactor: 2.5 }),
+          }),
+        }),
+      });
+
+      let quantizer = await collection.config
+        .get()
+        .then((config) => (config.vectorizers.default.indexConfig as VectorIndexConfigHNSW).quantizer);
+      expect(quantizer?.type).toEqual(name);
+      expect(quantizer?.rescoreLimit).toEqual(30);
+      expect(quantizer?.rescoreFactor).toEqual(2.5);
+
+      await collection.config.update({
+        vectorizers: weaviate.reconfigure.vectors.update({
+          vectorIndexConfig: weaviate.reconfigure.vectorIndex.hnsw({
+            quantizer: update({ rescoreFactor: 4 }),
+          }),
+        }),
+      });
+
+      quantizer = await collection.config
+        .get()
+        .then((config) => (config.vectorizers.default.indexConfig as VectorIndexConfigHNSW).quantizer);
+      expect(quantizer?.rescoreLimit).toEqual(30);
+      expect(quantizer?.rescoreFactor).toEqual(4);
+    });
+  });
+
   it('should be able to get the config of a collection with flat-bq', async () => {
     const collectionName = 'TestCollectionConfigGetFlatPlusBQ';
     afters.push(() => client.collections.delete(collectionName));
@@ -753,6 +811,12 @@ describe('Testing of the collection.config namespace', () => {
           type: 'kmeans',
           distribution: 'log-normal',
         },
+        rescoreLimit: (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 41, 0)))
+          ? undefined
+          : -1,
+        rescoreFactor: (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 41, 0)))
+          ? undefined
+          : -1,
         type: 'pq',
       },
       type: 'hnsw',
@@ -870,6 +934,12 @@ describe('Testing of the collection.config namespace', () => {
           type: 'kmeans',
           distribution: 'log-normal',
         },
+        rescoreLimit: (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 41, 0)))
+          ? undefined
+          : -1,
+        rescoreFactor: (await client.getWeaviateVersion().then((ver) => ver.isLowerThan(1, 41, 0)))
+          ? undefined
+          : -1,
         type: 'pq',
       },
     });

@@ -554,6 +554,8 @@ class ConfigMapping {
       centroids: v.centroids,
       trainingLimit: v.trainingLimit,
       encoder: ConfigMapping.pqEncoder(v.encoder),
+      rescoreLimit: v.rescoreLimit as number | undefined,
+      rescoreFactor: v.rescoreFactor as number | undefined,
       type: 'pq',
     };
   }
@@ -653,6 +655,7 @@ class ConfigMapping {
     return {
       cache,
       rescoreLimit,
+      rescoreFactor: v.rescoreFactor as number | undefined,
       type: 'bq',
     };
   }
@@ -666,6 +669,7 @@ class ConfigMapping {
     return {
       bits,
       rescoreLimit,
+      rescoreFactor: v.rescoreFactor as number | undefined,
       type: 'rq',
     };
   }
@@ -678,6 +682,7 @@ class ConfigMapping {
     const trainingLimit = v.trainingLimit === undefined ? 100000 : (v.trainingLimit as number);
     return {
       rescoreLimit,
+      rescoreFactor: v.rescoreFactor as number | undefined,
       trainingLimit,
       type: 'sq',
     };

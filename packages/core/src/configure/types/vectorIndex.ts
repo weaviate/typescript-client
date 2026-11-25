@@ -27,6 +27,7 @@ export type RQConfigCreate = QuantizerRecursivePartial<RQConfig>;
 export type RQConfigUpdate = {
   bit?: number;
   rescoreLimit?: number;
+  rescoreFactor?: number;
   type: 'rq';
 };
 
@@ -41,6 +42,8 @@ export type PQConfigUpdate = {
     type?: PQEncoderType;
     distribution?: PQEncoderDistribution;
   };
+  rescoreLimit?: number;
+  rescoreFactor?: number;
   type: 'pq';
 };
 
@@ -48,6 +51,7 @@ export type BQConfigCreate = QuantizerRecursivePartial<BQConfig>;
 
 export type BQConfigUpdate = {
   rescoreLimit?: number;
+  rescoreFactor?: number;
   type: 'bq';
 };
 
@@ -55,6 +59,7 @@ export type SQConfigCreate = QuantizerRecursivePartial<SQConfig>;
 
 export type SQConfigUpdate = {
   rescoreLimit?: number;
+  rescoreFactor?: number;
   trainingLimit?: number;
   type: 'sq';
 };

@@ -262,8 +262,20 @@ export class MergeWithExisting {
       merged.bq = { ...current!.bq!, ...quant, enabled: true };
     }
     if (QuantizerGuards.isPQUpdate(quantizer)) {
-      const { type, ...quant } = quantizer;
-      merged.pq = { ...current!.pq!, ...quant, enabled: true };
+      const { type, encoder, ...quant } = quantizer;
+      // Merge the encoder field by field so an update that omits it keeps the stored one.
+      const encoderUpdate = Object.fromEntries(
+        Object.entries(encoder ?? {}).filter(([, value]) => value !== undefined)
+      );
+      const currentEncoder = (current?.pq as any)?.encoder;
+      merged.pq = {
+        ...current!.pq!,
+        ...quant,
+        ...(currentEncoder || Object.keys(encoderUpdate).length > 0
+          ? { encoder: { ...currentEncoder, ...encoderUpdate } }
+          : {}),
+        enabled: true,
+      };
     }
     if (QuantizerGuards.isSQUpdate(quantizer)) {
       const { type, ...quant } = quantizer;

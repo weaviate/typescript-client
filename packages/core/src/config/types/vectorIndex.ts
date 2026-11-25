@@ -60,11 +60,13 @@ export type VectorIndexConfigType<I> = I extends 'hnsw'
 export type BQConfig = {
   cache: boolean;
   rescoreLimit: number;
+  rescoreFactor?: number;
   type: 'bq';
 };
 
 export type SQConfig = {
   rescoreLimit: number;
+  rescoreFactor?: number;
   trainingLimit: number;
   type: 'sq';
 };
@@ -75,12 +77,15 @@ export type PQConfig = {
   encoder: PQEncoderConfig;
   segments: number;
   trainingLimit: number;
+  rescoreLimit?: number;
+  rescoreFactor?: number;
   type: 'pq';
 };
 
 export type RQConfig = {
   bits?: number;
   rescoreLimit?: number;
+  rescoreFactor?: number;
   type: 'rq';
 };
 
