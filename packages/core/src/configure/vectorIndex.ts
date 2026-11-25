@@ -192,13 +192,15 @@ const configure = {
      * Create an object of type `BQConfigCreate` to be used when defining the quantizer configuration of a vector index.
      *
      * @param {boolean} [options.cache] Whether to cache the quantizer. Default is false.
-     * @param {number} [options.rescoreLimit] The rescore limit. Default is 1000.
+     * @param {number} [options.rescoreLimit] The rescore limit.
+     * @param {number} [options.rescoreFactor] The rescore factor. Weaviate rescores at least the query limit multiplied by this factor.
      * @returns {BQConfigCreate} The object of type `BQConfigCreate`.
      */
-    bq: (options?: { cache?: boolean; rescoreLimit?: number }): BQConfigCreate => {
+    bq: (options?: { cache?: boolean; rescoreLimit?: number; rescoreFactor?: number }): BQConfigCreate => {
       return {
         cache: options?.cache,
         rescoreLimit: options?.rescoreLimit,
+        rescoreFactor: options?.rescoreFactor,
         type: 'bq',
       };
     },
@@ -206,13 +208,15 @@ const configure = {
      * Create an object of type `RQConfigCreate` to be used when defining the quantizer configuration of a vector index.
      *
      * @param {number} [options.bits] Number of bits to user per vector element.
-     * @param {number} [options.rescoreLimit] The rescore limit. Default is 1000.
+     * @param {number} [options.rescoreLimit] The rescore limit.
+     * @param {number} [options.rescoreFactor] The rescore factor. Weaviate rescores at least the query limit multiplied by this factor.
      * @returns {RQConfigCreate} The object of type `RQConfigCreate`.
      */
-    rq: (options?: { bits?: number; rescoreLimit?: number }): RQConfigCreate => {
+    rq: (options?: { bits?: number; rescoreLimit?: number; rescoreFactor?: number }): RQConfigCreate => {
       return {
         bits: options?.bits,
         rescoreLimit: options?.rescoreLimit,
+        rescoreFactor: options?.rescoreFactor,
         type: 'rq',
       };
     },
@@ -225,6 +229,8 @@ const configure = {
      * @param {PQEncoderType} [options.encoder.type] The encoder type.
      * @param {number} [options.segments] The number of segments.
      * @param {number} [options.trainingLimit] The training limit.
+     * @param {number} [options.rescoreLimit] The rescore limit.
+     * @param {number} [options.rescoreFactor] The rescore factor. Weaviate rescores at least the query limit multiplied by this factor.
      * @returns {PQConfigCreate} The object of type `PQConfigCreate`.
      */
     pq: (options?: {
@@ -236,6 +242,8 @@ const configure = {
       };
       segments?: number;
       trainingLimit?: number;
+      rescoreLimit?: number;
+      rescoreFactor?: number;
     }): PQConfigCreate => {
       return {
         bitCompression: options?.bitCompression,
@@ -248,6 +256,8 @@ const configure = {
           : undefined,
         segments: options?.segments,
         trainingLimit: options?.trainingLimit,
+        rescoreLimit: options?.rescoreLimit,
+        rescoreFactor: options?.rescoreFactor,
         type: 'pq',
       };
     },
@@ -255,12 +265,18 @@ const configure = {
      * Create an object of type `SQConfigCreate` to be used when defining the quantizer configuration of a vector index.
      *
      * @param {number} [options.rescoreLimit] The rescore limit.
+     * @param {number} [options.rescoreFactor] The rescore factor. Weaviate rescores at least the query limit multiplied by this factor.
      * @param {number} [options.trainingLimit] The training limit.
      * @returns {SQConfigCreate} The object of type `SQConfigCreate`.
      */
-    sq: (options?: { rescoreLimit?: number; trainingLimit?: number }): SQConfigCreate => {
+    sq: (options?: {
+      rescoreLimit?: number;
+      rescoreFactor?: number;
+      trainingLimit?: number;
+    }): SQConfigCreate => {
       return {
         rescoreLimit: options?.rescoreLimit,
+        rescoreFactor: options?.rescoreFactor,
         trainingLimit: options?.trainingLimit,
         type: 'sq',
       };
@@ -360,9 +376,10 @@ const reconfigure = {
      *
      * @param {boolean} [options.cache] Whether to cache the quantizer.
      * @param {number} [options.rescoreLimit] The new rescore limit.
+     * @param {number} [options.rescoreFactor] The new rescore factor. Weaviate rescores at least the query limit multiplied by this factor.
      * @returns {BQConfigUpdate} The configuration object.
      */
-    bq: (options?: { cache?: boolean; rescoreLimit?: number }): BQConfigUpdate => {
+    bq: (options?: { cache?: boolean; rescoreLimit?: number; rescoreFactor?: number }): BQConfigUpdate => {
       return {
         ...options,
         type: 'bq',
@@ -375,9 +392,10 @@ const reconfigure = {
      * So if you want to change the quantizer type, you must recreate the collection.
      *
      * @param {number} [options.rescoreLimit] The new rescore limit.
+     * @param {number} [options.rescoreFactor] The new rescore factor. Weaviate rescores at least the query limit multiplied by this factor.
      * @returns {RQConfigUpdate} The configuration object.
      */
-    rq: (options?: { rescoreLimit?: number }): RQConfigUpdate => {
+    rq: (options?: { rescoreLimit?: number; rescoreFactor?: number }): RQConfigUpdate => {
       return {
         ...options,
         type: 'rq',
@@ -394,6 +412,8 @@ const reconfigure = {
      * @param {PQEncoderType} [options.pqEncoderType] The new encoder type.
      * @param {number} [options.segments] The new number of segments.
      * @param {number} [options.trainingLimit] The new training limit.
+     * @param {number} [options.rescoreLimit] The new rescore limit.
+     * @param {number} [options.rescoreFactor] The new rescore factor. Weaviate rescores at least the query limit multiplied by this factor.
      * @returns {PQConfigUpdate} The configuration object.
      */
     pq: (options?: {
@@ -402,6 +422,8 @@ const reconfigure = {
       pqEncoderType?: PQEncoderType;
       segments?: number;
       trainingLimit?: number;
+      rescoreLimit?: number;
+      rescoreFactor?: number;
     }): PQConfigUpdate => {
       const { pqEncoderDistribution, pqEncoderType, ...rest } = options || {};
       return {
@@ -423,10 +445,15 @@ const reconfigure = {
      * So if you want to change the quantizer type, you must recreate the collection.
      *
      * @param {number} [options.rescoreLimit] The rescore limit.
+     * @param {number} [options.rescoreFactor] The rescore factor. Weaviate rescores at least the query limit multiplied by this factor.
      * @param {number} [options.trainingLimit] The training limit.
      * @returns {SQConfigUpdate} The configuration object.
      */
-    sq: (options?: { rescoreLimit?: number; trainingLimit?: number }): SQConfigUpdate => {
+    sq: (options?: {
+      rescoreLimit?: number;
+      rescoreFactor?: number;
+      trainingLimit?: number;
+    }): SQConfigUpdate => {
       return {
         ...options,
         type: 'sq',

@@ -1,7 +1,11 @@
 import { MergeWithExisting } from '@weaviate/core/config/classes.js';
-import { GenerativeCohereConfig, RerankerCohereConfig } from '@weaviate/core/config/types';
+import {
+  GenerativeCohereConfig,
+  RerankerCohereConfig,
+  VectorIndexConfigHFresh,
+} from '@weaviate/core/config/types';
 import { classToCollection, makeVectorsConfig } from '@weaviate/core/config/utils.js';
-import { configure } from '@weaviate/core/configure';
+import { configure, reconfigure } from '@weaviate/core/configure';
 import {
   WeaviateClass,
   WeaviateInvertedIndexConfig,
@@ -373,6 +377,45 @@ describe('Unit testing of the MergeWithExisting class', () => {
     });
   });
 
+  it.each([
+    {
+      name: 'no encoder options',
+      options: { rescoreFactor: 3 },
+      want: { type: 'tile', distribution: 'normal' },
+    },
+    {
+      name: 'only the encoder type',
+      options: { pqEncoderType: 'kmeans' as const },
+      want: { type: 'kmeans', distribution: 'normal' },
+    },
+    {
+      name: 'only the encoder distribution',
+      options: { pqEncoderDistribution: 'log-normal' as const },
+      want: { type: 'tile', distribution: 'log-normal' },
+    },
+    {
+      name: 'both encoder options',
+      options: { pqEncoderType: 'kmeans' as const, pqEncoderDistribution: 'log-normal' as const },
+      want: { type: 'kmeans', distribution: 'log-normal' },
+    },
+  ])('should keep the unspecified PQ encoder fields when updating with $name', ({ options, want }) => {
+    const existing = deepCopy(hnswVectorConfig);
+    existing.name.vectorIndexConfig.pq = {
+      ...existing.name.vectorIndexConfig.pq,
+      enabled: true,
+      encoder: { type: 'tile', distribution: 'normal' },
+    };
+    const merged = MergeWithExisting.vectors(existing, [
+      {
+        name: 'name',
+        vectorIndex: reconfigure.vectorIndex.hnsw({
+          quantizer: reconfigure.vectorIndex.quantizer.pq(options),
+        }),
+      },
+    ]);
+    expect((merged?.name.vectorIndexConfig?.pq as any).encoder).toEqual(want);
+  });
+
   it('should merge a BQ quantizer Flat vectorIndexConfig with existing schema', () => {
     const merged = MergeWithExisting.vectors(deepCopy(flatVectorConfig), [
       {
@@ -601,5 +644,27 @@ describe('classToCollection', () => {
     } else {
       expect(classToCollection(cls).vectorizers).toEqual(want);
     }
+  });
+
+  it.each([undefined, -1, 2.5])('should parse a quantizer with rescoreFactor %s', (rescoreFactor) => {
+    const cls: WeaviateClass = {
+      ...vectorlessClass,
+      vectorConfig: {
+        vec: {
+          vectorizer: { none: {} },
+          vectorIndexType: 'hfresh',
+          vectorIndexConfig: {
+            distance: 'cosine',
+            maxPostingSizeKB: 48,
+            searchProbe: 64,
+            replicas: 4,
+            rq: { enabled: true, bits: 1, rescoreLimit: 350, rescoreFactor },
+          },
+        },
+      },
+    };
+    const quantizer = (classToCollection(cls).vectorizers.vec.indexConfig as VectorIndexConfigHFresh)
+      .quantizer;
+    expect(quantizer).toEqual({ type: 'rq', bits: 1, rescoreLimit: 350, rescoreFactor });
   });
 });
