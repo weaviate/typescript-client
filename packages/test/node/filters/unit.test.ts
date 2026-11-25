@@ -375,6 +375,70 @@ describe('Unit testing of filters', () => {
         value: true,
       });
     });
+
+    it('should keep every hop of a reference filter nested three deep', () => {
+      const f = filter.byRef('self').byRef('self').byRef('self').byProperty('name').isNull(true);
+      expect(f).toEqual<FilterValue<boolean>>({
+        operator: 'IsNull',
+        target: {
+          singleTarget: {
+            on: 'self',
+            target: {
+              singleTarget: {
+                on: 'self',
+                target: {
+                  singleTarget: {
+                    on: 'self',
+                    target: {
+                      property: 'name',
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        value: true,
+      });
+    });
+
+    it('should allow reusing a reference property builder for several operators', () => {
+      const age = filter.byRef('self').byProperty('age');
+      const target = {
+        singleTarget: {
+          on: 'self',
+          target: {
+            property: 'age',
+          },
+        },
+      };
+      expect(Filters.and(age.greaterThan(18), age.lessThan(65))).toEqual<FilterValue<null>>({
+        operator: 'And',
+        filters: [
+          { operator: 'GreaterThan', target, value: 18 },
+          { operator: 'LessThan', target, value: 65 },
+        ],
+        value: null,
+      });
+    });
+
+    it('should allow reusing a reference builder for sibling filters', () => {
+      const self = filter.byRef('self');
+      self.byRef('self').byProperty('name').isNull(true);
+      const f = self.byProperty('age').equal(1);
+      expect(f).toEqual<FilterValue<number>>({
+        operator: 'Equal',
+        target: {
+          singleTarget: {
+            on: 'self',
+            target: {
+              property: 'age',
+            },
+          },
+        },
+        value: 1,
+      });
+    });
   });
 
   it('should create a nested reference count filter', () => {
