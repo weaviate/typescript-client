@@ -197,9 +197,9 @@ const db = (connection: ConnectionREST): DBUsers => {
         .catch(expectCode(409)),
     deactivate: (userId: string, opts?: DeactivateOptions) =>
       connection
-        .postEmpty<DeactivateOptions | null>(
+        .postEmpty(
           `/users/db/${encodeURIComponent(userId)}/deactivate`,
-          opts || null
+          opts ? { revoke_key: opts.revokeKey } : null
         )
         .then(() => true)
         .catch(expectCode(409)),

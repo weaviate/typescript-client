@@ -102,6 +102,20 @@ requireAtLeast(1, 29, 0).describe('Integration testing of the users namespace', 
       await expect(admin.users.db.delete('dynamic-dave')).resolves.toEqual(false);
     });
 
+    it('should revoke the api key on deactivate with revokeKey', async () => {
+      const admin = await makeClient('admin-key');
+      const oldKey = await admin.users.db.create('revoked-rita');
+
+      await expect(admin.users.db.deactivate('revoked-rita', { revokeKey: true })).resolves.toEqual(true);
+      await expect(admin.users.db.activate('revoked-rita')).resolves.toEqual(true);
+
+      await expect(makeClient(oldKey).then((client) => client.users.getMyUser())).rejects.toThrow();
+
+      const newKey = await admin.users.db.rotateKey('revoked-rita');
+      const rita = await makeClient(newKey).then((client) => client.users.getMyUser());
+      expect(rita.id).toEqual('revoked-rita');
+    });
+
     it('should be able to obtain and rotate api keys', async () => {
       const admin = await makeClient('admin-key');
       const apiKey = await admin.users.db.create('api-ashley');
