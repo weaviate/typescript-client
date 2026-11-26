@@ -49,6 +49,8 @@ describe('Query consistency metadata', () => {
     it.each([
       { label: 'false', value: false, present: true, expected: false },
       { label: 'true', value: true, present: true, expected: true },
+      { label: 'false without legacy flag', value: false, present: false, expected: false },
+      { label: 'true without legacy flag', value: true, present: false, expected: true },
       { label: 'not requested', value: undefined, present: false, expected: undefined },
     ])('preserves $label consistency metadata', async ({ value, present, expected }) => {
       const metadata = {
@@ -75,7 +77,7 @@ describe('Query consistency metadata', () => {
       });
 
       const collection = client.collections.use('Test');
-      const opts = { returnMetadata: present ? ['isConsistent' as const] : undefined };
+      const opts = { returnMetadata: value !== undefined ? ['isConsistent' as const] : undefined };
       let actual: boolean | undefined;
       if (path === 'reference') {
         const result = await collection.query.fetchObjects({
@@ -95,7 +97,7 @@ describe('Query consistency metadata', () => {
       expect(requests).toHaveLength(1);
       const requested =
         path === 'reference' ? requests[0].properties?.refProperties[0].metadata : requests[0].metadata;
-      expect(requested?.isConsistent).toBe(present);
+      expect(requested?.isConsistent).toBe(value !== undefined);
       expect(actual).toBe(expected);
     });
   });
