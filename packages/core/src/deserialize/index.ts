@@ -414,7 +414,7 @@ export class Deserialize {
     if (metadata.scorePresent) out.score = metadata.score;
     if (metadata.explainScorePresent) out.explainScore = metadata.explainScore;
     if (metadata.rerankScorePresent) out.rerankScore = metadata.rerankScore;
-    if (metadata.isConsistent) out.isConsistent = metadata.isConsistent;
+    if (metadata.isConsistentPresent) out.isConsistent = metadata.isConsistent;
     return out;
   }
 
