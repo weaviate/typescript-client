@@ -1,5 +1,6 @@
 /* eslint-disable no-await-in-loop */
 import { Queue } from '@weaviate/core/data/batch.js';
+import { normalizeBatchInput } from '@weaviate/core/data/index.js';
 import { describe, expect, it } from 'vitest';
 
 describe('Unit testing of the Queue class', () => {
@@ -84,5 +85,34 @@ describe('Unit testing of the Queue class', () => {
     expect(await queue.pull(100)).toBeNull();
     queue.push(99);
     expect(await queue.pull(0)).toBe(99);
+  });
+});
+
+describe('Unit testing of normalizeBatchInput (data.ingest metadata-loss regression)', () => {
+  it('wraps an unwrapped NonReferenceInputs object into a properties field', () => {
+    expect(normalizeBatchInput({ title: 'alpha' })).toEqual({
+      properties: { title: 'alpha' },
+    });
+  });
+
+  it('leaves an already-wrapped DataObject untouched', () => {
+    const wrapped = { id: 'fixed-id', properties: { title: 'alpha' } };
+    expect(normalizeBatchInput(wrapped)).toBe(wrapped);
+  });
+
+  it('treats an object carrying only references as already wrapped', () => {
+    const wrapped = { references: { relatedTo: ['some-uuid'] } };
+    expect(normalizeBatchInput(wrapped as any)).toBe(wrapped);
+  });
+
+  it('treats an object carrying only vectors as already wrapped', () => {
+    const wrapped = { vectors: [0.1, 0.2, 0.3] };
+    expect(normalizeBatchInput(wrapped as any)).toBe(wrapped);
+  });
+
+  it('produces the same properties shape for the ingest() and insertMany() input forms', () => {
+    const unwrapped = normalizeBatchInput({ title: 'alpha' });
+    const wrapped = normalizeBatchInput({ properties: { title: 'alpha' } });
+    expect(unwrapped.properties).toEqual(wrapped.properties);
   });
 });
