@@ -185,12 +185,14 @@ class UserPasswordAuthenticator implements OidcAuthFlow {
     this.creds = creds;
     this.openidConfig = config;
     if (creds.scopes) {
-      this.openidConfig.scopes.push(creds.scopes);
+      this.openidConfig.scopes.push(...([] as string[]).concat(creds.scopes));
     }
   }
 
   refresh = () => {
-    this.openidConfig.scopes.push('offline_access');
+    if (!this.openidConfig.scopes.includes('offline_access')) {
+      this.openidConfig.scopes.push('offline_access');
+    }
     return this.requestAccessToken()
       .then((tokenResp: RequestAccessTokenResponse) => {
         return {
@@ -331,7 +333,7 @@ class ClientCredentialsAuthenticator implements OidcAuthFlow {
     this.creds = creds;
     this.openidConfig = config;
     if (creds.scopes) {
-      this.openidConfig.scopes.push(creds.scopes);
+      this.openidConfig.scopes.push(...([] as string[]).concat(creds.scopes));
     }
   }
 
