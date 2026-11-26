@@ -85,17 +85,16 @@ export interface DBUsers extends UsersBase {
   /** Create a new 'db_user' user.
    *
    * @param {string} userId The ID of the user to create. Must consist of valid URL characters only.
-   * @param {CreateUserOptions} [opts] Optional `expiresAt`, which requires Weaviate 1.41.0+ and a license key on the server.
+   * @param {CreateUserOptions} [opts] Options for creating the user.
    * @returns {Promise<string>} API key for the newly created user.
    */
   create: (userId: string, opts?: CreateUserOptions) => Promise<string>;
 
   /**
-   * Set or clear the time at which a 'db_user' user's API key stops authenticating.
-   * Requires Weaviate 1.41.0+ and a Weaviate license key on the server, which otherwise answers 403.
+   * Set the expiration of a 'db_user' user's API key. Requires Weaviate 1.41.0+.
    *
    * @param {string} userId The ID of the user.
-   * @param {Date | null} expiresAt Future time at which the key stops authenticating, or `null` for a key that never expires.
+   * @param {Date | null} expiresAt When the API key expires, or `null` for a key that never expires.
    * @returns {Promise<void>} A promise that resolves when the expiration is updated.
    */
   updateUserExpiration: (userId: string, expiresAt: Date | null) => Promise<void>;
@@ -110,7 +109,6 @@ export interface DBUsers extends UsersBase {
 
   /**
    * Rotate the API key of a 'db_user' user. The old API key becomes invalid.
-   * The user's expiration carries over to the new key.
    * API keys of 'db_env_user' users are defined in the server's environment
    * and cannot be modified programmatically.
    *
@@ -137,7 +135,6 @@ export interface DBUsers extends UsersBase {
 
   /**
    * Retrieve information about the 'db_user' / 'db_env_user' user.
-   * `active` stays `true` after the user expires, so compare `expiresAt` with the current time.
    *
    * @param {string} userId The ID of the user to get.
    * @returns {Promise<UserDB>} ID, status, and assigned roles of a 'db_*' user.
@@ -146,7 +143,6 @@ export interface DBUsers extends UsersBase {
 
   /**
    * List all 'db_user' / 'db_env_user' users.
-   * `active` stays `true` after a user expires, so compare `expiresAt` with the current time.
    *
    * @returns {Promise<UserDB[]>} ID, status, and assigned roles for each 'db_*' user.
    */
