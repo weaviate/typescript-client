@@ -191,7 +191,7 @@ const client = async (
     groups: groups(connection),
     roles: roles(connection),
     tokenize: tokenize(connection, dbVersionSupport),
-    users: users(connection),
+    users: users(connection, dbVersionSupport),
     close: () => Promise.resolve(connection.close()), // hedge against future changes to add I/O to .close()
     getMeta: () => new MetaGetter(connection).do(),
     getConnectionDetails: connection.getDetails,

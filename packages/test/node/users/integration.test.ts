@@ -1,3 +1,4 @@
+import { WeaviateUnsupportedFeatureError } from '@weaviate/core/errors';
 import { WeaviateUserTypeDB } from '@weaviate/core/openapi/types';
 import { GetUserOptions, UserDB } from '@weaviate/core/users/types';
 import weaviate, { ApiKey, WeaviateClient } from '@weaviate/node';
@@ -222,6 +223,43 @@ requireAtLeast(1, 29, 0).describe('Integration testing of the users namespace', 
           )
         );
       });
+    });
+
+    requireAtLeast(1, 41, 0).describe('user expiration', () => {
+      // Needs a license key on the server.
+      const licensed = it.skipIf(!process.env.WEAVIATE_LICENSE_KEY);
+
+      licensed('should set, update and clear the expiration of a user', async () => {
+        const admin = await makeClient('admin-key');
+        const day = 24 * 60 * 60 * 1000;
+        const inOneDay = new Date(Date.now() + day);
+        const key = await admin.users.db.create('expiring-eve', { expiresAt: inOneDay });
+        await expect(admin.users.db.byName('expiring-eve')).resolves.toHaveProperty('expiresAt', inOneDay);
+        const listed = await admin.users.db.listAll().then((all) => all.find((u) => u.id === 'expiring-eve'));
+        expect(listed?.expiresAt).toEqual(inOneDay);
+        const eve = await makeClient(key);
+        await expect(eve.users.getMyUser()).resolves.toHaveProperty('expiresAt', inOneDay);
+
+        const inTwoDays = new Date(Date.now() + 2 * day);
+        await admin.users.db.updateUserExpiration('expiring-eve', inTwoDays);
+        await expect(admin.users.db.byName('expiring-eve')).resolves.toHaveProperty('expiresAt', inTwoDays);
+
+        await admin.users.db.updateUserExpiration('expiring-eve', null);
+        await expect(admin.users.db.byName('expiring-eve')).resolves.toHaveProperty('expiresAt', undefined);
+      });
+    });
+
+    it('should reject user expiration on Weaviate < 1.41', async (ctx) => {
+      const admin = await makeClient('admin-key');
+      if (await admin.getWeaviateVersion().then((ver) => !ver.isLowerThan(1, 41, 0))) ctx.skip();
+
+      const inOneDay = new Date(Date.now() + 24 * 60 * 60 * 1000);
+      await expect(admin.users.db.create('expiry-unsupported', { expiresAt: inOneDay })).rejects.toThrow(
+        WeaviateUnsupportedFeatureError
+      );
+      await expect(admin.users.db.updateUserExpiration('expiry-unsupported', inOneDay)).rejects.toThrow(
+        WeaviateUnsupportedFeatureError
+      );
     });
 
     afterAll(() => makeClient('admin-key').then(deleteAllUsers));

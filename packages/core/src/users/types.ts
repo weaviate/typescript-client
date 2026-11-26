@@ -4,6 +4,8 @@ import { Role } from '../roles/types.js';
 export type User = {
   id: string;
   roles?: Role[];
+  /** When the user's API key expires. `undefined` if it never expires. */
+  expiresAt?: Date;
 };
 
 export type UserDB = {
@@ -15,6 +17,14 @@ export type UserDB = {
   createdAt?: Date;
   lastUsedAt?: Date;
   apiKeyFirstLetters?: string;
+  /** When the user's API key expires. `undefined` if it never expires. */
+  expiresAt?: Date;
+};
+
+/** Optional arguments to `users.db.create`. */
+export type CreateUserOptions = {
+  /** When the user's API key expires. Omit for a key that never expires. Requires Weaviate 1.41.0+. */
+  expiresAt?: Date;
 };
 
 /** Optional arguments to /user/{type}/{username} enpoint. */

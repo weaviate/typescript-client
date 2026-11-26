@@ -176,6 +176,13 @@ export class DbVersionSupport {
       supports: version.isAtLeast(1, 37, 5),
       message: undefined,
     }));
+
+  supportsUserExpiration = () =>
+    this.dbVersionProvider.getVersion().then((version) => ({
+      version,
+      supports: version.isAtLeast(1, 41, 0),
+      message: this.errorMessage('DB user expiration', version.show(), '1.41.0'),
+    }));
 }
 
 const EMPTY_VERSION = '';

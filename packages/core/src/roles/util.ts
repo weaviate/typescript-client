@@ -206,6 +206,7 @@ export class Map {
   static user = (user: WeaviateUser): User => ({
     id: user.username,
     roles: user.roles?.map(Map.roleFromWeaviate),
+    expiresAt: Map.unknownDate(user.expiresAt),
   });
   static dbUser = (user: WeaviateDBUser): UserDB => ({
     userType: user.dbUserType,
@@ -215,6 +216,7 @@ export class Map {
     createdAt: Map.unknownDate(user.createdAt),
     lastUsedAt: Map.unknownDate(user.lastUsedAt),
     apiKeyFirstLetters: user.apiKeyFirstLetters as string,
+    expiresAt: Map.unknownDate(user.expiresAt),
   });
   static dbUsers = (users: WeaviateDBUser[]): UserDB[] => users.map(Map.dbUser);
   static assignedUsers = (users: WeaviateAssignedUser[]): UserAssignment[] =>
