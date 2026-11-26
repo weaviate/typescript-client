@@ -95,9 +95,13 @@ export default class ClassificationsScheduler extends CommandBase {
 
   pollForCompletion = (id: any): Promise<Classification> => {
     return new Promise((resolve, reject) => {
-      const timeout = setTimeout(() => {
+      const stop = () => {
         clearInterval(interval);
         clearTimeout(timeout);
+      };
+
+      const timeout = setTimeout(() => {
+        stop();
         reject(
           new Error(
             "classification didn't finish within configured timeout, " +
@@ -112,10 +116,18 @@ export default class ClassificationsScheduler extends CommandBase {
           .do()
           .then((res: Classification) => {
             if (res.status === 'completed') {
-              clearInterval(interval);
-              clearTimeout(timeout);
+              stop();
               resolve(res);
+            } else if (res.status === 'failed') {
+              stop();
+              reject(new Error(`classification failed: ${res.error ?? 'unknown error'}`));
             }
+          })
+          // Without this a failed poll (network error, 404, ...) is an unhandled rejection, which
+          // terminates Node >= 15, and the interval keeps running until the timeout.
+          .catch((err: unknown) => {
+            stop();
+            reject(err);
           });
       }, 500);
     });
