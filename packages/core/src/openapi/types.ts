@@ -33,9 +33,22 @@ export type BatchRequest = {
 };
 export type BatchReference = definitions['BatchReference'];
 export type BatchReferenceResponse = definitions['BatchReferenceResponse'];
-// C11y
-export type C11yWordsResponse = definitions['C11yWordsResponse'];
-export type C11yExtension = definitions['C11yExtension'];
+// C11y: the v1.41 schema dropped these definitions, so they are kept here for the v2 c11y API.
+type C11yNearestNeighbors = { word?: string; distance?: number }[];
+export type C11yWordsResponse = {
+  concatenatedWord?: {
+    concatenatedWord?: string;
+    singleWords?: unknown[];
+    concatenatedVector?: definitions['C11yVector'];
+    concatenatedNearestNeighbors?: C11yNearestNeighbors;
+  };
+  individualWords?: {
+    word?: string;
+    present?: boolean;
+    info?: { vector?: definitions['C11yVector']; nearestNeighbors?: C11yNearestNeighbors };
+  }[];
+};
+export type C11yExtension = { concept?: string; definition?: string; weight?: number };
 // Classifications
 export type Classification = definitions['Classification'];
 // GraphQL
@@ -62,7 +75,8 @@ export type WeaviateStopwordConfig = definitions['StopwordConfig'];
 export type WeaviateMultiTenancyConfig = WeaviateClass['multiTenancyConfig'];
 export type WeaviateObjectTTLConfig = WeaviateClass['objectTtlConfig'];
 export type WeaviateShardingConfig = WeaviateClass['shardingConfig'];
-export type WeaviateShardStatus = definitions['ShardStatusGetResponse'];
+// Omit the v1.41 per_node_status, which `config.getShards` does not map and would otherwise become required.
+export type WeaviateShardStatus = Omit<definitions['ShardStatusGetResponse'], 'per_node_status'>;
 export type WeaviateVectorIndexConfig = WeaviateClass['vectorIndexConfig'];
 export type WeaviateVectorsConfig = WeaviateClass['vectorConfig'];
 export type WeaviateVectorConfig = definitions['VectorConfig'];
