@@ -73,6 +73,20 @@ export class Filters {
   }
 }
 
+/**
+ * Returns a copy of the reference chain with `leaf` added after its last hop.
+ * The chain passed in is never mutated, so builders can be reused.
+ */
+const appendTarget = (refs: TargetRefs, leaf: FilterTargetInternal): TargetRefs => {
+  if (refs.target === undefined) {
+    return { ...refs, target: leaf };
+  }
+  if (TargetGuards.isTargetRef(refs.target)) {
+    return { ...refs, target: appendTarget(refs.target, leaf) };
+  }
+  throw new WeaviateInvalidInputError('Invalid target reference');
+};
+
 export class FilterBase {
   protected target?: TargetRefs;
   protected property: string | CountRef;
@@ -93,16 +107,7 @@ export class FilterBase {
           : undefined,
       });
     }
-    let target = this.target;
-    while (target.target !== undefined) {
-      if (TargetGuards.isTargetRef(target.target)) {
-        target = target.target;
-      } else {
-        throw new WeaviateInvalidInputError('Invalid target reference');
-      }
-    }
-    target.target = this.property;
-    return this.resolveTargets(this.target);
+    return this.resolveTargets(appendTarget(this.target, this.property));
   }
 
   private resolveTargets(internal?: FilterTargetInternal): FilterTarget {
@@ -240,13 +245,15 @@ export class FilterRef<T> implements Filter<T> {
   }
 
   public byRef<K extends RefKeys<T> & string>(linkOn: K): Filter<ExtractCrossReferenceType<T[K]>> {
-    this.target.target = { type_: 'single', linkOn: linkOn };
-    return new FilterRef<ExtractCrossReferenceType<T[K]>>(Object.assign({}, this.target));
+    return new FilterRef<ExtractCrossReferenceType<T[K]>>(
+      appendTarget(this.target, { type_: 'single', linkOn: linkOn })
+    );
   }
 
   public byRefMultiTarget<K extends RefKeys<T> & string>(linkOn: K, targetCollection: string) {
-    this.target.target = { type_: 'multi', linkOn: linkOn, targetCollection: targetCollection };
-    return new FilterRef<ExtractCrossReferenceType<T[K]>>(Object.assign({}, this.target));
+    return new FilterRef<ExtractCrossReferenceType<T[K]>>(
+      appendTarget(this.target, { type_: 'multi', linkOn: linkOn, targetCollection: targetCollection })
+    );
   }
 
   public byProperty<K extends NonRefKeys<T> & string>(name: K, length = false) {
