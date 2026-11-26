@@ -18,7 +18,12 @@ export default class LiveChecker extends CommandBase {
     return this.client
       .get('/.well-known/live', false)
       .then(() => {
-        setTimeout(() => this.dbVersionProvider.refresh());
+        // Best-effort background refresh. It must not fail the check, and an unhandled rejection here
+        // would terminate Node >= 15 (e.g. /meta answers 401 while the open live/ready endpoint is up).
+        // The version is fetched again on demand the next time it is needed.
+        setTimeout(() => {
+          this.dbVersionProvider.refresh().catch(() => {});
+        });
         return Promise.resolve(true);
       })
       .catch(() => Promise.resolve(false));
