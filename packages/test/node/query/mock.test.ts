@@ -5,6 +5,7 @@ import {
   HealthDefinition,
   HealthServiceImplementation,
 } from '@weaviate/core/proto/google/health/v1/health';
+import { AggregateReply, AggregateRequest } from '@weaviate/core/proto/v1/aggregate';
 import { SearchReply, SearchRequest } from '@weaviate/core/proto/v1/search_get';
 import { WeaviateDefinition, WeaviateServiceImplementation } from '@weaviate/core/proto/v1/weaviate';
 import weaviate, { Collection, WeaviateClient } from '@weaviate/node';
@@ -15,13 +16,21 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it, vitest } from 'v
 
 class SearchMock {
   public requests: SearchRequest[] = [];
+  public aggregateRequests: AggregateRequest[] = [];
 
-  private constructor(private grpc: GrpcServer, private http: HttpServer, requests: SearchRequest[]) {
+  private constructor(
+    private grpc: GrpcServer,
+    private http: HttpServer,
+    requests: SearchRequest[],
+    aggregateRequests: AggregateRequest[]
+  ) {
     this.requests = requests;
+    this.aggregateRequests = aggregateRequests;
   }
 
   public static use = async (version: string, httpPort: number, grpcPort: number) => {
     const requests: SearchRequest[] = [];
+    const aggregateRequests: AggregateRequest[] = [];
 
     const httpApp = express();
     // Meta endpoint required for client instantiation
@@ -39,7 +48,10 @@ class SearchMock {
 
     // Search endpoint recording every request and returning an empty reply
     const weaviateMockImpl: WeaviateServiceImplementation = {
-      aggregate: vitest.fn(),
+      aggregate: (req: AggregateRequest): Promise<AggregateReply> => {
+        aggregateRequests.push(req);
+        return Promise.resolve(AggregateReply.fromPartial({ singleResult: { objectsCount: 0 } }));
+      },
       tenantsGet: vitest.fn(),
       search: (req: SearchRequest): Promise<SearchReply> => {
         requests.push(req);
@@ -54,11 +66,12 @@ class SearchMock {
 
     await grpc.listen(`localhost:${grpcPort}`);
     const http = await httpApp.listen(httpPort);
-    return new SearchMock(grpc, http, requests);
+    return new SearchMock(grpc, http, requests, aggregateRequests);
   };
 
   public clear = () => {
     this.requests.length = 0;
+    this.aggregateRequests.length = 0;
   };
 
   public close = () => Promise.all([this.http.close(), this.grpc.shutdown()]);
@@ -73,7 +86,7 @@ const mediaTypes = [
   ['video', 'nearVideo'],
 ] as const;
 
-describe('Mock testing of nearMedia', () => {
+describe('Mock testing of query serialization', () => {
   let client: WeaviateClient;
   let collection: Collection;
   let mock: SearchMock;
@@ -91,6 +104,52 @@ describe('Mock testing of nearMedia', () => {
   beforeEach(() => mock.clear());
 
   afterAll(() => mock.close());
+
+  it.each(['query', 'generate', 'aggregate'] as const)(
+    '%s.hybrid should forward nearText movement object IDs',
+    async (api) => {
+      const objects = ['00000000-0000-0000-0000-000000000001'];
+      const opts = {
+        vector: {
+          query: 'semantic query',
+          certainty: 0.8,
+          moveTo: { objects, concepts: ['towards'], force: 0.5 },
+          moveAway: { objects, concepts: ['away'], force: 0 },
+        },
+      };
+      let nearText;
+      if (api === 'aggregate') {
+        await collection.aggregate.hybrid('keyword', opts);
+        expect(mock.aggregateRequests).toHaveLength(1);
+        nearText = mock.aggregateRequests[0].hybrid?.nearText;
+      } else {
+        if (api === 'generate') {
+          await collection.generate.hybrid('keyword', { groupedTask: 'Summarise' }, opts);
+        } else {
+          await collection.query.hybrid('keyword', opts);
+        }
+        expect(mock.requests).toHaveLength(1);
+        nearText = mock.requests[0].hybridSearch?.nearText;
+      }
+      expect(nearText).toMatchObject({
+        query: ['semantic query'],
+        certainty: 0.8,
+        moveTo: { uuids: objects, concepts: ['towards'], force: 0.5 },
+        moveAway: { uuids: objects, concepts: ['away'], force: 0 },
+      });
+    }
+  );
+
+  it.each([undefined, { concepts: ['towards'], force: 0.5 }])(
+    'query.hybrid should preserve optional nearText movements: %j',
+    async (moveTo) => {
+      await collection.query.hybrid('keyword', { vector: { query: ['semantic', 'query'], moveTo } });
+      const nearText = mock.requests[0].hybridSearch?.nearText;
+      expect(nearText?.query).toEqual(['semantic', 'query']);
+      expect(nearText?.moveTo).toEqual(moveTo ? { ...moveTo, uuids: [] } : undefined);
+      expect(nearText?.moveAway).toBeUndefined();
+    }
+  );
 
   describe.each(mediaTypes)('%s', (type, field) => {
     it('query.nearMedia should forward the near options to the request', async () => {
