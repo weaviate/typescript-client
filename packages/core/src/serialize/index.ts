@@ -1151,13 +1151,7 @@ export class Serialize {
       return {
         targets,
         targetVectors,
-        nearText: NearTextSearch.fromPartial({
-          query: typeof vector.query === 'string' ? [vector.query] : vector.query,
-          certainty: vector.certainty,
-          distance: vector.distance,
-          moveAway: vector.moveAway ? NearTextSearch_Move.fromPartial(vector.moveAway) : undefined,
-          moveTo: vector.moveTo ? NearTextSearch_Move.fromPartial(vector.moveTo) : undefined,
-        }),
+        nearText: Serialize.nearTextSearch(vector),
       };
     } else if (Serialize.isHybridNearVectorSearch(vector)) {
       const { targetVectors, targets, vectorBytes, vectorPerTarget, vectorForTargets, vectors } =
